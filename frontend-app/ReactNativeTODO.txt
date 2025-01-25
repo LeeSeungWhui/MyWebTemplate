@@ -1,0 +1,94 @@
+# React Native Template TODO List
+
+## 1. 기본 컴포넌트
+### 기본 UI 컴포넌트 🔥
+- [ ] Button (variants: primary, secondary, outline, ghost)
+- [ ] Input (기본 입력, 유효성 검사)
+- [ ] Select/Picker
+- [ ] Checkbox
+- [ ] RadioButton
+- [ ] Icon (react-native-vector-icons 통합)
+- [ ] Loading Spinner
+- [ ] Alert/Toast
+- [ ] Modal
+- [ ] Card
+- [ ] List Item
+
+### 모바일 특화 컴포넌트 🔥
+- [ ] BottomSheet
+- [ ] SwipeableRow
+- [ ] PullToRefresh
+- [ ] ImagePicker
+- [ ] TabBar
+- [ ] Header
+- [ ] BottomNavigation
+
+## 2. 상태 관리
+- [ ] AppContext 포팅
+- [ ] EasyObj/EasyList 네이티브 버전
+- [ ] 앱 라이프사이클 관리
+- [ ] 네비게이션 상태 관리
+
+## 3. 네비게이션
+- [ ] Stack Navigation
+- [ ] Tab Navigation
+- [ ] Drawer Navigation
+- [ ] 화면 전환 애니메이션
+- [ ] 딥링크 처리
+
+## 4. 네이티브 기능
+- [ ] 카메라 접근
+- [ ] 파일 시스템
+- [ ] 로컬 알림
+- [ ] 위치 서비스
+- [ ] 디바이스 정보
+- [ ] 생체 인증
+- [ ] 푸시 알림
+
+## 5. 데이터 관리
+- [ ] AsyncStorage 유틸
+- [ ] API 통신 설정
+- [ ] 오프라인 지원
+- [ ] 파일 캐싱
+- [ ] 이미지 캐싱
+
+## 6. 성능 최적화
+- [ ] 리스트 최적화
+- [ ] 이미지 최적화
+- [ ] 메모리 관리
+- [ ] 애니메이션 최적화
+
+## 7. 스타일링
+- [ ] NativeWind 설정
+- [ ] 다크모드 지원
+- [ ] 반응형 디자인
+- [ ] 테마 시스템
+
+## 8. 샘플 화면
+### 기본 화면 🔥
+- [ ] 스플래시
+- [ ] 온보딩
+- [ ] 로그인/회원가입
+- [ ] 홈 대시보드
+- [ ] 프로필
+- [ ] 설정
+
+### 추가 화면 ⭐
+- [ ] 알림 목록
+- [ ] 검색
+- [ ] 상세 보기
+- [ ] 이미지 갤러리
+- [ ] 차트/그래프
+
+## 9. 배포
+- [ ] Android 빌드 설정
+- [ ] iOS 빌드 설정
+- [ ] 앱 아이콘/스플래시
+- [ ] 스토어 배포 가이드
+
+## 참고사항
+- NativeWind로 스타일링
+- TypeScript 사용 검토
+- 웹 템플릿의 로직 최대한 재사용
+- 네이티브 기능 모듈화
+- 크로스 플랫폼 호환성 고려 

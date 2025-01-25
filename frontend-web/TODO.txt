@@ -1,0 +1,103 @@
+# Frontend Web Template TODO List
+
+## 1. 기본 컴포넌트
+### 완료된 컴포넌트 ✅
+- Button (variant: primary, secondary, outline, ghost, danger, success)
+- Input (기본 입력, 유효성 검사)
+- Select
+- Checkbox
+- CheckButton
+- RadioBox
+- RadioButton
+- Icon (react-icons 통합)
+- Loading Spinner
+- Alert (info, success, warning, error)
+- Confirm (info, warning, danger)
+
+### 우선순위 높음 🔥
+- Toast 알림
+  - 화면 모서리에 표시
+  - 여러 개 동시 표시 지원
+  - 타입별 스타일 (info, success, warning, error)
+
+- Modal
+  - 크기 조절 가능
+  - 드래그 지원 (선택적)
+  - 커스텀 컨텐츠 지원
+
+- Table
+  - 정렬 기능
+  - 필터링
+  - 페이지네이션
+  - 반응형 지원
+
+- Form 관련
+  - FileUpload (드래그 & 드롭)
+  - DatePicker
+  - 주소 입력 (다음 주소 API 연동)
+  - 전화번호 입력 (한국형)
+
+### 우선순위 중간 ⭐
+- Navigation
+  - Breadcrumb
+  - Pagination
+  - Dropdown Menu
+
+- Layout
+  - Card
+  - Accordion
+
+- Feedback
+  - Progress Bar
+  - Skeleton Loading
+  - Badge/Tag
+
+## 2. 샘플 페이지
+### 기본 페이지 (필수) 🔥
+1. 로그인/회원가입
+   - 소셜 로그인
+   - 이메일 인증
+   - 비밀번호 찾기
+
+2. 대시보드
+   - 통계 차트
+   - 알림/할일 목록
+   - 최근 활동 내역
+
+3. 게시판
+   - 목록/상세/작성/수정
+   - 파일 첨부
+   - 댓글 기능
+
+### 추가 페이지 (선택) ⭐
+1. 관리자 페이지
+   - 사용자 관리
+   - 권한 관리
+   - 시스템 설정
+
+2. 마이페이지
+   - 프로필 수정
+   - 비밀번호 변경
+   - 활동 내역
+
+3. 설정 페이지
+   - 테마 설정
+   - 알림 설정
+   - 개인정보 설정
+
+4. 에러 페이지
+   - 404 Not Found
+   - 403 Forbidden
+   - 500 Server Error
+   - 점검 중 페이지
+
+## 진행 상황
+- 완료: 11개 컴포넌트
+- 진행중: Toast 컴포넌트 구현 예정
+- 다음 작업: Modal 컴포넌트
+
+## 참고사항
+- 모든 컴포넌트는 Tailwind CSS로 스타일링
+- 반응형 디자인 필수
+- 접근성 고려 (ARIA 속성 등)
+- 다크모드 지원 검토

@@ -1,0 +1,58 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+	],
+	"settings": {
+		"terminal.integrated.profiles.windows": {
+			"Command Prompt": {
+				"path": "cmd.exe",
+				"args": [
+					"/K",
+					".\\env.bat"
+				]
+			},
+			"PowerShell": {
+				"source": "PowerShell",
+				"icon": "terminal-powershell",
+				"args": [
+					"-NoExit",
+					"-Command",
+					"& { . '.\\env.ps1' }"
+				]
+			}
+		},
+		"files.exclude": {
+			"**/node_modules": true
+		},
+		"python.defaultInterpreterPath": "${workspaceFolder}/../../../Python3.12.8/python.exe",
+		"python.formatting.provider": "black",
+		"python.formatting.blackArgs": [
+			"--line-length",
+			"120"
+		],
+		"[python]": {
+			"editor.defaultFormatter": "charliermarsh.ruff",
+			"editor.formatOnSave": true,
+			"editor.codeActionsOnSave": {
+				"source.fixAll.ruff": "explicit",
+				"source.organizeImports.ruff": "explicit"
+			}
+		}
+	},
+	"extensions": {
+		"recommendations": [
+			"johnstoncode.svn-scm",
+			"simonsiefke.svg-preview",
+			"pkief.material-icon-theme",
+			"ms-ceintl.vscode-language-pack-ko",
+			"donjayamanne.githistory",
+			"dbaeumer.vscode-eslint",
+			"rodrigovallades.es7-react-js-snippets",
+			"clinyong.vscode-css-modules",
+			"formulahendry.auto-rename-tag",
+			"formulahendry.auto-close-tag"
+		]
+	}
+}
