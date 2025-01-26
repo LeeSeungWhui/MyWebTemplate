@@ -249,6 +249,16 @@ const TableOfContents = () => {
                                 - 폼이 포함된 모달
                             </a>
                         </li>
+                        <li>
+                            <a href="#modal-drag" className="text-blue-600 hover:text-blue-800">
+                                - 드래그 가능한 모달
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#modal-position" className="text-blue-600 hover:text-blue-800">
+                                - 모달 위치 지정
+                            </a>
+                        </li>
                     </ul>
                 </li>
                 {/* 추후 추가될 다른 컴포넌트들의 목차 */}

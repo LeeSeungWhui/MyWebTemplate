@@ -1,12 +1,15 @@
-import { forwardRef, useEffect } from 'react';
+import { forwardRef, useEffect, useRef, useState } from 'react';
 import Icon from './Icon';
+import React from 'react';
 
-const Header = ({ className = '', children, onClose, ...props }) => {
+const Header = ({ className = '', children, onClose, draggable = false, ...props }) => {
     return (
         <div
             className={`
+                modal-header
                 px-6 py-4
                 border-b border-gray-200
+                ${draggable ? 'cursor-move' : ''}
                 ${className}
             `.trim()}
             {...props}
@@ -65,10 +68,16 @@ const Modal = forwardRef(({
     draggable = false,
     closeOnBackdrop = true,
     closeOnEsc = true,
+    top,
+    left,
     className = '',
     children,
     ...props
 }, ref) => {
+    const modalRef = useRef(null);
+    const dragRef = useRef({ isDragging: false, startX: 0, startY: 0 });
+    const [position, setPosition] = useState(null);
+
     const sizes = {
         sm: 'max-w-md',
         md: 'max-w-lg',
@@ -87,11 +96,19 @@ const Modal = forwardRef(({
         };
     }, [isOpen]);
 
+    // 모달이 닫힐 때 position 초기화
+    useEffect(() => {
+        if (!isOpen) {
+            setPosition(null);
+        }
+    }, [isOpen]);
+
     // ESC 키 이벤트 처리
     useEffect(() => {
         const handleKeyDown = (e) => {
             if (closeOnEsc && e.key === 'Escape') {
                 onClose?.();
+                setPosition(null);  // ESC로 닫을 때도 position 초기화
             }
         };
 
@@ -101,9 +118,71 @@ const Modal = forwardRef(({
         }
     }, [isOpen, closeOnEsc, onClose]);
 
+    // 드래그 시작
+    const handleMouseDown = (e) => {
+        if (!draggable) return;
+
+        const modalElement = modalRef.current;
+        if (!modalElement) return;
+
+        // 헤더 영역에서만 드래그 가능하도록
+        const isHeader = e.target.closest('.modal-header');
+        if (!isHeader) return;
+
+        const rect = modalElement.getBoundingClientRect();
+        dragRef.current = {
+            isDragging: true,
+            startX: e.clientX - rect.left,
+            startY: e.clientY - rect.top
+        };
+
+        document.body.style.userSelect = 'none';
+        setPosition({ x: rect.left, y: rect.top });
+    };
+
+    // 드래그 중
+    const handleMouseMove = (e) => {
+        if (!dragRef.current.isDragging) return;
+
+        const modalElement = modalRef.current;
+        if (!modalElement) return;
+
+        const newX = e.clientX - dragRef.current.startX;
+        const newY = e.clientY - dragRef.current.startY;
+
+        // 화면 밖으로 나가지 않도록 제한
+        const rect = modalElement.getBoundingClientRect();
+        const maxX = window.innerWidth - rect.width;
+        const maxY = window.innerHeight - rect.height;
+
+        setPosition({
+            x: Math.min(Math.max(0, newX), maxX),
+            y: Math.min(Math.max(0, newY), maxY)
+        });
+    };
+
+    // 드래그 종료
+    const handleMouseUp = () => {
+        dragRef.current.isDragging = false;
+        document.body.style.userSelect = '';
+    };
+
+    // 드래그 이벤트 리스너
+    useEffect(() => {
+        if (draggable) {
+            document.addEventListener('mousemove', handleMouseMove);
+            document.addEventListener('mouseup', handleMouseUp);
+            return () => {
+                document.removeEventListener('mousemove', handleMouseMove);
+                document.removeEventListener('mouseup', handleMouseUp);
+            };
+        }
+    }, [draggable]);
+
     const handleBackdropClick = (e) => {
         if (closeOnBackdrop && e.target === e.currentTarget) {
             onClose?.();
+            setPosition(null);  // 백드롭 클릭으로 닫을 때도 position 초기화
         }
     };
 
@@ -115,17 +194,38 @@ const Modal = forwardRef(({
             onClick={handleBackdropClick}
         >
             <div
-                ref={ref}
+                ref={(el) => {
+                    modalRef.current = el;
+                    if (typeof ref === 'function') ref(el);
+                    else if (ref) ref.current = el;
+                }}
+                style={{
+                    position: 'absolute',
+                    ...(!position ? {
+                        top: top || '50%',
+                        left: left || '50%',
+                        transform: top || left ? undefined : 'translate(-50%, -50%)'
+                    } : {
+                        top: `${position.y}px`,
+                        left: `${position.x}px`
+                    }),
+                    transition: dragRef.current.isDragging ? 'none' : 'all 0.2s'
+                }}
                 className={`
                     relative w-full ${sizes[size]}
                     bg-white rounded-lg shadow-xl
                     animate-fade-in-up
-                    ${draggable ? 'cursor-move' : ''}
                     ${className}
                 `.trim()}
+                onMouseDown={handleMouseDown}
                 {...props}
             >
-                {children}
+                {React.Children.map(children, child => {
+                    if (child?.type === Header) {
+                        return React.cloneElement(child, { draggable });
+                    }
+                    return child;
+                })}
             </div>
         </div>
     );

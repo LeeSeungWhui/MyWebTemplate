@@ -99,3 +99,33 @@
 - Tailwind CSS 대신 CSS Modules 사용 (Vite 기본 지원)
 - lib컴포넌트들은 import * as Lib from '@/lib'로 사용
 - AppContext는 const app = useContext(AppContext)로 사용
+
+# 컴포넌트 구현
+- [x] Modal 컴포넌트
+- [x] Modal 문서화
+- [x] 데이터 클래스 문서화 (EasyObj, EasyList)
+- [x] 컴포넌트 페이지 레이아웃 개선 (목차 왼쪽 고정, Top 버튼)
+
+# 추가 기능 구현
+[ ] Modal 드래그 기능
+[ ] Modal 애니메이션 개선
+[ ] Toast 애니메이션 개선
+[ ] Loading 컴포넌트 다양한 스타일 추가
+[ ] Input 컴포넌트 마스킹/필터링 기능 강화
+[ ] Select 컴포넌트 검색 기능
+[ ] Select 컴포넌트 다중 선택 기능
+[ ] Button 컴포넌트 로딩 상태 추가
+[ ] Icon 컴포넌트 아이콘 목록 페이지
+
+# 문서화
+[ ] 각 컴포넌트 Props 테이블 추가
+[ ] 컴포넌트 사용 가이드라인 추가
+[ ] 테마 커스터마이징 가이드 추가
+[ ] 반응형 디자인 가이드 추가
+
+# 기타
+[ ] 다크 모드 지원
+[ ] 접근성 (ARIA) 개선
+[ ] 단위 테스트 작성
+[ ] 성능 최적화
+[ ] 번들 사이즈 최적화

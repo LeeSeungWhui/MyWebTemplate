@@ -55,6 +55,32 @@ const ModalDocs = () => {
                     </div>
                 </div>
             </div>
+
+            <div id="modal-drag" className="mb-8">
+                <h3 className="text-lg font-medium mb-4">드래그 가능한 모달</h3>
+                <div className="grid grid-cols-1 gap-8">
+                    <div>
+                        {examples[3].component}
+                        <div className="mt-2 text-sm text-gray-600">
+                            {examples[3].description}
+                        </div>
+                        <CodeBlock code={examples[3].code} />
+                    </div>
+                </div>
+            </div>
+
+            <div id="modal-position" className="mb-8">
+                <h3 className="text-lg font-medium mb-4">모달 위치 지정</h3>
+                <div className="grid grid-cols-1 gap-8">
+                    <div>
+                        {examples[4].component}
+                        <div className="mt-2 text-sm text-gray-600">
+                            {examples[4].description}
+                        </div>
+                        <CodeBlock code={examples[4].code} />
+                    </div>
+                </div>
+            </div>
         </DocSection>
     );
 };
