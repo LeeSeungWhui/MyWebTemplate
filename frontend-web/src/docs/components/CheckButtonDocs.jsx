@@ -1,22 +1,23 @@
-import { SelectExamples } from '../examples/SelectExamples';
+import { CheckButtonExamples } from '../examples/CheckButtonExamples';
 import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';
 
-const SelectDocs = () => {
-    const examples = SelectExamples();
+const CheckButtonDocs = () => {
+    const examples = CheckButtonExamples();
 
     return (
         <DocSection
-            id="selects"
-            title="4. 선택 (Select)"
+            id="checkbuttons"
+            title="6. 체크버튼 (CheckButton)"
             description={
                 <div>
-                    <p>Select 컴포넌트는 dataList의 selected 속성을 통해 선택 상태를 관리합니다.</p>
-                    <p>옵션 선택 시 해당 항목의 selected가 true로, 나머지는 false로 자동 변경됩니다.</p>
+                    <p>CheckButton 컴포넌트는 Checkbox와 동일한 방식으로 dataObj와 dataKey를 통해 양방향 바인딩을 지원합니다.</p>
+                    <p>버튼 형태로 체크박스 기능을 제공합니다.</p>
+                    <p>name prop이 없을 경우 dataKey 또는 children을 name으로 사용합니다.</p>
                 </div>
             }
         >
-            <div id="select-basic" className="mb-8">
+            <div id="checkbutton-basic" className="mb-8">
                 <h3 className="text-lg font-medium mb-4">기본 사용법</h3>
                 <div className="grid grid-cols-2 gap-8">
                     {examples.slice(0, 2).map((example, index) => (
@@ -31,8 +32,8 @@ const SelectDocs = () => {
                 </div>
             </div>
 
-            <div id="select-states" className="mb-8">
-                <h3 className="text-lg font-medium mb-4">상태</h3>
+            <div id="checkbutton-variants" className="mb-8">
+                <h3 className="text-lg font-medium mb-4">색상 변형</h3>
                 <div className="grid grid-cols-2 gap-8">
                     {examples.slice(2).map((example, index) => (
                         <div key={index}>
@@ -49,4 +50,4 @@ const SelectDocs = () => {
     );
 };
 
-export default SelectDocs; 
+export default CheckButtonDocs; 

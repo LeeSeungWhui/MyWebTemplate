@@ -8,7 +8,7 @@ const ButtonDocs = () => {
     return (
         <DocSection
             id="buttons"
-            title="버튼 (Button)"
+            title="2. 버튼 (Button)"
             description={
                 <div>
                     <p>Button 컴포넌트는 className prop을 통해 Tailwind CSS로 스타일을 커스터마이징할 수 있습니다.</p>
@@ -19,7 +19,7 @@ const ButtonDocs = () => {
             <div id="button-variants" className="mb-8">
                 <h3 className="text-lg font-medium mb-4">버튼 종류</h3>
                 <div className="grid grid-cols-4 gap-8">
-                    {examples.slice(0, 9).map((example, index) => (
+                    {examples.slice(0, 12).map((example, index) => (
                         <div key={index}>
                             {example.component}
                             <div className="mt-2 text-sm text-gray-600">
@@ -34,7 +34,7 @@ const ButtonDocs = () => {
             <div id="button-sizes" className="mb-8">
                 <h3 className="text-lg font-medium mb-4">버튼 크기</h3>
                 <div className="grid grid-cols-4 gap-8">
-                    {examples.slice(9).map((example, index) => (
+                    {examples.slice(12).map((example, index) => (
                         <div key={index}>
                             {example.component}
                             <div className="mt-2 text-sm text-gray-600">

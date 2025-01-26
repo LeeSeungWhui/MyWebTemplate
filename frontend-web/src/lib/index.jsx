@@ -10,6 +10,7 @@ export { default as Icon } from './component/Icon';
 export { default as Loading } from './component/Loading';
 export { default as Alert } from './component/Alert';
 export { default as Confirm } from './component/Confirm';
+export { default as Modal } from './component/Modal';
 
 // Datasets
 export { default as EasyObj } from './dataset/EasyObj';

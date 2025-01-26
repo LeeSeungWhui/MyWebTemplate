@@ -1,47 +1,77 @@
-const Button = ({
-    variant = "primary",
-    size = "md",
-    className = "",
-    disabled = false,
+import { forwardRef } from 'react';
+import Icon from './Icon';
+
+const Button = forwardRef(({
     children,
+    type = 'button',
+    className = '',
+    variant = 'primary',
+    size = 'md',
+    icon,
+    iconPosition = 'left',
+    disabled = false,
+    loading = false,
     ...props
-}) => {
-    const baseStyle = "inline-flex items-center justify-center rounded-md font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2";
+}, ref) => {
+    const baseStyle = "inline-flex items-center justify-center font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors";
 
     const variants = {
-        primary: "bg-primary-500 text-white hover:bg-primary-600 focus:ring-primary-500",
-        secondary: "bg-primary-100 text-primary-500 hover:bg-primary-200 focus:ring-primary-500",
-        success: "bg-success-500 text-white hover:bg-success-600 focus:ring-success-500",
-        warning: "bg-warning-500 text-white hover:bg-warning-600 focus:ring-warning-500",
-        danger: "bg-danger-500 text-white hover:bg-danger-600 focus:ring-danger-500",
-        outline: "border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 focus:ring-primary-500",
-        ghost: "text-gray-700 hover:bg-gray-100 focus:ring-primary-500",
-        link: "text-primary-500 hover:text-primary-600 hover:underline focus:ring-primary-500",
-        dark: "bg-gray-800 text-white hover:bg-gray-900 focus:ring-gray-800",
-        none: ""
+        primary: "bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500",
+        secondary: "bg-gray-600 text-white hover:bg-gray-700 focus:ring-gray-500",
+        outline: "border border-gray-300 text-gray-700 bg-white hover:bg-gray-50 focus:ring-blue-500",
+        danger: "bg-red-600 text-white hover:bg-red-700 focus:ring-red-500",
+        success: "bg-green-600 text-white hover:bg-green-700 focus:ring-green-500",
+        warning: "bg-yellow-600 text-white hover:bg-yellow-700 focus:ring-yellow-500",
+        ghost: "text-gray-600 hover:bg-gray-100 focus:ring-gray-500",
     };
 
     const sizes = {
         sm: "px-3 py-1.5 text-sm",
-        md: "px-4 py-2 text-base",
-        lg: "px-6 py-3 text-lg"
+        md: "px-4 py-2 text-sm",
+        lg: "px-5 py-2.5 text-base",
     };
+
+    const buttonClass = `
+        ${baseStyle}
+        ${variants[variant]}
+        ${sizes[size]}
+        ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
+        ${className}
+    `.trim();
+
+    const iconSize = {
+        sm: '1em',
+        md: '1.1em',
+        lg: '1.2em'
+    }[size];
+
+    const iconSpacing = {
+        sm: 'mr-1.5',
+        md: 'mr-2',
+        lg: 'mr-2.5'
+    }[size];
 
     return (
         <button
-            className={`
-                ${baseStyle}
-                ${variants[variant] || ""}
-                ${sizes[size] || sizes.md}
-                ${disabled ? "opacity-50 cursor-not-allowed" : ""}
-                ${className}
-            `.trim()}
-            disabled={disabled}
+            ref={ref}
+            type={type}
+            disabled={disabled || loading}
+            className={buttonClass}
             {...props}
         >
+            {loading ? (
+                <Icon icon="ri:RiLoader4Line" className="animate-spin mr-2" size={iconSize} />
+            ) : icon && iconPosition === 'left' ? (
+                <Icon icon={icon} className={iconSpacing} size={iconSize} />
+            ) : null}
             {children}
+            {!loading && icon && iconPosition === 'right' && (
+                <Icon icon={icon} className={`ml-${iconSpacing.slice(3)}`} size={iconSize} />
+            )}
         </button>
     );
-};
+});
+
+Button.displayName = 'Button';
 
 export default Button;

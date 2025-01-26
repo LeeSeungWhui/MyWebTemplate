@@ -19,7 +19,7 @@ const Radiobox = ({
     const isDataObjControlled = dataObj && (dataKey || label);
 
     // name이나 dataKey가 없을 경우 label을 name으로 사용
-    const inputName = name || dataKey || label;
+    const inputName = name || label || dataKey;
     const dataKeyName = dataKey || name || label;
 
     const [internalChecked, setInternalChecked] = useState(() => {

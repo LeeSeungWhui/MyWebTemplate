@@ -48,14 +48,30 @@ export const ButtonExamples = () => {
             code: '<Lib.Button variant="dark">Dark</Lib.Button>'
         },
         {
-            component: <Lib.Button size="sm">Small</Lib.Button>,
-            description: "Small 버튼",
-            code: '<Lib.Button size="sm">Small</Lib.Button>'
+            component: <Lib.Button
+                className="bg-gradient-to-r from-purple-500 to-pink-500 
+                hover:from-purple-600 hover:to-pink-600"
+            >
+                그라데이션
+            </Lib.Button>,
+            description: "커스텀 버튼",
+            code: `<Lib.Button
+    className="bg-gradient-to-r from-purple-500 to-pink-500 
+    hover:from-purple-600 hover:to-pink-600"
+>
+    그라데이션
+</Lib.Button>`
         },
         {
-            component: <Lib.Button size="lg">Large</Lib.Button>,
-            description: "Large 버튼",
-            code: '<Lib.Button size="lg">Large</Lib.Button>'
+            component: <Lib.Button>
+                <Lib.Icon icon="ri:RiSearchLine" className="w-5 h-5 mr-2" />
+                검색
+            </Lib.Button>,
+            description: "아이콘이 있는 버튼",
+            code: `<Lib.Button>
+    <Lib.Icon icon="ri:RiSearchLine" className="w-5 h-5 mr-2" />
+    검색
+</Lib.Button>`
         },
         {
             component: <Lib.Button disabled>Disabled</Lib.Button>,
@@ -63,14 +79,21 @@ export const ButtonExamples = () => {
             code: '<Lib.Button disabled>Disabled</Lib.Button>'
         },
         {
-            component: <Lib.Button className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600">
-                그라데이션 버튼
-            </Lib.Button>,
-            description: "커스텀 스타일링",
-            code: `<Lib.Button className="bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600">
-        그라데이션 버튼
-    </Lib.Button>`
-        }
+            component: <Lib.Button size="sm">Small</Lib.Button>,
+            description: "Small 버튼",
+            code: '<Lib.Button size="sm">Small</Lib.Button>'
+        },
+        {
+            component: <Lib.Button size="md">Medium</Lib.Button>,
+            description: "Medium 버튼",
+            code: '<Lib.Button size="md">Medium</Lib.Button>'
+        },
+        {
+            component: <Lib.Button size="lg">Large</Lib.Button>,
+            description: "Large 버튼",
+            code: '<Lib.Button size="lg">Large</Lib.Button>'
+        },
+
     ];
 
     return examples;

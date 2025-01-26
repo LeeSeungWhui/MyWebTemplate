@@ -1,4 +1,7 @@
-const Input = ({
+import { useState, forwardRef } from 'react';
+import Icon from './Icon';
+
+const Input = forwardRef(({
     dataObj,
     dataKey,
     type = "text",
@@ -10,9 +13,13 @@ const Input = ({
     mask,
     maxDigits,
     maxDecimals,
+    prefix,
+    suffix,
+    togglePassword,
     ...props
-}) => {
+}, ref) => {
     const isControlled = dataObj && dataKey;
+    const [showPassword, setShowPassword] = useState(false);
     const baseStyle = "appearance-none block w-full px-3 py-2 border rounded-md shadow-sm text-sm focus:outline-none focus:ring-2 focus:ring-offset-0";
 
     const states = {
@@ -114,18 +121,50 @@ const Input = ({
     `.trim();
 
     return (
-        <input
-            type={type}
-            pattern={type === 'number' ? '[0-9]*' : undefined}
-            inputMode={type === 'number' ? 'decimal' : undefined}
-            placeholder={placeholder || mask}
-            value={isControlled ? dataObj[dataKey] || "" : props.value}
-            onChange={handleChange}
-            onCompositionEnd={handleChange}
-            className={inputClass}
-            {...props}
-        />
+        <div className="relative flex items-center">
+            {prefix && (
+                <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
+                    {prefix}
+                </div>
+            )}
+            <input
+                ref={ref}
+                type={togglePassword ? (showPassword ? 'text' : 'password') : type}
+                pattern={type === 'number' ? '[0-9]*' : undefined}
+                inputMode={type === 'number' ? 'decimal' : undefined}
+                placeholder={placeholder || mask}
+                value={isControlled ? dataObj[dataKey] || "" : props.value}
+                onChange={handleChange}
+                onCompositionEnd={handleChange}
+                className={`
+                    ${inputClass}
+                    ${prefix ? 'pl-10' : ''}
+                    ${suffix ? 'pr-10' : ''}
+                    ${togglePassword ? 'pr-10' : ''}
+                `}
+                {...props}
+            />
+            {suffix && (
+                <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                    {suffix}
+                </div>
+            )}
+            {togglePassword && (
+                <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2"
+                >
+                    <Icon
+                        icon={showPassword ? "ri:RiEyeLine" : "ri:RiEyeOffLine"}
+                        className="w-5 h-5 text-gray-400"
+                    />
+                </button>
+            )}
+        </div>
     );
-};
+});
+
+Input.displayName = 'Input';
 
 export default Input;

@@ -4,6 +4,7 @@ import EasyObj from '../../lib/dataset/EasyObj';
 import Loading from '../../lib/component/Loading';
 import Alert from '../../lib/component/Alert';
 import Confirm from '../../lib/component/Confirm';
+import Toast from '../../lib/component/Toast/Toast';
 
 export const AppContext = createContext();
 
@@ -22,6 +23,7 @@ export const AppProvider = ({ children }) => {
             msg: '',
             type: 'info',
             onClick: undefined,
+            onFocus: undefined,
             lastFocusRef: null
         }),
         loading: EasyObj({
@@ -35,8 +37,16 @@ export const AppProvider = ({ children }) => {
             type: 'info',
             onConfirm: undefined,
             onCancel: undefined,
+            onFocus: undefined,
             confirmText: '확인',
             cancelText: '취소'
+        }),
+        toast: EasyObj({
+            show: false,
+            message: '',
+            type: 'info',
+            position: 'bottom-center',
+            duration: 3000
         })
     };
 
@@ -45,6 +55,7 @@ export const AppProvider = ({ children }) => {
             title = '알림',
             type = 'info',
             onClick,
+            onFocus,
             lastFocusRef = null
         } = options;
 
@@ -53,21 +64,30 @@ export const AppProvider = ({ children }) => {
         state.alert.msg = msg;
         state.alert.type = type;
         state.alert.onClick = onClick;
+        state.alert.onFocus = onFocus;
         state.alert.lastFocusRef = lastFocusRef;
     };
 
     const hideAlert = () => {
-        if (state.alert.lastFocusRef?.current) {
-            state.alert.lastFocusRef.current.focus();
-        }
-        state.alert.onClick?.();
+        const currentOnClick = state.alert.onClick;
+        const currentOnFocus = state.alert.onFocus;
 
+        // 상태 초기화
         state.alert.show = false;
         state.alert.title = '';
         state.alert.msg = '';
         state.alert.type = 'info';
         state.alert.onClick = undefined;
+        state.alert.onFocus = undefined;
         state.alert.lastFocusRef = null;
+
+        // 콜백 실행       
+        if (currentOnClick) {
+            currentOnClick();
+        }
+        if (currentOnFocus) {
+            currentOnFocus();
+        }
     };
 
     const updateLoading = (increment) => {
@@ -86,6 +106,7 @@ export const AppProvider = ({ children }) => {
             type = 'info',
             onConfirm,
             onCancel,
+            onFocus,
             confirmText = '확인',
             cancelText = '취소'
         } = options;
@@ -96,16 +117,15 @@ export const AppProvider = ({ children }) => {
         state.confirm.type = type;
         state.confirm.onConfirm = onConfirm;
         state.confirm.onCancel = onCancel;
+        state.confirm.onFocus = onFocus;
         state.confirm.confirmText = confirmText;
         state.confirm.cancelText = cancelText;
     };
 
     const hideConfirm = (confirmed = false) => {
-        if (confirmed && state.confirm.onConfirm) {
-            state.confirm.onConfirm();
-        } else if (!confirmed && state.confirm.onCancel) {
-            state.confirm.onCancel();
-        }
+        const currentOnConfirm = state.confirm.onConfirm;
+        const currentOnCancel = state.confirm.onCancel;
+        const currentOnFocus = state.confirm.onFocus;
 
         state.confirm.show = false;
         state.confirm.title = '';
@@ -113,8 +133,65 @@ export const AppProvider = ({ children }) => {
         state.confirm.type = 'info';
         state.confirm.onConfirm = undefined;
         state.confirm.onCancel = undefined;
+        state.confirm.onFocus = undefined;
         state.confirm.confirmText = '확인';
         state.confirm.cancelText = '취소';
+
+        if (confirmed && currentOnConfirm) {
+            currentOnConfirm();
+        } else if (!confirmed && currentOnCancel) {
+            currentOnCancel();
+        }
+
+        if (currentOnFocus) {
+            currentOnFocus();
+        }
+    };
+
+    const hideToast = () => {
+        // 토스트가 표시중일 때만 처리
+        if (state.toast.show) {
+            // 먼저 토스트의 상태만 변경 (애니메이션을 위해)
+            state.toast.isExiting = true;
+
+            // 애니메이션이 끝난 후에 실제로 토스트를 제거
+            setTimeout(() => {
+                state.toast.show = false;
+                state.toast.message = '';
+                state.toast.type = 'info';
+                state.toast.position = 'bottom-center';
+                state.toast.duration = 3000;
+                state.toast.isExiting = false;
+            }, 300);
+        }
+    };
+
+    const showToast = (message, options = {}) => {
+        const {
+            type = 'info',
+            position = 'bottom-center',
+            duration = 3000
+        } = options;
+
+        // 이전 토스트가 있다면 즉시 제거
+        if (state.toast.show) {
+            hideToast();
+        }
+
+        // 새 토스트 표시
+        state.toast.show = true;
+        state.toast.message = message;
+        state.toast.type = type;
+        state.toast.position = position;
+        state.toast.duration = duration;
+        state.toast.isExiting = false;
+
+        // duration이 지나면 자동으로 닫기
+        if (duration !== Infinity) {
+            setTimeout(() => {
+                hideToast();
+            }, duration);
+        }
     };
 
     // const sendAxios = useSendAxios(updateLoading);
@@ -178,7 +255,9 @@ export const AppProvider = ({ children }) => {
             setLoading,
             updateLoading,
             showConfirm,
-            hideConfirm
+            hideConfirm,
+            showToast,
+            hideToast
         }}>
             {state.loading.isLoading && <Loading />}
             {children}
@@ -199,6 +278,15 @@ export const AppProvider = ({ children }) => {
                     onCancel={() => hideConfirm(false)}
                     confirmText={state.confirm.confirmText}
                     cancelText={state.confirm.cancelText}
+                />
+            )}
+            {state.toast.show && (
+                <Toast
+                    message={state.toast.message}
+                    type={state.toast.type}
+                    position={state.toast.position}
+                    isExiting={state.toast.isExiting}
+                    onClose={hideToast}
                 />
             )}
         </AppContext.Provider>
