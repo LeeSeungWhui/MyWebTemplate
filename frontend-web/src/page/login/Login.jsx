@@ -1,6 +1,6 @@
-import EasyObj from '@/common/dataset/EasyObj';
-import Button from '@/common/component/Button';
-import Input from '@/common/component/Input';
+import EasyObj from '@/lib/dataset/EasyObj';
+import Button from '@/lib/component/Button';
+import Input from '@/lib/component/Input';
 
 const Login = () => {
     const loginObj = EasyObj({
