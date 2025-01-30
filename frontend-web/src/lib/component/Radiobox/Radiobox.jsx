@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, forwardRef } from 'react';
 import styles from './Radiobox.module.css';
 
-const Radiobox = ({
+const Radiobox = forwardRef(({
     label,
     name,
     value,
@@ -14,7 +14,7 @@ const Radiobox = ({
     disabled = false,
     color = "primary",
     ...props
-}) => {
+}, ref) => {
     const isControlled = propChecked !== undefined;
     const isDataObjControlled = dataObj && (dataKey || label);
 
@@ -68,6 +68,7 @@ const Radiobox = ({
     return (
         <label className={`${styles.wrapper} ${className}`}>
             <input
+                ref={ref}
                 type="radio"
                 name={inputName}
                 value={value}
@@ -81,6 +82,8 @@ const Radiobox = ({
             {label && <span className={styles.label}>{label}</span>}
         </label>
     );
-};
+});
+
+Radiobox.displayName = 'Radiobox';
 
 export default Radiobox; 

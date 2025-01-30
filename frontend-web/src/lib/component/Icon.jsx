@@ -1,3 +1,4 @@
+import { forwardRef } from 'react';
 import * as AiIcons from 'react-icons/ai';  // Ant Design Icons
 import * as BiIcons from 'react-icons/bi';  // Boxicons
 import * as BsIcons from 'react-icons/bs';  // Bootstrap Icons
@@ -18,13 +19,13 @@ const iconSets = {
     ri: RiIcons,
 };
 
-const Icon = ({
+const Icon = forwardRef(({
     icon,
     size = "1em",
     className = "",
     color,
     ...props
-}) => {
+}, ref) => {
     // icon 형식: "md:Home" 또는 "MdHome" 형식 지원
     const [prefix, name] = icon.includes(':') ? icon.split(':') : [icon.substring(0, 2).toLowerCase(), icon];
     const IconSet = iconSets[prefix];
@@ -44,12 +45,15 @@ const Icon = ({
 
     return (
         <IconComponent
+            ref={ref}
             size={size}
             className={className}
             color={color}
             {...props}
         />
     );
-};
+});
+
+Icon.displayName = 'Icon';
 
 export default Icon; 

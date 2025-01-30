@@ -8,6 +8,7 @@ $TEMP_PATH = "$SystemRoot\system32"
 $TEMP_PATH = "$SystemRoot;$TEMP_PATH"
 $TEMP_PATH = "$TEMP_ENV\node-v22.13.1-win-x64;$TEMP_PATH"
 $TEMP_PATH = "$TEMP_ENV\Python3.12.8;$TEMP_PATH"
+$TEMP_PATH = "$TEMP_ENV\Python3.12.8\Scripts;$TEMP_PATH"
 
 # Set the new PATH
 $Env:PATH = $TEMP_PATH

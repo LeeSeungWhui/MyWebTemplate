@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, forwardRef } from 'react';
 
-const RadioButton = ({
+const RadioButton = forwardRef(({
     children,
     name,
     value,
@@ -12,7 +12,7 @@ const RadioButton = ({
     disabled = false,
     color = "primary",
     ...props
-}) => {
+}, ref) => {
     const isControlled = propChecked !== undefined;
     const isDataObjControlled = dataObj && (dataKey || name);
 
@@ -82,6 +82,7 @@ const RadioButton = ({
     return (
         <label className={`inline-block ${className}`}>
             <input
+                ref={ref}
                 type="radio"
                 name={inputName}
                 value={value}
@@ -103,6 +104,8 @@ const RadioButton = ({
             </span>
         </label>
     );
-};
+});
+
+RadioButton.displayName = 'RadioButton';
 
 export default RadioButton; 

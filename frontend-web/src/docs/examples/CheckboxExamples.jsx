@@ -1,4 +1,5 @@
 import * as Lib from '@/lib';
+import { useState } from 'react';
 
 export const CheckboxExamples = () => {
     const dataObj = Lib.EasyObj({
@@ -7,6 +8,9 @@ export const CheckboxExamples = () => {
         privacyAgreed: false,
         marketingAgreed: false,
     });
+
+    // 제어 컴포넌트 예시를 위한 상태
+    const [controlledCheck, setControlledCheck] = useState(false);
 
     const examples = [
         {
@@ -38,24 +42,65 @@ export const CheckboxExamples = () => {
                 <div className="space-y-2">
                     <Lib.Checkbox
                         label="기본 색상 (Primary)"
+                        dataObj={dataObj}
+                        dataKey="primary"
                         color="primary"
                     />
                     <Lib.Checkbox
                         label="커스텀 빨간색"
+                        dataObj={dataObj}
+                        dataKey="red"
                         color="#FF0000"
-                        checked={true}
                     />
                     <Lib.Checkbox
                         label="커스텀 초록색"
+                        dataObj={dataObj}
+                        dataKey="green"
                         color="rgb(34, 197, 94)"
-                        checked={true}
                     />
                 </div>
             ),
             description: "다양한 색상",
-            code: `<Lib.Checkbox label="기본 색상 (Primary)" color="primary" />
-<Lib.Checkbox label="커스텀 빨간색" color="#FF0000" checked={true} />
-<Lib.Checkbox label="커스텀 초록색" color="rgb(34, 197, 94)" checked={true} />`
+            code: `<Lib.Checkbox
+    label="기본 색상 (Primary)"
+    dataObj={dataObj}
+    dataKey="primary"
+    color="primary"
+/>
+<Lib.Checkbox
+    label="커스텀 빨간색"
+    dataObj={dataObj}
+    dataKey="red"
+    color="#FF0000"
+/>
+<Lib.Checkbox
+    label="커스텀 초록색"
+    dataObj={dataObj}
+    dataKey="green"
+    color="rgb(34, 197, 94)"
+/>`
+        },
+        {
+            component: (
+                <div className="space-y-2">
+                    <Lib.Checkbox
+                        label="제어 컴포넌트"
+                        checked={controlledCheck}
+                        onChange={(e) => setControlledCheck(e.target.checked)}
+                    />
+                    <div className="text-sm text-gray-600">
+                        현재 상태: {controlledCheck ? '체크됨' : '체크 해제됨'}
+                    </div>
+                </div>
+            ),
+            description: "제어 컴포넌트 방식",
+            code: `const [checked, setChecked] = useState(false);
+
+<Lib.Checkbox
+    label="제어 컴포넌트"
+    checked={checked}
+    onChange={(e) => setChecked(e.target.checked)}
+/>`
         },
         {
             component: (

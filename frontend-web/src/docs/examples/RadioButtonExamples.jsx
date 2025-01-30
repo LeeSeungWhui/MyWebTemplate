@@ -1,4 +1,5 @@
 import * as Lib from '@/lib';
+import { useState } from 'react';
 
 export const RadioButtonExamples = () => {
     const dataObj = Lib.EasyObj({
@@ -6,6 +7,8 @@ export const RadioButtonExamples = () => {
         selectedTheme: '',
         selectedLanguage: '',
     });
+
+    const [controlledValue, setControlledValue] = useState('');
 
     const examples = [
         {
@@ -117,6 +120,52 @@ export const RadioButtonExamples = () => {
     color="#FF6B6B"
 >
     라이트
+</Lib.RadioButton>`
+        },
+        {
+            component: (
+                <div className="space-y-4">
+                    <div className="space-x-2">
+                        <Lib.RadioButton
+                            name="controlled"
+                            value="kr"
+                            checked={controlledValue === 'kr'}
+                            onChange={(e) => setControlledValue(e.target.value)}
+                        >
+                            한국어
+                        </Lib.RadioButton>
+                        <Lib.RadioButton
+                            name="controlled"
+                            value="en"
+                            checked={controlledValue === 'en'}
+                            onChange={(e) => setControlledValue(e.target.value)}
+                        >
+                            English
+                        </Lib.RadioButton>
+                    </div>
+                    <div className="text-sm text-gray-600">
+                        선택된 언어: {controlledValue || '없음'}
+                    </div>
+                </div>
+            ),
+            description: "제어 컴포넌트 방식",
+            code: `const [value, setValue] = useState('');
+
+<Lib.RadioButton
+    name="controlled"
+    value="kr"
+    checked={value === 'kr'}
+    onChange={(e) => setValue(e.target.value)}
+>
+    한국어
+</Lib.RadioButton>
+<Lib.RadioButton
+    name="controlled"
+    value="en"
+    checked={value === 'en'}
+    onChange={(e) => setValue(e.target.value)}
+>
+    English
 </Lib.RadioButton>`
         }
     ];

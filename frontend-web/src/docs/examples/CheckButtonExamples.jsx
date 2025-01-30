@@ -1,4 +1,5 @@
 import * as Lib from '@/lib';
+import { useState } from 'react';
 
 export const CheckButtonExamples = () => {
     const dataObj = Lib.EasyObj({
@@ -7,6 +8,8 @@ export const CheckButtonExamples = () => {
         greenButton: false,
         blueButton: false,
     });
+
+    const [controlledCheck, setControlledCheck] = useState(false);
 
     const examples = [
         {
@@ -68,6 +71,30 @@ export const CheckButtonExamples = () => {
 </Lib.CheckButton>
 <Lib.CheckButton color="#2196F3" dataObj={dataObj} dataKey="blueButton">
     파란색
+</Lib.CheckButton>`
+        },
+        {
+            component: (
+                <div className="space-y-2">
+                    <Lib.CheckButton
+                        checked={controlledCheck}
+                        onChange={() => setControlledCheck(!controlledCheck)}
+                    >
+                        제어 컴포넌트
+                    </Lib.CheckButton>
+                    <div className="text-sm text-gray-600">
+                        현재 상태: {controlledCheck ? '활성화' : '비활성화'}
+                    </div>
+                </div>
+            ),
+            description: "제어 컴포넌트 방식",
+            code: `const [checked, setChecked] = useState(false);
+
+<Lib.CheckButton
+    checked={checked}
+    onChange={() => setChecked(!checked)}
+>
+    제어 컴포넌트
 </Lib.CheckButton>`
         }
     ];

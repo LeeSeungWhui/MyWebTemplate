@@ -1,4 +1,5 @@
 import * as Lib from '@/lib';
+import { useState } from 'react';
 
 export const RadioboxExamples = () => {
     const dataObj = Lib.EasyObj({
@@ -6,6 +7,8 @@ export const RadioboxExamples = () => {
         paymentMethod: '',
         customColorRadio: '',
     });
+
+    const [controlledValue, setControlledValue] = useState('');
 
     const examples = [
         {
@@ -130,6 +133,46 @@ export const RadioboxExamples = () => {
     dataObj={dataObj}
     dataKey="paymentMethod"
     color="#6BCB77"
+/>`
+        },
+        {
+            component: (
+                <div className="space-y-2">
+                    <Lib.Radiobox
+                        name="controlled"
+                        label="옵션 1"
+                        value="option1"
+                        checked={controlledValue === 'option1'}
+                        onChange={(e) => setControlledValue(e.target.value)}
+                    />
+                    <Lib.Radiobox
+                        name="controlled"
+                        label="옵션 2"
+                        value="option2"
+                        checked={controlledValue === 'option2'}
+                        onChange={(e) => setControlledValue(e.target.value)}
+                    />
+                    <div className="text-sm text-gray-600">
+                        선택된 값: {controlledValue || '없음'}
+                    </div>
+                </div>
+            ),
+            description: "제어 컴포넌트 방식",
+            code: `const [value, setValue] = useState('');
+
+<Lib.Radiobox
+    name="controlled"
+    label="옵션 1"
+    value="option1"
+    checked={value === 'option1'}
+    onChange={(e) => setValue(e.target.value)}
+/>
+<Lib.Radiobox
+    name="controlled"
+    label="옵션 2"
+    value="option2"
+    checked={value === 'option2'}
+    onChange={(e) => setValue(e.target.value)}
 />`
         }
     ];

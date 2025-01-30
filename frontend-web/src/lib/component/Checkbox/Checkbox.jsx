@@ -1,7 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, forwardRef } from 'react';
 import styles from './Checkbox.module.css';
 
-const Checkbox = ({
+const Checkbox = forwardRef(({
     label,
     name,
     onChange,
@@ -12,7 +12,7 @@ const Checkbox = ({
     disabled = false,
     color = "primary",
     ...props
-}) => {
+}, ref) => {
     const isControlled = propChecked !== undefined;
     const isDataObjControlled = dataObj && (dataKey || label);
 
@@ -68,6 +68,7 @@ const Checkbox = ({
     return (
         <label className={`${styles.wrapper} ${className}`}>
             <input
+                ref={ref}
                 type="checkbox"
                 name={inputName}
                 checked={getCheckedState()}
@@ -80,6 +81,8 @@ const Checkbox = ({
             {label && <span className={styles.label}>{label}</span>}
         </label>
     );
-};
+});
+
+Checkbox.displayName = 'Checkbox';
 
 export default Checkbox; 

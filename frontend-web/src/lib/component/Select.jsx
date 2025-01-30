@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, forwardRef } from 'react';
 
-const Select = ({
+const Select = forwardRef(({
     dataList = [],
     valueKey = 'value',
     textKey = 'text',
@@ -9,7 +9,7 @@ const Select = ({
     disabled = false,
     error,
     ...props
-}) => {
+}, ref) => {
     const [selectedValue, setSelectedValue] = useState('');
 
     useEffect(() => {
@@ -72,6 +72,7 @@ const Select = ({
     return (
         <div className="relative">
             <select
+                ref={ref}
                 value={selectedValue}
                 onChange={handleChange}
                 disabled={disabled}
@@ -91,6 +92,8 @@ const Select = ({
             {dropdownIcon}
         </div>
     );
-};
+});
+
+Select.displayName = 'Select';
 
 export default Select; 

@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, forwardRef } from 'react';
 
-const CheckButton = ({
+const CheckButton = forwardRef(({
     children,
     name,
     onChange,
@@ -11,7 +11,7 @@ const CheckButton = ({
     disabled = false,
     color = "primary",
     ...props
-}) => {
+}, ref) => {
     const isControlled = propChecked !== undefined;
     const isDataObjControlled = dataObj && (dataKey || name);
 
@@ -80,6 +80,7 @@ const CheckButton = ({
 
     return (
         <button
+            ref={ref}
             type="button"
             name={inputName}
             onClick={handleChange}
@@ -96,6 +97,8 @@ const CheckButton = ({
             {children}
         </button>
     );
-};
+});
+
+CheckButton.displayName = 'CheckButton';
 
 export default CheckButton; 
