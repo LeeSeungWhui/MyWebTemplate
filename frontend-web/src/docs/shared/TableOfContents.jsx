@@ -261,6 +261,33 @@ const TableOfContents = () => {
                         </li>
                     </ul>
                 </li>
+                <li>
+                    <a href="#tabs" className="text-blue-600 hover:text-blue-800">
+                        15. 탭 (Tab)
+                    </a>
+                    <ul className="ml-4 mt-1 space-y-1">
+                        <li>
+                            <a href="#tab-basic" className="text-blue-600 hover:text-blue-800">
+                                - 기본 사용법
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#tab-controlled" className="text-blue-600 hover:text-blue-800">
+                                - 제어 컴포넌트
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#tab-styled" className="text-blue-600 hover:text-blue-800">
+                                - 스타일링
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#tab-icons" className="text-blue-600 hover:text-blue-800">
+                                - 아이콘 탭
+                            </a>
+                        </li>
+                    </ul>
+                </li>
                 {/* 추후 추가될 다른 컴포넌트들의 목차 */}
             </div>
         </section>

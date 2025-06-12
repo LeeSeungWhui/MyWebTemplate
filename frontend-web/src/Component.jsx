@@ -15,6 +15,7 @@ import ToastDocs from './docs/components/ToastDocs';
 import ModalDocs from './docs/components/ModalDocs';
 import TopButton from './docs/shared/TopButton';
 import DataClassDocs from './docs/components/DataClassDocs';
+import TabDocs from './docs/components/TabDocs';
 // ... 다른 문서화 컴포넌트들 import
 
 const Component = () => {
@@ -45,6 +46,7 @@ const Component = () => {
                     <ConfirmDocs />
                     <ToastDocs />
                     <ModalDocs />
+                    <TabDocs />
                 </div>
             </div>
 

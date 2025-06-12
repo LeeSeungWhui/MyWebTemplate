@@ -2,12 +2,12 @@
 
 ## 1. 기본 컴포넌트
 ### 기본 UI 컴포넌트 🔥
-- [ ] Button (variants: primary, secondary, outline, ghost)
-- [ ] Input (기본 입력, 유효성 검사)
+- [X] Button (variants: primary, secondary, outline, ghost)
+- [X] Input (기본 입력, 유효성 검사)
 - [ ] Select/Picker
 - [ ] Checkbox
 - [ ] RadioButton
-- [ ] Icon (react-native-vector-icons 통합)
+- [X] Icon (react-native-vector-icons 통합)
 - [ ] Loading Spinner
 - [ ] Alert/Toast
 - [ ] Modal
@@ -25,7 +25,7 @@
 
 ## 2. 상태 관리
 - [ ] AppContext 포팅
-- [ ] EasyObj/EasyList 네이티브 버전
+- [X] EasyObj/EasyList 네이티브 버전
 - [ ] 앱 라이프사이클 관리
 - [ ] 네비게이션 상태 관리
 
@@ -92,3 +92,26 @@
 - 웹 템플릿의 로직 최대한 재사용
 - 네이티브 기능 모듈화
 - 크로스 플랫폼 호환성 고려 
+
+---------------------------------------------------------------------------
+
+!!!!!!!! 일단 영단어앱부터 !!!!!!!!
+기본 UI 컴포넌트
+    Button (만듬)
+    Input (만듬)
+    Select (포팅필요)
+    Modal (포팅필요)
+    Toast (포팅필요)
+    Icon (만듬)
+레이아웃 컴포넌트
+    TabBar (새로 구현)
+    Header (새로 구현)
+    SearchBar (새로 구현)
+    SwipeableRow (새로 구현)
+단어앱앱 전용 컴포넌트
+    WordCard (단어 카드)  
+    WordList (단어 목록)
+    CategoryChips (카테고리 필터)
+    ProgressBar (학습 진도)
+    QuizCard (단어 테스트용)
+    ScoreBoard (퀴즈 결과)

@@ -1,0 +1,64 @@
+import { useState, cloneElement } from 'react';
+
+const TabItem = ({ title, children }) => {
+    return children;
+};
+
+const Tab = ({
+    dataObj,
+    dataKey,
+    tabIndex,
+    onChange,
+    className = '',
+    children
+}) => {
+    // controlled/uncontrolled 처리
+    const isControlled = !!dataObj;
+    const [internalTab, setInternalTab] = useState(tabIndex || 0);
+    const currentTab = isControlled ? dataObj[dataKey] : internalTab;
+
+    // children이 없거나 배열이 아닐 경우 처리
+    const items = Array.isArray(children) ? children : [children].filter(Boolean);
+
+    const handleTabChange = (index) => {
+        if (isControlled) {
+            dataObj[dataKey] = index;
+        } else {
+            setInternalTab(index);
+        }
+        onChange?.(index);
+    };
+
+    return (
+        <div className={`flex flex-col ${className}`}>
+            {/* Tab Headers */}
+            <div className="flex border-b border-gray-200">
+                {items.map((item, index) => (
+                    <button
+                        key={index}
+                        onClick={() => handleTabChange(index)}
+                        className={`
+                            px-4 py-2 -mb-px text-sm font-medium inline-flex items-center
+                            ${currentTab === index
+                                ? 'text-blue-600 border-b-2 border-blue-600'
+                                : 'text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                            }
+                        `}
+                    >
+                        {item.props.title}
+                    </button>
+                ))}
+            </div>
+
+            {/* Tab Content */}
+            <div className="py-4">
+                {items[currentTab]}
+            </div>
+        </div>
+    );
+};
+
+// TabItem을 Tab의 static property로 추가
+Tab.Item = TabItem;
+
+export default Tab;
