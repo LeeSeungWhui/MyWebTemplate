@@ -1,5 +1,9 @@
+from __future__ import annotations
+
 from functools import wraps
-from typing import List, Union
+from typing import List, Union, Tuple
+import time
+import uuid
 
 from lib.Database import dbManagers
 from lib.Logger import logger
@@ -9,56 +13,99 @@ class TransactionError(Exception):
     pass
 
 
-def transaction(db_names: Union[str, List[str]]):
+def transaction(
+    db_names: Union[str, List[str]],
+    *,
+    isolation: str | None = None,
+    timeout_ms: int | None = None,
+    retries: int = 0,
+    retry_on: Tuple[type[BaseException], ...] = (),
+):
     """
-    트랜잭션 데코레이터
-    단일 DB 또는 다중 DB 트랜잭션을 지원합니다.
+    Transaction decorator supporting single/multi DB transactions.
 
-    사용 예:
-    @transaction('main_db')
-    async def single_db_operation():
-        pass
-
-    @transaction(['main_db', 'legacy_db'])
-    async def multi_db_operation():
-        pass
+    Args:
+      db_names: database name or list of names found in lib.Database.dbManagers
+      isolation: hint only (not enforced by databases library)
+      timeout_ms: hint only, logged
+      retries: number of retries on exceptions matching retry_on
+      retry_on: tuple of exception types eligible for retry
     """
     if isinstance(db_names, str):
-        db_names = [db_names]
+        db_list = [db_names]
+    else:
+        db_list = list(db_names)
 
     def decorator(func):
         @wraps(func)
         async def wrapper(*args, **kwargs):
-            # 트랜잭션에 사용될 DB 연결들을 가져옴
-            connections = []
-            try:
-                for db_name in db_names:
-                    if db_name not in dbManagers:
-                        raise TransactionError(
-                            f"데이터베이스를 찾을 수 없습니다: {db_name}"
-                        )
-                    conn = await dbManagers[db_name].database.transaction()
-                    connections.append(conn)
-                    await conn.start()
-                    logger.info(f"트랜잭션 시작: {db_name}")
+            attempt = 0
+            last_exc: BaseException | None = None
+            while attempt <= max(0, retries):
+                attempt += 1
+                tx_id = uuid.uuid4().hex[:12]
+                connections = []
+                started = time.perf_counter()
+                try:
+                    for name in db_list:
+                        if name not in dbManagers:
+                            raise TransactionError(f"database not found: {name}")
+                        conn = await dbManagers[name].database.transaction()
+                        connections.append(conn)
+                        await conn.start()
+                        try:
+                            logger.info(
+                                f"tx.begin tx_id={tx_id} db={name} isolation={isolation} timeout_ms={timeout_ms}"
+                            )
+                        except Exception:
+                            pass
 
-                # 실제 함수 실행
-                result = await func(*args, **kwargs)
+                    result = await func(*args, **kwargs)
 
-                # 모든 트랜잭션 커밋
-                for conn in connections:
-                    await conn.commit()
-                    logger.info("트랜잭션 커밋 완료")
+                    for conn in connections:
+                        await conn.commit()
+                    try:
+                        elapsed_ms = int((time.perf_counter() - started) * 1000)
+                        logger.info(f"tx.commit tx_id={tx_id} latency_ms={elapsed_ms}")
+                    except Exception:
+                        pass
+                    return result
 
-                return result
-
-            except Exception as e:
-                # 에러 발생 시 모든 트랜잭션 롤백
-                for conn in connections:
-                    await conn.rollback()
-                    logger.error(f"트랜잭션 롤백: {str(e)}")
-                raise
+                except BaseException as e:
+                    for conn in connections:
+                        try:
+                            await conn.rollback()
+                        except Exception:
+                            pass
+                    try:
+                        logger.error(f"tx.rollback tx_id={tx_id} error={e}")
+                    except Exception:
+                        pass
+                    last_exc = e
+                    if retry_on and not isinstance(e, retry_on):
+                        break
+                    if attempt > retries:
+                        break
+                    await _sleep_backoff(attempt)
+                finally:
+                    try:
+                        elapsed_ms = int((time.perf_counter() - started) * 1000)
+                        logger.info(f"tx.end tx_id={tx_id} latency_ms={elapsed_ms}")
+                    except Exception:
+                        pass
+            assert last_exc is not None
+            raise last_exc
 
         return wrapper
 
     return decorator
+
+
+async def _sleep_backoff(attempt: int) -> None:
+    try:
+        import anyio
+
+        await anyio.sleep(min(0.05 * attempt, 0.5))
+    except Exception:
+        return
+

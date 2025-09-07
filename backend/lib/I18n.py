@@ -18,6 +18,7 @@ MESSAGES = {
         "error.invalid_credentials": "invalid credentials",
         "error.csrf_required": "CSRF required",
         "db.unavailable": "db unavailable",
+        "obs.not_ready": "not ready",
     },
     "ko": {
         "success": "성공",
@@ -25,6 +26,7 @@ MESSAGES = {
         "error.invalid_credentials": "아이디 또는 비밀번호가 올바르지 않습니다",
         "error.csrf_required": "CSRF 토큰이 필요합니다",
         "db.unavailable": "DB를 사용할 수 없습니다",
+        "obs.not_ready": "준비되지 않았습니다",
     },
 }
 
@@ -45,4 +47,3 @@ def t(key: str, default: str, locale: Optional[str] = None) -> str:
         return MESSAGES.get(loc, {}).get(key) or default
     except Exception:
         return default
-
