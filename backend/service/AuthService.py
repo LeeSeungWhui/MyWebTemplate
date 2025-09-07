@@ -11,7 +11,11 @@ import uuid
 from collections import deque
 from typing import Optional
 
-import bcrypt
+import base64
+import hashlib
+import hmac
+import secrets
+import bcrypt  # optional; used only if available
 from fastapi import Request
 from fastapi.responses import JSONResponse, Response
 
@@ -85,14 +89,31 @@ async def _ensure_auth_tables():
         return
     db = dbManagers["main_db"]
     await db.executeQuery("auth.ensureUserTable")
-    # seed demo account if absent
+    # seed/ensure demo account
     row = await db.fetchOneQuery("user.selectByUsername", {"u": "demo"})
+    def _hash_password(plain: str) -> str:
+        salt = secrets.token_bytes(16)
+        iters = 100_000
+        dk = hashlib.pbkdf2_hmac("sha256", plain.encode("utf-8"), salt, iters)
+        return "pbkdf2$%d$%s$%s" % (
+            iters,
+            base64.b64encode(salt).decode(),
+            base64.b64encode(dk).decode(),
+        )
     if not row:
-        hashed = bcrypt.hashpw(b"password123", bcrypt.gensalt()).decode()
+        hashed = _hash_password("password123")
         await db.executeQuery(
             "auth.insertDemoUser",
             {"u": "demo", "p": hashed, "n": "Demo User", "e": "demo@example.com", "r": "admin"},
         )
+    else:
+        # upgrade legacy hash to pbkdf2 if needed
+        if not str(row.get("password_hash") or "").startswith("pbkdf2$"):
+            new_hash = _hash_password("password123")
+            await db.execute(
+                "UPDATE T_USER SET password_hash = :p WHERE username = :u",
+                {"p": new_hash, "u": "demo"},
+            )
 
 
 def _validate_input(request: Request, username: str, password: str) -> Optional[Response]:
@@ -132,6 +153,16 @@ def _require_csrf(request: Request) -> Optional[Response]:
 
 
 async def login(request: Request):
+    # Optional CSRF requirement for login when configured
+    try:
+        require_login_csrf = _cfg("login_require_csrf", "false").lower() in ("1", "true", "yes", "on")
+    except Exception:
+        require_login_csrf = False
+    if require_login_csrf:
+        csrf_error = _require_csrf(request)
+        if csrf_error is not None:
+            return csrf_error
+
     await _ensure_auth_tables()
     body = await request.json()
     username = body.get("username")
@@ -160,7 +191,7 @@ async def login(request: Request):
             content=errorResponse(message=i18n_t("error.invalid_credentials", "invalid credentials", detect_locale(request)), code="AUTH_401_INVALID"),
             headers={"WWW-Authenticate": "Cookie"},
         )
-    if not bcrypt.checkpw(password.encode(), user["password_hash"].encode()):
+    if not _verify_password(password, user.get("password_hash") or ""):
         logger.info("auth.login.fail password")
         limited = _rate_limit(request, username=username)
         if limited is not None:
@@ -257,7 +288,7 @@ async def issue_token(request: Request):
         )
     db = dbManagers["main_db"]
     user = await db.fetchOneQuery("user.selectByUsername", {"u": username})
-    if not user or not bcrypt.checkpw(password.encode(), user["password_hash"].encode()):
+    if not user or not _verify_password(password, user.get("password_hash") or ""):
         logger.info("auth.token.fail invalid")
         limited = _rate_limit(request, username=username)
         if limited is not None:
@@ -286,3 +317,19 @@ async def issue_csrf(request: Request):
 
 async def me(user):
     return successResponse(result={"username": user.username})
+def _verify_password(plain: str, stored: str) -> bool:
+    try:
+        if stored and stored.startswith("pbkdf2$"):
+            parts = stored.split("$")
+            iters = int(parts[1])
+            salt = base64.b64decode(parts[2])
+            expected = base64.b64decode(parts[3])
+            dk = hashlib.pbkdf2_hmac("sha256", plain.encode("utf-8"), salt, iters)
+            return hmac.compare_digest(dk, expected)
+        # fallback to bcrypt if library available and stored looks like bcrypt
+        try:
+            return bool(hasattr(bcrypt, "checkpw") and bcrypt.checkpw(plain.encode(), stored.encode()))
+        except Exception:
+            return False
+    except Exception:
+        return False

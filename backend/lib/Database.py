@@ -13,6 +13,7 @@ import re
 import threading
 import time
 from typing import Dict, Optional, Set
+import contextvars
 
 from databases import Database
 from lib.Logger import logger
@@ -35,6 +36,24 @@ queryWatch: bool = True
 debounceMs: int = 150
 debounceTimer: Optional[threading.Timer] = None
 lastChangedFile: Optional[str] = None
+
+# Per-request SQL counter (ContextVar)
+_sql_count_var: contextvars.ContextVar[int] = contextvars.ContextVar("sql_count", default=0)
+
+
+def getSqlCount() -> int:
+    try:
+        return int(_sql_count_var.get())
+    except Exception:
+        return 0
+
+
+def _inc_sql_count(n: int = 1) -> None:
+    try:
+        cur = int(_sql_count_var.get())
+        _sql_count_var.set(cur + int(n))
+    except Exception:
+        pass
 
 
 class QueryManager:
@@ -130,6 +149,14 @@ class DatabaseManager:
     async def connect(self):
         await self.database.connect()
         logger.info(f"Connected to database {self.databaseUrl}")
+        # Apply pragmatic settings for SQLite to reduce 'database is locked'
+        try:
+            if (self.databaseUrl or "").startswith("sqlite"):
+                await self.database.execute("PRAGMA journal_mode=WAL;")
+                await self.database.execute("PRAGMA busy_timeout=3000;")
+                await self.database.execute("PRAGMA synchronous=NORMAL;")
+        except Exception:
+            pass
 
     async def disconnect(self):
         await self.database.disconnect()
@@ -142,6 +169,7 @@ class DatabaseManager:
         )
         result = await self.database.execute(query=query, values=values or {})
         logger.info(f"rows_affected={result}")
+        _inc_sql_count()
         return result
 
     async def fetchOne(self, query: str, values: Dict = None):
@@ -154,9 +182,11 @@ class DatabaseManager:
         if result is not None:
             data = dict(result)
             logger.info("rows_returned=1")
+            _inc_sql_count()
             return data
         else:
             logger.info("rows_returned=0")
+            _inc_sql_count()
             return None
 
     async def fetchAll(self, query: str, values: Dict = None):
@@ -169,9 +199,11 @@ class DatabaseManager:
         if result is not None:
             data = [{column: row[column] for column in row.keys()} for row in result]
             logger.info(f"rows_returned={len(data)}")
+            _inc_sql_count()
             return data
         else:
             logger.info("rows_returned=0")
+            _inc_sql_count()
             return None
 
     async def executeQuery(self, queryName: str, values: Dict = None):

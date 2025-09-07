@@ -17,6 +17,9 @@ import argparse
 import os
 import sqlite3
 from typing import Optional
+import base64
+import hashlib
+import secrets
 
 
 def connect(db_path: str):
@@ -43,12 +46,21 @@ def ensure_table(con) -> None:
     con.commit()
 
 
+def _hash_password(plain: str) -> str:
+    salt = secrets.token_bytes(16)
+    iters = 100_000
+    dk = hashlib.pbkdf2_hmac("sha256", plain.encode("utf-8"), salt, iters)
+    return "pbkdf2$%d$%s$%s" % (
+        iters,
+        base64.b64encode(salt).decode(),
+        base64.b64encode(dk).decode(),
+    )
+
+
 def seed_demo(con) -> None:
     row = con.execute("SELECT username FROM T_USER WHERE username=?", ("demo",)).fetchone()
     if row is None:
-        import bcrypt
-
-        hashed = bcrypt.hashpw(b"password123", bcrypt.gensalt()).decode()
+        hashed = _hash_password("password123")
         con.execute(
             "INSERT INTO T_USER (username, password_hash, name, email, role) VALUES (?,?,?,?,?)",
             ("demo", hashed, "Demo User", "demo@example.com", "admin"),
@@ -57,9 +69,7 @@ def seed_demo(con) -> None:
 
 
 def add_user(con, username: str, password: str, name: Optional[str], email: Optional[str], role: Optional[str]):
-    import bcrypt
-
-    hashed = bcrypt.hashpw(password.encode("utf-8"), bcrypt.gensalt()).decode()
+    hashed = _hash_password(password)
     con.execute(
         "INSERT INTO T_USER (username, password_hash, name, email, role) VALUES (?,?,?,?,?)",
         (username, hashed, name, email, role),
@@ -108,4 +118,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

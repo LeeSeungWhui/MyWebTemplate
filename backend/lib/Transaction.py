@@ -6,6 +6,8 @@ import time
 import uuid
 
 from lib.Database import dbManagers
+from lib import Database as DB
+from lib.RequestContext import get_request_id
 from lib.Logger import logger
 
 
@@ -55,18 +57,20 @@ def transaction(
                         await conn.start()
                         try:
                             logger.info(
-                                f"tx.begin tx_id={tx_id} db={name} isolation={isolation} timeout_ms={timeout_ms}"
+                                f"tx.begin tx_id={tx_id} db={name} isolation={isolation} timeout_ms={timeout_ms} requestId={get_request_id()}"
                             )
                         except Exception:
                             pass
 
+                    start_count = DB.getSqlCount()
                     result = await func(*args, **kwargs)
 
                     for conn in connections:
                         await conn.commit()
                     try:
                         elapsed_ms = int((time.perf_counter() - started) * 1000)
-                        logger.info(f"tx.commit tx_id={tx_id} latency_ms={elapsed_ms}")
+                        sql_count = max(0, DB.getSqlCount() - start_count)
+                        logger.info(f"tx.commit tx_id={tx_id} latency_ms={elapsed_ms} sql_count={sql_count} requestId={get_request_id()}")
                     except Exception:
                         pass
                     return result
@@ -78,7 +82,8 @@ def transaction(
                         except Exception:
                             pass
                     try:
-                        logger.error(f"tx.rollback tx_id={tx_id} error={e}")
+                        sql_count = max(0, DB.getSqlCount() - start_count)
+                        logger.error(f"tx.rollback tx_id={tx_id} error={e} sql_count={sql_count} requestId={get_request_id()}")
                     except Exception:
                         pass
                     last_exc = e
@@ -90,7 +95,7 @@ def transaction(
                 finally:
                     try:
                         elapsed_ms = int((time.perf_counter() - started) * 1000)
-                        logger.info(f"tx.end tx_id={tx_id} latency_ms={elapsed_ms}")
+                        logger.info(f"tx.end tx_id={tx_id} latency_ms={elapsed_ms} requestId={get_request_id()}")
                     except Exception:
                         pass
             assert last_exc is not None
@@ -109,3 +114,37 @@ async def _sleep_backoff(attempt: int) -> None:
     except Exception:
         return
 
+
+class _Savepoint:
+    def __init__(self, db_name: str, name: str):
+        self.db_name = db_name
+        self.name = name
+
+    async def __aenter__(self):
+        if self.db_name not in dbManagers:
+            raise TransactionError(f"database not found: {self.db_name}")
+        await dbManagers[self.db_name].execute(f"SAVEPOINT {self.name}")
+        return self
+
+    async def __aexit__(self, exc_type, exc, tb):
+        if exc:
+            # rollback partial work then release
+            try:
+                await dbManagers[self.db_name].execute(f"ROLLBACK TO SAVEPOINT {self.name}")
+            finally:
+                await dbManagers[self.db_name].execute(f"RELEASE SAVEPOINT {self.name}")
+            # do not suppress the exception
+            return False
+        else:
+            await dbManagers[self.db_name].execute(f"RELEASE SAVEPOINT {self.name}")
+            return False
+
+
+def savepoint(db_name: str, name: str) -> _Savepoint:
+    """Create an async savepoint context for partial rollback.
+
+    Usage:
+      async with savepoint('main_db', 'sp1'):
+          ...
+    """
+    return _Savepoint(db_name, name)
