@@ -20,19 +20,35 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from starlette.middleware.sessions import SessionMiddleware
 
-from .lib.Auth import AuthConfig
-from .lib.Database import (
-    DatabaseManager,
-    loadQueries,
-    sqlObserver,
-    startWatchingQueryFolder,
-    setQueryConfig,
-)
-from .lib import Database as DB
-from .lib.Logger import logger
-from .lib.Response import errorResponse
-from .lib.Middleware import RequestLogMiddleware
-from .lib.OpenAPI import attachOpenAPI
+# Support both package import (backend.server) and module import (server)
+try:  # package context
+    from .lib.Auth import AuthConfig  # type: ignore
+    from .lib.Database import (  # type: ignore
+        DatabaseManager,
+        loadQueries,
+        sqlObserver,
+        startWatchingQueryFolder,
+        setQueryConfig,
+    )
+    from .lib import Database as DB  # type: ignore
+    from .lib.Logger import logger  # type: ignore
+    from .lib.Response import errorResponse  # type: ignore
+    from .lib.Middleware import RequestLogMiddleware  # type: ignore
+    from .lib.OpenAPI import attachOpenAPI  # type: ignore
+except Exception:  # module context
+    from lib.Auth import AuthConfig
+    from lib.Database import (
+        DatabaseManager,
+        loadQueries,
+        sqlObserver,
+        startWatchingQueryFolder,
+        setQueryConfig,
+    )
+    from lib import Database as DB
+    from lib.Logger import logger
+    from lib.Response import errorResponse
+    from lib.Middleware import RequestLogMiddleware
+    from lib.OpenAPI import attachOpenAPI
 
 app = FastAPI()
 

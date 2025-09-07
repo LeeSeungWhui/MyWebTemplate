@@ -8,6 +8,7 @@
 from fastapi import APIRouter
 from lib.Response import successResponse, errorResponse
 from lib.Transaction import transaction
+from lib import Database as DB
 from service.TransactionService import ensure_tables, do_single_commit, do_unique_violation
 
 # Transaction test endpoints (v1)
@@ -31,6 +32,13 @@ async def testSingleTransaction():
     갱신일: 2025-09-07
     """
     await ensure_tables()
+    # ensure deterministic state across repeated runs (cleanup outside tx)
+    try:
+        db = DB.dbManagers.get("main_db")
+        if db:
+            await db.execute("DELETE FROM test_transaction WHERE value = :v", {"v": "tx-single"})
+    except Exception:
+        pass
     await _tx_single()
     return successResponse(message="single transaction ok")
 
@@ -43,6 +51,13 @@ async def testTransactionUniqueViolation():
     """
     try:
         await ensure_tables()
+        # ensure deterministic state across repeated runs (cleanup outside tx)
+        try:
+            db = DB.dbManagers.get("main_db")
+            if db:
+                await db.execute("DELETE FROM test_transaction WHERE value = :v", {"v": "tx-dup"})
+        except Exception:
+            pass
         await _tx_unique()
         # if no error, that's unexpected
         return errorResponse(message="expected unique violation not raised", code="TX_500_TEST")
