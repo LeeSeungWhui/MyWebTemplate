@@ -4,11 +4,11 @@ Utility to initialize and inspect the SQLite user table used by the backend.
 
 Usage examples:
   - Initialize table and seed demo user:
-      python scripts/users_seed.py --init --seed-demo
+      python backend/scripts/users_seed.py --init --seed-demo
   - List users:
-      python scripts/users_seed.py --list
+      python backend/scripts/users_seed.py --list
   - Add a user:
-      python scripts/users_seed.py --add --username alice --password secret123 --name "Alice" --email alice@example.com --role user
+      python backend/scripts/users_seed.py --add --username alice --password secret123 --name "Alice" --email alice@example.com --role user
 """
 
 from __future__ import annotations
