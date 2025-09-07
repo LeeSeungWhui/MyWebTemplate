@@ -184,37 +184,8 @@ async def onStartup():
         tokenEnable=authConfig.getboolean("token_enable", True),
     )
 
-    # Ensure auth tables and demo account exist
-    try:
-        if "main_db" in DB.dbManagers:
-            db = DB.dbManagers["main_db"]
-            if hasattr(db, "execute") and hasattr(db, "fetchOne"):
-                await db.execute(
-                    """
-                    CREATE TABLE IF NOT EXISTS T_USER (
-                      id INTEGER PRIMARY KEY AUTOINCREMENT,
-                      username TEXT UNIQUE NOT NULL,
-                      password_hash TEXT NOT NULL,
-                      name TEXT,
-                      email TEXT,
-                      role TEXT,
-                      last_login_at TIMESTAMP
-                    )
-                    """
-                )
-                row = await db.fetchOne(
-                    "SELECT username FROM T_USER WHERE username = :u", {"u": "demo"}
-                )
-                if not row:
-                    import bcrypt
-
-                    hashed = bcrypt.hashpw(b"password123", bcrypt.gensalt()).decode()
-                    await db.execute(
-                        "INSERT INTO T_USER (username, password_hash, name, email, role) VALUES (:u,:p,:n,:e,:r)",
-                        {"u": "demo", "p": hashed, "n": "Demo User", "e": "demo@example.com", "r": "admin"},
-                    )
-    except Exception as e:
-        logger.error(f"auth table init failed: {e}")
+    # Note: User table creation/seeding is handled by scripts/tests or AuthService.
+    # Avoid implicit DDL/DML on startup to respect external DBs.
 
     try:
         attachOpenAPI(app, config)
