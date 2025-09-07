@@ -6,6 +6,12 @@ CompactCST 템플릿 구조로 작성된 기획안을 구현하는 것이 목표
 프롬프트 예시
 docs/units/jobs/CU-001_job-card.md 스펙을 구현한다.
 
+*** - 테스트/로컬 실행 전 `.\env.ps1` 실행해 PATH 설정(또는 절대 경로 실행)
+  - `(Join-Path $Base 'Python3.12.8\Scripts')`
+  - `(Join-Path $Base 'Python3.12.8')`
+  - `(Join-Path $Base 'node-v22.19.0-win-x64')`
+- 실행 예: `. .\env.ps1` 또는 `powershell -ExecutionPolicy Bypass -File .\env.ps1` ***
+
 출력 기대
 지정된 산출물 파일 생성
 스펙의 Acceptance Criteria를 충족하는 코드 및 테스트
