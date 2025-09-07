@@ -241,7 +241,17 @@ app.add_middleware(
 
 # load routers
 logger.info("router load start")
+# Optional: disable demo/example routers via config
+disable_demo_routes = False
+try:
+    disable_demo_routes = config["SERVER"].getboolean("disable_demo_routes", False)
+except Exception:
+    disable_demo_routes = False
+
 for _, moduleName, _ in pkgutil.iter_modules(router.__path__, router.__name__ + "."):
+    # Skip demo TransactionRouter when disabled
+    if disable_demo_routes and moduleName.endswith(".TransactionRouter"):
+        continue
     module = importlib.import_module(moduleName)
     if hasattr(module, "router"):
         app.include_router(module.router)
