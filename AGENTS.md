@@ -10,6 +10,7 @@ docs/units/jobs/CU-001_job-card.md 스펙을 구현한다.
 지정된 산출물 파일 생성
 스펙의 Acceptance Criteria를 충족하는 코드 및 테스트
 공통 규칙(docs/common-rules.md)을 반드시 준수
+작업 후에는 자동으로 github commit&push
 
 Compact CST Usage Guide
 1. 문서 종류

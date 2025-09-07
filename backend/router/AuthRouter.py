@@ -6,6 +6,7 @@
 """
 
 import os
+import json
 import time
 import uuid
 from collections import deque
@@ -19,6 +20,8 @@ from lib.Auth import AuthConfig, Token, createAccessToken, getCurrentUser
 from lib.Database import dbManagers
 from lib.Response import errorResponse, successResponse
 from lib.Logger import logger
+from lib.I18n import detect_locale, t as i18n_t
+from lib.RequestContext import get_request_id
 
 
 router = APIRouter(prefix="/api/v1/auth", tags=["auth"])
@@ -105,12 +108,13 @@ async def _ensure_auth_tables():
         )
 
 
-def _validate_input(username: str, password: str) -> Optional[Response]:
+def _validate_input(request: Request, username: str, password: str) -> Optional[Response]:
+    loc = detect_locale(request)
     if not isinstance(username, str) or not isinstance(password, str):
         return JSONResponse(
             status_code=422,
             content=errorResponse(
-                message="invalid input", result=None, code="AUTH_422_INVALID_INPUT"
+                message=i18n_t("error.invalid_input", "invalid input", loc), result=None, code="AUTH_422_INVALID_INPUT"
             ),
             headers={"WWW-Authenticate": "Cookie"},
         )
@@ -118,7 +122,7 @@ def _validate_input(username: str, password: str) -> Optional[Response]:
         return JSONResponse(
             status_code=422,
             content=errorResponse(
-                message="invalid input", result=None, code="AUTH_422_INVALID_INPUT"
+                message=i18n_t("error.invalid_input", "invalid input", loc), result=None, code="AUTH_422_INVALID_INPUT"
             ),
             headers={"WWW-Authenticate": "Cookie"},
         )
@@ -133,7 +137,7 @@ def _require_csrf(request: Request) -> Optional[Response]:
         return JSONResponse(
             status_code=403,
             content=errorResponse(
-                message="csrf required", result=None, code="AUTH_403_CSRF_REQUIRED"
+                message=i18n_t("error.csrf_required", "csrf required", detect_locale(request)), result=None, code="AUTH_403_CSRF_REQUIRED"
             ),
             headers={"WWW-Authenticate": "Cookie"},
         )
@@ -152,7 +156,7 @@ async def login(request: Request):
     password = body.get("password")
     remember = bool(body.get("rememberMe", False))
 
-    invalid = _validate_input(username, password)
+    invalid = _validate_input(request, username, password)
     if invalid is not None:
         return invalid
 
@@ -173,7 +177,7 @@ async def login(request: Request):
             return limited
         return JSONResponse(
             status_code=401,
-            content=errorResponse(message="invalid credentials", code="AUTH_401_INVALID"),
+            content=errorResponse(message=i18n_t("error.invalid_credentials", "invalid credentials", detect_locale(request)), code="AUTH_401_INVALID"),
             headers={"WWW-Authenticate": "Cookie"},
         )
     if not bcrypt.checkpw(password.encode(), user["password_hash"].encode()):
@@ -183,7 +187,7 @@ async def login(request: Request):
             return limited
         return JSONResponse(
             status_code=401,
-            content=errorResponse(message="invalid credentials", code="AUTH_401_INVALID"),
+            content=errorResponse(message=i18n_t("error.invalid_credentials", "invalid credentials", detect_locale(request)), code="AUTH_401_INVALID"),
             headers={"WWW-Authenticate": "Cookie"},
         )
 
@@ -196,6 +200,21 @@ async def login(request: Request):
     request.session["csrf"] = csrf
 
     response = Response(status_code=204)
+    # audit log (success)
+    try:
+        logger.info(
+            json.dumps(
+                {
+                    "event": "auth.login.success",
+                    "userId": user["username"],
+                    "ip": getattr(request.client, "host", None),
+                    "requestId": get_request_id(),
+                },
+                ensure_ascii=False,
+            )
+        )
+    except Exception:
+        pass
     # SessionMiddleware will set cookie when session modified. For remember, we can't change max_age per request here.
     # Optionally set a helper cookie for UI to know long-lived session preference.
     if remember:
@@ -214,11 +233,28 @@ async def logout(request: Request):
     if csrf_error is not None:
         return csrf_error
 
+    # capture for audit before clearing
+    _uid = request.session.get("userId")
     request.session.clear()
     response = Response(status_code=204)
     # delete session cookie
     session_cookie = _cfg("session_cookie", "sid")
     response.delete_cookie(session_cookie)
+    # audit log (logout)
+    try:
+        logger.info(
+            json.dumps(
+                {
+                    "event": "auth.logout",
+                    "userId": _uid,
+                    "ip": getattr(request.client, "host", None),
+                    "requestId": get_request_id(),
+                },
+                ensure_ascii=False,
+            )
+        )
+    except Exception:
+        pass
     return response
 
 
@@ -248,7 +284,7 @@ async def issue_token(request: Request):
     username = body.get("username")
     password = body.get("password")
 
-    invalid = _validate_input(username, password)
+    invalid = _validate_input(request, username, password)
     if invalid is not None:
         # align to bearer realm
         invalid.headers = {"WWW-Authenticate": "Bearer"}
@@ -273,7 +309,7 @@ async def issue_token(request: Request):
             return limited
         return JSONResponse(
             status_code=401,
-            content=errorResponse(message="invalid credentials", code="AUTH_401_INVALID"),
+            content=errorResponse(message=i18n_t("error.invalid_credentials", "invalid credentials", detect_locale(request)), code="AUTH_401_INVALID"),
             headers={"WWW-Authenticate": "Bearer"},
         )
 
