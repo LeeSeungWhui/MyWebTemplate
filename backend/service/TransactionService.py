@@ -11,10 +11,8 @@ from lib import Database as DB
 
 
 async def ensure_tables() -> None:
-    if "main_db" not in DB.dbManagers:
-        return
-    db = DB.dbManagers["main_db"]
-    await db.executeQuery("tx.ensureTable")
+    # No DDL at runtime; tests will ensure the table exists.
+    return
 
 
 async def do_single_commit() -> None:

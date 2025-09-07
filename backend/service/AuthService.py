@@ -104,12 +104,22 @@ def _rate_limit(request: Request, username: Optional[str] = None) -> Optional[Re
 
 
 async def _ensure_auth_tables():
+    """No-op for table creation/seed in runtime.
+
+    Historically ensured user table and demo account. To avoid mutating
+    external databases from the app, tests/scripts handle initialization.
+    We keep a lightweight, best-effort password hash upgrade if the row
+    already exists, but we never create tables or insert users here.
+    """
     if "main_db" not in dbManagers:
         return
     db = dbManagers["main_db"]
-    await db.executeQuery("auth.ensureUserTable")
-    # seed/ensure demo account
-    row = await db.fetchOneQuery("user.selectByUsername", {"u": "demo"})
+    try:
+        row = await db.fetchOneQuery("user.selectByUsername", {"u": "demo"})
+    except Exception:
+        # table or query may not exist yet; do not create or seed here
+        return
+    # upgrade legacy hash to pbkdf2 if needed (non-creation DML only)
     def _hash_password(plain: str) -> str:
         salt = secrets.token_bytes(16)
         iters = 100_000
@@ -119,20 +129,16 @@ async def _ensure_auth_tables():
             base64.b64encode(salt).decode(),
             base64.b64encode(dk).decode(),
         )
-    if not row:
-        hashed = _hash_password("password123")
-        await db.executeQuery(
-            "auth.insertDemoUser",
-            {"u": "demo", "p": hashed, "n": "Demo User", "e": "demo@example.com", "r": "admin"},
-        )
-    else:
-        # upgrade legacy hash to pbkdf2 if needed
-        if not str(row.get("password_hash") or "").startswith("pbkdf2$"):
+    try:
+        if row and not str(row.get("password_hash") or "").startswith("pbkdf2$"):
             new_hash = _hash_password("password123")
             await db.execute(
                 "UPDATE T_USER SET password_hash = :p WHERE username = :u",
                 {"p": new_hash, "u": "demo"},
             )
+    except Exception:
+        # best-effort only
+        pass
 
 
 def _validate_input(request: Request, username: str, password: str) -> Optional[Response]:
