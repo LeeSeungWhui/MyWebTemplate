@@ -22,9 +22,7 @@ links: [CU-WEB-001, CU-WEB-002, CU-WEB-004, CU-WEB-005, CU-WEB-008, CU-BE-001]
   - 페이지 개별 최적화 코드(동적 import, 대형 차트 라이브러리 등은 예시 수준)
 
 ### Interface
-- ENV
-  - `NEXT_RUNTIME_MODE`: ssr | isr | csr
-  - `NEXT_REVALIDATE_SECONDS`: ISR 기본값
+- ENV: `NEXT_PUBLIC_API_BASE`
 - 페이지 설정(개념 정의)
   - `revalidate`: 0(SSR) 또는 N(ISR)
   - `dynamic`: `force-dynamic` | `auto`
@@ -52,8 +50,7 @@ links: [CU-WEB-001, CU-WEB-002, CU-WEB-004, CU-WEB-005, CU-WEB-008, CU-BE-001]
   - 403(CSRF) 시 CSRF 발급 UX(links: CU-BE-001, CU-WEB-005)
 
 ### Defaults
-- 기본 모드: `NEXT_RUNTIME_MODE=ssr`
-- 보호 페이지 기본: `revalidate=0`, `dynamic='force-dynamic'`, `runtime='nodejs'`
+- 기본: 보호 페이지 SSR(nodejs)
 - 세션 요청: `fetchCache='only-no-store'`
 
 ### NFR

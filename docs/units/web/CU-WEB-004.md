@@ -70,6 +70,6 @@ links: [CU-WEB-001, CU-WEB-002, CU-WEB-005, CU-WEB-006, CU-WEB-008, CU-BE-001]
 - T8 문서/스토리: 가드 상태별 UX 및 에러 코드 매핑 가이드
 
 ### Notes
-- ENV: `NEXT_PUBLIC_API_BASE`, `NEXT_RUNTIME_MODE`, `NEXT_REVALIDATE_SECONDS`
+- ENV: `NEXT_PUBLIC_API_BASE`
 - 백엔드 연동: `/api/v1/auth/*` (CU-BE-001), 표준 응답 `{status,message,result,count?,code?,requestId}`
 - 레이아웃/명칭 레이어: `frontend-web` 일관 유지

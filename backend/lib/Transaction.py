@@ -155,3 +155,14 @@ def savepoint(db_name: str, name: str) -> _Savepoint:
           ...
     """
     return _Savepoint(db_name, name)
+
+
+def transaction_default():
+    """Shortcut transaction decorator using the primary DB name.
+
+    Example:
+        @transaction_default()
+        async def handler():
+            ...
+    """
+    return transaction(DB.getPrimaryDbName())

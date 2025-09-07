@@ -26,8 +26,7 @@ links: [CU-BE-001, CU-BE-005, CU-WEB-001, CU-WEB-004, CU-WEB-006]
 - Export
   - API 클라이언트 모듈(생성기 + 요청 헬퍼)
   - SWR 훅(예시): useSession(), useProfile(), useList(queryKey)
-- ENV
-  - NEXT_PUBLIC_API_BASE
+- ENV: `NEXT_PUBLIC_API_BASE`
   - NEXT_RUNTIME_MODE (ssr|isr|csr)
   - NEXT_REVALIDATE_SECONDS (ISR 기본값)
 - 요청 규약
@@ -80,4 +79,3 @@ links: [CU-BE-001, CU-BE-005, CU-WEB-001, CU-WEB-004, CU-WEB-006]
 - 기술: JavaScript Only, Next 15(App Router), 기본 nodejs(쿠키/세션), 경로별 edge 가능
 - 백엔드 연계: CU-BE-001(인증), CU-BE-005(문서)와 1:1 맞춤; /api/v1 고정, 응답 스키마 일치
 - 호출 규약: SWR 영역과 credentials:'include' 강제, 비멱등 CSRF 필수
-

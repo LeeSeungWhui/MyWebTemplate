@@ -68,6 +68,6 @@ links: [CU-BE-001, CU-WEB-004, CU-WEB-005, CU-WEB-008]
 - T9: 테스트(Playwright/Vitest): 폼 유효성/204 처리/401 메시지/`next` 검증/가드 리다이렉트/로그인 흐름
 
 ### Notes
-- ENV: `NEXT_PUBLIC_API_BASE`, `NEXT_RUNTIME_MODE`, `NEXT_REVALIDATE_SECONDS`
+- ENV: `NEXT_PUBLIC_API_BASE`
 - 기본 runtime은 nodejs(쿠키 접근), 경로에 따라 edge 선택 가능
 - UI 바인딩(EasyObj): value/onChange 규약 준수, 폼모델과 EasyObj 연결(SWR와 충돌 없게 분리)
