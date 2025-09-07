@@ -1,0 +1,65 @@
+from functools import wraps
+from typing import List, Union
+
+from lib.Database import dbManagers
+from lib.Logger import logger
+
+
+class TransactionError(Exception):
+    pass
+
+
+def transaction(db_names: Union[str, List[str]]):
+    """
+    ?¸ëœ??…˜ ?°ì½”?ˆì´??
+    ?¨ì¼ DB ?ëŠ” ?¤ì¤‘ DB ?¸ëœ??…˜??ì§€?í•©?ˆë‹¤.
+
+    ?¬ìš© ??
+    @transaction('main_db')
+    async def single_db_operation():
+        pass
+
+    @transaction(['main_db', 'legacy_db'])
+    async def multi_db_operation():
+        pass
+    """
+    if isinstance(db_names, str):
+        db_names = [db_names]
+
+    def decorator(func):
+        @wraps(func)
+        async def wrapper(*args, **kwargs):
+            # ?¸ëœ??…˜???¬ìš©??DB ?°ê²°?¤ì„ ê°€?¸ì˜´
+            connections = []
+            try:
+                for db_name in db_names:
+                    if db_name not in dbManagers:
+                        raise TransactionError(
+                            f"?°ì´?°ë² ?´ìŠ¤ë¥?ì°¾ì„ ???†ìŠµ?ˆë‹¤: {db_name}"
+                        )
+                    conn = await dbManagers[db_name].database.transaction()
+                    connections.append(conn)
+                    await conn.start()
+                    logger.info(f"?¸ëœ??…˜ ?œì‘: {db_name}")
+
+                # ?¤ì œ ?¨ìˆ˜ ?¤í–‰
+                result = await func(*args, **kwargs)
+
+                # ëª¨ë“  ?¸ëœ??…˜ ì»¤ë°‹
+                for conn in connections:
+                    await conn.commit()
+                    logger.info("?¸ëœ??…˜ ì»¤ë°‹ ?„ë£Œ")
+
+                return result
+
+            except Exception as e:
+                # ?ëŸ¬ ë°œìƒ ??ëª¨ë“  ?¸ëœ??…˜ ë¡¤ë°±
+                for conn in connections:
+                    await conn.rollback()
+                    logger.error(f"?¸ëœ??…˜ ë¡¤ë°±: {str(e)}")
+                raise
+
+        return wrapper
+
+    return decorator
+

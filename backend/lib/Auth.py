@@ -6,6 +6,7 @@
 """
 
 from datetime import datetime, timedelta
+import uuid
 from typing import Optional
 
 from fastapi import Depends, HTTPException, status
@@ -52,10 +53,16 @@ def createAccessToken(data: dict) -> Token:
         raise Exception("SECRET_KEY가 설정되지 않았습니다.")
 
     toEncode = data.copy()
-    expire = datetime.utcnow() + timedelta(
+    now = datetime.utcnow()
+    expire = now + timedelta(
         minutes=AuthConfig.ACCESS_TOKEN_EXPIRE_MINUTES
     )
-    toEncode.update({"exp": expire})
+    # Standard claims: exp, iat, jti
+    toEncode.update({
+        "exp": expire,
+        "iat": int(now.timestamp()),
+        "jti": uuid.uuid4().hex,
+    })
 
     encodedJwt = jwt.encode(
         toEncode, AuthConfig.SECRET_KEY, algorithm=AuthConfig.ALGORITHM

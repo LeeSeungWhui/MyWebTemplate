@@ -17,11 +17,18 @@ from lib import Database as DB
 ALLOWED_KEYS = {"company", "regBiz", "item"}
 
 
+_tables_ready: bool = False
+
+
 async def ensure_tables() -> None:
+    global _tables_ready
+    if _tables_ready:
+        return
     if "main_db" not in DB.dbManagers:
         return
     db = DB.dbManagers["main_db"]
     await db.executeQuery("header.createTable")
+    _tables_ready = True
 
 
 def _calc_etag(user_id: str, keys: List[str], max_updated_at: Optional[str]) -> str:

@@ -13,7 +13,8 @@ from fastapi.responses import JSONResponse, Response
 from lib.Auth import AuthConfig
 from lib.Logger import logger
 from lib.Response import errorResponse, successResponse
-from backend.service.HeaderService import (
+# Use local service module within the backend package
+from service.HeaderService import (
     ALLOWED_KEYS,
     ensure_tables,
     list_header_data,
@@ -135,4 +136,3 @@ async def post_header_data(request: Request):
 
     payload = successResponse(result={"key": key, "value": value})
     return JSONResponse(content=payload, status_code=200)
-
