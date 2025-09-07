@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from functools import wraps
+from contextlib import AsyncExitStack
 from typing import List, Union, Tuple
 import time
 import uuid
@@ -46,15 +47,15 @@ def transaction(
             while attempt <= max(0, retries):
                 attempt += 1
                 tx_id = uuid.uuid4().hex[:12]
-                connections = []
+                stack: AsyncExitStack | None = None
                 started = time.perf_counter()
                 try:
+                    stack = AsyncExitStack()
+                    # enter all transactions (nested) so all DB ops use the same connections via contextvars
                     for name in db_list:
                         if name not in dbManagers:
                             raise TransactionError(f"database not found: {name}")
-                        conn = await dbManagers[name].database.transaction()
-                        connections.append(conn)
-                        await conn.start()
+                        await stack.enter_async_context(dbManagers[name].database.transaction())
                         try:
                             logger.info(
                                 f"tx.begin tx_id={tx_id} db={name} isolation={isolation} timeout_ms={timeout_ms} requestId={get_request_id()}"
@@ -65,8 +66,6 @@ def transaction(
                     start_count = DB.getSqlCount()
                     result = await func(*args, **kwargs)
 
-                    for conn in connections:
-                        await conn.commit()
                     try:
                         elapsed_ms = int((time.perf_counter() - started) * 1000)
                         sql_count = max(0, DB.getSqlCount() - start_count)
@@ -76,11 +75,14 @@ def transaction(
                     return result
 
                 except BaseException as e:
-                    for conn in connections:
+                    # ensure underlying transaction contexts see the exception -> rollback
+                    if stack is not None:
                         try:
-                            await conn.rollback()
+                            await stack.__aexit__(type(e), e, e.__traceback__)
                         except Exception:
                             pass
+                        finally:
+                            stack = None
                     try:
                         sql_count = max(0, DB.getSqlCount() - start_count)
                         logger.error(f"tx.rollback tx_id={tx_id} error={e} sql_count={sql_count} requestId={get_request_id()}")
@@ -93,6 +95,11 @@ def transaction(
                         break
                     await _sleep_backoff(attempt)
                 finally:
+                    if stack is not None:
+                        try:
+                            await stack.aclose()
+                        except Exception:
+                            pass
                     try:
                         elapsed_ms = int((time.perf_counter() - started) * 1000)
                         logger.info(f"tx.end tx_id={tx_id} latency_ms={elapsed_ms} requestId={get_request_id()}")
@@ -133,8 +140,8 @@ class _Savepoint:
                 await dbManagers[self.db_name].execute(f"ROLLBACK TO SAVEPOINT {self.name}")
             finally:
                 await dbManagers[self.db_name].execute(f"RELEASE SAVEPOINT {self.name}")
-            # do not suppress the exception
-            return False
+            # Suppress the exception to keep outer transaction usable
+            return True
         else:
             await dbManagers[self.db_name].execute(f"RELEASE SAVEPOINT {self.name}")
             return False

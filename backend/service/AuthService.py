@@ -28,10 +28,29 @@ from lib.RequestContext import get_request_id
 
 
 def _cfg(key: str, default: Optional[str] = None) -> str:
-    try:
-        from .. import server as server_mod  # when imported as package
-    except Exception:  # pragma: no cover
-        import server as server_mod  # when running as module from backend/
+    """
+    Read AUTH config robustly regardless of import style.
+    Prefer backend.server when available (as tests mutate it),
+    otherwise fall back to top-level server.
+    """
+    import importlib
+
+    server_mod = None
+    for name in ("backend.server", "server"):
+        try:
+            server_mod = importlib.import_module(name)
+            if hasattr(server_mod, "config"):
+                break
+        except Exception:
+            server_mod = None
+            continue
+    if server_mod is None or not hasattr(server_mod, "config"):
+        # last resort: try relative import (package mode)
+        try:  # pragma: no cover
+            from .. import server as server_mod  # type: ignore
+        except Exception:  # pragma: no cover
+            import server as server_mod  # type: ignore
+
     section = server_mod.config["AUTH"]
     return section.get(key, default) if default is not None else section[key]
 
