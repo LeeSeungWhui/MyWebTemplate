@@ -26,6 +26,14 @@ def validate_schema(j: Dict[str, Any]) -> None:
 
 def main() -> int:
     from fastapi.testclient import TestClient
+    import os, sys
+
+    base_dir = os.path.dirname(os.path.dirname(__file__))  # backend/
+    repo_root = os.path.dirname(base_dir)
+    for p in (repo_root, base_dir):
+        if p not in sys.path:
+            sys.path.insert(0, p)
+
     from backend.server import app  # type: ignore
 
     with TestClient(app) as client:
