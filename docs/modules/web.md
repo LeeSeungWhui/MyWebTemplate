@@ -71,3 +71,26 @@
 - Parent: docs/index.md
 - Children: docs/units/web/
 
+## 데이터 패치 전략(SSR/CSR 전환)
+- 목적: 환경변수로 모드(SSR/CSR/ISR)를 바꾸지 않고, “어디서 데이터를 가져오느냐”로 결정해 일관성·단순성을 확보한다.
+- 계약 분리: 페이지/컴포넌트는 공통 데이터 계약만 호출한다. 실제 실행은 런타임 유틸이 담당한다.
+  - 공통 계약: `data/fetch.js`(엔드포인트·데이터 모델만 기술)
+  - 런타임 유틸: `lib/runtime/ssr.js`(서버, 쿠키·언어 헤더 자동 전달·no-store), `lib/runtime/csr.js`(클라, credentials·CSRF 처리 일원화)
+- 사용 방식: 페이지에서 MODE를 ‘SSR’ 또는 ‘CSR’로 결정한다.
+  - MODE=‘SSR’: page.jsx(서버 컴포넌트)에서 공통 계약을 직접 호출 → HTML에 데이터가 반영되어 SEO에 유리
+  - MODE=‘CSR’: page.jsx는 셸만 그리고, 클라이언트 컴포넌트가 동일 계약을 호출 → 상호작용/실시간성에 유리
+- 메타만 SSR: 필요 시 generateMetadata에서만 최소 데이터 조회(제목/설명), 본문은 CSR로 타협 가능.
+- 기본 원칙: 보호 페이지는 SSR(nodejs, no-store)이 기본. 무거운 위젯/차트는 CSR로 분리해 하이브리드 구성.
+
+## 결정사항(추가)
+- ENV로 런타임 모드를 토글하지 않는다. 페이지별로 MODE와 데이터 호출 위치로 SSR/CSR을 전환한다.
+- 데이터 호출 규약은 공통(fetch 계약)으로 통일하고, 쿠키·언어·CSRF·캐시 규칙은 런타임 유틸에서 처리한다.
+
+## TODO(보강)
+- 공통 데이터 계약 파일(data/fetch.js) 정립(엔드포인트·결과 스키마 중심)
+- 런타임 유틸(lib/runtime/ssr.js, lib/runtime/csr.js) 정의(쿠키/언어/credentials/CSRF/no-store 일원화)
+- 각 페이지에 MODE 도입(SSR 기본, CSR 선택) 및 QA(SEO, 깜빡임 없는 가드)
+
+## Acceptance(보강)
+- 페이지별 MODE 전환만으로 SSR/CSR 동작이 일관되고, SSR의 경우 HTML/메타에 데이터가 반영된다.
+- 공통 계약을 통해 SSR/CSR 모두 동일 응답 규격과 에러 처리(flow: 401→/login, 403→CSRF 안내)를 따른다.
