@@ -301,7 +301,7 @@ async def issue_token(request: Request):
         )
     db = dbManagers["main_db"]
     user = await db.fetchOne(
-        "SELECT username, password_hash, name FROM member WHERE username = :u",
+        "SELECT username, password_hash, name FROM T_USER WHERE username = :u",
         {"u": username},
     )
     if not user or not bcrypt.checkpw(password.encode(), user["password_hash"].encode()):
