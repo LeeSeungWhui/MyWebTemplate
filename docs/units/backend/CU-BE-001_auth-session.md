@@ -17,6 +17,7 @@ links: [CU-BE-004, CU-BE-005]
   - App: Bearer 토큰 발급/검증(토큰 저장은 SecureStore 권장)
   - 표준 응답 스키마 적용(HTTP 상태코드 엄수)
   - 쿠키 플로우: 비멱등 요청에 `X-CSRF-Token` 요구(더블서밋 또는 ORIGIN 검증)
+  - 로그인 CSRF 옵션(`[AUTH].login_require_csrf` 기본 false) → true일 때 로그인 API도 `X-CSRF-Token` 필요
 - 제외
   - RBAC/권한 매트릭스 상세 설계(차기)
   - 소셜 로그인/OTP 등 확장 흐름
@@ -56,6 +57,7 @@ links: [CU-BE-004, CU-BE-005]
   - 레이트리밋: 로그인 엔드포인트 5 req/min (IP/계정 기준 중 하나 선택), 초과 시 429 + `code=AUTH_429_RATE_LIMIT` (+ `Retry-After` 헤더 권장)
   - 쿠키 이름: `[AUTH].session_cookie`(기본 sid), HttpOnly/(prod)Secure/SameSite=Lax
   - CSRF 헤더 이름은 `[AUTH].csrf_header`를 따른다(기본 `X-CSRF-Token`).
+  - 로그인 CSRF: `[AUTH].login_require_csrf` 기본 false; true일 땐 `/api/v1/auth/login`도 `X-CSRF-Token`이 없으면 403 반환
   - 입력 검증: username 최소 길이/포맷, password 최소 길이(예: ≥ 8)
   - 토큰 만료: `expires_in`은 `[AUTH].token_expire`와 동일
   - JWT 클레임: `sub=<userId>`, `exp=now+[AUTH].token_expire`, `iat`, `jti`(재사용·블랙리스트 대비)

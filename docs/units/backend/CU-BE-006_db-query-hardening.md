@@ -1,4 +1,4 @@
-﻿---
+---
 id: CU-BE-006
 name: DB & Query Loader Hardening
 module: backend
@@ -8,39 +8,39 @@ links: [CU-BE-003]
 ---
 
 ### Purpose
-- DB 而ㅻ꽖???/寃⑸━?섏?/?뚮씪誘명꽣 諛붿씤??荑쇰━ ?ル━濡쒕뱶 濡쒓퉭??怨좊룄?뷀븳??
+- DB 연결과 SQL 로더를 강화해 안전한 쿼리 실행과 변경 감지 리로드를 지원한다.
 
 ### Scope
-- ?ы븿
-  - query/ ?붾젆?곕━??.sql ?뚯씪 濡쒕뵫(-- name: ???뚯떛) 諛??덉??ㅽ듃由?愿由?  - 諛붿씤???뚮씪誘명꽣 媛뺤젣(臾몄옄??移섑솚 湲덉?)
-  - Dev ?섍꼍?먯꽌 watchdog 湲곕컲 ?ル━濡쒕뱶(?붾컮?댁뒪, 遺遺??ъ쟻??
-  - 濡쒕뵫 ?ㅽ뙣 ??留덉?留??뺤긽蹂??좎?, 珥덇린 濡쒕뵫 ?ㅽ뙣??遺???ㅽ뙣
-  - 濡쒕뱶/由щ줈??濡쒓퉭(?덈꺼/硫뷀?: file, keys, count, duration_ms)
-- ?쒖쇅
-  - ORM 紐⑤뜽 ?먮룞?앹꽦, ?숈쟻 ?ㅽ궎留?留덉씠洹몃젅?댁뀡
+- 포함
+  - `query/` 디렉토리의 `.sql` 파일을 로드하고 `-- name:` 주석으로 키를 지정하는 레지스트리.
+  - 모든 쿼리는 바인딩 파라미터만 허용.
+  - 개발 환경에서 watchdog으로 파일 변경을 감지하여 자동 리로드.
+  - 로드/리로드 시 `file, keys, count, duration_ms` 필드를 가진 구조적 로그 기록.
+- 제외
+  - ORM 기반 자동 생성, 복잡한 마이그레이션 툴.
 
 ### Interface
-- ?뚯씪 洹쒖빟(.sql)
-  - -- name: member.selectById
-    SELECT * FROM member WHERE id = :id;
-  - -- name: member.insert
-    INSERT INTO member(id, name) VALUES(:id, :name);
-- ?쒕퉬???ъ슜 洹쒖빟
-  - service 怨꾩링?먯꽌 query_registry["member.selectById"]濡?議고쉶 ??SQLAlchemy Core text + bind params濡??ㅽ뻾
-- ?뚯꽌 洹쒖빟
-  - 釉붾줉 ?쒖옉 ??- name: key???ㅼ쓬 以꾨????ㅼ쓬 -- name: ?꾧퉴吏瑜?SQL濡?媛꾩＜(鍮덉쨪/二쇱꽍 ?ы븿). 以묐났 ?ㅻ뒗 ?먮윭, ?뚯씪 ?몄퐫??UTF-8
+- 파일 예시(.sql)
+  - `-- name: member.selectById`
+    `SELECT * FROM member WHERE id = :id;`
+  - `-- name: member.insert`
+    `INSERT INTO member(id, name) VALUES(:id, :name);`
+- 사용 예시
+  - 서비스에서 `query_registry["member.selectById"]`로 조회 후 SQLAlchemy Core text + bind params로 실행.
+- 문서화
+  - 상단 `-- name:` 뒤에 키를 쓰고 줄바꿈 후 SQL을 작성. 모든 파일은 UTF-8.
 
 ### Acceptance Criteria
-- AC-1: ?쒕쾭 湲곕룞 ??query/??紐⑤뱺 -- name: 釉붾줉???뚯떛?섏뼱 ?덉??ㅽ듃由ъ뿉 ?곸옱?쒕떎(以묐났 ?ㅻ뒗 ?먮윭).
-- AC-2: Dev?먯꽌 .sql ?섏젙 ??N<1s ???덉??ㅽ듃由ш? 媛깆떊?섍퀬, ?먮윭 ??留덉?留??뺤긽蹂몄쓣 ?좎??쒕떎.
-- AC-3: 紐⑤뱺 ?ㅽ뻾? 諛붿씤???뚮씪誘명꽣留??ъ슜?쒕떎(臾몄옄??移섑솚 ?먯? ??寃쎄퀬/李⑤떒).
-- AC-4: 濡쒕뱶/由щ줈???대깽?멸? JSON 濡쒓렇??湲곕줉?쒕떎(file, keys, count, duration_ms).
-- AC-5: ?ㅼ젙 ?좉?濡?query_watch on/off, debounce_ms 蹂寃쎌씠 媛?ν븯??
+- **AC-1:** `query/`의 모든 SQL이 `-- name:` 키를 포함하고 중복 시 로더가 예외를 던진다.
+- **AC-2:** 개발 모드에서 .sql 수정 후 1초 이내에 리로드되고 로그에 변경 내용이 남는다.
+- **AC-3:** 실행 시 항상 바인딩 파라미터만 사용하며 문자열 치환을 허용하지 않는다.
+- **AC-4:** 로드/리로드 이벤트가 JSON 로그(`file, keys, count, duration_ms`)로 기록된다.
+- **AC-5:** `query_watch` on/off와 `query_watch_debounce_ms` 설정이 정상 작동한다.
 
 ### Tasks
 
 ### Notes
-- Loader: query/ 디렉토리를 재귀 스캔하여 .sql의 `-- name:` 블록으로 {name: sql} 레지스트리를 구성한다. 이름 중복은 즉시 예외로 실패한다(fail-fast). 파일 인코딩은 UTF-8.
+- Loader: `query/` 디렉토리를 재귀 스캔해 `.sql`의 `-- name:` 블록으로 {name: sql} 레지스트리를 구성한다. 이름 중복은 즉시 예외로 실패한다(fail-fast). 파일 인코딩은 UTF-8.
 - Logging: 초기 로드 `event=query.load`, 변경 리로드 `event=query.reload` 구조적 JSON 로그를 남긴다(공통 필드: file, keys, count, duration_ms).
 - Config: [DATABASE] `query_dir`(기본 `query` → backend/query), `query_watch`(기본 true), `query_watch_debounce_ms`(기본 150).
 - Coding: 함수/변수는 camelCase, 파일/함수 헤더 주석을 포함한다(common-rules 준수).
