@@ -1,6 +1,6 @@
 ---
 id: CU-BE-005
-name: OpenAPI Docs & JS Client
+name: OpenAPI 문서 & JS 클라이언트
 module: backend
 status: implemented
 priority: P1
@@ -8,17 +8,17 @@ links: [CU-BE-001]
 ---
 
 ### Purpose
-- Provide Swagger/OpenAPI docs and a JavaScript client template without TypeScript.
+- Swagger/OpenAPI 문서와 TypeScript 없는 JavaScript 클라이언트 템플릿을 제공한다.
 
 ### Scope
-- Include
-  - Document cookie session and bearer token auth in `components.securitySchemes` with OR relationship.
-  - Response wrapper `{status, message, result, count?, code?, requestId}` schemas.
-  - 401 responses with `WWW-Authenticate` header.
-  - `CSRFToken` parameter (`X-CSRF-Token`) referenced by non-idempotent endpoints.
-  - Servers, tag groups, `operationId`, and `x-codeSamples` using `openapi-client-axios` (JS).
-- Exclude
-  - TypeScript bindings or generators.
+- 포함
+  - `components.securitySchemes`에 쿠키 세션과 Bearer 토큰 인증을 OR 관계로 문서화.
+  - `{status, message, result, count?, code?, requestId}` 래퍼 스키마.
+  - 401 응답에 `WWW-Authenticate` 헤더 표기.
+  - 비멱등 엔드포인트에 `CSRFToken` 파라미터(`X-CSRF-Token`) 참조.
+  - 서버 목록, 태그 그룹, `operationId`, `openapi-client-axios` 기반 `x-codeSamples`.
+- 제외
+  - TypeScript 바인딩 및 코드 생성기.
 
 ### Interface
 - Export
@@ -28,40 +28,40 @@ links: [CU-BE-001]
   - `components.schemas.StandardResponse`, `ErrorResponse`
   - `components.parameters.CSRFToken`
   - `servers: [{url:"http://localhost:8000"}, {url:"https://api.example.com"}]`
-  - `x-tagGroups` for tag grouping
-  - `x-codeSamples` with `openapi-client-axios` examples
+  - 태그 그룹용 `x-tagGroups`
+  - `openapi-client-axios` 예제를 담은 `x-codeSamples`
 
 ### Data & Rules
-- Login response documented as `204` with `Set-Cookie` header.
-- 401 responses include `WWW-Authenticate` and use `ErrorResponse` schema.
-- CSRFToken parameter appears in non-idempotent routes.
-- Swagger UI keeps code samples minimal and avoids exposing credentials.
+- 로그인 응답은 `204`와 `Set-Cookie` 헤더로 문서화한다.
+- 401 응답은 `WWW-Authenticate` 헤더와 `ErrorResponse` 스키마를 사용한다.
+- `CSRFToken` 파라미터는 비멱등 라우트에 등장한다.
+- Swagger UI 예제는 최소한으로 유지하고 자격 증명은 노출하지 않는다.
 
 ### NFR & A11y
-- OpenAPI schema validation ensures docs and APIs stay in sync.
+- OpenAPI 스키마 검증으로 문서와 API의 동기화를 보장한다.
 
 ### CI(검증 & JS 클라이언트 스모크)
-- OpenAPI validation: `scripts/openapi_validate.py`.
-- JS smoke test: Node script `scripts/js_smoke.mjs` hitting `/healthz`.
-- Workflow: Python tests → `openapi_validate.py` → start server → `js_smoke.mjs`.
+- OpenAPI 검증: `scripts/openapi_validate.py`.
+- JS 스모크 테스트: `scripts/js_smoke.mjs`가 `/healthz` 호출.
+- 워크플로: Python tests → `openapi_validate.py` → 서버 기동 → `js_smoke.mjs`.
 
 ### Defaults
-- JS client uses `openapi-client-axios` by default.
+- JS 클라이언트는 기본으로 `openapi-client-axios`를 사용한다.
 
 ### Acceptance Criteria
-- **AC-1:** Login API documents `204 + Set-Cookie` response.
-- **AC-2:** `CSRFToken` parameter required in non-idempotent routes and returns `403` when missing.
-- **AC-3:** JS client example uses `openapi-client-axios` to call an endpoint.
-- **AC-4:** `openapi_validate.py` passes in CI.
-- **AC-5:** `js_smoke.mjs` calls `/healthz` using `openapi-client-axios`.
+- **AC-1:** 로그인 API가 `204 + Set-Cookie` 응답을 문서화한다.
+- **AC-2:** 비멱등 라우트에 `CSRFToken` 파라미터가 필요하며 없으면 `403`을 반환한다.
+- **AC-3:** JS 클라이언트 예제가 `openapi-client-axios`로 엔드포인트를 호출한다.
+- **AC-4:** `openapi_validate.py`가 CI에서 통과한다.
+- **AC-5:** `js_smoke.mjs`가 `openapi-client-axios`로 `/healthz`를 호출한다.
 
 ### Tasks
-- T1: Define cookie and bearer security schemes.
-- T2: Add StandardResponse/ErrorResponse schemas and `WWW-Authenticate`.
-- T3: Define `CSRFToken` parameter and reference it in non-idempotent routes.
-- T4: Document login `204 + Set-Cookie` response.
-- T5: Provide `servers`, `x-tagGroups`, and `operationId` values.
-- T6: Add `openapi-client-axios` code samples.
-- T7: Include OpenAPI validation and JS smoke in CI.
-- T8: Keep Swagger UI examples minimal without credentials.
+- T1: 쿠키 및 Bearer 보안 스키마 정의.
+- T2: StandardResponse/ErrorResponse 스키마와 `WWW-Authenticate` 추가.
+- T3: `CSRFToken` 파라미터 정의 후 비멱등 라우트에 참조.
+- T4: 로그인 `204 + Set-Cookie` 응답 문서화.
+- T5: `servers`, `x-tagGroups`, `operationId` 값 추가.
+- T6: `openapi-client-axios` 코드 샘플 추가.
+- T7: CI에 OpenAPI 검증과 JS 스모크 테스트 포함.
+- T8: Swagger UI 예제는 최소화하고 자격 증명은 숨긴다.
 
