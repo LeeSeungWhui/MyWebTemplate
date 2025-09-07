@@ -164,9 +164,10 @@ async def login(request: Request):
         return invalid
 
     if "main_db" not in dbManagers:
+        loc = detect_locale(request)
         return JSONResponse(
             status_code=500,
-            content=errorResponse(message="db unavailable", code="AUTH_500_DB"),
+            content=errorResponse(message=i18n_t("db.unavailable", "db unavailable", loc), code="AUTH_500_DB"),
         )
     db = dbManagers["main_db"]
     user = await db.fetchOne(
@@ -295,9 +296,10 @@ async def issue_token(request: Request):
 
     await _ensure_auth_tables()
     if "main_db" not in dbManagers:
+        loc = detect_locale(request)
         return JSONResponse(
             status_code=500,
-            content=errorResponse(message="db unavailable", code="AUTH_500_DB"),
+            content=errorResponse(message=i18n_t("db.unavailable", "db unavailable", loc), code="AUTH_500_DB"),
         )
     db = dbManagers["main_db"]
     user = await db.fetchOne(

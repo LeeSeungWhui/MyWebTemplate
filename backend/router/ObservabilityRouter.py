@@ -13,7 +13,8 @@ from typing import Dict
 from fastapi import APIRouter, Request
 
 from lib import Database as DB
-from lib.Response import successResponse
+from lib.Response import successResponse, errorResponse
+from lib.I18n import detect_locale, t as i18n_t
 
 
 router = APIRouter(tags=["observability"])
@@ -108,7 +109,8 @@ async def readyz(request: Request):
     if ok:
         resp = successResponse(result=payload)
     else:
-        resp = errorResponse(message="not ready", result=payload, code="OBS_503_NOT_READY")
+        loc = detect_locale(request)
+        resp = errorResponse(message=i18n_t("obs.not_ready", "not ready", loc), result=payload, code="OBS_503_NOT_READY")
     response = JSONResponse(content=resp, status_code=status_code)
     response.headers["Cache-Control"] = "no-store"
     return response

@@ -48,7 +48,8 @@ def test_unsafe_methods_require_csrf_parameter():
     from server import app
     with TestClient(app) as client:
         j = client.get("/openapi.json").json()
-        op = j["paths"].get("/api/v1/test/unsafe", {}).get("post")
+        # Use logout endpoint as representative unsafe POST
+        op = j["paths"].get("/api/v1/auth/logout", {}).get("post")
         assert op
         params = op.get("parameters", [])
         # Ensure CSRF Token parameter is present via $ref
