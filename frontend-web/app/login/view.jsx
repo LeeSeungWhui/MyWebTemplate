@@ -1,0 +1,54 @@
+'use client'
+
+import { useState } from 'react'
+import useSWR from 'swr'
+import { getSession, login } from '@/data/fetch'
+
+export default function Client({ mode, init }) {
+  const [username, setUsername] = useState('demo')
+  const [password, setPassword] = useState('password123')
+  const [pending, setPending] = useState(false)
+  const { data, mutate } = useSWR('session', () => getSession('CSR'), {
+    fallbackData: init,
+    revalidateOnFocus: false,
+  })
+  const authed = !!(data && data.result && data.result.authenticated)
+
+  async function onSubmit(e) {
+    e.preventDefault()
+    setPending(true)
+    try {
+      const res = await login('CSR', { username, password, rememberMe: true })
+      if (res && res.status === 204) {
+        await mutate()
+        window.location.href = '/'
+      } else {
+        // try to parse error
+        const j = await res.json().catch(() => ({}))
+        alert(j?.message || 'login failed')
+      }
+    } catch (err) {
+      console.error(err)
+      alert('login error')
+    } finally {
+      setPending(false)
+    }
+  }
+
+  if (authed) {
+    if (typeof window !== 'undefined') window.location.replace('/')
+    return null
+  }
+
+  return (
+    <main className="min-h-screen flex items-center justify-center p-6">
+      <form onSubmit={onSubmit} className="w-full max-w-sm space-y-4">
+        <h1 className="text-2xl font-semibold">Login</h1>
+        <input className="w-full border rounded px-3 py-2" placeholder="username" value={username} onChange={(e) => setUsername(e.target.value)} />
+        <input className="w-full border rounded px-3 py-2" placeholder="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
+        <button disabled={pending} className="w-full bg-black text-white rounded px-3 py-2 disabled:opacity-50">{pending ? 'Signing in…' : 'Sign In'}</button>
+      </form>
+    </main>
+  )
+}
+

@@ -2,16 +2,11 @@ This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-
 
 ## Getting Started
 
-First, run the development server:
+First, set API base and run the development server:
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
+cp .env.local.example .env.local # and set NEXT_PUBLIC_API_BASE
 pnpm dev
-# or
-bun dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
@@ -29,8 +24,13 @@ To learn more about Next.js, take a look at the following resources:
 
 You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
-## Deploy on Vercel
+## Conventions (Template)
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- JS only (no TypeScript). Tailwind v4.
+- Cookie session. All requests use credentials: include.
+- Data fetch strategy: Choose MODE per page.
+  - SSR: call common contract in page.jsx (server). SEO-ready.
+  - CSR: call the same contract in client component. Interactive.
+- Common contract: `data/fetch.js` delegates to runtime utils:
+  - SSR: `lib/runtime/ssr.js` (forwards Cookie/Accept-Language + no-store)
+  - CSR: `lib/runtime/csr.js` (credentials + CSRF for non-idempotent)
