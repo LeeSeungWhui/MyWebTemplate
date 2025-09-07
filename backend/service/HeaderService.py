@@ -1,8 +1,7 @@
-﻿"""
-?뚯씪: backend/service/HeaderDataService.py
-?묒꽦: Codex CLI
-媛깆떊: 2025-09-07
-?ㅻ챸: Header ?꾨찓???쒕퉬?? DB ?묎렐/ETag 怨꾩궛/?낆꽌??濡쒖쭅.
+"""
+파일명: backend/service/HeaderDataService.py
+제작자: Codex CLI
+날짜: 2025-09-07
 """
 
 from __future__ import annotations
@@ -37,10 +36,6 @@ def _calc_etag(user_id: str, keys: List[str], max_updated_at: Optional[str]) -> 
 
 
 async def list_header_data(user_id: str, keys: List[str]) -> Tuple[Dict[str, dict], str]:
-    """
-    諛섑솚: (key->obj 寃곌낵, etag)
-    援ы쁽: ?ㅻ떦 ?④굔 議고쉶 荑쇰━瑜??ъ슜???⑥닚/紐낆떆??諛붿씤??蹂댁옣.
-    """
     db = DB.dbManagers.get("main_db")
     if db is None:
         return {}, _calc_etag(user_id, keys, None)
