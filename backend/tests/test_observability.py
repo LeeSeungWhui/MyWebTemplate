@@ -134,10 +134,12 @@ def test_oracle_ping_sql(monkeypatch):
 def test_logging_shape(caplog):
     from server import app
     with TestClient(app) as client:
+        import logging
+
+        caplog.set_level(logging.DEBUG)
         caplog.clear()
         r = client.get("/healthz")
         assert r.status_code == 200
-        # find at least one log containing JSON fields we emit
         seen = False
         for rec in caplog.records:
             msg = rec.message
@@ -145,3 +147,17 @@ def test_logging_shape(caplog):
                 seen = True
                 break
         assert seen
+
+
+def test_healthz_readyz_logs_debug(caplog):
+    from server import app
+    with TestClient(app) as client:
+        import logging
+
+        caplog.set_level(logging.DEBUG)
+        caplog.clear()
+        client.get('/healthz')
+        client.get('/readyz')
+        health_debug = any(rec.levelname == 'DEBUG' and '"path": "/healthz"' in rec.message for rec in caplog.records)
+        ready_debug = any(rec.levelname == 'DEBUG' and '"path": "/readyz"' in rec.message for rec in caplog.records)
+        assert health_debug and ready_debug

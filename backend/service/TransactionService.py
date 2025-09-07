@@ -20,7 +20,10 @@ async def ensure_tables() -> None:
 async def do_single_commit() -> None:
     await ensure_tables()
     db = DB.dbManagers["main_db"]
-    await db.executeQuery("tx.insertValue", {"val": "tx-single"})
+    import uuid
+
+    val = f"tx-single-{uuid.uuid4().hex[:8]}"
+    await db.executeQuery("tx.insertValue", {"val": val})
 
 
 async def do_unique_violation() -> None:

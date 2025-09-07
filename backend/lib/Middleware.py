@@ -42,7 +42,7 @@ class RequestLogMiddleware(BaseHTTPMiddleware):
                 pass
 
             elapsed_ms = int((time.perf_counter() - started) * 1000)
-            level = "INFO"
+            level = "DEBUG" if request.url.path in ("/healthz", "/readyz") else "INFO"
             log_obj = {
                 "ts": int(time.time() * 1000),
                 "level": level,
@@ -53,14 +53,11 @@ class RequestLogMiddleware(BaseHTTPMiddleware):
                 "latency_ms": elapsed_ms,
                 "msg": "access",
             }
-            # write as a single JSON string for structured logs
             msg = json.dumps(log_obj, ensure_ascii=False)
-            logger.info(msg)
+            if level == "DEBUG":
+                logger.debug(msg)
+            else:
+                logger.info(msg)
             return response
         finally:
             reset_request_id(token)
-"""
-Module: lib.Middleware
-Purpose: Request logging middleware with requestId propagation.
-Logs structured JSON and lowers noise for health endpoints.
-"""

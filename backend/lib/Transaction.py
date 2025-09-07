@@ -64,12 +64,16 @@ def transaction(
                             pass
 
                     start_count = DB.getSqlCount()
+                    start_rows = DB.getRowCount()
                     result = await func(*args, **kwargs)
 
                     try:
                         elapsed_ms = int((time.perf_counter() - started) * 1000)
                         sql_count = max(0, DB.getSqlCount() - start_count)
-                        logger.info(f"tx.commit tx_id={tx_id} latency_ms={elapsed_ms} sql_count={sql_count} requestId={get_request_id()}")
+                        rows = max(0, DB.getRowCount() - start_rows)
+                        logger.info(
+                            f"tx.commit tx_id={tx_id} latency_ms={elapsed_ms} sql_count={sql_count} rows={rows} requestId={get_request_id()}"
+                        )
                     except Exception:
                         pass
                     return result
@@ -85,7 +89,10 @@ def transaction(
                             stack = None
                     try:
                         sql_count = max(0, DB.getSqlCount() - start_count)
-                        logger.error(f"tx.rollback tx_id={tx_id} error={e} sql_count={sql_count} requestId={get_request_id()}")
+                        rows = max(0, DB.getRowCount() - start_rows)
+                        logger.error(
+                            f"tx.rollback tx_id={tx_id} error={e} sql_count={sql_count} rows={rows} requestId={get_request_id()}"
+                        )
                     except Exception:
                         pass
                     last_exc = e

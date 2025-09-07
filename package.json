@@ -1,0 +1,19 @@
+{
+  "name": "mywebtemplate",
+  "version": "1.0.0",
+  "description": "웹이랑 앱 개발할 때 매번 삽질하기 싫어서 만든 개발 템플릿이다. React, React Native, FastAPI 조합으로 웹이든 앱이든 빠르게 개발할 수 있게 만들었다.",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "openapi-client-axios": "^7.7.0"
+  }
+}

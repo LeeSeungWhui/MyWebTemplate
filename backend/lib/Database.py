@@ -39,6 +39,7 @@ lastChangedFile: Optional[str] = None
 
 # Per-request SQL counter (ContextVar)
 _sql_count_var: contextvars.ContextVar[int] = contextvars.ContextVar("sql_count", default=0)
+_row_count_var: contextvars.ContextVar[int] = contextvars.ContextVar("row_count", default=0)
 
 
 def getSqlCount() -> int:
@@ -48,10 +49,25 @@ def getSqlCount() -> int:
         return 0
 
 
+def getRowCount() -> int:
+    try:
+        return int(_row_count_var.get())
+    except Exception:
+        return 0
+
+
 def _inc_sql_count(n: int = 1) -> None:
     try:
         cur = int(_sql_count_var.get())
         _sql_count_var.set(cur + int(n))
+    except Exception:
+        pass
+
+
+def _inc_row_count(n: int = 0) -> None:
+    try:
+        cur = int(_row_count_var.get())
+        _row_count_var.set(cur + int(n))
     except Exception:
         pass
 
@@ -170,6 +186,10 @@ class DatabaseManager:
         result = await self.database.execute(query=query, values=values or {})
         logger.info(f"rows_affected={result}")
         _inc_sql_count()
+        try:
+            _inc_row_count(max(0, int(result)))
+        except Exception:
+            pass
         return result
 
     async def fetchOne(self, query: str, values: Dict = None):
@@ -183,10 +203,12 @@ class DatabaseManager:
             data = dict(result)
             logger.info("rows_returned=1")
             _inc_sql_count()
+            _inc_row_count(1)
             return data
         else:
             logger.info("rows_returned=0")
             _inc_sql_count()
+            _inc_row_count(0)
             return None
 
     async def fetchAll(self, query: str, values: Dict = None):
@@ -200,10 +222,12 @@ class DatabaseManager:
             data = [{column: row[column] for column in row.keys()} for row in result]
             logger.info(f"rows_returned={len(data)}")
             _inc_sql_count()
+            _inc_row_count(len(data))
             return data
         else:
             logger.info("rows_returned=0")
             _inc_sql_count()
+            _inc_row_count(0)
             return None
 
     async def executeQuery(self, queryName: str, values: Dict = None):
