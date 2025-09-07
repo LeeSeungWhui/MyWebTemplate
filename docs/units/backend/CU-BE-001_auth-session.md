@@ -2,7 +2,7 @@
 id: CU-BE-001
 name: Auth & Session
 module: backend
-status: partial
+status: implemented
 priority: P1
 links: [CU-BE-004, CU-BE-005]
 ---
@@ -46,7 +46,7 @@ links: [CU-BE-004, CU-BE-005]
 - 샘플 사용자 스키마(예)
 ```
 {
-  "table": "member",
+  "table": "T_USER",
   "fields": ["ID_MEMBER", "NM_MEMBER", "PASSWORD_HASH"]
 }
 ```

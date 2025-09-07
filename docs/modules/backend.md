@@ -21,7 +21,7 @@
 
 ## 포함 Unit
 - CU-BE-001 Auth & Session
-- CU-BE-002 Header Data API
+- CU-BE-002 User Table & Seeding
 - CU-BE-003 Transaction Utilities
 - CU-BE-004 Healthz & Observability
 - CU-BE-005 OpenAPI Docs & JS Client
