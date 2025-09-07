@@ -27,6 +27,8 @@ from watchdog.observers import Observer
 # =========================
 
 dbManagers: Dict[str, "DatabaseManager"] = {}
+# Name of the primary DB (template default is 'main_db').
+_primaryDbName: Optional[str] = None
 sqlObserver: Optional[Observer] = None
 
 baseDir = os.path.dirname(__file__)
@@ -46,6 +48,34 @@ def getSqlCount() -> int:
         return int(_sql_count_var.get())
     except Exception:
         return 0
+
+
+def setPrimaryDbName(name: str) -> None:
+    global _primaryDbName
+    _primaryDbName = (name or "").strip() or None
+
+
+def getPrimaryDbName() -> str:
+    # Resolve in order: explicit setter -> env -> common default -> first available
+    if _primaryDbName:
+        return _primaryDbName
+    env = os.getenv("DB_PRIMARY")
+    if env:
+        return env
+    if "main_db" in dbManagers:
+        return "main_db"
+    if dbManagers:
+        # return first key deterministically
+        try:
+            return sorted(dbManagers.keys())[0]
+        except Exception:
+            return next(iter(dbManagers.keys()))
+    return "main_db"
+
+
+def getManager(name: Optional[str] = None) -> Optional["DatabaseManager"]:
+    key = (name or "").strip() or getPrimaryDbName()
+    return dbManagers.get(key)
 
 
 def _inc_sql_count(n: int = 1) -> None:

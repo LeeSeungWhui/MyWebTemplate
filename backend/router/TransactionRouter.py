@@ -7,7 +7,7 @@
 
 from fastapi import APIRouter
 from lib.Response import successResponse, errorResponse
-from lib.Transaction import transaction
+from lib.Transaction import transaction_default
 from lib import Database as DB
 from service.TransactionService import ensure_tables, do_single_commit, do_unique_violation
 
@@ -15,12 +15,12 @@ from service.TransactionService import ensure_tables, do_single_commit, do_uniqu
 router = APIRouter(prefix="/api/v1/transaction", tags=["transaction"])
 
 
-@transaction("main_db")
+@transaction_default()
 async def _tx_single():
     await do_single_commit()
 
 
-@transaction("main_db")
+@transaction_default()
 async def _tx_unique():
     await do_unique_violation()
 
@@ -34,7 +34,7 @@ async def testSingleTransaction():
     await ensure_tables()
     # ensure deterministic state across repeated runs (cleanup outside tx)
     try:
-        db = DB.dbManagers.get("main_db")
+        db = DB.getManager()
         if db:
             await db.execute("DELETE FROM test_transaction WHERE value = :v", {"v": "tx-single"})
     except Exception:
@@ -53,7 +53,7 @@ async def testTransactionUniqueViolation():
         await ensure_tables()
         # ensure deterministic state across repeated runs (cleanup outside tx)
         try:
-            db = DB.dbManagers.get("main_db")
+            db = DB.getManager()
             if db:
                 await db.execute("DELETE FROM test_transaction WHERE value = :v", {"v": "tx-dup"})
         except Exception:

@@ -20,7 +20,7 @@ from fastapi import Request
 from fastapi.responses import JSONResponse, Response
 
 from lib.Auth import AuthConfig, Token, createAccessToken
-from lib.Database import dbManagers
+from lib import Database as DB
 from lib.Response import errorResponse, successResponse
 from lib.Logger import logger
 from lib.I18n import detect_locale, t as i18n_t
@@ -111,9 +111,9 @@ async def _ensure_auth_tables():
     We keep a lightweight, best-effort password hash upgrade if the row
     already exists, but we never create tables or insert users here.
     """
-    if "main_db" not in dbManagers:
+    db = DB.getManager()
+    if not db:
         return
-    db = dbManagers["main_db"]
     try:
         row = await db.fetchOneQuery("user.selectByUsername", {"u": "demo"})
     except Exception:
@@ -198,13 +198,14 @@ async def login(request: Request):
     if invalid is not None:
         return invalid
 
-    if "main_db" not in dbManagers:
+    db = DB.getManager()
+    if not db:
         loc = detect_locale(request)
         return JSONResponse(
             status_code=500,
             content=errorResponse(message=i18n_t("db.unavailable", "db unavailable", loc), code="AUTH_500_DB"),
         )
-    db = dbManagers["main_db"]
+    # db is not None due to check above
     user = await db.fetchOneQuery("user.selectByUsername", {"u": username})
     if not user:
         logger.info("auth.login.fail username")
@@ -305,13 +306,14 @@ async def issue_token(request: Request):
         return invalid
 
     await _ensure_auth_tables()
-    if "main_db" not in dbManagers:
+    db = DB.getManager()
+    if not db:
         loc = detect_locale(request)
         return JSONResponse(
             status_code=500,
             content=errorResponse(message=i18n_t("db.unavailable", "db unavailable", loc), code="AUTH_500_DB"),
         )
-    db = dbManagers["main_db"]
+    
     user = await db.fetchOneQuery("user.selectByUsername", {"u": username})
     if not user or not _verify_password(password, user.get("password_hash") or ""):
         logger.info("auth.token.fail invalid")

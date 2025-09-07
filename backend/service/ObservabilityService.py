@@ -53,7 +53,12 @@ async def readyz(request: Request):
         ok = False
     else:
         try:
-            targets = ["main_db"] if "main_db" in DB.dbManagers else list(DB.dbManagers.keys())
+            primary = None
+            try:
+                primary = DB.getPrimaryDbName()
+            except Exception:
+                primary = None
+            targets = ([primary] if primary in DB.dbManagers else list(DB.dbManagers.keys()))
             if not targets:
                 checks["db"] = "up"
             else:

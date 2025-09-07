@@ -198,6 +198,15 @@ async def onStartup():
 # ---------------------------------------------------------------------------
 
 config = loadConfig("config.ini")
+# expose primary DB name to DB helper for non-hardcoded access
+try:
+    from .lib import Database as DB  # type: ignore
+except Exception:
+    from lib import Database as DB
+try:
+    DB.setPrimaryDbName(config["DATABASE"].get("name", "main_db"))
+except Exception:
+    pass
 
 # CORS config
 origins_raw = config["CORS"].get("allow_origins", "").strip()

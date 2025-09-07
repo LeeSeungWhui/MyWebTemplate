@@ -17,13 +17,17 @@ async def ensure_tables() -> None:
 
 async def do_single_commit() -> None:
     await ensure_tables()
-    db = DB.dbManagers["main_db"]
+    db = DB.getManager()
+    if not db:
+        raise RuntimeError("DB manager unavailable")
     await db.executeQuery("tx.insertValue", {"val": "tx-single"})
 
 
 async def do_unique_violation() -> None:
     await ensure_tables()
-    db = DB.dbManagers["main_db"]
+    db = DB.getManager()
+    if not db:
+        raise RuntimeError("DB manager unavailable")
     # insert a fixed value to hit unique constraint
     await db.executeQuery("tx.insertValue", {"val": "tx-dup"})
     # second insert will violate UNIQUE
