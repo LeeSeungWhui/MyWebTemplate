@@ -1,3 +1,10 @@
+"""
+파일명: backend/lib/Logger.py
+작성자: Codex CLI
+갱신일: 2025-09-07
+설명: 콘솔/파일 로거 설정. 포맷은 시간/레벨/메시지.
+"""
+
 import logging
 import os
 from datetime import datetime

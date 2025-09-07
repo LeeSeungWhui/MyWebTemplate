@@ -1,3 +1,10 @@
+"""
+파일명: backend/lib/Auth.py
+작성자: Codex CLI
+갱신일: 2025-09-07
+설명: JWT 발급/검증과 인증 공통 설정.
+"""
+
 from datetime import datetime, timedelta
 from typing import Optional
 
@@ -33,10 +40,14 @@ class AuthConfig:
         cls.TOKEN_ENABLE = tokenEnable
 
 
-oauth2Scheme = OAuth2PasswordBearer(tokenUrl="token")
+oauth2Scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/token")
 
 
 def createAccessToken(data: dict) -> Token:
+    """
+    설명: 페이로드에 만료(exp)를 추가해 JWT 액세스 토큰 생성.
+    갱신일: 2025-09-07
+    """
     if not AuthConfig.SECRET_KEY:
         raise Exception("SECRET_KEY가 설정되지 않았습니다.")
 
@@ -56,6 +67,10 @@ def createAccessToken(data: dict) -> Token:
 
 
 async def getCurrentUser(token: str = Depends(oauth2Scheme)):
+    """
+    설명: Bearer 토큰을 검증하고 인증된 사용자 식별자를 반환.
+    갱신일: 2025-09-07
+    """
     # 토큰 인증이 비활성화되어 있으면 더미 유저 반환
     if not AuthConfig.TOKEN_ENABLE:
         return TokenData(username="anonymous")
@@ -79,3 +94,4 @@ async def getCurrentUser(token: str = Depends(oauth2Scheme)):
         raise credentialsException
 
     return tokenData
+ 

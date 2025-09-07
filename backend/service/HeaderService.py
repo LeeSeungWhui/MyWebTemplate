@@ -1,96 +1,66 @@
-from lib.Database import dbManagers
+﻿"""
+?뚯씪: backend/service/HeaderDataService.py
+?묒꽦: Codex CLI
+媛깆떊: 2025-09-07
+?ㅻ챸: Header ?꾨찓???쒕퉬?? DB ?묎렐/ETag 怨꾩궛/?낆꽌??濡쒖쭅.
+"""
+
+from __future__ import annotations
+
+import hashlib
+import json
+from typing import Dict, List, Optional, Tuple
+
+from lib import Database as DB
 
 
-class HeaderService:
-    _instance = None
+ALLOWED_KEYS = {"company", "regBiz", "item"}
 
-    @classmethod
-    def getInstance(cls):
-        if cls._instance is None:
-            cls._instance = cls()
-        return cls._instance
 
-    def __init__(self):
-        self.itemNmDict = {"A": "전체", "S": "원단", "B": "상자"}
+async def ensure_tables() -> None:
+    if "main_db" not in DB.dbManagers:
+        return
+    db = DB.dbManagers["main_db"]
+    await db.executeQuery("header.createTable")
 
-    # 헤더 데이터 만들기
-    async def makeHeaderDataProc(self, param: dict):
-        dbManager = dbManagers["mariaDb"]
-        # m_map_partner에서 거래 사업장 정보 가져오기
-        bizInfoList = await dbManager.fetchAllQuery("select.mappartner", param)
-        if not bizInfoList:
-            return {
-                "data": None,
-                "code": "FAIL",
-                "msg": "거래 가능한 사업장이 없습니다.",
-            }
-        cdDfltRegBizArea = param["CD_DFLT_REG_BIZ_AREA"]
-        cdDfltItem = param["CD_DFLT_ITEM"]
 
-        # 각 selectList 생성
-        bizList = self.getBizSelectList(bizInfoList, cdDfltRegBizArea, cdDfltItem)
+def _calc_etag(user_id: str, keys: List[str], max_updated_at: Optional[str]) -> str:
+    src = f"{user_id}|{','.join(sorted(keys))}|{max_updated_at or ''}"
+    return 'W/"' + hashlib.sha256(src.encode("utf-8")).hexdigest()[:16] + '"'
 
-        return {"data": bizList, "code": "SUCC", "msg": ""}
 
-    # 사업장 리스트 생성(set을 이용하여 중복제거)
-    def getBizSelectList(self, bizInfoList, cdDfltRegBizArea, cdDfltItem):
-        uniqBizCdSet = set()
-        result = []
-        for bizInfoItem in bizInfoList:
-            # CD_REG_BIZ_AREA 값이 있는지 확인하고, 있다면 set에 추가
-            bizCd = bizInfoItem["CD_REG_BIZ_AREA"]
-            if bizCd is not None and bizCd not in uniqBizCdSet:
-                uniqBizCdSet.add(bizCd)
-                resultItem = {
-                    "CD_REG_BIZ_AREA": bizCd,
-                    "NM_REG_BIZ_AREA": bizInfoItem["NM_REG_BIZ_AREA"],
-                    "CD_COMPANY": bizInfoItem["CD_COMPANY"],
-                    "SELECTED": bizCd == cdDfltRegBizArea,
-                    "type": "select",
-                    # 추가된 itemList 속성
-                    "itemList": self.getItemSelectList(
-                        bizInfoList,
-                        bizCd,
-                        cdDfltItem if bizCd == cdDfltRegBizArea else None,
-                    ),
-                }
-                result.append(resultItem)
-        return result
+async def list_header_data(user_id: str, keys: List[str]) -> Tuple[Dict[str, dict], str]:
+    """
+    諛섑솚: (key->obj 寃곌낵, etag)
+    援ы쁽: ?ㅻ떦 ?④굔 議고쉶 荑쇰━瑜??ъ슜???⑥닚/紐낆떆??諛붿씤??蹂댁옣.
+    """
+    db = DB.dbManagers.get("main_db")
+    if db is None:
+        return {}, _calc_etag(user_id, keys, None)
 
-    # 품목 리스트 생성(사업장 코드에 종속)
-    def getItemSelectList(self, bizInfoList, cdRegBizArea, cdDfltItem=None):
-        result = []
-        # 해당하는 CD_REG_BIZ_AREA의 품목 가져오기
-        for bizInfoItem in bizInfoList:
-            if bizInfoItem["CD_REG_BIZ_AREA"] == cdRegBizArea:
-                itemCd = bizInfoItem["CD_BOX_SRC_DIV"]
-                resultItem = {
-                    "CD_BOX_SRC_DIV": itemCd,
-                    "NM_BOX_SRC_DIV": self.itemNmDict.get(itemCd, "Unknown"),
-                    "SELECTED": itemCd == cdDfltItem,
-                    "type": "select",
-                }
-                result.append(resultItem)
-        # result 품목코드가 "A"를 제외한 모든게 들어가 있다면 "A" 추가
-        if len(result) == len(self.itemNmDict) - 1:
-            result.insert(
-                0,
-                {
-                    "CD_BOX_SRC_DIV": "A",
-                    "NM_BOX_SRC_DIV": self.itemNmDict["A"],
-                    "SELECTED": "A" == cdDfltItem,
-                    "type": "select",
-                },
-            )
-        return result
+    result: Dict[str, dict] = {}
+    max_updated = None
+    for k in keys:
+        row = await db.fetchOneQuery("header.selectOne", {"u": user_id, "k": k})
+        if row is None:
+            continue
+        try:
+            val = json.loads(row["jvalue"]) if isinstance(row["jvalue"], str) else row["jvalue"]
+        except Exception:
+            val = {}
+        result[row["hkey"]] = val
+        ts = row.get("updated_at")
+        max_updated = ts if (max_updated is None or (ts and ts > max_updated)) else max_updated
 
-    async def updateHeaderDataProc(self, param: dict):
-        dbManager = dbManagers["mariaDb"]
-        result = await dbManager.executeQuery("update.dfltbizinfo", param)
-        if not result:
-            return {
-                "data": "INVALID",
-                "code": "NONE",
-                "msg": "업데이트 할 항목이 없습니다.",
-            }
-        return {"data": "VALID", "code": "SUCC", "msg": "업데이트에 성공했습니다."}
+    etag = _calc_etag(user_id, keys, str(max_updated) if max_updated else None)
+    return result, etag
+
+
+async def upsert_header_data(user_id: str, key: str, value: dict) -> None:
+    db = DB.dbManagers.get("main_db")
+    if db is None:
+        return
+    payload = json.dumps(value, ensure_ascii=False)
+    await db.executeQuery("header.upsert", {"u": user_id, "k": key, "v": payload})
+
+

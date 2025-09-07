@@ -1,5 +1,13 @@
 import { useState, useRef, useCallback } from 'react';
 
+// SSR-safe scheduler: fall back when RAF is unavailable
+const scheduleUpdate = (fn) => {
+    if (typeof window !== 'undefined' && typeof window.requestAnimationFrame === 'function') {
+        return window.requestAnimationFrame(fn);
+    }
+    return setTimeout(fn, 0);
+};
+
 function useEasyObj(initialData = {}) {
     const [, forceUpdate] = useState({});
     const dataRef = useRef(initialData);
@@ -26,7 +34,7 @@ function useEasyObj(initialData = {}) {
                     return (sourceObj) => {
                         Object.keys(obj).forEach(key => delete obj[key]);
                         Object.entries(sourceObj).forEach(([key, value]) => obj[key] = value);
-                        forceUpdate({});
+                        scheduleUpdate(() => forceUpdate({}));
                     };
                 }
                 if (prop === 'deepCopy') {
@@ -34,7 +42,7 @@ function useEasyObj(initialData = {}) {
                         const copiedObj = deepCopy(sourceObj);
                         Object.keys(obj).forEach(key => delete obj[key]);
                         Object.entries(copiedObj).forEach(([key, value]) => obj[key] = value);
-                        forceUpdate({});
+                        scheduleUpdate(() => forceUpdate({}));
                     };
                 }
                 if (prop === 'toString') {
@@ -53,12 +61,12 @@ function useEasyObj(initialData = {}) {
                 Reflect.set(obj, prop, value);
                 // React Native의 경우 비동기 업데이트를 더 잘 처리하기 위해 
                 // requestAnimationFrame 사용
-                requestAnimationFrame(() => forceUpdate({}));
+                scheduleUpdate(() => forceUpdate({}));
                 return true;
             },
             deleteProperty(obj, prop) {
                 const result = Reflect.deleteProperty(obj, prop);
-                requestAnimationFrame(() => forceUpdate({}));
+                scheduleUpdate(() => forceUpdate({}));
                 return result;
             }
         };

@@ -1,5 +1,13 @@
 import { useState, useRef, useCallback } from 'react';
 
+// SSR-safe scheduler: fall back when RAF is unavailable
+const scheduleUpdate = (fn) => {
+    if (typeof window !== 'undefined' && typeof window.requestAnimationFrame === 'function') {
+        return window.requestAnimationFrame(fn);
+    }
+    return setTimeout(fn, 0);
+};
+
 function useEasyList(initialData = []) {
     const [, forceUpdate] = useState({});
     const dataRef = useRef(initialData);
@@ -14,49 +22,49 @@ function useEasyList(initialData = []) {
                 if (prop === 'push') {
                     return (...items) => {
                         const result = obj.push(...items);
-                        requestAnimationFrame(() => forceUpdate({}));
+                        scheduleUpdate(() => forceUpdate({}));
                         return result;
                     };
                 }
                 if (prop === 'pop') {
                     return () => {
                         const result = obj.pop();
-                        requestAnimationFrame(() => forceUpdate({}));
+                        scheduleUpdate(() => forceUpdate({}));
                         return result;
                     };
                 }
                 if (prop === 'shift') {
                     return () => {
                         const result = obj.shift();
-                        requestAnimationFrame(() => forceUpdate({}));
+                        scheduleUpdate(() => forceUpdate({}));
                         return result;
                     };
                 }
                 if (prop === 'unshift') {
                     return (...items) => {
                         const result = obj.unshift(...items);
-                        requestAnimationFrame(() => forceUpdate({}));
+                        scheduleUpdate(() => forceUpdate({}));
                         return result;
                     };
                 }
                 if (prop === 'splice') {
                     return (start, deleteCount, ...items) => {
                         const result = obj.splice(start, deleteCount, ...items);
-                        requestAnimationFrame(() => forceUpdate({}));
+                        scheduleUpdate(() => forceUpdate({}));
                         return result;
                     };
                 }
                 if (prop === 'sort') {
                     return (compareFn) => {
                         const result = obj.sort(compareFn);
-                        requestAnimationFrame(() => forceUpdate({}));
+                        scheduleUpdate(() => forceUpdate({}));
                         return result;
                     };
                 }
                 if (prop === 'reverse') {
                     return () => {
                         const result = obj.reverse();
-                        requestAnimationFrame(() => forceUpdate({}));
+                        scheduleUpdate(() => forceUpdate({}));
                         return result;
                     };
                 }
@@ -73,7 +81,7 @@ function useEasyList(initialData = []) {
                                 callback(obj[index], index);
                             }
                         });
-                        requestAnimationFrame(() => forceUpdate({}));
+                        scheduleUpdate(() => forceUpdate({}));
                     };
                 }
 
@@ -90,12 +98,12 @@ function useEasyList(initialData = []) {
             },
             set(obj, prop, value) {
                 Reflect.set(obj, prop, value);
-                requestAnimationFrame(() => forceUpdate({}));
+                scheduleUpdate(() => forceUpdate({}));
                 return true;
             },
             deleteProperty(obj, prop) {
                 const result = Reflect.deleteProperty(obj, prop);
-                requestAnimationFrame(() => forceUpdate({}));
+                scheduleUpdate(() => forceUpdate({}));
                 return result;
             }
         };
