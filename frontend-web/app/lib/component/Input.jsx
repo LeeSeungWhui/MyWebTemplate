@@ -11,6 +11,8 @@ const Input = forwardRef(({
     error,
     filter,
     mask,
+    hardFilter = false,
+    blockHangul = false,
     maxDigits,
     maxDecimals,
     prefix,
@@ -112,6 +114,35 @@ const Input = forwardRef(({
         return value;
     };
 
+    const handleBeforeInput = (e) => {
+        if (!hardFilter) return;
+        const data = e.data;
+        if (!data || typeof data !== 'string') return;
+        // block by filter first
+        if (filter) {
+            const allow = new RegExp(`^[${filter}]+$`);
+            if (!allow.test(data)) {
+                e.preventDefault();
+                return;
+            }
+        }
+        // block hangul when mask present or explicitly requested
+        if (mask || blockHangul) {
+            const hangul = /[\u1100-\u11FF\u3130-\u318F\uAC00-\uD7A3]/;
+            if (hangul.test(data)) {
+                e.preventDefault();
+                return;
+            }
+        }
+        // numeric type: allow digits, dot, minus only (detailed shape validated on commit)
+        if (type === 'number') {
+            if (!/^[0-9.\-]+$/.test(data)) {
+                e.preventDefault();
+                return;
+            }
+        }
+    };
+
     const handleChange = (e) => {
         const composing = e.nativeEvent.isComposing || composingRef.current;
         const raw = e.target.value;
@@ -147,6 +178,7 @@ const Input = forwardRef(({
                 value={isControlled
                     ? (draftValue ?? dataObj[dataKey] ?? "")
                     : (draftValue ?? innerValue ?? "")}
+                onBeforeInput={handleBeforeInput}
                 onChange={handleChange}
                 onCompositionStart={() => { composingRef.current = true; setIsComposing(true); }}
                 onCompositionEnd={(e) => {
