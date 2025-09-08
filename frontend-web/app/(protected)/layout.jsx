@@ -2,7 +2,7 @@ export const dynamic = 'force-dynamic'
 export const revalidate = 0
 export const runtime = 'nodejs'
 
-import { getSession } from '@/data/fetch'
+import { getSession } from '@/app/lib/runtime/fetch'
 import { redirect } from 'next/navigation'
 
 export default async function ProtectedLayout({ children }) {
@@ -11,4 +11,3 @@ export default async function ProtectedLayout({ children }) {
   if (!authed) redirect('/login')
   return <>{children}</>
 }
-

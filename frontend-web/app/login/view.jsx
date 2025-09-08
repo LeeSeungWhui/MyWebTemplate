@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import useSWR from 'swr'
-import { getSession, login } from '@/data/fetch'
+import { getSession, login } from '@/app/lib/runtime/fetch'
 
 export default function Client({ mode, init }) {
   const [username, setUsername] = useState('demo')
@@ -51,4 +51,3 @@ export default function Client({ mode, init }) {
     </main>
   )
 }
-

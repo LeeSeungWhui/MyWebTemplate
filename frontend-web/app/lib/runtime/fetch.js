@@ -16,3 +16,4 @@ export async function logout(mode = 'CSR') {
   if (mode === 'SSR') return ssrJSON('/api/v1/auth/logout', { method: 'POST' })
   return postWithCsrf('/api/v1/auth/logout')
 }
+
