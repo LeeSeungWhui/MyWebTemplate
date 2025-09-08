@@ -34,25 +34,38 @@ export const useSharedStore = create((set, get) => ({
   }),
   hideAlert: () => set({ alert: { show: false, title: '', message: '', type: 'info', onClick: undefined, onFocus: undefined } }),
 
-  // confirm
+  // confirm (Promise-based API)
   confirm: { show: false, title: '', message: '', type: 'info', confirmText: '확인', cancelText: '취소' },
-  showConfirm: (message, opts = {}) => set({
-    confirm: {
-      show: true,
-      title: opts.title || '확인',
-      message,
-      type: opts.type || 'info',
-      confirmText: opts.confirmText || '확인',
-      cancelText: opts.cancelText || '취소',
-      onConfirm: opts.onConfirm,
-      onCancel: opts.onCancel,
-    },
-  }),
+  confirmPromiseResolve: null,
+  showConfirm: (message, opts = {}) => {
+    return new Promise((resolve) => {
+      set({
+        confirm: {
+          show: true,
+          title: opts.title || '확인',
+          message,
+          type: opts.type || 'info',
+          confirmText: opts.confirmText || '확인',
+          cancelText: opts.cancelText || '취소',
+          onConfirm: opts.onConfirm,
+          onCancel: opts.onCancel,
+        },
+        confirmPromiseResolve: resolve,
+      })
+    })
+  },
   hideConfirm: (confirmed) => {
-    const { confirm } = get()
-    if (confirmed && typeof confirm.onConfirm === 'function') confirm.onConfirm()
-    if (!confirmed && typeof confirm.onCancel === 'function') confirm.onCancel()
-    set({ confirm: { show: false, title: '', message: '', type: 'info', confirmText: '확인', cancelText: '취소' } })
+    const { confirm, confirmPromiseResolve } = get()
+    try {
+      if (confirmed && typeof confirm.onConfirm === 'function') confirm.onConfirm()
+      if (!confirmed && typeof confirm.onCancel === 'function') confirm.onCancel()
+      if (typeof confirmPromiseResolve === 'function') confirmPromiseResolve(!!confirmed)
+    } finally {
+      set({
+        confirm: { show: false, title: '', message: '', type: 'info', confirmText: '확인', cancelText: '취소' },
+        confirmPromiseResolve: null,
+      })
+    }
   },
 
   // toast
@@ -68,3 +81,4 @@ export const useSharedStore = create((set, get) => ({
   }),
   hideToast: () => set({ toast: { show: false, message: '', type: 'info', position: 'bottom-center', duration: 3000 } }),
 }))
+
