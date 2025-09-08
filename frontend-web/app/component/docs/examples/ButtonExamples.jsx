@@ -39,7 +39,7 @@ export const ButtonExamples = () => {
         },
         {
             component: <Lib.Button variant="link">Link Button</Lib.Button>,
-            description: "Link 스타일 버튼",
+            description: "Link ?��???버튼",
             code: '<Lib.Button variant="link">Link Button</Lib.Button>'
         },
         {
@@ -52,30 +52,30 @@ export const ButtonExamples = () => {
                 className="bg-gradient-to-r from-purple-500 to-pink-500 
                 hover:from-purple-600 hover:to-pink-600"
             >
-                그라데이션
+                그라?�이??
             </Lib.Button>,
-            description: "커스텀 버튼",
+            description: "커스?� 버튼",
             code: `<Lib.Button
     className="bg-gradient-to-r from-purple-500 to-pink-500 
     hover:from-purple-600 hover:to-pink-600"
 >
-    그라데이션
+    그라?�이??
 </Lib.Button>`
         },
         {
             component: <Lib.Button>
                 <Lib.Icon icon="ri:RiSearchLine" className="w-5 h-5 mr-2" />
-                검색
+                검??
             </Lib.Button>,
-            description: "아이콘이 있는 버튼",
+            description: "?�이콘이 ?�는 버튼",
             code: `<Lib.Button>
     <Lib.Icon icon="ri:RiSearchLine" className="w-5 h-5 mr-2" />
-    검색
+    검??
 </Lib.Button>`
         },
         {
             component: <Lib.Button disabled>Disabled</Lib.Button>,
-            description: "비활성화 버튼",
+            description: "비활?�화 버튼",
             code: '<Lib.Button disabled>Disabled</Lib.Button>'
         },
         {

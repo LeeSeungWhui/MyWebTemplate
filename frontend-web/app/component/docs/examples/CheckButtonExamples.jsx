@@ -29,11 +29,11 @@ export const CheckButtonExamples = () => {
         },
         {
             component: <Lib.CheckButton disabled>
-                비활성화 체크버튼
+                비활?�화 체크버튼
             </Lib.CheckButton>,
-            description: "비활성화 상태",
+            description: "비활?�화 ?�태",
             code: `<Lib.CheckButton disabled>
-    비활성화 체크버튼
+    비활?�화 체크버튼
 </Lib.CheckButton>`
         },
         {
@@ -44,33 +44,33 @@ export const CheckButtonExamples = () => {
                         dataObj={dataObj}
                         dataKey="redButton"
                     >
-                        빨간색
+                        빨간??
                     </Lib.CheckButton>
                     <Lib.CheckButton
                         color="#4CAF50"
                         dataObj={dataObj}
                         dataKey="greenButton"
                     >
-                        초록색
+                        초록??
                     </Lib.CheckButton>
                     <Lib.CheckButton
                         color="#2196F3"
                         dataObj={dataObj}
                         dataKey="blueButton"
                     >
-                        파란색
+                        ?��???
                     </Lib.CheckButton>
                 </div>
             ),
-            description: "다양한 색상",
+            description: "?�양???�상",
             code: `<Lib.CheckButton color="#FF0000" dataObj={dataObj} dataKey="redButton">
-    빨간색
+    빨간??
 </Lib.CheckButton>
 <Lib.CheckButton color="#4CAF50" dataObj={dataObj} dataKey="greenButton">
-    초록색
+    초록??
 </Lib.CheckButton>
 <Lib.CheckButton color="#2196F3" dataObj={dataObj} dataKey="blueButton">
-    파란색
+    ?��???
 </Lib.CheckButton>`
         },
         {
@@ -80,21 +80,21 @@ export const CheckButtonExamples = () => {
                         checked={controlledCheck}
                         onChange={() => setControlledCheck(!controlledCheck)}
                     >
-                        제어 컴포넌트
+                        ?�어 컴포?�트
                     </Lib.CheckButton>
                     <div className="text-sm text-gray-600">
-                        현재 상태: {controlledCheck ? '활성화' : '비활성화'}
+                        ?�재 ?�태: {controlledCheck ? '?�성?? : '비활?�화'}
                     </div>
                 </div>
             ),
-            description: "제어 컴포넌트 방식",
+            description: "?�어 컴포?�트 방식",
             code: `const [checked, setChecked] = useState(false);
 
 <Lib.CheckButton
     checked={checked}
     onChange={() => setChecked(!checked)}
 >
-    제어 컴포넌트
+    ?�어 컴포?�트
 </Lib.CheckButton>`
         }
     ];

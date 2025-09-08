@@ -16,31 +16,31 @@ export const RadioboxExamples = () => {
                 <div className="space-y-2">
                     <Lib.Radiobox
                         name="job"
-                        label="개발자"
+                        label="개발??
                         value="developer"
                         dataObj={dataObj}
                         dataKey="selectedJob"
                     />
                     <Lib.Radiobox
                         name="job"
-                        label="디자이너"
+                        label="?�자?�너"
                         value="designer"
                         dataObj={dataObj}
                         dataKey="selectedJob"
                     />
                 </div>
             ),
-            description: "기본 라디오박스",
+            description: "기본 ?�디?�박??,
             code: `<Lib.Radiobox
     name="job"
-    label="개발자"
+    label="개발??
     value="developer"
     dataObj={dataObj}
     dataKey="selectedJob"
 />
 <Lib.Radiobox
     name="job"
-    label="디자이너"
+    label="?�자?�너"
     value="designer"
     dataObj={dataObj}
     dataKey="selectedJob"
@@ -51,29 +51,29 @@ export const RadioboxExamples = () => {
                 <div className="space-y-2">
                     <Lib.Radiobox
                         name="disabled"
-                        label="비활성화 1"
+                        label="비활?�화 1"
                         value="disabled1"
                         disabled
                     />
                     <Lib.Radiobox
                         name="disabled"
-                        label="비활성화 2"
+                        label="비활?�화 2"
                         value="disabled2"
                         disabled
                         checked={true}
                     />
                 </div>
             ),
-            description: "비활성화 상태",
+            description: "비활?�화 ?�태",
             code: `<Lib.Radiobox
     name="disabled"
-    label="비활성화 1"
+    label="비활?�화 1"
     value="disabled1"
     disabled
 />
 <Lib.Radiobox
     name="disabled"
-    label="비활성화 2"
+    label="비활?�화 2"
     value="disabled2"
     disabled
     checked={true}
@@ -82,10 +82,10 @@ export const RadioboxExamples = () => {
         {
             component: (
                 <div className="space-y-2">
-                    <h4 className="text-sm font-medium text-gray-700">결제 수단 선택</h4>
+                    <h4 className="text-sm font-medium text-gray-700">결제 ?�단 ?�택</h4>
                     <Lib.Radiobox
                         name="payment"
-                        label="신용카드"
+                        label="?�용카드"
                         value="card"
                         dataObj={dataObj}
                         dataKey="paymentMethod"
@@ -93,7 +93,7 @@ export const RadioboxExamples = () => {
                     />
                     <Lib.Radiobox
                         name="payment"
-                        label="계좌이체"
+                        label="계좌?�체"
                         value="bank"
                         dataObj={dataObj}
                         dataKey="paymentMethod"
@@ -101,7 +101,7 @@ export const RadioboxExamples = () => {
                     />
                     <Lib.Radiobox
                         name="payment"
-                        label="휴대폰 결제"
+                        label="?��???결제"
                         value="mobile"
                         dataObj={dataObj}
                         dataKey="paymentMethod"
@@ -109,10 +109,10 @@ export const RadioboxExamples = () => {
                     />
                 </div>
             ),
-            description: "커스텀 색상",
+            description: "커스?� ?�상",
             code: `<Lib.Radiobox
     name="payment"
-    label="신용카드"
+    label="?�용카드"
     value="card"
     dataObj={dataObj}
     dataKey="paymentMethod"
@@ -120,7 +120,7 @@ export const RadioboxExamples = () => {
 />
 <Lib.Radiobox
     name="payment"
-    label="계좌이체"
+    label="계좌?�체"
     value="bank"
     dataObj={dataObj}
     dataKey="paymentMethod"
@@ -128,7 +128,7 @@ export const RadioboxExamples = () => {
 />
 <Lib.Radiobox
     name="payment"
-    label="휴대폰 결제"
+    label="?��???결제"
     value="mobile"
     dataObj={dataObj}
     dataKey="paymentMethod"
@@ -140,36 +140,36 @@ export const RadioboxExamples = () => {
                 <div className="space-y-2">
                     <Lib.Radiobox
                         name="controlled"
-                        label="옵션 1"
+                        label="?�션 1"
                         value="option1"
                         checked={controlledValue === 'option1'}
                         onChange={(e) => setControlledValue(e.target.value)}
                     />
                     <Lib.Radiobox
                         name="controlled"
-                        label="옵션 2"
+                        label="?�션 2"
                         value="option2"
                         checked={controlledValue === 'option2'}
                         onChange={(e) => setControlledValue(e.target.value)}
                     />
                     <div className="text-sm text-gray-600">
-                        선택된 값: {controlledValue || '없음'}
+                        ?�택??�? {controlledValue || '?�음'}
                     </div>
                 </div>
             ),
-            description: "제어 컴포넌트 방식",
+            description: "?�어 컴포?�트 방식",
             code: `const [value, setValue] = useState('');
 
 <Lib.Radiobox
     name="controlled"
-    label="옵션 1"
+    label="?�션 1"
     value="option1"
     checked={value === 'option1'}
     onChange={(e) => setValue(e.target.value)}
 />
 <Lib.Radiobox
     name="controlled"
-    label="옵션 2"
+    label="?�션 2"
     value="option2"
     checked={value === 'option2'}
     onChange={(e) => setValue(e.target.value)}

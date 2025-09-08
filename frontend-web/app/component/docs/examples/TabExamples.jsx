@@ -10,42 +10,42 @@ export const TabExamples = () => {
         {
             component: (
                 <Lib.Tab dataObj={tabState} dataKey="selectedTab">
-                    <Lib.Tab.Item title="첫번째 탭">
+                    <Lib.Tab.Item title="첫번�???>
                         <div className="p-4">
-                            첫번째 탭의 내용입니다.
+                            첫번�???�� ?�용?�니??
                         </div>
                     </Lib.Tab.Item>
-                    <Lib.Tab.Item title="두번째 탭">
+                    <Lib.Tab.Item title="?�번�???>
                         <div className="p-4">
-                            두번째 탭의 내용입니다.
+                            ?�번�???�� ?�용?�니??
                         </div>
                     </Lib.Tab.Item>
-                    <Lib.Tab.Item title="세번째 탭">
+                    <Lib.Tab.Item title="?�번�???>
                         <div className="p-4">
-                            세번째 탭의 내용입니다.
+                            ?�번�???�� ?�용?�니??
                         </div>
                     </Lib.Tab.Item>
                 </Lib.Tab>
             ),
-            description: "EasyObj를 사용한 기본 탭",
+            description: "EasyObj�??�용??기본 ??,
             code: `const tabState = Lib.EasyObj({
     selectedTab: 0
 });
 
 <Lib.Tab dataObj={tabState} dataKey="selectedTab">
-    <Lib.Tab.Item title="첫번째 탭">
+    <Lib.Tab.Item title="첫번�???>
         <div className="p-4">
-            첫번째 탭의 내용입니다.
+            첫번�???�� ?�용?�니??
         </div>
     </Lib.Tab.Item>
-    <Lib.Tab.Item title="두번째 탭">
+    <Lib.Tab.Item title="?�번�???>
         <div className="p-4">
-            두번째 탭의 내용입니다.
+            ?�번�???�� ?�용?�니??
         </div>
     </Lib.Tab.Item>
-    <Lib.Tab.Item title="세번째 탭">
+    <Lib.Tab.Item title="?�번�???>
         <div className="p-4">
-            세번째 탭의 내용입니다.
+            ?�번�???�� ?�용?�니??
         </div>
     </Lib.Tab.Item>
 </Lib.Tab>`
@@ -56,35 +56,35 @@ export const TabExamples = () => {
 
                 return (
                     <Lib.Tab tabIndex={activeTab} onChange={setActiveTab}>
-                        <Lib.Tab.Item title="프로필">
+                        <Lib.Tab.Item title="?�로??>
                             <div className="p-4 space-y-2">
-                                <h3 className="font-medium">사용자 프로필</h3>
-                                <p>useState를 사용한 탭 예시입니다.</p>
+                                <h3 className="font-medium">?�용???�로??/h3>
+                                <p>useState�??�용?????�시?�니??</p>
                             </div>
                         </Lib.Tab.Item>
-                        <Lib.Tab.Item title="설정">
+                        <Lib.Tab.Item title="?�정">
                             <div className="p-4 space-y-2">
-                                <h3 className="font-medium">설정</h3>
-                                <p>tabIndex와 onChange props를 사용합니다.</p>
+                                <h3 className="font-medium">?�정</h3>
+                                <p>tabIndex?� onChange props�??�용?�니??</p>
                             </div>
                         </Lib.Tab.Item>
                     </Lib.Tab>
                 );
             })(),
-            description: "useState를 사용한 탭",
+            description: "useState�??�용????,
             code: `const [activeTab, setActiveTab] = useState(0);
 
 <Lib.Tab tabIndex={activeTab} onChange={setActiveTab}>
-    <Lib.Tab.Item title="프로필">
+    <Lib.Tab.Item title="?�로??>
         <div className="p-4 space-y-2">
-            <h3 className="font-medium">사용자 프로필</h3>
-            <p>useState를 사용한 탭 예시입니다.</p>
+            <h3 className="font-medium">?�용???�로??/h3>
+            <p>useState�??�용?????�시?�니??</p>
         </div>
     </Lib.Tab.Item>
-    <Lib.Tab.Item title="설정">
+    <Lib.Tab.Item title="?�정">
         <div className="p-4 space-y-2">
-            <h3 className="font-medium">설정</h3>
-            <p>tabIndex와 onChange props를 사용합니다.</p>
+            <h3 className="font-medium">?�정</h3>
+            <p>tabIndex?� onChange props�??�용?�니??</p>
         </div>
     </Lib.Tab.Item>
 </Lib.Tab>`
@@ -96,32 +96,32 @@ export const TabExamples = () => {
                     dataObj={tabState}
                     dataKey="customTab"
                 >
-                    <Lib.Tab.Item title="커스텀 스타일">
+                    <Lib.Tab.Item title="커스?� ?��???>
                         <div className="p-4">
-                            className prop으로 커스텀 스타일을 적용할 수 있습니다.
+                            className prop?�로 커스?� ?��??�을 ?�용?????�습?�다.
                         </div>
                     </Lib.Tab.Item>
-                    <Lib.Tab.Item title="두번째">
+                    <Lib.Tab.Item title="?�번�?>
                         <div className="p-4">
-                            Tailwind 클래스를 사용해서 쉽게 스타일링이 가능합니다.
+                            Tailwind ?�래?��? ?�용?�서 ?�게 ?��??�링??가?�합?�다.
                         </div>
                     </Lib.Tab.Item>
                 </Lib.Tab>
             ),
-            description: "커스텀 스타일링",
+            description: "커스?� ?��??�링",
             code: `<Lib.Tab 
     className="bg-gray-100 rounded-lg p-4"
     dataObj={tabState} 
     dataKey="customTab"
 >
-    <Lib.Tab.Item title="커스텀 스타일">
+    <Lib.Tab.Item title="커스?� ?��???>
         <div className="p-4">
-            className prop으로 커스텀 스타일을 적용할 수 있습니다.
+            className prop?�로 커스?� ?��??�을 ?�용?????�습?�다.
         </div>
     </Lib.Tab.Item>
-    <Lib.Tab.Item title="두번째">
+    <Lib.Tab.Item title="?�번�?>
         <div className="p-4">
-            Tailwind 클래스를 사용해서 쉽게 스타일링이 가능합니다.
+            Tailwind ?�래?��? ?�용?�서 ?�게 ?��??�링??가?�합?�다.
         </div>
     </Lib.Tab.Item>
 </Lib.Tab>`
@@ -133,52 +133,52 @@ export const TabExamples = () => {
                         title={
                             <div className="flex items-center gap-2">
                                 <Lib.Icon icon="md:MdHome" className="w-5 h-5" />
-                                <span>홈</span>
+                                <span>??/span>
                             </div>
                         }
                     >
                         <div className="p-4">
-                            탭 제목에 아이콘과 텍스트를 함께 사용할 수 있습니다.
+                            ???�목???�이콘과 ?�스?��? ?�께 ?�용?????�습?�다.
                         </div>
                     </Lib.Tab.Item>
                     <Lib.Tab.Item
                         title={
                             <div className="flex items-center gap-2">
                                 <Lib.Icon icon="md:MdSettings" className="w-5 h-5" />
-                                <span>설정</span>
+                                <span>?�정</span>
                             </div>
                         }
                     >
                         <div className="p-4">
-                            title prop에 JSX를 전달하여 자유롭게 커스터마이징이 가능합니다.
+                            title prop??JSX�??�달?�여 ?�유�?�� 커스?�마?�징??가?�합?�다.
                         </div>
                     </Lib.Tab.Item>
                 </Lib.Tab>
             ),
-            description: "아이콘이 있는 탭",
+            description: "?�이콘이 ?�는 ??,
             code: `<Lib.Tab dataObj={tabState} dataKey="iconTab">
     <Lib.Tab.Item 
         title={
             <div className="flex items-center gap-2">
                 <Lib.Icon icon="md:MdHome" className="w-5 h-5" />
-                <span>홈</span>
+                <span>??/span>
             </div>
         }
     >
         <div className="p-4">
-            탭 제목에 아이콘과 텍스트를 함께 사용할 수 있습니다.
+            ???�목???�이콘과 ?�스?��? ?�께 ?�용?????�습?�다.
         </div>
     </Lib.Tab.Item>
     <Lib.Tab.Item 
         title={
             <div className="flex items-center gap-2">
                 <Lib.Icon icon="md:MdSettings" className="w-5 h-5" />
-                <span>설정</span>
+                <span>?�정</span>
             </div>
         }
     >
         <div className="p-4">
-            title prop에 JSX를 전달하여 자유롭게 커스터마이징이 가능합니다.
+            title prop??JSX�??�달?�여 ?�유�?�� 커스?�마?�징??가?�합?�다.
         </div>
     </Lib.Tab.Item>
 </Lib.Tab>`
