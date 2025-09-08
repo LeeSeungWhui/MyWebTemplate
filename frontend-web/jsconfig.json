@@ -1,7 +1,9 @@
 {
   "compilerOptions": {
     "paths": {
-      "@/*": ["./*"]
+      "@/*": ["./*"],
+      "@/lib": ["./app/lib/index.jsx"],
+      "@/lib/*": ["./app/lib/*"]
     }
   }
 }
