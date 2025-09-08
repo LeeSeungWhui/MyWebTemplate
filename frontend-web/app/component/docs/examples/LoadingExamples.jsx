@@ -12,20 +12,20 @@ export const LoadingExamples = () => {
                         app.setLoading(true);
                         setTimeout(() => app.setLoading(false), 2000);
                     }}>
-                        ?�체 ?�면 로딩 (2�?
+                        전체 화면 로딩 (2초)
                     </Lib.Button>
                 </div>
             ),
-            description: "?�체 ?�면 로딩 ?�피??,
-            code: `// ���� ����� ?�용
+            description: "전체 화면 로딩 스피너",
+            code: `// useSharedStore 사용
 const app = useSharedStore();
 
-// 로딩 ?�피???�시/?�제
+// 로딩 스피너 표시/해제
 <Lib.Button onClick={() => {
     app.setLoading(true);
     setTimeout(() => app.setLoading(false), 2000);
 }}>
-    ?�체 ?�면 로딩 (2�?
+    전체 화면 로딩 (2초)
 </Lib.Button>`
         },
     ];

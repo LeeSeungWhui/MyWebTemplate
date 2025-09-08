@@ -11,7 +11,7 @@ export const ModalExamples = () => {
                 return (
                     <div className="space-y-4">
                         <Lib.Button onClick={() => setIsOpen(true)}>
-                            기본 모달 ?�기
+                            기본 모달 열기
                         </Lib.Button>
 
                         <Lib.Modal
@@ -19,70 +19,70 @@ export const ModalExamples = () => {
                             onClose={() => setIsOpen(false)}
                         >
                             <Lib.Modal.Header onClose={() => setIsOpen(false)}>
-                                <h2 className="text-xl font-semibold">기본 모달</h2>
-                            </Lib.Modal.Header>
+                                <p>기본적인 모달 예시입니다.</p>
+                                        닫기
 
-                            <Lib.Modal.Body>
-                                <p>기본?�인 모달 ?�시?�니??</p>
-                            </Lib.Modal.Body>
+    기본 모달 열기
+        <p>기본적인 모달 예시입니다.</p>
+                닫기
 
-                            <Lib.Modal.Footer>
-                                <div className="flex justify-end">
-                                    <Lib.Button onClick={() => setIsOpen(false)}>
-                                        ?�기
-                                    </Lib.Button>
-                                </div>
-                            </Lib.Modal.Footer>
-                        </Lib.Modal>
-                    </div>
-                );
-            })(),
-            description: "기본 모달",
-            code: `const [isOpen, setIsOpen] = useState(false);
+                                    {size.toUpperCase()} 크기
+                                <h2 className="text-xl font-semibold">{currentSize.toUpperCase()} 크기 모달</h2>
+                                <p>다양한 크기의 모달을 지원합니다.</p>
+            description: "모달 크기",
+            {size.toUpperCase()} 크기
+        <h2 className="text-xl font-semibold">{currentSize.toUpperCase()} 크기 모달</h2>
+        <p>다양한 크기의 모달을 지원합니다.</p>
+                            폼 모달 열기
+                                <h2 className="text-xl font-semibold">사용자 정보</h2>
+                                        <label className="block text-sm font-medium text-gray-700">이름</label>
+                                        <Lib.Input className="mt-1" placeholder="이름을 입력하세요" />
+                                        <label className="block text-sm font-medium text-gray-700">이메일</label>
+                                        <Lib.Input className="mt-1" type="email" placeholder="이메일을 입력하세요" />
 
-<Lib.Button onClick={() => setIsOpen(true)}>
-    기본 모달 ?�기
-</Lib.Button>
+                                        저장
+            description: "폼이 포함된 모달",
+    폼 모달 열기
 
 <Lib.Modal 
     isOpen={isOpen} 
     onClose={() => setIsOpen(false)}
 >
     <Lib.Modal.Header onClose={() => setIsOpen(false)}>
-        <h2 className="text-xl font-semibold">기본 모달</h2>
+        <h2 className="text-xl font-semibold">사용자 정보</h2>
     </Lib.Modal.Header>
     
     <Lib.Modal.Body>
-        <p>기본?�인 모달 ?�시?�니??</p>
-    </Lib.Modal.Body>
-    
-    <Lib.Modal.Footer>
-        <div className="flex justify-end">
-            <Lib.Button onClick={() => setIsOpen(false)}>
-                ?�기
-            </Lib.Button>
-        </div>
-    </Lib.Modal.Footer>
-</Lib.Modal>`
-        },
-        {
-            component: (() => {
-                const [isOpen, setIsOpen] = useState(false);
-                const sizes = ['sm', 'md', 'lg', 'xl', 'full'];
-                const [currentSize, setCurrentSize] = useState('md');
+                <label className="block text-sm font-medium text-gray-700">이름</label>
+                <Lib.Input className="mt-1" placeholder="이름을 입력하세요" />
+                <label className="block text-sm font-medium text-gray-700">이메일</label>
+                <Lib.Input className="mt-1" type="email" placeholder="이메일을 입력하세요" />
+                저장
+                            드래그 가능한 모달 열기
+                                <h2 className="text-xl font-semibold">드래그 가능한 모달</h2>
+                                <p className="text-sm text-gray-500">헤더를 드래그해서 이동할 수 있습니다</p>
+                                <p>이 모달은 헤더 영역을 드래그하여 이동할 수 있습니다.</p>
+                                <p className="mt-2">화면 밖으로 나가지 않도록 제한되어 있습니다.</p>
+                                        닫기
+            description: "draggable prop을 true로 설정하면 모달을 드래그할 수 있습니다. 헤더 영역을 드래그하여 이동이 가능합니다.",
+        <h2 className="text-xl font-semibold">드래그 가능한 모달</h2>
+        <p>이 모달은 헤더 영역을 드래그하여 이동할 수 있습니다.</p>
+                닫기
+                                우측 상단에 모달 열기
+                                <h2 className="text-xl font-semibold">위치 지정 모달</h2>
 
-                return (
-                    <div className="space-y-4">
-                        <div className="flex flex-wrap gap-2">
-                            {sizes.map(size => (
-                                <Lib.Button
+                                <p>top, left prop으로 초기 위치를 지정할 수 있습니다.</p>
+                                <p className="mt-2">드래그하여 자유롭게 이동해보세요.</p>
+            description: "top, left prop으로 모달의 초기 위치를 지정할 수 있습니다. 드래그 기능과 함께 사용하면 더욱 유용합니다.",
+        <h2 className="text-xl font-semibold">위치 지정 모달</h2>
+        <p>top, left prop으로 초기 위치를 지정할 수 있습니다.</p>
                                     key={size}
                                     onClick={() => {
                                         setCurrentSize(size);
                                         setIsOpen(true);
                                     }}
                                 >
-                                    {size.toUpperCase()} ?�기
+                                    {size.toUpperCase()} ?¬ê¸°
                                 </Lib.Button>
                             ))}
                         </div>
@@ -93,17 +93,17 @@ export const ModalExamples = () => {
                             size={currentSize}
                         >
                             <Lib.Modal.Header onClose={() => setIsOpen(false)}>
-                                <h2 className="text-xl font-semibold">{currentSize.toUpperCase()} ?�기 모달</h2>
+                                <h2 className="text-xl font-semibold">{currentSize.toUpperCase()} ?¬ê¸° ëª¨ë‹¬</h2>
                             </Lib.Modal.Header>
 
                             <Lib.Modal.Body>
-                                <p>?�양???�기??모달??지?�합?�다.</p>
+                                <p>?¤ì–‘???¬ê¸°??ëª¨ë‹¬??ì§€?í•©?ˆë‹¤.</p>
                             </Lib.Modal.Body>
                         </Lib.Modal>
                     </div>
                 );
             })(),
-            description: "모달 ?�기",
+            description: "ëª¨ë‹¬ ?¬ê¸°",
             code: `const [isOpen, setIsOpen] = useState(false);
 const sizes = ['sm', 'md', 'lg', 'xl', 'full'];
 const [currentSize, setCurrentSize] = useState('md');
@@ -117,7 +117,7 @@ const [currentSize, setCurrentSize] = useState('md');
                 setIsOpen(true);
             }}
         >
-            {size.toUpperCase()} ?�기
+            {size.toUpperCase()} ?¬ê¸°
         </Lib.Button>
     ))}
 </div>
@@ -128,11 +128,11 @@ const [currentSize, setCurrentSize] = useState('md');
     size={currentSize}
 >
     <Lib.Modal.Header onClose={() => setIsOpen(false)}>
-        <h2 className="text-xl font-semibold">{currentSize.toUpperCase()} ?�기 모달</h2>
+        <h2 className="text-xl font-semibold">{currentSize.toUpperCase()} ?¬ê¸° ëª¨ë‹¬</h2>
     </Lib.Modal.Header>
     
     <Lib.Modal.Body>
-        <p>?�양???�기??모달??지?�합?�다.</p>
+        <p>?¤ì–‘???¬ê¸°??ëª¨ë‹¬??ì§€?í•©?ˆë‹¤.</p>
     </Lib.Modal.Body>
 </Lib.Modal>`
         },
@@ -143,7 +143,7 @@ const [currentSize, setCurrentSize] = useState('md');
                 return (
                     <div className="space-y-4">
                         <Lib.Button onClick={() => setIsOpen(true)}>
-                            ??모달 ?�기
+                            ??ëª¨ë‹¬ ?´ê¸°
                         </Lib.Button>
 
                         <Lib.Modal
@@ -151,18 +151,18 @@ const [currentSize, setCurrentSize] = useState('md');
                             onClose={() => setIsOpen(false)}
                         >
                             <Lib.Modal.Header onClose={() => setIsOpen(false)}>
-                                <h2 className="text-xl font-semibold">?�용???�보</h2>
+                                <h2 className="text-xl font-semibold">?¬ìš©???•ë³´</h2>
                             </Lib.Modal.Header>
 
                             <Lib.Modal.Body>
                                 <form className="space-y-4">
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700">?�름</label>
-                                        <Lib.Input className="mt-1" placeholder="?�름???�력?�세?? />
+                                        <label className="block text-sm font-medium text-gray-700">?´ë¦„</label>
+                                        <Lib.Input className="mt-1" placeholder="?´ë¦„???…ë ¥?˜ì„¸?? />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-medium text-gray-700">?�메??/label>
-                                        <Lib.Input className="mt-1" type="email" placeholder="?�메?�을 ?�력?�세?? />
+                                        <label className="block text-sm font-medium text-gray-700">?´ë©”??/label>
+                                        <Lib.Input className="mt-1" type="email" placeholder="?´ë©”?¼ì„ ?…ë ¥?˜ì„¸?? />
                                     </div>
                                 </form>
                             </Lib.Modal.Body>
@@ -170,13 +170,13 @@ const [currentSize, setCurrentSize] = useState('md');
                             <Lib.Modal.Footer>
                                 <div className="flex justify-end gap-2">
                                     <Lib.Button onClick={() => setIsOpen(false)}>
-                                        ?�??
+                                        ?€??
                                     </Lib.Button>
                                     <Lib.Button
                                         variant="outline"
                                         onClick={() => setIsOpen(false)}
                                     >
-                                        취소
+                                        ì·¨ì†Œ
                                     </Lib.Button>
                                 </div>
                             </Lib.Modal.Footer>
@@ -184,11 +184,11 @@ const [currentSize, setCurrentSize] = useState('md');
                     </div>
                 );
             })(),
-            description: "?�이 ?�함??모달",
+            description: "?¼ì´ ?¬í•¨??ëª¨ë‹¬",
             code: `const [isOpen, setIsOpen] = useState(false);
 
 <Lib.Button onClick={() => setIsOpen(true)}>
-    ??모달 ?�기
+    ??ëª¨ë‹¬ ?´ê¸°
 </Lib.Button>
 
 <Lib.Modal 
@@ -196,18 +196,18 @@ const [currentSize, setCurrentSize] = useState('md');
     onClose={() => setIsOpen(false)}
 >
     <Lib.Modal.Header onClose={() => setIsOpen(false)}>
-        <h2 className="text-xl font-semibold">?�용???�보</h2>
+        <h2 className="text-xl font-semibold">?¬ìš©???•ë³´</h2>
     </Lib.Modal.Header>
     
     <Lib.Modal.Body>
         <form className="space-y-4">
             <div>
-                <label className="block text-sm font-medium text-gray-700">?�름</label>
-                <Lib.Input className="mt-1" placeholder="?�름???�력?�세?? />
+                <label className="block text-sm font-medium text-gray-700">?´ë¦„</label>
+                <Lib.Input className="mt-1" placeholder="?´ë¦„???…ë ¥?˜ì„¸?? />
             </div>
             <div>
-                <label className="block text-sm font-medium text-gray-700">?�메??/label>
-                <Lib.Input className="mt-1" type="email" placeholder="?�메?�을 ?�력?�세?? />
+                <label className="block text-sm font-medium text-gray-700">?´ë©”??/label>
+                <Lib.Input className="mt-1" type="email" placeholder="?´ë©”?¼ì„ ?…ë ¥?˜ì„¸?? />
             </div>
         </form>
     </Lib.Modal.Body>
@@ -215,13 +215,13 @@ const [currentSize, setCurrentSize] = useState('md');
     <Lib.Modal.Footer>
         <div className="flex justify-end gap-2">
             <Lib.Button onClick={() => setIsOpen(false)}>
-                ?�??
+                ?€??
             </Lib.Button>
             <Lib.Button 
                 variant="outline" 
                 onClick={() => setIsOpen(false)}
             >
-                취소
+                ì·¨ì†Œ
             </Lib.Button>
         </div>
     </Lib.Modal.Footer>
@@ -234,7 +234,7 @@ const [currentSize, setCurrentSize] = useState('md');
                 return (
                     <div className="space-y-4">
                         <Lib.Button onClick={() => setIsOpen(true)}>
-                            ?�래�?가?�한 모달 ?�기
+                            ?œëž˜ê·?ê°€?¥í•œ ëª¨ë‹¬ ?´ê¸°
                         </Lib.Button>
 
                         <Lib.Modal
@@ -243,19 +243,19 @@ const [currentSize, setCurrentSize] = useState('md');
                             draggable={true}
                         >
                             <Lib.Modal.Header onClose={() => setIsOpen(false)}>
-                                <h2 className="text-xl font-semibold">?�래�?가?�한 모달</h2>
-                                <p className="text-sm text-gray-500">?�더�??�래그해???�동?????�습?�다</p>
+                                <h2 className="text-xl font-semibold">?œëž˜ê·?ê°€?¥í•œ ëª¨ë‹¬</h2>
+                                <p className="text-sm text-gray-500">?¤ë”ë¥??œëž˜ê·¸í•´???´ë™?????ˆìŠµ?ˆë‹¤</p>
                             </Lib.Modal.Header>
 
                             <Lib.Modal.Body>
-                                <p>??모달?� ?�더 ?�역???�래그하???�동?????�습?�다.</p>
-                                <p className="mt-2">?�면 밖으�??��?지 ?�도�??�한?�어 ?�습?�다.</p>
+                                <p>??ëª¨ë‹¬?€ ?¤ë” ?ì—­???œëž˜ê·¸í•˜???´ë™?????ˆìŠµ?ˆë‹¤.</p>
+                                <p className="mt-2">?”ë©´ ë°–ìœ¼ë¡??˜ê?ì§€ ?Šë„ë¡??œí•œ?˜ì–´ ?ˆìŠµ?ˆë‹¤.</p>
                             </Lib.Modal.Body>
 
                             <Lib.Modal.Footer>
                                 <div className="flex justify-end">
                                     <Lib.Button onClick={() => setIsOpen(false)}>
-                                        ?�기
+                                        ?«ê¸°
                                     </Lib.Button>
                                 </div>
                             </Lib.Modal.Footer>
@@ -263,7 +263,7 @@ const [currentSize, setCurrentSize] = useState('md');
                     </div>
                 );
             })(),
-            description: "draggable prop??true�??�정?�면 모달???�래그할 ???�습?�다. ?�더 ?�역???�래그하???�동??가?�합?�다.",
+            description: "draggable prop??trueë¡??¤ì •?˜ë©´ ëª¨ë‹¬???œëž˜ê·¸í•  ???ˆìŠµ?ˆë‹¤. ?¤ë” ?ì—­???œëž˜ê·¸í•˜???´ë™??ê°€?¥í•©?ˆë‹¤.",
             code: `const [isOpen, setIsOpen] = useState(false);
 
 <Lib.Modal 
@@ -272,17 +272,17 @@ const [currentSize, setCurrentSize] = useState('md');
     draggable={true}
 >
     <Lib.Modal.Header onClose={() => setIsOpen(false)}>
-        <h2 className="text-xl font-semibold">?�래�?가?�한 모달</h2>
+        <h2 className="text-xl font-semibold">?œëž˜ê·?ê°€?¥í•œ ëª¨ë‹¬</h2>
     </Lib.Modal.Header>
     
     <Lib.Modal.Body>
-        <p>??모달?� ?�더 ?�역???�래그하???�동?????�습?�다.</p>
+        <p>??ëª¨ë‹¬?€ ?¤ë” ?ì—­???œëž˜ê·¸í•˜???´ë™?????ˆìŠµ?ˆë‹¤.</p>
     </Lib.Modal.Body>
     
     <Lib.Modal.Footer>
         <div className="flex justify-end">
             <Lib.Button onClick={() => setIsOpen(false)}>
-                ?�기
+                ?«ê¸°
             </Lib.Button>
         </div>
     </Lib.Modal.Footer>
@@ -296,7 +296,7 @@ const [currentSize, setCurrentSize] = useState('md');
                     <div className="space-y-4">
                         <div className="flex gap-2">
                             <Lib.Button onClick={() => setIsOpen(true)}>
-                                ?�측 ?�단??모달 ?�기
+                                ?°ì¸¡ ?ë‹¨??ëª¨ë‹¬ ?´ê¸°
                             </Lib.Button>
                         </div>
 
@@ -308,18 +308,18 @@ const [currentSize, setCurrentSize] = useState('md');
                             draggable
                         >
                             <Lib.Modal.Header onClose={() => setIsOpen(false)}>
-                                <h2 className="text-xl font-semibold">?�치 지??모달</h2>
+                                <h2 className="text-xl font-semibold">?„ì¹˜ ì§€??ëª¨ë‹¬</h2>
                             </Lib.Modal.Header>
 
                             <Lib.Modal.Body>
-                                <p>top, left prop?�로 초기 ?�치�?지?�할 ???�습?�다.</p>
-                                <p className="mt-2">?�래그하???�유�?�� ?�동?�보?�요.</p>
+                                <p>top, left prop?¼ë¡œ ì´ˆê¸° ?„ì¹˜ë¥?ì§€?•í•  ???ˆìŠµ?ˆë‹¤.</p>
+                                <p className="mt-2">?œëž˜ê·¸í•˜???ìœ ë¡?²Œ ?´ë™?´ë³´?¸ìš”.</p>
                             </Lib.Modal.Body>
                         </Lib.Modal>
                     </div>
                 );
             })(),
-            description: "top, left prop?�로 모달??초기 ?�치�?지?�할 ???�습?�다. ?�래�?기능�??�께 ?�용?�면 ?�욱 ?�용?�니??",
+            description: "top, left prop?¼ë¡œ ëª¨ë‹¬??ì´ˆê¸° ?„ì¹˜ë¥?ì§€?•í•  ???ˆìŠµ?ˆë‹¤. ?œëž˜ê·?ê¸°ëŠ¥ê³??¨ê»˜ ?¬ìš©?˜ë©´ ?”ìš± ? ìš©?©ë‹ˆ??",
             code: `const [isOpen, setIsOpen] = useState(false);
 
 <Lib.Modal 
@@ -330,11 +330,11 @@ const [currentSize, setCurrentSize] = useState('md');
     draggable
 >
     <Lib.Modal.Header onClose={() => setIsOpen(false)}>
-        <h2 className="text-xl font-semibold">?�치 지??모달</h2>
+        <h2 className="text-xl font-semibold">?„ì¹˜ ì§€??ëª¨ë‹¬</h2>
     </Lib.Modal.Header>
     
     <Lib.Modal.Body>
-        <p>top, left prop?�로 초기 ?�치�?지?�할 ???�습?�다.</p>
+        <p>top, left prop?¼ë¡œ ì´ˆê¸° ?„ì¹˜ë¥?ì§€?•í•  ???ˆìŠµ?ˆë‹¤.</p>
     </Lib.Modal.Body>
 </Lib.Modal>`
         }
