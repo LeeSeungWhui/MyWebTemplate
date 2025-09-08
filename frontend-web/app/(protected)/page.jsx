@@ -1,9 +1,23 @@
-export default function Page() {
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+export const runtime = 'nodejs'
+
+import Home from './view'
+import { ssrJSON } from '@/app/lib/runtime/Ssr'
+import SharedHydrator from '@/app/common/store/SharedHydrator'
+import { SESSION_PATH } from './initData'
+
+export default async function Page() {
+  const MODE = 'SSR'
+  const init = MODE === 'SSR' ? await ssrJSON(SESSION_PATH).catch(() => null) : null
+  const userJson = init && init.result && init.result.authenticated
+    ? { userId: init.result.userId, name: init.result.name }
+    : null
   return (
-    <main className="min-h-screen p-6">
-      <h1 className="text-2xl font-semibold">Welcome</h1>
-      <p className="text-gray-600">This is the protected home. Use /login to sign in.</p>
-    </main>
+    <>
+      {MODE === 'SSR' && <SharedHydrator userJson={userJson} />}
+      <Home mode={MODE} init={init} />
+    </>
   )
 }
 

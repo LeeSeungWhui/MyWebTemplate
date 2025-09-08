@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect } from 'react'
-import { useSharedStore } from '@/app/store/shared'
+import { useSharedStore } from '@/app/common/store/Shared'
 
 // Hydrates shared store from SSR-provided initial data.
 // Pass userJson (e.g., { userId, name }) and/or sharedPatch (partial shared object).
@@ -23,4 +23,3 @@ export default function SharedHydrator({ userJson, sharedPatch }) {
   }, [userJson, sharedPatch, setUserJson, setUser, setShared])
   return null
 }
-

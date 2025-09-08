@@ -1,8 +1,8 @@
-'use client'
+"use client"
 
 import { useState } from 'react'
 import useSWR from 'swr'
-import { csrJSON, postWithCsrf } from '@/app/lib/runtime/csr'
+import { csrJSON, postWithCsrf } from '@/app/lib/runtime/Csr'
 import { SESSION_PATH } from './initData'
 
 export default function Client({ mode, init }) {
@@ -24,7 +24,6 @@ export default function Client({ mode, init }) {
         await mutate()
         window.location.href = '/'
       } else {
-        // try to parse error
         const j = await res.json().catch(() => ({}))
         alert(j?.message || 'login failed')
       }
@@ -52,3 +51,4 @@ export default function Client({ mode, init }) {
     </main>
   )
 }
+
