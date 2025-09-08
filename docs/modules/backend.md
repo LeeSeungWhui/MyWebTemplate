@@ -32,6 +32,7 @@
 - CORS: config.ini [CORS]
 - 오류 응답: 일관 JSON
 - 로깅: 파일+콘솔(backend/logs/*.log)
+- 사용자 시드 스크립트: backend/scripts/users_seed.py
 
 ## 코드 구조
 - router/: API 엔드포인트(APIRouter). prefix=/api/v1 고정, 모듈별 라우터 분리(예: AuthRouter, ObservabilityRouter).
