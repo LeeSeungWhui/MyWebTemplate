@@ -16,10 +16,14 @@ export default function AppShell({ children }) {
   } = useSharedStore()
 
   const onAlertClick = useCallback(() => {
+    const onClick = alert && typeof alert.onClick === 'function' ? alert.onClick : null
+    const onFocus = alert && typeof alert.onFocus === 'function' ? alert.onFocus : null
     try {
-      if (alert && typeof alert.onClick === 'function') alert.onClick()
+      onClick?.()
     } finally {
       hideAlert()
+      // move focus after the alert is closed/unmounted
+      setTimeout(() => onFocus?.(), 0)
     }
   }, [alert, hideAlert])
 
@@ -31,13 +35,7 @@ export default function AppShell({ children }) {
     }
   }, [toast?.show, toast?.duration, hideToast])
 
-  // focus hook for alert
-  useEffect(() => {
-    if (alert?.show && typeof alert.onFocus === 'function') {
-      const t = setTimeout(() => alert.onFocus(), 0)
-      return () => clearTimeout(t)
-    }
-  }, [alert?.show])
+  // removed: focusing on show caused premature focus shift
 
   return (
     <>
