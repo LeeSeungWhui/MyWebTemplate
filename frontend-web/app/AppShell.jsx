@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect } from 'react'
-import { useAppStore } from '@/app/store/app'
+import { useSharedStore } from '@/app/store/shared.store'
 import Loading from '@/app/lib/component/Loading'
 import Alert from '@/app/lib/component/Alert'
 import Confirm from '@/app/lib/component/Confirm'
@@ -13,7 +13,7 @@ export default function AppShell({ children }) {
     alert, hideAlert,
     confirm, hideConfirm,
     toast, hideToast,
-  } = useAppStore()
+  } = useSharedStore()
 
   // auto-hide toast after duration if set
   useEffect(() => {
@@ -47,4 +47,3 @@ export default function AppShell({ children }) {
     </>
   )
 }
-

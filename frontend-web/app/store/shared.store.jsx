@@ -2,7 +2,7 @@
 
 import { create } from 'zustand'
 
-export const useAppStore = create((set, get) => ({
+export const useSharedStore = create((set, get) => ({
   // session-ish meta
   user: null,
   setUser: (user) => set({ user }),
@@ -64,4 +64,3 @@ export const useAppStore = create((set, get) => ({
   }),
   hideToast: () => set({ toast: { show: false, message: '', type: 'info', position: 'bottom-center', duration: 3000 } }),
 }))
-
