@@ -8,31 +8,30 @@ links: [CU-WEB-001, CU-WEB-002, CU-WEB-004, CU-WEB-005, CU-WEB-006, CU-WEB-008, 
 ---
 
 ### Purpose
-- 환경변수로 런타임 모드를 바꾸지 않고, “데이터를 어디서 호출하느냐”로 SSR/CSR을 전환한다.
-- 템플릿 사용자는 페이지에서 MODE만 결정하고, UI는 클라이언트 컴포넌트에서 구현한다. 네트워킹 규칙은 공통 유틸이 책임진다.
+- ENV 토글 없이, “호출 위치(SSR/CSR)”로 전환한다.
+- 템플릿 사용자는 페이지에서 MODE만 결정하고, UI는 클라이언트 컴포넌트에서 구현한다. 네트워킹 규칙은 런타임 유틸이 책임진다.
 
 ### Principles
-- 단일 계약: 페이지/컴포넌트는 공통 데이터 계약만 호출한다(엔드포인트·데이터 모델 중심). 구현은 런타임 유틸로 위임한다.
-- 위치로 결정: SSR은 page.jsx(서버)에서, CSR은 'use client' 컴포넌트에서 동일 계약을 호출한다.
+- per‑page 초기 엔드포인트: 각 페이지 디렉터리에 `initData.jsx`를 두고 초기 로드용 API 상수만 선언한다.
+- 위치로 결정: SSR은 page.jsx(서버)에서, CSR은 'use client' 컴포넌트에서 `ssrJSON/csrJSON`으로 호출한다.
 - 기본값: 보호 페이지는 SSR(nodejs, no-store), 무거운 위젯은 CSR로 분리하는 하이브리드.
 
 ### Responsibilities
-- data/fetch.js(공통 계약)
-  - 엔드포인트와 데이터 스키마만 표기한다(예: getSession, getProfile 등).
-  - 내부적으로 SSR/CSR 런타임 유틸을 호출한다.
-- lib/runtime/ssr.js(서버 유틸)
+- initData.jsx(페이지 초기 엔드포인트)
+  - 초기 로드에 필요한 상수만 선언(예: `SESSION_PATH`).
+- app/lib/runtime/ssr.jsx(서버 유틸)
   - 쿠키·언어 헤더 자동 전달, 캐시 no-store 적용, 서버에서의 fetch 규칙 일원화.
-- lib/runtime/csr.js(클라이언트 유틸)
+- app/lib/runtime/csr.jsx(클라이언트 유틸)
   - credentials: 'include' 고정, 비멱등 요청에 CSRF 자동 주입, 에러 규약(401/403 등) 일관 처리.
 - page.jsx(서버 컴포넌트)
   - MODE를 ‘SSR’ 또는 ‘CSR’로 결정한다(페이지 단위 전환).
-  - MODE=SSR일 때만 공통 계약을 서버에서 호출해 초기 데이터를 전달(SEO 반영).
-- Client.jsx(클라이언트 컴포넌트)
-  - MODE=CSR일 때만 공통 계약을 호출해 데이터를 가져온다(재검증·상호작용 우선).
+  - MODE=SSR일 때만 `ssrJSON(SESSION_PATH)` 호출 → 초기 데이터 전달(SEO 반영) + SharedHydrator로 스토어 하이드레이션.
+- View.jsx(클라이언트 컴포넌트)
+  - MODE=CSR일 때만 `csrJSON(SESSION_PATH)` 호출(SWR 재검증), 상호작용(POST 등)은 `postWithCsrf` 직접 호출.
 
 ### Interaction with OpenAPI Client
-- openapi-client-axios는 공통 계약(data/fetch.js) 내부에서 활용 가능하다.
-- 외부로는 동일한 응답 규약과 오류 처리만 노출되어, SSR/CSR 경로의 호출자가 동일한 계약을 사용한다.
+- openapi-client-axios는 런타임 유틸 내부 또는 별도 래퍼에서 활용한다(401/403/422, CSRF 일원화).
+- SSR/CSR 경로의 호출자는 동일 규약을 사용하며, initData.jsx는 엔드포인트 상수만 노출한다.
 
 ### Acceptance Criteria
 - 페이지별 MODE 전환만으로 SSR→CSR가 동작하고, SSR 경로에서 SEO(HTML/메타)가 반영된다.
@@ -48,4 +47,3 @@ links: [CU-WEB-001, CU-WEB-002, CU-WEB-004, CU-WEB-005, CU-WEB-006, CU-WEB-008, 
 ### Notes
 - JavaScript Only, Next(App Router). 기본 nodejs(runtime) 권장.
 - Base URL: NEXT_PUBLIC_API_BASE. 런타임 모드를 ENV로 토글하지 않는다.
-

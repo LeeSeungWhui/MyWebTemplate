@@ -73,3 +73,8 @@ links: [CU-WEB-001, CU-WEB-002, CU-WEB-005, CU-WEB-006, CU-WEB-008, CU-BE-001]
 - ENV: `NEXT_PUBLIC_API_BASE`
 - ë°±ì—”ë“œ ì—°ë™: `/api/v1/auth/*` (CU-BE-001), í‘œì¤€ ì‘ë‹µ `{status,message,result,count?,code?,requestId}`
 - ë ˆì´ì•„ì›ƒ/ëª…ì¹­ ë ˆì´ì–´: `frontend-web` ì¼ê´€ ìœ ì§€
+
+### Implementation Notes
+- Route Group (protected)¸¦ »ç¿ëÇØ ±×·ì ·¹ÀÌ¾Æ¿ô¿¡¼­ SSR °¡µå¸¦ Àû¿ëÇÑ´Ù(°æ·Î¿¡´Â ³ëÃâµÇÁö ¾ÊÀ½).
+- per?page ÃÊ±â ¿£µåÆ÷ÀÎÆ®: pp/(protected)/initData.jsx¿¡ SESSION_PATH Á¤ÀÇ.
+- SSR °¡µå: ·¹ÀÌ¾Æ¿ô¿¡¼­ ssrJSON(SESSION_PATH)·Î ¼¼¼Ç È®ÀÎ ÈÄ ¹ÌÀÎÁõÀº /loginÀ¸·Î redirect.

@@ -2,7 +2,7 @@
 id: CU-WEB-007
 name: Migration (Viteâ†’Next)
 module: web
-status: in-progress
+status: completed
 priority: P1
 links: [CU-WEB-001, CU-WEB-002, CU-WEB-003, CU-WEB-004, CU-WEB-005, CU-WEB-006, CU-WEB-008, CU-BE-001, CU-BE-002]
 ---
@@ -84,3 +84,9 @@ links: [CU-WEB-001, CU-WEB-002, CU-WEB-003, CU-WEB-004, CU-WEB-005, CU-WEB-006, 
 - ê¸°ìˆ : JavaScript Only (TypeScript ê¸ˆì§€)
 - ëŸ°íƒ€ì„: ê¸°ë³¸ nodejs(ì¿ í‚¤/ì„¸ì…˜), ì¼ë¶€ ê²½ë¡œ edge ì„ íƒ ê°€ëŠ¥
 - ëª…ì¹­: `frontend-web` ì¼ê´€(index.md/web.md ë°˜ì˜), ë ˆê±°ì‹œëŠ” `frontend-web-old`(ìµœì¢…ê¹Œì§€ read-only)
+
+### Implementation Update
+- UI ÄÚ¾î/µ¥ÀÌÅÍ¼Â: pp/lib/**·Î ¸¶ÀÌ±×·¹ÀÌ¼Ç ¿Ï·á
+- ¹®¼­ »ùÇÃ: pp/docs/**·Î ¸¶ÀÌ±×·¹ÀÌ¼Ç ¿Ï·á
+- AppContext Á¦°Å ¡æ zustand ½ºÅä¾î(pp/common/store/shared.jsx) + ¿À¹ö·¹ÀÌ(AppShell)
+- per?page ÃÊ±â ¿£µåÆ÷ÀÎÆ®(initData.jsx) + ·±Å¸ÀÓ À¯Æ¿(ssr/csr) Àû¿ë

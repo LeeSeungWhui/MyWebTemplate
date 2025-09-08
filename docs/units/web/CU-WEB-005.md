@@ -79,3 +79,7 @@ links: [CU-BE-001, CU-BE-005, CU-WEB-001, CU-WEB-004, CU-WEB-006]
 - ê¸°ìˆ : JavaScript Only, Next 15(App Router), ê¸°ë³¸ nodejs(ì¿ í‚¤/ì„¸ì…˜), ê²½ë¡œë³„ edge ê°€ëŠ¥
 - ë°±ì—”ë“œ ì—°ê³„: CU-BE-001(ì¸ì¦), CU-BE-005(ë¬¸ì„œ)ì™€ 1:1 ë§ì¶¤; /api/v1 ê³ ì •, ì‘ë‹µ ìŠ¤í‚¤ë§ˆ ì¼ì¹˜
 - í˜¸ì¶œ ê·œì•½: SWR ì˜ì—­ê³¼ credentials:'include' ê°•ì œ, ë¹„ë©±ë“± CSRF í•„ìˆ˜
+
+### Implementation Notes
+- ÇöÀç´Â ·±Å¸ÀÓ À¯Æ¿(ssrJSON/csrJSON)·Î SSR/CSR È£Ãâ ±Ô¾àÀ» ÅëÀÏÇÏ¿© »ç¿ë Áß.
+- openapi-client-axios´Â ÃßÈÄ ÀÎÅÍ¼ÁÅÍ(401/403/422, CSRF ÀÚµ¿ ÁÖÀÔ)·Î ·¡ÇÎÇØ ±³Ã¼/ÅëÇÕ ¿¹Á¤.
