@@ -142,8 +142,8 @@ const Input = forwardRef(({
                 inputMode={type === 'number' ? 'decimal' : undefined}
                 placeholder={placeholder || mask}
                 value={isControlled
-                    ? (isComposing ? (draftValue ?? dataObj[dataKey] || "") : (draftValue ?? dataObj[dataKey] || ""))
-                    : (draftValue ?? props.value)}
+                    ? (draftValue ?? dataObj[dataKey] ?? "")
+                    : (draftValue ?? props.value ?? "")}
                 onChange={handleChange}
                 onCompositionStart={() => { composingRef.current = true; setIsComposing(true); }}
                 onCompositionEnd={(e) => {
