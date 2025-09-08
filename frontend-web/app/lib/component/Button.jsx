@@ -17,12 +17,15 @@ const Button = forwardRef(({
 
     const variants = {
         primary: "bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500",
-        secondary: "bg-gray-600 text-white hover:bg-gray-700 focus:ring-gray-500",
+        // inverse of primary: blue text, white background, blue border
+        secondary: "border border-blue-600 text-blue-600 bg-white hover:bg-blue-50 focus:ring-blue-500",
         outline: "border border-gray-300 text-gray-700 bg-white hover:bg-gray-50 focus:ring-blue-500",
         danger: "bg-red-600 text-white hover:bg-red-700 focus:ring-red-500",
         success: "bg-green-600 text-white hover:bg-green-700 focus:ring-green-500",
         warning: "bg-yellow-600 text-white hover:bg-yellow-700 focus:ring-yellow-500",
-        ghost: "text-gray-600 hover:bg-gray-100 focus:ring-gray-500",
+        ghost: "text-gray-600 bg-transparent hover:bg-gray-100 focus:ring-gray-500",
+        link: "text-blue-600 bg-transparent hover:text-blue-700 underline-offset-2 hover:underline focus:ring-blue-500",
+        dark: "bg-gray-900 text-white hover:bg-black focus:ring-gray-900",
     };
 
     const sizes = {
