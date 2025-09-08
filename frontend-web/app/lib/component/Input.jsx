@@ -124,7 +124,11 @@ const Input = forwardRef(({
 
     // 조합 중 임시 문자열 허용 여부 판단
     const isAllowedDraft = (s) => {
-        if (filter && !(new RegExp(`^[${filter}]*$`)).test(s)) return false;
+        if (filter) {
+            const allowHangulDraft = /가-힣/.test(filter);
+            const cls = allowHangulDraft ? `${filter}ㄱ-ㅎㅏ-ㅣ가-힣` : filter;
+            if (!(new RegExp(`^[${cls}]*$`)).test(s)) return false;
+        }
         if (mask && HANGUL_RE.test(s)) return false; // 마스크 존재 시 한글 금지 가정
         if (type === 'number' && !/^[0-9.\-]*$/.test(s)) return false;
         return true;
@@ -185,7 +189,7 @@ const Input = forwardRef(({
                 }
             }
 
-            // 숫자 타입: 숫자/점/부호만 허용
+            // 숫자 타입: 숫자/점/부호만 허용 (붙여넣기 포함)
             if (type === 'number') {
                 if (!/^[0-9.\-]+$/.test(data)) {
                     e.preventDefault();
@@ -263,7 +267,7 @@ const Input = forwardRef(({
             )}
             <input
                 ref={ref}
-                type={togglePassword ? (showPassword ? 'text' : 'password') : type}
+                type={togglePassword ? (showPassword ? 'text' : 'password') : (type === 'number' ? 'text' : type)}
                 pattern={type === 'number' ? '[0-9]*' : undefined}
                 inputMode={type === 'number' ? 'decimal' : undefined}
                   placeholder={placeholder || mask}
