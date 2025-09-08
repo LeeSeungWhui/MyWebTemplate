@@ -131,20 +131,16 @@ const Input = forwardRef(({
     };
     const getCommitted = () => (isControlled ? (dataObj?.[dataKey] ?? "") : (innerValue ?? ""));
 
+    // 마스크/필터/number가 있을 때 입력 직전 1차 필터링
     const handleBeforeInput = (e) => {
-        // Enable strict pre-filtering by default when constraints are present
         if (!filter && !mask && type !== 'number') return;
-        const inputType = e.inputType || '';
         const data = e.data;
 
-        // Block IME composition insertions entirely under constraints
-        if (inputType.includes('composition')) {
-            e.preventDefault();
-            return;
-        }
+        // NOTE: 조합(insertCompositionText)은 onCompositionUpdate/Change에서 정밀 처리한다.
+        // beforeinput 단계에서는 data가 없을 수 있으므로 무조건 차단하지 않는다.
 
-        if (typeof data === 'string') {
-            // filter-based allowlist
+        if (typeof data === 'string' && data.length > 0) {
+            // filter 기반 허용 목록
             if (filter) {
                 const allow = new RegExp(`^[${filter}]+$`);
                 if (!allow.test(data)) {
@@ -152,14 +148,44 @@ const Input = forwardRef(({
                     return;
                 }
             }
-            // mask implies numeric/latin-like; block Hangul runes proactively
+
+            // 마스크: 다음 슬롯 토큰을 계산해 토큰 유형과 입력 문자를 즉시 검증
             if (mask) {
-                const hangul = /[\u1100-\u11FF\u3130-\u318F\uAC00-\uD7A3]/;
-                if (hangul.test(data)) {
-                    e.preventDefault();
-                    return;
+                const isDigit = (c) => /\d/.test(c);
+                const isAlpha = (c) => /[a-zA-Z]/.test(c);
+                const isSlot = (ch) => ch === '#' || ch === 'A' || ch === 'a' || ch === '?' || ch === '*';
+                const nextMaskToken = (m, raw) => {
+                    let maskPos = 0;
+                    // consume existing raw according to mask
+                    for (let i = 0; i < raw.length; i++) {
+                        while (maskPos < m.length && !isSlot(m[maskPos])) maskPos++;
+                        if (maskPos >= m.length) break;
+                        const t = m[maskPos];
+                        const ch = raw[i];
+                        let ok = false;
+                        if (t === '#') ok = isDigit(ch);
+                        else if (t === 'A' || t === 'a' || t === '?') ok = isAlpha(ch);
+                        else if (t === '*') ok = true;
+                        if (ok) maskPos++;
+                    }
+                    while (maskPos < m.length && !isSlot(m[maskPos])) maskPos++;
+                    return maskPos < m.length ? m[maskPos] : null;
+                };
+                const token = nextMaskToken(mask, e.currentTarget.value || '');
+                if (token) {
+                    const ch = data[0];
+                    let ok = true;
+                    if (token === '#') ok = /\d/.test(ch);
+                    else if (token === 'A' || token === 'a' || token === '?') ok = /[a-zA-Z]/.test(ch);
+                    else if (token === '*') ok = true;
+                    if (!ok) {
+                        e.preventDefault();
+                        return;
+                    }
                 }
             }
+
+            // 숫자 타입: 숫자/점/부호만 허용
             if (type === 'number') {
                 if (!/^[0-9.\-]+$/.test(data)) {
                     e.preventDefault();
