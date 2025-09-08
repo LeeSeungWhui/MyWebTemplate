@@ -22,6 +22,7 @@ const Input = forwardRef(({
     const [showPassword, setShowPassword] = useState(false);
     const [isComposing, setIsComposing] = useState(false);
     const [draftValue, setDraftValue] = useState(undefined);
+    const [innerValue, setInnerValue] = useState(() => props.value ?? props.defaultValue ?? "");
     const composingRef = useRef(false);
     const baseStyle = "appearance-none block w-full px-3 py-2 border rounded-md shadow-sm text-sm focus:outline-none focus:ring-2 focus:ring-offset-0";
 
@@ -104,6 +105,8 @@ const Input = forwardRef(({
         }
         if (isControlled) {
             dataObj[dataKey] = value;
+        } else {
+            setInnerValue(value);
         }
         setDraftValue(undefined);
         return value;
@@ -143,12 +146,17 @@ const Input = forwardRef(({
                 placeholder={placeholder || mask}
                 value={isControlled
                     ? (draftValue ?? dataObj[dataKey] ?? "")
-                    : (draftValue ?? props.value ?? "")}
+                    : (draftValue ?? innerValue ?? "")}
                 onChange={handleChange}
                 onCompositionStart={() => { composingRef.current = true; setIsComposing(true); }}
                 onCompositionEnd={(e) => {
                     composingRef.current = false;
                     setIsComposing(false);
+                    const committed = commitValue(e.target.value);
+                    onChange && onChange({ ...e, target: { ...e.target, value: committed } });
+                }}
+                onBlur={(e) => {
+                    // Ensure final sanitize on blur in case some IME didn't fire compositionend properly
                     const committed = commitValue(e.target.value);
                     onChange && onChange({ ...e, target: { ...e.target, value: committed } });
                 }}
