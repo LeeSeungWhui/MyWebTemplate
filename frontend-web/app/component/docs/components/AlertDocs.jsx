@@ -1,23 +1,22 @@
-import { ToastExamples } from '../examples/ToastExamples';
+import { AlertExamples } from '../examples/AlertExamples';
 import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';
 
-const ToastDocs = () => {
-    const examples = ToastExamples();
+const AlertDocs = () => {
+    const examples = AlertExamples();
 
     return (
         <DocSection
-            id="toasts"
-            title="13. 토스트 (Toast)"
+            id="alerts"
+            title="11.알림 (Alert)"
             description={
                 <div>
-                    <p>Toast 컴포넌트는 AppContext의 showToast를 통해 제어됩니다.</p>
-                    <p>4가지 유형(info, success, warning, error)을 지원하며, 6가지 위치에 표시할 수 있습니다.</p>
-                    <p>지속 시간을 설정할 수 있으며, 자동 닫기와 수동 닫기를 지원합니다.</p>
+                    <p>Alert 컴포넌트는 전역 스토어(useSharedStore)의 showAlert로 제어합니다.</p>
+                    <p>4가지 유형(info, success, warning, error)을 지원하며, 제목과 메시지를 설정할 수 있습니다.</p>
                 </div>
             }
         >
-            <div id="toast-basic" className="mb-8">
+            <div id="alert-basic" className="mb-8">
                 <h3 className="text-lg font-medium mb-4">기본 사용법</h3>
                 <div className="grid grid-cols-1 gap-8">
                     <div>
@@ -30,8 +29,8 @@ const ToastDocs = () => {
                 </div>
             </div>
 
-            <div id="toast-types" className="mb-8">
-                <h3 className="text-lg font-medium mb-4">토스트 유형</h3>
+            <div id="alert-types" className="mb-8">
+                <h3 className="text-lg font-medium mb-4">알림 유형</h3>
                 <div className="grid grid-cols-1 gap-8">
                     <div>
                         {examples[1].component}
@@ -43,8 +42,8 @@ const ToastDocs = () => {
                 </div>
             </div>
 
-            <div id="toast-positions" className="mb-8">
-                <h3 className="text-lg font-medium mb-4">토스트 위치</h3>
+            <div id="alert-callback" className="mb-8">
+                <h3 className="text-lg font-medium mb-4">콜백 함수</h3>
                 <div className="grid grid-cols-1 gap-8">
                     <div>
                         {examples[2].component}
@@ -56,8 +55,8 @@ const ToastDocs = () => {
                 </div>
             </div>
 
-            <div id="toast-duration" className="mb-8">
-                <h3 className="text-lg font-medium mb-4">토스트 지속 시간</h3>
+            <div id="alert-callback" className="mb-8">
+                <h3 className="text-lg font-medium mb-4">포커스 관리</h3>
                 <div className="grid grid-cols-1 gap-8">
                     <div>
                         {examples[3].component}
@@ -72,4 +71,4 @@ const ToastDocs = () => {
     );
 };
 
-export default ToastDocs; 
+export default AlertDocs; 

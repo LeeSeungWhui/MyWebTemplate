@@ -11,7 +11,7 @@ const ConfirmDocs = () => {
             title="12. 확인 (Confirm)"
             description={
                 <div>
-                    <p>Confirm 컴포넌트는 AppContext의 showConfirm을 통해 제어됩니다.</p>
+                    <p>Confirm 컴포넌트는 전역 스토어(useSharedStore)의 showConfirm으로 제어합니다.</p>
                     <p>Promise를 반환하며, 사용자의 선택(확인: true, 취소: false)을 then으로 받을 수 있습니다.</p>
                     <p>3가지 유형(info, warning, danger)을 지원하며, 제목과 버튼 텍스트를 설정할 수 있습니다.</p>
                 </div>

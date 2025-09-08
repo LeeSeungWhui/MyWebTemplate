@@ -11,7 +11,7 @@ const ToastDocs = () => {
             title="13. 토스트 (Toast)"
             description={
                 <div>
-                    <p>Toast 컴포넌트는 AppContext의 showToast를 통해 제어됩니다.</p>
+                    <p>Toast 컴포넌트는 전역 스토어(useSharedStore)의 showToast로 제어합니다.</p>
                     <p>4가지 유형(info, success, warning, error)을 지원하며, 6가지 위치에 표시할 수 있습니다.</p>
                     <p>지속 시간을 설정할 수 있으며, 자동 닫기와 수동 닫기를 지원합니다.</p>
                 </div>

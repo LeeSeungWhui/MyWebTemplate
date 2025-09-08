@@ -1,9 +1,9 @@
 import * as Lib from '@/lib';
-import { useContext, useRef } from 'react';
-import { AppContext } from '@/common/share/AppContext';
+import { useRef } from 'react';
+import { useSharedStore } from '@/app/common/store/Shared';
 
 export const AlertExamples = () => {
-    const app = useContext(AppContext);
+    const app = useSharedStore();
     const buttonRef = useRef(null);
     const inputRef = useRef(null);
 

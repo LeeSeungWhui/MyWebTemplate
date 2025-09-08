@@ -1,9 +1,8 @@
 import * as Lib from '@/lib';
-import { useContext } from 'react';
-import { AppContext } from '@/common/share/AppContext';
+import { useSharedStore } from '@/app/common/store/Shared';
 
 export const LoadingExamples = () => {
-    const app = useContext(AppContext);
+    const app = useSharedStore();
 
     const examples = [
         {

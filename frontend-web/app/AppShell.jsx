@@ -1,7 +1,7 @@
 'use client'
 
-import { useEffect } from 'react'
-import { useSharedStore } from '@/app/common/store/shared'
+import { useEffect, useCallback } from 'react'
+import { useSharedStore } from './common/store/Shared'
 import Loading from '@/app/lib/component/Loading'
 import Alert from '@/app/lib/component/Alert'
 import Confirm from '@/app/lib/component/Confirm'
@@ -15,6 +15,14 @@ export default function AppShell({ children }) {
     toast, hideToast,
   } = useSharedStore()
 
+  const onAlertClick = useCallback(() => {
+    try {
+      if (alert && typeof alert.onClick === 'function') alert.onClick()
+    } finally {
+      hideAlert()
+    }
+  }, [alert, hideAlert])
+
   // auto-hide toast after duration if set
   useEffect(() => {
     if (toast?.show && (toast.duration ?? 3000) !== Infinity) {
@@ -23,12 +31,20 @@ export default function AppShell({ children }) {
     }
   }, [toast?.show, toast?.duration, hideToast])
 
+  // focus hook for alert
+  useEffect(() => {
+    if (alert?.show && typeof alert.onFocus === 'function') {
+      const t = setTimeout(() => alert.onFocus(), 0)
+      return () => clearTimeout(t)
+    }
+  }, [alert?.show])
+
   return (
     <>
       {isLoading && <Loading />}
       {children}
       {alert?.show && (
-        <Alert title={alert.title} text={alert.message} type={alert.type} onClick={hideAlert} />
+        <Alert title={alert.title} text={alert.message} type={alert.type} onClick={onAlertClick} />
       )}
       {confirm?.show && (
         <Confirm

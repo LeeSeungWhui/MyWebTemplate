@@ -11,7 +11,7 @@ const AlertDocs = () => {
             title="11.알림 (Alert)"
             description={
                 <div>
-                    <p>Alert 컴포넌트는 AppContext의 showAlert를 통해 제어됩니다.</p>
+                    <p>Alert 컴포넌트는 전역 스토어(useSharedStore)의 showAlert로 제어합니다.</p>
                     <p>4가지 유형(info, success, warning, error)을 지원하며, 제목과 메시지를 설정할 수 있습니다.</p>
                 </div>
             }

@@ -21,16 +21,18 @@ export const useSharedStore = create((set, get) => ({
   setLoading: (v) => set({ isLoading: !!v, loadingCounter: v ? 1 : 0 }),
 
   // alert
-  alert: { show: false, title: '', message: '', type: 'info' },
+  alert: { show: false, title: '', message: '', type: 'info', onClick: undefined, onFocus: undefined },
   showAlert: (message, opts = {}) => set({
     alert: {
       show: true,
       title: opts.title || '알림',
       message,
       type: opts.type || 'info',
+      onClick: typeof opts.onClick === 'function' ? opts.onClick : undefined,
+      onFocus: typeof opts.onFocus === 'function' ? opts.onFocus : undefined,
     },
   }),
-  hideAlert: () => set({ alert: { show: false, title: '', message: '', type: 'info' } }),
+  hideAlert: () => set({ alert: { show: false, title: '', message: '', type: 'info', onClick: undefined, onFocus: undefined } }),
 
   // confirm
   confirm: { show: false, title: '', message: '', type: 'info', confirmText: '확인', cancelText: '취소' },

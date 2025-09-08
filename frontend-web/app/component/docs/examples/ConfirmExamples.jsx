@@ -1,9 +1,9 @@
 import * as Lib from '@/lib';
-import { useContext, useRef } from 'react';
-import { AppContext } from '@/common/share/AppContext';
+import { useRef } from 'react';
+import { useSharedStore } from '@/app/common/store/Shared';
 
 export const ConfirmExamples = () => {
-    const app = useContext(AppContext);
+    const app = useSharedStore();
     const inputRef = useRef(null);
 
     const examples = [
