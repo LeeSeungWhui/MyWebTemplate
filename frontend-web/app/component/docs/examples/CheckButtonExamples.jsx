@@ -17,23 +17,23 @@ export const CheckButtonExamples = () => {
                 dataObj={dataObj}
                 dataKey="basicCheckButton"
             >
+                기본 체크버튼
+            </Lib.CheckButton>,
+            description: "기본 체크버튼",
+            code: `<Lib.CheckButton
+    dataObj={dataObj}
+    dataKey="basicCheckButton"
+>
+    기본 체크버튼
+</Lib.CheckButton>`
+        },
+        {
+            component: <Lib.CheckButton disabled>
                 비활성화 체크버튼
             </Lib.CheckButton>,
             description: "비활성화 상태",
-    비활성화 체크버튼
-                        빨간색
-                        초록색
-                        파란색
-            description: "다양한 색상",
-    빨간색
-    초록색
-    파란색
-                        제어 컴포넌트
-                        현재 상태: {controlledCheck ? '활성화' : '비활성화'}
-            description: "제어 컴포넌트 방식",
-    제어 컴포넌트
             code: `<Lib.CheckButton disabled>
-    ë¹„í™œ?±í™” ì²´í¬ë²„íŠ¼
+    비활성화 체크버튼
 </Lib.CheckButton>`
         },
         {
@@ -44,33 +44,33 @@ export const CheckButtonExamples = () => {
                         dataObj={dataObj}
                         dataKey="redButton"
                     >
-                        ë¹¨ê°„??
+                        빨간색
                     </Lib.CheckButton>
                     <Lib.CheckButton
                         color="#4CAF50"
                         dataObj={dataObj}
                         dataKey="greenButton"
                     >
-                        ì´ˆë¡??
+                        초록색
                     </Lib.CheckButton>
                     <Lib.CheckButton
                         color="#2196F3"
                         dataObj={dataObj}
                         dataKey="blueButton"
                     >
-                        ?Œë???
+                        파란색
                     </Lib.CheckButton>
                 </div>
             ),
-            description: "?¤ì–‘???‰ìƒ",
+            description: "다양한 색상",
             code: `<Lib.CheckButton color="#FF0000" dataObj={dataObj} dataKey="redButton">
-    ë¹¨ê°„??
+    빨간색
 </Lib.CheckButton>
 <Lib.CheckButton color="#4CAF50" dataObj={dataObj} dataKey="greenButton">
-    ì´ˆë¡??
+    초록색
 </Lib.CheckButton>
 <Lib.CheckButton color="#2196F3" dataObj={dataObj} dataKey="blueButton">
-    ?Œë???
+    파란색
 </Lib.CheckButton>`
         },
         {
@@ -80,24 +80,24 @@ export const CheckButtonExamples = () => {
                         checked={controlledCheck}
                         onChange={() => setControlledCheck(!controlledCheck)}
                     >
-                        ?œì–´ ì»´í¬?ŒíŠ¸
+                        제어 컴포넌트
                     </Lib.CheckButton>
                     <div className="text-sm text-gray-600">
-                        ?„ìž¬ ?íƒœ: {controlledCheck ? '?œì„±?? : 'ë¹„í™œ?±í™”'}
+                        현재 상태: {controlledCheck ? '활성화' : '비활성화'}
                     </div>
                 </div>
             ),
-            description: "?œì–´ ì»´í¬?ŒíŠ¸ ë°©ì‹",
+            description: "제어 컴포넌트 방식",
             code: `const [checked, setChecked] = useState(false);
 
 <Lib.CheckButton
     checked={checked}
     onChange={() => setChecked(!checked)}
 >
-    ?œì–´ ì»´í¬?ŒíŠ¸
+    제어 컴포넌트
 </Lib.CheckButton>`
         }
     ];
 
     return examples;
-}; 
+};
