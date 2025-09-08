@@ -11,6 +11,15 @@ const scheduleUpdate = (fn) => {
 function useEasyList(initialData = []) {
     const [, forceUpdate] = useState({});
     const dataRef = useRef(initialData);
+    // deep copy that unwraps internal proxies so JSON.stringify works
+    const deepCopy = (obj) => {
+        if (typeof obj !== 'object' || obj === null) return obj;
+        const raw = obj.__isProxy ? obj.__rawObject : obj;
+        if (Array.isArray(raw)) return raw.map((v) => deepCopy(v));
+        const out = {};
+        for (const k in raw) if (Object.prototype.hasOwnProperty.call(raw, k)) out[k] = deepCopy(raw[k]);
+        return out;
+    };
 
     const createProxy = useCallback((target) => {
         const handler = {
