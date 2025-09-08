@@ -40,6 +40,7 @@ export const InputExamples = () => {
                 dataObj={dataObj}
                 dataKey="phone"
                 mask="###-####-####"
+                hardFilter
                 placeholder="전화번호: 010-1234-5678"
             />,
             description: "전화번호 마스크",
@@ -47,6 +48,7 @@ export const InputExamples = () => {
     dataObj={dataObj}
     dataKey="phone"
     mask="###-####-####"
+    hardFilter
     placeholder="전화번호: 010-1234-5678"
 />`
         },
@@ -55,6 +57,7 @@ export const InputExamples = () => {
                 dataObj={dataObj}
                 dataKey="businessNo"
                 mask="###-##-#####"
+                hardFilter
                 placeholder="사업자번호: 123-45-67890"
             />,
             description: "사업자번호 마스크",
@@ -62,6 +65,7 @@ export const InputExamples = () => {
     dataObj={dataObj}
     dataKey="businessNo"
     mask="###-##-#####"
+    hardFilter
     placeholder="사업자번호: 123-45-67890"
 />`
         },
@@ -72,6 +76,7 @@ export const InputExamples = () => {
                 type="number"
                 maxDigits={10}
                 maxDecimals={2}
+                hardFilter
                 placeholder="숫자만 입력 (최대 10자리, 소수점 2자리)"
             />,
             description: "숫자 입력 (자릿수 제한)",
@@ -81,6 +86,7 @@ export const InputExamples = () => {
     type="number"
     maxDigits={10}
     maxDecimals={2}
+    hardFilter
     placeholder="숫자만 입력 (최대 10자리, 소수점 2자리)"
 />`
         },
@@ -89,6 +95,7 @@ export const InputExamples = () => {
                 dataObj={dataObj}
                 dataKey="code"
                 filter="A-Za-z0-9"
+                hardFilter
                 placeholder="영문과 숫자만 입력"
             />,
             description: "영문/숫자 필터",
@@ -96,6 +103,7 @@ export const InputExamples = () => {
     dataObj={dataObj}
     dataKey="code"
     filter="A-Za-z0-9"
+    hardFilter
     placeholder="영문과 숫자만 입력"
 />`
         },
