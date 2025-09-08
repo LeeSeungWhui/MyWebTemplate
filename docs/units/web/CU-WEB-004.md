@@ -2,7 +2,7 @@
 id: CU-WEB-004
 name: Routing & Guard (Protected Routes)
 module: web
-status: planned
+status: in-progress
 priority: P1
 links: [CU-WEB-001, CU-WEB-002, CU-WEB-005, CU-WEB-006, CU-WEB-008, CU-BE-001]
 ---
@@ -75,6 +75,5 @@ links: [CU-WEB-001, CU-WEB-002, CU-WEB-005, CU-WEB-006, CU-WEB-008, CU-BE-001]
 - ë ˆì´ì•„ì›ƒ/ëª…ì¹­ ë ˆì´ì–´: `frontend-web` ì¼ê´€ ìœ ì§€
 
 ### Implementation Notes
-- Route Group (protected)¸¦ »ç¿ëÇØ ±×·ì ·¹ÀÌ¾Æ¿ô¿¡¼­ SSR °¡µå¸¦ Àû¿ëÇÑ´Ù(°æ·Î¿¡´Â ³ëÃâµÇÁö ¾ÊÀ½).
-- per?page ÃÊ±â ¿£µåÆ÷ÀÎÆ®: pp/(protected)/initData.jsx¿¡ SESSION_PATH Á¤ÀÇ.
-- SSR °¡µå: ·¹ÀÌ¾Æ¿ô¿¡¼­ ssrJSON(SESSION_PATH)·Î ¼¼¼Ç È®ÀÎ ÈÄ ¹ÌÀÎÁõÀº /loginÀ¸·Î redirect.
+- `frontend-web/middleware.js`ì—ì„œ `sid` ì¿ í‚¤ê°€ ì—†ìœ¼ë©´ `/login`ìœ¼ë¡œ 302 ë¦¬ë‹¤ì´ë ‰íŠ¸í•œë‹¤.
+- `app/(protected)/layout.jsx`ëŠ” `ssrJSON(SESSION_PATH)`ë¡œ ì„¸ì…˜ì„ í™•ì¸í•˜ê³  ë¯¸ì¸ì¦ ì‹œ `redirect('/login')`ì„ í˜¸ì¶œí•œë‹¤.

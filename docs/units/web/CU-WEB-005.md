@@ -2,7 +2,7 @@
 id: CU-WEB-005
 name: API Client (OpenAPI JS ì—°ë™)
 module: web
-status: planned
+status: in-progress
 priority: P1
 links: [CU-BE-001, CU-BE-005, CU-WEB-001, CU-WEB-004, CU-WEB-006]
 ---
@@ -81,5 +81,5 @@ links: [CU-BE-001, CU-BE-005, CU-WEB-001, CU-WEB-004, CU-WEB-006]
 - í˜¸ì¶œ ê·œì•½: SWR ì˜ì—­ê³¼ credentials:'include' ê°•ì œ, ë¹„ë©±ë“± CSRF í•„ìˆ˜
 
 ### Implementation Notes
-- ÇöÀç´Â ·±Å¸ÀÓ À¯Æ¿(ssrJSON/csrJSON)·Î SSR/CSR È£Ãâ ±Ô¾àÀ» ÅëÀÏÇÏ¿© »ç¿ë Áß.
-- openapi-client-axios´Â ÃßÈÄ ÀÎÅÍ¼ÁÅÍ(401/403/422, CSRF ÀÚµ¿ ÁÖÀÔ)·Î ·¡ÇÎÇØ ±³Ã¼/ÅëÇÕ ¿¹Á¤.
+- `app/lib/runtime/ssr.jsx`ì™€ `csr.jsx`ì— ê¸°ë³¸ fetch ë˜í¼ì™€ `postWithCsrf`ê°€ êµ¬í˜„ë˜ì–´ ìˆë‹¤.
+- OpenAPI í´ë¼ì´ì–¸íŠ¸(openapi-client-axios) ì—°ë™ê³¼ ì˜¤ë¥˜ ë§µí•‘ì€ ì•„ì§ ë¯¸êµ¬ì„± ìƒíƒœë‹¤.

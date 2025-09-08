@@ -22,19 +22,20 @@
 - CU-WEB-006 SSR/CSR Runtime Switch
 - CU-WEB-007 Migration (Vite→Next)
 - CU-WEB-008 Middleware Guard & Redirect
+- CU-WEB-009 Data Fetch Strategy (SSR/CSR 전환)
 
 ## 진행 현황(Units)
-- CU-WEB-001 Auth & Login Page: draft — Vite 로그인 화면 존재, 백엔드 API 연동/검증·오류 UX 보완 필요
+- CU-WEB-001 Auth & Login Page: in-progress — Next 로그인 페이지에서 SSR/CSR 세션 확인 구현, 오류 UX·A11y 보완 필요
 - CU-WEB-002 Dashboard: planned — 카드/리스트/통계 위젯 구성 예정
 - CU-WEB-003 UI Component Pack: in-progress — 핵심 입력/피드백 컴포넌트 보유, Next 환경 데이터 바인딩 규약 정리 필요
-- CU-WEB-004 Routing & Guard: planned — 보호 라우트/리다이렉트 상태 관리 설계 필요
-- CU-WEB-005 API Client: planned — OpenAPI 스키마 연계(JS 클라이언트: openapi-client-axios) 미구성
+- CU-WEB-004 Routing & Guard: in-progress — 미들웨어·서버 레이아웃으로 기본 리다이렉트 구현, next 파라미터·401 핸들링 보완 필요
+- CU-WEB-005 API Client: in-progress — ssrJSON/csrJSON 헬퍼와 CSRF 주입 존재, OpenAPI 클라이언트 연계 미구성
 - CU-WEB-006 SSR/CSR Runtime Switch: planned — ENV + 페이지 export 기반 전환 헬퍼 구현 필요
 - CU-WEB-007 Migration: in-progress — 컴포넌트/페이지 구조 이전 계획 수립
-- CU-WEB-008 Middleware Guard & Redirect: planned — 경로 보호/리디렉션 규칙 정의
+- CU-WEB-008 Middleware Guard & Redirect: in-progress — middleware.js로 쿠키 기반 리다이렉트 구현, 경로 화이트리스트·next 검증 보완 필요
+- CU-WEB-009 Data Fetch Strategy: in-progress — initData와 runtime fetch 헬퍼 도입, 공통 데이터 계약 정립 필요
 
 ## TODO
-- Next 템플릿 스캐폴딩: frontend-web 생성(App Router/Tailwind v4)
 - Auth 연동: 로그인→백엔드 로그인 API 연결(성공/실패 토스트, 302 리다이렉트)
 - 보호 라우트: 서버 설정과 클라이언트 세션 모두 반영(미인증 즉시 /login)
 - 대시보드: 카드/리스트/통계 위젯 구성, 반응형 레이아웃

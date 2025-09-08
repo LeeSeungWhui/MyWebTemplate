@@ -2,7 +2,7 @@
 id: CU-WEB-009
 name: Data Fetch Strategy (SSR/CSR 전환)
 module: web
-status: planned
+status: in-progress
 priority: P1
 links: [CU-WEB-001, CU-WEB-002, CU-WEB-004, CU-WEB-005, CU-WEB-006, CU-WEB-008, CU-BE-001]
 ---
@@ -37,6 +37,9 @@ links: [CU-WEB-001, CU-WEB-002, CU-WEB-004, CU-WEB-005, CU-WEB-006, CU-WEB-008, 
 - 페이지별 MODE 전환만으로 SSR→CSR가 동작하고, SSR 경로에서 SEO(HTML/메타)가 반영된다.
 - 공통 계약을 통해 SSR/CSR 모두 응답 규약과 에러 처리(401→/login, 403→CSRF 안내)가 일관되게 동작한다.
 - 보호 페이지는 기본 SSR(nodejs, no-store)이며, 무거운 위젯은 CSR로 분리해 깜빡임 없이 렌더링된다.
+
+### Implementation Notes
+- `app/login`과 `(protected)` 페이지는 `initData.jsx`와 `ssrJSON/csrJSON` 헬퍼를 사용해 SSR/CSR 전환 패턴을 시범 구현한다.
 
 ### Tasks
 - 공통 계약 파일(data/fetch.js) 정의(최소: 세션/프로필/리스트 등).
