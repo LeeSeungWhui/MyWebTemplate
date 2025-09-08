@@ -1,6 +1,6 @@
 ---
 id: CU-WEB-009
-name: Data Fetch Strategy (SSR/CSR 전환)
+name: Data Fetch Strategy (Page MODE: SSR|CSR)
 module: web
 status: in-progress
 priority: P1
@@ -8,45 +8,45 @@ links: [CU-WEB-001, CU-WEB-002, CU-WEB-004, CU-WEB-005, CU-WEB-006, CU-WEB-008, 
 ---
 
 ### Purpose
-- ENV 토글 없이, “호출 위치(SSR/CSR)”로 전환한다.
-- 템플릿 사용자는 페이지에서 MODE만 결정하고, UI는 클라이언트 컴포넌트에서 구현한다. 네트워킹 규칙은 런타임 유틸이 책임진다.
+- 전역(ENV) 모드 스위치 없이, 각 페이지의 `page.jsx` 내 상수 `MODE = 'SSR' | 'CSR'`로 데이터 패치 방식을 결정한다.
+- 초기 데이터의 엔드포인트 정의는 각 페이지의 `initData.jsx`에 둔다. 런타임 유틸은 공통 규약만 보장한다.
 
 ### Principles
-- per‑page 초기 엔드포인트: 각 페이지 디렉터리에 `initData.jsx`를 두고 초기 로드용 API 상수만 선언한다.
-- 위치로 결정: SSR은 page.jsx(서버)에서, CSR은 'use client' 컴포넌트에서 `ssrJSON/csrJSON`으로 호출한다.
-- 기본값: 보호 페이지는 SSR(nodejs, no-store), 무거운 위젯은 CSR로 분리하는 하이브리드.
+- Per-page 초기 로딩 계약: 각 페이지 디렉토리의 `initData.jsx`에 초기 로드용 엔드포인트를 정의한다(예: `export const SESSION_PATH = '/api/v1/auth/session'`).
+- 실행 위치:
+  - SSR: `page.jsx`(Server Component)에서 `ssrJSON` 호출로 초기 데이터 주입(SEO 반영).
+  - CSR: `'use client'` 컴포넌트에서 `csrJSON`(+SWR)으로 가져오기. 비멱등 요청은 `postWithCsrf` 사용.
+- 기본 전략: 보호 페이지는 SSR(nodejs, no-store) 기본. 무거운 위젯/상호작용 위주 섹션은 CSR로 분리한다.
 
 ### Responsibilities
-- initData.jsx(페이지 초기 엔드포인트)
-  - 초기 로드에 필요한 상수만 선언(예: `SESSION_PATH`).
-- app/lib/runtime/ssr.jsx(서버 유틸)
-  - 쿠키·언어 헤더 자동 전달, 캐시 no-store 적용, 서버에서의 fetch 규칙 일원화.
-- app/lib/runtime/csr.jsx(클라이언트 유틸)
-  - credentials: 'include' 고정, 비멱등 요청에 CSRF 자동 주입, 에러 규약(401/403 등) 일관 처리.
+- initData.jsx(페이지 초기 로딩 계약)
+  - 초기 로드에 필요한 엔드포인트 상수 정의(예: `SESSION_PATH`).
+- app/lib/runtime/Ssr.jsx(서버 유틸)
+  - `buildSSRHeaders`로 쿠키/언어 전달, `ssrJSON`은 `cache: 'no-store'` 기본.
+- app/lib/runtime/Csr.jsx(클라이언트 유틸)
+  - `csrJSON`은 `credentials: 'include'` 고정. `postWithCsrf`는 비멱등 요청에 CSRF 자동 주입.
 - page.jsx(서버 컴포넌트)
-  - MODE를 ‘SSR’ 또는 ‘CSR’로 결정한다(페이지 단위 전환).
-  - MODE=SSR일 때만 `ssrJSON(SESSION_PATH)` 호출 → 초기 데이터 전달(SEO 반영) + SharedHydrator로 스토어 하이드레이션.
-- View.jsx(클라이언트 컴포넌트)
-  - MODE=CSR일 때만 `csrJSON(SESSION_PATH)` 호출(SWR 재검증), 상호작용(POST 등)은 `postWithCsrf` 직접 호출.
+  - `const MODE = 'SSR' | 'CSR'`로 분기. SSR일 때만 `ssrJSON(SESSION_PATH)`로 초기 데이터 전달(SEO 반영) + `SharedHydrator`로 스토어 하이드레이션.
+- view.jsx(클라이언트 컴포넌트)
+  - CSR 모드일 때 `useSWR` + `csrJSON(SESSION_PATH)`로 데이터 패치. POST 등은 `postWithCsrf` 직접 호출.
 
 ### Interaction with OpenAPI Client
-- openapi-client-axios는 런타임 유틸 내부 또는 별도 래퍼에서 활용한다(401/403/422, CSRF 일원화).
-- SSR/CSR 경로의 호출자는 동일 규약을 사용하며, initData.jsx는 엔드포인트 상수만 노출한다.
+- OpenAPI 연동은 `openapi-client-axios` 기반 별도 래퍼에서 다룬다(CU-WEB-005). 본 유닛은 fetch 유틸의 규약을 맞추는 데 집중한다.
+- SSR/CSR 경로에서 동일한 응답 스키마와 에러 규약을 사용하며, `initData.jsx`가 의존 엔드포인트를 명시한다.
 
 ### Acceptance Criteria
-- 페이지별 MODE 전환만으로 SSR→CSR가 동작하고, SSR 경로에서 SEO(HTML/메타)가 반영된다.
-- 공통 계약을 통해 SSR/CSR 모두 응답 규약과 에러 처리(401→/login, 403→CSRF 안내)가 일관되게 동작한다.
-- 보호 페이지는 기본 SSR(nodejs, no-store)이며, 무거운 위젯은 CSR로 분리해 깜빡임 없이 렌더링된다.
+- 각 페이지의 `page.jsx`에서 `MODE`만 바꿔도 SSR/CSR 동작이 전환된다. SSR 경로는 SEO(HTML/메타)가 반영된다.
+- 공통 규약에 따라 SSR/CSR 모두 401/403 처리 일관(401→/login, 403→CSRF 발급 UX 연동)하게 동작한다.
+- 보호 페이지는 기본 SSR(nodejs, no-store)이며, 무거운 위젯은 CSR로 분리되어 깜빡임이 최소화된다.
+- 각 페이지의 `initData.jsx`가 초기 데이터 엔드포인트를 명시한다(예: `SESSION_PATH`).
 
 ### Implementation Notes
-- `app/login`과 `(protected)` 페이지는 `initData.jsx`와 `ssrJSON/csrJSON` 헬퍼를 사용해 SSR/CSR 전환 패턴을 시범 구현한다.
+- 예시(`app/login`): `initData.jsx`에 `SESSION_PATH` 정의, `page.jsx`에서 `MODE='SSR'`일 때 `ssrJSON(SESSION_PATH)`로 초기 데이터 전달 + `SharedHydrator` 하이드레이션. `view.jsx`는 CSR 시 `useSWR`로 `csrJSON` 호출.
+- 전역 ENV 기반 모드 스위치는 사용하지 않는다(NOT USED). ISR은 본 유닛 범위에서 제외한다.
 
 ### Tasks
-- 공통 계약 파일(data/fetch.js) 정의(최소: 세션/프로필/리스트 등).
-- 런타임 유틸(lib/runtime/ssr.js, lib/runtime/csr.js) 정의(쿠키/언어/credentials/CSRF/no-store 일원화).
-- 페이지에 MODE 도입 및 가드·대시보드에 SSR/CSR 혼합 적용.
-- 문서·스토리북·테스트에 전환 전략 반영(SEO/깜빡임/에러플로우).
+- 페이지 보일러플레이트 정리: `MODE` 분기 + SSR/CSR 패턴 가이드 샘플 추가.
+- 각 페이지 `initData.jsx`에 초기 엔드포인트 상수 정리 및 주석화.
+- 401/403 공통 처리 규약을 런타임 유틸/클라이언트 래퍼(CU-WEB-005)와 합의.
+- 문서·예제에서 ENV 기반 모드 스위치(NEXT_RUNTIME_MODE) 언급 제거.
 
-### Notes
-- JavaScript Only, Next(App Router). 기본 nodejs(runtime) 권장.
-- Base URL: NEXT_PUBLIC_API_BASE. 런타임 모드를 ENV로 토글하지 않는다.
