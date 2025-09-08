@@ -11,8 +11,6 @@ const Input = forwardRef(({
     error,
     filter,
     mask,
-    hardFilter = false,
-    blockHangul = false,
     maxDigits,
     maxDecimals,
     prefix,
@@ -115,30 +113,39 @@ const Input = forwardRef(({
     };
 
     const handleBeforeInput = (e) => {
-        if (!hardFilter) return;
+        // Enable strict pre-filtering by default when constraints are present
+        if (!filter && !mask && type !== 'number') return;
+        const inputType = e.inputType || '';
         const data = e.data;
-        if (!data || typeof data !== 'string') return;
-        // block by filter first
-        if (filter) {
-            const allow = new RegExp(`^[${filter}]+$`);
-            if (!allow.test(data)) {
-                e.preventDefault();
-                return;
-            }
+
+        // Block IME composition insertions entirely under constraints
+        if (inputType.includes('composition')) {
+            e.preventDefault();
+            return;
         }
-        // block hangul when mask present or explicitly requested
-        if (mask || blockHangul) {
-            const hangul = /[\u1100-\u11FF\u3130-\u318F\uAC00-\uD7A3]/;
-            if (hangul.test(data)) {
-                e.preventDefault();
-                return;
+
+        if (typeof data === 'string') {
+            // filter-based allowlist
+            if (filter) {
+                const allow = new RegExp(`^[${filter}]+$`);
+                if (!allow.test(data)) {
+                    e.preventDefault();
+                    return;
+                }
             }
-        }
-        // numeric type: allow digits, dot, minus only (detailed shape validated on commit)
-        if (type === 'number') {
-            if (!/^[0-9.\-]+$/.test(data)) {
-                e.preventDefault();
-                return;
+            // mask implies numeric/latin-like; block Hangul runes proactively
+            if (mask) {
+                const hangul = /[\u1100-\u11FF\u3130-\u318F\uAC00-\uD7A3]/;
+                if (hangul.test(data)) {
+                    e.preventDefault();
+                    return;
+                }
+            }
+            if (type === 'number') {
+                if (!/^[0-9.\-]+$/.test(data)) {
+                    e.preventDefault();
+                    return;
+                }
             }
         }
     };
