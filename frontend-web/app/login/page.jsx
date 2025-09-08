@@ -3,10 +3,10 @@ export const revalidate = 0
 export const runtime = 'nodejs'
 
 import Client from './view'
-import { ssrJSON } from '@/app/lib/runtime/ssr'
+import { getSessionSSR } from './fetch'
 
 export default async function Page() {
   const MODE = 'SSR'
-  const init = await ssrJSON('/api/v1/auth/session')
+  const init = await getSessionSSR()
   return <Client mode={MODE} init={init} />
 }
