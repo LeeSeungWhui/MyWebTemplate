@@ -33,6 +33,7 @@ const Input = forwardRef(({
     const [innerValue, setInnerValue] = useState(() => props.value ?? props.defaultValue ?? "");
     const composingRef = useRef(false);
     const baseStyle = "appearance-none block w-full px-3 py-2 border rounded-md shadow-sm text-sm focus:outline-none focus:ring-2 focus:ring-offset-0";
+    const HANGUL_RE = /[\u1100-\u11FF\u3130-\u318F\uAC00-\uD7A3]/; // 한글 범위
 
     const states = {
         default: "border-gray-300 focus:ring-blue-500 focus:border-blue-500",
@@ -106,7 +107,8 @@ const Input = forwardRef(({
             value = applyMask(value, mask);
         }
         if (type === 'number' && (maxDigits !== undefined || maxDecimals !== undefined)) {
-            const regex = new RegExp(`^-?\\\d{0,${maxDigits || 2}}(\\.\\\d{0,${maxDecimals || 2}})?$`);
+            // 정규식 이스케이프 정리
+            const regex = new RegExp(`^-?\\d{0,${maxDigits ?? 2}}(\\.\\d{0,${maxDecimals ?? 2}})?$`);
             if (!regex.test(value)) {
                 return; // reject invalid numeric pattern
             }
@@ -119,6 +121,15 @@ const Input = forwardRef(({
         setDraftValue(undefined);
         return value;
     };
+
+    // 조합 중 임시 문자열 허용 여부 판단
+    const isAllowedDraft = (s) => {
+        if (filter && !(new RegExp(`^[${filter}]*$`)).test(s)) return false;
+        if (mask && HANGUL_RE.test(s)) return false; // 마스크 존재 시 한글 금지 가정
+        if (type === 'number' && !/^[0-9.\-]*$/.test(s)) return false;
+        return true;
+    };
+    const getCommitted = () => (isControlled ? (dataObj?.[dataKey] ?? "") : (innerValue ?? ""));
 
     const handleBeforeInput = (e) => {
         // Enable strict pre-filtering by default when constraints are present
@@ -195,8 +206,14 @@ const Input = forwardRef(({
     const handleChange = (e) => {
         const composing = e.nativeEvent.isComposing || composingRef.current;
         const raw = e.target.value;
-        if (composing) {
-            // During IME composition, do not update external state; keep local draft for rendering
+        if (composing && (filter || mask || type === 'number')) {
+            // 제약이 있을 때, 허용되지 않는 조합 문자열은 화면에 반영하지 않음
+            if (!isAllowedDraft(raw)) {
+                const last = getCommitted();
+                if (e.target.value !== last) e.target.value = last; // DOM 즉시 되돌리기
+                return;
+            }
+            // 허용되는 조합만 임시 표시
             setDraftValue(raw);
             return;
         }
@@ -231,6 +248,17 @@ const Input = forwardRef(({
                   onBeforeInput={handleBeforeInput}
                   onChange={handleChange}
                   onCompositionStart={() => { composingRef.current = true; setIsComposing(true); }}
+                onCompositionUpdate={(e) => {
+                    if (filter || mask || type === 'number') {
+                        const current = e.currentTarget.value;
+                        const next = current; // 최신 값은 이미 브라우저가 합성 반영한 상태
+                        if (!isAllowedDraft(next)) {
+                            e.preventDefault?.();
+                            const last = getCommitted();
+                            if (e.currentTarget.value !== last) e.currentTarget.value = last;
+                        }
+                    }
+                }}
                 onCompositionEnd={(e) => {
                     composingRef.current = false;
                     setIsComposing(false);
