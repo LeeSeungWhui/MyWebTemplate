@@ -32,5 +32,5 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
   - SSR: call common contract in page.jsx (server). SEO-ready.
   - CSR: call the same contract in client component. Interactive.
 - Common contract: `data/fetch.js` delegates to runtime utils:
-  - SSR: `lib/runtime/ssr.js` (forwards Cookie/Accept-Language + no-store)
-  - CSR: `lib/runtime/csr.js` (credentials + CSRF for non-idempotent)
+  - SSR: `app/lib/runtime/ssr.js` (forwards Cookie/Accept-Language + no-store)
+  - CSR: `app/lib/runtime/csr.js` (credentials + CSRF for non-idempotent)
