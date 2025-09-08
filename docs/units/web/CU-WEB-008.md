@@ -2,7 +2,7 @@
 id: CU-WEB-008
 name: Middleware Guard & Redirect
 module: web
-status: planned
+status: in-progress
 priority: P1
 links: [CU-WEB-001, CU-WEB-004, CU-WEB-005, CU-WEB-006, CU-WEB-002, CU-BE-001]
 ---
@@ -67,3 +67,7 @@ links: [CU-WEB-001, CU-WEB-004, CU-WEB-005, CU-WEB-006, CU-WEB-002, CU-BE-001]
 - 체인 정합: 미들웨어는 존재 판정만, 서버 가드는 검증/리다이렉트, 클라는 만료 대응
 - 백엔드 연동: `/api/v1/auth/*` 표준 응답/쿠키 정책(CU-BE-001)과 1:1 정합
 - 문서 정합: index.md / web.md / backend.md의 경로·쿠키·CSRF 규약과 일치
+
+### Implementation Notes
+- `frontend-web/middleware.js`는 보호 경로에서 `sid` 쿠키를 검사해 없으면 `/login`으로 302 리다이렉트한다.
+- 공개/보호 경로 패턴과 `next` 검증 로직은 향후 확장이 필요하다.

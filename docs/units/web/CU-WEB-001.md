@@ -2,7 +2,7 @@
 id: CU-WEB-001
 name: Auth & Login Page
 module: web
-status: draft
+status: in-progress
 priority: P1
 links: [CU-BE-001, CU-WEB-004, CU-WEB-005, CU-WEB-008]
 ---
@@ -71,3 +71,7 @@ links: [CU-BE-001, CU-WEB-004, CU-WEB-005, CU-WEB-008]
 - ENV: `NEXT_PUBLIC_API_BASE`
 - 기본 runtime은 nodejs(쿠키 접근), 경로에 따라 edge 선택 가능
 - UI 바인딩(EasyObj): value/onChange 규약 준수, 폼모델과 EasyObj 연결(SWR와 충돌 없게 분리)
+
+### Implementation Notes
+- `frontend-web/app/login`은 SSR `ssrJSON`으로 세션을 확인하고 `SharedHydrator`로 상태를 초기화한다.
+- 로그인 요청은 `postWithCsrf`로 처리하며, 미구현된 오류 UX·A11y는 후속 보완이 필요하다.
