@@ -17,11 +17,13 @@ function useEasyList(initialData = []) {
             get(obj, prop) {
                 if (prop === '__isProxy') return true;
                 if (prop === '__rawObject') return obj;
+                if (prop === 'toJSON') return () => deepCopy(obj);
 
                 // 배열 메서드 래핑
                 if (prop === 'push') {
                     return (...items) => {
-                        const result = obj.push(...items);
+                        const wrapped = items.map((it) => (typeof it === 'object' && it !== null && !it.__isProxy) ? createProxy(it) : it);
+                        const result = obj.push(...wrapped);
                         scheduleUpdate(() => forceUpdate({}));
                         return result;
                     };
@@ -42,14 +44,16 @@ function useEasyList(initialData = []) {
                 }
                 if (prop === 'unshift') {
                     return (...items) => {
-                        const result = obj.unshift(...items);
+                        const wrapped = items.map((it) => (typeof it === 'object' && it !== null && !it.__isProxy) ? createProxy(it) : it);
+                        const result = obj.unshift(...wrapped);
                         scheduleUpdate(() => forceUpdate({}));
                         return result;
                     };
                 }
                 if (prop === 'splice') {
                     return (start, deleteCount, ...items) => {
-                        const result = obj.splice(start, deleteCount, ...items);
+                        const wrapped = items.map((it) => (typeof it === 'object' && it !== null && !it.__isProxy) ? createProxy(it) : it);
+                        const result = obj.splice(start, deleteCount, ...wrapped);
                         scheduleUpdate(() => forceUpdate({}));
                         return result;
                     };
@@ -81,7 +85,6 @@ function useEasyList(initialData = []) {
                                 callback(obj[index], index);
                             }
                         });
-                        scheduleUpdate(() => forceUpdate({}));
                     };
                 }
 
@@ -97,7 +100,10 @@ function useEasyList(initialData = []) {
                 return value;
             },
             set(obj, prop, value) {
-                Reflect.set(obj, prop, value);
+                const next = (typeof value === 'object' && value !== null && !value.__isProxy)
+                    ? createProxy(value)
+                    : value;
+                Reflect.set(obj, prop, next);
                 scheduleUpdate(() => forceUpdate({}));
                 return true;
             },

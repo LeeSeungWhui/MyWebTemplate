@@ -48,6 +48,9 @@ function useEasyObj(initialData = {}) {
                 if (prop === 'toString') {
                     return () => JSON.stringify(obj);
                 }
+                if (prop === 'toJSON') {
+                    return () => deepCopy(obj);
+                }
 
                 const value = Reflect.get(obj, prop);
                 if (typeof value === 'object' && value !== null && !value.__isProxy) {
@@ -58,7 +61,10 @@ function useEasyObj(initialData = {}) {
                 return Reflect.get(obj, prop);
             },
             set(obj, prop, value) {
-                Reflect.set(obj, prop, value);
+                const next = (typeof value === 'object' && value !== null && !value.__isProxy)
+                    ? createProxy(value)
+                    : value;
+                Reflect.set(obj, prop, next);
                 // React Native의 경우 비동기 업데이트를 더 잘 처리하기 위해 
                 // requestAnimationFrame 사용
                 scheduleUpdate(() => forceUpdate({}));
