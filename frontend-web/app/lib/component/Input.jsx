@@ -1,4 +1,4 @@
-import { useState, forwardRef } from 'react';
+import { useState, useRef, forwardRef } from 'react';
 import Icon from './Icon';
 
 const Input = forwardRef(({
@@ -20,6 +20,9 @@ const Input = forwardRef(({
 }, ref) => {
     const isControlled = dataObj && dataKey;
     const [showPassword, setShowPassword] = useState(false);
+    const [isComposing, setIsComposing] = useState(false);
+    const [draftValue, setDraftValue] = useState(undefined);
+    const composingRef = useRef(false);
     const baseStyle = "appearance-none block w-full px-3 py-2 border rounded-md shadow-sm text-sm focus:outline-none focus:ring-2 focus:ring-offset-0";
 
     const states = {
@@ -84,33 +87,38 @@ const Input = forwardRef(({
         return result;
     };
 
-    const handleChange = (e) => {
-        const isComposing = e.nativeEvent.isComposing;
-        let value = e.target.value;
-
-        if (!isComposing) {
-            if (filter) {
-                const regex = new RegExp(`[^${filter}]`, "g");
-                value = value.replace(regex, "");
-            }
-
-            if (mask) {
-                value = applyMask(value, mask);
-            }
-
-            if (type === 'number' && (maxDigits !== undefined || maxDecimals !== undefined)) {
-                const regex = new RegExp(`^-?\\d{0,${maxDigits || 2}}(\\.\\d{0,${maxDecimals || 2}})?$`);
-                if (!regex.test(value)) {
-                    return;
-                }
+    const commitValue = (raw) => {
+        let value = raw;
+        if (filter) {
+            const regex = new RegExp(`[^${filter}]`, 'g');
+            value = value.replace(regex, '');
+        }
+        if (mask) {
+            value = applyMask(value, mask);
+        }
+        if (type === 'number' && (maxDigits !== undefined || maxDecimals !== undefined)) {
+            const regex = new RegExp(`^-?\\\d{0,${maxDigits || 2}}(\\.\\\d{0,${maxDecimals || 2}})?$`);
+            if (!regex.test(value)) {
+                return; // reject invalid numeric pattern
             }
         }
-
         if (isControlled) {
             dataObj[dataKey] = value;
         }
+        setDraftValue(undefined);
+        return value;
+    };
 
-        const event = { ...e, target: { ...e.target, value } };
+    const handleChange = (e) => {
+        const composing = e.nativeEvent.isComposing || composingRef.current;
+        const raw = e.target.value;
+        if (composing) {
+            // During IME composition, do not update external state; keep local draft for rendering
+            setDraftValue(raw);
+            return;
+        }
+        const committed = commitValue(raw);
+        const event = { ...e, target: { ...e.target, value: committed } };
         onChange && onChange(event);
     };
 
@@ -133,9 +141,17 @@ const Input = forwardRef(({
                 pattern={type === 'number' ? '[0-9]*' : undefined}
                 inputMode={type === 'number' ? 'decimal' : undefined}
                 placeholder={placeholder || mask}
-                value={isControlled ? dataObj[dataKey] || "" : props.value}
+                value={isControlled
+                    ? (isComposing ? (draftValue ?? dataObj[dataKey] || "") : (draftValue ?? dataObj[dataKey] || ""))
+                    : (draftValue ?? props.value)}
                 onChange={handleChange}
-                onCompositionEnd={handleChange}
+                onCompositionStart={() => { composingRef.current = true; setIsComposing(true); }}
+                onCompositionEnd={(e) => {
+                    composingRef.current = false;
+                    setIsComposing(false);
+                    const committed = commitValue(e.target.value);
+                    onChange && onChange({ ...e, target: { ...e.target, value: committed } });
+                }}
                 className={`
                     ${inputClass}
                     ${prefix ? 'pl-10' : ''}
