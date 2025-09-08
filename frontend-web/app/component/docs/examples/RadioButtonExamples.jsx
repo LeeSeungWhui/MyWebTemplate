@@ -40,7 +40,7 @@ export const RadioButtonExamples = () => {
                     </Lib.RadioButton>
                 </div>
             ),
-            description: "기본 ?�디?�버??,
+            description: "기본 라디오버튼",
             code: `<Lib.RadioButton
     name="size"
     value="small"
@@ -58,7 +58,7 @@ export const RadioButtonExamples = () => {
                         value="disabled1"
                         disabled
                     >
-                        비활?�화 1
+                        비활성화 1
                     </Lib.RadioButton>
                     <Lib.RadioButton
                         name="disabled"
@@ -66,17 +66,17 @@ export const RadioButtonExamples = () => {
                         disabled
                         checked={true}
                     >
-                        비활?�화 2
+                        비활성화 2
                     </Lib.RadioButton>
                 </div>
             ),
-            description: "비활?�화 ?�태",
+            description: "비활성화 상태",
             code: `<Lib.RadioButton
     name="disabled"
     value="disabled1"
     disabled
 >
-    비활?�화 1
+    비활성화 1
 </Lib.RadioButton>`
         },
         {
@@ -89,7 +89,7 @@ export const RadioButtonExamples = () => {
                         dataKey="selectedTheme"
                         color="#FF6B6B"
                     >
-                        ?�이??
+                        라이트
                     </Lib.RadioButton>
                     <Lib.RadioButton
                         name="theme"
@@ -98,7 +98,7 @@ export const RadioButtonExamples = () => {
                         dataKey="selectedTheme"
                         color="#4D96FF"
                     >
-                        ?�크
+                        다크
                     </Lib.RadioButton>
                     <Lib.RadioButton
                         name="theme"
@@ -107,11 +107,11 @@ export const RadioButtonExamples = () => {
                         dataKey="selectedTheme"
                         color="#6BCB77"
                     >
-                        ?�스??
+                        시스템
                     </Lib.RadioButton>
                 </div>
             ),
-            description: "커스?� ?�상",
+            description: "커스텀 색상",
             code: `<Lib.RadioButton
     name="theme"
     value="light"
@@ -119,7 +119,7 @@ export const RadioButtonExamples = () => {
     dataKey="selectedTheme"
     color="#FF6B6B"
 >
-    ?�이??
+    라이트
 </Lib.RadioButton>`
         },
         {
@@ -132,7 +132,7 @@ export const RadioButtonExamples = () => {
                             checked={controlledValue === 'kr'}
                             onChange={(e) => setControlledValue(e.target.value)}
                         >
-                            ?�국??
+                            한국어
                         </Lib.RadioButton>
                         <Lib.RadioButton
                             name="controlled"
@@ -144,11 +144,11 @@ export const RadioButtonExamples = () => {
                         </Lib.RadioButton>
                     </div>
                     <div className="text-sm text-gray-600">
-                        ?�택???�어: {controlledValue || '?�음'}
+                        선택된 언어: {controlledValue || '없음'}
                     </div>
                 </div>
             ),
-            description: "?�어 컴포?�트 방식",
+            description: "제어 컴포넌트 방식",
             code: `const [value, setValue] = useState('');
 
 <Lib.RadioButton
@@ -157,7 +157,7 @@ export const RadioButtonExamples = () => {
     checked={value === 'kr'}
     onChange={(e) => setValue(e.target.value)}
 >
-    ?�국??
+    한국어
 </Lib.RadioButton>
 <Lib.RadioButton
     name="controlled"
@@ -171,4 +171,4 @@ export const RadioButtonExamples = () => {
     ];
 
     return examples;
-}; 
+};
