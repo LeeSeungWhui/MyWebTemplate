@@ -5,12 +5,12 @@ export const DataClassExamples = () => {
         {
             component: (() => {
                 const data = Lib.EasyObj({
-                    name: '?�길??,
+                    name: '홍길동',
                     age: 20,
-                    hobbies: ['?�서', '?�동'],
+                    hobbies: ['독서', '운동'],
                     address: {
-                        city: '?�울',
-                        street: '강남?��?
+                        city: '서울',
+                        street: '강남대로'
                     }
                 });
 
@@ -18,13 +18,13 @@ export const DataClassExamples = () => {
                     <div className="space-y-4">
                         <div className="flex gap-2">
                             <Lib.Button onClick={() => data.age += 1}>
-                                ?�이 증�?
+                                나이 증가
                             </Lib.Button>
-                            <Lib.Button onClick={() => data.hobbies.push('?�행')}>
-                                취�? 추�?
+                            <Lib.Button onClick={() => data.hobbies.push('여행')}>
+                                취미 추가
                             </Lib.Button>
-                            <Lib.Button onClick={() => data.address.city = '부??}>
-                                ?�시 변�?
+                            <Lib.Button onClick={() => data.address.city = '부산'}>
+                                도시 변경
                             </Lib.Button>
                         </div>
                         <pre className="bg-gray-100 p-4 rounded-lg overflow-auto">
@@ -33,27 +33,27 @@ export const DataClassExamples = () => {
                     </div>
                 );
             })(),
-            description: "EasyObj??객체??중첩???�성까�? ?�동?�로 ?�태�?관리합?�다.",
+            description: "EasyObj는 객체의 중첩된 속성까지 자동으로 상태를 관리합니다.",
             code: `const data = Lib.EasyObj({
-    name: '?�길??,
+    name: '홍길동',
     age: 20,
-    hobbies: ['?�서', '?�동'],
+    hobbies: ['독서', '운동'],
     address: {
-        city: '?�울',
-        street: '강남?��?
+        city: '서울',
+        street: '강남대로'
     }
 });
 
-// ?�태 변�????�동?�로 리렌?�링
+// 상태 변경 시 자동으로 리렌더링
 data.age += 1;
-data.hobbies.push('?�행');
-data.address.city = '부??;`
+data.hobbies.push('여행');
+data.address.city = '부산';`
         },
         {
             component: (() => {
                 const list = Lib.EasyList([
-                    { id: 1, text: '????1' },
-                    { id: 2, text: '????2' }
+                    { id: 1, text: '할 일 1' },
+                    { id: 2, text: '할 일 2' }
                 ]);
 
                 return (
@@ -61,17 +61,17 @@ data.address.city = '부??;`
                         <div className="flex gap-2">
                             <Lib.Button onClick={() => list.push({
                                 id: list.length + 1,
-                                text: `????${list.length + 1}`
+                                text: `할 일 ${list.length + 1}`
                             })}>
-                                ??�� 추�?
+                                항목 추가
                             </Lib.Button>
                             <Lib.Button onClick={() => list.pop()}>
-                                마�?�???�� ?�거
+                                마지막 항목 제거
                             </Lib.Button>
                             <Lib.Button onClick={() => list.forAll(item => {
-                                item.text += ' (?�료)';
+                                item.text += ' (완료)';
                             })}>
-                                모든 ??�� ?�료
+                                모든 항목 완료
                             </Lib.Button>
                         </div>
                         <pre className="bg-gray-100 p-4 rounded-lg overflow-auto">
@@ -80,19 +80,19 @@ data.address.city = '부??;`
                     </div>
                 );
             })(),
-            description: "EasyList??배열 메서?��? 지?�하�?�???��???�태???�동?�로 관리합?�다.",
+            description: "EasyList는 배열 메서드를 지원하며 각 항목의 상태도 자동으로 관리합니다.",
             code: `const list = Lib.EasyList([
-    { id: 1, text: '????1' },
-    { id: 2, text: '????2' }
+    { id: 1, text: '할 일 1' },
+    { id: 2, text: '할 일 2' }
 ]);
 
-// 배열 메서???�용
-list.push({ id: 3, text: '????3' });
+// 배열 메서드 사용
+list.push({ id: 3, text: '할 일 3' });
 list.pop();
 
-// forAll 메서?�로 모든 ??�� ?�정
+// forAll 메서드로 모든 항목 수정
 list.forAll(item => {
-    item.text += ' (?�료)';
+    item.text += ' (완료)';
 });`
         }
     ];
