@@ -1,7 +1,15 @@
+// Input.jsx
+// 작성자: AI
+// 갱신일: 2025-02-14
+// 설명: 필터 및 마스크가 적용된 입력 컴포넌트
 import { useState, useRef, forwardRef } from 'react';
 import Icon from './Icon';
 
-const Input = forwardRef(({
+/**
+ * Input - 필터/마스크 지원 입력 컴포넌트
+ * @date 2025-02-14
+ */
+const Input = forwardRef(({ 
     dataObj,
     dataKey,
     type = "text",
@@ -150,6 +158,40 @@ const Input = forwardRef(({
         }
     };
 
+    /**
+     * handleKeyDown - 키다운 단계에서 허용되지 않은 문자를 즉시 차단
+     * @date 2025-02-14
+     */
+    const handleKeyDown = (e) => {
+        if (!filter && !mask && type !== 'number') return;
+        if (e.isComposing || e.nativeEvent.isComposing) return;
+        const key = e.key;
+        if (key.length !== 1) return; // 제어 키는 허용
+
+        if (filter) {
+            const allow = new RegExp(`^[${filter}]+$`);
+            if (!allow.test(key)) {
+                e.preventDefault();
+                return;
+            }
+        }
+
+        if (mask) {
+            const hangul = /[\u1100-\u11FF\u3130-\u318F\uAC00-\uD7A3]/;
+            if (hangul.test(key)) {
+                e.preventDefault();
+                return;
+            }
+        }
+
+        if (type === 'number') {
+            if (!/^[0-9.\-]$/.test(key)) {
+                e.preventDefault();
+                return;
+            }
+        }
+    };
+
     const handleChange = (e) => {
         const composing = e.nativeEvent.isComposing || composingRef.current;
         const raw = e.target.value;
@@ -181,13 +223,14 @@ const Input = forwardRef(({
                 type={togglePassword ? (showPassword ? 'text' : 'password') : type}
                 pattern={type === 'number' ? '[0-9]*' : undefined}
                 inputMode={type === 'number' ? 'decimal' : undefined}
-                placeholder={placeholder || mask}
-                value={isControlled
-                    ? (draftValue ?? dataObj[dataKey] ?? "")
-                    : (draftValue ?? innerValue ?? "")}
-                onBeforeInput={handleBeforeInput}
-                onChange={handleChange}
-                onCompositionStart={() => { composingRef.current = true; setIsComposing(true); }}
+                  placeholder={placeholder || mask}
+                  value={isControlled
+                      ? (draftValue ?? dataObj[dataKey] ?? "")
+                      : (draftValue ?? innerValue ?? "")}
+                  onKeyDown={handleKeyDown}
+                  onBeforeInput={handleBeforeInput}
+                  onChange={handleChange}
+                  onCompositionStart={() => { composingRef.current = true; setIsComposing(true); }}
                 onCompositionEnd={(e) => {
                     composingRef.current = false;
                     setIsComposing(false);
