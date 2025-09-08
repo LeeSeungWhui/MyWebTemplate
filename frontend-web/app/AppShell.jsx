@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect } from 'react'
-import { useSharedStore } from '@/app/store/shared.store'
+import { useSharedStore } from '@/app/store/shared'
 import Loading from '@/app/lib/component/Loading'
 import Alert from '@/app/lib/component/Alert'
 import Confirm from '@/app/lib/component/Confirm'
