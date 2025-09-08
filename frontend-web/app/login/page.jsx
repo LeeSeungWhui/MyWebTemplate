@@ -2,10 +2,10 @@ export const dynamic = 'force-dynamic'
 export const revalidate = 0
 export const runtime = 'nodejs'
 
-import Client from './view'
+import Client from './View'
 import { ssrJSON } from '@/app/lib/runtime/ssr'
-import { SESSION_PATH } from './init.api'
-import SharedHydrator from '@/app/components/SharedHydrator'
+import { SESSION_PATH } from './initData'
+import SharedHydrator from '@/app/common/store/SharedHydrator'
 
 export default async function Page() {
   const MODE = 'SSR'
