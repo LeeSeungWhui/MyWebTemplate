@@ -2,13 +2,14 @@
 
 import { useState } from 'react'
 import useSWR from 'swr'
-import { getSessionCSR, loginCSR } from './fetch'
+import { csrJSON, postWithCsrf } from '@/app/lib/runtime/csr'
+import { SESSION_PATH } from './init.api'
 
 export default function Client({ mode, init }) {
   const [username, setUsername] = useState('demo')
   const [password, setPassword] = useState('password123')
   const [pending, setPending] = useState(false)
-  const { data, mutate } = useSWR('session', () => getSessionCSR(), {
+  const { data, mutate } = useSWR(mode === 'CSR' ? 'session' : null, () => csrJSON(SESSION_PATH), {
     fallbackData: init,
     revalidateOnFocus: false,
   })
@@ -18,7 +19,7 @@ export default function Client({ mode, init }) {
     e.preventDefault()
     setPending(true)
     try {
-      const res = await loginCSR({ username, password, rememberMe: true })
+      const res = await postWithCsrf('/api/v1/auth/login', { username, password, rememberMe: true })
       if (res && res.status === 204) {
         await mutate()
         window.location.href = '/'
