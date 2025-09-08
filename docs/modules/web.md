@@ -9,8 +9,8 @@
 - Next.js: 15+ (App Router)
 - React: 19
 - Tailwind CSS: v4
-- 상태/데이터: SWR
-- 문서/테스트: Storybook 8+, Playwright/Vitest(선택)
+- 상태/데이터: SWR, Zustand
+- 문서/테스트: Storybook 8+ (planned), Playwright/Vitest(선택)
 - 언어: JavaScript Only (TypeScript 금지)
 
 ## 포함 Unit
@@ -31,7 +31,7 @@
 - CU-WEB-004: in-progress — 미들웨어·서버 레벨 리다이렉트 구현, 파라미터/401 핸들링 보완 필요
 - CU-WEB-005: in-progress — CSRF 주입 존재, OpenAPI 클라이언트 래핑 미적용
 - CU-WEB-006: in-progress — 페이지 레벨 MODE 규약 확정(ENV 스위치 제거)
-- CU-WEB-007: in-progress — 컴포넌트/페이지 구조 전환 계획 수립
+- CU-WEB-007: completed — Vite→Next 마이그레이션 완료, `frontend-web` 정착
 - CU-WEB-008: in-progress — `middleware.js` 쿠키 기반 리다이렉트, 경로/next 검증 보완 필요
 - CU-WEB-009: in-progress — `initData` + runtime fetch 유틸 정착, AC 보강 필요
 

@@ -27,8 +27,7 @@ links: [CU-BE-001, CU-BE-005, CU-WEB-001, CU-WEB-004, CU-WEB-006]
   - API 클라이언트 모듈(생성기 + 요청 헬퍼)
   - SWR 훅(예시): useSession(), useProfile(), useList(queryKey)
 - ENV: `NEXT_PUBLIC_API_BASE`
-  - NEXT_RUNTIME_MODE (ssr|isr|csr)
-  - NEXT_REVALIDATE_SECONDS (ISR 기본값)
+   - `NEXT_REVALIDATE_SECONDS` (ISR 기본값)
 - 요청 규약
   - 모든 요청은 credentials:'include' 고정(쿠키 세션)
   - 세션 조회(/api/v1/auth/session)는 Cache-Control: no-store
