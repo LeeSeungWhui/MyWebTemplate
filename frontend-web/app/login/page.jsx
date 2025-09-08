@@ -5,9 +5,18 @@ export const runtime = 'nodejs'
 import Client from './view'
 import { ssrJSON } from '@/app/lib/runtime/ssr'
 import { SESSION_PATH } from './init.api'
+import SharedHydrator from '@/app/components/SharedHydrator'
 
 export default async function Page() {
   const MODE = 'SSR'
   const init = MODE === 'SSR' ? await ssrJSON(SESSION_PATH) : null
-  return <Client mode={MODE} init={init} />
+  const userJson = init && init.result && init.result.authenticated
+    ? { userId: init.result.userId, name: init.result.name }
+    : null
+  return (
+    <>
+      {MODE === 'SSR' && <SharedHydrator userJson={userJson} />}
+      <Client mode={MODE} init={init} />
+    </>
+  )
 }

@@ -6,6 +6,8 @@ export const useSharedStore = create((set, get) => ({
   // session-ish meta
   user: null,
   setUser: (user) => set({ user }),
+  userJson: null,
+  setUserJson: (userJson) => set({ userJson }),
   shared: {},
   setShared: (patch) => set((s) => ({ shared: { ...s.shared, ...(patch || {}) } })),
 
