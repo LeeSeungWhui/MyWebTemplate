@@ -18,7 +18,7 @@ links: [CU-WEB-001, CU-WEB-002, CU-WEB-003, CU-WEB-004, CU-WEB-005, CU-WEB-006, 
   - 컴포넌트 이관: 레거시 UI → CU-WEB-003 규약(EasyObj/EasyList 바인딩)
   - 인증 흐름 정합: 204 로그인/세션 확인/로그아웃(CU-WEB-001, CU-BE-001)
   - API 연동: OpenAPI JS 클라 규약(CU-WEB-005)
-  - SSR/ISR/CSR: 페이지 설정 + ENV 우선순위(CU-WEB-006)
+    - SSR/CSR: 페이지 설정 + MODE 규약(CU-WEB-006)
   - Storybook/테스트/CI 이행
 - 제외
   - 서드파티 리치 컴포넌트 교체, 멀티테넌시/복잡 권한(차기)
@@ -30,8 +30,8 @@ links: [CU-WEB-001, CU-WEB-002, CU-WEB-003, CU-WEB-004, CU-WEB-005, CU-WEB-006, 
   - `/dashboard` → 대시보드 별칭(보호)
   - `/docs/*` → 스토리북 또는 문서 라우팅(전환 정책 별도)
 - 빌드/실행
-  - 레거시 `frontend-web-old` 동결(FREEZE), 신규 `frontend-web` 도입
-  - ENV: `NEXT_PUBLIC_API_BASE`, `NEXT_RUNTIME_MODE`, `NEXT_REVALIDATE_SECONDS`
+   - 레거시 `frontend-web-old` 동결(FREEZE), 신규 `frontend-web` 도입
+   - ENV: `NEXT_PUBLIC_API_BASE`, `NEXT_REVALIDATE_SECONDS`
 
 ### Data & Rules
 - 상태/데이터: SWR 표준 사용(기존 TanStack은 제거/병행 불가). SWR 키 규약은 CU-WEB-005 준수
@@ -51,7 +51,7 @@ links: [CU-WEB-001, CU-WEB-002, CU-WEB-003, CU-WEB-004, CU-WEB-005, CU-WEB-006, 
 - AC-2 가드 정합: 보호 경로는 서버/미들웨어 가드로 깜빡임 없는 전환(CU-WEB-004/008).
 - AC-3 API 정합: 모든 호출이 표준 응답 래퍼 파싱·에러 맵핑 규칙을 따른다(CU-WEB-005).
 - AC-4 컴포넌트 정합: 레거시 UI를 CU-WEB-003 규약으로 조립했고 SSR/CSR 전환에도 안정적이다.
-- AC-5 모드 전환: ENV로 SSR/ISR/CSR을 바꿔도 로그인→대시보드 흐름이 그대로 유지(CU-WEB-006).
+- AC-5 모드 전환: 페이지 `MODE` 변경으로 SSR↔CSR 전환해도 로그인→대시보드 흐름이 유지(CU-WEB-006).
 - AC-6 품질 게이트: Storybook A11y/Controls 통과, E2E(로그인/리다이렉트/세션 복원) 통과, 콘솔 에러 0.
 
 ### Tasks
@@ -62,7 +62,7 @@ links: [CU-WEB-001, CU-WEB-002, CU-WEB-003, CU-WEB-004, CU-WEB-005, CU-WEB-006, 
 - T5 인증 연결: 204 로그인/세션/로그아웃(쿠키·CSRF 규칙), 실패 UX 정합(CU-WEB-001)
 - T6 대시보드 구성: 레이아웃/카드/리스트/스탯 SSR 기본으로 이식(CU-WEB-002)
 - T7 API 클라 연결: OpenAPI JS 클라, SWR 캐시·무효화 정합(CU-WEB-005)
-- T8 런타임: `NEXT_RUNTIME_MODE`/`NEXT_REVALIDATE_SECONDS` 적용(CU-WEB-006)
+- T8 런타임: `NEXT_REVALIDATE_SECONDS` 적용, 페이지 MODE 규약(CU-WEB-006)
 - T9 스토리북: 컴포넌트/페이지 상태 스토리 구축(A11y/다크/에러/로딩)
 - T10 테스트/E2E: 로그인 204·리다이렉트·세션 복원·SWR 후속 패칭·401/403 처리 확인
 - T11 기록/문서: 라우트 매핑, 변경 목록, ENV 사용법, 운영 체크리스트 업데이트
@@ -86,7 +86,7 @@ links: [CU-WEB-001, CU-WEB-002, CU-WEB-003, CU-WEB-004, CU-WEB-005, CU-WEB-006, 
 - 명칭: `frontend-web` 일관(index.md/web.md 반영), 레거시는 `frontend-web-old`(최종까지 read-only)
 
 ### Implementation Update
-- UI �ھ�/�����ͼ�: pp/lib/**�� ���̱׷��̼� �Ϸ�
-- ���� ����: pp/docs/**�� ���̱׷��̼� �Ϸ�
-- AppContext ���� �� zustand �����(pp/common/store/shared.jsx) + ��������(AppShell)
-- per?page �ʱ� ��������Ʈ(initData.jsx) + ��Ÿ�� ��ƿ(ssr/csr) ����
+- UI 컴포넌트는 `app/lib/component/**`로 재구성되고, 예제는 `app/docs/examples/**`로 이동했다.
+- 전역 상태는 `app/common/store/shared.jsx`에서 zustand로 관리하며 `SharedHydrator`로 초기화한다.
+- 각 페이지는 `initData.jsx`에 초기 엔드포인트를 정의하고 `app/lib/runtime/ssr.jsx`와 `csr.jsx` 유틸을 사용한다.
+- 레거시 Vite 프로젝트는 `frontend-web-old`에 보관되고 신규 `frontend-web`이 기본 경로다.

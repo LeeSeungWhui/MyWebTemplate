@@ -70,5 +70,5 @@ links: [CU-WEB-001, CU-WEB-003, CU-WEB-004, CU-WEB-005, CU-WEB-006, CU-BE-002]
 ### Notes
 - 인증/가드: 보호 경로 진입용 미들웨어 가이드(CU-WEB-004, CU-WEB-008)
 - 성능: 카드/리스트는 경량 유지, 차트는 CSR 분리 권장
-- ENV: `NEXT_PUBLIC_API_BASE`, `NEXT_RUNTIME_MODE`, `NEXT_REVALIDATE_SECONDS` 최소 세트
+- ENV: `NEXT_PUBLIC_API_BASE`, `NEXT_REVALIDATE_SECONDS` 최소 세트
 
