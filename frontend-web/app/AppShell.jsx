@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useCallback } from 'react'
-import { useSharedStore } from './common/store/Shared'
+import { useSharedStore } from './common/store/SharedStore'
 import Loading from '@/app/lib/component/Loading'
 import Alert from '@/app/lib/component/Alert'
 import Confirm from '@/app/lib/component/Confirm'
@@ -37,6 +37,12 @@ export default function AppShell({ children }) {
 
   // removed: focusing on show caused premature focus shift
 
+  const onConfirmClose = useCallback((ok) => {
+    const onFocus = confirm && typeof confirm.onFocus === 'function' ? confirm.onFocus : null
+    hideConfirm(ok)
+    setTimeout(() => onFocus?.(), 0)
+  }, [confirm, hideConfirm])
+
   return (
     <>
       {isLoading && <Loading />}
@@ -49,8 +55,8 @@ export default function AppShell({ children }) {
           title={confirm.title}
           text={confirm.message}
           type={confirm.type}
-          onConfirm={() => hideConfirm(true)}
-          onCancel={() => hideConfirm(false)}
+          onConfirm={() => onConfirmClose(true)}
+          onCancel={() => onConfirmClose(false)}
           confirmText={confirm.confirmText}
           cancelText={confirm.cancelText}
         />

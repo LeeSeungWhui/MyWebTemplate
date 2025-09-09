@@ -25,7 +25,7 @@ export const useSharedStore = create((set, get) => ({
   showAlert: (message, opts = {}) => set({
     alert: {
       show: true,
-      title: opts.title || '?�림',
+      title: opts.title || '알림',
       message,
       type: opts.type || 'info',
       onClick: typeof opts.onClick === 'function' ? opts.onClick : undefined,
@@ -35,17 +35,17 @@ export const useSharedStore = create((set, get) => ({
   hideAlert: () => set({ alert: { show: false, title: '', message: '', type: 'info', onClick: undefined, onFocus: undefined } }),
 
   // confirm (Promise-based API)
-  confirm: { show: false, title: '', message: '', type: 'info', confirmText: '?�인', cancelText: '취소' },
+  confirm: { show: false, title: '', message: '', type: 'info', confirmText: '확인', cancelText: '취소', onFocus: undefined },
   confirmPromiseResolve: null,
   showConfirm: (message, opts = {}) => {
     return new Promise((resolve) => {
       set({
         confirm: {
           show: true,
-          title: opts.title || '?�인',
+          title: opts.title || '확인',
           message,
           type: opts.type || 'info',
-          confirmText: opts.confirmText || '?�인',
+          confirmText: opts.confirmText || '확인',
           cancelText: opts.cancelText || '취소',
           onConfirm: opts.onConfirm,
           onCancel: opts.onCancel,
@@ -63,7 +63,7 @@ export const useSharedStore = create((set, get) => ({
       if (typeof confirmPromiseResolve === 'function') confirmPromiseResolve(!!confirmed)
     } finally {
       set({
-        confirm: { show: false, title: '', message: '', type: 'info', confirmText: '?�인', cancelText: '취소' },
+        confirm: { show: false, title: '', message: '', type: 'info', confirmText: '확인', cancelText: '취소', onFocus: undefined },
         confirmPromiseResolve: null,
       })
     }
@@ -82,5 +82,4 @@ export const useSharedStore = create((set, get) => ({
   }),
   hideToast: () => set({ toast: { show: false, message: '', type: 'info', position: 'bottom-center', duration: 3000 } }),
 }))
-
 

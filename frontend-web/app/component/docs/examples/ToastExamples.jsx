@@ -1,5 +1,5 @@
 import * as Lib from '@/lib';
-import { useSharedStore } from '@/app/common/store/Shared';
+import { useSharedStore } from '@/app/common/store/SharedStore';
 
 export const ToastExamples = () => {
     const app = useSharedStore();
@@ -9,70 +9,70 @@ export const ToastExamples = () => {
             component: (
                 <div className="space-y-4">
                     <Lib.Button onClick={() => {
-                        app.showToast("기본 토스트 메시지입니다.");
+                        app.showToast("기본 ?�스??메시지?�니??");
                     }}>
-                        기본 토스트
+                        기본 ?�스??
                     </Lib.Button>
                 </div>
             ),
-            description: "기본 토스트",
-            code: `// useSharedStore 사용
+            description: "기본 ?�스??,
+            code: `// useSharedStore ?�용
 const app = useSharedStore();
 
-// 기본 토스트
-app.showToast("기본 토스트 메시지입니다.");`
+// 기본 ?�스??
+app.showToast("기본 ?�스??메시지?�니??");`
         },
         {
             component: (
                 <div className="flex flex-wrap gap-2">
                     <Lib.Button onClick={() => {
-                        app.showToast("정보 토스트 메시지입니다.", {
+                        app.showToast("?�보 ?�스??메시지?�니??", {
                             type: "info"
                         });
                     }}>
-                        정보 토스트
+                        ?�보 ?�스??
                     </Lib.Button>
                     <Lib.Button onClick={() => {
-                        app.showToast("성공 토스트 메시지입니다.", {
+                        app.showToast("?�공 ?�스??메시지?�니??", {
                             type: "success"
                         });
                     }}>
-                        성공 토스트
+                        ?�공 ?�스??
                     </Lib.Button>
                     <Lib.Button onClick={() => {
-                        app.showToast("경고 토스트 메시지입니다.", {
+                        app.showToast("경고 ?�스??메시지?�니??", {
                             type: "warning"
                         });
                     }}>
-                        경고 토스트
+                        경고 ?�스??
                     </Lib.Button>
                     <Lib.Button onClick={() => {
-                        app.showToast("에러 토스트 메시지입니다.", {
+                        app.showToast("?�러 ?�스??메시지?�니??", {
                             type: "error"
                         });
                     }}>
-                        에러 토스트
+                        ?�러 ?�스??
                     </Lib.Button>
                 </div>
             ),
-            description: "토스트 유형",
-            code: `// 정보 토스트
-app.showToast("정보 토스트 메시지입니다.", {
+            description: "?�스???�형",
+            code: `// ?�보 ?�스??
+app.showToast("?�보 ?�스??메시지?�니??", {
     type: "info"
 });
 
-// 성공 토스트
-app.showToast("성공 토스트 메시지입니다.", {
+// ?�공 ?�스??
+app.showToast("?�공 ?�스??메시지?�니??", {
     type: "success"
 });
 
-// 경고 토스트
-app.showToast("경고 토스트 메시지입니다.", {
+// 경고 ?�스??
+app.showToast("경고 ?�스??메시지?�니??", {
     type: "warning"
 });
 
-// 에러 토스트
-app.showToast("에러 토스트 메시지입니다.", {
+// ?�러 ?�스??
+app.showToast("?�러 ?�스??메시지?�니??", {
     type: "error"
 });`
         },
@@ -80,77 +80,77 @@ app.showToast("에러 토스트 메시지입니다.", {
             component: (
                 <div className="flex flex-wrap gap-2">
                     <Lib.Button onClick={() => {
-                        app.showToast("상단 왼쪽에 표시됩니다.", {
+                        app.showToast("?�단 ?�쪽???�시?�니??", {
                             position: "top-left"
                         });
                     }}>
-                        상단 왼쪽
+                        ?�단 ?�쪽
                     </Lib.Button>
                     <Lib.Button onClick={() => {
-                        app.showToast("상단 중앙에 표시됩니다.", {
+                        app.showToast("?�단 중앙???�시?�니??", {
                             position: "top-center"
                         });
                     }}>
-                        상단 중앙
+                        ?�단 중앙
                     </Lib.Button>
                     <Lib.Button onClick={() => {
-                        app.showToast("상단 오른쪽에 표시됩니다.", {
+                        app.showToast("?�단 ?�른쪽에 ?�시?�니??", {
                             position: "top-right"
                         });
                     }}>
-                        상단 오른쪽
+                        ?�단 ?�른�?
                     </Lib.Button>
                     <Lib.Button onClick={() => {
-                        app.showToast("하단 왼쪽에 표시됩니다.", {
+                        app.showToast("?�단 ?�쪽???�시?�니??", {
                             position: "bottom-left"
                         });
                     }}>
-                        하단 왼쪽
+                        ?�단 ?�쪽
                     </Lib.Button>
                     <Lib.Button onClick={() => {
-                        app.showToast("하단 중앙에 표시됩니다.", {
+                        app.showToast("?�단 중앙???�시?�니??", {
                             position: "bottom-center"
                         });
                     }}>
-                        하단 중앙
+                        ?�단 중앙
                     </Lib.Button>
                     <Lib.Button onClick={() => {
-                        app.showToast("하단 오른쪽에 표시됩니다.", {
+                        app.showToast("?�단 ?�른쪽에 ?�시?�니??", {
                             position: "bottom-right"
                         });
                     }}>
-                        하단 오른쪽
+                        ?�단 ?�른�?
                     </Lib.Button>
                 </div>
             ),
-            description: "토스트 위치",
-            code: `// 상단 왼쪽
-app.showToast("상단 왼쪽에 표시됩니다.", {
+            description: "?�스???�치",
+            code: `// ?�단 ?�쪽
+app.showToast("?�단 ?�쪽???�시?�니??", {
     position: "top-left"
 });
 
-// 상단 중앙
-app.showToast("상단 중앙에 표시됩니다.", {
+// ?�단 중앙
+app.showToast("?�단 중앙???�시?�니??", {
     position: "top-center"
 });
 
-// 상단 오른쪽
-app.showToast("상단 오른쪽에 표시됩니다.", {
+// ?�단 ?�른�?
+app.showToast("?�단 ?�른쪽에 ?�시?�니??", {
     position: "top-right"
 });
 
-// 하단 왼쪽
-app.showToast("하단 왼쪽에 표시됩니다.", {
+// ?�단 ?�쪽
+app.showToast("?�단 ?�쪽???�시?�니??", {
     position: "bottom-left"
 });
 
-// 하단 중앙
-app.showToast("하단 중앙에 표시됩니다.", {
+// ?�단 중앙
+app.showToast("?�단 중앙???�시?�니??", {
     position: "bottom-center"
 });
 
-// 하단 오른쪽
-app.showToast("하단 오른쪽에 표시됩니다.", {
+// ?�단 ?�른�?
+app.showToast("?�단 ?�른쪽에 ?�시?�니??", {
     position: "bottom-right"
 });`
         },
@@ -158,41 +158,41 @@ app.showToast("하단 오른쪽에 표시됩니다.", {
             component: (
                 <div className="flex flex-wrap gap-2">
                     <Lib.Button onClick={() => {
-                        app.showToast("2초 후에 사라집니다.", {
+                        app.showToast("2�??�에 ?�라집니??", {
                             duration: 2000
                         });
                     }}>
-                        2초 지속
+                        2�?지??
                     </Lib.Button>
                     <Lib.Button onClick={() => {
-                        app.showToast("5초 후에 사라집니다.", {
+                        app.showToast("5�??�에 ?�라집니??", {
                             duration: 5000
                         });
                     }}>
-                        5초 지속
+                        5�?지??
                     </Lib.Button>
                     <Lib.Button onClick={() => {
-                        app.showToast("수동으로 닫아야 합니다.", {
+                        app.showToast("?�동?�로 ?�아???�니??", {
                             duration: Infinity
                         });
                     }}>
-                        수동 닫기
+                        ?�동 ?�기
                     </Lib.Button>
                 </div>
             ),
-            description: "토스트 지속 시간",
-            code: `// 2초 후 자동 닫기
-app.showToast("2초 후에 사라집니다.", {
+            description: "?�스??지???�간",
+            code: `// 2�????�동 ?�기
+app.showToast("2�??�에 ?�라집니??", {
     duration: 2000
 });
 
-// 5초 후 자동 닫기
-app.showToast("5초 후에 사라집니다.", {
+// 5�????�동 ?�기
+app.showToast("5�??�에 ?�라집니??", {
     duration: 5000
 });
 
-// 수동으로만 닫기 (자동 닫기 비활성화)
-app.showToast("수동으로 닫아야 합니다.", {
+// ?�동?�로�??�기 (?�동 ?�기 비활?�화)
+app.showToast("?�동?�로 ?�아???�니??", {
     duration: Infinity
 });`
         }
