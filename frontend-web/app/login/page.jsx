@@ -3,7 +3,7 @@ export const revalidate = 0
 export const runtime = 'nodejs'
 
 import Client from './view'
-import { ssrJSON } from '@/app/lib/runtime/ssr'
+import { ssrJSON } from '@/app/lib/runtime/Ssr'
 import { SESSION_PATH } from './initData'
 import SharedHydrator from '@/app/common/store/SharedHydrator'
 
