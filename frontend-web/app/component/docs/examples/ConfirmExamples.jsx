@@ -11,24 +11,24 @@ export const ConfirmExamples = () => {
             component: (
                 <div className="space-y-4">
                     <Lib.Button onClick={() => {
-                        app.showConfirm("?�말 ??��?�시겠습?�까?").then(result => {
+                        app.showConfirm("정말 삭제하시겠습니까?").then(result => {
                             if (result) {
-                                app.showAlert("??��?�었?�니??");
+                                app.showAlert("삭제되었습니다.");
                             }
                         });
                     }}>
-                        기본 ?�인
+                        기본 확인
                     </Lib.Button>
                 </div>
             ),
-            description: "기본 ?�인 ?�?�상??,
-            code: `// useSharedStore ?�용
+            description: "기본 확인 예시",
+            code: `// useSharedStore 사용
 const app = useSharedStore();
 
-// 기본 ?�인
-app.showConfirm("?�말 ??��?�시겠습?�까?").then(result => {
+// 기본 확인
+app.showConfirm("정말 삭제하시겠습니까?").then(result => {
     if (result) {
-        app.showAlert("??��?�었?�니??");
+        app.showAlert("삭제되었습니다.");
     }
 });`
         },
@@ -36,77 +36,77 @@ app.showConfirm("?�말 ??��?�시겠습?�까?").then(result => {
             component: (
                 <div className="flex flex-wrap gap-2">
                     <Lib.Button onClick={() => {
-                        app.showConfirm("???�업?� ?�돌�????�습?�다.\\n계속?�시겠습?�까?", {
-                            title: "주의",
-                            type: "warning",
-                            confirmText: "계속",
-                            cancelText: "중단",
+                        app.showConfirm("작업을 되돌릴 수 없습니다.\\n계속하시겠습니까?", {
+                        경고 확인
+                        app.showConfirm("모든 데이터가 삭제됩니다.\\n정말 진행하시겠습니까?", {
+                            title: "위험 확인",
+                            confirmText: "삭제",
                         });
                     }}>
-                        경고 ?�인
+                        위험 확인
                     </Lib.Button>
-                    <Lib.Button onClick={() => {
-                        app.showConfirm("모든 ?�이?��? ??��?�니??\\n?�말 ??��?�시겠습?�까?", {
-                            title: "??�� ?�인",
-                            type: "danger",
-                            confirmText: "??��",
-                            cancelText: "취소",
-                        });
-                    }}>
-                        ?�험 ?�인
-                    </Lib.Button>
-                </div>
-            ),
-            description: "?�인 ?�?�상???�형",
-            code: `// 경고 ?�인
-app.showConfirm("???�업?� ?�돌�????�습?�다.\\\\n계속?�시겠습?�까?", {
-    title: "주의",
-    type: "warning",
-    confirmText: "계속",
-    cancelText: "중단",
-});
-
-// ?�험 ?�인
-app.showConfirm("모든 ?�이?��? ??��?�니??\\\\n?�말 ??��?�시겠습?�까?", {
-    title: "??�� ?�인",
-    type: "danger",
-    confirmText: "??��",
-    cancelText: "취소",
-});`
-        },
-        {
-            component: (
+            description: "확인 대화상자 유형",
+            code: `// 경고 확인
+app.showConfirm("작업을 되돌릴 수 없습니다.\\n계속하시겠습니까?", {
+// 위험 확인
+app.showConfirm("모든 데이터가 삭제됩니다.\\n정말 진행하시겠습니까?", {
+    title: "위험 확인",
+    confirmText: "삭제",
+                        app.showConfirm("삭제를 진행하시겠습니까?", {
+                            title: "위험 확인",
+                            confirmText: "삭제",
+                                app.showAlert("삭제가 완료되었습니다.");
+                                app.showAlert("삭제가 취소되었습니다.");
+                        콜백 함수 예시
+            description: "확인/취소 콜백",
+            code: `// 확인/취소 수행 후 콜백 함수
+app.showConfirm("삭제를 진행하시겠습니까?", {
+    title: "위험 확인",
+    confirmText: "삭제",
+        app.showAlert("삭제가 완료되었습니다.");
+        app.showAlert("삭제가 취소되었습니다.");
+                                app.showConfirm("확인 대화상자 표시 후 입력창으로 포커스 이동합니다.", {
+                                    title: "포커스 이동",
+                            포커스 이동 표시
+                            placeholder="포커스가 여기로 이동합니다"
+            description: "확인 대화상자 표시 후 지정된 요소로 포커스 이동",
+            code: `// useRef로 입력창 참조 생성
+// 확인 대화상자 표시 후 입력창으로 포커스 이동
+            app.showConfirm("확인 대화상자 표시 후 입력창으로 포커스 이동합니다.", {
+                title: "포커스 이동",
+        포커스 이동 표시
+        placeholder="포커스가 여기로 이동합니다"
                 <div className="space-y-4">
                     <Lib.Button onClick={() => {
-                        app.showConfirm("?�이?��? ??��?�시겠습?�까?", {
-                            title: "??�� ?�인",
+                        app.showConfirm("?域?圉? ??�?�窶?�?", {
+                            title: "??� ?",
                             type: "danger",
-                            confirmText: "??��",
-                            cancelText: "취소",
+                            confirmText: "??�",
+                            cancelText: "鼒到�",
                             onConfirm: () => {
-                                app.showAlert("??��가 ?�료?�었?�니??");
+                                app.showAlert("??�穈 ?�?�?蛟�??");
                             },
                             onCancel: () => {
-                                app.showAlert("??��가 취소?�었?�니??");
+                                app.showAlert("??�穈 鼒到�?�?蛟�??");
                             },
                         });
                     }}>
-                        콜백 ?�수 ?�시
+                        儠停 ?到� ?�
                     </Lib.Button>
                 </div>
             ),
-            description: "?�인/취소 콜백",
-            code: `// ?�인/취소 ???�행??콜백 ?�수
-app.showConfirm("?�이?��? ??��?�시겠습?�까?", {
-    title: "??�� ?�인",
+            description: "?/鼒到� 儠停",
+            code: `// ?/鼒到� ???欠�??儠停 ?到�
+app.showConfirm("?域?圉? ??�?�窶?�?", {
+    title: "??� ?",
     type: "danger",
-    confirmText: "??��",
-    cancelText: "취소",
+    confirmText: "??�",
+    cancelText: "鼒到�",
     onConfirm: () => {
-        app.showAlert("??��가 ?�료?�었?�니??");
+        app.showAlert("??�穈 ?�?�?蛟�??");
     },
     onCancel: () => {
-        app.showAlert("??��가 취소?�었?�니??");
+        app.showAlert("??�穈 鼒到�?�?蛟�??");
     }
 });`
         },
@@ -116,40 +116,40 @@ app.showConfirm("?�이?��? ??��?�시겠습?�까?", {
                     <div className="flex gap-4 items-center">
                         <Lib.Button
                             onClick={() => {
-                                app.showConfirm("?�인 ?�?�상?��? ?�히�??�력창으�??�커?��? ?�동?�니??", {
-                                    title: "?�커???�동",
+                                app.showConfirm("? ??�?? ?恆�諰??麆趣諢??科誘?曰? ?渠�?拘�??", {
+                                    title: "?科誘???渠�",
                                     onFocus: () => inputRef.current?.focus()
                                 });
                             }}
                         >
-                            ?�커???�동 ?�시
+                            ?科誘???渠� ?�
                         </Lib.Button>
                         <Lib.Input
                             ref={inputRef}
-                            placeholder="?�커?��? ?�기�??�동?�니??
+                            placeholder="?科誘?曰? ?禹萼諢??渠�?拘�??
                         />
                     </div>
                 </div>
             ),
-            description: "?�인 ?�?�상?��? ?�힐 ??지?�된 ?�소�??�커?��? ?�동?�니??",
-            code: `// useRef ?�으�??�력�?참조 ?�성
+            description: "? ??�?? ?恆� ??鴔?� ?�諢??科誘?曰? ?渠�?拘�??",
+            code: `// useRef ?諢??麆?麆賄※ ?
 const inputRef = useRef(null);
 
-// ?�인 ?�?�상?��? ?�힐 ???�력창으�??�커???�동
+// ? ??�?? ?恆� ???麆趣諢??科誘???渠�
 <div className="flex gap-4 items-center">
     <Lib.Button
         onClick={() => {
-            app.showConfirm("?�인 ?�?�상?��? ?�히�??�력창으�??�커?��? ?�동?�니??", {
-                title: "?�커???�동",
+            app.showConfirm("? ??�?? ?恆�諰??麆趣諢??科誘?曰? ?渠�?拘�??", {
+                title: "?科誘???渠�",
                 onFocus: () => inputRef.current?.focus()
             });
         }}
     >
-        ?�커???�동 ?�시
+        ?科誘???渠� ?�
     </Lib.Button>
     <Lib.Input
         ref={inputRef}
-        placeholder="?�커?��? ?�기�??�동?�니??
+        placeholder="?科誘?曰? ?禹萼諢??渠�?拘�??
     />
 </div>`
         }
