@@ -25,10 +25,14 @@ export const ComboboxExamples = () => {
     },
     {
       component: (
-        <Lib.Combobox dataList={[ { value: 'A', text: 'A' }, { value: 'B', text: 'B', selected: true }, { value: 'C', text: 'C' } ]} />
+        <Lib.Combobox
+          dataList={[ { value: 'A', text: '사과' }, { value: 'B', text: '바나나' }, { value: 'C', text: '체리' } ]}
+          multi
+          placeholder="과일 선택"
+        />
       ),
-      description: '언바운드(dataList만) 기본값은 selected 항목',
-      code: `<Lib.Combobox dataList={[ { value: 'A', text: 'A' }, { value: 'B', text: 'B', selected: true } ]} />`
+      description: 'multi: 다중 선택 (선택 항목 라벨을 , 로 표시)',
+      code: `<Lib.Combobox dataList={[ { value: 'A', text: '사과' }, { value: 'B', text: '바나나' } ]} multi />`
     }
   ];
 

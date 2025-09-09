@@ -54,6 +54,7 @@ const Combobox = forwardRef(({
   id,
   filterable = true,
   noResultsText = '결과 없음',
+  multi = false,
   ...props
 }, ref) => {
   const isPropControlled = propValue !== undefined;
@@ -64,10 +65,11 @@ const Combobox = forwardRef(({
   const [inner, setInner] = useState(defaultValue);
   const listRef = useRef(null);
 
-  const options = useMemo(() => {
-    if (dataList && dataList.length) return toOptionsFromDataList(dataList, valueKey, textKey);
-    return toOptionsFromArray(props.items);
-  }, [dataList, valueKey, textKey, props.items]);
+  // Compute options fresh when dataList provided to reflect in-place mutation of selected flags
+  const useList = !!(dataList && dataList.length);
+  const options = useList
+    ? toOptionsFromDataList(dataList, valueKey, textKey)
+    : toOptionsFromArray([]);
 
   const normOptions = useMemo(() => options.map(o => ({
     ...o,
@@ -75,11 +77,14 @@ const Combobox = forwardRef(({
     _labelInit: normalize(getChosung(o.label)),
   })), [options]);
 
-  const selectedFromList = useMemo(() => options.find((o) => o.selected), [options]);
+  const selectedFromList = useMemo(() => options.filter((o) => o.selected), [options]);
   const value = isPropControlled
-    ? (propValue ?? '')
-    : (selectedFromList?.value ?? (isData ? (getBoundValue(dataObj, dataKey) ?? '') : (inner ?? '')));
-  const selected = options.find((o) => o.value === String(value));
+    ? (propValue ?? (multi ? [] : ''))
+    : (useList
+        ? (multi ? selectedFromList.map(o => o.value) : (selectedFromList[0]?.value ?? ''))
+        : (isData ? (getBoundValue(dataObj, dataKey) ?? (multi ? [] : '')) : (inner ?? (multi ? [] : '')))
+      );
+  const selected = multi ? selectedFromList : options.find((o) => o.value === String(value));
 
   const filtered = filterable && query
     ? normOptions.filter((o) => {
@@ -103,18 +108,33 @@ const Combobox = forwardRef(({
   }, [open]);
 
   const commit = (next, event) => {
-    // Update dataList selections
-    if (dataList?.forAll) {
-      dataList.forAll((it) => { it.selected = String(it[valueKey]) === String(next); return it; });
-    } else if (Array.isArray(dataList) && dataList.length) {
-      dataList.forEach((it) => { it.selected = String(it[valueKey]) === String(next); });
+    // next can be string (single) or array (multi)
+    let out = next;
+    if (useList) {
+      if (multi) {
+        const nextSet = new Set(Array.isArray(next) ? next.map(String) : []);
+        if (dataList?.forAll) {
+          dataList.forAll((it) => { it.selected = nextSet.has(String(it[valueKey])); return it; });
+        } else {
+          dataList.forEach((it) => { it.selected = nextSet.has(String(it[valueKey])); });
+        }
+        out = Array.from(nextSet);
+      } else {
+        if (dataList?.forAll) {
+          dataList.forAll((it) => { it.selected = String(it[valueKey]) === String(next); return it; });
+        } else {
+          dataList.forEach((it) => { it.selected = String(it[valueKey]) === String(next); });
+        }
+        out = String(next);
+      }
+    } else if (!isPropControlled && !isData) {
+      setInner(next);
     }
     // Optional EasyObj sync
-    if (isData) setBoundValue(dataObj, dataKey, next);
-    if (!isPropControlled && !selectedFromList && !isData) setInner(next);
+    if (isData) setBoundValue(dataObj, dataKey, out);
     const ctx = buildCtx({ dataKey, dataObj, source: 'user', dirty: true, valid: null });
-    const evt = event ? { ...event, target: { ...event.target, value: next } } : { target: { value: next } };
-    fireValueHandlers({ onChange, onValueChange, value: next, ctx, event: evt });
+    const evt = event ? { ...event, target: { ...event.target, value: out } } : { target: { value: out } };
+    fireValueHandlers({ onChange, onValueChange, value: out, ctx, event: evt });
   };
 
   const inputId = id || (dataKey ? `cb_${String(dataKey).replace(/[^a-zA-Z0-9_]+/g, '_')}` : undefined);
@@ -132,7 +152,13 @@ const Combobox = forwardRef(({
         disabled={disabled}
         ref={ref}
       >
-        {selected ? selected.label : (placeholder || options.find(o => o.placeholder)?.label || '선택하세요')}
+        {(() => {
+          if (multi) {
+            const labels = (selected || []).map(o => o.label);
+            return labels.length ? labels.join(', ') : (placeholder || '선택하세요');
+          }
+          return selected ? selected.label : (placeholder || options.find(o => o.placeholder)?.label || '선택하세요');
+        })()}
       </button>
 
       {open && (
@@ -161,9 +187,18 @@ const Combobox = forwardRef(({
               <li
                 key={opt.value}
                 role="option"
-                aria-selected={opt.value === String(value)}
-                className={`px-3 py-2 text-sm cursor-pointer hover:bg-blue-50 ${opt.value === String(value) ? 'bg-blue-100' : ''}`}
-                onClick={() => { commit(opt.value); setOpen(false); }}
+                aria-selected={multi ? (selected?.some?.(s => s.value === opt.value)) : (opt.value === String(value))}
+                className={`px-3 py-2 text-sm cursor-pointer hover:bg-blue-50 ${multi ? (selected?.some?.(s => s.value === opt.value) ? 'bg-blue-100' : '') : (opt.value === String(value) ? 'bg-blue-100' : '')}`}
+                onClick={() => {
+                  if (multi) {
+                    const cur = new Set((selected || []).map(s => s.value));
+                    if (cur.has(opt.value)) cur.delete(opt.value); else cur.add(opt.value);
+                    commit(Array.from(cur));
+                  } else {
+                    commit(opt.value);
+                    setOpen(false);
+                  }
+                }}
               >
                 {opt.label}
               </li>
@@ -178,4 +213,3 @@ const Combobox = forwardRef(({
 Combobox.displayName = 'Combobox';
 
 export default Combobox;
-
