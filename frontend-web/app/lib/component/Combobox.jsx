@@ -42,7 +42,22 @@ const Combobox = forwardRef(({
     ? options.filter((o) => o.label.toLowerCase().includes(query.toLowerCase()))
     : options;
 
+  const rootRef = useRef(null);
   useEffect(() => { if (!open) setQuery(''); }, [open]);
+  useEffect(() => {
+    if (!open) return;
+    const handler = (e) => {
+      if (!rootRef.current) return;
+      if (!rootRef.current.contains(e.target)) setOpen(false);
+    };
+    const esc = (e) => { if (e.key === 'Escape') setOpen(false); };
+    document.addEventListener('mousedown', handler);
+    document.addEventListener('keydown', esc);
+    return () => {
+      document.removeEventListener('mousedown', handler);
+      document.removeEventListener('keydown', esc);
+    };
+  }, [open]);
 
   const commit = (next, event) => {
     if (!isPropControlled && !isData) setInner(next);
@@ -55,7 +70,7 @@ const Combobox = forwardRef(({
   const inputId = id || (dataKey ? `cb_${String(dataKey).replace(/[^a-zA-Z0-9_]+/g, '_')}` : undefined);
 
   return (
-    <div className={`relative ${className}`.trim()} {...props}>
+    <div className={`relative ${className}`.trim()} ref={rootRef} {...props}>
       <button
         type="button"
         id={inputId}
@@ -113,4 +128,3 @@ const Combobox = forwardRef(({
 Combobox.displayName = 'Combobox';
 
 export default Combobox;
-

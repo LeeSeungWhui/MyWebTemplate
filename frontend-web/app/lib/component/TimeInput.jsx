@@ -1,7 +1,7 @@
 // TimeInput.jsx
 // Updated: 2025-09-09
 // Purpose: Simple time input with EasyObj binding
-import { forwardRef, useEffect, useState } from 'react';
+import { forwardRef, useEffect, useRef, useState } from 'react';
 import { getBoundValue, setBoundValue, buildCtx, fireValueHandlers } from '../binding';
 
 const TimeInput = forwardRef(({ 
@@ -43,31 +43,43 @@ const TimeInput = forwardRef(({
   };
 
   const value = getExternal();
-  const base = 'block w-full px-3 py-2 text-sm rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-0 bg-white border';
+  const base = 'block w-full pr-10 pl-3 py-2 text-sm rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-0 bg-white border';
   const state = 'border-gray-300 focus:ring-blue-500 focus:border-blue-500';
   const inputId = id || (dataKey ? `time_${String(dataKey).replace(/[^a-zA-Z0-9_]+/g, '_')}` : undefined);
+  const inputRef = useRef(null);
 
   return (
-    <input
-      ref={ref}
-      id={inputId}
-      type="time"
-      className={`${base} ${state} ${className}`.trim()}
-      value={value}
-      min={min}
-      max={max}
-      step={step}
-      placeholder={placeholder}
-      onChange={(e) => commit(e.target.value, e)}
-      disabled={disabled}
-      readOnly={readOnly}
-      aria-invalid={false}
-      {...props}
-    />
+    <div className={`relative ${className}`.trim()}>
+      <input
+        ref={(node) => { inputRef.current = node; if (typeof ref === 'function') ref(node); else if (ref) ref.current = node; }}
+        id={inputId}
+        type="time"
+        className={`${base} ${state}`.trim()}
+        value={value}
+        min={min}
+        max={max}
+        step={step}
+        placeholder={placeholder}
+        onChange={(e) => commit(e.target.value, e)}
+        disabled={disabled}
+        readOnly={readOnly}
+        aria-invalid={false}
+        {...props}
+      />
+      <button
+        type="button"
+        className="absolute inset-y-0 right-2 my-auto h-6 w-6 rounded hover:bg-gray-100 text-gray-500"
+        onClick={() => inputRef.current?.showPicker?.()}
+        tabIndex={-1}
+        aria-label="open time picker"
+        disabled={disabled || readOnly}
+      >
+        🕒
+      </button>
+    </div>
   );
 });
 
 TimeInput.displayName = 'TimeInput';
 
 export default TimeInput;
-
