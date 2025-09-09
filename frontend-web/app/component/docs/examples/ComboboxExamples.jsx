@@ -2,36 +2,35 @@ import * as Lib from '@/lib';
 
 export const ComboboxExamples = () => {
   const cities = [
-    { value: 'seoul', label: '서울' },
-    { value: 'busan', label: '부산' },
-    { value: 'incheon', label: '인천' },
-    { value: 'daegu', label: '대구' },
+    { value: 'seoul', text: '서울', selected: true },
+    { value: 'busan', text: '부산' },
+    { value: 'incheon', text: '인천' },
+    { value: 'daegu', text: '대구' },
   ];
-  const obj = Lib.EasyObj({ city: '' });
 
   const examples = [
     {
       component: (
         <div className="space-y-2">
-          <Lib.Combobox dataObj={obj} dataKey="city" items={cities} placeholder="도시 선택" />
-          <div className="text-xs text-gray-600">obj.city = {String(obj.city)}</div>
+          <Lib.Combobox dataList={cities} placeholder="도시 선택" />
         </div>
       ),
-      description: '기본: 바운드 + 필터 가능',
-      code: `const cities = [ { value: 'seoul', label: '서울' }, ... ];
-const obj = Lib.EasyObj({ city: '' });
+      description: 'dataList 기반 선택 + 필터/초성검색',
+      code: `const cities = [
+  { value: 'seoul', text: '서울', selected: true },
+  { value: 'busan', text: '부산' },
+];
 
-<Lib.Combobox dataObj={obj} dataKey=\"city\" items={cities} placeholder=\"도시 선택\" />`
+<Lib.Combobox dataList={cities} placeholder="도시 선택" />`
     },
     {
       component: (
-        <Lib.Combobox items={[ 'A', 'B', 'C' ]} defaultValue="B" />
+        <Lib.Combobox dataList={[ { value: 'A', text: 'A' }, { value: 'B', text: 'B', selected: true }, { value: 'C', text: 'C' } ]} />
       ),
-      description: '언바운드 + 기본값',
-      code: `<Lib.Combobox items={[ 'A', 'B', 'C' ]} defaultValue=\"B\" />`
+      description: '언바운드(dataList만) 기본값은 selected 항목',
+      code: `<Lib.Combobox dataList={[ { value: 'A', text: 'A' }, { value: 'B', text: 'B', selected: true } ]} />`
     }
   ];
 
   return examples;
 };
-
