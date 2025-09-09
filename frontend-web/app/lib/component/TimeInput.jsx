@@ -40,6 +40,7 @@ const TimeInput = forwardRef(({
   useEffect(() => { setText(isPropControlled ? (propValue ?? '') : (isData ? (getBoundValue(dataObj, dataKey) ?? '') : inner ?? '')); }, [propValue, dataObj, dataKey]);
 
   const commit = (raw, event) => {
+    setText(raw);
     if (!isPropControlled && !isData) setInner(raw);
     if (isData) setBoundValue(dataObj, dataKey, raw);
     const ctx = buildCtx({ dataKey, dataObj, source: 'user', dirty: true, valid: null });
@@ -87,6 +88,13 @@ const TimeInput = forwardRef(({
         step={step}
         placeholder={placeholder}
         onChange={(e) => setText(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') {
+            const v = e.currentTarget.value;
+            if (/^\d{2}:\d{2}$/.test(v)) commit(v, e); else setText(value);
+            setOpen(false);
+          }
+        }}
         onBlur={(e) => {
           const v = e.target.value;
           if (/^\d{2}:\d{2}$/.test(v)) commit(v, e); else setText(value);

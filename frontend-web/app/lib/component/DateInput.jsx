@@ -55,6 +55,7 @@ const DateInput = forwardRef(({
   }, [propValue, dataObj, dataKey]);
 
   const commit = (raw, event) => {
+    setText(raw);
     if (!isPropControlled && !isData) setInner(raw);
     if (isData) setBoundValue(dataObj, dataKey, raw);
     const ctx = buildCtx({ dataKey, dataObj, source: 'user', dirty: true, valid: null });
@@ -122,6 +123,14 @@ const DateInput = forwardRef(({
         max={max}
         placeholder={placeholder}
         onChange={(e) => setText(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') {
+            const dt = parseISO(e.currentTarget.value);
+            if (dt) commit(fmtISO(dt.getFullYear(), dt.getMonth() + 1, dt.getDate()), e);
+            else setText(value);
+            setOpen(false);
+          }
+        }}
         onBlur={(e) => {
           const dt = parseISO(e.target.value);
           if (dt) commit(fmtISO(dt.getFullYear(), dt.getMonth() + 1, dt.getDate()), e);
