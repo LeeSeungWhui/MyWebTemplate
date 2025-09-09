@@ -7,7 +7,7 @@ const placements = {
   right: 'left-full top-1/2 -translate-y-1/2 ml-2',
 };
 
-const Tooltip = forwardRef(({ content, placement = 'top', delay = 150, disabled = false, className = '', children }, ref) => {
+const Tooltip = forwardRef(({ content, placement = 'top', delay = 150, disabled = false, className = '', children, textDirection = 'lr' }, ref) => {
   const [open, setOpen] = useState(false);
   const id = useId();
   const timer = useRef(null);
@@ -44,6 +44,7 @@ const Tooltip = forwardRef(({ content, placement = 'top', delay = 150, disabled 
           id={id}
           role="tooltip"
           className={`pointer-events-none absolute z-20 px-2 py-1 text-xs rounded-md bg-gray-900 text-white shadow ${placements[placement] || placements.top}`}
+          style={textDirection === 'tb' ? { writingMode: 'vertical-rl', textOrientation: 'upright' } : undefined}
         >
           {content}
         </span>
@@ -55,4 +56,3 @@ const Tooltip = forwardRef(({ content, placement = 'top', delay = 150, disabled 
 Tooltip.displayName = 'Tooltip';
 
 export default Tooltip;
-

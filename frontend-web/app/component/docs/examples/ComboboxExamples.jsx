@@ -27,6 +27,8 @@ export const ComboboxExamples = () => {
       code: `const cities = [
   { value: 'seoul', text: '서울' },
   { value: 'busan', text: '부산' },
+  { value: 'incheon', text: '인천' },
+  { value: 'daegu', text: '대구' },
 ];
 
 <Lib.Combobox dataList={cities} placeholder="도시 선택" />`
@@ -52,18 +54,18 @@ export const ComboboxExamples = () => {
     {
       component: (
         <Lib.Combobox
-          dataList={[ { value: 'A', text: '사과' }, { value: 'B', text: '바나나' }, { value: 'C', text: '체리' } ]}
+          dataList={[{ value: 'A', text: '사과' }, { value: 'B', text: '바나나' }, { value: 'C', text: '체리' }]}
           multi
           placeholder="과일 선택"
         />
       ),
       description: 'multi: 다중 선택 (라벨 나열)',
-      code: `<Lib.Combobox dataList={[ { value: 'A', text: '사과' }, { value: 'B', text: '바나나' } ]} multi />`
+      code: `<Lib.Combobox dataList={[ { value: 'A', text: '사과' }, { value: 'B', text: '바나나' } ]} multi placeholder="과일 선택"/>`
     },
     {
       component: (
         <Lib.Combobox
-          dataList={[ { value: 'A', text: '사과' }, { value: 'B', text: '바나나' }, { value: 'C', text: '체리' } ]}
+          dataList={[{ value: 'A', text: '사과' }, { value: 'B', text: '바나나' }, { value: 'C', text: '체리' }]}
           multi
           multiSummary
           showSelectAll
@@ -72,7 +74,7 @@ export const ComboboxExamples = () => {
       ),
       description: 'multi + 요약 뱃지 + 전체 선택/해제',
       code: `<Lib.Combobox dataList={[ { value: 'A', text: '사과' }, { value: 'B', text: '바나나' }, { value: 'C', text: '체리' } ]}
-  multi multiSummary showSelectAll />`
+  multi multiSummary showSelectAll placeholder="과일 선택"/>`
     }
   ];
 
