@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import useSWR from 'swr'
-import { csrJSON, postWithCsrf } from '@/app/lib/runtime/Csr'
+import { csrJSON, postWithCsrf } from '@/app/lib/runtime/csr'
 import { SESSION_PATH } from './initData'
 
 export default function Client({ mode, init }) {

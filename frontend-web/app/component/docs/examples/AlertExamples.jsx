@@ -12,102 +12,101 @@ export const AlertExamples = () => {
             component: (
                 <div className="space-y-4">
                     <Lib.Button onClick={() => {
-                        app.showAlert("기본 ?�림 메시지?�니??");
+                        app.showAlert("기본 알림 메시지입니다.");
                     }}>
-                        기본 ?�림
+                        기본 알림
                     </Lib.Button>
                 </div>
             ),
-            description: "기본 ?�림",
-            code: `// useSharedStore ?�용
+            description: "기본 알림",
+            code: `// useSharedStore 사용
 const app = useSharedStore();
 
-// 기본 ?�림
-app.showAlert("기본 ?�림 메시지?�니??");`
+// 기본 알림
+app.showAlert("기본 알림 메시지입니다.");`
         },
         {
             component: (
                 <div className="flex flex-wrap gap-2">
                     <Lib.Button onClick={() => {
-                        app.showAlert("?�보 ?�림 메시지?�니??", {
-                            title: "?�보",
+                        app.showAlert("정보 알림 메시지입니다.", {
+                            title: "정보",
                             type: "info"
                         });
                     }}>
-                        ?�보 ?�림
+                        정보 알림
                     </Lib.Button>
                     <Lib.Button onClick={() => {
-                        app.showAlert("?�공 ?�림 메시지?�니??", {
-                            title: "?�공",
+                        app.showAlert("성공 알림 메시지입니다.", {
+                            title: "성공",
                             type: "success"
                         });
                     }}>
-                        ?�공 ?�림
+                        성공 알림
                     </Lib.Button>
                     <Lib.Button onClick={() => {
-                        app.showAlert("경고 ?�림 메시지?�니??", {
-                            title: "경고",
-                            type: "warning"
-                        });
+                        app.showAlert("경고 알림 메시지입니다.", {
+                        경고 알림
+                        app.showAlert("오류 알림 메시지입니다.", {
+                            title: "오류",
                     }}>
-                        경고 ?�림
+                        오류 알림
                     </Lib.Button>
-                    <Lib.Button onClick={() => {
-                        app.showAlert("?�러 ?�림 메시지?�니??", {
-                            title: "?�러",
-                            type: "error"
-                        });
-                    }}>
-                        ?�러 ?�림
-                    </Lib.Button>
-                </div>
-            ),
-            description: "?�림 ?�형",
-            code: `// ?�보 ?�림
-app.showAlert("?�보 ?�림 메시지?�니??", {
-    title: "?�보",
-    type: "info"
-});
-
-// ?�공 ?�림
-app.showAlert("?�공 ?�림 메시지?�니??", {
-    title: "?�공",
-    type: "success"
-});
-
-// 경고 ?�림
-app.showAlert("경고 ?�림 메시지?�니??", {
-    title: "경고",
-    type: "warning"
-});
-
-// ?�러 ?�림
-app.showAlert("?�러 ?�림 메시지?�니??", {
-    title: "?�러",
-    type: "error"
-});`
-        },
-        {
-            component: (
+            description: "알림 유형",
+            code: `// 정보 알림
+app.showAlert("정보 알림 메시지입니다.", {
+    title: "정보",
+    type: "info",
+// 성공 알림
+app.showAlert("성공 알림 메시지입니다.", {
+    title: "성공",
+    type: "success",
+// 경고 알림
+app.showAlert("경고 알림 메시지입니다.", {
+    type: "warning",
+// 오류 알림
+app.showAlert("오류 알림 메시지입니다.", {
+    title: "오류",
+    type: "error",
+                        app.showAlert("작업이 완료되었습니다.", {
+                            title: "알림",
+                                alert("알림이 닫혔습니다.");
+                        콜백 함수 예시
+            description: "알림 클릭 콜백",
+            code: `// 알림을 닫을 때 수행할 콜백 함수
+app.showAlert("작업이 완료되었습니다.", {
+    title: "알림",
+        alert("알림이 닫혔습니다.");
+                                app.showAlert("알림이 표시된 후 입력창으로 포커스 이동합니다.", {
+                                    title: "알림",
+                            알림 보기
+                            placeholder="포커스가 여기로 이동합니다"
+            description: "알림 후 지정된 요소로 포커스 이동",
+            code: `// useRef로 입력창 참조 생성
+// 알림 표시 후 입력창으로 포커스 이동
+            app.showAlert("알림이 표시된 후 입력창으로 포커스 이동합니다.", {
+                title: "알림",
+        알림 보기
+        placeholder="포커스가 여기로 이동합니다"
                 <div className="space-y-4">
                     <Lib.Button onClick={() => {
-                        app.showAlert("?�업???�료?�었?�니??", {
-                            title: "?�림",
+                        app.showAlert("?戩梾???勲?橃棃?惦媹??", {
+                            title: "?岆",
                             onClick: function () {
-                                alert("?�림???�혔?�니??");
+                                alert("?岆???様?惦媹??");
                             }
                         });
                     }}>
-                        콜백 ?�수 ?�시
+                        旖滊氨 ?垬 ?堨嫓
                     </Lib.Button>
                 </div>
             ),
-            description: "?�림 ?�힘 콜백",
-            code: `// ?�림???�힐 ???�행??콜백 ?�수
-app.showAlert("?�업???�료?�었?�니??", {
-    title: "?�림",
+            description: "?岆 ?灅 旖滊氨",
+            code: `// ?岆???瀽 ???ろ枆??旖滊氨 ?垬
+app.showAlert("?戩梾???勲?橃棃?惦媹??", {
+    title: "?岆",
     onClick: function() {
-        alert("?�림???�혔?�니??");
+        alert("?岆???様?惦媹??");
     }
 });`
         },
@@ -118,41 +117,41 @@ app.showAlert("?�업???�료?�었?�니??", {
                         <Lib.Button
                             ref={buttonRef}
                             onClick={() => {
-                                app.showAlert("?�림???�히�??�력창으�??�커?��? ?�동?�니??", {
-                                    title: "?�림",
+                                app.showAlert("?岆???瀳氅??呺牓彀届溂搿??护?り? ?措彊?╇媹??", {
+                                    title: "?岆",
                                     onFocus: () => inputRef.current?.focus()
                                 });
                             }}
                         >
-                            ?�림 ?�기
+                            ?岆 ?搓赴
                         </Lib.Button>
                         <Lib.Input
                             ref={inputRef}
-                            placeholder="?�커?��? ?�기�??�동?�니??
+                            placeholder="?护?り? ?赴搿??措彊?╇媹??
                         />
                     </div>
                 </div>
             ),
-            description: "?�림 ?�힘 ???�커?��? 지?�된 ?�소�??�동?�니??",
-            code: `// useRef ?�으�??�력�?참조 ?�성
+            description: "?岆 ?灅 ???护?り? 歆�?曤悳 ?旍唽搿??措彊?╇媹??",
+            code: `// useRef ?呾溂搿??呺牓彀?彀胳“ ?濎劚
 const inputRef = useRef(null);
 
-// ?�림???�힐 ???�력창으�??�커???�동
+// ?岆???瀽 ???呺牓彀届溂搿??护???措彊
 <div className="flex gap-4 items-center">
     <Lib.Button
         ref={buttonRef}
         onClick={() => {
-            app.showAlert("?�림???�히�??�력창으�??�커?��? ?�동?�니??", {
-                title: "?�림",
+            app.showAlert("?岆???瀳氅??呺牓彀届溂搿??护?り? ?措彊?╇媹??", {
+                title: "?岆",
                 onFocus: () => inputRef.current?.focus()
             });
         }}
     >
-        ?�림 ?�기
+        ?岆 ?搓赴
     </Lib.Button>
     <Lib.Input
         ref={inputRef}
-        placeholder="?�커?��? ?�기�??�동?�니??
+        placeholder="?护?り? ?赴搿??措彊?╇媹??
     />
 </div>`
         }

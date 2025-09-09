@@ -4,7 +4,7 @@ export const runtime = 'nodejs'
 
 import { redirect } from 'next/navigation'
 import SharedHydrator from '@/app/common/store/SharedHydrator'
-import { ssrJSON } from '@/app/lib/runtime/Ssr'
+import { ssrJSON } from '@/app/lib/runtime/ssr'
 
 const SESSION_PATH = '/api/v1/auth/session'
 
