@@ -68,18 +68,30 @@ const NumberInput = forwardRef(({
     commit(next);
   };
 
-  // long-press support for step buttons
-  const holdRef = useRef(null);
+  // long-press support for step buttons (no double increment)
+  const holdRef = useRef(null);       // interval
+  const holdTimerRef = useRef(null);  // delay before repeat
+  const heldStartedRef = useRef(false);
   const startHold = (delta) => {
-    changeBy(delta);
     clearInterval(holdRef.current);
-    holdRef.current = setInterval(() => changeBy(delta), 150);
+    clearTimeout(holdTimerRef.current);
+    heldStartedRef.current = false;
+    holdTimerRef.current = setTimeout(() => {
+      heldStartedRef.current = true;
+      changeBy(delta);
+      holdRef.current = setInterval(() => changeBy(delta), 120);
+    }, 300);
   };
-  const stopHold = () => { clearInterval(holdRef.current); holdRef.current = null; };
+  const stopHold = () => {
+    clearInterval(holdRef.current);
+    clearTimeout(holdTimerRef.current);
+    holdRef.current = null;
+    holdTimerRef.current = null;
+  };
 
   const value = getExternal();
 
-  const baseCls = 'block w-full px-3 py-2 text-sm rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-0 bg-white border';
+  const baseCls = 'block w-full h-10 px-3 text-sm rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-0 bg-white border';
   const stateCls = 'border-gray-300 focus:ring-blue-500 focus:border-blue-500';
 
   const inputId = id || (dataKey ? `num_${String(dataKey).replace(/[^a-zA-Z0-9_]+/g, '_')}` : undefined);
@@ -88,11 +100,11 @@ const NumberInput = forwardRef(({
     <div className={`inline-flex items-center gap-2 w-full ${className}`.trim()} {...props}>
       <button
         type="button"
-        className="h-9 w-9 flex items-center justify-center rounded-full border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+        className="h-10 w-10 flex items-center justify-center rounded-full border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 disabled:opacity-50"
         onMouseDown={() => startHold(-step)}
         onMouseUp={stopHold}
         onMouseLeave={stopHold}
-        onClick={() => changeBy(-step)}
+        onClick={(e) => { if (heldStartedRef.current) { e.preventDefault(); heldStartedRef.current = false; return; } changeBy(-step); }}
         disabled={disabled || readOnly}
         aria-label="decrement"
       >
@@ -131,11 +143,11 @@ const NumberInput = forwardRef(({
 
       <button
         type="button"
-        className="h-9 w-9 flex items-center justify-center rounded-full border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+        className="h-10 w-10 flex items-center justify-center rounded-full border border-gray-300 bg-white text-gray-700 hover:bg-gray-50 disabled:opacity-50"
         onMouseDown={() => startHold(+step)}
         onMouseUp={stopHold}
         onMouseLeave={stopHold}
-        onClick={() => changeBy(+step)}
+        onClick={(e) => { if (heldStartedRef.current) { e.preventDefault(); heldStartedRef.current = false; return; } changeBy(+step); }}
         disabled={disabled || readOnly}
         aria-label="increment"
       >
