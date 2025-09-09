@@ -143,6 +143,12 @@ const TableOfContents = () => {
         </li>
         <li>
           <a href="#badges" className="text-blue-600 hover:text-blue-800">19. 배지/태그 (Badge/Tag)</a>
+          <ul className="ml-4 mt-1 space-y-1">
+            <li><a href="#badge-variants" className="text-blue-600 hover:text-blue-800">- 색상 Variants</a></li>
+            <li><a href="#badge-outline-pill" className="text-blue-600 hover:text-blue-800">- Outline / Pill</a></li>
+            <li><a href="#badge-sizes" className="text-blue-600 hover:text-blue-800">- 크기</a></li>
+            <li><a href="#badge-icons" className="text-blue-600 hover:text-blue-800">- 아이콘 포함</a></li>
+          </ul>
         </li>
       </ul>
     </section>
@@ -150,4 +156,3 @@ const TableOfContents = () => {
 };
 
 export default TableOfContents;
-
