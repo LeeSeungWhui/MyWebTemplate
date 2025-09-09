@@ -4,6 +4,7 @@
 // 설명: 필터 및 마스크가 적용된 입력 컴포넌트
 import { useState, useRef, forwardRef } from 'react';
 import Icon from './Icon';
+import { getBoundValue, setBoundValue, buildCtx, fireValueHandlers } from '../binding';
 
 /**
  * Input - 필터/마스크 지원 입력 컴포넌트
@@ -114,7 +115,7 @@ const Input = forwardRef(({
             }
         }
         if (isControlled) {
-            dataObj[dataKey] = value;
+            setBoundValue(dataObj, dataKey, value);
         } else {
             setInnerValue(value);
         }
@@ -249,7 +250,8 @@ const Input = forwardRef(({
         }
         const committed = commitValue(raw);
         const event = { ...e, target: { ...e.target, value: committed } };
-        onChange && onChange(event);
+        const ctx = buildCtx({ dataKey, dataObj, source: 'user', valid: null, dirty: true });
+        fireValueHandlers({ onChange, onValueChange: props.onValueChange, value: committed, ctx, event });
     };
 
     const inputClass = `
@@ -293,12 +295,16 @@ const Input = forwardRef(({
                     composingRef.current = false;
                     setIsComposing(false);
                     const committed = commitValue(e.target.value);
-                    onChange && onChange({ ...e, target: { ...e.target, value: committed } });
+                    const evt = { ...e, target: { ...e.target, value: committed } };
+                    const ctx = buildCtx({ dataKey, dataObj, source: 'user', valid: null, dirty: true });
+                    fireValueHandlers({ onChange, onValueChange: props.onValueChange, value: committed, ctx, event: evt });
                 }}
                 onBlur={(e) => {
                     // Ensure final sanitize on blur in case some IME didn't fire compositionend properly
                     const committed = commitValue(e.target.value);
-                    onChange && onChange({ ...e, target: { ...e.target, value: committed } });
+                    const evt = { ...e, target: { ...e.target, value: committed } };
+                    const ctx = buildCtx({ dataKey, dataObj, source: 'user', valid: null, dirty: true });
+                    fireValueHandlers({ onChange, onValueChange: props.onValueChange, value: committed, ctx, event: evt });
                 }}
                 className={`
                     ${inputClass}
@@ -306,6 +312,7 @@ const Input = forwardRef(({
                     ${suffix ? 'pr-10' : ''}
                     ${togglePassword ? 'pr-10' : ''}
                 `}
+                aria-invalid={!!error}
                 {...props}
             />
             {suffix && (

@@ -12,6 +12,10 @@ export { default as Alert } from './component/Alert';
 export { default as Confirm } from './component/Confirm';
 export { default as Modal } from './component/Modal';
 export { default as Tab } from './component/Tab';
+export { default as Switch } from './component/Switch';
+export { default as Textarea } from './component/Textarea';
+export { default as Card } from './component/Card';
+export { default as Badge } from './component/Badge';
 // Datasets
 export { default as EasyObj } from './dataset/EasyObj';
 export { default as EasyList } from './dataset/EasyList';

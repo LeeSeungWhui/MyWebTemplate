@@ -17,6 +17,10 @@ import ConfirmDocs from './docs/components/ConfirmDocs'
 import ToastDocs from './docs/components/ToastDocs'
 import ModalDocs from './docs/components/ModalDocs'
 import TabDocs from './docs/components/TabDocs'
+import SwitchDocs from './docs/components/SwitchDocs'
+import TextareaDocs from './docs/components/TextareaDocs'
+import CardDocs from './docs/components/CardDocs'
+import BadgeDocs from './docs/components/BadgeDocs'
 
 export default function ComponentsPage() {
   return (
@@ -46,6 +50,10 @@ export default function ComponentsPage() {
           <ToastDocs />
           <ModalDocs />
           <TabDocs />
+          <SwitchDocs />
+          <TextareaDocs />
+          <CardDocs />
+          <BadgeDocs />
         </div>
       </div>
 
@@ -53,4 +61,3 @@ export default function ComponentsPage() {
     </div>
   )
 }
-

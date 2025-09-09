@@ -1,5 +1,6 @@
 import { useState, useEffect, forwardRef } from 'react';
 import styles from './Checkbox.module.css';
+import { getBoundValue, setBoundValue, buildCtx, fireValueHandlers } from '../../binding';
 
 const Checkbox = forwardRef(({
     label,
@@ -22,14 +23,14 @@ const Checkbox = forwardRef(({
 
     const [internalChecked, setInternalChecked] = useState(() => {
         if (dataObj && dataKeyName) {
-            return [true, 'Y', 'y', '1', 1].includes(dataObj[dataKeyName]);
+            return [true, 'Y', 'y', '1', 1].includes(getBoundValue(dataObj, dataKeyName));
         }
         return false;
     });
 
     useEffect(() => {
         if (isDataObjControlled) {
-            const value = dataObj[dataKeyName];
+            const value = getBoundValue(dataObj, dataKeyName);
             setInternalChecked([true, 'Y', 'y', '1', 1].includes(value));
         }
     }, [isDataObjControlled, dataObj, dataKeyName]);
@@ -43,15 +44,16 @@ const Checkbox = forwardRef(({
         }
 
         if (isDataObjControlled) {
-            dataObj[dataKeyName] = newChecked;
+            setBoundValue(dataObj, dataKeyName, newChecked);
         }
 
-        onChange?.(e);
+        const ctx = buildCtx({ dataKey: dataKeyName, dataObj, source: 'user', dirty: true, valid: null });
+        fireValueHandlers({ onChange, onValueChange: props.onValueChange, value: newChecked, ctx, event: e });
     };
 
     const getCheckedState = () => {
         if (isControlled) return propChecked;
-        if (isDataObjControlled) return [true, 'Y', 'y', '1', 1].includes(dataObj[dataKeyName]);
+        if (isDataObjControlled) return [true, 'Y', 'y', '1', 1].includes(getBoundValue(dataObj, dataKeyName));
         return internalChecked;
     };
 
@@ -76,6 +78,9 @@ const Checkbox = forwardRef(({
                 onChange={handleChange}
                 className={styles.checkbox}
                 style={colorStyle}
+                role="checkbox"
+                aria-checked={getCheckedState()}
+                aria-disabled={disabled}
                 {...props}
             />
             {label && <span className={styles.label}>{label}</span>}

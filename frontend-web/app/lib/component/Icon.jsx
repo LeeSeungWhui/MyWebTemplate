@@ -24,6 +24,8 @@ const Icon = forwardRef(({
     size = "1em",
     className = "",
     color,
+    ariaLabel,
+    decorative = true,
     ...props
 }, ref) => {
     // icon 형식: "md:Home" 또는 "MdHome" 형식 지원
@@ -43,12 +45,17 @@ const Icon = forwardRef(({
         return null;
     }
 
+    const a11y = decorative && !ariaLabel
+        ? { 'aria-hidden': true }
+        : { role: 'img', 'aria-label': ariaLabel };
+
     return (
         <IconComponent
             ref={ref}
             size={size}
             className={className}
             color={color}
+            {...a11y}
             {...props}
         />
     );

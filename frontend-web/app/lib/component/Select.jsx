@@ -1,4 +1,5 @@
 import { useEffect, useState, forwardRef } from 'react';
+import { setBoundValue, buildCtx, fireValueHandlers } from '../binding';
 
 const Select = forwardRef(({
     dataList = [],
@@ -36,10 +37,12 @@ const Select = forwardRef(({
             });
         }
 
-        if (onChange) {
-            const modifiedEvent = { ...e, target: { ...e.target, text: selectedText, value: selectedValue } };
-            onChange(modifiedEvent);
+        if (props.dataObj && props.dataKey) {
+            setBoundValue(props.dataObj, props.dataKey, selectedValue);
         }
+        const modifiedEvent = { ...e, target: { ...e.target, text: selectedText, value: selectedValue } };
+        const ctx = buildCtx({ dataKey: props.dataKey, dataObj: props.dataObj, source: 'user', valid: null, dirty: true });
+        fireValueHandlers({ onChange, onValueChange: props.onValueChange, value: selectedValue, ctx, event: modifiedEvent });
     };
 
     const baseStyle = "block w-full px-3 py-2 text-sm rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-0 appearance-none bg-white";
@@ -77,6 +80,7 @@ const Select = forwardRef(({
                 onChange={handleChange}
                 disabled={disabled}
                 className={selectClass}
+                aria-invalid={!!error}
                 {...props}
             >
                 {dataList.map((item, index) => (
