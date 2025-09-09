@@ -1,10 +1,10 @@
 // Combobox.jsx
 // Updated: 2025-09-09
-// Purpose: Simple filterable combobox with EasyList(dataList) selection model
+// Purpose: Filterable combobox with EasyList(dataList) selection model, multi-select, 초성검색, select-all
 import { forwardRef, useEffect, useMemo, useRef, useState } from 'react';
 import { getBoundValue, setBoundValue, buildCtx, fireValueHandlers } from '../binding';
 
-// Hangul initial-consonant (초성) extraction for fuzzy search (use unicode escapes for stability)
+// Hangul initial-consonant (초성) extraction
 const CHO = ['\u3131','\u3132','\u3134','\u3137','\u3138','\u3139','\u3141','\u3142','\u3143','\u3145','\u3146','\u3147','\u3148','\u3149','\u314A','\u314B','\u314C','\u314D','\u314E'];
 const H_BASE = 0xAC00, H_LAST = 0xD7A3;
 const getChosung = (str) => {
@@ -15,9 +15,7 @@ const getChosung = (str) => {
     if (code >= H_BASE && code <= H_LAST) {
       const idx = Math.floor((code - H_BASE) / 588);
       out += CHO[idx] || ch;
-    } else {
-      out += ch;
-    }
+    } else out += ch;
   }
   return out;
 };
@@ -32,18 +30,13 @@ const toOptionsFromDataList = (list, valueKey, textKey) => (list || []).map((it)
   placeholder: !!it?.placeholder,
 }));
 
-const toOptionsFromArray = (items) => (items || []).map((it) =>
-  typeof it === 'string' || typeof it === 'number'
-    ? { value: String(it), label: String(it), selected: false, placeholder: false }
-    : { value: String(it.value), label: String(it.label ?? it.value), selected: !!it.selected, placeholder: !!it.placeholder }
-);
-
 const Combobox = forwardRef(({ 
   dataList = [],
   valueKey = 'value',
   textKey = 'text',
   value: propValue,
   defaultValue = '',
+  // Optional EasyObj sync (convenience)
   dataObj,
   dataKey,
   onChange,
@@ -55,6 +48,11 @@ const Combobox = forwardRef(({
   filterable = true,
   noResultsText = '결과 없음',
   multi = false,
+  multiSummary = false,
+  summaryText = '{count}개 선택',
+  showSelectAll = false,
+  selectAllText = '전체 선택',
+  clearAllText = '전체 해제',
   ...props
 }, ref) => {
   const isPropControlled = propValue !== undefined;
@@ -64,27 +62,20 @@ const Combobox = forwardRef(({
   const [query, setQuery] = useState('');
   const [inner, setInner] = useState(defaultValue);
   const listRef = useRef(null);
+  const rootRef = useRef(null);
 
-  // Compute options fresh when dataList provided to reflect in-place mutation of selected flags
-  const useList = !!(dataList && dataList.length);
-  const options = useList
-    ? toOptionsFromDataList(dataList, valueKey, textKey)
-    : toOptionsFromArray([]);
-
+  const options = toOptionsFromDataList(dataList, valueKey, textKey);
   const normOptions = useMemo(() => options.map(o => ({
     ...o,
     _labelLower: normalize(o.label),
     _labelInit: normalize(getChosung(o.label)),
-  })), [options]);
+  })), [dataList, valueKey, textKey]);
 
-  const selectedFromList = useMemo(() => options.filter((o) => o.selected), [options]);
+  const selectedFromList = options.filter(o => o.selected);
   const value = isPropControlled
     ? (propValue ?? (multi ? [] : ''))
-    : (useList
-        ? (multi ? selectedFromList.map(o => o.value) : (selectedFromList[0]?.value ?? ''))
-        : (isData ? (getBoundValue(dataObj, dataKey) ?? (multi ? [] : '')) : (inner ?? (multi ? [] : '')))
-      );
-  const selected = multi ? selectedFromList : options.find((o) => o.value === String(value));
+    : (multi ? selectedFromList.map(o => o.value) : (selectedFromList[0]?.value ?? (isData ? (getBoundValue(dataObj, dataKey) ?? '') : (inner ?? ''))));
+  const selected = multi ? selectedFromList : options.find(o => o.value === String(value));
 
   const filtered = filterable && query
     ? normOptions.filter((o) => {
@@ -96,7 +87,9 @@ const Combobox = forwardRef(({
       })
     : normOptions;
 
-  const rootRef = useRef(null);
+  const selectableOptions = options.filter(o => !o.placeholder);
+  const allSelected = multi && selectableOptions.length > 0 && selectedFromList.length >= selectableOptions.length;
+
   useEffect(() => { if (!open) setQuery(''); }, [open]);
   useEffect(() => {
     if (!open) return;
@@ -108,29 +101,18 @@ const Combobox = forwardRef(({
   }, [open]);
 
   const commit = (next, event) => {
-    // next can be string (single) or array (multi)
     let out = next;
-    if (useList) {
-      if (multi) {
-        const nextSet = new Set(Array.isArray(next) ? next.map(String) : []);
-        if (dataList?.forAll) {
-          dataList.forAll((it) => { it.selected = nextSet.has(String(it[valueKey])); return it; });
-        } else {
-          dataList.forEach((it) => { it.selected = nextSet.has(String(it[valueKey])); });
-        }
-        out = Array.from(nextSet);
-      } else {
-        if (dataList?.forAll) {
-          dataList.forAll((it) => { it.selected = String(it[valueKey]) === String(next); return it; });
-        } else {
-          dataList.forEach((it) => { it.selected = String(it[valueKey]) === String(next); });
-        }
-        out = String(next);
-      }
-    } else if (!isPropControlled && !isData) {
-      setInner(next);
+    if (multi) {
+      const nextSet = new Set(Array.isArray(next) ? next.map(String) : []);
+      if (dataList?.forAll) dataList.forAll((it) => { it.selected = nextSet.has(String(it[valueKey])); return it; });
+      else dataList.forEach((it) => { it.selected = nextSet.has(String(it[valueKey])); });
+      out = Array.from(nextSet);
+    } else {
+      if (dataList?.forAll) dataList.forAll((it) => { it.selected = String(it[valueKey]) === String(next); return it; });
+      else dataList.forEach((it) => { it.selected = String(it[valueKey]) === String(next); });
+      out = String(next);
     }
-    // Optional EasyObj sync
+    if (!isPropControlled && !isData && !multi) setInner(out);
     if (isData) setBoundValue(dataObj, dataKey, out);
     const ctx = buildCtx({ dataKey, dataObj, source: 'user', dirty: true, valid: null });
     const evt = event ? { ...event, target: { ...event.target, value: out } } : { target: { value: out } };
@@ -154,8 +136,14 @@ const Combobox = forwardRef(({
       >
         {(() => {
           if (multi) {
+            const count = (selected || []).length;
+            if (count === 0) return (placeholder || '선택하세요');
+            if (multiSummary) {
+              const text = summaryText.replace('{count}', String(count));
+              return <span className="inline-flex items-center rounded-full bg-blue-50 text-blue-700 text-xs font-medium px-2 py-0.5">{text}</span>;
+            }
             const labels = (selected || []).map(o => o.label);
-            return labels.length ? labels.join(', ') : (placeholder || '선택하세요');
+            return labels.join(', ');
           }
           return selected ? selected.label : (placeholder || options.find(o => o.placeholder)?.label || '선택하세요');
         })()}
@@ -163,6 +151,20 @@ const Combobox = forwardRef(({
 
       {open && (
         <div className="absolute z-10 mt-1 w-full rounded-md border border-gray-200 bg-white shadow-lg">
+          {(multi && showSelectAll) && (
+            <div className="px-3 py-2 flex items-center justify-between text-sm border-b border-gray-200">
+              <span className="text-gray-700">{allSelected ? clearAllText : selectAllText}</span>
+              <button
+                type="button"
+                className="px-2 py-0.5 text-xs rounded border border-gray-300 hover:bg-gray-50"
+                onClick={() => {
+                  if (allSelected) commit([]); else commit(selectableOptions.map(o => o.value));
+                }}
+              >
+                {allSelected ? '해제' : '전체'}
+              </button>
+            </div>
+          )}
           {filterable && (
             <div className="p-2 border-b border-gray-200">
               <input
@@ -213,3 +215,4 @@ const Combobox = forwardRef(({
 Combobox.displayName = 'Combobox';
 
 export default Combobox;
+
