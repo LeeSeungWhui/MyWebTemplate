@@ -24,18 +24,18 @@ links: [CU-WEB-001, CU-WEB-002, CU-WEB-004, CU-WEB-005, CU-WEB-006]
 
 ### Interface
 - 공통 프로퍼티 규약(필수 중심)
-  - `model?`: EasyObj 또는 EasyList
-  - `path?`: `foo.bar` 형태의 필드 경로(EasyObj); EasyList는 selection/sort/page 등 규약 사용
+  - `dataObj?`: EasyObj 또는 EasyList
+  - `dataKey?`: `foo.bar` 형태의 필드 키(EasyObj); EasyList는 selection/sort/page 등 규약 사용
   - `value` / `defaultValue` / `onChange(nextValue, ctx)`
   - `status`: `idle|loading|error|success`
   - `disabled, readOnly, required, invalid, hint, errorMessage, aria-*`
 - 바운드 vs 컨트롤드 모드
-  - 바운드: `model + path` 제공 → `model.get(path)`/`model.set(path, v)`로 갱신(+`onChange` 훅)
+  - 바운드: `dataObj + dataKey` 제공 → `dataObj.get(dataKey)`/`dataObj.set(dataKey, v)`로 갱신(+`onChange` 훅)
   - 컨트롤드: `value + onChange`만으로 동작(모델 미사용)
 - EasyList 경량 리스트 규약
   - 입력: `items, columns(minimal), emptyMessage, isLoading, errorCode, requestId`
   - 제어: EasyList 모델 사용 시 `selection, sort, page, pageSize` 바인딩
-  - 이벤트 컨텍스트 `ctx`(최소): `{ path?, modelType:'obj'|'list'|null, dirty:boolean, valid:boolean|null, source:'user'|'program' }`
+  - 이벤트 컨텍스트 `ctx`(최소): `{ dataKey?, modelType:'obj'|'list'|null, dirty:boolean, valid:boolean|null, source:'user'|'program' }`
 
 ### Data & Rules
 - 검증/오류 반영: 길이/형식/필수 등 로컬 검증 실패 시 `invalid=true + errorMessage`, 서버 검증 결과(`VALID_422_*`) 매핑 가능
@@ -52,7 +52,7 @@ links: [CU-WEB-001, CU-WEB-002, CU-WEB-004, CU-WEB-005, CU-WEB-006]
 - 접근성: WCAG 2.2 AA 주요 항목 만족(레이블, 콘트라스트, 키보드 내비)
 
 ### Acceptance Criteria
-- AC-1: `model+path` 제공 시 표시/변경이 EasyObj에 반영되고 `onChange`가 호출된다.
+- AC-1: `dataObj+dataKey` 제공 시 표시/변경이 EasyObj에 반영되고 `onChange`가 호출된다.
 - AC-2: 컨트롤드 모드에서도 동일 UX로 동작(모델 의존 없음).
 - AC-3: 에러/로딩/빈상태가 컴포넌트 뷰·ARIA 패턴으로 일관되게 표기된다.
 - AC-4: Dashboard(002)에서 카드/리스트/필터를 컴포넌트만으로 조립 가능하며 SSR/CSR 전환에도 깜빡임 최소.
@@ -61,7 +61,7 @@ links: [CU-WEB-001, CU-WEB-002, CU-WEB-004, CU-WEB-005, CU-WEB-006]
 
 ### Tasks
 - T1 카탈로그 정리(컴포넌트 목록/Props 표, 상태 프리셋: loading/error/empty)
-- T2 바인딩 어댑터: `model+path`/컨트롤드 겸용 규약 구현, 이벤트 `ctx` 스펙 문서화
+- T2 바인딩 어댑터: `dataObj+dataKey`/컨트롤드 겸용 규약 구현, 이벤트 `ctx` 스펙 문서화
 - T3 입력 컴포넌트: Input/Password/Select/Checkbox/RadioGroup/Switch/Date/Number/Textarea
 - T4 표시/피드백: Card/Stat/Badge/Tag/List(경량)/Pagination(경량)/Tabs/Skeleton/Empty/Alert/Toast/Modal
 - T5 접근성: 레이블/이름 연결, 포커스 트랩, 라이브리전 규칙 정의
