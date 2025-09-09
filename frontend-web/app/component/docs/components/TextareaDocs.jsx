@@ -1,14 +1,27 @@
 import DocSection from '../shared/DocSection';
-import TextareaExamples from '../examples/TextareaExamples';
+import CodeBlock from '../shared/CodeBlock';
+import { TextareaExamples } from '../examples/TextareaExamples';
 
-const TextareaDocs = () => (
-  <section id="textareas" className="space-y-4">
-    <DocSection title="17. 텍스트영역 (Textarea)" anchor="textareas">
-      <p className="text-gray-700">바운드/컨트롤드 지원, 줄바꿈 보존, aria-invalid 적용.</p>
-      <TextareaExamples />
+const TextareaDocs = () => {
+  const examples = TextareaExamples();
+  return (
+    <DocSection
+      id="textareas"
+      title="17. 텍스트영역 (Textarea)"
+      description={<p>바운드/컨트롤드 지원, 줄바꿈 보존, aria-invalid 사용.</p>}
+    >
+      <div className="grid grid-cols-1 gap-8">
+        {examples.map((ex, i) => (
+          <div key={i}>
+            {ex.component}
+            <div className="mt-2 text-sm text-gray-600">{ex.description}</div>
+            <CodeBlock code={ex.code} />
+          </div>
+        ))}
+      </div>
     </DocSection>
-  </section>
-);
+  );
+};
 
 export default TextareaDocs;
 

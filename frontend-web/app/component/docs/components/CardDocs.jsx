@@ -1,14 +1,26 @@
 import DocSection from '../shared/DocSection';
-import CardExamples from '../examples/CardExamples';
+import CodeBlock from '../shared/CodeBlock';
+import { CardExamples } from '../examples/CardExamples';
 
-const CardDocs = () => (
-  <section id="cards" className="space-y-4">
-    <DocSection title="18. 카드 (Card)" anchor="cards">
-      <p className="text-gray-700">헤더/본문/푸터 구성 컴포넌트. SSR/CSR 모두 경량.</p>
-      <CardExamples />
+const CardDocs = () => {
+  const examples = CardExamples();
+  return (
+    <DocSection
+      id="cards"
+      title="18. 카드 (Card)"
+      description={<p>헤더/본문/푸터 구성 컴포넌트. SSR/CSR 모두 경량.</p>}
+    >
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+        {examples.map((ex, i) => (
+          <div key={i}>
+            {ex.component}
+            <div className="mt-2 text-sm text-gray-600">{ex.description}</div>
+            <CodeBlock code={ex.code} />
+          </div>
+        ))}
+      </div>
     </DocSection>
-  </section>
-);
+  );
+};
 
 export default CardDocs;
-
