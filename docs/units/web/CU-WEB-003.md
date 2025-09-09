@@ -8,75 +8,79 @@ links: [CU-WEB-001, CU-WEB-002, CU-WEB-004, CU-WEB-005, CU-WEB-006]
 ---
 
 ### Purpose
-- ?�수 UI 컴포?�트 ?�을 ?�공?�고, EasyObj / EasyList 기반???�태 바인??규약???�의?�다.
-- SSR/CSR ?�환, ?�러/로딩 ?�시까�? ?��? UX�?보장?�다.
+- 필수 UI 컴포넌트 셋을 제공하고, EasyObj / EasyList 기반의 상태 바인딩 규약을 정의한다.
+- SSR/CSR 전환, 에러/로딩 표시까지 일관 UX를 보장한다.
 
 ### Scope
-- ?�함
-  - ?�력: Input, Password, Textarea, Select, Combobox, Checkbox, RadioGroup, Switch, Date/Time(간단), Number
-  - ?�드�? Toast, Alert, Tooltip, Modal/Drawer, Loading, Skeleton, Empty
-  - ?�시/?�이?�웃: Card, Stat, Badge/Tag, List/Table(경량), Pagination(경량), Tabs
-  - 바인???�댑?? EasyObj/EasyList ??컴포?�트 ?�로?�티 규약
-  - ?�태 ?�리?? `loading/empty/error/disabled/readonly/required`
-  - ?�마/?�큰: Tailwind v4 ?�자???�큰(기본)
-- ?�외
-  - 고급 그리??컬럼 리사?�즈/그룹??, 리치 ?�디??차기)
+- 포함
+  - 입력: Input, Password, Textarea, Select, Combobox, Checkbox, RadioGroup, Switch, Date/Time(간단), Number
+  - 피드백: Toast, Alert, Tooltip, Modal/Drawer, Loading, Skeleton, Empty
+  - 표시/레이아웃: Card, Stat, Badge/Tag, List/Table(경량), Pagination(경량), Tabs
+  - 바인딩 어댑터: EasyObj/EasyList ↔ 컴포넌트 프로퍼티 규약
+  - 상태 프리셋: `loading/empty/error/disabled/readonly/required`
+  - 테마/토큰: Tailwind v4 디자인 토큰(기본)
+- 제외
+  - 고급 그리드(컬럼 리사이즈/그룹핑), 리치 에디터(차기)
 
 ### Interface
-- 공통 ?�로?�티 규약(?�수 중심)
-  - `dataObj?`: EasyObj ?�는 EasyList
-  - `dataKey?`: `foo.bar` ?�태???�드 ??EasyObj); EasyList??selection/sort/page ??규약 ?�용
+- 공통 프로퍼티 규약(필수 중심)
+  - `dataObj?`: EasyObj 또는 EasyList
+  - `dataKey?`: `foo.bar` 형태의 필드 키(EasyObj); EasyList는 selection/sort/page 등 규약 사용
   - `value` / `defaultValue` / `onChange(nextValue, ctx)`
   - `status`: `idle|loading|error|success`
   - `disabled, readOnly, required, invalid, hint, errorMessage, aria-*`
-- 바운??vs 컨트롤드 모드
-  - 바운?? `dataObj + dataKey` ?�공 ??`dataObj.get(dataKey)`/`dataObj.set(dataKey, v)`�?갱신(+`onChange` ??
-  - 컨트롤드: `value + onChange`만으�??�작(모델 미사??
-- EasyList 경량 리스??규약
-  - ?�력: `items, columns(minimal), emptyMessage, isLoading, errorCode, requestId`
-  - ?�어: EasyList 모델 ?�용 ??`selection, sort, page, pageSize` 바인??
-  - ?�벤??컨텍?�트 `ctx`(최소): `{ dataKey?, modelType:'obj'|'list'|null, dirty:boolean, valid:boolean|null, source:'user'|'program' }`
+- 바운드 vs 컨트롤드 모드
+  - 바운드: `dataObj + dataKey` 제공 → `dataObj.get(dataKey)`/`dataObj.set(dataKey, v)`로 갱신(+`onChange` 훅)
+  - 컨트롤드: `value + onChange`만으로 동작(모델 미사용)
+- EasyList 경량 리스트 규약
+  - 입력: `items, columns(minimal), emptyMessage, isLoading, errorCode, requestId`
+  - 제어: EasyList 모델 사용 시 `selection, sort, page, pageSize` 바인딩
+  - 이벤트 컨텍스트 `ctx`(최소): `{ dataKey?, modelType:'obj'|'list'|null, dirty:boolean, valid:boolean|null, source:'user'|'program' }`
 
 ### Data & Rules
-- 검�??�류 반영: 길이/?�식/?�수 ??로컬 검�??�패 ??`invalid=true + errorMessage`, ?�버 검�?결과(`VALID_422_*`) 매핑 가??
-- ?�러 규격: `{ status:false, code, message, requestId }` ?�신 ??UI ?�러 ?�태 반영
-- ?�증/권한: `AUTH_*` ?�러??가??규칙�??�동(CU-WEB-004)
-- 기본 UX: Alert/Toast + ?�태 ?�리???�공
-- ?�태 ?�선?�위: `disabled > loading > error > success > idle`
-- ?�근?? ?�이�??�름 ?�결(for/id, `aria-describedby`), ?�커???�랩(Modal), ?�이브리??규칙
-- ?�능: SSR?�서 초기 ?�이??최소???�켈?�톤 ?�선), CSR ?�속 ?�칭 권장
+- 검증/오류 반영: 길이/형식/필수 등 로컬 검증 실패 시 `invalid=true + errorMessage`, 서버 검증 결과(`VALID_422_*`) 매핑 가능
+- 에러 규격: `{ status:false, code, message, requestId }` 수신 시 UI 에러 상태 반영
+- 인증/권한: `AUTH_*` 에러는 가드 규칙과 연동(CU-WEB-004)
+- 기본 UX: Alert/Toast + 상태 프리셋 제공
+- 상태 우선순위: `disabled > loading > error > success > idle`
+- 접근성: 레이블/이름 연결(for/id, `aria-describedby`), 포커스 트랩(Modal), 라이브리전 규칙
+- 성능: SSR에서 초기 데이터 최소화(스켈레톤 우선), CSR 후속 패칭 권장
 
 ### NFR & A11y
-- ?�능: ?�심 컴포?�트 ?�더 비용 < 2ms(로컬), 초기 LCP < 2.5s 목표 기여
-- ?�정?? 바운??컨트롤드 ?�용 ??경고 로그 �?컨트롤드 모드�??�백
-- ?�근?? WCAG 2.2 AA 주요 ??�� 만족(?�이�? 콘트?�스?? ?�보???�비)
+- 성능: 핵심 컴포넌트 렌더 비용 < 2ms(로컬), 초기 LCP < 2.5s 목표 기여
+- 안정성: 바운드/컨트롤드 혼용 시 경고 로그 및 컨트롤드 모드로 폴백
+- 접근성: WCAG 2.2 AA 주요 항목 만족(레이블, 콘트라스트, 키보드 내비)
 
 ### Acceptance Criteria
-- AC-1: `dataObj+dataKey` ?�공 ???�시/변경이 EasyObj??반영?�고 `onChange`가 ?�출?�다.
-- AC-2: 컨트롤드 모드?�서???�일 UX�??�작(모델 ?�존 ?�음).
-- AC-3: ?�러/로딩/빈상?��? 컴포?�트 뷰·ARIA ?�턴?�로 ?��??�게 ?�기?�다.
-- AC-4: Dashboard(002)?�서 카드/리스???�터�?컴포?�트만으�?조립 가?�하�?SSR/CSR ?�환?�도 깜빡??최소.
-- AC-5: Storybook?�서 모든 컴포?�트가 Controls/A11y 체크 ?�과, ?�크/?�이??모드 ?�작.
-- AC-6: 로그???�이지(001)?�서 Form 컴포?�트 교체만으�??�작(추�? 로직 불필??.
+- AC-1: `dataObj+dataKey` 제공 시 표시/변경이 EasyObj에 반영되고 `onChange`가 호출된다.
+- AC-2: 컨트롤드 모드에서도 동일 UX로 동작(모델 의존 없음).
+- AC-3: 에러/로딩/빈상태가 컴포넌트 뷰·ARIA 패턴으로 일관되게 표기된다.
+- AC-4: Dashboard(002)에서 카드/리스트/필터를 컴포넌트만으로 조립 가능하며 SSR/CSR 전환에도 깜빡임 최소.
+- AC-5: Storybook에서 모든 컴포넌트가 Controls/A11y 체크 통과, 다크/라이트 모드 동작.
+- AC-6: 로그인 페이지(001)에서 Form 컴포넌트 교체만으로 동작(추가 로직 불필요).
+- AC-7: 각 컴포넌트는 `frontend-web/app/component/docs/components/*`에 기존 양식(목차, 예시, 코드 스니펫)으로 문서가 생성된다.
 
 ### Tasks
-- T1 카탈로그 ?�리(컴포?�트 목록/Props ?? ?�태 ?�리?? loading/error/empty)
-- T2 바인???�댑?? `dataObj+dataKey`/컨트롤드 겸용 규약 구현, ?�벤??`ctx` ?�펙 문서??
-- T3 ?�력 컴포?�트: Input/Password/Select/Checkbox/RadioGroup/Switch/Date/Number/Textarea
-- T4 ?�시/?�드�? Card/Stat/Badge/Tag/List(경량)/Pagination(경량)/Tabs/Skeleton/Empty/Alert/Toast/Modal
-- T5 ?�근?? ?�이�??�름 ?�결, ?�커???�랩, ?�이브리??규칙 ?�의
-- T6 ?�러/?�태 매핑: `AUTH_*`, `VALID_422_*`, `HD_*` ??Toast/Alert ?�턴 ?�의
-- T7 ?�토리북: Controls/A11y, ?�크모드, ?�플 ?�이??갱신
-- T8 ?�스?? 바운??컨트롤드 ?�등?? ?�러/로딩 ?�시, EasyList ?�렬/?�택 ?�작
+- T1 카탈로그 정리(컴포넌트 목록/Props 표, 상태 프리셋: loading/error/empty)
+- T2 바인딩 어댑터: `dataObj+dataKey`/컨트롤드 겸용 규약 구현, 이벤트 `ctx` 스펙 문서화
+- T3 입력 컴포넌트: Input/Password/Select/Checkbox/RadioGroup/Switch/Date/Number/Textarea
+- T4 표시/피드백: Card/Stat/Badge/Tag/List(경량)/Pagination(경량)/Tabs/Skeleton/Empty/Alert/Toast/Modal
+- T5 접근성: 레이블/이름 연결, 포커스 트랩, 라이브리전 규칙 정의
+- T6 에러/상태 매핑: `AUTH_*`, `VALID_422_*`, `HD_*` → Toast/Alert 패턴 정의
+- T7 스토리북: Controls/A11y, 다크모드, 샘플 데이터 갱신
+- T8 테스트: 바운드/컨트롤드 동등성, 에러/로딩 표시, EasyList 정렬/선택 동작
+- T9 문서: `frontend-web/app/component/docs/components/*`에 기존 UI 컴포넌트 문서 양식(목차, 예시, 코드 스니펫) 적용하여 작성
 
 ### Notes
-- 기술: JavaScript Only, Next 15(App Router), 기본 nodejs ?��???쿠키/?�션 ?�근)
-- ?�계: 001(로그????교체), 002(?�?�보??조립), 004/008(가??리다?�렉??, 005(API ?�라 규약)
-- ?��??? Tailwind v4 ?�큰 ?�용, 컴포?�트 ?��??��? ?�큰 참조(?�드코딩 지??
+- 기술: JavaScript Only, Next 15(App Router), 기본 nodejs 런타임(쿠키/세션 접근)
+- 연계: 001(로그인 폼 교체), 002(대시보드 조립), 004/008(가드/리다이렉트), 005(API 클라 규약)
+- 스타일: Tailwind v4 토큰 사용, 컴포넌트 스타일은 토큰 참조(하드코딩 지양)
 
 ### Progress
 - Implemented initial missing components: Switch, Textarea, Card, Badge/Tag
-- Added binding helpers with ctx: rontend-web/app/lib/binding.js
-- Updated Input/Checkbox/Select to support dotted dataKey, add ctx via event.detail and onValueChange(value, ctx) for migration
-- A11y: Added ria-invalid to inputs/selects/textarea, ole="switch"/aria-checked to Switch, Icon defaults to decorative unless riaLabel provided
+- Added binding helpers with `ctx`: `frontend-web/app/lib/binding.js`
+- Updated Input/Checkbox/Select to support dotted `dataKey`, add `ctx` via `event.detail` and `onValueChange(value, ctx)` for migration
+- Added `role="switch"`/`aria-checked` to Switch, `Icon` defaults to decorative unless `ariaLabel` provided
+- Docs: Added examples/docs for new components and wired into components page
+ole="switch"/aria-checked to Switch, Icon defaults to decorative unless riaLabel provided
 - Docs: Added examples/docs for new components and wired into components page
