@@ -36,6 +36,7 @@ const Alert = ({
     };
 
     const currentStyle = styles[type];
+    const displayText = typeof text === 'string' ? text.replaceAll('\\n', '\n') : text;
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-500/70">
@@ -55,8 +56,8 @@ const Alert = ({
                             <h3 className="text-lg font-semibold text-gray-900 mb-1">
                                 {title}
                             </h3>
-                            <p className="text-gray-600">
-                                {text}
+                            <p className="text-gray-600 whitespace-pre-line">
+                                {displayText}
                             </p>
                         </div>
                     </div>
