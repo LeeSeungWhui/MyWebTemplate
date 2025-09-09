@@ -39,7 +39,17 @@ export const SkeletonExamples = () => {
         </Lib.Card>
       ),
       description: '카드 스켈레톤 조합',
-      code: `<Lib.Skeleton className="h-24 w-full" />`
+      code: `<Lib.Card className="bg-white">
+  <div className="flex items-center gap-3">
+    <Lib.Skeleton variant="circle" circleSize={40} />
+    <div className="flex-1">
+      <Lib.Skeleton variant="text" lines={2} />
+    </div>
+  </div>
+  <div className="mt-4">
+    <Lib.Skeleton className="h-24 w-full" />
+  </div>
+</Lib.Card>`
     }
   ];
   return examples;

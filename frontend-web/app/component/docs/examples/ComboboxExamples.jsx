@@ -1,25 +1,26 @@
 import * as Lib from '@/lib';
+import { useState } from 'react';
 
 export const ComboboxExamples = () => {
-  const cities = [
+  const citiesSelected = [
     { value: 'seoul', text: '서울', selected: true },
     { value: 'busan', text: '부산' },
     { value: 'incheon', text: '인천' },
     { value: 'daegu', text: '대구' },
   ];
-  const citiesNoneSelected = [
+  const cities = [
     { value: 'seoul', text: '서울' },
     { value: 'busan', text: '부산' },
     { value: 'incheon', text: '인천' },
     { value: 'daegu', text: '대구' },
   ];
-  const obj = Lib.EasyObj({ city: 'incheon', fruits: [] });
+  const [ctlCity, setCtlCity] = useState('incheon');
 
   const examples = [
     {
       component: (
         <div className="space-y-2">
-          <Lib.Combobox dataList={citiesNoneSelected} placeholder="도시 선택" />
+          <Lib.Combobox dataList={cities} placeholder="도시 선택" />
         </div>
       ),
       description: '기본: dataList(선택 없음) + 필터/초성검색',
@@ -33,15 +34,20 @@ export const ComboboxExamples = () => {
     {
       component: (
         <div className="space-y-2">
-          <Lib.Combobox dataList={cities} dataObj={obj} dataKey="city" placeholder="도시 선택 (바운드)" />
-          <div className="text-xs text-gray-600">obj.city = {String(obj.city)}</div>
+          <Lib.Combobox dataList={citiesSelected} value={ctlCity} onValueChange={setCtlCity} placeholder="도시 선택 (컨트롤드)" />
+          <div className="text-xs text-gray-600">value = {String(ctlCity)}</div>
           <div className="text-xs text-gray-500">초성검색 예: ㅅㅇ→서울, ㅂㅅ→부산</div>
         </div>
       ),
-      description: '바운드: dataObj + dataKey + 초성검색',
-      code: `const obj = Lib.EasyObj({ city: 'incheon' });
+      description: '컨트롤드: value + onValueChange + 초성검색',
+      code: `const [city, setCity] = useState('incheon');
 
-<Lib.Combobox dataList={cities} dataObj={obj} dataKey="city" placeholder="도시 선택 (바운드)" />`
+<Lib.Combobox
+  dataList={cities}
+  value={city}
+  onValueChange={setCity}
+  placeholder="도시 선택 (컨트롤드)"
+/>`
     },
     {
       component: (
@@ -72,3 +78,4 @@ export const ComboboxExamples = () => {
 
   return examples;
 };
+
