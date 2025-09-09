@@ -25,14 +25,18 @@ const Switch = forwardRef(({
 
   const [checked, setChecked] = useState(resolveChecked);
 
+  // Track bound value so the component re-syncs when dataObj[dataKey] changes
+  const boundChecked = isDataObj ? !!getBoundValue(dataObj, dataKey) : undefined;
+
   useEffect(() => {
     setChecked(resolveChecked());
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [propChecked, dataObj, dataKey]);
+  }, [propChecked, dataObj, dataKey, boundChecked]);
 
   const toggle = (next) => {
     const value = next ?? !checked;
-    if (!isControlled && !isDataObj) setChecked(value);
+    // Update local state for immediate UI feedback when not controlled
+    if (!isControlled) setChecked(value);
     if (isDataObj) setBoundValue(dataObj, dataKey, value);
     const ctx = buildCtx({ dataKey, dataObj, source: 'user', dirty: true, valid: null });
     const fakeEvent = { target: { checked: value, value } };
@@ -73,4 +77,3 @@ const Switch = forwardRef(({
 Switch.displayName = 'Switch';
 
 export default Switch;
-

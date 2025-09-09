@@ -25,7 +25,7 @@ export const SwitchExamples = () => {
 <Lib.Switch
   dataObj={obj}
   dataKey="enabled"
-  label={\`바운드: ${obj.enabled ? 'ON' : 'OFF'}\`}
+  label={\`바운드: \${obj.enabled ? 'ON' : 'OFF'}\`}
   onValueChange={(v) => console.log('switch(bound):', v)}
 />`
     },
