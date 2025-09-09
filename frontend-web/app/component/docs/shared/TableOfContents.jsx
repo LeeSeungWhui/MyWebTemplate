@@ -125,6 +125,12 @@ const TableOfContents = () => {
         </li>
         <li>
           <a href="#textareas" className="text-blue-600 hover:text-blue-800">17. 텍스트영역 (Textarea)</a>
+          <ul className="ml-4 mt-1 space-y-1">
+            <li><a href="#textarea-bound" className="text-blue-600 hover:text-blue-800">- 바운드 모드</a></li>
+            <li><a href="#textarea-controlled" className="text-blue-600 hover:text-blue-800">- 컨트롤드 모드</a></li>
+            <li><a href="#textarea-error" className="text-blue-600 hover:text-blue-800">- 검증/에러 상태</a></li>
+            <li><a href="#textarea-states" className="text-blue-600 hover:text-blue-800">- 읽기 전용/비활성</a></li>
+          </ul>
         </li>
         <li>
           <a href="#cards" className="text-blue-600 hover:text-blue-800">18. 카드 (Card)</a>

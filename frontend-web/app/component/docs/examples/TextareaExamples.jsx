@@ -54,21 +54,24 @@ export const TextareaExamples = () => {
         <div>
           <div className="mb-2 text-sm text-gray-600">검증/에러 상태</div>
           <Lib.Textarea
-            value={val}
-            onValueChange={setVal}
-            error={val.length < 10}
+            dataObj={obj}
+            dataKey="memo"
+            rows={4}
+            error={obj.memo.length < 10}
             placeholder="10자 이상 입력"
           />
-          <div className="mt-1 text-xs text-red-600">{val.length < 10 ? '10자 이상 입력해주세요' : '정상'}</div>
+          <div className="mt-1 text-xs text-red-600">{obj.memo.length < 10 ? '10자 이상 입력해주세요' : '정상'}</div>
         </div>
       ),
       description: 'error prop 과 aria-invalid 활용',
       code: `<Lib.Textarea
-  value={val}
-  onValueChange={setVal}
-  error={val.length < 10}
+  dataObj={obj}
+  dataKey="memo"
+  rows={4}
+  error={obj.memo.length < 10}
   placeholder="10자 이상 입력"
-/>`
+/>
+<div className="mt-1 text-xs text-red-600">{obj.memo.length < 10 ? '10자 이상 입력해주세요' : '정상'}</div>`
     },
     {
       component: (
