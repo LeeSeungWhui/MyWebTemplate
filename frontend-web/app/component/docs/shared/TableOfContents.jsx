@@ -180,10 +180,10 @@ const TableOfContents = () => {
           </ul>
         </li>
         <li>
-          <a href="#drawers" className="text-blue-600 hover:text-blue-800">24. 드로워 (Drawer)</a>
+          <a href="#sliders" className="text-blue-600 hover:text-blue-800">24. 슬라이더 (Slider)</a>
           <ul className="ml-4 mt-1 space-y-1">
-            <li><a href="#drawer-right" className="text-blue-600 hover:text-blue-800">- 오른쪽</a></li>
-            <li><a href="#drawer-left" className="text-blue-600 hover:text-blue-800">- 왼쪽</a></li>
+            <li><a href="#slider-right" className="text-blue-600 hover:text-blue-800">- 오른쪽</a></li>
+            <li><a href="#slider-left" className="text-blue-600 hover:text-blue-800">- 왼쪽</a></li>
           </ul>
         </li>
         <li>
