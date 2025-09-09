@@ -38,6 +38,22 @@ const SliderDocs = () => {
           <CodeBlock code={examples[3]?.code || ''} />
         </div>
       </div>
+      <div id="slider-card" className="mb-8">
+        <h3 className="text-lg font-medium mb-4">카드 샘플</h3>
+        <div>
+          {examples[4]?.component}
+          <div className="mt-2 text-sm text-gray-600">{examples[4]?.description}</div>
+          <CodeBlock code={examples[4]?.code || ''} />
+        </div>
+      </div>
+      <div id="slider-menu" className="mb-8">
+        <h3 className="text-lg font-medium mb-4">메뉴 샘플</h3>
+        <div>
+          {examples[5]?.component}
+          <div className="mt-2 text-sm text-gray-600">{examples[5]?.description}</div>
+          <CodeBlock code={examples[5]?.code || ''} />
+        </div>
+      </div>
     </DocSection>
   );
 };
