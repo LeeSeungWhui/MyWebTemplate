@@ -61,6 +61,7 @@ const Combobox = forwardRef(({
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [inner, setInner] = useState(defaultValue);
+  const [rev, setRev] = useState(0);
   const listRef = useRef(null);
   const rootRef = useRef(null);
 
@@ -69,7 +70,7 @@ const Combobox = forwardRef(({
     ...o,
     _labelLower: normalize(o.label),
     _labelInit: normalize(getChosung(o.label)),
-  })), [dataList, valueKey, textKey]);
+  })), [dataList, valueKey, textKey, rev]);
 
   const selectedFromList = options.filter(o => o.selected);
   const value = isPropControlled
@@ -117,6 +118,7 @@ const Combobox = forwardRef(({
     const ctx = buildCtx({ dataKey, dataObj, source: 'user', dirty: true, valid: null });
     const evt = event ? { ...event, target: { ...event.target, value: out } } : { target: { value: out } };
     fireValueHandlers({ onChange, onValueChange, value: out, ctx, event: evt });
+    setRev((v) => v + 1);
   };
 
   const inputId = id || (dataKey ? `cb_${String(dataKey).replace(/[^a-zA-Z0-9_]+/g, '_')}` : undefined);
@@ -215,4 +217,3 @@ const Combobox = forwardRef(({
 Combobox.displayName = 'Combobox';
 
 export default Combobox;
-
