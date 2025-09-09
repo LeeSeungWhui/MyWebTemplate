@@ -10,6 +10,26 @@ const normalizeItems = (items) => (items || []).map((it) =>
     : { value: String(it.value), label: String(it.label ?? it.value) }
 );
 
+// Hangul initial-consonant (초성) extraction for fuzzy search
+const CHO = ['ㄱ','ㄲ','ㄴ','ㄷ','ㄸ','ㄹ','ㅁ','ㅂ','ㅃ','ㅅ','ㅆ','ㅇ','ㅈ','ㅉ','ㅊ','ㅋ','ㅌ','ㅍ','ㅎ'];
+const H_BASE = 0xAC00, H_LAST = 0xD7A3;
+const getChosung = (str) => {
+  if (!str) return '';
+  let out = '';
+  for (const ch of String(str)) {
+    const code = ch.charCodeAt(0);
+    if (code >= H_BASE && code <= H_LAST) {
+      const idx = Math.floor((code - H_BASE) / 588);
+      out += CHO[idx] || ch;
+    } else {
+      out += ch;
+    }
+  }
+  return out;
+};
+
+const normalize = (s) => String(s || '').toLowerCase().replace(/\s+/g, '');
+
 const Combobox = forwardRef(({ 
   dataObj,
   dataKey,
@@ -35,12 +55,24 @@ const Combobox = forwardRef(({
   const listRef = useRef(null);
 
   const options = useMemo(() => normalizeItems(items), [items]);
+  const normOptions = useMemo(() => options.map(o => ({
+    ...o,
+    _labelLower: normalize(o.label),
+    _labelInit: normalize(getChosung(o.label)),
+  })), [options]);
   const value = isPropControlled ? (propValue ?? '') : (isData ? (getBoundValue(dataObj, dataKey) ?? '') : (inner ?? ''));
   const selected = options.find((o) => o.value === String(value));
 
   const filtered = filterable && query
-    ? options.filter((o) => o.label.toLowerCase().includes(query.toLowerCase()))
-    : options;
+    ? normOptions.filter((o) => {
+        const q = normalize(query);
+        const qInit = normalize(getChosung(query));
+        const onlyCho = /^[ㄱ-ㅎ]+$/.test(query);
+        if (onlyCho) return o._labelInit.includes(q);
+        // 일반 문자열 포함 + 초성 변환 매치 둘 다 허용
+        return o._labelLower.includes(q) || o._labelInit.includes(qInit);
+      })
+    : normOptions;
 
   const rootRef = useRef(null);
   useEffect(() => { if (!open) setQuery(''); }, [open]);
