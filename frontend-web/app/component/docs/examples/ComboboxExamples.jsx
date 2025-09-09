@@ -7,18 +7,24 @@ export const ComboboxExamples = () => {
     { value: 'incheon', text: '인천' },
     { value: 'daegu', text: '대구' },
   ];
+  const citiesNoneSelected = [
+    { value: 'seoul', text: '서울' },
+    { value: 'busan', text: '부산' },
+    { value: 'incheon', text: '인천' },
+    { value: 'daegu', text: '대구' },
+  ];
   const obj = Lib.EasyObj({ city: 'incheon', fruits: [] });
 
   const examples = [
     {
       component: (
         <div className="space-y-2">
-          <Lib.Combobox dataList={cities} placeholder="도시 선택" />
+          <Lib.Combobox dataList={citiesNoneSelected} placeholder="도시 선택" />
         </div>
       ),
-      description: 'dataList 기반 선택 + 필터/초성검색',
+      description: '기본: dataList(선택 없음) + 필터/초성검색',
       code: `const cities = [
-  { value: 'seoul', text: '서울', selected: true },
+  { value: 'seoul', text: '서울' },
   { value: 'busan', text: '부산' },
 ];
 
@@ -32,7 +38,7 @@ export const ComboboxExamples = () => {
           <div className="text-xs text-gray-500">초성검색 예: ㅅㅇ→서울, ㅂㅅ→부산</div>
         </div>
       ),
-      description: 'dataObj 바운드 + 초성검색',
+      description: '바운드: dataObj + dataKey + 초성검색',
       code: `const obj = Lib.EasyObj({ city: 'incheon' });
 
 <Lib.Combobox dataList={cities} dataObj={obj} dataKey="city" placeholder="도시 선택 (바운드)" />`
@@ -66,4 +72,3 @@ export const ComboboxExamples = () => {
 
   return examples;
 };
-

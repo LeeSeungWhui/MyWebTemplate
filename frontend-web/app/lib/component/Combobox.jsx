@@ -2,7 +2,6 @@
 // Updated: 2025-09-09
 // Purpose: Filterable combobox with EasyList(dataList) selection model, multi-select, 초성검색, select-all
 import { forwardRef, useEffect, useMemo, useRef, useState } from 'react';
-import { getBoundValue, setBoundValue, buildCtx, fireValueHandlers } from '../binding';
 
 // Hangul initial-consonant (초성) extraction
 const CHO = ['\u3131','\u3132','\u3134','\u3137','\u3138','\u3139','\u3141','\u3142','\u3143','\u3145','\u3146','\u3147','\u3148','\u3149','\u314A','\u314B','\u314C','\u314D','\u314E'];
@@ -36,9 +35,6 @@ const Combobox = forwardRef(({
   textKey = 'text',
   value: propValue,
   defaultValue = '',
-  // Optional EasyObj sync (convenience)
-  dataObj,
-  dataKey,
   onChange,
   onValueChange,
   placeholder,
@@ -56,7 +52,6 @@ const Combobox = forwardRef(({
   ...props
 }, ref) => {
   const isPropControlled = propValue !== undefined;
-  const isData = !!(dataObj && dataKey);
 
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
@@ -75,7 +70,7 @@ const Combobox = forwardRef(({
   const selectedFromList = options.filter(o => o.selected);
   const value = isPropControlled
     ? (propValue ?? (multi ? [] : ''))
-    : (multi ? selectedFromList.map(o => o.value) : (selectedFromList[0]?.value ?? (isData ? (getBoundValue(dataObj, dataKey) ?? '') : (inner ?? ''))));
+    : (multi ? selectedFromList.map(o => o.value) : (selectedFromList[0]?.value ?? (inner ?? '')));
   const selected = multi ? selectedFromList : options.find(o => o.value === String(value));
 
   const filtered = filterable && query
@@ -113,15 +108,14 @@ const Combobox = forwardRef(({
       else dataList.forEach((it) => { it.selected = String(it[valueKey]) === String(next); });
       out = String(next);
     }
-    if (!isPropControlled && !isData && !multi) setInner(out);
-    if (isData) setBoundValue(dataObj, dataKey, out);
-    const ctx = buildCtx({ dataKey, dataObj, source: 'user', dirty: true, valid: null });
+    if (!isPropControlled && !multi) setInner(out);
     const evt = event ? { ...event, target: { ...event.target, value: out } } : { target: { value: out } };
-    fireValueHandlers({ onChange, onValueChange, value: out, ctx, event: evt });
+    if (typeof onChange === 'function') onChange(evt);
+    if (typeof onValueChange === 'function') onValueChange(out);
     setRev((v) => v + 1);
   };
 
-  const inputId = id || (dataKey ? `cb_${String(dataKey).replace(/[^a-zA-Z0-9_]+/g, '_')}` : undefined);
+  const inputId = id;
 
   return (
     <div className={`relative ${className}`.trim()} ref={rootRef} {...props}>
@@ -217,3 +211,4 @@ const Combobox = forwardRef(({
 Combobox.displayName = 'Combobox';
 
 export default Combobox;
+
