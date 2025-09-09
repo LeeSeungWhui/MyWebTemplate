@@ -22,6 +22,22 @@ const SliderDocs = () => {
           <CodeBlock code={examples[1]?.code || ''} />
         </div>
       </div>
+      <div id="slider-top" className="mb-8">
+        <h3 className="text-lg font-medium mb-4">위쪽</h3>
+        <div>
+          {examples[2]?.component}
+          <div className="mt-2 text-sm text-gray-600">{examples[2]?.description}</div>
+          <CodeBlock code={examples[2]?.code || ''} />
+        </div>
+      </div>
+      <div id="slider-bottom" className="mb-8">
+        <h3 className="text-lg font-medium mb-4">아래쪽</h3>
+        <div>
+          {examples[3]?.component}
+          <div className="mt-2 text-sm text-gray-600">{examples[3]?.description}</div>
+          <CodeBlock code={examples[3]?.code || ''} />
+        </div>
+      </div>
     </DocSection>
   );
 };

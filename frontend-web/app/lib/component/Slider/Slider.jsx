@@ -1,22 +1,21 @@
 import { forwardRef, useEffect, useRef, useState } from 'react';
-import styles from './Slider.module.css';
 
 const sides = {
   right: {
-    base: 'inset-y-0 right-0 w-80 max-w-full',
-    animations: { in: styles.slideInRight, out: styles.slideOutRight }
+    base: 'inset-y-0 right-0 w-80 max-w-full rounded-l-lg',
+    transform: { open: 'translate-x-0', closed: 'translate-x-full' }
   },
   left: {
-    base: 'inset-y-0 left-0 w-80 max-w-full',
-    animations: { in: styles.slideInLeft, out: styles.slideOutLeft }
+    base: 'inset-y-0 left-0 w-80 max-w-full rounded-r-lg',
+    transform: { open: 'translate-x-0', closed: '-translate-x-full' }
   },
   top: {
-    base: 'inset-x-0 top-0 h-72 max-h-full',
-    animations: { in: styles.slideInTop, out: styles.slideOutTop }
+    base: 'inset-x-0 top-0 h-72 max-h-full rounded-b-lg',
+    transform: { open: 'translate-y-0', closed: '-translate-y-full' }
   },
   bottom: {
-    base: 'inset-x-0 bottom-0 h-72 max-h-full',
-    animations: { in: styles.slideInBottom, out: styles.slideOutBottom }
+    base: 'inset-x-0 bottom-0 h-72 max-h-full rounded-t-lg',
+    transform: { open: 'translate-y-0', closed: 'translate-y-full' }
   }
 };
 
@@ -35,7 +34,7 @@ const Slider = forwardRef(({ isOpen = false, onClose, side = 'right', size, clos
       const timer = setTimeout(() => {
         setVisible(false);
         setExiting(false);
-      }, 200);
+      }, 300);
       return () => clearTimeout(timer);
     }
   }, [isOpen, visible]);
@@ -53,11 +52,11 @@ const Slider = forwardRef(({ isOpen = false, onClose, side = 'right', size, clos
   const sizeCls = size ? size : '';
 
   return (
-    <div className="fixed inset-0 z-50" onClick={(e) => { if (closeOnBackdrop && e.target === e.currentTarget) onClose?.(); }}>
-      <div className="absolute inset-0 bg-black/40" />
+    <div className="fixed inset-0 z-50 flex" onClick={(e) => { if (closeOnBackdrop && e.target === e.currentTarget) onClose?.(); }}>
+      <div className={`absolute inset-0 bg-black/40 transition-opacity duration-300 ${exiting ? 'opacity-0' : 'opacity-100'}`} />
       <div
         ref={(el) => { rootRef.current = el; if (typeof ref === 'function') ref(el); else if (ref) ref.current = el; }}
-        className={`absolute bg-white shadow-xl ${conf.base} ${exiting ? conf.animations.out : conf.animations.in} ${sizeCls} ${className}`.trim()}
+        className={`absolute bg-white shadow-xl transition-transform duration-300 ${conf.base} ${exiting ? conf.transform.closed : conf.transform.open} ${sizeCls} ${className}`.trim()}
         {...props}
       >
         {children}
@@ -69,3 +68,4 @@ const Slider = forwardRef(({ isOpen = false, onClose, side = 'right', size, clos
 Slider.displayName = 'Slider';
 
 export default Slider;
+
