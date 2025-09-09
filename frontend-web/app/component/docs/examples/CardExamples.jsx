@@ -1,6 +1,9 @@
 import * as Lib from '@/lib';
+import { useSharedStore } from '@/app/common/store/SharedStore';
 
 export const CardExamples = () => {
+  const app = useSharedStore();
+
   const examples = [
     {
       component: (
@@ -18,7 +21,7 @@ export const CardExamples = () => {
         <Lib.Card
           title="액션 카드"
           subtitle="버튼과 함께"
-          actions={<button className="px-2 py-1 text-sm rounded bg-blue-600 text-white">Action</button>}
+          actions={<Lib.Button onClick={() => app.showAlert("버튼 액션")}>Action</Lib.Button>}
           footer="푸터 텍스트"
         >
           <div className="space-y-2">
