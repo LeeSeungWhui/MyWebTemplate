@@ -21,6 +21,9 @@ import SwitchDocs from './docs/components/SwitchDocs'
 import TextareaDocs from './docs/components/TextareaDocs'
 import CardDocs from './docs/components/CardDocs'
 import BadgeDocs from './docs/components/BadgeDocs'
+import NumberInputDocs from './docs/components/NumberInputDocs'
+import DateTimeDocs from './docs/components/DateTimeDocs'
+import ComboboxDocs from './docs/components/ComboboxDocs'
 
 export default function ComponentsPage() {
   return (
@@ -54,6 +57,9 @@ export default function ComponentsPage() {
           <TextareaDocs />
           <CardDocs />
           <BadgeDocs />
+          <NumberInputDocs />
+          <DateTimeDocs />
+          <ComboboxDocs />
         </div>
       </div>
 

@@ -15,7 +15,7 @@ links: [CU-WEB-001, CU-WEB-002, CU-WEB-004, CU-WEB-005, CU-WEB-006]
 - 포함
   - 입력: Input, Password, Textarea, Select, Combobox, Checkbox, RadioGroup, Switch, Date/Time(간단), Number
   - 피드백: Toast, Alert, Tooltip, Modal/Drawer, Loading, Skeleton, Empty
-  - 표시/레이아웃: Card, Stat, Badge/Tag, List/Table(경량), Pagination(경량), Tabs
+  - 표시/레이아웃: Card, Stat, Badge/Tag, List/Table(경량), dropdown, Pagination(경량), Tabs
   - 바인딩 어댑터: EasyObj/EasyList ↔ 컴포넌트 프로퍼티 규약
   - 상태 프리셋: `loading/empty/error/disabled/readonly/required`
   - 테마/토큰: Tailwind v4 디자인 토큰(기본)

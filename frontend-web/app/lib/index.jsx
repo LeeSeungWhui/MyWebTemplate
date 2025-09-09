@@ -16,6 +16,10 @@ export { default as Switch } from './component/Switch';
 export { default as Textarea } from './component/Textarea';
 export { default as Card } from './component/Card';
 export { default as Badge } from './component/Badge';
+export { default as NumberInput } from './component/NumberInput';
+export { default as DateInput } from './component/DateInput';
+export { default as TimeInput } from './component/TimeInput';
+export { default as Combobox } from './component/Combobox';
 // Datasets
 export { default as EasyObj } from './dataset/EasyObj';
 export { default as EasyList } from './dataset/EasyList';

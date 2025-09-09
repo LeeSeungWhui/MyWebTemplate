@@ -150,9 +150,32 @@ const TableOfContents = () => {
             <li><a href="#badge-icons" className="text-blue-600 hover:text-blue-800">- 아이콘 포함</a></li>
           </ul>
         </li>
+        <li>
+          <a href="#number-inputs" className="text-blue-600 hover:text-blue-800">20. 숫자 입력 (Number)</a>
+          <ul className="ml-4 mt-1 space-y-1">
+            <li><a href="#number-basic" className="text-blue-600 hover:text-blue-800">- 기본</a></li>
+            <li><a href="#number-range" className="text-blue-600 hover:text-blue-800">- 범위/스텝</a></li>
+            <li><a href="#number-unbound" className="text-blue-600 hover:text-blue-800">- 언바운드</a></li>
+          </ul>
+        </li>
+        <li>
+          <a href="#datetime-inputs" className="text-blue-600 hover:text-blue-800">21. 날짜/시간 (Date/Time)</a>
+          <ul className="ml-4 mt-1 space-y-1">
+            <li><a href="#date-basic" className="text-blue-600 hover:text-blue-800">- 날짜</a></li>
+            <li><a href="#time-basic" className="text-blue-600 hover:text-blue-800">- 시간</a></li>
+          </ul>
+        </li>
+        <li>
+          <a href="#comboboxes" className="text-blue-600 hover:text-blue-800">22. 콤보박스 (Combobox)</a>
+          <ul className="ml-4 mt-1 space-y-1">
+            <li><a href="#combobox-basic" className="text-blue-600 hover:text-blue-800">- 기본</a></li>
+            <li><a href="#combobox-unbound" className="text-blue-600 hover:text-blue-800">- 언바운드</a></li>
+          </ul>
+        </li>
       </ul>
     </section>
   );
 };
 
 export default TableOfContents;
+
