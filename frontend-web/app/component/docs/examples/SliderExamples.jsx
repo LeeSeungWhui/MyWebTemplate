@@ -4,6 +4,8 @@ import { useState } from 'react';
 export const SliderExamples = () => {
   const [rightOpen, setRightOpen] = useState(false);
   const [leftOpen, setLeftOpen] = useState(false);
+  const [topOpen, setTopOpen] = useState(false);
+  const [bottomOpen, setBottomOpen] = useState(false);
 
   const examples = [
     {
@@ -33,6 +35,30 @@ export const SliderExamples = () => {
       ),
       description: 'side = left',
       code: `<Lib.Slider isOpen={open} onClose={close} side="left">...</Lib.Slider>`
+    },
+    {
+      component: (
+        <div>
+          <Lib.Button onClick={() => setTopOpen(true)}>위쪽 슬라이더</Lib.Button>
+          <Lib.Slider isOpen={topOpen} onClose={() => setTopOpen(false)} side="top">
+            <div className="h-full p-4">위쪽에서 열림</div>
+          </Lib.Slider>
+        </div>
+      ),
+      description: 'side = top',
+      code: `<Lib.Slider isOpen={open} onClose={close} side="top">...</Lib.Slider>`
+    },
+    {
+      component: (
+        <div>
+          <Lib.Button onClick={() => setBottomOpen(true)}>아래쪽 슬라이더</Lib.Button>
+          <Lib.Slider isOpen={bottomOpen} onClose={() => setBottomOpen(false)} side="bottom">
+            <div className="h-full p-4">아래쪽에서 열림</div>
+          </Lib.Slider>
+        </div>
+      ),
+      description: 'side = bottom',
+      code: `<Lib.Slider isOpen={open} onClose={close} side="bottom">...</Lib.Slider>`
     }
   ];
   return examples;
