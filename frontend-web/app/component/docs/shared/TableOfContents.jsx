@@ -172,10 +172,38 @@ const TableOfContents = () => {
             <li><a href="#combobox-unbound" className="text-blue-600 hover:text-blue-800">- 언바운드</a></li>
           </ul>
         </li>
+        <li>
+          <a href="#tooltips" className="text-blue-600 hover:text-blue-800">23. 툴팁 (Tooltip)</a>
+          <ul className="ml-4 mt-1 space-y-1">
+            <li><a href="#tooltip-basic" className="text-blue-600 hover:text-blue-800">- 기본</a></li>
+            <li><a href="#tooltip-placement" className="text-blue-600 hover:text-blue-800">- 방향</a></li>
+          </ul>
+        </li>
+        <li>
+          <a href="#drawers" className="text-blue-600 hover:text-blue-800">24. 드로워 (Drawer)</a>
+          <ul className="ml-4 mt-1 space-y-1">
+            <li><a href="#drawer-right" className="text-blue-600 hover:text-blue-800">- 오른쪽</a></li>
+            <li><a href="#drawer-left" className="text-blue-600 hover:text-blue-800">- 왼쪽</a></li>
+          </ul>
+        </li>
+        <li>
+          <a href="#skeletons" className="text-blue-600 hover:text-blue-800">25. 스켈레톤 (Skeleton)</a>
+          <ul className="ml-4 mt-1 space-y-1">
+            <li><a href="#skeleton-text" className="text-blue-600 hover:text-blue-800">- 텍스트</a></li>
+            <li><a href="#skeleton-composed" className="text-blue-600 hover:text-blue-800">- 조합</a></li>
+            <li><a href="#skeleton-card" className="text-blue-600 hover:text-blue-800">- 카드</a></li>
+          </ul>
+        </li>
+        <li>
+          <a href="#empties" className="text-blue-600 hover:text-blue-800">26. 엠티 (Empty)</a>
+          <ul className="ml-4 mt-1 space-y-1">
+            <li><a href="#empty-basic" className="text-blue-600 hover:text-blue-800">- 기본</a></li>
+            <li><a href="#empty-action" className="text-blue-600 hover:text-blue-800">- 설명/액션</a></li>
+          </ul>
+        </li>
       </ul>
     </section>
   );
 };
 
 export default TableOfContents;
-

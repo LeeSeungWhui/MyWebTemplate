@@ -1,0 +1,22 @@
+import * as Lib from '@/lib';
+
+export const EmptyExamples = () => {
+  const examples = [
+    {
+      component: (
+        <Lib.Empty />
+      ),
+      description: '기본 Empty',
+      code: `<Lib.Empty />`
+    },
+    {
+      component: (
+        <Lib.Empty title="검색 결과 없음" description="다른 키워드로 다시 시도해 보세요" action={<Lib.Button>새로 만들기</Lib.Button>} />
+      ),
+      description: '설명/액션 포함',
+      code: `<Lib.Empty title="검색 결과 없음" description="다른 키워드로 다시 시도해 보세요" action={<Lib.Button>새로 만들기</Lib.Button>} />`
+    }
+  ];
+  return examples;
+};
+
