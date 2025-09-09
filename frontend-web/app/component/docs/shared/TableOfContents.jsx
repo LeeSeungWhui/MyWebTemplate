@@ -134,6 +134,12 @@ const TableOfContents = () => {
         </li>
         <li>
           <a href="#cards" className="text-blue-600 hover:text-blue-800">18. 카드 (Card)</a>
+          <ul className="ml-4 mt-1 space-y-1">
+            <li><a href="#card-basic" className="text-blue-600 hover:text-blue-800">- 기본 Card</a></li>
+            <li><a href="#card-actions" className="text-blue-600 hover:text-blue-800">- 액션/푸터</a></li>
+            <li><a href="#card-plain" className="text-blue-600 hover:text-blue-800">- 본문 전용</a></li>
+            <li><a href="#card-composed" className="text-blue-600 hover:text-blue-800">- 조합 예시</a></li>
+          </ul>
         </li>
         <li>
           <a href="#badges" className="text-blue-600 hover:text-blue-800">19. 배지/태그 (Badge/Tag)</a>
