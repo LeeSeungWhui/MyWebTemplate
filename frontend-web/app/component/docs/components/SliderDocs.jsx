@@ -1,12 +1,12 @@
 import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';
-import { DrawerExamples } from '../examples/DrawerExamples';
+import { SliderExamples } from '../examples/SliderExamples';
 
-const DrawerDocs = () => {
-  const examples = DrawerExamples();
+const SliderDocs = () => {
+  const examples = SliderExamples();
   return (
-    <DocSection id="drawers" title="24. 드로워 (Drawer)" description={<p>화면 측면에서 슬라이드 인 되는 패널.</p>}>
-      <div id="drawer-right" className="mb-8">
+    <DocSection id="sliders" title="24. 슬라이더 (Slider)" description={<p>화면 측면에서 슬라이드 인 되는 패널.</p>}>
+      <div id="slider-right" className="mb-8">
         <h3 className="text-lg font-medium mb-4">오른쪽</h3>
         <div>
           {examples[0]?.component}
@@ -14,7 +14,7 @@ const DrawerDocs = () => {
           <CodeBlock code={examples[0]?.code || ''} />
         </div>
       </div>
-      <div id="drawer-left" className="mb-8">
+      <div id="slider-left" className="mb-8">
         <h3 className="text-lg font-medium mb-4">왼쪽</h3>
         <div>
           {examples[1]?.component}
@@ -26,5 +26,5 @@ const DrawerDocs = () => {
   );
 };
 
-export default DrawerDocs;
+export default SliderDocs;
 
