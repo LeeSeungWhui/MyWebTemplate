@@ -17,7 +17,7 @@ const placements = {
  * 툴팁 본체
  * 갱신일: 2025-02-14
  */
-const Tooltip = forwardRef(({ content, placement = 'top', delay = 150, disabled = false, trigger = 'hover', className = '', children, textDirection = 'lr' }, ref) => {
+const Tooltip = forwardRef(({ content, placement = 'top', delay = 150, disabled = false, trigger = 'hover', className = '', children, orientation = 'horizontal' }, ref) => {
   const [open, setOpen] = useState(false);
   const id = useId();
   const timer = useRef(null);
@@ -60,7 +60,7 @@ const Tooltip = forwardRef(({ content, placement = 'top', delay = 150, disabled 
           id={id}
           role="tooltip"
           className={`pointer-events-none absolute z-20 px-2 py-1 text-xs rounded-md bg-gray-900 text-white shadow ${placements[placement] || placements.top}`}
-          style={textDirection === 'tb' ? { writingMode: 'vertical-rl', textOrientation: 'upright' } : undefined}
+          style={orientation === 'vertical' ? { writingMode: 'vertical-rl', textOrientation: 'upright' } : undefined}
         >
           {content}
         </span>

@@ -69,30 +69,32 @@ export const SliderExamples = () => {
         <div>
           <Lib.Button onClick={() => setCardOpen(true)}>카드 슬라이더</Lib.Button>
           <Lib.Slider isOpen={cardOpen} onClose={() => setCardOpen(false)} side="right" collapseButton>
-            <Lib.Card title="카드 샘플">
-              <p>슬라이더 안 카드</p>
+            <Lib.Card title="프로필" className="w-60">
+              <img src="https://via.placeholder.com/240x120" alt="placeholder" className="w-full mb-2 rounded" />
+              <p className="text-sm mb-2">간단한 설명 텍스트</p>
+              <Lib.Button size="sm" className="w-full">확인</Lib.Button>
             </Lib.Card>
           </Lib.Slider>
         </div>
       ),
-      description: '카드 컴포넌트를 포함한 슬라이더',
-      code: `<Lib.Slider isOpen={open} onClose={close} side="right" collapseButton><Lib.Card title="카드 샘플">슬라이더 안 카드</Lib.Card></Lib.Slider>`
+      description: '이미지와 버튼을 포함한 카드 슬라이더',
+      code: `<Lib.Slider isOpen={open} onClose={close} side="right" collapseButton>\n  <Lib.Card title="프로필" className="w-60">\n    <img src="https://via.placeholder.com/240x120" alt="placeholder" className="w-full mb-2 rounded" />\n    <p className="text-sm mb-2">간단한 설명 텍스트</p>\n    <Lib.Button size="sm" className="w-full">확인</Lib.Button>\n  </Lib.Card>\n</Lib.Slider>`
     },
     {
       component: (
         <div>
           <Lib.Button onClick={() => setMenuOpen(true)}>메뉴 슬라이더</Lib.Button>
           <Lib.Slider isOpen={menuOpen} onClose={() => setMenuOpen(false)} side="left" collapseButton>
-            <ul className="p-4 space-y-2">
-              <li><a href="#" className="block">메뉴 1</a></li>
-              <li><a href="#" className="block">메뉴 2</a></li>
-              <li><a href="#" className="block">메뉴 3</a></li>
+            <ul className="p-4 space-y-1 bg-gray-50 w-40">
+              <li><a href="#" className="block px-2 py-1 rounded hover:bg-gray-100">메뉴 1</a></li>
+              <li><a href="#" className="block px-2 py-1 rounded hover:bg-gray-100">메뉴 2</a></li>
+              <li><a href="#" className="block px-2 py-1 rounded hover:bg-gray-100">메뉴 3</a></li>
             </ul>
           </Lib.Slider>
         </div>
       ),
-      description: '리스트 메뉴를 담은 슬라이더',
-      code: `<Lib.Slider isOpen={open} onClose={close} side="left" collapseButton><ul className="p-4 space-y-2"><li>...</li></ul></Lib.Slider>`
+      description: '배경과 hover 효과가 있는 메뉴 슬라이더',
+      code: `<Lib.Slider isOpen={open} onClose={close} side="left" collapseButton>\n  <ul className="p-4 space-y-1 bg-gray-50 w-40">\n    <li><a href="#" className="block px-2 py-1 rounded hover:bg-gray-100">메뉴 1</a></li>\n    <li><a href="#" className="block px-2 py-1 rounded hover:bg-gray-100">메뉴 2</a></li>\n    <li><a href="#" className="block px-2 py-1 rounded hover:bg-gray-100">메뉴 3</a></li>\n  </ul>\n</Lib.Slider>`
     }
   ];
   return examples;

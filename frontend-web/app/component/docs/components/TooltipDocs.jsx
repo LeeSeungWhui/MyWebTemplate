@@ -11,7 +11,7 @@ import { TooltipExamples } from '../examples/TooltipExamples';
 const TooltipDocs = () => {
   const examples = TooltipExamples();
   return (
-    <DocSection id="tooltips" title="23. 툴팁 (Tooltip)" description={<p>hover/focus/클릭에 반응하는 간단한 툴팁.</p>}>
+    <DocSection id="tooltips" title="23. 툴팁 (Tooltip)" description={<p>hover/focus/클릭에 반응하는 간단한 툴팁. 텍스트 가로/세로 지원.</p>}>
       <div id="tooltip-basic" className="mb-8">
         <h3 className="text-lg font-medium mb-4">기본</h3>
         <div>
@@ -28,12 +28,20 @@ const TooltipDocs = () => {
           <CodeBlock code={examples[1]?.code || ''} />
         </div>
       </div>
-      <div id="tooltip-trigger" className="mb-8">
-        <h3 className="text-lg font-medium mb-4">트리거</h3>
+      <div id="tooltip-orientation" className="mb-8">
+        <h3 className="text-lg font-medium mb-4">텍스트 방향</h3>
         <div>
           {examples[2]?.component}
           <div className="mt-2 text-sm text-gray-600">{examples[2]?.description}</div>
           <CodeBlock code={examples[2]?.code || ''} />
+        </div>
+      </div>
+      <div id="tooltip-trigger" className="mb-8">
+        <h3 className="text-lg font-medium mb-4">트리거</h3>
+        <div>
+          {examples[3]?.component}
+          <div className="mt-2 text-sm text-gray-600">{examples[3]?.description}</div>
+          <CodeBlock code={examples[3]?.code || ''} />
         </div>
       </div>
     </DocSection>

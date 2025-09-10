@@ -82,18 +82,18 @@ const Slider = forwardRef(({ isOpen = false, onClose, side = 'right', size, clos
         className={`absolute bg-white shadow-xl transition-transform duration-300 ${conf.base} ${transformCls} ${sizeCls} ${resizeCls} ${className}`.trim()}
         {...props}
       >
+        {collapseButton && (
+          <button
+            type="button"
+            aria-label="collapse"
+            className={`bg-white border rounded-full w-6 h-6 flex items-center justify-center shadow ${collapsePos[side]}`}
+            onClick={() => onClose?.()}
+          >
+            {collapseIcons[side]}
+          </button>
+        )}
         {children}
       </div>
-      {collapseButton && (
-        <button
-          type="button"
-          aria-label="collapse"
-          className={`bg-white border rounded-full w-6 h-6 flex items-center justify-center shadow ${collapsePos[side]}`}
-          onClick={() => onClose?.()}
-        >
-          {collapseIcons[side]}
-        </button>
-      )}
     </div>
   );
 });

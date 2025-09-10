@@ -39,6 +39,20 @@ export const TooltipExamples = () => {
     {
       component: (
         <div className="flex gap-4 items-center">
+          <Lib.Tooltip content="가로 텍스트">
+            <Lib.Button>Horizontal</Lib.Button>
+          </Lib.Tooltip>
+          <Lib.Tooltip content="세로" orientation="vertical">
+            <Lib.Button>Vertical</Lib.Button>
+          </Lib.Tooltip>
+        </div>
+      ),
+      description: 'orientation: horizontal/vertical',
+      code: `<Lib.Tooltip content="세로" orientation="vertical"><Lib.Button>Vertical</Lib.Button></Lib.Tooltip>`
+    },
+    {
+      component: (
+        <div className="flex gap-4 items-center">
           <Lib.Tooltip content="클릭 트리거" trigger="click">
             <Lib.Button>Click</Lib.Button>
           </Lib.Tooltip>

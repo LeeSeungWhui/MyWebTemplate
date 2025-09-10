@@ -183,6 +183,7 @@ const TableOfContents = () => {
           <ul className="ml-4 mt-1 space-y-1">
             <li><a href="#tooltip-basic" className="text-blue-600 hover:text-blue-800">- 기본</a></li>
             <li><a href="#tooltip-placement" className="text-blue-600 hover:text-blue-800">- 방향</a></li>
+            <li><a href="#tooltip-orientation" className="text-blue-600 hover:text-blue-800">- 텍스트 방향</a></li>
             <li><a href="#tooltip-trigger" className="text-blue-600 hover:text-blue-800">- 트리거</a></li>
           </ul>
         </li>
