@@ -1,3 +1,9 @@
+/**
+ * 파일명: Tooltip.jsx
+ * 작성자: ChatGPT
+ * 갱신일: 2025-02-14
+ * 설명: hover/click에 반응하는 툴팁 컴포넌트
+ */
 import { forwardRef, useEffect, useId, useRef, useState } from 'react';
 
 const placements = {
@@ -7,7 +13,11 @@ const placements = {
   right: 'left-full top-1/2 -translate-y-1/2 ml-2',
 };
 
-const Tooltip = forwardRef(({ content, placement = 'top', delay = 150, disabled = false, className = '', children, textDirection = 'lr' }, ref) => {
+/**
+ * 툴팁 본체
+ * 갱신일: 2025-02-14
+ */
+const Tooltip = forwardRef(({ content, placement = 'top', delay = 150, disabled = false, trigger = 'hover', className = '', children, textDirection = 'lr' }, ref) => {
   const [open, setOpen] = useState(false);
   const id = useId();
   const timer = useRef(null);
@@ -25,14 +35,20 @@ const Tooltip = forwardRef(({ content, placement = 'top', delay = 150, disabled 
 
   useEffect(() => () => clearTimeout(timer.current), []);
 
+  const clickToggle = () => {
+    if (disabled) return;
+    setOpen((prev) => !prev);
+  };
+
   return (
     <span
       ref={rootRef}
       className={`relative inline-flex ${className}`.trim()}
-      onMouseEnter={show}
-      onMouseLeave={hide}
+      onMouseEnter={trigger === 'hover' ? show : undefined}
+      onMouseLeave={trigger === 'hover' ? hide : undefined}
       onFocus={show}
       onBlur={hide}
+      onClick={trigger === 'click' ? clickToggle : undefined}
     >
       {children && (
         <span ref={ref} aria-describedby={open ? id : undefined}>

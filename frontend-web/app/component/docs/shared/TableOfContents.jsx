@@ -1,3 +1,9 @@
+/**
+ * 파일명: TableOfContents.jsx
+ * 작성자: ChatGPT
+ * 갱신일: 2025-02-14
+ * 설명: 컴포넌트 문서 목차
+ */
 const TableOfContents = () => {
   return (
     <section className="bg-white">
@@ -177,6 +183,7 @@ const TableOfContents = () => {
           <ul className="ml-4 mt-1 space-y-1">
             <li><a href="#tooltip-basic" className="text-blue-600 hover:text-blue-800">- 기본</a></li>
             <li><a href="#tooltip-placement" className="text-blue-600 hover:text-blue-800">- 방향</a></li>
+            <li><a href="#tooltip-trigger" className="text-blue-600 hover:text-blue-800">- 트리거</a></li>
           </ul>
         </li>
         <li>
@@ -184,6 +191,10 @@ const TableOfContents = () => {
           <ul className="ml-4 mt-1 space-y-1">
             <li><a href="#slider-right" className="text-blue-600 hover:text-blue-800">- 오른쪽</a></li>
             <li><a href="#slider-left" className="text-blue-600 hover:text-blue-800">- 왼쪽</a></li>
+            <li><a href="#slider-top" className="text-blue-600 hover:text-blue-800">- 위쪽</a></li>
+            <li><a href="#slider-bottom" className="text-blue-600 hover:text-blue-800">- 아래쪽</a></li>
+            <li><a href="#slider-card" className="text-blue-600 hover:text-blue-800">- 카드 샘플</a></li>
+            <li><a href="#slider-menu" className="text-blue-600 hover:text-blue-800">- 메뉴 샘플</a></li>
           </ul>
         </li>
         <li>

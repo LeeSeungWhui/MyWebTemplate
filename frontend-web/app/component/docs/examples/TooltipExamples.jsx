@@ -1,3 +1,9 @@
+/**
+ * 파일명: TooltipExamples.jsx
+ * 작성자: ChatGPT
+ * 갱신일: 2025-02-14
+ * 설명: 툴팁 컴포넌트 예시 모음
+ */
 import * as Lib from '@/lib';
 
 export const TooltipExamples = () => {
@@ -29,6 +35,17 @@ export const TooltipExamples = () => {
       ),
       description: 'placement: top/bottom/left/right',
       code: `<Lib.Tooltip content="오른쪽" placement="right"><Lib.Button>right</Lib.Button></Lib.Tooltip>`
+    },
+    {
+      component: (
+        <div className="flex gap-4 items-center">
+          <Lib.Tooltip content="클릭 트리거" trigger="click">
+            <Lib.Button>Click</Lib.Button>
+          </Lib.Tooltip>
+        </div>
+      ),
+      description: 'trigger="click" 으로 클릭 시 표시',
+      code: `<Lib.Tooltip content="클릭" trigger="click"><Lib.Button>Click</Lib.Button></Lib.Tooltip>`
     }
   ];
   return examples;
