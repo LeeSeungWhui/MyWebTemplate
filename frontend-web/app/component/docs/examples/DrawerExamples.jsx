@@ -1,7 +1,6 @@
-/**
- * 파일명: DrawerExamples.jsx (표시명은 Drawer로 전환)
- * 작성자: ChatGPT
- * 설명: 드로어 컴포넌트 사용 예제 모음
+﻿/**
+ * 파일명: DrawerExamples.jsx
+ * 설명: Drawer 컴포넌트 사용 예제 모음 (size 숫자 px 지원 포함)
  */
 import * as Lib from '@/lib';
 import { useState } from 'react';
@@ -13,55 +12,69 @@ export const DrawerExamples = () => {
   const [bottomOpen, setBottomOpen] = useState(false);
   const [cardOpen, setCardOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [rightSizedOpen, setRightSizedOpen] = useState(false);
+  const [topSizedOpen, setTopSizedOpen] = useState(false);
 
   const examples = [
     {
       component: (
         <div>
-          <Lib.Button onClick={() => setRightOpen(true)}>오른쪽 빈 드로어</Lib.Button>
+          <Lib.Button onClick={() => setRightOpen(true)}>오른쪽 드로어 (기본)</Lib.Button>
           <Lib.Drawer isOpen={rightOpen} onClose={() => setRightOpen(false)} side="right" resizable collapseButton>
             <div className="p-3">내용 없음</div>
           </Lib.Drawer>
         </div>
       ),
-      description: '오른쪽에서 열리는 빈 드로어 (리사이즈 가능, 외부 버튼)',
+      description: '오른쪽에서 열리는 기본 드로어 (리사이즈 가능, 핸들 포함)',
       code: `<Lib.Drawer isOpen={open} onClose={close} side="right" resizable collapseButton>내용 없음</Lib.Drawer>`
     },
     {
       component: (
         <div>
-          <Lib.Button onClick={() => setLeftOpen(true)}>왼쪽 빈 드로어</Lib.Button>
-          <Lib.Drawer isOpen={leftOpen} onClose={() => setLeftOpen(false)} side="left" collapseButton>
-            <div className="p-3">내용 없음</div>
+          <Lib.Button onClick={() => setRightSizedOpen(true)}>오른쪽 드로어 (size=360px)</Lib.Button>
+          <Lib.Drawer isOpen={rightSizedOpen} onClose={() => setRightSizedOpen(false)} side="right" size={360} collapseButton>
+            <div className="p-3">width 360px</div>
           </Lib.Drawer>
         </div>
       ),
-      description: '왼쪽에서 열리는 빈 드로어 (외부 버튼)',
-      code: `<Lib.Drawer isOpen={open} onClose={close} side="left" collapseButton>내용 없음</Lib.Drawer>`
+      description: '오른쪽 드로어 너비를 숫자(px)로 지정(size=360)',
+      code: `<Lib.Drawer isOpen={open} onClose={close} side="right" size={360} collapseButton>width 360px</Lib.Drawer>`
     },
     {
       component: (
         <div>
-          <Lib.Button onClick={() => setTopOpen(true)}>위쪽 빈 드로어</Lib.Button>
-          <Lib.Drawer isOpen={topOpen} onClose={() => setTopOpen(false)} side="top" collapseButton>
-            <div className="p-3">내용 없음</div>
+          <Lib.Button onClick={() => setLeftOpen(true)}>왼쪽 드로어 (size="420px")</Lib.Button>
+          <Lib.Drawer isOpen={leftOpen} onClose={() => setLeftOpen(false)} side="left" size="420px" collapseButton>
+            <div className="p-3">width 420px</div>
           </Lib.Drawer>
         </div>
       ),
-      description: '위쪽에서 열리는 빈 드로어 (외부 버튼)',
-      code: `<Lib.Drawer isOpen={open} onClose={close} side="top" collapseButton>내용 없음</Lib.Drawer>`
+      description: '왼쪽 드로어 너비를 문자열(px)로 지정(size="420px")',
+      code: `<Lib.Drawer isOpen={open} onClose={close} side="left" size="420px" collapseButton>width 420px</Lib.Drawer>`
     },
     {
       component: (
         <div>
-          <Lib.Button onClick={() => setBottomOpen(true)}>아래쪽 빈 드로어</Lib.Button>
-          <Lib.Drawer isOpen={bottomOpen} onClose={() => setBottomOpen(false)} side="bottom" collapseButton>
-            <div className="p-3">내용 없음</div>
+          <Lib.Button onClick={() => setTopSizedOpen(true)}>위쪽 드로어 (size=220px)</Lib.Button>
+          <Lib.Drawer isOpen={topSizedOpen} onClose={() => setTopSizedOpen(false)} side="top" size={220} collapseButton>
+            <div className="p-3">height 220px</div>
           </Lib.Drawer>
         </div>
       ),
-      description: '아래쪽에서 열리는 빈 드로어 (외부 버튼)',
-      code: `<Lib.Drawer isOpen={open} onClose={close} side="bottom" collapseButton>내용 없음</Lib.Drawer>`
+      description: '위쪽 드로어 높이를 숫자(px)로 지정(size=220)',
+      code: `<Lib.Drawer isOpen={open} onClose={close} side="top" size={220} collapseButton>height 220px</Lib.Drawer>`
+    },
+    {
+      component: (
+        <div>
+          <Lib.Button onClick={() => setBottomOpen(true)}>아래쪽 드로어 (size="260")</Lib.Button>
+          <Lib.Drawer isOpen={bottomOpen} onClose={() => setBottomOpen(false)} side="bottom" size="260" collapseButton>
+            <div className="p-3">height 260px</div>
+          </Lib.Drawer>
+        </div>
+      ),
+      description: '아래쪽 드로어 높이를 숫자 문자열로 지정(size="260")',
+      code: `<Lib.Drawer isOpen={open} onClose={close} side="bottom" size="260" collapseButton>height 260px</Lib.Drawer>`
     },
     {
       component: (
@@ -96,4 +109,3 @@ export const DrawerExamples = () => {
   ];
   return examples;
 };
-
