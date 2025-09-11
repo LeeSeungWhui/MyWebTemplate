@@ -21,7 +21,8 @@ export { default as DateInput } from './component/DateInput';
 export { default as TimeInput } from './component/TimeInput';
 export { default as Combobox } from './component/Combobox';
 export { default as Tooltip } from './component/Tooltip';
-export { default as Slider } from './component/Slider';
+export { default as Drawer } from './component/Drawer';
+export { default as Slider } from './component/Slider'; // deprecated alias
 export { default as Skeleton } from './component/Skeleton';
 export { default as Empty } from './component/Empty';
 // Datasets

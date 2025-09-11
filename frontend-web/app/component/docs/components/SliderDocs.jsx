@@ -1,8 +1,7 @@
 /**
- * 파일명: SliderDocs.jsx
+ * 파일명: SliderDocs.jsx (표시명은 Drawer로 전환)
  * 작성자: ChatGPT
- * 갱신일: 2025-02-14
- * 설명: 슬라이더 문서 섹션
+ * 설명: 드로어 컴포넌트 문서
  */
 import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';
@@ -11,7 +10,7 @@ import { SliderExamples } from '../examples/SliderExamples';
 const SliderDocs = () => {
   const examples = SliderExamples();
   return (
-    <DocSection id="sliders" title="24. 슬라이더 (Slider)" description={<p>화면 측면에서 슬라이드 인 되는 패널. 외부 Collapse 버튼과 리사이즈 지원.</p>}>
+    <DocSection id="sliders" title="24. 드로어 (Drawer)" description={<p>화면 측면에서 슬라이드 인 되는 패널. 외부 Collapse 버튼과 리사이즈 지원.</p>}>
       <div id="slider-right" className="mb-8">
         <h3 className="text-lg font-medium mb-4">오른쪽</h3>
         <div>
