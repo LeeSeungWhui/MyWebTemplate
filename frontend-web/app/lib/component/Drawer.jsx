@@ -126,7 +126,7 @@ const Drawer = forwardRef(function Drawer(
       {/* Panel */}
       <div
         ref={assignRef}
-        className={`absolute bg-white shadow-xl will-change-transform transition-transform duration-300 ${conf.base} ${transformCls} ${sizeCls} ${resizeCls} relative ${className}`.trim()}
+        className={`absolute bg-white shadow-xl will-change-transform transition-transform duration-300 ${conf.base} ${transformCls} ${sizeCls} ${resizeCls} ${className}`.trim()}
         {...props}
       >
         <div className={contentPad}>
