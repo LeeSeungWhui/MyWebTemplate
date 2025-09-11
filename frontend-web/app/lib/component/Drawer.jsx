@@ -6,19 +6,19 @@ import { forwardRef, useEffect, useRef, useState } from 'react';
 
 const sides = {
   right: {
-    base: 'inset-y-0 right-0 w-80 max-w-full rounded-l-lg',
+    base: 'inset-y-0 right-0 w-80 max-w-full rounded-l-2xl',
     transform: { open: 'translate-x-0', closed: 'translate-x-full' }
   },
   left: {
-    base: 'inset-y-0 left-0 w-80 max-w-full rounded-r-lg',
+    base: 'inset-y-0 left-0 w-80 max-w-full rounded-r-2xl',
     transform: { open: 'translate-x-0', closed: '-translate-x-full' }
   },
   top: {
-    base: 'inset-x-0 top-0 h-72 max-h-full rounded-b-lg',
+    base: 'inset-x-0 top-0 h-72 max-h-full rounded-b-2xl',
     transform: { open: 'translate-y-0', closed: '-translate-y-full' }
   },
   bottom: {
-    base: 'inset-x-0 bottom-0 h-72 max-h-full rounded-t-lg',
+    base: 'inset-x-0 bottom-0 h-72 max-h-full rounded-t-2xl',
     transform: { open: 'translate-y-0', closed: 'translate-y-full' }
   }
 };
@@ -38,7 +38,7 @@ const Drawer = forwardRef(function Drawer(
     ...props
   },
   ref
-){
+) {
   const rootRef = useRef(null);
   const [visible, setVisible] = useState(isOpen);
   const [exiting, setExiting] = useState(false);
@@ -82,7 +82,19 @@ const Drawer = forwardRef(function Drawer(
 
   if (!visible) return null;
 
-  const sizeCls = size ? String(size) : '';
+  // size: number or numeric string -> px width/height depending on side
+  // non-numeric string -> treated as className (tailwind etc.)
+  let numericSize = null;
+  let sizeCls = '';
+  if (size != null) {
+    if (typeof size === 'number') {
+      numericSize = size;
+    } else if (typeof size === 'string') {
+      const m = size.trim().match(/^(\d+(?:\.\d+)?)(?:px)?$/);
+      if (m) numericSize = parseFloat(m[1]);
+      else sizeCls = size; // assume classes like 'w-96' or 'h-80'
+    }
+  }
   const resizeCls = resizable
     ? (side === 'top' || side === 'bottom' ? 'resize-y overflow-auto' : 'resize-x overflow-auto')
     : '';
@@ -91,12 +103,12 @@ const Drawer = forwardRef(function Drawer(
   // Emphasize the corner where the handle lives
   const cornerBoost = collapseButton
     ? (side === 'right'
-        ? 'rounded-l-2xl'
-        : side === 'left'
-          ? 'rounded-r-2xl'
-          : side === 'top'
-            ? 'rounded-b-2xl'
-            : 'rounded-t-2xl')
+      ? 'rounded-l-2xl'
+      : side === 'left'
+        ? 'rounded-r-2xl'
+        : side === 'top'
+          ? 'rounded-b-2xl'
+          : 'rounded-t-2xl')
     : '';
 
   // Handle placement at edge center (inside panel)
@@ -118,12 +130,12 @@ const Drawer = forwardRef(function Drawer(
   // Add edge padding so the button does not overlap content
   const contentPad = collapseButton
     ? (side === 'right'
-        ? 'pl-10'
-        : side === 'left'
-          ? 'pr-10'
-          : side === 'top'
-            ? 'pb-10'
-            : 'pt-10')
+      ? 'pl-10'
+      : side === 'left'
+        ? 'pr-10'
+        : side === 'top'
+          ? 'pb-10'
+          : 'pt-10')
     : '';
 
   const assignRef = (el) => {
@@ -145,7 +157,15 @@ const Drawer = forwardRef(function Drawer(
       <div
         ref={assignRef}
         className={`absolute bg-white shadow-xl will-change-transform transition-transform duration-300 ${conf.base} ${cornerBoost} ${transformCls} ${sizeCls} ${resizeCls} ${className}`.trim()}
-        {...props}
+        {...(() => {
+          const { style: userStyle, ...rest } = props || {};
+          const dim = (numericSize != null)
+            ? (side === 'left' || side === 'right'
+                ? { width: `${numericSize}px` }
+                : { height: `${numericSize}px` })
+            : {};
+          return { ...rest, style: { ...dim, ...(userStyle || {}) } };
+        })()}
       >
         <div className={contentPad}>
           {children}
@@ -160,7 +180,7 @@ const Drawer = forwardRef(function Drawer(
           >
             {/* inline SVG arrow to avoid encoding issues */}
             <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg" className={arrowRotate[side]} aria-hidden>
-              <path d="M4 2L8 6L4 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M4 2L8 6L4 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </button>
         )}
