@@ -25,7 +25,7 @@ import NumberInputDocs from './docs/components/NumberInputDocs'
 import DateTimeDocs from './docs/components/DateTimeDocs'
 import ComboboxDocs from './docs/components/ComboboxDocs'
 import TooltipDocs from './docs/components/TooltipDocs'
-import SliderDocs from './docs/components/SliderDocs'
+import DrawerDocs from './docs/components/DrawerDocs'
 import SkeletonDocs from './docs/components/SkeletonDocs'
 import EmptyDocs from './docs/components/EmptyDocs'
 
@@ -65,7 +65,7 @@ export default function ComponentsPage() {
           <DateTimeDocs />
           <ComboboxDocs />
           <TooltipDocs />
-          <SliderDocs />
+          <DrawerDocs />
           <SkeletonDocs />
           <EmptyDocs />
         </div>

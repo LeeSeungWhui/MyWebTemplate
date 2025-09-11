@@ -5,10 +5,10 @@
  */
 import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';
-import { SliderExamples } from '../examples/SliderExamples';
+import { DrawerExamples } from '../examples/DrawerExamples';
 
-const SliderDocs = () => {
-  const examples = SliderExamples();
+const DrawerDocs = () => {
+  const examples = DrawerExamples();
   return (
     <DocSection id="sliders" title="24. 드로어 (Drawer)" description={<p>화면 측면에서 슬라이드 인 되는 패널. 외부 Collapse 버튼과 리사이즈 지원.</p>}>
       <div id="slider-right" className="mb-8">
@@ -63,5 +63,5 @@ const SliderDocs = () => {
   );
 };
 
-export default SliderDocs;
+export default DrawerDocs;
 

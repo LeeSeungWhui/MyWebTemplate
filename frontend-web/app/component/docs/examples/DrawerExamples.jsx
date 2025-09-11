@@ -1,12 +1,12 @@
 /**
- * 파일명: SliderExamples.jsx (표시명은 Drawer로 전환)
+ * 파일명: DrawerExamples.jsx (표시명은 Drawer로 전환)
  * 작성자: ChatGPT
  * 설명: 드로어 컴포넌트 사용 예제 모음
  */
 import * as Lib from '@/lib';
 import { useState } from 'react';
 
-export const SliderExamples = () => {
+export const DrawerExamples = () => {
   const [rightOpen, setRightOpen] = useState(false);
   const [leftOpen, setLeftOpen] = useState(false);
   const [topOpen, setTopOpen] = useState(false);

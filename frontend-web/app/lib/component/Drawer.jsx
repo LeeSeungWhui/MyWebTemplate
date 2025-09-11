@@ -90,13 +90,23 @@ const Drawer = forwardRef(function Drawer(
 
   // ASCII-safe icons to avoid encoding issues in some terminals
   const collapseIcons = { right: '>', left: '<', top: '^', bottom: 'v' };
-  // Place button inside the panel to avoid overflow clipping
+  // Place button INSIDE the panel at edge center
   const collapsePos = {
-    right: 'absolute top-2 left-2',
-    left: 'absolute top-2 right-2',
-    top: 'absolute bottom-2 left-2',
-    bottom: 'absolute top-2 left-2'
+    right: 'absolute left-2 top-1/2 -translate-y-1/2',
+    left: 'absolute right-2 top-1/2 -translate-y-1/2',
+    top: 'absolute bottom-2 left-1/2 -translate-x-1/2',
+    bottom: 'absolute top-2 left-1/2 -translate-x-1/2'
   };
+  // Add edge padding so the button does not overlap content
+  const contentPad = collapseButton
+    ? (side === 'right'
+        ? 'pl-10'
+        : side === 'left'
+          ? 'pr-10'
+          : side === 'top'
+            ? 'pb-10'
+            : 'pt-10')
+    : '';
 
   const assignRef = (el) => {
     rootRef.current = el;
@@ -105,22 +115,23 @@ const Drawer = forwardRef(function Drawer(
   };
 
   return (
-    <div
-      className="fixed inset-0 z-50"
-      onClick={(e) => {
-        if (closeOnBackdrop && e.target === e.currentTarget) onClose?.();
-      }}
-    >
+    <div className="fixed inset-0 z-50">
       {/* Backdrop */}
-      <div className={`absolute inset-0 bg-black/40 transition-opacity duration-300 ${exiting ? 'opacity-0' : 'opacity-100'}`} />
+      <div
+        className={`absolute inset-0 bg-black/40 transition-opacity duration-300 ${exiting ? 'opacity-0' : 'opacity-100'}`}
+        onClick={() => { if (closeOnBackdrop) onClose?.(); }}
+        aria-hidden="true"
+      />
 
       {/* Panel */}
       <div
         ref={assignRef}
-        className={`absolute bg-white shadow-xl will-change-transform transition-transform duration-300 ${conf.base} ${transformCls} ${sizeCls} ${resizeCls} ${className}`.trim()}
+        className={`absolute bg-white shadow-xl will-change-transform transition-transform duration-300 ${conf.base} ${transformCls} ${sizeCls} ${resizeCls} relative ${className}`.trim()}
         {...props}
       >
-        {children}
+        <div className={contentPad}>
+          {children}
+        </div>
 
         {collapseButton && (
           <button
@@ -140,4 +151,3 @@ const Drawer = forwardRef(function Drawer(
 Drawer.displayName = 'Drawer';
 
 export default Drawer;
-
