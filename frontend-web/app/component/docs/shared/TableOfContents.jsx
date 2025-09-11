@@ -17,6 +17,15 @@ const TableOfContents = () => {
           </ul>
         </li>
         <li>
+          <a href="#tables" className="text-blue-600 hover:text-blue-800">27. 테이블 (Table)</a>
+          <ul className="ml-4 mt-1 space-y-1">
+            <li><a href="#table-basic" className="text-blue-600 hover:text-blue-800">- 기본</a></li>
+            <li><a href="#table-controlled" className="text-blue-600 hover:text-blue-800">- 제어형</a></li>
+            <li><a href="#table-card" className="text-blue-600 hover:text-blue-800">- 카드</a></li>
+            <li><a href="#table-empty" className="text-blue-600 hover:text-blue-800">- 빈 상태</a></li>
+          </ul>
+        </li>
+        <li>
           <a href="#buttons" className="text-blue-600 hover:text-blue-800">2. 버튼 (Button)</a>
           <ul className="ml-4 mt-1 space-y-1">
             <li><a href="#button-variants" className="text-blue-600 hover:text-blue-800">- 버튼 종류</a></li>

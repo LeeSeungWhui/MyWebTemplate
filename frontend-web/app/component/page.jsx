@@ -26,6 +26,7 @@ import DateTimeDocs from './docs/components/DateTimeDocs'
 import ComboboxDocs from './docs/components/ComboboxDocs'
 import TooltipDocs from './docs/components/TooltipDocs'
 import DrawerDocs from './docs/components/DrawerDocs'
+import TableDocs from './docs/components/TableDocs'
 import SkeletonDocs from './docs/components/SkeletonDocs'
 import EmptyDocs from './docs/components/EmptyDocs'
 
@@ -66,6 +67,7 @@ export default function ComponentsPage() {
           <ComboboxDocs />
           <TooltipDocs />
           <DrawerDocs />
+          <TableDocs />
           <SkeletonDocs />
           <EmptyDocs />
         </div>
