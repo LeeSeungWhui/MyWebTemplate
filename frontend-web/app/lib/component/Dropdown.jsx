@@ -83,7 +83,11 @@ const Dropdown = ({
         onClick={() => !disabled && setOpen(!open)}
         className="inline-flex items-center gap-1 px-3 py-2 border rounded hover:bg-gray-50 disabled:opacity-50"
       >
-        {typeof trigger === 'function' ? trigger({ selectedItem, selectedLabel }) : (trigger ?? (selectedLabel ?? placeholder))}
+        {(() => {
+          if (typeof trigger === 'function') return trigger({ selectedItem, selectedLabel });
+          // 우선순위: 선택 라벨 > 사용자 제공 트리거 노드 > placeholder
+          return (selectedLabel ?? trigger ?? placeholder);
+        })()}
         <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden className={`${open ? 'rotate-180' : ''} transition-transform`}>
           <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
