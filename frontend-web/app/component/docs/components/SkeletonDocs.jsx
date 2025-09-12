@@ -1,7 +1,7 @@
 import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';
 import { SkeletonExamples } from '../examples/SkeletonExamples';
-import Skeleton from '../../lib/component/Skeleton';
+import Skeleton from '@/lib/component/Skeleton';
 
 const SkeletonDocs = () => {
   const examples = SkeletonExamples();

@@ -1,7 +1,7 @@
 import { IconExamples } from '../examples/IconExamples';
 import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';
-import Icon from '../../lib/component/Icon';
+import Icon from '@/lib/component/Icon';
 
 const IconDocs = () => {
     const examples = IconExamples();

@@ -1,7 +1,7 @@
 import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';
 import { ComboboxExamples } from '../examples/ComboboxExamples';
-import Combobox from '../../lib/component/Combobox';
+import Combobox from '@/lib/component/Combobox';
 
 const ComboboxDocs = () => {
   const ex = ComboboxExamples();

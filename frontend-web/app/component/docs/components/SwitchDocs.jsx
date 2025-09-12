@@ -1,7 +1,7 @@
 import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';
 import { SwitchExamples } from '../examples/SwitchExamples';
-import Switch from '../../lib/component/Switch';
+import Switch from '@/lib/component/Switch';
 
 const SwitchDocs = () => {
   const examples = SwitchExamples();

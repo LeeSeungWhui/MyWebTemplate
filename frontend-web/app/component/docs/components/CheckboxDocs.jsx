@@ -1,7 +1,7 @@
 import { CheckboxExamples } from '../examples/CheckboxExamples';
 import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';
-import Checkbox from '../../lib/component/Checkbox';
+import Checkbox from '@/lib/component/Checkbox';
 
 const CheckboxDocs = () => {
     const examples = CheckboxExamples();

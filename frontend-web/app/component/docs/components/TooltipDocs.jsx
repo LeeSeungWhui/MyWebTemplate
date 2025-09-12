@@ -7,7 +7,7 @@
 import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';
 import { TooltipExamples } from '../examples/TooltipExamples';
-import Tooltip from '../../lib/component/Tooltip';
+import Tooltip from '@/lib/component/Tooltip';
 
 const TooltipDocs = () => {
   const examples = TooltipExamples();

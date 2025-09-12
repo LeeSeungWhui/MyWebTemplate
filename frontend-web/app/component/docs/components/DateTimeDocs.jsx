@@ -3,8 +3,8 @@ import CodeBlock from '../shared/CodeBlock';
 import { DateInputExamples } from '../examples/DateInputExamples';
 import { TimeInputExamples } from '../examples/TimeInputExamples';
 import PropsTable from '../shared/PropsTable';
-import DateInput from '../../lib/component/DateInput';
-import TimeInput from '../../lib/component/TimeInput';
+import DateInput from '@/lib/component/DateInput';
+import TimeInput from '@/lib/component/TimeInput';
 
 const DateTimeDocs = () => {
   const dateEx = DateInputExamples();

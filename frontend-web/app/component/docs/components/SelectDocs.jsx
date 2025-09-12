@@ -1,7 +1,7 @@
 import { SelectExamples } from '../examples/SelectExamples';
 import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';
-import Select from '../../lib/component/Select';
+import Select from '@/lib/component/Select';
 
 const SelectDocs = () => {
     const examples = SelectExamples();

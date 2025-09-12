@@ -1,7 +1,7 @@
 import { ConfirmExamples } from '../examples/ConfirmExamples';
 import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';
-import Confirm from '../../lib/component/Confirm';
+import Confirm from '@/lib/component/Confirm';
 
 const ConfirmDocs = () => {
     const examples = ConfirmExamples();

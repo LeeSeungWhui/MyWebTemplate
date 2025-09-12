@@ -1,7 +1,7 @@
 import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';
 import { EmptyExamples } from '../examples/EmptyExamples';
-import Empty from '../../lib/component/Empty';
+import Empty from '@/lib/component/Empty';
 
 const EmptyDocs = () => {
   const examples = EmptyExamples();

@@ -1,7 +1,7 @@
 import { LoadingExamples } from '../examples/LoadingExamples';
 import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';
-import Loading from '../../lib/component/Loading';
+import Loading from '@/lib/component/Loading';
 
 const LoadingDocs = () => {
     const examples = LoadingExamples();

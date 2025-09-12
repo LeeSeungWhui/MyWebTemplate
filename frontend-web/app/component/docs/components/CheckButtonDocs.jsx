@@ -1,7 +1,7 @@
 import { CheckButtonExamples } from '../examples/CheckButtonExamples';
 import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';
-import CheckButton from '../../lib/component/CheckButton';
+import CheckButton from '@/lib/component/CheckButton';
 
 const CheckButtonDocs = () => {
     const examples = CheckButtonExamples();

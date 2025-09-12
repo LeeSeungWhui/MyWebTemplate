@@ -1,7 +1,7 @@
 import { AlertExamples } from '../examples/AlertExamples';
 import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';
-import Alert from '../../lib/component/Alert';
+import Alert from '@/lib/component/Alert';
 
 const AlertDocs = () => {
     const examples = AlertExamples();

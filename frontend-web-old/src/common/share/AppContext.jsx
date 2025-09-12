@@ -1,10 +1,10 @@
 import { createContext } from 'react';
-import EasyObj from '../../lib/dataset/EasyObj';
+import EasyObj from '@/lib/dataset/EasyObj';
 // import useSendAxios from '../hook/useSendAxios';
-import Loading from '../../lib/component/Loading';
-import Alert from '../../lib/component/Alert';
-import Confirm from '../../lib/component/Confirm';
-import Toast from '../../lib/component/Toast/Toast';
+import Loading from '@/lib/component/Loading';
+import Alert from '@/lib/component/Alert';
+import Confirm from '@/lib/component/Confirm';
+import Toast from '@/lib/component/Toast/Toast';
 
 export const AppContext = createContext();
 

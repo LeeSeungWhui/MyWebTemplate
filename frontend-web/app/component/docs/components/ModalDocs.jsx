@@ -1,7 +1,7 @@
 import { ModalExamples } from '../examples/ModalExamples';
 import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';
-import Modal from '../../lib/component/Modal';
+import Modal from '@/lib/component/Modal';
 
 const ModalDocs = () => {
     const examples = ModalExamples();

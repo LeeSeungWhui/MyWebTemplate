@@ -5,7 +5,7 @@
 import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';
 import { DrawerExamples } from '../examples/DrawerExamples';
-import Drawer from '../../lib/component/Drawer';
+import Drawer from '@/lib/component/Drawer';
 
 const DrawerDocs = () => {
   const examples = DrawerExamples();

@@ -1,6 +1,6 @@
 import { View, Text, TouchableOpacity } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
-import { Icon } from '../../lib';
+import { Icon } from '@/lib';
 
 const CodeBlock = ({ code }) => {
     const copyToClipboard = async () => {

@@ -1,5 +1,5 @@
 import { View, Text, Linking, TouchableOpacity } from 'react-native';
-import * as Lib from '../../lib';
+import * as Lib from '@/lib';
 
 const iconSetUrls = {
     ai: 'https://oblador.github.io/react-native-vector-icons/#antdesign',

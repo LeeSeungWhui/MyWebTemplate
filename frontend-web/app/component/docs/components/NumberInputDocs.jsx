@@ -1,7 +1,7 @@
 import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';
 import { NumberInputExamples } from '../examples/NumberInputExamples';
-import NumberInput from '../../lib/component/NumberInput';
+import NumberInput from '@/lib/component/NumberInput';
 
 const NumberInputDocs = () => {
   const examples = NumberInputExamples();

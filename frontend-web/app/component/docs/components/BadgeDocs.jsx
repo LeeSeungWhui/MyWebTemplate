@@ -1,7 +1,7 @@
 import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';
 import { BadgeExamples } from '../examples/BadgeExamples';
-import Badge from '../../lib/component/Badge';
+import Badge from '@/lib/component/Badge';
 
 const BadgeDocs = () => {
   const examples = BadgeExamples();

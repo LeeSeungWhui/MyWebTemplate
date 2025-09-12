@@ -1,7 +1,7 @@
 import { TabExamples } from '../examples/TabExamples';
 import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';
-import Tab from '../../lib/component/Tab';
+import Tab from '@/lib/component/Tab';
 
 const TabDocs = () => {
     const examples = TabExamples();

@@ -1,7 +1,7 @@
 import { InputExamples } from '../examples/InputExamples';
 import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';
-import Input from '../../lib/component/Input';
+import Input from '@/lib/component/Input';
 
 const InputDocs = () => {
     const examples = InputExamples();  // 컴포넌트 실행

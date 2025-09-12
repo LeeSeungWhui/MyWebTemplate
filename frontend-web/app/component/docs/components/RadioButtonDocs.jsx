@@ -1,7 +1,7 @@
 import { RadioButtonExamples } from '../examples/RadioButtonExamples';
 import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';
-import RadioButton from '../../lib/component/RadioButton';
+import RadioButton from '@/lib/component/RadioButton';
 
 const RadioButtonDocs = () => {
     const examples = RadioButtonExamples();

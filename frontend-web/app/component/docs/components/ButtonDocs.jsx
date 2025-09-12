@@ -1,7 +1,7 @@
 import { ButtonExamples } from '../examples/ButtonExamples';
 import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';
-import Button from '../../lib/component/Button';
+import Button from '@/lib/component/Button';
 
 const ButtonDocs = () => {
     const examples = ButtonExamples();  // 컴포넌트 실행

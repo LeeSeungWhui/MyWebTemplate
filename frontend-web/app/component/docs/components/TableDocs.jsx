@@ -5,7 +5,7 @@
 import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';
 import { TableExamples } from '../examples/TableExamples';
-import Table from '../../lib/component/Table';
+import Table from '@/lib/component/Table';
 
 const TableDocs = () => {
   const examples = TableExamples();

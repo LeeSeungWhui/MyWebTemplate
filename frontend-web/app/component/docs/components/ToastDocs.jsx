@@ -1,7 +1,7 @@
 import { ToastExamples } from '../examples/ToastExamples';
 import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';
-import Toast from '../../lib/component/Toast';
+import Toast from '@/lib/component/Toast';
 
 const ToastDocs = () => {
     const examples = ToastExamples();

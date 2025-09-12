@@ -1,7 +1,7 @@
 import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';
 import { TextareaExamples } from '../examples/TextareaExamples';
-import Textarea from '../../lib/component/Textarea';
+import Textarea from '@/lib/component/Textarea';
 
 const TextareaDocs = () => {
   const examples = TextareaExamples();

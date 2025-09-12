@@ -1,7 +1,7 @@
 import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';
 import { CardExamples } from '../examples/CardExamples';
-import Card from '../../lib/component/Card';
+import Card from '@/lib/component/Card';
 
 const CardDocs = () => {
   const examples = CardExamples();

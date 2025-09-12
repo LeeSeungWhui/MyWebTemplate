@@ -1,5 +1,5 @@
 import { View, Text, TouchableOpacity } from 'react-native';
-import * as Lib from '../../lib';
+import * as Lib from '@/lib';
 
 export const DataClassExamples = () => {
     const data = Lib.EasyObj({
