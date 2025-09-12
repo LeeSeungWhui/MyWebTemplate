@@ -13,6 +13,12 @@ const AlertDocs = () => {
                 <div>
                     <p>Alert 컴포넌트는 전역 스토어(useSharedStore)의 showAlert로 제어합니다.</p>
                     <p>4가지 유형(info, success, warning, error)을 지원하며, 제목과 메시지를 설정할 수 있습니다.</p>
+                    <ul className="list-disc pl-5 mt-2 text-sm text-gray-600">
+                        <li><code>title?</code>: 알림 제목 (기본: '알림')</li>
+                        <li><code>text</code>: 표시할 메시지 (필수)</li>
+                        <li><code>type?</code>: 알림 유형 ('info' | 'success' | 'warning' | 'error')</li>
+                        <li><code>onClick?</code>: 확인 버튼 클릭 시 호출</li>
+                    </ul>
                 </div>
             }
         >

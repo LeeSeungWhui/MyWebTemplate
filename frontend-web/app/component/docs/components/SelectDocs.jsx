@@ -13,6 +13,13 @@ const SelectDocs = () => {
                 <div>
                     <p>Select 컴포넌트는 dataList의 selected 속성을 통해 선택 상태를 관리합니다.</p>
                     <p>옵션 선택 시 해당 항목의 selected가 true로, 나머지는 false로 자동 변경됩니다.</p>
+                    <ul className="list-disc pl-5 mt-2 text-sm text-gray-600">
+                        <li><code>dataList</code>: 옵션 배열(EasyList 가능)</li>
+                        <li><code>valueKey/textKey?</code>: 값/라벨 키 (기본: 'value'/'text')</li>
+                        <li><code>dataObj?/dataKey?</code>: 선택 값 바인딩</li>
+                        <li><code>disabled?</code>: 비활성화 여부</li>
+                        <li><code>error?</code>: 에러 상태 표시</li>
+                    </ul>
                 </div>
             }
         >

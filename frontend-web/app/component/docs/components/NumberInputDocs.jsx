@@ -8,7 +8,18 @@ const NumberInputDocs = () => {
     <DocSection
       id="number-inputs"
       title="20. 숫자 입력 (Number)"
-      description={<p>스텝 버튼이 있는 숫자 입력. EasyObj 바운드/컨트롤드 지원.</p>}
+      description={
+        <div>
+          <p>스텝 버튼이 있는 숫자 입력. EasyObj 바운드/컨트롤드 지원.</p>
+          <ul className="list-disc pl-5 mt-2 text-sm text-gray-600">
+            <li><code>value?</code>: 제어 값</li>
+            <li><code>min?/max?</code>: 허용 범위</li>
+            <li><code>step?</code>: 증감 단위 (기본: 1)</li>
+            <li><code>dataObj?/dataKey?</code>: 바운드 상태 객체와 키</li>
+            <li><code>disabled?</code>: 비활성화 여부</li>
+          </ul>
+        </div>
+      }
     >
       <div id="number-basic" className="mb-8">
         <h3 className="text-lg font-medium mb-4">기본</h3>

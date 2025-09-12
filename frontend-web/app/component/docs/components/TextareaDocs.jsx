@@ -8,7 +8,18 @@ const TextareaDocs = () => {
     <DocSection
       id="textareas"
       title="17. 텍스트영역 (Textarea)"
-      description={<p>바운드/컨트롤드 지원, 줄바꿈 보존, aria-invalid 사용.</p>}
+      description={
+        <div>
+          <p>바운드/컨트롤드 지원, 줄바꿈 보존, aria-invalid 사용.</p>
+          <ul className="list-disc pl-5 mt-2 text-sm text-gray-600">
+            <li><code>rows?</code>: 기본 줄 수 (기본: 4)</li>
+            <li><code>dataObj?/dataKey?</code>: 바운드 상태 객체와 키</li>
+            <li><code>value?</code>: 제어 값</li>
+            <li><code>error?</code>: 에러 메시지</li>
+            <li><code>disabled?/readOnly?</code>: 상태 제어</li>
+          </ul>
+        </div>
+      }
     >
       <div id="textarea-bound" className="mb-8">
         <h3 className="text-lg font-medium mb-4">바운드 모드</h3>

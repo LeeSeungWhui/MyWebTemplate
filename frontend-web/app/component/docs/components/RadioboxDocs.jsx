@@ -14,6 +14,13 @@ const RadioboxDocs = () => {
                     <p>Radiobox 컴포넌트는 dataObj와 dataKey를 통해 양방향 바인딩을 지원합니다.</p>
                     <p>같은 name을 가진 라디오박스 그룹에서 선택된 value가 dataObj에 저장됩니다.</p>
                     <p>name prop이 없을 경우 dataKey 또는 label을 name으로 사용합니다.</p>
+                    <ul className="list-disc pl-5 mt-2 text-sm text-gray-600">
+                        <li><code>label?</code>: 라벨 텍스트</li>
+                        <li><code>value</code>: 선택 값</li>
+                        <li><code>dataObj?/dataKey?</code>: 바운드 상태 객체와 키</li>
+                        <li><code>checked?/defaultChecked?</code>: 선택 상태 제어</li>
+                        <li><code>color?</code>: 표시 색상</li>
+                    </ul>
                 </div>
             }
         >
