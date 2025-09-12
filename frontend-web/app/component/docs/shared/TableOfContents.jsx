@@ -221,6 +221,25 @@ const TableOfContents = () => {
             <li><a href="#table-empty" className="text-blue-600 hover:text-blue-800">- 빈 상태</a></li>
           </ul>
         </li>
+        <li>
+          <a href="#pagination" className="text-blue-600 hover:text-blue-800">28. 페이지네이션 (Pagination)</a>
+          <ul className="ml-4 mt-1 space-y-1">
+            <li><a href="#pagination-basic" className="text-blue-600 hover:text-blue-800">- 기본</a></li>
+            <li><a href="#pagination-advanced" className="text-blue-600 hover:text-blue-800">- 대용량</a></li>
+          </ul>
+        </li>
+        <li>
+          <a href="#dropdowns" className="text-blue-600 hover:text-blue-800">29. 드롭다운 (Dropdown)</a>
+          <ul className="ml-4 mt-1 space-y-1">
+            <li><a href="#dropdown-basic" className="text-blue-600 hover:text-blue-800">- 기본</a></li>
+          </ul>
+        </li>
+        <li>
+          <a href="#stats" className="text-blue-600 hover:text-blue-800">30. 지표 카드 (Stat)</a>
+          <ul className="ml-4 mt-1 space-y-1">
+            <li><a href="#stat-basic" className="text-blue-600 hover:text-blue-800">- 기본</a></li>
+          </ul>
+        </li>
       </ul>
     </section>
   );
