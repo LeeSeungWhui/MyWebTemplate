@@ -1,3 +1,7 @@
+/**
+ * 파일명: ComboboxDocs.jsx
+ * 설명: Combobox 컴포넌트 문서
+ */
 import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';
 import { ComboboxExamples } from '../examples/ComboboxExamples';

@@ -1,3 +1,7 @@
+/**
+ * 파일명: BadgeDocs.jsx
+ * 설명: Badge/Tag 컴포넌트 문서
+ */
 import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';
 import { BadgeExamples } from '../examples/BadgeExamples';

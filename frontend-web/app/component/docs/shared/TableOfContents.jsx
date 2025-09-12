@@ -1,4 +1,4 @@
-﻿/**
+/**
  * 파일명: TableOfContents.jsx
  * 작성자: ChatGPT
  * 갱신일: 2025-02-14

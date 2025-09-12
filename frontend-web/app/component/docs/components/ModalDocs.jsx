@@ -1,3 +1,7 @@
+/**
+ * 파일명: ModalDocs.jsx
+ * 설명: Modal 컴포넌트 문서
+ */
 import { ModalExamples } from '../examples/ModalExamples';
 import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';

@@ -1,3 +1,7 @@
+/**
+ * 파일명: EmptyDocs.jsx
+ * 설명: Empty 상태 컴포넌트 문서
+ */
 import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';
 import { EmptyExamples } from '../examples/EmptyExamples';

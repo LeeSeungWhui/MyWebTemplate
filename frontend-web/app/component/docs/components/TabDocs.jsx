@@ -1,3 +1,7 @@
+/**
+ * 파일명: TabDocs.jsx
+ * 설명: Tab 컴포넌트 문서
+ */
 import { TabExamples } from '../examples/TabExamples';
 import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';

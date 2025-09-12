@@ -1,3 +1,7 @@
+/**
+ * 파일명: NumberInputDocs.jsx
+ * 설명: Number 입력 컴포넌트 문서
+ */
 import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';
 import { NumberInputExamples } from '../examples/NumberInputExamples';

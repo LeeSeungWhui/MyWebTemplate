@@ -1,3 +1,7 @@
+/**
+ * 파일명: DataClassDocs.jsx
+ * 설명: 데이터 클래스(EasyObj/EasyList) 문서
+ */
 import { DataClassExamples } from '../examples/DataClassExamples';
 import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';

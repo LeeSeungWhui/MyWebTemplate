@@ -1,3 +1,7 @@
+/**
+ * 파일명: CheckboxDocs.jsx
+ * 설명: Checkbox 컴포넌트 문서
+ */
 import { CheckboxExamples } from '../examples/CheckboxExamples';
 import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';

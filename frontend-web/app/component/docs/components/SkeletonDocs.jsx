@@ -1,3 +1,7 @@
+/**
+ * 파일명: SkeletonDocs.jsx
+ * 설명: Skeleton 컴포넌트 문서
+ */
 import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';
 import { SkeletonExamples } from '../examples/SkeletonExamples';

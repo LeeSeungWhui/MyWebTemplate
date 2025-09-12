@@ -1,3 +1,7 @@
+/**
+ * 파일명: LoadingDocs.jsx
+ * 설명: Loading 컴포넌트 문서
+ */
 import { LoadingExamples } from '../examples/LoadingExamples';
 import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';

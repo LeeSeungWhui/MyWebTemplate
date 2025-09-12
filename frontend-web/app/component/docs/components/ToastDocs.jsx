@@ -1,3 +1,7 @@
+/**
+ * 파일명: ToastDocs.jsx
+ * 설명: Toast 컴포넌트 문서
+ */
 import { ToastExamples } from '../examples/ToastExamples';
 import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';

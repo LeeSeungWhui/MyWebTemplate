@@ -1,3 +1,7 @@
+/**
+ * 파일명: InputDocs.jsx
+ * 설명: Input 컴포넌트 문서
+ */
 import { InputExamples } from '../examples/InputExamples';
 import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';

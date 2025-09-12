@@ -1,3 +1,7 @@
+/**
+ * 파일명: TextareaDocs.jsx
+ * 설명: Textarea 컴포넌트 문서
+ */
 import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';
 import { TextareaExamples } from '../examples/TextareaExamples';

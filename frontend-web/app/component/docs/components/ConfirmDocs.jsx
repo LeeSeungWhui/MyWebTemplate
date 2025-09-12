@@ -1,3 +1,7 @@
+/**
+ * 파일명: ConfirmDocs.jsx
+ * 설명: Confirm 컴포넌트 문서
+ */
 import { ConfirmExamples } from '../examples/ConfirmExamples';
 import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';

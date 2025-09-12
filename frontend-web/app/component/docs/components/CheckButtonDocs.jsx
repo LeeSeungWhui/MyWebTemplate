@@ -1,3 +1,7 @@
+/**
+ * 파일명: CheckButtonDocs.jsx
+ * 설명: CheckButton 컴포넌트 문서
+ */
 import { CheckButtonExamples } from '../examples/CheckButtonExamples';
 import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';

@@ -1,3 +1,7 @@
+/**
+ * 파일명: IconDocs.jsx
+ * 설명: Icon 컴포넌트 문서
+ */
 import { IconExamples } from '../examples/IconExamples';
 import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';
