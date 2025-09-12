@@ -1,7 +1,15 @@
 import { useMemo } from 'react';
 
 const extractProps = (component) => {
-    const code = component.toString();
+    // forwardRef 등 래핑된 컴포넌트 지원
+    const target =
+        typeof component === 'function'
+            ? component
+            : component?.render;
+
+    if (!target) return [];
+
+    const code = target.toString();
     const match = code.match(/\(\s*\{([^}]*)\}/);
     if (!match) return [];
     const paramSection = match[1];
