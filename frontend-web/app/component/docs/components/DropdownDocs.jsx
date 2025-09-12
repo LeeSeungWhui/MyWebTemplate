@@ -19,6 +19,14 @@ const DropdownDocs = () => {
           <CodeBlock code={examples[0]?.code || ''} />
         </div>
       </div>
+      <div id="dropdown-custom-style" className="mb-8">
+        <h3 className="text-lg font-medium mb-4">커스텀 스타일</h3>
+        <div>
+          {examples[5]?.component}
+          <div className="mt-2 text-sm text-gray-600">{examples[5]?.description}</div>
+          <CodeBlock code={examples[5]?.code || ''} />
+        </div>
+      </div>
       <div id="dropdown-styles" className="mb-8">
         <h3 className="text-lg font-medium mb-4">스타일 변형</h3>
         <div>

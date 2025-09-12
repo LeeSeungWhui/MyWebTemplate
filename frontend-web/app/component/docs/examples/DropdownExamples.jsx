@@ -97,6 +97,32 @@ export const DropdownExamples = () => {
       description: '사전 선택(selected: true) 값 표시',
       code: `const dataList = EasyList([\n  { label: '선택 A', value: 'A', selected: true },\n  { label: '선택 B', value: 'B' },\n  { label: '선택 C', value: 'C' },\n]);\n<Dropdown dataList={dataList} />`
     },
+    {
+      component: (
+        <div className="flex flex-col gap-2 items-start">
+          <Lib.Dropdown
+            dataList={dataListCustom}
+            variant="outlined"
+            rounded="rounded-xl"
+            elevation="shadow-lg"
+            buttonClassName="!bg-blue-600 !text-white !border-blue-600 hover:!bg-blue-700"
+            iconClassName="!text-white"
+            menuClassName="ring-1 ring-blue-100 border-blue-100"
+            itemClassName="hover:bg-blue-50"
+            activeClassName="bg-blue-50"
+            selectedItemClassName="text-blue-700 font-semibold"
+          />
+        </div>
+      ),
+      description: '커스텀 스타일: 파란 톤 버튼/메뉴 + rounded-xl, 선택 강조',
+      code: `<Dropdown dataList={dataList} rounded=\"rounded-xl\" elevation=\"shadow-lg\"
+  buttonClassName=\"!bg-blue-600 !text-white !border-blue-600 hover:!bg-blue-700\"
+  iconClassName=\"!text-white\"
+  menuClassName=\"ring-1 ring-blue-100 border-blue-100\"
+  itemClassName=\"hover:bg-blue-50\"
+  activeClassName=\"bg-blue-50\"
+  selectedItemClassName=\"text-blue-700 font-semibold\" />`
+    },
   ];
 
   return examples;

@@ -33,6 +33,10 @@ const Dropdown = ({
   size = 'md', // 'sm' | 'md' | 'lg'
   rounded = 'rounded-lg', // tailwind rounded class
   elevation = 'shadow-md', // shadow-sm|md|lg|xl
+  buttonClassName = '',
+  iconClassName = '',
+  selectedItemClassName = 'text-blue-700',
+  showCheck = true,
   side = 'bottom',
   align = 'start',
   className = '',
@@ -88,8 +92,8 @@ const Dropdown = ({
     : variant === 'text'
       ? 'bg-transparent border border-transparent hover:bg-gray-50 shadow-none'
       : 'bg-white border border-gray-300 hover:bg-gray-50 shadow-sm';
-  const btnCls = `inline-flex items-center justify-between gap-2 ${sizeCls} ${rounded} ${variantCls} focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50`.trim();
-  const iconCls = 'text-gray-500';
+  const btnCls = `inline-flex items-center justify-between gap-2 ${sizeCls} ${rounded} ${variantCls} focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 ${buttonClassName}`.trim();
+  const iconCls = `text-gray-500 ${iconClassName}`.trim();
 
   return (
     <div ref={rootRef} className={`relative inline-block ${className}`.trim()}>
@@ -140,10 +144,12 @@ const Dropdown = ({
                   }}
                 >
                   {/* 체크 아이콘 (선택 시 표시) */}
-                  <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden className={`${selected ? 'opacity-100 text-blue-600' : 'opacity-0'} transition-opacity`}>
-                    <path d="M6.5 10.5L3.5 7.5L2.5 8.5L6.5 12.5L13.5 5.5L12.5 4.5L6.5 10.5Z" fill="currentColor" />
-                  </svg>
-                  <span className={`${disabledItem ? 'text-gray-400' : selected ? 'text-blue-700' : 'text-gray-800'}`}>{String(label ?? '')}</span>
+                  {showCheck && (
+                    <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden className={`${selected ? 'opacity-100 text-blue-600' : 'opacity-0'} transition-opacity`}>
+                      <path d="M6.5 10.5L3.5 7.5L2.5 8.5L6.5 12.5L13.5 5.5L12.5 4.5L6.5 10.5Z" fill="currentColor" />
+                    </svg>
+                  )}
+                  <span className={`${disabledItem ? 'text-gray-400' : selected ? selectedItemClassName : 'text-gray-800'}`}>{String(label ?? '')}</span>
                 </button>
               </li>
             );
