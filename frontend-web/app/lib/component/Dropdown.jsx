@@ -1,6 +1,7 @@
 /**
  * 파일명: Dropdown.jsx
  * 설명: 경량 Dropdown 컴포넌트 (EasyList 지원, 접근성 포함)
+ * 스타일: 기본값을 모던한 Material 느낌으로 개선 (rounded, elevation, subtle hover)
  */
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 
@@ -27,6 +28,11 @@ const Dropdown = ({
   labelKey = 'label',
   valueKey = 'value',
   placeholder = '선택',
+  // 스타일 옵션
+  variant = 'outlined', // 'outlined' | 'filled' | 'text'
+  size = 'md', // 'sm' | 'md' | 'lg'
+  rounded = 'rounded-lg', // tailwind rounded class
+  elevation = 'shadow-md', // shadow-sm|md|lg|xl
   side = 'bottom',
   align = 'start',
   className = '',
@@ -73,6 +79,18 @@ const Dropdown = ({
   }
   const selectedLabel = selectedItem ? (selectedItem?.get ? selectedItem.get(labelKey) : selectedItem?.[labelKey]) : null;
 
+  // 버튼 스타일 계산 (Material-esque)
+  const sizeCls = size === 'sm' ? 'min-w-[140px] px-2.5 py-1.5 text-sm'
+                  : size === 'lg' ? 'min-w-[200px] px-4 py-2.5 text-base'
+                  : 'min-w-[170px] px-3 py-2 text-sm';
+  const variantCls = variant === 'filled'
+    ? 'bg-gray-50 border border-transparent hover:bg-gray-100 shadow-inner'
+    : variant === 'text'
+      ? 'bg-transparent border border-transparent hover:bg-gray-50 shadow-none'
+      : 'bg-white border border-gray-300 hover:bg-gray-50 shadow-sm';
+  const btnCls = `inline-flex items-center justify-between gap-2 ${sizeCls} ${rounded} ${variantCls} focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50`.trim();
+  const iconCls = 'text-gray-500';
+
   return (
     <div ref={rootRef} className={`relative inline-block ${className}`.trim()}>
       <button
@@ -81,20 +99,20 @@ const Dropdown = ({
         aria-expanded={open ? 'true' : 'false'}
         disabled={disabled}
         onClick={() => !disabled && setOpen(!open)}
-        className="inline-flex items-center gap-1 px-3 py-2 border rounded hover:bg-gray-50 disabled:opacity-50"
+        className={btnCls}
       >
         {(() => {
           if (typeof trigger === 'function') return trigger({ selectedItem, selectedLabel });
           // 우선순위: 선택 라벨 > 사용자 제공 트리거 노드 > placeholder
           return (selectedLabel ?? trigger ?? placeholder);
         })()}
-        <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden className={`${open ? 'rotate-180' : ''} transition-transform`}>
+        <svg width="16" height="16" viewBox="0 0 12 12" aria-hidden className={`${open ? 'rotate-180' : ''} transition-transform ${iconCls}`}>
           <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       </button>
 
       {open && (
-        <ul role="menu" className={`absolute z-30 min-w-40 bg-white border rounded shadow ${pos} ${menuClassName}`.trim()}>
+        <ul role="menu" className={`absolute z-30 min-w-56 bg-white border border-gray-200 ${rounded} ${elevation} ${pos} ${menuClassName} transition ease-out duration-150 transform origin-top-left opacity-100 scale-100`.trim()}>
           {data.map((it, idx) => {
             const label = it?.get ? it.get(labelKey) : it?.[labelKey];
             const value = it?.get ? it.get(valueKey) : it?.[valueKey];
@@ -108,7 +126,7 @@ const Dropdown = ({
                   role="menuitem"
                   aria-disabled={disabledItem ? 'true' : 'false'}
                   aria-checked={selected ? 'true' : 'false'}
-                  className={`w-full text-left px-3 py-2 hover:bg-gray-100 ${isActive || selected ? activeClassName : ''} disabled:opacity-50 ${itemClassName}`.trim()}
+                  className={`w-full text-left px-3 py-2 flex items-center gap-2 text-sm ${isActive || selected ? activeClassName : ''} hover:bg-gray-50 disabled:opacity-50 ${itemClassName}`.trim()}
                   disabled={!!disabledItem}
                   onMouseEnter={() => setActiveIdx(idx)}
                   onFocus={() => setActiveIdx(idx)}
@@ -121,7 +139,11 @@ const Dropdown = ({
                     if (closeOnSelect) setOpen(false);
                   }}
                 >
-                  {String(label ?? '')}
+                  {/* 체크 아이콘 (선택 시 표시) */}
+                  <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden className={`${selected ? 'opacity-100 text-blue-600' : 'opacity-0'} transition-opacity`}>
+                    <path d="M6.5 10.5L3.5 7.5L2.5 8.5L6.5 12.5L13.5 5.5L12.5 4.5L6.5 10.5Z" fill="currentColor" />
+                  </svg>
+                  <span className={`${disabledItem ? 'text-gray-400' : selected ? 'text-blue-700' : 'text-gray-800'}`}>{String(label ?? '')}</span>
                 </button>
               </li>
             );
