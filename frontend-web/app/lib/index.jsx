@@ -26,6 +26,7 @@ export { default as Drawer } from './component/Drawer';
 export { default as Skeleton } from './component/Skeleton';
 export { default as Empty } from './component/Empty';
 export { default as Table } from './component/Table';
+export { default as Pagination } from './component/Pagination';
 // Datasets
 export { default as EasyObj } from './dataset/EasyObj';
 export { default as EasyList } from './dataset/EasyList';

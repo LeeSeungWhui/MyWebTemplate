@@ -1,21 +1,28 @@
 /**
  * 파일명: PaginationDocs.jsx
- * 설명: 경량 Pagination 문서 (Table 내장 페이징 기준)
+ * 설명: 경량 Pagination 문서 (독립 컴포넌트 + Table 내장 사용)
  */
+import { useState } from 'react';
+import * as Lib from '@/lib';
 import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';
 
 const PaginationDocs = () => {
+  const [page, setPage] = useState(2);
+  const pageCount = 12;
   return (
-    <DocSection id="pagination" title="28. 페이지네이션 (Pagination)" description={<p>Table 컴포넌트의 내장 페이징을 통해 제어형/비제어, URL/스토리지 보존을 지원합니다.</p>}>
+    <DocSection id="pagination" title="28. 페이지네이션 (Pagination)" description={<p>독립 컴포넌트로 제어형 페이지 이동을 제공하며, Table 내장 페이징으로도 사용할 수 있습니다.</p>}>
       <div id="pagination-basic" className="mb-8">
-        <h3 className="text-lg font-medium mb-4">기본</h3>
-        <div>
-          <CodeBlock code={`<Lib.Table data={data} columns={columns} pageSize={10} />`} />
+        <h3 className="text-lg font-medium mb-4">기본 (독립 컴포넌트)</h3>
+        <div className="flex flex-col gap-2 items-start">
+          <Lib.Pagination page={page} pageCount={pageCount} onChange={setPage} />
+          <div className="text-sm text-gray-600">현재 페이지: {page} / {pageCount}</div>
+          <CodeBlock code={`const [page, setPage] = useState(2);
+<Lib.Pagination page={page} pageCount={12} onChange={setPage} />`} />
         </div>
       </div>
       <div id="pagination-advanced" className="mb-8">
-        <h3 className="text-lg font-medium mb-4">고급 (URL/스토리지/제어형)</h3>
+        <h3 className="text-lg font-medium mb-4">Table 내장 페이징</h3>
         <div>
           <CodeBlock code={`<Lib.Table data={data} columns={columns} pageParam="page" persistKey="table" page={page} onPageChange={setPage} />`} />
         </div>
@@ -25,4 +32,3 @@ const PaginationDocs = () => {
 };
 
 export default PaginationDocs;
-
