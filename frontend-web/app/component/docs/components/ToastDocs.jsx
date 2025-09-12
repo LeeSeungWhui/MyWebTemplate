@@ -1,7 +1,6 @@
 import { ToastExamples } from '../examples/ToastExamples';
 import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';
-import Toast from '@/lib/component/Toast';
 
 const ToastDocs = () => {
     const examples = ToastExamples();
@@ -9,8 +8,7 @@ const ToastDocs = () => {
     return (
         <DocSection
             id="toasts"
-            title="13. 토스트 (Toast)"
-            component={Toast} description={
+            title="13. 토스트 (Toast)" description={
                 <div>
                     <p>Toast 컴포넌트는 전역 스토어(useSharedStore)의 showToast로 제어합니다.</p>
                     <p>4가지 유형(info, success, warning, error)을 지원하며, 6가지 위치에 표시할 수 있습니다.</p>
@@ -19,6 +17,7 @@ const ToastDocs = () => {
                         <li><code>message</code>: 표시할 내용</li>
                         <li><code>type?</code>: 스타일 유형</li>
                         <li><code>position?</code>: 화면 위치</li>
+                        <li><code>isExiting?</code>: 종료 애니메이션 여부</li>
                         <li><code>onClose?</code>: 닫힘 콜백</li>
                         <li><code>className?</code>: 추가 Tailwind 클래스</li>
                     </ul>

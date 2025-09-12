@@ -1,15 +1,13 @@
 import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';
 import { BadgeExamples } from '../examples/BadgeExamples';
-import Badge from '@/lib/component/Badge';
 
 const BadgeDocs = () => {
   const examples = BadgeExamples();
   return (
     <DocSection
       id="badges"
-      title="19. 배지/태그 (Badge/Tag)"
-      component={Badge} description={
+      title="19. 배지/태그 (Badge/Tag)" description={
         <div>
           <p>상태 표시용 레이블입니다. 색상, 크기, 모양을 지원합니다.</p>
           <ul className="list-disc pl-5 mt-2 text-sm text-gray-600">

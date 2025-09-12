@@ -1,7 +1,6 @@
 import { ButtonExamples } from '../examples/ButtonExamples';
 import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';
-import Button from '@/lib/component/Button';
 
 const ButtonDocs = () => {
     const examples = ButtonExamples();  // 컴포넌트 실행
@@ -9,18 +8,19 @@ const ButtonDocs = () => {
     return (
         <DocSection
             id="buttons"
-            title="2. 버튼 (Button)"
-            component={Button} description={
+            title="2. 버튼 (Button)" description={
                 <div>
                     <p>Button 컴포넌트는 className prop을 통해 Tailwind CSS로 스타일을 커스터마이징할 수 있습니다.</p>
                     <p>기본 스타일을 유지하면서 추가적인 스타일을 적용하거나, 완전히 새로운 스타일을 정의할 수 있습니다.</p>
                     <ul className="list-disc pl-5 mt-2 text-sm text-gray-600">
+                        <li><code>children</code>: 버튼 내용</li>
                         <li><code>variant?</code>: 버튼 색상 스타일 (기본: 'primary')</li>
                         <li><code>size?</code>: 버튼 크기 'sm' | 'md' | 'lg' (기본: 'md')</li>
                         <li><code>icon?</code>: 아이콘 이름 (react-icons)</li>
                         <li><code>iconPosition?</code>: 아이콘 위치 'left' | 'right' (기본: 'left')</li>
                         <li><code>disabled?</code>: 비활성화 상태</li>
                         <li><code>loading?</code>: 로딩 스피너 표시</li>
+                        <li><code>onClick?</code>: 클릭 핸들러</li>
                         <li><code>className?</code>: 추가 Tailwind 클래스</li>
                         <li><code>type?</code>: HTML 버튼 타입 (기본: 'button')</li>
                     </ul>

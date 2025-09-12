@@ -1,7 +1,6 @@
 import { ModalExamples } from '../examples/ModalExamples';
 import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';
-import Modal from '@/lib/component/Modal';
 
 const ModalDocs = () => {
     const examples = ModalExamples();
@@ -9,18 +8,21 @@ const ModalDocs = () => {
     return (
         <DocSection
             id="modals"
-            title="14. 모달 (Modal)"
-            component={Modal} description={
+            title="14. 모달 (Modal)" description={
                 <div>
                     <p>Modal 컴포넌트는 Header, Body, Footer 구조를 가진 팝업 대화상자입니다.</p>
                     <p>5가지 크기(sm, md, lg, xl, full)를 지원하며, 드래그 기능을 선택적으로 활성화할 수 있습니다.</p>
                     <p>ESC 키, 백드롭 클릭으로 닫기가 가능하며, 포커스 트랩을 지원합니다.</p>
                     <ul className="list-disc pl-5 mt-2 text-sm text-gray-600">
                         <li><code>isOpen</code>: 열림 상태</li>
+                        <li><code>onClose?</code>: 닫힘 콜백</li>
                         <li><code>size?</code>: 'sm' | 'md' | 'lg' | 'xl' | 'full'</li>
                         <li><code>draggable?</code>: 헤더 드래그 이동</li>
                         <li><code>closeOnBackdrop?</code>: 배경 클릭 시 닫힘</li>
                         <li><code>closeOnEsc?</code>: ESC 키로 닫힘</li>
+                        <li><code>top?/left?</code>: 초기 위치 지정</li>
+                        <li><code>className?</code>: 추가 Tailwind 클래스</li>
+                        <li><code>children</code>: 모달 내부 콘텐츠</li>
                     </ul>
                 </div>
             }

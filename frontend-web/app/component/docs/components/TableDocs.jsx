@@ -5,20 +5,29 @@
 import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';
 import { TableExamples } from '../examples/TableExamples';
-import Table from '@/lib/component/Table';
 
 const TableDocs = () => {
   const examples = TableExamples();
   return (
-    <DocSection id="tables" title="27. 테이블 (Table)" component={Table} description={
+    <DocSection id="tables" title="27. 테이블 (Table)" description={
       <div>
         <p>데이터 테이블과 카드 리스트를 렌더링합니다. 제어형 및 비제어 페이징을 지원하며 URL과 스토리지에 상태를 보존합니다.</p>
         <ul className="list-disc pl-5 mt-2 text-sm text-gray-600">
           <li><code>data</code>: 행 데이터 배열/EasyList</li>
           <li><code>columns</code>: 열 정의 배열</li>
-          <li><code>page?/pageSize?</code>: 현재 페이지 및 페이지당 행 수</li>
-          <li><code>variant?</code>: 'table' | 'card'</li>
+          <li><code>rowKey?</code>: 행 키 결정 함수/키</li>
+          <li><code>className?</code>: 래퍼 추가 클래스</li>
+          <li><code>headerClassName?/rowClassName?/cellClassName?/rowsClassName?</code>: 세부 스타일</li>
+          <li><code>empty?</code>: 빈 상태 메시지</li>
+          <li><code>loading?</code>: 로딩 표시</li>
+          <li><code>onRowClick?</code>: 행 클릭 콜백</li>
+          <li><code>page?/pageSize?/defaultPage?</code>: 현재/페이지당/초기 페이지</li>
           <li><code>onPageChange?</code>: 페이지 변경 콜백</li>
+          <li><code>pageParam?/persist?/persistKey?</code>: URL/스토리지 상태 유지</li>
+          <li><code>maxPageButtons?</code>: 페이지 버튼 수</li>
+          <li><code>variant?</code>: 'table' | 'card'</li>
+          <li><code>renderCard?</code>: 카드 모드 렌더 함수</li>
+          <li><code>gridClassName?</code>: 카드 모드 grid 클래스</li>
         </ul>
       </div>
     }>

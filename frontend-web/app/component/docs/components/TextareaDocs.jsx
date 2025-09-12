@@ -1,22 +1,23 @@
 import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';
 import { TextareaExamples } from '../examples/TextareaExamples';
-import Textarea from '@/lib/component/Textarea';
 
 const TextareaDocs = () => {
   const examples = TextareaExamples();
   return (
     <DocSection
       id="textareas"
-      title="17. 텍스트영역 (Textarea)"
-      component={Textarea} description={
+      title="17. 텍스트영역 (Textarea)" description={
         <div>
           <p>바운드와 컨트롤드 모드를 지원하며 줄바꿈을 보존하고 aria-invalid를 사용합니다.</p>
           <ul className="list-disc pl-5 mt-2 text-sm text-gray-600">
             <li><code>rows?</code>: 기본 줄 수 (기본: 4)</li>
             <li><code>dataObj?/dataKey?</code>: 바운드 상태 객체와 키</li>
-            <li><code>value?</code>: 제어 값</li>
+            <li><code>value?/defaultValue?</code>: 제어/초기 값</li>
             <li><code>error?</code>: 에러 메시지</li>
+            <li><code>onChange?/onValueChange?</code>: 값 변경 콜백</li>
+            <li><code>placeholder?</code>: 안내 문구</li>
+            <li><code>className?</code>: 추가 Tailwind 클래스</li>
             <li><code>disabled?/readOnly?</code>: 상태 제어</li>
           </ul>
         </div>

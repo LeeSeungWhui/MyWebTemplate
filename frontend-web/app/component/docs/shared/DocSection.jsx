@@ -1,6 +1,4 @@
-import PropsTable from './PropsTable';
-
-const DocSection = ({ id, title, description, component, children }) => {
+const DocSection = ({ id, title, description, children }) => {
     return (
         <section id={id} className="mb-12">
             <h2 className="text-2xl font-semibold mb-4">{title}</h2>
@@ -12,7 +10,6 @@ const DocSection = ({ id, title, description, component, children }) => {
                     </div>
                 </div>
             )}
-            {component && <PropsTable component={component} />}
             {children}
         </section>
     );

@@ -1,18 +1,17 @@
 import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';
 import { CardExamples } from '../examples/CardExamples';
-import Card from '@/lib/component/Card';
 
 const CardDocs = () => {
   const examples = CardExamples();
   return (
     <DocSection
       id="cards"
-      title="18. 카드 (Card)"
-      component={Card} description={
+      title="18. 카드 (Card)" description={
         <div>
           <p>헤더, 본문, 푸터로 구성된 컴포넌트입니다.</p>
           <ul className="list-disc pl-5 mt-2 text-sm text-gray-600">
+            <li><code>children</code>: 본문 콘텐츠</li>
             <li><code>title?</code>: 헤더에 표시할 제목</li>
             <li><code>subtitle?</code>: 제목 아래 보조 텍스트</li>
             <li><code>actions?</code>: 헤더 우측 액션 요소</li>

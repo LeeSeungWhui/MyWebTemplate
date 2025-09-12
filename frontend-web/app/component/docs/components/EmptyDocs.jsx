@@ -1,18 +1,18 @@
 import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';
 import { EmptyExamples } from '../examples/EmptyExamples';
-import Empty from '@/lib/component/Empty';
 
 const EmptyDocs = () => {
   const examples = EmptyExamples();
   return (
-    <DocSection id="empties" title="26. 엠티 (Empty)" component={Empty} description={
+    <DocSection id="empties" title="26. 엠티 (Empty)" description={
       <div>
         <p>데이터가 없을 때 안내와 액션을 제공합니다.</p>
         <ul className="list-disc pl-5 mt-2 text-sm text-gray-600">
           <li><code>icon?</code>: 상단 아이콘 (react-icons)</li>
           <li><code>title?</code>: 제목 텍스트</li>
           <li><code>description?</code>: 부가 설명</li>
+          <li><code>children?</code>: 추가 내용</li>
           <li><code>action?</code>: 버튼 등 액션 요소</li>
           <li><code>className?</code>: 추가 Tailwind 클래스</li>
         </ul>

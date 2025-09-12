@@ -1,7 +1,6 @@
 import { IconExamples } from '../examples/IconExamples';
 import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';
-import Icon from '@/lib/component/Icon';
 
 const IconDocs = () => {
     const examples = IconExamples();
@@ -52,8 +51,7 @@ const IconDocs = () => {
     return (
         <DocSection
             id="icons"
-            title="9. 아이콘 (Icon)"
-            component={Icon} description={
+            title="9. 아이콘 (Icon)" description={
                 <div>
                     <p>Icon 컴포넌트는 다양한 아이콘 라이브러리를 통합하여 제공합니다.</p>
                     <p>각 아이콘 세트의 prefix를 사용하여 원하는 아이콘을 선택할 수 있습니다.</p>
@@ -63,6 +61,7 @@ const IconDocs = () => {
                         <li><code>color?</code>: 아이콘 색상</li>
                         <li><code>ariaLabel?</code>: 접근성 라벨</li>
                         <li><code>decorative?</code>: 장식용 여부(true면 숨김)</li>
+                        <li><code>className?</code>: 추가 Tailwind 클래스</li>
                     </ul>
                     <div className="mt-4">
                         <h4 className="font-medium mb-2">사용 가능한 아이콘 세트</h4>

@@ -1,7 +1,6 @@
 import { InputExamples } from '../examples/InputExamples';
 import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';
-import Input from '@/lib/component/Input';
 
 const InputDocs = () => {
     const examples = InputExamples();  // 컴포넌트 실행
@@ -9,8 +8,7 @@ const InputDocs = () => {
     return (
         <DocSection
             id="inputs"
-            title="3. 입력 (Input)"
-            component={Input} description={
+            title="3. 입력 (Input)" description={
                 <div>
                     <p>Input 컴포넌트는 dataObj와 dataKey를 통해 양방향 바인딩을 지원합니다.</p>
                     <p>주요 기능:</p>
@@ -22,12 +20,18 @@ const InputDocs = () => {
                         <li>IME 입력 지원 (한글, 일본어 등)</li>
                     </ul>
                     <ul className="list-disc pl-5 mt-2 text-sm text-gray-600">
+                        <li><code>dataObj?/dataKey?</code>: 바운드 상태 객체와 키</li>
+                        <li><code>value?/defaultValue?</code>: 제어/초기 값</li>
                         <li><code>type?</code>: HTML input 타입 (기본: 'text')</li>
+                        <li><code>placeholder?</code>: 안내 문구</li>
                         <li><code>filter?</code>: 허용 문자 필터</li>
                         <li><code>mask?</code>: 입력 마스크 패턴</li>
                         <li><code>maxDigits?/maxDecimals?</code>: 숫자 자릿수 제한</li>
                         <li><code>prefix?/suffix?</code>: 입력 앞/뒤 표시 문자열</li>
                         <li><code>togglePassword?</code>: 비밀번호 토글 버튼</li>
+                        <li><code>error?</code>: 에러 메시지</li>
+                        <li><code>onChange?/onValueChange?</code>: 값 변경 콜백</li>
+                        <li><code>className?</code>: 추가 Tailwind 클래스</li>
                     </ul>
                 </div>
             }

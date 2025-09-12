@@ -1,7 +1,6 @@
 import { LoadingExamples } from '../examples/LoadingExamples';
 import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';
-import Loading from '@/lib/component/Loading';
 
 const LoadingDocs = () => {
     const examples = LoadingExamples();
@@ -9,8 +8,7 @@ const LoadingDocs = () => {
     return (
         <DocSection
             id="loading"
-            title="10. 로딩 스피너 (Loading)"
-            component={Loading} description={
+            title="10. 로딩 스피너 (Loading)" description={
                 <div>
                     <p>Loading 컴포넌트는 데이터 로딩 상태를 표시하는 스피너를 제공합니다.</p>
                     <p>전체 화면 로딩은 전역 스토어(useSharedStore)의 setLoading으로 제어합니다.</p>
