@@ -1,4 +1,5 @@
-import { useMemo } from 'react';
+"use client";
+import { useEffect, useState } from 'react';
 
 const extractProps = (component) => {
     // forwardRef 등 래핑된 컴포넌트 지원
@@ -32,8 +33,12 @@ const extractProps = (component) => {
 };
 
 const PropsTable = ({ component }) => {
-    const props = useMemo(() => extractProps(component), [component]);
-    if (!props.length) return null;
+    // Defer extraction to client to avoid SSR/CSR toString() mismatch
+    const [rows, setRows] = useState(null);
+    useEffect(() => {
+        setRows(extractProps(component));
+    }, [component]);
+    if (!rows || rows.length === 0) return null;
 
     return (
         <div className="mb-6 overflow-x-auto">
@@ -46,7 +51,7 @@ const PropsTable = ({ component }) => {
                     </tr>
                 </thead>
                 <tbody>
-                    {props.map(({ name, description, default: def }) => (
+                    {rows.map(({ name, description, default: def }) => (
                         <tr key={name}>
                             <td className="px-2 py-1 border font-mono">{name}</td>
                             <td className="px-2 py-1 border">{description}</td>
