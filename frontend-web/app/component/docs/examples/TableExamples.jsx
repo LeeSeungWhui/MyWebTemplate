@@ -142,7 +142,7 @@ const columns = [
           columns={styledColumns}
           headerClassName="bg-transparent gap-2"
           rowClassName="gap-2 !bg-transparent !border-0 hover:!bg-transparent"
-          rowsClassName="space-y-2"
+          rowsClassName="mt-2 space-y-2"
           cellClassName="bg-white ring-1 ring-gray-200 rounded-2xl shadow-sm p-3"
           pageSize={6}
         />
@@ -168,7 +168,7 @@ const styledColumns = [
   columns={styledColumns}
   headerClassName="bg-transparent gap-2"
   rowClassName="gap-2 !bg-transparent !border-0 hover:!bg-transparent"
-  rowsClassName="space-y-2"
+  rowsClassName="mt-2 space-y-2"
   cellClassName="bg-white ring-1 ring-gray-200 rounded-2xl shadow-sm p-3"
   pageSize={6}
 />`
