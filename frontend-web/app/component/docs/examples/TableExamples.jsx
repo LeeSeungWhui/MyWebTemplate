@@ -1,12 +1,11 @@
 /**
- * 파일명: TableExamples.jsx
- * 설명: Table 컴포넌트 사용 예제 모음
+ * TableExamples.jsx
+ * Table 컴포넌트 사용 예제 모음
  */
 import * as Lib from '@/lib';
 import { useMemo, useState } from 'react';
 
 export const TableExamples = () => {
-  // 샘플 데이터 (배열 기반)
   const data = useMemo(() => (
     Array.from({ length: 53 }, (_, i) => ({
       id: i + 1,
@@ -23,7 +22,13 @@ export const TableExamples = () => {
     { key: 'role', header: '권한', width: '120px' },
   ];
 
-  // 제어형 페이지 예제
+  const styledColumns = [
+    { key: 'id', header: 'ID', width: '80px', align: 'center', headerClassName: 'bg-gray-100 rounded-2xl ring-1 ring-gray-200 text-gray-700', cellClassName: 'text-gray-800' },
+    { key: 'name', header: '이름', align: 'left', headerClassName: 'bg-gray-100 rounded-2xl ring-1 ring-gray-200 text-gray-700', cellClassName: 'text-gray-900' },
+    { key: 'email', header: '이메일', align: 'left', headerClassName: 'bg-gray-100 rounded-2xl ring-1 ring-gray-200 text-gray-700', cellClassName: 'text-gray-700' },
+    { key: 'role', header: '권한', width: '120px', headerClassName: 'bg-gray-100 rounded-2xl ring-1 ring-gray-200 text-gray-700' },
+  ];
+
   const [page, setPage] = useState(2);
 
   const examples = [
@@ -39,7 +44,7 @@ export const TableExamples = () => {
         />
       ),
       description: '기본 테이블: URL(page) 동기화 + 세션 보존, 페이지당 10개',
-      code: `<Lib.Table data={data} columns={columns} pageParam="page" persistKey="table-basic" defaultPage={1} pageSize={10} />`
+      code: `<Lib.Table data={data} columns={columns} pageParam=\"page\" persistKey=\"table-basic\" defaultPage={1} pageSize={10} />`
     },
     {
       component: (
@@ -49,8 +54,6 @@ export const TableExamples = () => {
           page={page}
           pageSize={5}
           maxPageButtons={7}
-          // onPageChange는 제어형에서 상위로 전달
-          // @ts-ignore
           onPageChange={(p) => setPage(p)}
         />
       ),
@@ -74,7 +77,21 @@ export const TableExamples = () => {
         />
       ),
       description: '카드 변형: variant="card" + renderCard로 카드 UI 구성',
-      code: `<Lib.Table variant="card" data={data} pageSize={8} renderCard={(row) => (<div className="border rounded p-4">...</div>)} />`
+      code: `<Lib.Table variant=\"card\" data={data} pageSize={8} renderCard={(row) => (<div className=\"border rounded p-4\">...</div>)} />`
+    },
+    {
+      component: (
+        <Lib.Table
+          data={data}
+          columns={styledColumns}
+          headerClassName="bg-transparent gap-2"
+          rowClassName="gap-2 !bg-transparent !border-0 hover:!bg-transparent"
+          cellClassName="bg-white ring-1 ring-gray-200 rounded-2xl shadow-sm p-3"
+          pageSize={6}
+        />
+      ),
+      description: '커스텀 스타일: 셀 rounded-2xl + ring, 헤더/행 gap으로 물리적 분리된 모던 스타일',
+      code: `<Lib.Table data={data} columns={styledColumns} headerClassName=\"bg-transparent gap-2\" rowClassName=\"gap-2 !bg-transparent !border-0 hover:!bg-transparent\" cellClassName=\"bg-white ring-1 ring-gray-200 rounded-2xl shadow-sm p-3\" pageSize={6} />`
     },
     {
       component: (
@@ -85,7 +102,7 @@ export const TableExamples = () => {
         />
       ),
       description: '빈 상태/메시지 커스터마이즈',
-      code: `<Lib.Table data={[]} columns={columns} empty="표시할 데이터가 없습니다." />`
+      code: `<Lib.Table data={[]} columns={columns} empty=\"표시할 데이터가 없습니다.\" />`
     },
   ];
 

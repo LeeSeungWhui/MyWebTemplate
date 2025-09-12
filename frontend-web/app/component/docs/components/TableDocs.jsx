@@ -1,6 +1,6 @@
 /**
- * 파일명: TableDocs.jsx
- * 설명: Table 컴포넌트 문서
+ * TableDocs.jsx
+ * Table 컴포넌트 문서
  */
 import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';
@@ -34,12 +34,20 @@ const TableDocs = () => {
           <CodeBlock code={examples[2]?.code || ''} />
         </div>
       </div>
-      <div id="table-empty" className="mb-8">
-        <h3 className="text-lg font-medium mb-4">빈 상태</h3>
+      <div id="table-styled" className="mb-8">
+        <h3 className="text-lg font-medium mb-4">커스텀 스타일</h3>
         <div>
           {examples[3]?.component}
           <div className="mt-2 text-sm text-gray-600">{examples[3]?.description}</div>
           <CodeBlock code={examples[3]?.code || ''} />
+        </div>
+      </div>
+      <div id="table-empty" className="mb-8">
+        <h3 className="text-lg font-medium mb-4">빈 상태</h3>
+        <div>
+          {examples[4]?.component}
+          <div className="mt-2 text-sm text-gray-600">{examples[4]?.description}</div>
+          <CodeBlock code={examples[4]?.code || ''} />
         </div>
       </div>
     </DocSection>
