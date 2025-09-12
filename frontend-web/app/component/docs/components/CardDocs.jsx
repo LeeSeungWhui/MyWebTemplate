@@ -1,3 +1,7 @@
+/**
+ * 파일명: CardDocs.jsx
+ * 설명: Card 컴포넌트 문서
+ */
 import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';
 import { CardExamples } from '../examples/CardExamples';

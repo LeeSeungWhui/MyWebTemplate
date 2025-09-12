@@ -1,3 +1,7 @@
+/**
+ * 파일명: SwitchDocs.jsx
+ * 설명: Switch 컴포넌트 문서
+ */
 import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';
 import { SwitchExamples } from '../examples/SwitchExamples';

@@ -1,3 +1,7 @@
+/**
+ * 파일명: AlertDocs.jsx
+ * 설명: Alert 컴포넌트 문서
+ */
 import { AlertExamples } from '../examples/AlertExamples';
 import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';

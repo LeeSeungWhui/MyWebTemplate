@@ -1,3 +1,7 @@
+/**
+ * 파일명: ButtonDocs.jsx
+ * 설명: Button 컴포넌트 문서
+ */
 import { ButtonExamples } from '../examples/ButtonExamples';
 import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';
