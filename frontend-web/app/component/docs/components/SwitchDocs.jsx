@@ -8,7 +8,18 @@ const SwitchDocs = () => {
     <DocSection
       id="switches"
       title="16. 스위치 (Switch)"
-      description={<p>접근성 준수: role="switch"/aria-checked 사용. dataObj+dataKey 또는 controlled 지원</p>}
+      description={
+        <div>
+          <p>접근성 준수: role="switch"/aria-checked 사용. dataObj+dataKey 또는 controlled 지원</p>
+          <ul className="list-disc pl-5 mt-2 text-sm text-gray-600">
+            <li><code>checked?</code>: 선택 상태 제어</li>
+            <li><code>defaultChecked?</code>: 초기 선택 상태</li>
+            <li><code>dataObj?/dataKey?</code>: 바운드 상태 객체와 키</li>
+            <li><code>disabled?</code>: 비활성화 여부</li>
+            <li><code>label?</code>: 스위치 라벨</li>
+          </ul>
+        </div>
+      }
     >
       <div id="switch-bound" className="mb-8">
         <h3 className="text-lg font-medium mb-4">바운드 모드</h3>
