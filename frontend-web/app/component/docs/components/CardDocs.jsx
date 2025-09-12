@@ -10,7 +10,7 @@ const CardDocs = () => {
       title="18. 카드 (Card)"
       description={
         <div>
-          <p>헤더, 본문, 푸터로 구성된 컴포넌트입니다. SSR과 CSR 환경에서 모두 경량입니다.</p>
+          <p>헤더, 본문, 푸터로 구성된 컴포넌트입니다.</p>
           <ul className="list-disc pl-5 mt-2 text-sm text-gray-600">
             <li><code>title?</code>: 헤더에 표시할 제목</li>
             <li><code>subtitle?</code>: 제목 아래 보조 텍스트</li>
