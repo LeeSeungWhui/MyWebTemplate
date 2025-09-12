@@ -10,7 +10,7 @@ const DropdownDocs = () => {
   const examples = DropdownExamples();
 
   return (
-    <DocSection id="dropdowns" title="29. 드롭다운 (Dropdown)" description={<p>EasyList(dataList) 기반. 항목을 선택하면 dataList.selected로 상태가 반영됩니다. 키보드(↑/↓/Enter/ESC)와 외부 클릭 닫힘 지원.</p>}>
+    <DocSection id="dropdowns" title="29. 드롭다운 (Dropdown)" description={<p>EasyList(dataList) 기반. 선택 상태는 dataList.selected에 반영되므로 별도 useState가 필요 없습니다. 키보드(↑/↓/Enter/ESC)와 외부 클릭 닫힘 지원.</p>}>
       <div id="dropdown-basic" className="mb-8">
         <h3 className="text-lg font-medium mb-4">기본</h3>
         <div>
