@@ -20,6 +20,14 @@ const InputDocs = () => {
                         <li>에러 상태 표시</li>
                         <li>IME 입력 지원 (한글, 일본어 등)</li>
                     </ul>
+                    <ul className="list-disc pl-5 mt-2 text-sm text-gray-600">
+                        <li><code>type?</code>: HTML input 타입 (기본: 'text')</li>
+                        <li><code>filter?</code>: 허용 문자 필터</li>
+                        <li><code>mask?</code>: 입력 마스크 패턴</li>
+                        <li><code>maxDigits?/maxDecimals?</code>: 숫자 자릿수 제한</li>
+                        <li><code>prefix?/suffix?</code>: 입력 앞/뒤 표시 문자열</li>
+                        <li><code>togglePassword?</code>: 비밀번호 토글 버튼</li>
+                    </ul>
                 </div>
             }
         >

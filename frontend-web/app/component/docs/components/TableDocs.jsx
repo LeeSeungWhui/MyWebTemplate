@@ -9,7 +9,18 @@ import { TableExamples } from '../examples/TableExamples';
 const TableDocs = () => {
   const examples = TableExamples();
   return (
-    <DocSection id="tables" title="27. 테이블 (Table)" description={<p>데이터 테이블/카드 리스트. 제어형/비제어 페이징, URL/스토리지 보존 지원.</p>}>
+    <DocSection id="tables" title="27. 테이블 (Table)" description={
+      <div>
+        <p>데이터 테이블과 카드 리스트를 렌더링합니다. 제어형 및 비제어 페이징을 지원하며 URL과 스토리지에 상태를 보존합니다.</p>
+        <ul className="list-disc pl-5 mt-2 text-sm text-gray-600">
+          <li><code>data</code>: 행 데이터 배열/EasyList</li>
+          <li><code>columns</code>: 열 정의 배열</li>
+          <li><code>page?/pageSize?</code>: 현재 페이지 및 페이지당 행 수</li>
+          <li><code>variant?</code>: 'table' | 'card'</li>
+          <li><code>onPageChange?</code>: 페이지 변경 콜백</li>
+        </ul>
+      </div>
+    }>
       <div id="table-basic" className="mb-8">
         <h3 className="text-lg font-medium mb-4">기본</h3>
         <div>

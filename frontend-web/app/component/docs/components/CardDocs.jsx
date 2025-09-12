@@ -8,7 +8,18 @@ const CardDocs = () => {
     <DocSection
       id="cards"
       title="18. 카드 (Card)"
-      description={<p>헤더/본문/푸터 구성 컴포넌트. SSR/CSR 모두 경량.</p>}
+      description={
+        <div>
+          <p>헤더, 본문, 푸터로 구성된 컴포넌트입니다. SSR과 CSR 환경에서 모두 경량입니다.</p>
+          <ul className="list-disc pl-5 mt-2 text-sm text-gray-600">
+            <li><code>title?</code>: 헤더에 표시할 제목</li>
+            <li><code>subtitle?</code>: 제목 아래 보조 텍스트</li>
+            <li><code>actions?</code>: 헤더 우측 액션 요소</li>
+            <li><code>footer?</code>: 하단 푸터 콘텐츠</li>
+            <li><code>className?</code>: 추가 Tailwind 클래스</li>
+          </ul>
+        </div>
+      }
     >
       <div id="card-basic" className="mb-8">
         <h3 className="text-lg font-medium mb-4">기본 Card</h3>

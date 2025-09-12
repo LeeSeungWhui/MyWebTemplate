@@ -14,6 +14,12 @@ const TabDocs = () => {
                     <p>Tab 컴포넌트는 Tab.Item을 사용하여 탭 패널을 구성합니다.</p>
                     <p>EasyObj를 사용하거나 일반 useState로도 상태 관리가 가능합니다.</p>
                     <p>className prop을 통해 커스텀 스타일링을 지원합니다.</p>
+                    <ul className="list-disc pl-5 mt-2 text-sm text-gray-600">
+                        <li><code>dataObj?/dataKey?</code>: 현재 탭 인덱스 바인딩</li>
+                        <li><code>tabIndex?</code>: 초기 탭 인덱스</li>
+                        <li><code>onChange?</code>: 탭 변경 시 호출</li>
+                        <li><code>className?</code>: 래퍼 추가 클래스</li>
+                    </ul>
                 </div>
             }
         >

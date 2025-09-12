@@ -56,6 +56,13 @@ const IconDocs = () => {
                 <div>
                     <p>Icon 컴포넌트는 다양한 아이콘 라이브러리를 통합하여 제공합니다.</p>
                     <p>각 아이콘 세트의 prefix를 사용하여 원하는 아이콘을 선택할 수 있습니다.</p>
+                    <ul className="list-disc pl-5 mt-2 text-sm text-gray-600">
+                        <li><code>icon</code>: 세트prefix:아이콘이름</li>
+                        <li><code>size?</code>: 아이콘 크기 (기본: 1em)</li>
+                        <li><code>color?</code>: 아이콘 색상</li>
+                        <li><code>ariaLabel?</code>: 접근성 라벨</li>
+                        <li><code>decorative?</code>: 장식용 여부(true면 숨김)</li>
+                    </ul>
                     <div className="mt-4">
                         <h4 className="font-medium mb-2">사용 가능한 아이콘 세트</h4>
                         <ul className="list-disc list-inside text-sm space-y-2">

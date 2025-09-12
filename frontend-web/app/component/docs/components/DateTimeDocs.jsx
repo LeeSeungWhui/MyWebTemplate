@@ -10,7 +10,18 @@ const DateTimeDocs = () => {
     <DocSection
       id="datetime-inputs"
       title="21. 날짜/시간 (Date/Time)"
-      description={<p>브라우저 기본 Date/Time 입력을 래핑. EasyObj 바운드/컨트롤드 지원.</p>}
+      description={
+        <div>
+          <p>브라우저 기본 Date와 Time 입력을 래핑한 컴포넌트입니다. EasyObj 바운드와 컨트롤드 모드를 지원합니다.</p>
+          <ul className="list-disc pl-5 mt-2 text-sm text-gray-600">
+            <li><code>value?</code>: ISO 문자열 제어 값</li>
+            <li><code>dataObj?/dataKey?</code>: 바운드 상태 객체와 키</li>
+            <li><code>min?/max?</code>: 선택 가능 범위</li>
+            <li><code>disabled?</code>: 입력 비활성화</li>
+            <li><code>placeholder?</code>: 안내 문구</li>
+          </ul>
+        </div>
+      }
     >
       <div id="date-basic" className="mb-8">
         <h3 className="text-lg font-medium mb-4">날짜</h3>

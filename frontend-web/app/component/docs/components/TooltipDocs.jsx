@@ -11,7 +11,18 @@ import { TooltipExamples } from '../examples/TooltipExamples';
 const TooltipDocs = () => {
   const examples = TooltipExamples();
   return (
-    <DocSection id="tooltips" title="23. 툴팁 (Tooltip)" description={<p>hover/focus/클릭에 반응하는 간단한 툴팁.</p>}>
+    <DocSection id="tooltips" title="23. 툴팁 (Tooltip)" description={
+      <div>
+        <p>hover, focus 또는 클릭에 반응하는 간단한 툴팁입니다.</p>
+        <ul className="list-disc pl-5 mt-2 text-sm text-gray-600">
+          <li><code>content</code>: 툴팁 내용</li>
+          <li><code>placement?</code>: 위치 'top' | 'bottom' | 'left' | 'right'</li>
+          <li><code>trigger?</code>: 'hover' | 'click' | 'focus'</li>
+          <li><code>delay?</code>: 표시 지연(ms)</li>
+          <li><code>disabled?</code>: 비활성화 여부</li>
+        </ul>
+      </div>
+    }>
       <div id="tooltip-basic" className="mb-8">
         <h3 className="text-lg font-medium mb-4">기본</h3>
         <div>
