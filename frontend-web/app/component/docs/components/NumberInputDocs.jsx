@@ -10,7 +10,7 @@ const NumberInputDocs = () => {
       title="20. 숫자 입력 (Number)"
       description={
         <div>
-          <p>스텝 버튼이 있는 숫자 입력. EasyObj 바운드/컨트롤드 지원.</p>
+          <p>스텝 버튼이 있는 숫자 입력입니다. EasyObj 바운드와 컨트롤드 모드를 지원합니다.</p>
           <ul className="list-disc pl-5 mt-2 text-sm text-gray-600">
             <li><code>value?</code>: 제어 값</li>
             <li><code>min?/max?</code>: 허용 범위</li>

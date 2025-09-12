@@ -10,7 +10,7 @@ const ComboboxDocs = () => {
       title="22. 콤보박스 (Combobox)"
       description={
         <div>
-          <p>검색 가능한 단일/다중 선택 입력. dataList(selected) 기반 선택 모델, 초성검색 지원.</p>
+          <p>검색 가능한 단일·다중 선택 입력입니다. dataList(selected)를 기반으로 한 선택 모델을 사용하며 초성 검색을 지원합니다.</p>
           <ul className="list-disc pl-5 mt-2 text-sm text-gray-600">
             <li><code>dataList</code>: 선택 항목 배열(EasyList 가능)</li>
             <li><code>value?</code>: 제어 값 (단일 또는 배열)</li>

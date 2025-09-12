@@ -10,7 +10,7 @@ const TextareaDocs = () => {
       title="17. 텍스트영역 (Textarea)"
       description={
         <div>
-          <p>바운드/컨트롤드 지원, 줄바꿈 보존, aria-invalid 사용.</p>
+          <p>바운드와 컨트롤드 모드를 지원하며 줄바꿈을 보존하고 aria-invalid를 사용합니다.</p>
           <ul className="list-disc pl-5 mt-2 text-sm text-gray-600">
             <li><code>rows?</code>: 기본 줄 수 (기본: 4)</li>
             <li><code>dataObj?/dataKey?</code>: 바운드 상태 객체와 키</li>

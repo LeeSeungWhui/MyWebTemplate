@@ -10,7 +10,7 @@ const BadgeDocs = () => {
       title="19. 배지/태그 (Badge/Tag)"
       description={
         <div>
-          <p>상태 표시용 레이블. 색상/크기/모양 지원</p>
+          <p>상태 표시용 레이블입니다. 색상, 크기, 모양을 지원합니다.</p>
           <ul className="list-disc pl-5 mt-2 text-sm text-gray-600">
             <li><code>children</code>: 표시할 내용</li>
             <li><code>variant?</code>: 색상 스타일 (기본: 'neutral')</li>

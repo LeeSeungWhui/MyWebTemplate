@@ -11,7 +11,7 @@ const TableDocs = () => {
   return (
     <DocSection id="tables" title="27. 테이블 (Table)" description={
       <div>
-        <p>데이터 테이블/카드 리스트. 제어형/비제어 페이징, URL/스토리지 보존 지원.</p>
+        <p>데이터 테이블과 카드 리스트를 렌더링합니다. 제어형 및 비제어 페이징을 지원하며 URL과 스토리지에 상태를 보존합니다.</p>
         <ul className="list-disc pl-5 mt-2 text-sm text-gray-600">
           <li><code>data</code>: 행 데이터 배열/EasyList</li>
           <li><code>columns</code>: 열 정의 배열</li>

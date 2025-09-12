@@ -10,7 +10,7 @@ const SwitchDocs = () => {
       title="16. 스위치 (Switch)"
       description={
         <div>
-          <p>접근성 준수: role="switch"/aria-checked 사용. dataObj+dataKey 또는 controlled 지원</p>
+          <p>접근성을 준수하기 위해 role="switch"와 aria-checked를 사용합니다. dataObj와 dataKey 또는 제어 모드를 지원합니다.</p>
           <ul className="list-disc pl-5 mt-2 text-sm text-gray-600">
             <li><code>checked?</code>: 선택 상태 제어</li>
             <li><code>defaultChecked?</code>: 초기 선택 상태</li>

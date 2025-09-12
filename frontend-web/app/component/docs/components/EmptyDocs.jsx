@@ -7,7 +7,7 @@ const EmptyDocs = () => {
   return (
     <DocSection id="empties" title="26. 엠티 (Empty)" description={
       <div>
-        <p>데이터가 없을 때 안내와 액션을 제공.</p>
+        <p>데이터가 없을 때 안내와 액션을 제공합니다.</p>
         <ul className="list-disc pl-5 mt-2 text-sm text-gray-600">
           <li><code>icon?</code>: 상단 아이콘 (react-icons)</li>
           <li><code>title?</code>: 제목 텍스트</li>

@@ -13,7 +13,7 @@ const TooltipDocs = () => {
   return (
     <DocSection id="tooltips" title="23. 툴팁 (Tooltip)" description={
       <div>
-        <p>hover/focus/클릭에 반응하는 간단한 툴팁.</p>
+        <p>hover, focus 또는 클릭에 반응하는 간단한 툴팁입니다.</p>
         <ul className="list-disc pl-5 mt-2 text-sm text-gray-600">
           <li><code>content</code>: 툴팁 내용</li>
           <li><code>placement?</code>: 위치 'top' | 'bottom' | 'left' | 'right'</li>
