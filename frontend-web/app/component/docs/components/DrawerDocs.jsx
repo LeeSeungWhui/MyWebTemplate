@@ -5,20 +5,24 @@
 import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';
 import { DrawerExamples } from '../examples/DrawerExamples';
-import Drawer from '@/lib/component/Drawer';
 
 const DrawerDocs = () => {
   const examples = DrawerExamples();
   return (
-    <DocSection id="drawers" title="24. 드로어 (Drawer)" component={Drawer} description={
+    <DocSection id="drawers" title="24. 드로어 (Drawer)" description={
       <div>
         <p>화면 측면에서 슬라이드 인 되는 패널입니다. 외부 Collapse 탭과 리사이즈를 지원하며 숫자 크기(px) 설정이 가능합니다.</p>
         <ul className="list-disc pl-5 mt-2 text-sm text-gray-600">
           <li><code>isOpen</code>: 열림 상태</li>
+          <li><code>onClose?</code>: 닫힘 콜백</li>
           <li><code>side?</code>: 위치 'right' | 'left' | 'top' | 'bottom'</li>
           <li><code>size?</code>: 패널 크기(px 또는 문자열)</li>
           <li><code>closeOnBackdrop?</code>: 배경 클릭 시 닫힘</li>
+          <li><code>closeOnEsc?</code>: ESC 키로 닫힘</li>
           <li><code>resizable?</code>: 드래그로 크기 조절</li>
+          <li><code>collapseButton?</code>: 접기 버튼 표시</li>
+          <li><code>className?</code>: 추가 Tailwind 클래스</li>
+          <li><code>children?</code>: 패널 내용</li>
         </ul>
       </div>
     }>

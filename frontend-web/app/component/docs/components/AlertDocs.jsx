@@ -1,7 +1,6 @@
 import { AlertExamples } from '../examples/AlertExamples';
 import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';
-import Alert from '@/lib/component/Alert';
 
 const AlertDocs = () => {
     const examples = AlertExamples();
@@ -9,8 +8,7 @@ const AlertDocs = () => {
     return (
         <DocSection
             id="alerts"
-            title="11.알림 (Alert)"
-            component={Alert} description={
+            title="11.알림 (Alert)" description={
                 <div>
                     <p>Alert 컴포넌트는 전역 스토어(useSharedStore)의 showAlert로 제어합니다.</p>
                     <p>4가지 유형(info, success, warning, error)을 지원하며, 제목과 메시지를 설정할 수 있습니다.</p>

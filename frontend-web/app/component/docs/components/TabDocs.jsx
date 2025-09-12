@@ -1,7 +1,6 @@
 import { TabExamples } from '../examples/TabExamples';
 import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';
-import Tab from '@/lib/component/Tab';
 
 const TabDocs = () => {
     const examples = TabExamples();
@@ -9,8 +8,7 @@ const TabDocs = () => {
     return (
         <DocSection
             id="tabs"
-            title="15. 탭 (Tab)"
-            component={Tab} description={
+            title="15. 탭 (Tab)" description={
                 <div>
                     <p>Tab 컴포넌트는 Tab.Item을 사용하여 탭 패널을 구성합니다.</p>
                     <p>EasyObj를 사용하거나 일반 useState로도 상태 관리가 가능합니다.</p>
@@ -20,6 +18,7 @@ const TabDocs = () => {
                         <li><code>tabIndex?</code>: 초기 탭 인덱스</li>
                         <li><code>onChange?</code>: 탭 변경 시 호출</li>
                         <li><code>className?</code>: 래퍼 추가 클래스</li>
+                        <li><code>children</code>: <code>Tab.Item</code> 목록</li>
                     </ul>
                 </div>
             }

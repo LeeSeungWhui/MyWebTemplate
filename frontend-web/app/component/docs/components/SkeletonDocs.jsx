@@ -1,12 +1,11 @@
 import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';
 import { SkeletonExamples } from '../examples/SkeletonExamples';
-import Skeleton from '@/lib/component/Skeleton';
 
 const SkeletonDocs = () => {
   const examples = SkeletonExamples();
   return (
-    <DocSection id="skeletons" title="25. 스켈레톤 (Skeleton)" component={Skeleton} description={
+    <DocSection id="skeletons" title="25. 스켈레톤 (Skeleton)" description={
       <div>
         <p>로딩 중 콘텐츠 구조를 힌트로 보여주는 플레이스홀더입니다.</p>
         <ul className="list-disc pl-5 mt-2 text-sm text-gray-600">
