@@ -29,7 +29,6 @@ import DrawerDocs from './docs/components/DrawerDocs'
 import PaginationDocs from './docs/components/PaginationDocs'
 import DropdownDocs from './docs/components/DropdownDocs'
 import StatDocs from './docs/components/StatDocs'
-import PasswordDocs from './docs/components/PasswordDocs'
 import TableDocs from './docs/components/TableDocs'
 import SkeletonDocs from './docs/components/SkeletonDocs'
 import EmptyDocs from './docs/components/EmptyDocs'
@@ -71,13 +70,12 @@ export default function ComponentsPage() {
           <ComboboxDocs />
           <TooltipDocs />
           <DrawerDocs />
-          <PaginationDocs />
-          <DropdownDocs />
-          <StatDocs />
-          <PasswordDocs />
           <SkeletonDocs />
           <EmptyDocs />
           <TableDocs />
+          <PaginationDocs />
+          <DropdownDocs />
+          <StatDocs />
         </div>
       </div>
 

@@ -10,7 +10,7 @@ const DropdownDocs = () => {
   const examples = DropdownExamples();
 
   return (
-    <DocSection id="dropdowns" title="29. 드롭다운 (Dropdown)" description={<p>EasyList로 항목을 관리하는 경량 Dropdown. 키보드(↑/↓/Enter/ESC)와 외부 클릭 닫힘을 지원합니다.</p>}>
+    <DocSection id="dropdowns" title="29. 드롭다운 (Dropdown)" description={<p>EasyList(dataList) 기반. 항목을 선택하면 dataList.selected로 상태가 반영됩니다. 키보드(↑/↓/Enter/ESC)와 외부 클릭 닫힘 지원.</p>}>
       <div id="dropdown-basic" className="mb-8">
         <h3 className="text-lg font-medium mb-4">기본</h3>
         <div>

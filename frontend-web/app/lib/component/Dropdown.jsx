@@ -18,7 +18,7 @@ const toArray = (list) => {
 };
 
 const Dropdown = ({
-  items,
+  dataList,
   open: openProp,
   defaultOpen = false,
   onOpenChange,
@@ -38,7 +38,7 @@ const Dropdown = ({
   const [openState, setOpenState] = useState(defaultOpen);
   const open = typeof openProp === 'boolean' ? openProp : openState;
   const setOpen = (v) => (typeof openProp === 'boolean' ? onOpenChange?.(v) : setOpenState(v));
-  const data = useMemo(() => toArray(items), [items]);
+  const data = useMemo(() => toArray(dataList), [dataList]);
   const [activeIdx, setActiveIdx] = useState(-1);
   const rootRef = useRef(null);
 
@@ -85,19 +85,29 @@ const Dropdown = ({
         <ul role="menu" className={`absolute z-30 min-w-40 bg-white border rounded shadow ${pos} ${menuClassName}`.trim()}>
           {data.map((it, idx) => {
             const label = it?.get ? it.get(labelKey) : it?.[labelKey];
+            const value = it?.get ? it.get(valueKey) : it?.[valueKey];
+            const selected = it?.get ? !!it.get('selected') : !!it?.selected;
             const disabledItem = it?.get ? it.get('disabled') : it?.disabled;
             const isActive = idx === activeIdx;
             return (
-              <li key={(it?.get ? it.get(valueKey) : it?.[valueKey]) ?? idx} role="none">
+              <li key={(value ?? idx)} role="none">
                 <button
                   type="button"
                   role="menuitem"
                   aria-disabled={disabledItem ? 'true' : 'false'}
-                  className={`w-full text-left px-3 py-2 hover:bg-gray-100 ${isActive ? activeClassName : ''} disabled:opacity-50 ${itemClassName}`.trim()}
+                  aria-checked={selected ? 'true' : 'false'}
+                  className={`w-full text-left px-3 py-2 hover:bg-gray-100 ${isActive || selected ? activeClassName : ''} disabled:opacity-50 ${itemClassName}`.trim()}
                   disabled={!!disabledItem}
                   onMouseEnter={() => setActiveIdx(idx)}
                   onFocus={() => setActiveIdx(idx)}
-                  onClick={() => { if (disabledItem) return; onSelect?.(it); if (closeOnSelect) setOpen(false); }}
+                  onClick={() => {
+                    if (disabledItem) return;
+                    // update selection model on dataList (single-select)
+                    if (dataList?.forAll) dataList.forAll((node) => { const v = node?.get ? node.get(valueKey) : node?.[valueKey]; if (node?.set) node.set('selected', String(v) === String(value)); else node.selected = String(v) === String(value); return node; });
+                    else if (Array.isArray(dataList)) dataList.forEach((node) => { const v = node?.[valueKey]; node.selected = String(v) === String(value); });
+                    onSelect?.(it);
+                    if (closeOnSelect) setOpen(false);
+                  }}
                 >
                   {String(label ?? '')}
                 </button>
@@ -114,4 +124,3 @@ const Dropdown = ({
 };
 
 export default Dropdown;
-
