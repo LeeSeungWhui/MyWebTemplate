@@ -26,6 +26,7 @@ const Dropdown = ({
   trigger,
   labelKey = 'label',
   valueKey = 'value',
+  placeholder = '선택',
   side = 'bottom',
   align = 'start',
   className = '',
@@ -64,6 +65,13 @@ const Dropdown = ({
   }, [open, data, activeIdx, closeOnSelect]);
 
   const pos = `${side === 'bottom' ? 'top-full mt-2' : side === 'top' ? 'bottom-full mb-2' : ''} ${align === 'start' ? 'left-0' : align === 'end' ? 'right-0' : 'left-1/2 -translate-x-1/2'}`.trim();
+  // derive selected each render (data contains proxies so selected reflects changes)
+  let selectedItem = null;
+  for (const it of data) {
+    const sel = it?.get ? it.get('selected') : it?.selected;
+    if (sel) { selectedItem = it; break; }
+  }
+  const selectedLabel = selectedItem ? (selectedItem?.get ? selectedItem.get(labelKey) : selectedItem?.[labelKey]) : null;
 
   return (
     <div ref={rootRef} className={`relative inline-block ${className}`.trim()}>
@@ -75,7 +83,7 @@ const Dropdown = ({
         onClick={() => !disabled && setOpen(!open)}
         className="inline-flex items-center gap-1 px-3 py-2 border rounded hover:bg-gray-50 disabled:opacity-50"
       >
-        {trigger || '메뉴'}
+        {typeof trigger === 'function' ? trigger({ selectedItem, selectedLabel }) : (trigger ?? (selectedLabel ?? placeholder))}
         <svg width="12" height="12" viewBox="0 0 12 12" aria-hidden className={`${open ? 'rotate-180' : ''} transition-transform`}>
           <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
