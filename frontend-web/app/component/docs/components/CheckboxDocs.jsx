@@ -1,6 +1,7 @@
 import { CheckboxExamples } from '../examples/CheckboxExamples';
 import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';
+import Checkbox from '../../lib/component/Checkbox';
 
 const CheckboxDocs = () => {
     const examples = CheckboxExamples();
@@ -9,7 +10,7 @@ const CheckboxDocs = () => {
         <DocSection
             id="checkboxes"
             title="5. 체크박스 (Checkbox)"
-            description={
+            component={Checkbox} description={
                 <div>
                     <p>Checkbox 컴포넌트는 dataObj와 dataKey를 통해 양방향 바인딩을 지원합니다.</p>
                     <p>name prop이 없을 경우 dataKey 또는 label을 name으로 사용합니다.</p>

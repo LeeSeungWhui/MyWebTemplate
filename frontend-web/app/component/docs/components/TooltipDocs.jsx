@@ -7,11 +7,12 @@
 import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';
 import { TooltipExamples } from '../examples/TooltipExamples';
+import Tooltip from '../../lib/component/Tooltip';
 
 const TooltipDocs = () => {
   const examples = TooltipExamples();
   return (
-    <DocSection id="tooltips" title="23. 툴팁 (Tooltip)" description={
+    <DocSection id="tooltips" title="23. 툴팁 (Tooltip)" component={Tooltip} description={
       <div>
         <p>hover, focus 또는 클릭에 반응하는 간단한 툴팁입니다.</p>
         <ul className="list-disc pl-5 mt-2 text-sm text-gray-600">

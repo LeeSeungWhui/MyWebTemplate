@@ -1,6 +1,7 @@
 import { ModalExamples } from '../examples/ModalExamples';
 import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';
+import Modal from '../../lib/component/Modal';
 
 const ModalDocs = () => {
     const examples = ModalExamples();
@@ -9,7 +10,7 @@ const ModalDocs = () => {
         <DocSection
             id="modals"
             title="14. 모달 (Modal)"
-            description={
+            component={Modal} description={
                 <div>
                     <p>Modal 컴포넌트는 Header, Body, Footer 구조를 가진 팝업 대화상자입니다.</p>
                     <p>5가지 크기(sm, md, lg, xl, full)를 지원하며, 드래그 기능을 선택적으로 활성화할 수 있습니다.</p>

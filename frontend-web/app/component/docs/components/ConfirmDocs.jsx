@@ -1,6 +1,7 @@
 import { ConfirmExamples } from '../examples/ConfirmExamples';
 import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';
+import Confirm from '../../lib/component/Confirm';
 
 const ConfirmDocs = () => {
     const examples = ConfirmExamples();
@@ -9,7 +10,7 @@ const ConfirmDocs = () => {
         <DocSection
             id="confirms"
             title="12. 확인 (Confirm)"
-            description={
+            component={Confirm} description={
                 <div>
                     <p>Confirm 컴포넌트는 전역 스토어(useSharedStore)의 showConfirm으로 제어합니다.</p>
                     <p>Promise를 반환하며, 사용자의 선택(확인: true, 취소: false)을 then으로 받을 수 있습니다.</p>
