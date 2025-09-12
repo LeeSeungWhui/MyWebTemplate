@@ -61,7 +61,7 @@ const AlertDocs = () => {
                 </div>
             </div>
 
-            <div id="alert-callback" className="mb-8">
+            <div id="alert-focus" className="mb-8">
                 <h3 className="text-lg font-medium mb-4">포커스 관리</h3>
                 <div className="grid grid-cols-1 gap-8">
                     <div>
