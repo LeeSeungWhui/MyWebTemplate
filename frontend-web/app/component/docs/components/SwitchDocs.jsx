@@ -1,6 +1,7 @@
 import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';
 import { SwitchExamples } from '../examples/SwitchExamples';
+import Switch from '../../lib/component/Switch';
 
 const SwitchDocs = () => {
   const examples = SwitchExamples();
@@ -8,7 +9,7 @@ const SwitchDocs = () => {
     <DocSection
       id="switches"
       title="16. 스위치 (Switch)"
-      description={
+      component={Switch} description={
         <div>
           <p>접근성을 준수하기 위해 role="switch"와 aria-checked를 사용합니다. dataObj와 dataKey 또는 제어 모드를 지원합니다.</p>
           <ul className="list-disc pl-5 mt-2 text-sm text-gray-600">

@@ -1,6 +1,7 @@
 import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';
 import { ComboboxExamples } from '../examples/ComboboxExamples';
+import Combobox from '../../lib/component/Combobox';
 
 const ComboboxDocs = () => {
   const ex = ComboboxExamples();
@@ -8,7 +9,7 @@ const ComboboxDocs = () => {
     <DocSection
       id="comboboxes"
       title="22. 콤보박스 (Combobox)"
-      description={
+      component={Combobox} description={
         <div>
           <p>검색 가능한 단일·다중 선택 입력입니다. dataList(selected)를 기반으로 한 선택 모델을 사용하며 초성 검색을 지원합니다.</p>
           <ul className="list-disc pl-5 mt-2 text-sm text-gray-600">

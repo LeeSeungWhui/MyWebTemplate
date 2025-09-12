@@ -1,6 +1,7 @@
 import { ButtonExamples } from '../examples/ButtonExamples';
 import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';
+import Button from '../../lib/component/Button';
 
 const ButtonDocs = () => {
     const examples = ButtonExamples();  // 컴포넌트 실행
@@ -9,7 +10,7 @@ const ButtonDocs = () => {
         <DocSection
             id="buttons"
             title="2. 버튼 (Button)"
-            description={
+            component={Button} description={
                 <div>
                     <p>Button 컴포넌트는 className prop을 통해 Tailwind CSS로 스타일을 커스터마이징할 수 있습니다.</p>
                     <p>기본 스타일을 유지하면서 추가적인 스타일을 적용하거나, 완전히 새로운 스타일을 정의할 수 있습니다.</p>

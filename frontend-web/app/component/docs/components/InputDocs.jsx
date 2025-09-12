@@ -1,6 +1,7 @@
 import { InputExamples } from '../examples/InputExamples';
 import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';
+import Input from '../../lib/component/Input';
 
 const InputDocs = () => {
     const examples = InputExamples();  // 컴포넌트 실행
@@ -9,7 +10,7 @@ const InputDocs = () => {
         <DocSection
             id="inputs"
             title="3. 입력 (Input)"
-            description={
+            component={Input} description={
                 <div>
                     <p>Input 컴포넌트는 dataObj와 dataKey를 통해 양방향 바인딩을 지원합니다.</p>
                     <p>주요 기능:</p>

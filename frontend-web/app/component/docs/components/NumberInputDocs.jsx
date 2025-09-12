@@ -1,6 +1,7 @@
 import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';
 import { NumberInputExamples } from '../examples/NumberInputExamples';
+import NumberInput from '../../lib/component/NumberInput';
 
 const NumberInputDocs = () => {
   const examples = NumberInputExamples();
@@ -8,7 +9,7 @@ const NumberInputDocs = () => {
     <DocSection
       id="number-inputs"
       title="20. 숫자 입력 (Number)"
-      description={
+      component={NumberInput} description={
         <div>
           <p>스텝 버튼이 있는 숫자 입력입니다. EasyObj 바운드와 컨트롤드 모드를 지원합니다.</p>
           <ul className="list-disc pl-5 mt-2 text-sm text-gray-600">

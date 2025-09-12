@@ -2,6 +2,9 @@ import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';
 import { DateInputExamples } from '../examples/DateInputExamples';
 import { TimeInputExamples } from '../examples/TimeInputExamples';
+import PropsTable from '../shared/PropsTable';
+import DateInput from '../../lib/component/DateInput';
+import TimeInput from '../../lib/component/TimeInput';
 
 const DateTimeDocs = () => {
   const dateEx = DateInputExamples();
@@ -23,6 +26,8 @@ const DateTimeDocs = () => {
         </div>
       }
     >
+      <PropsTable component={DateInput} />
+      <PropsTable component={TimeInput} />
       <div id="date-basic" className="mb-8">
         <h3 className="text-lg font-medium mb-4">날짜</h3>
         <div>

@@ -1,6 +1,7 @@
 import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';
 import { TextareaExamples } from '../examples/TextareaExamples';
+import Textarea from '../../lib/component/Textarea';
 
 const TextareaDocs = () => {
   const examples = TextareaExamples();
@@ -8,7 +9,7 @@ const TextareaDocs = () => {
     <DocSection
       id="textareas"
       title="17. 텍스트영역 (Textarea)"
-      description={
+      component={Textarea} description={
         <div>
           <p>바운드와 컨트롤드 모드를 지원하며 줄바꿈을 보존하고 aria-invalid를 사용합니다.</p>
           <ul className="list-disc pl-5 mt-2 text-sm text-gray-600">
