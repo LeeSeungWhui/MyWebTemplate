@@ -67,9 +67,9 @@ export default function ComponentsPage() {
           <ComboboxDocs />
           <TooltipDocs />
           <DrawerDocs />
-          <TableDocs />
           <SkeletonDocs />
           <EmptyDocs />
+          <TableDocs />
         </div>
       </div>
 

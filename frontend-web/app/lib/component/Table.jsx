@@ -91,6 +91,7 @@ const Table = forwardRef(function Table(
     pageParam, // e.g. 'page' to sync with URL
     persistKey, // sessionStorage key
     persist = 'session', // 'session' | 'local'
+    onPageChange,
     // variant
     variant = 'table', // 'table' | 'card'
     // card-only
@@ -101,26 +102,7 @@ const Table = forwardRef(function Table(
   ref
 ){
   // derive initial page
-  const initPage = (() => {
-    // controlled wins
-    if (typeof pageProp === 'number') return pageProp;
-    // URL param
-    if (pageParam && typeof window !== 'undefined') {
-      const sp = new URLSearchParams(window.location.search);
-      const p = parseInt(sp.get(pageParam) || '');
-      if (!isNaN(p) && p > 0) return p;
-    }
-    // persisted
-    if (persistKey && typeof window !== 'undefined') {
-      const store = persist === 'local' ? window.localStorage : window.sessionStorage;
-      const raw = store.getItem(persistKey);
-      if (raw) {
-        const p = parseInt(raw);
-        if (!isNaN(p) && p > 0) return p;
-      }
-    }
-    return defaultPage;
-  })();
+  const initPage = (typeof pageProp === 'number') ? pageProp : defaultPage;
 
   const [pageState, setPageState] = useState(initPage);
   const page = typeof pageProp === 'number' ? pageProp : pageState;
@@ -133,6 +115,31 @@ const Table = forwardRef(function Table(
     if (typeof pageProp === 'number') return;
     if (page > pageCount) setPageState(pageCount);
   }, [pageCount]);
+
+  // initialize from URL/persist AFTER hydration to avoid SSR mismatch (uncontrolled)
+  useEffect(() => {
+    if (typeof pageProp === 'number') return;
+    if (typeof window === 'undefined') return;
+    let next = defaultPage;
+    let fromParam = null;
+    if (pageParam) {
+      const sp = new URLSearchParams(window.location.search);
+      const v = sp.get(pageParam);
+      const p = parseInt(v || '');
+      if (!isNaN(p) && p > 0) fromParam = p;
+    }
+    if (fromParam != null) next = fromParam;
+    else if (persistKey) {
+      const store = persist === 'local' ? window.localStorage : window.sessionStorage;
+      const raw = store.getItem(persistKey);
+      if (raw) {
+        const p = parseInt(raw);
+        if (!isNaN(p) && p > 0) next = p;
+      }
+    }
+    if (next !== pageState) setPageState(next);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pageProp, pageParam, persistKey, persist, defaultPage]);
 
   // persist + URL sync (uncontrolled)
   useEffect(() => {
@@ -188,7 +195,7 @@ const Table = forwardRef(function Table(
     const target = clamp(next, 1, pageCount);
     if (typeof pageProp === 'number') {
       // controlled
-      props?.onPageChange?.(target);
+      onPageChange?.(target);
     } else {
       setPageState(target);
     }
@@ -263,4 +270,3 @@ const Table = forwardRef(function Table(
 Table.displayName = 'Table';
 
 export default Table;
-
