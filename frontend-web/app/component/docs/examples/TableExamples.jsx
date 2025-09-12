@@ -77,7 +77,19 @@ export const TableExamples = () => {
         />
       ),
       description: '카드 변형: variant="card" + renderCard로 카드 UI 구성',
-      code: `<Lib.Table variant=\"card\" data={data} pageSize={8} renderCard={(row) => (<div className=\"border rounded p-4\">...</div>)} />`
+      code: `<Lib.Table
+  variant="card"
+  data={data}
+  pageSize={8}
+  renderCard={(row) => (
+    <div className="border rounded p-4 bg-white hover:shadow">
+      <div className="text-sm text-gray-500">#{row.id}</div>
+      <div className="font-medium">{row.name}</div>
+      <div className="text-gray-600">{row.email}</div>
+      <div className="mt-1 text-xs text-gray-500">{row.role}</div>
+    </div>
+  )}
+/>`
     },
     {
       component: (
@@ -86,12 +98,21 @@ export const TableExamples = () => {
           columns={styledColumns}
           headerClassName="bg-transparent gap-2"
           rowClassName="gap-2 !bg-transparent !border-0 hover:!bg-transparent"
+          rowsClassName="space-y-2"
           cellClassName="bg-white ring-1 ring-gray-200 rounded-2xl shadow-sm p-3"
           pageSize={6}
         />
       ),
       description: '커스텀 스타일: 셀 rounded-2xl + ring, 헤더/행 gap으로 물리적 분리된 모던 스타일',
-      code: `<Lib.Table data={data} columns={styledColumns} headerClassName=\"bg-transparent gap-2\" rowClassName=\"gap-2 !bg-transparent !border-0 hover:!bg-transparent\" cellClassName=\"bg-white ring-1 ring-gray-200 rounded-2xl shadow-sm p-3\" pageSize={6} />`
+      code: `<Lib.Table
+  data={data}
+  columns={styledColumns}
+  headerClassName="bg-transparent gap-2"
+  rowClassName="gap-2 !bg-transparent !border-0 hover:!bg-transparent"
+  rowsClassName="space-y-2"
+  cellClassName="bg-white ring-1 ring-gray-200 rounded-2xl shadow-sm p-3"
+  pageSize={6}
+/>`
     },
     {
       component: (
@@ -108,4 +129,3 @@ export const TableExamples = () => {
 
   return examples;
 };
-

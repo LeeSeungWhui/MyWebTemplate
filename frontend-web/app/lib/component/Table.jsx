@@ -111,6 +111,7 @@ const Table = forwardRef(function Table(
     headerClassName = '',
     rowClassName = '',
     cellClassName = '',
+    rowsClassName = '', // container for rows (e.g., 'space-y-2')
     empty = '데이터가 없습니다.',
     loading = false,
     // interactions
@@ -235,7 +236,7 @@ const Table = forwardRef(function Table(
   };
 
   const bodyTable = (
-    <div role="rowgroup" className="w-full">
+    <div role="rowgroup" className={`w-full ${rowsClassName}`.trim()}>
       {rows.map((row, i) => {
         const globalIdx = (page - 1) * pageSize + i;
         const keyVal = typeof rowKey === 'function' ? rowKey(row, globalIdx) : (typeof rowKey === 'string' ? (row?.get ? row.get(rowKey) : row?.[rowKey]) : defaultRowKey(row, globalIdx));
