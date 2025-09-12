@@ -27,41 +27,74 @@ const clamp = (n, min, max) => Math.max(min, Math.min(n, max));
 const Arrow = ({ dir, className = '' }) => {
   const rotate = dir === 'left' ? 'rotate-180' : dir === 'up' ? '-rotate-90' : dir === 'down' ? 'rotate-90' : '';
   return (
-    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg" className={`${rotate} ${className}`} aria-hidden>
-      <path d="M4 2L8 6L4 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" className={`${rotate} ${className}`} aria-hidden>
+      <path d="M5.5 3L10 8L5.5 13" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
     </svg>
   );
 };
 
-const Pagination = ({ page, pageCount, onChange, maxButtons = 10, className = '' }) => {
-  const half = Math.floor(maxButtons / 2);
-  let start = Math.max(page - half, 1);
-  let end = Math.min(start + maxButtons - 1, pageCount);
-  if (end - start + 1 < maxButtons) start = Math.max(end - maxButtons + 1, 1);
-  const pages = Array.from({ length: end - start + 1 }, (_, i) => start + i);
+const DoubleArrow = ({ dir = 'right', className = '' }) => {
+  const rotate = dir === 'left' ? 'rotate-180' : '';
   return (
-    <div className={`inline-flex items-center ${className}`} role="navigation" aria-label="Pagination">
-      <button className="px-2 py-1 text-gray-500 hover:text-gray-700 disabled:opacity-40" onClick={() => onChange(1)} disabled={page === 1} aria-label="First page">
-        <Arrow dir="left" /><Arrow dir="left" className="-ml-1" />
+    <svg width="18" height="16" viewBox="0 0 18 16" fill="none" xmlns="http://www.w3.org/2000/svg" className={`${rotate} ${className}`} aria-hidden>
+      <path d="M3.5 3L8 8L3.5 13" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M9.5 3L14 8L9.5 13" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+    </svg>
+  );
+};
+
+const Pagination = ({ page, pageCount, onChange, maxButtons = 7, className = '' }) => {
+  // build range with edges + ellipsis
+  const tokens = [];
+  const add = (t) => tokens.push(t);
+  const addPages = (s, e) => { for (let i = s; i <= e; i++) add(i); };
+
+  if (pageCount <= maxButtons) {
+    addPages(1, pageCount);
+  } else {
+    const windowSize = Math.max(3, maxButtons - 2); // reserve edges
+    let start = Math.max(2, page - Math.floor((windowSize - 1) / 2));
+    let end = Math.min(pageCount - 1, start + windowSize - 1);
+    start = Math.max(2, Math.min(start, end - windowSize + 1));
+    add(1);
+    if (start > 2) add('…');
+    addPages(start, end);
+    if (end < pageCount - 1) add('…');
+    add(pageCount);
+  }
+
+  const btnBase = 'rounded-full w-8 h-8 flex items-center justify-center text-sm transition-colors';
+  const navBase = 'rounded-full w-8 h-8 flex items-center justify-center text-gray-600 hover:text-gray-800 disabled:opacity-40 disabled:cursor-not-allowed';
+  const selected = 'bg-blue-100 text-blue-700 font-semibold ring-1 ring-blue-300';
+  const normal = 'text-gray-700 hover:bg-gray-100';
+
+  return (
+    <div className={`inline-flex items-center gap-1 ${className}`} role="navigation" aria-label="Pagination">
+      <button className={navBase} onClick={() => onChange(1)} disabled={page === 1} aria-label="First page">
+        <DoubleArrow dir="left" />
       </button>
-      <button className="px-2 py-1 text-gray-500 hover:text-gray-700 disabled:opacity-40" onClick={() => onChange(page - 1)} disabled={page === 1} aria-label="Previous page">
+      <button className={navBase} onClick={() => onChange(page - 1)} disabled={page === 1} aria-label="Previous page">
         <Arrow dir="left" />
       </button>
-      {pages.map((p) => (
-        <button
-          key={p}
-          className={`mx-1 rounded-full w-8 h-8 text-sm flex items-center justify-center ${p === page ? 'text-blue-600 font-bold bg-gray-200' : 'text-gray-600 hover:text-gray-800'}`}
-          aria-current={p === page ? 'page' : undefined}
-          onClick={() => onChange(p)}
-        >
-          {p}
-        </button>
+      {tokens.map((t, idx) => (
+        typeof t === 'number' ? (
+          <button
+            key={t}
+            className={`${btnBase} ${t === page ? selected : normal}`}
+            aria-current={t === page ? 'page' : undefined}
+            onClick={() => onChange(t)}
+          >
+            {t}
+          </button>
+        ) : (
+          <span key={`ellipsis-${idx}`} className="px-2 text-gray-400 select-none">…</span>
+        )
       ))}
-      <button className="px-2 py-1 text-gray-500 hover:text-gray-700 disabled:opacity-40" onClick={() => onChange(page + 1)} disabled={page === pageCount} aria-label="Next page">
+      <button className={navBase} onClick={() => onChange(page + 1)} disabled={page === pageCount} aria-label="Next page">
         <Arrow dir="right" />
       </button>
-      <button className="px-2 py-1 text-gray-500 hover:text-gray-700 disabled:opacity-40" onClick={() => onChange(pageCount)} disabled={page === pageCount} aria-label="Last page">
-        <Arrow dir="right" /><Arrow dir="right" className="-ml-1" />
+      <button className={navBase} onClick={() => onChange(pageCount)} disabled={page === pageCount} aria-label="Last page">
+        <DoubleArrow dir="right" />
       </button>
     </div>
   );
