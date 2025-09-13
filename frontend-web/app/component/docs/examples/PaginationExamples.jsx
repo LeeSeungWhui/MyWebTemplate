@@ -1,10 +1,16 @@
 /**
  * 파일명: PaginationExamples.jsx
+ * 작성자: LSH
+ * 갱신일: 2025-09-13
  * 설명: Pagination 컴포넌트 사용 예제 모음
  */
 import * as Lib from '@/lib';
 import { useState } from 'react';
 
+/**
+ * Pagination 예시 목록을 반환
+ * @date 2025-09-13
+ */
 export const PaginationExamples = () => {
   const [pageA, setPageA] = useState(2);
   const [pageB, setPageB] = useState(5);

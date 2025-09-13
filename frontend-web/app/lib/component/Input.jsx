@@ -1,14 +1,16 @@
-// Input.jsx
-// 작성자: AI
-// 갱신일: 2025-02-14
-// 설명: 필터 및 마스크가 적용된 입력 컴포넌트
+/**
+ * 파일명: Input.jsx
+ * 작성자: LSH
+ * 갱신일: 2025-09-13
+ * 설명: 필터 및 마스크가 적용된 입력 컴포넌트
+ */
 import { useState, useRef, forwardRef } from 'react';
 import Icon from './Icon';
 import { getBoundValue, setBoundValue, buildCtx, fireValueHandlers } from '../binding';
 
 /**
  * Input - 필터/마스크 지원 입력 컴포넌트
- * @date 2025-02-14
+ * @date 2025-09-13
  */
 const Input = forwardRef(({ 
     dataObj,

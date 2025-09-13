@@ -1,4 +1,10 @@
 'use client'
+/**
+ * 파일명: SharedHydrator.jsx
+ * 작성자: LSH
+ * 갱신일: 2025-09-13
+ * 설명: 공유 스토어 하이드레이터
+ */
 
 import { useEffect } from 'react'
 import { useSharedStore } from '@/app/common/store/SharedStore'

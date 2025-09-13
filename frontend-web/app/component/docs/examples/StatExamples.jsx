@@ -1,9 +1,15 @@
 /**
  * 파일명: StatExamples.jsx
+ * 작성자: LSH
+ * 갱신일: 2025-09-13
  * 설명: Stat 컴포넌트 사용 예제 모음
  */
 import * as Lib from '@/lib';
 
+/**
+ * Stat 예시 목록을 반환
+ * @date 2025-09-13
+ */
 export const StatExamples = () => {
   const examples = [
     {

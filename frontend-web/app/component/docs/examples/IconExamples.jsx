@@ -1,3 +1,9 @@
+/**
+ * 파일명: IconExamples.jsx
+ * 작성자: LSH
+ * 갱신일: 2025-09-13
+ * 설명: Icon 컴포넌트 예제
+ */
 import * as Lib from '@/lib';
 
 export const IconExamples = () => {

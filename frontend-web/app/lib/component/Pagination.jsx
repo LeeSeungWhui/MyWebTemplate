@@ -1,5 +1,11 @@
 /**
  * 파일명: Pagination.jsx
+ * 작성자: LSH
+ * 갱신일: 2025-09-13
+ * 설명: Pagination UI 컴포넌트 구현
+ */
+/**
+ * 파일명: Pagination.jsx
  * 설명: 페이지 이동 내비게이션 컴포넌트 (접근성 포함)
  */
 import React from 'react';

@@ -1,5 +1,11 @@
 /**
  * 파일명: BadgeDocs.jsx
+ * 작성자: LSH
+ * 갱신일: 2025-09-13
+ * 설명: Badge 컴포넌트 문서
+ */
+/**
+ * 파일명: BadgeDocs.jsx
  * 설명: Badge/Tag 컴포넌트 문서
  */
 import DocSection from '../shared/DocSection';

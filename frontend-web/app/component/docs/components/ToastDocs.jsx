@@ -1,5 +1,11 @@
 /**
  * 파일명: ToastDocs.jsx
+ * 작성자: LSH
+ * 갱신일: 2025-09-13
+ * 설명: Toast 컴포넌트 문서
+ */
+/**
+ * 파일명: ToastDocs.jsx
  * 설명: Toast 컴포넌트 문서
  */
 import { ToastExamples } from '../examples/ToastExamples';

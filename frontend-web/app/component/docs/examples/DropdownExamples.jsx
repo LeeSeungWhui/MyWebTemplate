@@ -1,9 +1,15 @@
 /**
  * 파일명: DropdownExamples.jsx
+ * 작성자: LSH
+ * 갱신일: 2025-09-13
  * 설명: Dropdown 컴포넌트 사용 예제 모음 (EasyList 기반, 내부 선택 상태 관리)
  */
 import * as Lib from '@/lib';
 
+/**
+ * Dropdown 예시 목록을 반환
+ * @date 2025-09-13
+ */
 export const DropdownExamples = () => {
   const dataList = Lib.EasyList([
     { label: '항목 1', value: 'one' },

@@ -1,3 +1,9 @@
+/**
+ * 파일명: DrawerExamples.jsx
+ * 작성자: LSH
+ * 갱신일: 2025-09-13
+ * 설명: Drawer 컴포넌트 예제
+ */
 ﻿/**
  * 파일명: DrawerExamples.jsx
  * 설명: Drawer 컴포넌트 사용 예제 모음 (size 숫자 px 지원 포함)

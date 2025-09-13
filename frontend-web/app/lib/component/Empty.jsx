@@ -1,3 +1,9 @@
+/**
+ * 파일명: Empty.jsx
+ * 작성자: LSH
+ * 갱신일: 2025-09-13
+ * 설명: Empty UI 컴포넌트 구현
+ */
 import Icon from './Icon';
 
 const Empty = ({

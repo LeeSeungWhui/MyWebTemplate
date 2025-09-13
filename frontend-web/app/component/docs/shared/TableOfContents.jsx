@@ -1,8 +1,12 @@
 /**
  * 파일명: TableOfContents.jsx
- * 작성자: ChatGPT
- * 갱신일: 2025-02-14
+ * 작성자: LSH
+ * 갱신일: 2025-09-13
  * 설명: 컴포넌트 문서 목차
+ */
+/**
+ * 문서 목차 섹션
+ * @date 2025-09-13
  */
 const TableOfContents = () => {
   return (
@@ -225,19 +229,25 @@ const TableOfContents = () => {
           <a href="#pagination" className="text-blue-600 hover:text-blue-800">28. 페이지네이션 (Pagination)</a>
           <ul className="ml-4 mt-1 space-y-1">
             <li><a href="#pagination-basic" className="text-blue-600 hover:text-blue-800">- 기본</a></li>
-            <li><a href="#pagination-advanced" className="text-blue-600 hover:text-blue-800">- 대용량</a></li>
+            <li><a href="#pagination-advanced" className="text-blue-600 hover:text-blue-800">- 대용량/버튼 제한</a></li>
           </ul>
         </li>
         <li>
           <a href="#dropdowns" className="text-blue-600 hover:text-blue-800">29. 드롭다운 (Dropdown)</a>
           <ul className="ml-4 mt-1 space-y-1">
             <li><a href="#dropdown-basic" className="text-blue-600 hover:text-blue-800">- 기본</a></li>
+            <li><a href="#dropdown-custom-style" className="text-blue-600 hover:text-blue-800">- 커스텀 스타일</a></li>
+            <li><a href="#dropdown-styles" className="text-blue-600 hover:text-blue-800">- 스타일 변형</a></li>
+            <li><a href="#dropdown-custom-trigger" className="text-blue-600 hover:text-blue-800">- 커스텀 트리거</a></li>
+            <li><a href="#dropdown-placement" className="text-blue-600 hover:text-blue-800">- 위치/정렬</a></li>
+            <li><a href="#dropdown-preselected" className="text-blue-600 hover:text-blue-800">- 사전 선택</a></li>
           </ul>
         </li>
         <li>
           <a href="#stats" className="text-blue-600 hover:text-blue-800">30. 지표 카드 (Stat)</a>
           <ul className="ml-4 mt-1 space-y-1">
             <li><a href="#stat-basic" className="text-blue-600 hover:text-blue-800">- 기본</a></li>
+            <li><a href="#stat-more" className="text-blue-600 hover:text-blue-800">- 추가 예시</a></li>
           </ul>
         </li>
       </ul>

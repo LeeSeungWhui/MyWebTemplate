@@ -1,3 +1,9 @@
+/**
+ * 파일명: Icon.jsx
+ * 작성자: LSH
+ * 갱신일: 2025-09-13
+ * 설명: Icon UI 컴포넌트 구현
+ */
 import { forwardRef } from 'react';
 import * as AiIcons from 'react-icons/ai';  // Ant Design Icons
 import * as BiIcons from 'react-icons/bi';  // Boxicons

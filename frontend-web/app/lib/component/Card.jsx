@@ -1,3 +1,9 @@
+/**
+ * 파일명: Card.jsx
+ * 작성자: LSH
+ * 갱신일: 2025-09-13
+ * 설명: Card UI 컴포넌트 구현
+ */
 const Card = ({
   title,
   subtitle,

@@ -1,3 +1,9 @@
+/**
+ * 파일명: index.jsx
+ * 작성자: LSH
+ * 갱신일: 2025-09-13
+ * 설명: 라이브러리 컴포넌트 집합
+ */
 // Components
 export { default as Button } from './component/Button';
 export { default as Input } from './component/Input';

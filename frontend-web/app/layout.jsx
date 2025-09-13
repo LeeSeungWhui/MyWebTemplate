@@ -1,3 +1,9 @@
+/**
+ * 파일명: layout.jsx
+ * 작성자: LSH
+ * 갱신일: 2025-09-13
+ * 설명: 앱 전역 레이아웃
+ */
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import AppShell from "@/app/AppShell";

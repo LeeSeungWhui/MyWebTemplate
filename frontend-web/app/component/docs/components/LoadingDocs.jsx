@@ -1,5 +1,11 @@
 /**
  * 파일명: LoadingDocs.jsx
+ * 작성자: LSH
+ * 갱신일: 2025-09-13
+ * 설명: Loading 컴포넌트 문서
+ */
+/**
+ * 파일명: LoadingDocs.jsx
  * 설명: Loading 컴포넌트 문서
  */
 import { LoadingExamples } from '../examples/LoadingExamples';

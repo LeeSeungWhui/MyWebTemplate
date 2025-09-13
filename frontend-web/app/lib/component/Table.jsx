@@ -1,4 +1,10 @@
 /**
+ * 파일명: Table.jsx
+ * 작성자: LSH
+ * 갱신일: 2025-09-13
+ * 설명: Table UI 컴포넌트 구현
+ */
+/**
  * Table.jsx
  * Lightweight, flexible data Table/Card component with controlled/uncontrolled pagination
  * - Decoupled from project-specific Checkbox/Icon

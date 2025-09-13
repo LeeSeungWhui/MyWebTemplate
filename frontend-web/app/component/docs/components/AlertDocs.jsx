@@ -1,5 +1,11 @@
 /**
  * 파일명: AlertDocs.jsx
+ * 작성자: LSH
+ * 갱신일: 2025-09-13
+ * 설명: Alert 컴포넌트 문서
+ */
+/**
+ * 파일명: AlertDocs.jsx
  * 설명: Alert 컴포넌트 문서
  */
 import { AlertExamples } from '../examples/AlertExamples';

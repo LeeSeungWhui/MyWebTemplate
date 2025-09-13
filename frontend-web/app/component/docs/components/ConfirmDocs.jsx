@@ -1,5 +1,11 @@
 /**
  * 파일명: ConfirmDocs.jsx
+ * 작성자: LSH
+ * 갱신일: 2025-09-13
+ * 설명: Confirm 컴포넌트 문서
+ */
+/**
+ * 파일명: ConfirmDocs.jsx
  * 설명: Confirm 컴포넌트 문서
  */
 import { ConfirmExamples } from '../examples/ConfirmExamples';

@@ -1,4 +1,10 @@
 "use client"
+/**
+ * 파일명: view.jsx
+ * 작성자: LSH
+ * 갱신일: 2025-09-13
+ * 설명: 로그인 페이지 뷰
+ */
 
 import { useState } from 'react'
 import useSWR from 'swr'

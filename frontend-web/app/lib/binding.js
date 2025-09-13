@@ -1,3 +1,9 @@
+/**
+ * 파일명: binding.js
+ * 작성자: LSH
+ * 갱신일: 2025-09-13
+ * 설명: 바인딩 유틸 함수
+ */
 // binding.js
 // Updated: 2025-09-09
 // Purpose: Common helpers for data binding (EasyObj/EasyList) and change context

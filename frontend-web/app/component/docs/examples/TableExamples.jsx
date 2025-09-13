@@ -1,4 +1,10 @@
 /**
+ * 파일명: TableExamples.jsx
+ * 작성자: LSH
+ * 갱신일: 2025-09-13
+ * 설명: Table 컴포넌트 예제
+ */
+/**
  * TableExamples.jsx
  * Table 컴포넌트 사용 예제 모음
  */

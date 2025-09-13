@@ -1,5 +1,11 @@
 /**
  * 파일명: Stat.jsx
+ * 작성자: LSH
+ * 갱신일: 2025-09-13
+ * 설명: Stat UI 컴포넌트 구현
+ */
+/**
+ * 파일명: Stat.jsx
  * 설명: 간단 KPI 지표 카드
  */
 import React from 'react';

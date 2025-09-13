@@ -1,3 +1,9 @@
+/**
+ * 파일명: Badge.jsx
+ * 작성자: LSH
+ * 갱신일: 2025-09-13
+ * 설명: Badge UI 컴포넌트 구현
+ */
 const variants = {
   neutral: 'bg-gray-100 text-gray-800 border-transparent',
   primary: 'bg-blue-100 text-blue-800 border-transparent',

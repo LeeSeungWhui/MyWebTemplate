@@ -1,13 +1,17 @@
 /**
  * 파일명: TooltipDocs.jsx
- * 작성자: ChatGPT
- * 갱신일: 2025-02-14
+ * 작성자: LSH
+ * 갱신일: 2025-09-13
  * 설명: 툴팁 문서 섹션
  */
 import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';
 import { TooltipExamples } from '../examples/TooltipExamples';
 
+/**
+ * Tooltip 문서 섹션
+ * @date 2025-09-13
+ */
 const TooltipDocs = () => {
   const examples = TooltipExamples();
   return (
