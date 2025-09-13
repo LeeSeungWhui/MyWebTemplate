@@ -1,3 +1,9 @@
+/**
+ * 파일명: Skeleton.jsx
+ * 작성자: LSH
+ * 갱신일: 2025-09-13
+ * 설명: Skeleton UI 컴포넌트 구현
+ */
 const Skeleton = ({ className = '', variant = 'rect', lines = 1, circleSize = 40, ...props }) => {
   const base = 'bg-gray-200/70 animate-pulse';
   if (variant === 'text') {

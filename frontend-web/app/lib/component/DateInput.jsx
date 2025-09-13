@@ -1,3 +1,9 @@
+/**
+ * 파일명: DateInput.jsx
+ * 작성자: LSH
+ * 갱신일: 2025-09-13
+ * 설명: DateInput UI 컴포넌트 구현
+ */
 // DateInput.jsx
 // Updated: 2025-09-09
 // Purpose: Simple date input with EasyObj binding

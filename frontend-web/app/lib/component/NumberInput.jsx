@@ -1,3 +1,9 @@
+/**
+ * 파일명: NumberInput.jsx
+ * 작성자: LSH
+ * 갱신일: 2025-09-13
+ * 설명: NumberInput UI 컴포넌트 구현
+ */
 // NumberInput.jsx
 // Updated: 2025-09-09
 // Purpose: Numeric input with step controls and EasyObj binding support

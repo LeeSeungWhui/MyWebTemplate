@@ -1,4 +1,10 @@
 "use client";
+/**
+ * 파일명: SwitchExamples.jsx
+ * 작성자: LSH
+ * 갱신일: 2025-09-13
+ * 설명: Switch 컴포넌트 예제
+ */
 import * as Lib from '@/lib';
 import { useState } from 'react';
 

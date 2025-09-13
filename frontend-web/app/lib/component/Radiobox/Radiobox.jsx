@@ -1,3 +1,9 @@
+/**
+ * 파일명: Radiobox.jsx
+ * 작성자: LSH
+ * 갱신일: 2025-09-13
+ * 설명: Radiobox UI 컴포넌트 구현
+ */
 import { useState, useEffect, forwardRef } from 'react';
 import styles from './Radiobox.module.css';
 

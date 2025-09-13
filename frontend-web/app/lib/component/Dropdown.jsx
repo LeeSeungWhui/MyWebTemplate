@@ -1,5 +1,11 @@
 /**
  * 파일명: Dropdown.jsx
+ * 작성자: LSH
+ * 갱신일: 2025-09-13
+ * 설명: Dropdown UI 컴포넌트 구현
+ */
+/**
+ * 파일명: Dropdown.jsx
  * 설명: 경량 Dropdown 컴포넌트 (EasyList 지원, 접근성 포함)
  * 스타일: 기본값을 모던한 Material 느낌으로 개선 (rounded, elevation, subtle hover)
  */

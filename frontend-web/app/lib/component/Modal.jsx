@@ -1,3 +1,9 @@
+/**
+ * 파일명: Modal.jsx
+ * 작성자: LSH
+ * 갱신일: 2025-09-13
+ * 설명: Modal UI 컴포넌트 구현
+ */
 import { forwardRef, useEffect, useRef, useState } from 'react';
 import Icon from './Icon';
 import React from 'react';

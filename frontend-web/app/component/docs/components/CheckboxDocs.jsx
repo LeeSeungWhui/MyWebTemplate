@@ -1,5 +1,11 @@
 /**
  * 파일명: CheckboxDocs.jsx
+ * 작성자: LSH
+ * 갱신일: 2025-09-13
+ * 설명: Checkbox 컴포넌트 문서
+ */
+/**
+ * 파일명: CheckboxDocs.jsx
  * 설명: Checkbox 컴포넌트 문서
  */
 import { CheckboxExamples } from '../examples/CheckboxExamples';

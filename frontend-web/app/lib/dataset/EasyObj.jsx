@@ -1,3 +1,9 @@
+/**
+ * 파일명: EasyObj.jsx
+ * 작성자: LSH
+ * 갱신일: 2025-09-13
+ * 설명: 객체 데이터 래퍼
+ */
 import { useState, useRef, useCallback } from 'react';
 
 // SSR-safe scheduler: fall back when RAF is unavailable

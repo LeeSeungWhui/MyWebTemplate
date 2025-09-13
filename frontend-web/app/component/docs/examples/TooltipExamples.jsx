@@ -1,11 +1,15 @@
 /**
  * 파일명: TooltipExamples.jsx
- * 작성자: ChatGPT
- * 갱신일: 2025-02-14
+ * 작성자: LSH
+ * 갱신일: 2025-09-13
  * 설명: 툴팁 컴포넌트 예시 모음
  */
 import * as Lib from '@/lib';
 
+/**
+ * 툴팁 예시 목록을 반환
+ * @date 2025-09-13
+ */
 export const TooltipExamples = () => {
   const examples = [
     {

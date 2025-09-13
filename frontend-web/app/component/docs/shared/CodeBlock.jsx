@@ -1,3 +1,9 @@
+/**
+ * 파일명: CodeBlock.jsx
+ * 작성자: LSH
+ * 갱신일: 2025-09-13
+ * 설명: 코드 블록 렌더러
+ */
 import { useState } from 'react';
 
 const CodeBlock = ({ code, language = 'jsx' }) => {

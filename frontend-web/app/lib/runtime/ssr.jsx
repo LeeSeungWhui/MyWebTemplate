@@ -1,3 +1,9 @@
+/**
+ * 파일명: ssr.jsx
+ * 작성자: LSH
+ * 갱신일: 2025-09-13
+ * 설명: SSR 렌더링 유틸
+ */
 const BASE = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:8000'
 
 export function buildSSRHeaders(extra = {}) {

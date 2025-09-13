@@ -1,3 +1,9 @@
+/**
+ * 파일명: Combobox.jsx
+ * 작성자: LSH
+ * 갱신일: 2025-09-13
+ * 설명: Combobox UI 컴포넌트 구현
+ */
 // Combobox.jsx
 // Updated: 2025-09-09
 // Purpose: Filterable combobox with EasyList(dataList) selection model, multi-select, 초성검색, select-all

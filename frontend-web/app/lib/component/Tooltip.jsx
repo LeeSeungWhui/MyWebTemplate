@@ -1,7 +1,7 @@
 /**
  * 파일명: Tooltip.jsx
- * 작성자: ChatGPT
- * 갱신일: 2025-02-14
+ * 작성자: LSH
+ * 갱신일: 2025-09-13
  * 설명: hover/click에 반응하는 툴팁 컴포넌트
  */
 import { forwardRef, useEffect, useId, useRef, useState } from 'react';
@@ -15,7 +15,7 @@ const placements = {
 
 /**
  * 툴팁 본체
- * 갱신일: 2025-02-14
+ * 갱신일: 2025-09-13
  */
 const Tooltip = forwardRef(({ content, placement = 'top', delay = 150, disabled = false, trigger = 'hover', className = '', children, textDirection = 'lr' }, ref) => {
   const [open, setOpen] = useState(false);

@@ -1,3 +1,9 @@
+/**
+ * 파일명: page.jsx
+ * 작성자: LSH
+ * 갱신일: 2025-09-13
+ * 설명: 로그인 페이지 컴포넌트
+ */
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
 export const runtime = 'nodejs'

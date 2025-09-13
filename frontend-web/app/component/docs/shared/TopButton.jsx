@@ -1,3 +1,9 @@
+/**
+ * 파일명: TopButton.jsx
+ * 작성자: LSH
+ * 갱신일: 2025-09-13
+ * 설명: 문서 상단 이동 버튼
+ */
 import { useState, useEffect } from 'react';
 import * as Lib from '@/lib';
 

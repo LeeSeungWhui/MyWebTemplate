@@ -1,4 +1,10 @@
 'use client'
+/**
+ * 파일명: csr.jsx
+ * 작성자: LSH
+ * 갱신일: 2025-09-13
+ * 설명: CSR 렌더링 유틸
+ */
 
 const BASE = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:8000'
 

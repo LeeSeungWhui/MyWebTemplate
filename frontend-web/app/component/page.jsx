@@ -1,3 +1,9 @@
+/**
+ * 파일명: page.jsx
+ * 작성자: LSH
+ * 갱신일: 2025-09-13
+ * 설명: 컴포넌트 문서 페이지
+ */
 "use client"
 
 import TableOfContents from './docs/shared/TableOfContents'
@@ -33,6 +39,10 @@ import TableDocs from './docs/components/TableDocs'
 import SkeletonDocs from './docs/components/SkeletonDocs'
 import EmptyDocs from './docs/components/EmptyDocs'
 
+/**
+ * 컴포넌트 문서 페이지
+ * @date 2025-09-13
+ */
 export default function ComponentsPage() {
   return (
     <div className="flex">

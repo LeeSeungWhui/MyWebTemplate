@@ -1,3 +1,9 @@
+/**
+ * 파일명: Select.jsx
+ * 작성자: LSH
+ * 갱신일: 2025-09-13
+ * 설명: Select UI 컴포넌트 구현
+ */
 import { useEffect, useState, forwardRef } from 'react';
 import { setBoundValue, buildCtx, fireValueHandlers } from '../binding';
 

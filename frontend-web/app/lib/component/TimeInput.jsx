@@ -1,3 +1,9 @@
+/**
+ * 파일명: TimeInput.jsx
+ * 작성자: LSH
+ * 갱신일: 2025-09-13
+ * 설명: TimeInput UI 컴포넌트 구현
+ */
 // TimeInput.jsx
 // Updated: 2025-09-09
 // Purpose: Simple time input with EasyObj binding

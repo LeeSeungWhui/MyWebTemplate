@@ -1,3 +1,9 @@
+/**
+ * 파일명: CheckboxExamples.jsx
+ * 작성자: LSH
+ * 갱신일: 2025-09-13
+ * 설명: Checkbox 컴포넌트 예제
+ */
 import * as Lib from '@/lib';
 import { useState } from 'react';
 

@@ -1,3 +1,9 @@
+/**
+ * 파일명: Textarea.jsx
+ * 작성자: LSH
+ * 갱신일: 2025-09-13
+ * 설명: Textarea UI 컴포넌트 구현
+ */
 import { useState, forwardRef, useEffect, useRef } from 'react';
 import { getBoundValue, setBoundValue, buildCtx, fireValueHandlers } from '../binding';
 

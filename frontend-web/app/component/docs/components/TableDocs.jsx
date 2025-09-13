@@ -1,4 +1,10 @@
 /**
+ * 파일명: TableDocs.jsx
+ * 작성자: LSH
+ * 갱신일: 2025-09-13
+ * 설명: Table 컴포넌트 문서
+ */
+/**
  * TableDocs.jsx
  * Table 컴포넌트 문서
  */
