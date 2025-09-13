@@ -74,6 +74,8 @@ const Modal = forwardRef(({
     draggable = false,
     closeOnBackdrop = true,
     closeOnEsc = true,
+    ariaLabel,
+    ariaLabelledBy,
     top,
     left,
     className = '',
@@ -81,6 +83,7 @@ const Modal = forwardRef(({
     ...props
 }, ref) => {
     const modalRef = useRef(null);
+    const lastFocusedRef = useRef(null);
     const dragRef = useRef({ isDragging: false, startX: 0, startY: 0 });
     const [position, setPosition] = useState(null);
 
@@ -95,10 +98,18 @@ const Modal = forwardRef(({
     // 스크롤 잠금 관리
     useEffect(() => {
         if (isOpen) {
+            try { lastFocusedRef.current = document.activeElement; } catch {}
             document.body.style.overflow = 'hidden';
+            setTimeout(() => {
+                if (!modalRef.current) return;
+                const focusables = modalRef.current.querySelectorAll('a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])');
+                if (focusables.length) { try { focusables[0].focus(); } catch {} }
+            }, 0);
         }
         return () => {
             document.body.style.overflow = '';
+            const el = lastFocusedRef.current;
+            if (el && typeof el.focus === 'function') { try { el.focus(); } catch {} }
         };
     }, [isOpen]);
 
@@ -223,6 +234,10 @@ const Modal = forwardRef(({
                     animate-fade-in-up
                     ${className}
                 `.trim()}
+                role="dialog"
+                aria-modal="true"
+                aria-label={ariaLabel}
+                aria-labelledby={ariaLabelledBy}
                 onMouseDown={handleMouseDown}
                 {...props}
             >

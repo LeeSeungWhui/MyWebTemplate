@@ -93,7 +93,7 @@
 - 접근성 고려 (ARIA 속성 등)
 - 다크모드 지원 검토
 - Tailwind CSS 대신 CSS Modules 사용 (Vite 기본 지원)
-- lib컴포넌트들은 import * as Lib from '@/lib'로 사용
+- lib컴포넌트들은 import * as Lib from '@/app/lib'로 사용
 - AppContext는 const app = useContext(AppContext)로 사용
 
 # 기타

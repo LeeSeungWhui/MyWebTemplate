@@ -1,5 +1,5 @@
 import { View, Text } from 'react-native';
-import * as Lib from '@/lib';
+import * as Lib from '@/app/lib';
 
 export const ButtonExamples = () => {
     return [

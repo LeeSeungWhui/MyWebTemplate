@@ -1,4 +1,4 @@
-import * as Lib from '@/lib';
+import * as Lib from '@/app/lib';
 import ButtonDocs from './docs/components/ButtonDocs';
 import TableOfContents from './docs/shared/TableOfContents';
 import InputDocs from './docs/components/InputDocs';

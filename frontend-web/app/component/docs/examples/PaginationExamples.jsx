@@ -4,7 +4,7 @@
  * 갱신일: 2025-09-13
  * 설명: Pagination 컴포넌트 사용 예제 모음
  */
-import * as Lib from '@/lib';
+import * as Lib from '@/app/lib';
 import { useState } from 'react';
 
 /**

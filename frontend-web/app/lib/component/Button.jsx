@@ -17,6 +17,7 @@ const Button = forwardRef(({
     iconPosition = 'left',
     disabled = false,
     loading = false,
+    status, // 'idle' | 'loading' | 'error' | 'success'
     ...props
 }, ref) => {
     const baseStyle = "inline-flex items-center justify-center font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors";
@@ -60,21 +61,23 @@ const Button = forwardRef(({
         lg: 'mr-2.5'
     }[size];
 
+    const isBusy = loading || status === 'loading';
     return (
         <button
             ref={ref}
             type={type}
-            disabled={disabled || loading}
+            disabled={disabled || isBusy}
             className={buttonClass}
+            aria-busy={isBusy ? 'true' : undefined}
             {...props}
         >
-            {loading ? (
+            {isBusy ? (
                 <Icon icon="ri:RiLoader4Line" className="animate-spin mr-2" size={iconSize} />
             ) : icon && iconPosition === 'left' ? (
                 <Icon icon={icon} className={iconSpacing} size={iconSize} />
             ) : null}
             {children}
-            {!loading && icon && iconPosition === 'right' && (
+            {!isBusy && icon && iconPosition === 'right' && (
                 <Icon icon={icon} className={`ml-${iconSpacing.slice(3)}`} size={iconSize} />
             )}
         </button>

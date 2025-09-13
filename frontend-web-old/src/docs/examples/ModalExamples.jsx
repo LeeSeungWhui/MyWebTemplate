@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/rules-of-hooks */
-import * as Lib from '@/lib';
+import * as Lib from '@/app/lib';
 import { useState } from 'react';
 
 export const ModalExamples = () => {

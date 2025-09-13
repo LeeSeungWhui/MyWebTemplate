@@ -1,6 +1,6 @@
-import * as Lib from '@/lib';
+import * as Lib from '@/app/lib';
 import { useContext, useRef } from 'react';
-import { AppContext } from '@/common/share/AppContext';
+import { AppContext } from '@/app/common/share/AppContext';
 
 export const ConfirmExamples = () => {
     const app = useContext(AppContext);

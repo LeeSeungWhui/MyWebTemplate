@@ -4,7 +4,7 @@
  * 갱신일: 2025-09-13
  * 설명: Badge 컴포넌트 예제
  */
-import * as Lib from '@/lib';
+import * as Lib from '@/app/lib';
 
 export const BadgeExamples = () => {
   const examples = [

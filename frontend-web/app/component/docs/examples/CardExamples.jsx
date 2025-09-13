@@ -4,7 +4,7 @@
  * 갱신일: 2025-09-13
  * 설명: Card 컴포넌트 예제
  */
-import * as Lib from '@/lib';
+import * as Lib from '@/app/lib';
 import { useSharedStore } from '@/app/common/store/SharedStore';
 
 export const CardExamples = () => {

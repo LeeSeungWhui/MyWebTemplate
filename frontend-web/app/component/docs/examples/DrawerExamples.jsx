@@ -4,11 +4,11 @@
  * 갱신일: 2025-09-13
  * 설명: Drawer 컴포넌트 예제
  */
-﻿/**
- * 파일명: DrawerExamples.jsx
- * 설명: Drawer 컴포넌트 사용 예제 모음 (size 숫자 px 지원 포함)
- */
-import * as Lib from '@/lib';
+/**
+* 파일명: DrawerExamples.jsx
+* 설명: Drawer 컴포넌트 사용 예제 모음 (size 숫자 px 지원 포함)
+*/
+import * as Lib from '@/app/lib';
 import { useState } from 'react';
 
 export const DrawerExamples = () => {

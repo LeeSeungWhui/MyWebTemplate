@@ -1,4 +1,4 @@
-import * as Lib from '@/lib';
+import * as Lib from '@/app/lib';
 
 export const InputExamples = () => {
     const dataObj = Lib.EasyObj({

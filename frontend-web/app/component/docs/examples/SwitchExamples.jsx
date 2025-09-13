@@ -5,7 +5,7 @@
  * 갱신일: 2025-09-13
  * 설명: Switch 컴포넌트 예제
  */
-import * as Lib from '@/lib';
+import * as Lib from '@/app/lib';
 import { useState } from 'react';
 
 export const SwitchExamples = () => {

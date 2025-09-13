@@ -4,7 +4,7 @@
  * 갱신일: 2025-09-13
  * 설명: Dropdown 컴포넌트 사용 예제 모음 (EasyList 기반, 내부 선택 상태 관리)
  */
-import * as Lib from '@/lib';
+import * as Lib from '@/app/lib';
 
 /**
  * Dropdown 예시 목록을 반환
@@ -75,7 +75,7 @@ export const DropdownExamples = () => {
             variant="text"
             trigger={({ selectedLabel }) => (
               <span className="inline-flex items-center gap-2 text-blue-700">
-                <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden className="text-blue-700"><circle cx="8" cy="8" r="7" stroke="currentColor" fill="none"/></svg>
+                <svg width="16" height="16" viewBox="0 0 16 16" aria-hidden className="text-blue-700"><circle cx="8" cy="8" r="7" stroke="currentColor" fill="none" /></svg>
                 {selectedLabel ?? '카테고리'}
               </span>
             )}

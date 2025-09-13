@@ -4,7 +4,7 @@
  * 갱신일: 2025-09-13
  * 설명: 툴팁 컴포넌트 예시 모음
  */
-import * as Lib from '@/lib';
+import * as Lib from '@/app/lib';
 
 /**
  * 툴팁 예시 목록을 반환

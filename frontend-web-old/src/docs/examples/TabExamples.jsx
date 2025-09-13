@@ -1,4 +1,4 @@
-import * as Lib from '@/lib';
+import * as Lib from '@/app/lib';
 import { useState } from 'react';
 
 export const TabExamples = () => {

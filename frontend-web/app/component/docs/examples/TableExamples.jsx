@@ -8,7 +8,7 @@
  * TableExamples.jsx
  * Table 컴포넌트 사용 예제 모음
  */
-import * as Lib from '@/lib';
+import * as Lib from '@/app/lib';
 import { useMemo, useState } from 'react';
 
 export const TableExamples = () => {

@@ -1,7 +1,7 @@
 import { Fragment } from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import RouteIndex from './RouteIndex';
-import BasicLayout from '@/common/layout/BasicLayout';
+import BasicLayout from '@/app/common/layout/BasicLayout';
 
 const layouts = {
     BasicLayout

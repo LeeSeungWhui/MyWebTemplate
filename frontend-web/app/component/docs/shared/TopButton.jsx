@@ -5,7 +5,7 @@
  * 설명: 문서 상단 이동 버튼
  */
 import { useState, useEffect } from 'react';
-import * as Lib from '@/lib';
+import * as Lib from '@/app/lib';
 
 const TopButton = () => {
     const [isVisible, setIsVisible] = useState(false);

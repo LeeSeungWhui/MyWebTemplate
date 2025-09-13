@@ -4,7 +4,7 @@
  * 갱신일: 2025-09-13
  * 설명: Empty 컴포넌트 예제
  */
-import * as Lib from '@/lib';
+import * as Lib from '@/app/lib';
 
 export const EmptyExamples = () => {
   const examples = [

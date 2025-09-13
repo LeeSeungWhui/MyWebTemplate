@@ -7,7 +7,7 @@
  */
 
 import { useEffect } from 'react'
-import { useSharedStore } from '@/app/common/store/SharedStore'
+import { useSharedStore } from './SharedStore'
 
 // Hydrates shared store from SSR-provided initial data.
 // Pass userJson (e.g., { userId, name }) and/or sharedPatch (partial shared object).
