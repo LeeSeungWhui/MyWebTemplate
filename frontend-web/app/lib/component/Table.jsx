@@ -292,17 +292,24 @@ const Table = forwardRef(function Table(
     </div>
   );
 
+  const effStatus = props?.status ?? (loading ? 'loading' : (rows.length === 0 ? 'empty' : 'idle'));
+  const isBusy = effStatus === 'loading';
+  const isError = effStatus === 'error';
+  const isEmpty = effStatus === 'empty' && !isError && !isBusy;
+
   return (
-    <div ref={ref} className={`w-full border border-gray-200 rounded ${className}`.trim()} role="table" aria-busy={loading ? 'true' : 'false'}>
+    <div ref={ref} className={`w-full border border-gray-200 rounded ${className}`.trim()} role="table" aria-busy={isBusy ? 'true' : undefined}>
       {variant === 'table' && header}
-      {loading ? (
-        <div className="p-6 text-center text-gray-500">Loading...</div>
-      ) : rows.length === 0 ? (
+      {isBusy ? (
+        <div className="p-6 text-center text-gray-500" role="status" aria-live="polite">Loading...</div>
+      ) : isError ? (
+        <div className="p-6 text-center text-red-600" role="alert">{props?.errorText || 'Error'}</div>
+      ) : isEmpty ? (
         <div className="p-6 text-center text-gray-500">{empty}</div>
       ) : (
         variant === 'table' ? bodyTable : bodyCards
       )}
-      {pageCount > 1 && pager}
+      {pageCount > 1 && !isBusy && !isError && pager}
     </div>
   );
 });
