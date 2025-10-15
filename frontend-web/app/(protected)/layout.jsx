@@ -18,7 +18,8 @@ export default async function ProtectedLayout({ children }) {
   const init = await ssrJSON(SESSION_PATH).catch(() => null)
   const authed = !!(init && init.result && init.result.authenticated)
   if (!authed) {
-    redirect('/component')
+    // Not authenticated -> go to login (middleware adds next when possible)
+    redirect('/login')
   }
   const userJson = init && init.result ? { userId: init.result.userId, name: init.result.name } : null
   return (

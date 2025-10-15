@@ -8,6 +8,7 @@
 // Updated: 2025-09-09
 // Purpose: Filterable combobox with EasyList(dataList) selection model, multi-select, 초성검색, select-all
 import { forwardRef, useEffect, useMemo, useRef, useState } from 'react';
+import { setBoundValue, buildCtx, fireValueHandlers } from '../binding';
 
 // Hangul initial-consonant (초성) extraction
 const CHO = ['\u3131','\u3132','\u3134','\u3137','\u3138','\u3139','\u3141','\u3142','\u3143','\u3145','\u3146','\u3147','\u3148','\u3149','\u314A','\u314B','\u314C','\u314D','\u314E'];
@@ -115,9 +116,14 @@ const Combobox = forwardRef(({
       out = String(next);
     }
     if (!isPropControlled && !multi) setInner(out);
-    const evt = event ? { ...event, target: { ...event.target, value: out } } : { target: { value: out } };
-    if (typeof onChange === 'function') onChange(evt);
-    if (typeof onValueChange === 'function') onValueChange(out);
+    // Bind to EasyObj if provided
+    if (props.dataObj && props.dataKey) {
+      setBoundValue(props.dataObj, props.dataKey, out)
+    }
+    // Build ctx and fire handlers (onChange/onValueChange)
+    const ctx = buildCtx({ dataKey: props.dataKey, dataObj: props.dataObj, source: 'user', valid: null, dirty: true })
+    const evt = event ? { ...event, target: { ...event.target, value: out } } : { target: { value: out } }
+    fireValueHandlers({ onChange, onValueChange, value: out, ctx, event: evt })
     setRev((v) => v + 1);
   };
 

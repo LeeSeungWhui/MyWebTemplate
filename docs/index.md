@@ -70,7 +70,7 @@
 - Backend: `docs/modules/backend.md`
 - Mobile App: `docs/modules/mobile-app.md`
 - 공통 규칙: `docs/common-rules.md`
-- Ops: `docs/ops/server-environments.md`
+ - Ops: `docs/ops/server-enviroments.md`
 
 ## 현재 구현 상태(요약)
 

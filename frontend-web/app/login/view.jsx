@@ -28,7 +28,16 @@ export default function Client({ mode, init }) {
       const res = await postWithCsrf('/api/v1/auth/login', { username, password, rememberMe: true })
       if (res && res.status === 204) {
         await mutate()
-        window.location.href = '/'
+        const params = new URLSearchParams(window.location.search)
+        const rawNext = params.get('next') || '/'
+        const safeNext = (n) => {
+          if (!n || typeof n !== 'string') return '/'
+          if (!n.startsWith('/')) return '/'
+          if (n.startsWith('//')) return '/'
+          if (/^https?:/i.test(n)) return '/'
+          return n
+        }
+        window.location.assign(safeNext(rawNext))
       } else {
         const j = await res.json().catch(() => ({}))
         alert(j?.message || 'login failed')
@@ -48,11 +57,14 @@ export default function Client({ mode, init }) {
 
   return (
     <main className="min-h-screen flex items-center justify-center p-6">
-      <form onSubmit={onSubmit} className="w-full max-w-sm space-y-4">
+      <form onSubmit={onSubmit} className="w-full max-w-sm space-y-4" aria-describedby="login-help">
         <h1 className="text-2xl font-semibold">Login</h1>
-        <input className="w-full border rounded px-3 py-2" placeholder="username" value={username} onChange={(e) => setUsername(e.target.value)} />
-        <input className="w-full border rounded px-3 py-2" placeholder="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
+        <label htmlFor="username" className="sr-only">Username</label>
+        <input id="username" aria-label="username" className="w-full border rounded px-3 py-2" placeholder="username" value={username} onChange={(e) => setUsername(e.target.value)} />
+        <label htmlFor="password" className="sr-only">Password</label>
+        <input id="password" aria-label="password" className="w-full border rounded px-3 py-2" placeholder="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
         <button disabled={pending} className="w-full bg-black text-white rounded px-3 py-2 disabled:opacity-50">{pending ? 'Signing in…' : 'Sign In'}</button>
+        <p id="login-help" className="text-sm text-gray-500">Use demo/password123 for local demo.</p>
       </form>
     </main>
   )
