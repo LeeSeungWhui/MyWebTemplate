@@ -11,7 +11,7 @@ import useSWR from 'swr'
 import { csrJSON, postWithCsrf } from '@/app/lib/runtime/csr'
 import { SESSION_PATH } from './initData'
 
-export default function Client({ mode, init }) {
+export default function Client({ mode, init, nextHint }) {
   const [username, setUsername] = useState('demo')
   const [password, setPassword] = useState('password123')
   const [pending, setPending] = useState(false)
@@ -28,16 +28,16 @@ export default function Client({ mode, init }) {
       const res = await postWithCsrf('/api/v1/auth/login', { username, password, rememberMe: true })
       if (res && res.status === 204) {
         await mutate()
-        const params = new URLSearchParams(window.location.search)
-        const rawNext = params.get('next') || '/'
-        const safeNext = (n) => {
-          if (!n || typeof n !== 'string') return '/'
-          if (!n.startsWith('/')) return '/'
-          if (n.startsWith('//')) return '/'
-          if (/^https?:/i.test(n)) return '/'
+        const safe = (n) => {
+          if (!n || typeof n !== 'string') return null
+          if (!n.startsWith('/')) return null
+          if (n.startsWith('//')) return null
+          if (/^https?:/i.test(n)) return null
           return n
         }
-        window.location.assign(safeNext(rawNext))
+        // Prefer server-provided hint from httpOnly cookie (passed via SSR)
+        const target = safe(nextHint) || '/'
+        window.location.assign(target)
       } else {
         const j = await res.json().catch(() => ({}))
         alert(j?.message || 'login failed')

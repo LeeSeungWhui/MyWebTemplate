@@ -17,17 +17,30 @@ export function middleware(req) {
 
   // If already authenticated and visiting /login, bounce to home
   if (path.startsWith('/login')) {
-    if (sid) return NextResponse.redirect(new URL('/', req.url))
+    // If authed, clear any leftover next-hint cookie and redirect home
+    if (sid) {
+      const res = NextResponse.redirect(new URL('/', req.url))
+      res.cookies.set('nx', '', { path: '/', maxAge: 0 })
+      return res
+    }
+    // If next query exists, convert to cookie then redirect to clean /login (no query)
+    const nextParam = url.searchParams.get('next')
+    if (nextParam) {
+      const res = NextResponse.redirect(new URL('/login', req.url))
+      res.cookies.set('nx', sanitizeNext(nextParam), { path: '/', httpOnly: true, sameSite: 'lax', maxAge: 300 })
+      return res
+    }
     return NextResponse.next()
   }
 
   if (!isProtected) return NextResponse.next()
 
   if (!sid) {
-    const loginUrl = new URL('/login', req.url)
+    const res = NextResponse.redirect(new URL('/login', req.url))
     const nextValue = sanitizeNext(path + (url.search || ''))
-    loginUrl.searchParams.set('next', nextValue)
-    return NextResponse.redirect(loginUrl)
+    // Stash desired path in httpOnly cookie (hidden from address bar and client JS)
+    res.cookies.set('nx', nextValue, { path: '/', httpOnly: true, sameSite: 'lax', maxAge: 300 })
+    return res
   }
   return NextResponse.next()
 }
