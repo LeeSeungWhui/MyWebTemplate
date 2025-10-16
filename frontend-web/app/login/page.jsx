@@ -15,7 +15,7 @@ import SharedHydrator from '@/app/common/store/SharedHydrator'
 
 export default async function Page() {
   const MODE = 'SSR'
-  const init = MODE === 'SSR' ? await ssrJSON(SESSION_PATH) : null
+  const init = MODE === 'SSR' ? await ssrJSON(SESSION_PATH).catch(() => null) : null
   const userJson = init && init.result && init.result.authenticated
     ? { userId: init.result.userId, name: init.result.name }
     : null
