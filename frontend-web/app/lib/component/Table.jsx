@@ -138,6 +138,9 @@ const Table = forwardRef(function Table(
     renderCard,
     cardsPerRow = 4,
     gridClassName = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4',
+    // status & error
+    status,
+    errorText,
   },
   ref
 ){
@@ -292,7 +295,7 @@ const Table = forwardRef(function Table(
     </div>
   );
 
-  const effStatus = props?.status ?? (loading ? 'loading' : (rows.length === 0 ? 'empty' : 'idle'));
+  const effStatus = status ?? (loading ? 'loading' : (rows.length === 0 ? 'empty' : 'idle'));
   const isBusy = effStatus === 'loading';
   const isError = effStatus === 'error';
   const isEmpty = effStatus === 'empty' && !isError && !isBusy;
@@ -303,7 +306,7 @@ const Table = forwardRef(function Table(
       {isBusy ? (
         <div className="p-6 text-center text-gray-500" role="status" aria-live="polite">Loading...</div>
       ) : isError ? (
-        <div className="p-6 text-center text-red-600" role="alert">{props?.errorText || 'Error'}</div>
+        <div className="p-6 text-center text-red-600" role="alert">{errorText || 'Error'}</div>
       ) : isEmpty ? (
         <div className="p-6 text-center text-gray-500">{empty}</div>
       ) : (
