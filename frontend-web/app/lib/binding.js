@@ -53,9 +53,18 @@ export function fireValueHandlers({ onChange, onValueChange, value, ctx, event }
   // Back-compat: if consumer provided onChange expecting event, pass event with detail
   if (event) {
     try {
-      if (!event.detail) event.detail = { value, ctx };
+      if (!Object.prototype.hasOwnProperty.call(event, 'detail') || event.detail == null) {
+        Object.defineProperty(event, 'detail', { value: { value, ctx }, configurable: true, writable: true });
+      } else if (typeof event.detail === 'object') {
+        event.detail.value = value;
+        event.detail.ctx = ctx;
+      }
     } catch (e) {
-      // some synthetic events may be readonly; ignore
+      try {
+        event.detail = { value, ctx };
+      } catch (_) {
+        // readonly detail; ignore
+      }
     }
   }
   if (typeof onChange === 'function' && event) onChange(event);

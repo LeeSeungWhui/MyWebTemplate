@@ -78,7 +78,7 @@ function useEasyObj(initialData = {}) {
     const assignAtPath = (pathSegments, value) => {
         if (!pathSegments.length) {
             const prev = rootRef.current;
-            rootRef.current = isObject(value) ? value : value;
+            rootRef.current = isObject(value) ? value : {};
             return { prev };
         }
         if (!isObject(rootRef.current)) rootRef.current = {};
@@ -107,13 +107,6 @@ function useEasyObj(initialData = {}) {
         }
         const leafSegment = pathSegments[pathSegments.length - 1];
         const leafKey = typeof leafSegment === 'symbol' ? leafSegment : String(leafSegment);
-        if (Array.isArray(cursor) && typeof leafKey === 'string' && isNumericKey(leafKey)) {
-            const index = Number(leafKey);
-            if (Number.isNaN(index) || index < 0 || index >= cursor.length) return { prev: undefined, removed: false };
-            const prev = cursor[index];
-            cursor.splice(index, 1);
-            return { prev, removed: true };
-        }
         if (!Object.prototype.hasOwnProperty.call(cursor ?? {}, leafKey)) {
             return { prev: undefined, removed: false };
         }
@@ -128,8 +121,14 @@ function useEasyObj(initialData = {}) {
         return [...basePath, ...nextSegments];
     };
 
+    const wrapPrevValue = (rawPrev) => {
+        if (!isObject(rawPrev)) return rawPrev;
+        return deepCopy(rawPrev);
+    };
+
     const wrapValue = (rawValue, pathSegments) => {
         if (!isObject(rawValue)) return rawValue;
+        if (!pathSegments.length) return ensureRootProxy();
         return getOrCreateProxy(rawValue, pathSegments);
     };
 
@@ -152,7 +151,7 @@ function useEasyObj(initialData = {}) {
             try {
                 listener(detail);
             } catch {
-                // swallow listener errors to avoid cascading failures
+                // suppress listener failures
             }
         });
     };
@@ -160,18 +159,34 @@ function useEasyObj(initialData = {}) {
     const applySet = (pathSegments, incomingValue, options = {}) => {
         const source = options.source ?? 'program';
         const nextRaw = unwrap(incomingValue);
-        const { prev } = assignAtPath(pathSegments, nextRaw);
-        if (Object.is(prev, nextRaw)) return wrapValue(nextRaw, pathSegments);
+        const onRoot = pathSegments.length === 0;
+        const normalizedValue = onRoot && isObject(nextRaw) ? deepCopy(nextRaw) : nextRaw;
+        const { prev } = assignAtPath(pathSegments, normalizedValue);
+        const prevExport = wrapPrevValue(prev);
+
+        if (onRoot) {
+            rawToProxyRef.current = new WeakMap();
+            proxyToRawRef.current = new WeakMap();
+        }
+
+        if (Object.is(prev, normalizedValue)) {
+            return wrapValue(normalizedValue, pathSegments);
+        }
+
         markDirty();
+
+        if (onRoot) ensureRootProxy();
+
         const latest = readAtPath(pathSegments);
+        const wrappedValue = wrapValue(latest, pathSegments);
         emitChange({
             type: 'set',
             path: pathSegments,
-            value: wrapValue(latest, pathSegments),
-            prev: wrapValue(prev, pathSegments),
+            value: wrappedValue,
+            prev: prevExport,
             source,
         });
-        return wrapValue(latest, pathSegments);
+        return wrappedValue;
     };
 
     const applyDelete = (pathSegments, options = {}) => {
@@ -179,11 +194,12 @@ function useEasyObj(initialData = {}) {
         const { prev, removed } = removeAtPath(pathSegments);
         if (!removed) return false;
         markDirty();
+        const wrappedPrev = wrapPrevValue(prev);
         emitChange({
             type: 'delete',
             path: pathSegments,
             value: undefined,
-            prev: wrapValue(prev, pathSegments),
+            prev: wrappedPrev,
             source,
         });
         return true;
@@ -192,7 +208,7 @@ function useEasyObj(initialData = {}) {
     const replaceBranch = (basePath, sourceValue, options = {}) => {
         const plain = unwrap(sourceValue);
         if (Array.isArray(plain) || !isObject(plain)) {
-            applySet(basePath, isObject(plain) ? deepCopy(plain) : plain, options);
+            applySet(basePath, deepCopy(plain), options);
             return;
         }
         const nextKeys = new Set(Object.keys(plain));
@@ -276,7 +292,16 @@ function useEasyObj(initialData = {}) {
         const proxy = new Proxy(raw, handler);
         rawToProxyRef.current.set(raw, proxy);
         proxyToRawRef.current.set(proxy, raw);
+        if (!basePath.length) rootProxyRef.current = proxy;
         return proxy;
+    }
+
+    function ensureRootProxy() {
+        if (!isObject(rootRef.current)) rootRef.current = {};
+        if (rootProxyRef.current && proxyToRawRef.current.get(rootProxyRef.current) === rootRef.current) {
+            return rootProxyRef.current;
+        }
+        return getOrCreateProxy(rootRef.current, []);
     }
 
     if (!rootProxyRef.current) {

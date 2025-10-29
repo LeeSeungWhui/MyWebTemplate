@@ -57,12 +57,15 @@ const Radiobox = forwardRef(({
         }
 
         const ctx = buildCtx({ dataKey: dataKeyName, dataObj, source: 'user', dirty: true, valid: null });
+        if (newChecked) {
+            try { e.target.value = value; } catch (_) { /* ignore */ }
+        }
         fireValueHandlers({
             onChange,
             onValueChange,
             value: newChecked ? value : undefined,
             ctx,
-            event: { ...e, target: { ...e.target, value }, detail: { value: newChecked ? value : undefined, ctx } },
+            event: e,
         });
     };
 

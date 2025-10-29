@@ -29,19 +29,28 @@ const Tab = ({
     // children이 없거나 배열이 아닐 경우 처리
     const items = Array.isArray(children) ? children : [children].filter(Boolean);
 
-    const handleTabChange = (index) => {
+    const handleTabChange = (index, event) => {
         if (isControlled) {
             setBoundValue(dataObj, dataKey, index, { source: 'user' });
         } else {
             setInternalTab(index);
         }
         const ctx = buildCtx({ dataKey, dataObj, source: 'user', dirty: true, valid: null });
+        const emittedEvent = event ?? {
+            type: 'tabchange',
+            target: { value: index },
+            preventDefault() {},
+            stopPropagation() {},
+        };
+        if (event) {
+            try { event.target.value = index; } catch (_) { /* ignore */ }
+        }
         fireValueHandlers({
             onChange,
             onValueChange,
             value: index,
             ctx,
-            event: { type: 'tabchange', target: { value: index }, detail: { value: index, ctx } },
+            event: emittedEvent,
         });
     };
 
@@ -52,7 +61,7 @@ const Tab = ({
                 {items.map((item, index) => (
                     <button
                         key={index}
-                        onClick={() => handleTabChange(index)}
+                        onClick={(evt) => handleTabChange(index, evt)}
                         className={`
                             px-4 py-2 -mb-px text-sm font-medium inline-flex items-center
                             ${currentTab === index

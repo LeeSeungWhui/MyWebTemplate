@@ -54,12 +54,13 @@ const CheckButton = forwardRef(({
         }
 
         const ctx = buildCtx({ dataKey: dataKeyName, dataObj, source: 'user', dirty: true, valid: null });
+        try { e.target.value = newChecked; } catch (_) { /* ignore read-only */ }
         fireValueHandlers({
             onChange,
             onValueChange,
             value: newChecked,
             ctx,
-            event: { ...e, target: { ...e.target, value: newChecked }, detail: { value: newChecked, ctx } },
+            event: e,
         });
     };
 
@@ -101,6 +102,7 @@ const CheckButton = forwardRef(({
             onClick={handleChange}
             disabled={disabled}
             style={buttonStyle}
+            aria-pressed={checked}
             className={`
                 ${baseStyle}
                 ${colorStyle}

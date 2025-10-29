@@ -251,9 +251,11 @@ const Input = forwardRef(({
             return;
         }
         const committed = commitValue(raw);
-        const event = { ...e, target: { ...e.target, value: committed } };
+        if (typeof committed !== 'undefined') {
+            try { e.target.value = committed; } catch (_) { /* ignore readonly target */ }
+        }
         const ctx = buildCtx({ dataKey, dataObj, source: 'user', valid: null, dirty: true });
-        fireValueHandlers({ onChange, onValueChange: props.onValueChange, value: committed, ctx, event });
+        fireValueHandlers({ onChange, onValueChange: props.onValueChange, value: committed, ctx, event: e });
     };
 
     const inputClass = `
@@ -297,16 +299,20 @@ const Input = forwardRef(({
                     composingRef.current = false;
                     setIsComposing(false);
                     const committed = commitValue(e.target.value);
-                    const evt = { ...e, target: { ...e.target, value: committed } };
+                    if (typeof committed !== 'undefined') {
+                        try { e.target.value = committed; } catch (_) { /* ignore */ }
+                    }
                     const ctx = buildCtx({ dataKey, dataObj, source: 'user', valid: null, dirty: true });
-                    fireValueHandlers({ onChange, onValueChange: props.onValueChange, value: committed, ctx, event: evt });
+                    fireValueHandlers({ onChange, onValueChange: props.onValueChange, value: committed, ctx, event: e });
                 }}
                 onBlur={(e) => {
                     // Ensure final sanitize on blur in case some IME didn't fire compositionend properly
                     const committed = commitValue(e.target.value);
-                    const evt = { ...e, target: { ...e.target, value: committed } };
+                    if (typeof committed !== 'undefined') {
+                        try { e.target.value = committed; } catch (_) { /* ignore */ }
+                    }
                     const ctx = buildCtx({ dataKey, dataObj, source: 'user', valid: null, dirty: true });
-                    fireValueHandlers({ onChange, onValueChange: props.onValueChange, value: committed, ctx, event: evt });
+                    fireValueHandlers({ onChange, onValueChange: props.onValueChange, value: committed, ctx, event: e });
                 }}
                 className={`
                     ${inputClass}

@@ -1,8 +1,11 @@
 import { describe, it, expect, vi } from 'vitest';
-import { renderHook, act } from '@testing-library/react';
+import React from 'react';
+import '@testing-library/jest-dom';
+import { renderHook, act, render, fireEvent } from '@testing-library/react';
 import EasyObj from '../app/lib/dataset/EasyObj';
 import EasyList from '../app/lib/dataset/EasyList';
 import { getBoundValue, setBoundValue } from '../app/lib/binding';
+import CheckButton from '../app/lib/component/CheckButton';
 
 describe('EasyObj binding contract', () => {
     it('supports dotted key reads and writes via helper', () => {
@@ -52,6 +55,26 @@ describe('EasyObj binding contract', () => {
 
         expect(listener).toHaveBeenCalledTimes(1);
     });
+
+    it('rebuilds root proxy on set and keeps subscriptions alive', () => {
+        const { result } = renderHook(() => EasyObj({ profile: { name: 'Ada' } }));
+        const listener = vi.fn();
+
+        act(() => {
+            result.current.subscribe(listener);
+            result.current.set('', { contact: { email: 'ada@example.com' } }, { source: 'program' });
+        });
+
+        expect(getBoundValue(result.current, 'contact.email')).toBe('ada@example.com');
+        expect(listener).toHaveBeenCalled();
+        const payload = listener.mock.calls[listener.mock.calls.length - 1][0];
+        expect(payload.ctx).toMatchObject({ dataKey: '', modelType: 'obj', source: 'program' });
+
+        act(() => {
+            result.current.copy({ contact: { email: 'ivy@example.com' } });
+        });
+        expect(getBoundValue(result.current, 'contact.email')).toBe('ivy@example.com');
+    });
 });
 
 describe('EasyList binding contract', () => {
@@ -91,4 +114,47 @@ describe('EasyList binding contract', () => {
         expect(payload.ctx).toMatchObject({ dataKey: '0.name', modelType: 'list', source: 'program' });
         expect(getBoundValue(result.current, '0.name')).toBe('Gia');
     });
+
+    it('recreates root proxy when replacing entire list', () => {
+        const { result } = renderHook(() => EasyList([{ id: 1, name: 'Ada' }]));
+        const listener = vi.fn();
+
+        act(() => {
+            result.current.subscribe(listener);
+            result.current.set('', [{ id: 9, name: 'Nia' }], { source: 'program' });
+        });
+
+        expect(listener).toHaveBeenCalled();
+        expect(getBoundValue(result.current, '0.name')).toBe('Nia');
+        const payload = listener.mock.calls[listener.mock.calls.length - 1][0];
+        expect(payload.ctx).toMatchObject({ dataKey: '', modelType: 'list' });
+    });
 });
+
+describe('Component event pipeline', () => {
+    it('preserves native event prototype for toggle buttons', () => {
+        const handleChange = vi.fn((evt) => {
+            expect(typeof evt.preventDefault).toBe('function');
+            evt.preventDefault();
+            expect(evt.detail.value).toBe(true);
+        });
+
+        const { getByRole } = render(<CheckButtonHarness onChange={handleChange} />);
+        const button = getByRole('button', { name: /toggle/i });
+        expect(button).toHaveAttribute('aria-pressed', 'false');
+
+        fireEvent.click(button);
+
+        expect(handleChange).toHaveBeenCalledTimes(1);
+        expect(button).toHaveAttribute('aria-pressed', 'true');
+    });
+});
+
+function CheckButtonHarness({ onChange }) {
+    const model = EasyObj({ toggle: false });
+    return (
+        <CheckButton dataObj={model} dataKey="toggle" onChange={onChange}>
+            Toggle
+        </CheckButton>
+    );
+}

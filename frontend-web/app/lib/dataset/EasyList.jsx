@@ -78,7 +78,7 @@ function useEasyList(initialData = []) {
     const assignAtPath = (pathSegments, value) => {
         if (!pathSegments.length) {
             const prev = rootRef.current;
-            rootRef.current = Array.isArray(value) ? value : [value];
+            rootRef.current = Array.isArray(value) ? value : [];
             return { prev };
         }
         if (!Array.isArray(rootRef.current)) rootRef.current = [];
@@ -128,8 +128,14 @@ function useEasyList(initialData = []) {
         return [...basePath, ...nextSegments];
     };
 
+    const wrapPrevValue = (rawPrev) => {
+        if (!isObject(rawPrev)) return rawPrev;
+        return deepCopy(rawPrev);
+    };
+
     const wrapValue = (rawValue, pathSegments) => {
         if (!isObject(rawValue)) return rawValue;
+        if (!pathSegments.length) return ensureRootProxy();
         return getOrCreateProxy(rawValue, pathSegments);
     };
 
@@ -160,18 +166,34 @@ function useEasyList(initialData = []) {
     const applySet = (pathSegments, incomingValue, options = {}) => {
         const source = options.source ?? 'program';
         const nextRaw = unwrap(incomingValue);
-        const { prev } = assignAtPath(pathSegments, nextRaw);
-        if (Object.is(prev, nextRaw)) return wrapValue(nextRaw, pathSegments);
+        const onRoot = pathSegments.length === 0;
+        const normalizedValue = onRoot && Array.isArray(nextRaw) ? deepCopy(nextRaw) : nextRaw;
+        const { prev } = assignAtPath(pathSegments, normalizedValue);
+        const prevExport = wrapPrevValue(prev);
+
+        if (onRoot) {
+            rawToProxyRef.current = new WeakMap();
+            proxyToRawRef.current = new WeakMap();
+        }
+
+        if (Object.is(prev, normalizedValue)) {
+            return wrapValue(normalizedValue, pathSegments);
+        }
+
         markDirty();
+
+        if (onRoot) ensureRootProxy();
+
         const latest = readAtPath(pathSegments);
+        const wrappedValue = wrapValue(latest, pathSegments);
         emitChange({
             type: 'set',
             path: pathSegments,
-            value: wrapValue(latest, pathSegments),
-            prev: wrapValue(prev, pathSegments),
+            value: wrappedValue,
+            prev: prevExport,
             source,
         });
-        return wrapValue(latest, pathSegments);
+        return wrappedValue;
     };
 
     const applyDelete = (pathSegments, options = {}) => {
@@ -179,11 +201,12 @@ function useEasyList(initialData = []) {
         const { prev, removed } = removeAtPath(pathSegments);
         if (!removed) return false;
         markDirty();
+        const wrappedPrev = wrapPrevValue(prev);
         emitChange({
             type: 'delete',
             path: pathSegments,
             value: undefined,
-            prev: wrapValue(prev, pathSegments),
+            prev: wrappedPrev,
             source,
         });
         return true;
@@ -328,7 +351,16 @@ function useEasyList(initialData = []) {
         const proxy = new Proxy(raw, handler);
         rawToProxyRef.current.set(raw, proxy);
         proxyToRawRef.current.set(proxy, raw);
+        if (!basePath.length) rootProxyRef.current = proxy;
         return proxy;
+    }
+
+    function ensureRootProxy() {
+        if (!Array.isArray(rootRef.current)) rootRef.current = [];
+        if (rootProxyRef.current && proxyToRawRef.current.get(rootProxyRef.current) === rootRef.current) {
+            return rootProxyRef.current;
+        }
+        return getOrCreateProxy(rootRef.current, []);
     }
 
     if (!rootProxyRef.current) {
