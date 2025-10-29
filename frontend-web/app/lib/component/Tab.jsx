@@ -4,7 +4,8 @@
  * 갱신일: 2025-09-13
  * 설명: Tab UI 컴포넌트 구현
  */
-import { useState, cloneElement } from 'react';
+import { useState } from 'react';
+import { getBoundValue, setBoundValue, buildCtx, fireValueHandlers } from '../binding';
 
 const TabItem = ({ title, children }) => {
     return children;
@@ -15,24 +16,33 @@ const Tab = ({
     dataKey,
     tabIndex,
     onChange,
+    onValueChange,
     className = '',
     children
 }) => {
     // controlled/uncontrolled 처리
-    const isControlled = !!dataObj;
+    const isControlled = dataObj && typeof dataKey !== 'undefined' && dataKey !== null;
     const [internalTab, setInternalTab] = useState(tabIndex || 0);
-    const currentTab = isControlled ? dataObj[dataKey] : internalTab;
+    const boundValue = isControlled ? getBoundValue(dataObj, dataKey) : undefined;
+    const currentTab = isControlled ? (typeof boundValue === 'number' ? boundValue : 0) : internalTab;
 
     // children이 없거나 배열이 아닐 경우 처리
     const items = Array.isArray(children) ? children : [children].filter(Boolean);
 
     const handleTabChange = (index) => {
         if (isControlled) {
-            dataObj[dataKey] = index;
+            setBoundValue(dataObj, dataKey, index, { source: 'user' });
         } else {
             setInternalTab(index);
         }
-        onChange?.(index);
+        const ctx = buildCtx({ dataKey, dataObj, source: 'user', dirty: true, valid: null });
+        fireValueHandlers({
+            onChange,
+            onValueChange,
+            value: index,
+            ctx,
+            event: { type: 'tabchange', target: { value: index }, detail: { value: index, ctx } },
+        });
     };
 
     return (

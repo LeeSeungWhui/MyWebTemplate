@@ -5,6 +5,7 @@
  * 설명: Radiobox UI 컴포넌트 구현
  */
 import { useState, useEffect, forwardRef } from 'react';
+import { getBoundValue, setBoundValue, buildCtx, fireValueHandlers } from '../../binding';
 import styles from './Radiobox.module.css';
 
 const Radiobox = forwardRef(({
@@ -12,6 +13,7 @@ const Radiobox = forwardRef(({
     name,
     value,
     onChange,
+    onValueChange,
     dataObj,
     dataKey,
     className = "",
@@ -30,14 +32,14 @@ const Radiobox = forwardRef(({
 
     const [internalChecked, setInternalChecked] = useState(() => {
         if (dataObj && dataKeyName) {
-            return dataObj[dataKeyName] === value;
+            return getBoundValue(dataObj, dataKeyName) === value;
         }
         return defaultChecked || false;
     });
 
     useEffect(() => {
         if (isDataObjControlled) {
-            const currentValue = dataObj[dataKeyName];
+            const currentValue = getBoundValue(dataObj, dataKeyName);
             setInternalChecked(currentValue === value);
         }
     }, [isDataObjControlled, dataObj, dataKeyName, value]);
@@ -51,15 +53,22 @@ const Radiobox = forwardRef(({
         }
 
         if (isDataObjControlled && newChecked) {
-            dataObj[dataKeyName] = value;
+            setBoundValue(dataObj, dataKeyName, value, { source: 'user' });
         }
 
-        onChange?.(e);
+        const ctx = buildCtx({ dataKey: dataKeyName, dataObj, source: 'user', dirty: true, valid: null });
+        fireValueHandlers({
+            onChange,
+            onValueChange,
+            value: newChecked ? value : undefined,
+            ctx,
+            event: { ...e, target: { ...e.target, value }, detail: { value: newChecked ? value : undefined, ctx } },
+        });
     };
 
     const getCheckedState = () => {
         if (isControlled) return propChecked;
-        if (isDataObjControlled) return dataObj[dataKeyName] === value;
+        if (isDataObjControlled) return getBoundValue(dataObj, dataKeyName) === value;
         return internalChecked;
     };
 

@@ -136,7 +136,7 @@ const Input = forwardRef(({
         if (type === 'number' && !/^[0-9.\-]*$/.test(s)) return false;
         return true;
     };
-    const getCommitted = () => (isControlled ? (dataObj?.[dataKey] ?? "") : (innerValue ?? ""));
+    const getCommitted = () => (isControlled ? (getBoundValue(dataObj, dataKey) ?? "") : (innerValue ?? ""));
 
     // 마스크/필터/number가 있을 때 입력 직전 1차 필터링
     const handleBeforeInput = (e) => {
@@ -276,7 +276,7 @@ const Input = forwardRef(({
                 inputMode={type === 'number' ? 'decimal' : undefined}
                   placeholder={placeholder || mask}
                   value={isControlled
-                      ? (draftValue ?? dataObj[dataKey] ?? "")
+                      ? (draftValue ?? getBoundValue(dataObj, dataKey) ?? "")
                       : (draftValue ?? innerValue ?? "")}
                   onKeyDown={handleKeyDown}
                   onBeforeInput={handleBeforeInput}

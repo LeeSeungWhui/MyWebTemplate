@@ -25,9 +25,10 @@ export function getBoundValue(dataObj, dataKey) {
   return cur;
 }
 
-export function setBoundValue(dataObj, dataKey, value) {
+export function setBoundValue(dataObj, dataKey, value, options = {}) {
   if (!dataObj || !dataKey) return;
-  if (typeof dataObj.set === 'function') return dataObj.set(dataKey, value);
+  const meta = typeof options === 'object' && options !== null ? options : {};
+  if (typeof dataObj.set === 'function') return dataObj.set(dataKey, value, { source: meta.source ?? 'user' });
   const parts = String(dataKey).split('.');
   let cur = dataObj;
   for (let i = 0; i < parts.length - 1; i++) {
@@ -39,6 +40,7 @@ export function setBoundValue(dataObj, dataKey, value) {
   }
   const last = parts[parts.length - 1];
   cur[last] = value;
+  return value;
 }
 
 export function buildCtx({ dataKey, dataObj, source = 'user', valid = null, dirty = true }) {

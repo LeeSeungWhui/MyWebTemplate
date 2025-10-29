@@ -1,12 +1,5 @@
-/**
- * 파일명: EasyObj.jsx
- * 작성자: LSH
- * 갱신일: 2025-09-13
- * 설명: 객체 데이터 래퍼
- */
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef } from 'react';
 
-// SSR-safe scheduler: fall back when RAF is unavailable
 const scheduleUpdate = (fn) => {
     if (typeof window !== 'undefined' && typeof window.requestAnimationFrame === 'function') {
         return window.requestAnimationFrame(fn);
@@ -14,83 +7,283 @@ const scheduleUpdate = (fn) => {
     return setTimeout(fn, 0);
 };
 
+const isObject = (value) => typeof value === 'object' && value !== null;
+const isNumericKey = (key) => typeof key === 'string' && /^\d+$/.test(key);
+
+const toSegments = (key) => {
+    if (Array.isArray(key)) return key.map((segment) => (typeof segment === 'number' ? String(segment) : segment));
+    if (typeof key === 'number') return [String(key)];
+    if (typeof key === 'string') {
+        if (key.length === 0) return [];
+        return key.split('.').filter((segment) => segment.length > 0);
+    }
+    if (typeof key === 'symbol') return [key];
+    return [String(key)];
+};
+
+const deepCopy = (value) => {
+    if (!isObject(value)) return value;
+    if (Array.isArray(value)) return value.map((item) => deepCopy(item));
+    const out = {};
+    for (const key of Object.keys(value)) out[key] = deepCopy(value[key]);
+    return out;
+};
+
+const toPathString = (segments) => segments.filter((segment) => typeof segment !== 'symbol').join('.');
+
 function useEasyObj(initialData = {}) {
-    const [, forceUpdate] = useState({});
-    const dataRef = useRef(initialData);
+    const [, forceRender] = useState({});
+    const rootRef = useRef(isObject(initialData) ? deepCopy(initialData) : {});
+    const listenersRef = useRef(new Set());
+    const rawToProxyRef = useRef(new WeakMap());
+    const proxyToRawRef = useRef(new WeakMap());
+    const rootProxyRef = useRef(null);
+    const dirtyFlagRef = useRef(false);
 
-    const deepCopy = (obj) => {
-        if (typeof obj !== 'object' || obj === null) return obj;
-        const rawObj = obj.__isProxy ? obj.__rawObject : obj;
-
-        let copy = Array.isArray(rawObj) ? [] : {};
-        for (let key in rawObj) {
-            if (Object.prototype.hasOwnProperty.call(rawObj, key)) {
-                copy[key] = deepCopy(rawObj[key]);
-            }
-        }
-        return copy;
+    const markDirty = () => {
+        if (dirtyFlagRef.current) return;
+        dirtyFlagRef.current = true;
+        scheduleUpdate(() => {
+            dirtyFlagRef.current = false;
+            forceRender({});
+        });
     };
 
-    const createProxy = useCallback((target) => {
+    const unwrap = (value) => {
+        if (!isObject(value)) return value;
+        if (proxyToRawRef.current.has(value)) return proxyToRawRef.current.get(value);
+        if (value.__rawObject) return value.__rawObject;
+        return value;
+    };
+
+    const readAtPath = (pathSegments) => {
+        if (!pathSegments.length) return rootRef.current;
+        let cursor = rootRef.current;
+        for (const segment of pathSegments) {
+            if (cursor == null) return undefined;
+            const key = typeof segment === 'symbol' ? segment : String(segment);
+            cursor = cursor[key];
+        }
+        return cursor;
+    };
+
+    const ensureContainer = (cursor, key, nextKey) => {
+        if (!isObject(cursor[key])) {
+            const shouldBeArray = typeof nextKey === 'string' && isNumericKey(nextKey);
+            cursor[key] = shouldBeArray ? [] : {};
+        }
+        return cursor[key];
+    };
+
+    const assignAtPath = (pathSegments, value) => {
+        if (!pathSegments.length) {
+            const prev = rootRef.current;
+            rootRef.current = isObject(value) ? value : value;
+            return { prev };
+        }
+        if (!isObject(rootRef.current)) rootRef.current = {};
+        let cursor = rootRef.current;
+        for (let idx = 0; idx < pathSegments.length - 1; idx += 1) {
+            const segment = pathSegments[idx];
+            const key = typeof segment === 'symbol' ? segment : String(segment);
+            const nextKey = pathSegments[idx + 1];
+            cursor = ensureContainer(cursor, key, typeof nextKey === 'symbol' ? undefined : String(nextKey));
+        }
+        const lastSegment = pathSegments[pathSegments.length - 1];
+        const lastKey = typeof lastSegment === 'symbol' ? lastSegment : String(lastSegment);
+        const prev = cursor[lastKey];
+        cursor[lastKey] = value;
+        return { prev };
+    };
+
+    const removeAtPath = (pathSegments) => {
+        if (!pathSegments.length) return { prev: undefined, removed: false };
+        let cursor = rootRef.current;
+        for (let idx = 0; idx < pathSegments.length - 1; idx += 1) {
+            const segment = pathSegments[idx];
+            const key = typeof segment === 'symbol' ? segment : String(segment);
+            cursor = cursor?.[key];
+            if (cursor == null) return { prev: undefined, removed: false };
+        }
+        const leafSegment = pathSegments[pathSegments.length - 1];
+        const leafKey = typeof leafSegment === 'symbol' ? leafSegment : String(leafSegment);
+        if (Array.isArray(cursor) && typeof leafKey === 'string' && isNumericKey(leafKey)) {
+            const index = Number(leafKey);
+            if (Number.isNaN(index) || index < 0 || index >= cursor.length) return { prev: undefined, removed: false };
+            const prev = cursor[index];
+            cursor.splice(index, 1);
+            return { prev, removed: true };
+        }
+        if (!Object.prototype.hasOwnProperty.call(cursor ?? {}, leafKey)) {
+            return { prev: undefined, removed: false };
+        }
+        const prev = cursor[leafKey];
+        const removed = Reflect.deleteProperty(cursor, leafKey);
+        return { prev, removed };
+    };
+
+    const normalizePath = (basePath, key) => {
+        const nextSegments = toSegments(key);
+        if (!nextSegments.length) return [...basePath];
+        return [...basePath, ...nextSegments];
+    };
+
+    const wrapValue = (rawValue, pathSegments) => {
+        if (!isObject(rawValue)) return rawValue;
+        return getOrCreateProxy(rawValue, pathSegments);
+    };
+
+    const emitChange = ({ type, path, value, prev, source = 'program' }) => {
+        const detail = {
+            type,
+            path,
+            pathString: toPathString(path),
+            value,
+            prev,
+            ctx: {
+                dataKey: toPathString(path),
+                modelType: 'obj',
+                dirty: true,
+                valid: null,
+                source,
+            },
+        };
+        listenersRef.current.forEach((listener) => {
+            try {
+                listener(detail);
+            } catch {
+                // swallow listener errors to avoid cascading failures
+            }
+        });
+    };
+
+    const applySet = (pathSegments, incomingValue, options = {}) => {
+        const source = options.source ?? 'program';
+        const nextRaw = unwrap(incomingValue);
+        const { prev } = assignAtPath(pathSegments, nextRaw);
+        if (Object.is(prev, nextRaw)) return wrapValue(nextRaw, pathSegments);
+        markDirty();
+        const latest = readAtPath(pathSegments);
+        emitChange({
+            type: 'set',
+            path: pathSegments,
+            value: wrapValue(latest, pathSegments),
+            prev: wrapValue(prev, pathSegments),
+            source,
+        });
+        return wrapValue(latest, pathSegments);
+    };
+
+    const applyDelete = (pathSegments, options = {}) => {
+        const source = options.source ?? 'program';
+        const { prev, removed } = removeAtPath(pathSegments);
+        if (!removed) return false;
+        markDirty();
+        emitChange({
+            type: 'delete',
+            path: pathSegments,
+            value: undefined,
+            prev: wrapValue(prev, pathSegments),
+            source,
+        });
+        return true;
+    };
+
+    const replaceBranch = (basePath, sourceValue, options = {}) => {
+        const plain = unwrap(sourceValue);
+        if (Array.isArray(plain) || !isObject(plain)) {
+            applySet(basePath, isObject(plain) ? deepCopy(plain) : plain, options);
+            return;
+        }
+        const nextKeys = new Set(Object.keys(plain));
+        const current = readAtPath(basePath);
+        const currentKeys = isObject(current) ? Object.keys(current) : [];
+        currentKeys.forEach((key) => {
+            if (!nextKeys.has(key)) applyDelete([...basePath, key], options);
+        });
+        Object.entries(plain).forEach(([key, value]) => {
+            applySet([...basePath, key], value, options);
+        });
+    };
+
+    function getOrCreateProxy(raw, basePath = []) {
+        if (!isObject(raw)) return raw;
+        const cached = rawToProxyRef.current.get(raw);
+        if (cached) return cached;
         const handler = {
-            get(obj, prop) {
+            get(target, prop) {
                 if (prop === '__isProxy') return true;
-                if (prop === '__rawObject') return obj;
+                if (prop === '__rawObject') return target;
+                if (prop === '__path') return [...basePath];
+                if (prop === 'toString') return () => JSON.stringify(target);
+                if (prop === 'toJSON') return () => deepCopy(target);
                 if (prop === 'copy') {
-                    return (sourceObj) => {
-                        Object.keys(obj).forEach(key => delete obj[key]);
-                        Object.entries(sourceObj).forEach(([key, value]) => obj[key] = value);
-                        scheduleUpdate(() => forceUpdate({}));
-                    };
+                    return (sourceObj) => replaceBranch(basePath, sourceObj ?? {}, { source: 'program' });
                 }
                 if (prop === 'deepCopy') {
-                    return (sourceObj) => {
-                        const copiedObj = deepCopy(sourceObj);
-                        Object.keys(obj).forEach(key => delete obj[key]);
-                        Object.entries(copiedObj).forEach(([key, value]) => obj[key] = value);
-                        scheduleUpdate(() => forceUpdate({}));
+                    return (sourceObj) => replaceBranch(basePath, deepCopy(sourceObj ?? {}), { source: 'program' });
+                }
+                if (prop === 'get') {
+                    return (key, fallback) => {
+                        const fullPath = normalizePath(basePath, key);
+                        const result = readAtPath(fullPath);
+                        if (typeof result === 'undefined') return fallback;
+                        return wrapValue(result, fullPath);
                     };
                 }
-                if (prop === 'toString') {
-                    return () => JSON.stringify(obj);
+                if (prop === 'set') {
+                    return (key, value, opts) => applySet(normalizePath(basePath, key), value, opts);
                 }
-                if (prop === 'toJSON') {
-                    return () => deepCopy(obj);
+                if (prop === 'delete') {
+                    return (key, opts) => applyDelete(normalizePath(basePath, key), opts);
                 }
-
-                const value = Reflect.get(obj, prop);
-                if (typeof value === 'object' && value !== null && !value.__isProxy) {
-                    Reflect.set(obj, prop, createProxy(value));
-                    return Reflect.get(obj, prop);
+                if (prop === 'subscribe') {
+                    return (listener) => {
+                        if (typeof listener !== 'function') return () => {};
+                        listenersRef.current.add(listener);
+                        return () => listenersRef.current.delete(listener);
+                    };
                 }
-
-                return Reflect.get(obj, prop);
+                if (typeof prop === 'string' && prop.includes('.')) {
+                    const fullPath = normalizePath(basePath, prop);
+                    const value = readAtPath(fullPath);
+                    return wrapValue(value, fullPath);
+                }
+                const value = Reflect.get(target, prop);
+                if (isObject(value)) {
+                    return getOrCreateProxy(value, [...basePath, typeof prop === 'symbol' ? prop : String(prop)]);
+                }
+                return value;
             },
-            set(obj, prop, value) {
-                const next = (typeof value === 'object' && value !== null && !value.__isProxy)
-                    ? createProxy(value)
-                    : value;
-                Reflect.set(obj, prop, next);
-                // React Native의 경우 비동기 업데이트를 더 잘 처리하기 위해 
-                // requestAnimationFrame 사용
-                scheduleUpdate(() => forceUpdate({}));
+            set(target, prop, value) {
+                applySet(normalizePath(basePath, prop), value, { source: 'program' });
                 return true;
             },
-            deleteProperty(obj, prop) {
-                const result = Reflect.deleteProperty(obj, prop);
-                scheduleUpdate(() => forceUpdate({}));
-                return result;
-            }
+            deleteProperty(target, prop) {
+                applyDelete(normalizePath(basePath, prop), { source: 'program' });
+                return true;
+            },
+            has(target, prop) {
+                return Reflect.has(target, prop);
+            },
+            ownKeys(target) {
+                return Reflect.ownKeys(target);
+            },
+            getOwnPropertyDescriptor(target, prop) {
+                return Object.getOwnPropertyDescriptor(target, prop);
+            },
         };
-
-        return new Proxy(target, handler);
-    }, []);
-
-    if (!dataRef.current.__isProxy) {
-        dataRef.current = createProxy(dataRef.current);
+        const proxy = new Proxy(raw, handler);
+        rawToProxyRef.current.set(raw, proxy);
+        proxyToRawRef.current.set(proxy, raw);
+        return proxy;
     }
 
-    return dataRef.current;
+    if (!rootProxyRef.current) {
+        rootProxyRef.current = getOrCreateProxy(rootRef.current, []);
+    }
+
+    return rootProxyRef.current;
 }
 
 function EasyObj(initialData = {}) {
@@ -98,3 +291,4 @@ function EasyObj(initialData = {}) {
 }
 
 export default EasyObj;
+export { useEasyObj };

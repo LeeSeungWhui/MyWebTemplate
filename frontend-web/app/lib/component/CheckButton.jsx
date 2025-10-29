@@ -5,11 +5,13 @@
  * 설명: CheckButton UI 컴포넌트 구현
  */
 import { useState, useEffect, forwardRef } from 'react';
+import { getBoundValue, setBoundValue, buildCtx, fireValueHandlers } from '../binding';
 
 const CheckButton = forwardRef(({
     children,
     name,
     onChange,
+    onValueChange,
     dataObj,
     dataKey,
     className = "",
@@ -27,14 +29,14 @@ const CheckButton = forwardRef(({
 
     const [internalChecked, setInternalChecked] = useState(() => {
         if (dataObj && dataKeyName) {
-            return [true, 'Y', 'y', '1', 1].includes(dataObj[dataKeyName]);
+            return [true, 'Y', 'y', '1', 1].includes(getBoundValue(dataObj, dataKeyName));
         }
         return false;
     });
 
     useEffect(() => {
         if (isDataObjControlled) {
-            const value = dataObj[dataKeyName];
+            const value = getBoundValue(dataObj, dataKeyName);
             setInternalChecked([true, 'Y', 'y', '1', 1].includes(value));
         }
     }, [isDataObjControlled, dataObj, dataKeyName]);
@@ -48,15 +50,22 @@ const CheckButton = forwardRef(({
         }
 
         if (isDataObjControlled) {
-            dataObj[dataKeyName] = newChecked;
+            setBoundValue(dataObj, dataKeyName, newChecked, { source: 'user' });
         }
 
-        onChange?.(e);
+        const ctx = buildCtx({ dataKey: dataKeyName, dataObj, source: 'user', dirty: true, valid: null });
+        fireValueHandlers({
+            onChange,
+            onValueChange,
+            value: newChecked,
+            ctx,
+            event: { ...e, target: { ...e.target, value: newChecked }, detail: { value: newChecked, ctx } },
+        });
     };
 
     const getCheckedState = () => {
         if (isControlled) return propChecked;
-        if (isDataObjControlled) return [true, 'Y', 'y', '1', 1].includes(dataObj[dataKeyName]);
+        if (isDataObjControlled) return [true, 'Y', 'y', '1', 1].includes(getBoundValue(dataObj, dataKeyName));
         return internalChecked;
     };
 
