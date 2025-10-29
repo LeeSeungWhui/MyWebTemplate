@@ -132,6 +132,30 @@ function useEasyObj(initialData = {}) {
         return getOrCreateProxy(rawValue, pathSegments);
     };
 
+    const synchronizeProxyTarget = (target, proxy, basePath) => {
+        const latest = readAtPath(basePath);
+        if (isObject(latest) && latest !== target) {
+            rawToProxyRef.current.delete(target);
+            rawToProxyRef.current.set(latest, proxy);
+            proxyToRawRef.current.set(proxy, latest);
+            return latest;
+        }
+        return isObject(latest) ? latest : target;
+    };
+
+    const resolveContainer = (target, proxy, basePath) => {
+        if (!basePath.length) {
+            if (!isObject(rootRef.current)) rootRef.current = {};
+            if (rootRef.current !== target) {
+                rawToProxyRef.current.delete(target);
+                rawToProxyRef.current.set(rootRef.current, proxy);
+                proxyToRawRef.current.set(proxy, rootRef.current);
+            }
+            return rootRef.current;
+        }
+        return synchronizeProxyTarget(target, proxy, basePath);
+    };
+
     const emitChange = ({ type, path, value, prev, source = 'program' }) => {
         const detail = {
             type,
@@ -226,13 +250,15 @@ function useEasyObj(initialData = {}) {
         if (!isObject(raw)) return raw;
         const cached = rawToProxyRef.current.get(raw);
         if (cached) return cached;
+        let proxy;
         const handler = {
-            get(target, prop) {
+            get(target, prop, receiver) {
+                const container = resolveContainer(target, proxy, basePath);
                 if (prop === '__isProxy') return true;
-                if (prop === '__rawObject') return target;
+                if (prop === '__rawObject') return container;
                 if (prop === '__path') return [...basePath];
                 if (prop === 'toString') return () => JSON.stringify(target);
-                if (prop === 'toJSON') return () => deepCopy(target);
+                if (prop === 'toJSON') return () => deepCopy(container);
                 if (prop === 'copy') {
                     return (sourceObj) => replaceBranch(basePath, sourceObj ?? {}, { source: 'program' });
                 }
@@ -265,9 +291,11 @@ function useEasyObj(initialData = {}) {
                     const value = readAtPath(fullPath);
                     return wrapValue(value, fullPath);
                 }
-                const value = Reflect.get(target, prop);
+                const baseObject = isObject(container) ? container : target;
+                const value = Reflect.get(baseObject, prop, receiver);
                 if (isObject(value)) {
-                    return getOrCreateProxy(value, [...basePath, typeof prop === 'symbol' ? prop : String(prop)]);
+                    const nextContainer = readAtPath(normalizePath(basePath, prop));
+                    return getOrCreateProxy(nextContainer ?? value, [...basePath, typeof prop === 'symbol' ? prop : String(prop)]);
                 }
                 return value;
             },
@@ -280,16 +308,22 @@ function useEasyObj(initialData = {}) {
                 return true;
             },
             has(target, prop) {
-                return Reflect.has(target, prop);
+                const container = resolveContainer(target, proxy, basePath);
+                const baseObject = isObject(container) ? container : target;
+                return Reflect.has(baseObject, prop);
             },
             ownKeys(target) {
-                return Reflect.ownKeys(target);
+                const container = resolveContainer(target, proxy, basePath);
+                const baseObject = isObject(container) ? container : target;
+                return Reflect.ownKeys(baseObject);
             },
             getOwnPropertyDescriptor(target, prop) {
-                return Object.getOwnPropertyDescriptor(target, prop);
+                const container = resolveContainer(target, proxy, basePath);
+                const baseObject = isObject(container) ? container : target;
+                return Object.getOwnPropertyDescriptor(baseObject, prop);
             },
         };
-        const proxy = new Proxy(raw, handler);
+        proxy = new Proxy(raw, handler);
         rawToProxyRef.current.set(raw, proxy);
         proxyToRawRef.current.set(proxy, raw);
         if (!basePath.length) rootProxyRef.current = proxy;

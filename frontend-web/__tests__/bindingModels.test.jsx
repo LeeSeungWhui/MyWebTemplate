@@ -75,6 +75,19 @@ describe('EasyObj binding contract', () => {
         });
         expect(getBoundValue(result.current, 'contact.email')).toBe('ivy@example.com');
     });
+
+    it('keeps cached child proxies in sync after root reset', () => {
+        const { result } = renderHook(() => EasyObj({ profile: { name: 'Ada' } }));
+        const branch = result.current.profile;
+        expect(branch.name).toBe('Ada');
+
+        act(() => {
+            result.current.set('', { profile: { name: 'Mia' } }, { source: 'program' });
+        });
+
+        expect(branch.name).toBe('Mia');
+        expect(branch.get('name')).toBe('Mia');
+    });
 });
 
 describe('EasyList binding contract', () => {
@@ -128,6 +141,19 @@ describe('EasyList binding contract', () => {
         expect(getBoundValue(result.current, '0.name')).toBe('Nia');
         const payload = listener.mock.calls[listener.mock.calls.length - 1][0];
         expect(payload.ctx).toMatchObject({ dataKey: '', modelType: 'list' });
+    });
+
+    it('keeps cached item proxies in sync after root reset', () => {
+        const { result } = renderHook(() => EasyList([{ id: 1, name: 'Ada' }]));
+        const firstItem = result.current[0];
+        expect(firstItem.name).toBe('Ada');
+
+        act(() => {
+            result.current.set('', [{ id: 1, name: 'Nia' }], { source: 'program' });
+        });
+
+        expect(firstItem.name).toBe('Nia');
+        expect(firstItem.get('name')).toBe('Nia');
     });
 });
 
