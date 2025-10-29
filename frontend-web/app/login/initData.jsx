@@ -17,3 +17,10 @@ export const createLoginFormModel = () => ({
   },
 })
 
+// Default client-side configuration (CSR)
+export const CLIENT_ONLY_MODE = {
+  MODE: 'CSR',
+  init: null,
+  nextHint: null,
+}
+
