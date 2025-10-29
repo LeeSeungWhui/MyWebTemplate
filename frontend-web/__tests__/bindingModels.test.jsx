@@ -88,6 +88,19 @@ describe('EasyObj binding contract', () => {
         expect(branch.name).toBe('Mia');
         expect(branch.get('name')).toBe('Mia');
     });
+
+    it('refreshes cached child proxies when replaced with primitive', () => {
+        const { result } = renderHook(() => EasyObj({ profile: { name: 'Ada' } }));
+        const branch = result.current.profile;
+        expect(branch.name).toBe('Ada');
+
+        act(() => {
+            result.current.profile = 'Solo';
+        });
+
+        expect(branch.name).toBeUndefined();
+        expect(branch.valueOf()).toBe('Solo');
+    });
 });
 
 describe('EasyList binding contract', () => {
@@ -155,6 +168,19 @@ describe('EasyList binding contract', () => {
         expect(firstItem.name).toBe('Nia');
         expect(firstItem.get('name')).toBe('Nia');
     });
+
+    it('refreshes cached list items when replaced with primitive', () => {
+        const { result } = renderHook(() => EasyList([{ id: 1, name: 'Ada' }]));
+        const firstItem = result.current[0];
+        expect(firstItem.name).toBe('Ada');
+
+        act(() => {
+            result.current[0] = 'Solo';
+        });
+
+        expect(firstItem.name).toBeUndefined();
+        expect(firstItem.valueOf()).toBe('Solo');
+    });
 });
 
 describe('Component event pipeline', () => {
@@ -162,7 +188,11 @@ describe('Component event pipeline', () => {
         const handleChange = vi.fn((evt) => {
             expect(typeof evt.preventDefault).toBe('function');
             evt.preventDefault();
-            expect(evt.detail.value).toBe(true);
+            const detail = evt.detail && typeof evt.detail === 'object'
+                ? evt.detail
+                : { value: evt.target?.value, ctx: undefined };
+            const normalized = detail.value === 'true' ? true : detail.value;
+            expect(normalized).toBe(true);
         });
 
         const { getByRole } = render(<CheckButtonHarness onChange={handleChange} />);

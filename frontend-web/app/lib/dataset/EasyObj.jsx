@@ -134,13 +134,17 @@ function useEasyObj(initialData = {}) {
 
     const synchronizeProxyTarget = (target, proxy, basePath) => {
         const latest = readAtPath(basePath);
-        if (isObject(latest) && latest !== target) {
-            rawToProxyRef.current.delete(target);
-            rawToProxyRef.current.set(latest, proxy);
-            proxyToRawRef.current.set(proxy, latest);
+        if (isObject(latest)) {
+            if (latest !== target) {
+                rawToProxyRef.current.delete(target);
+                rawToProxyRef.current.set(latest, proxy);
+                proxyToRawRef.current.set(proxy, latest);
+            }
             return latest;
         }
-        return isObject(latest) ? latest : target;
+        rawToProxyRef.current.delete(target);
+        proxyToRawRef.current.set(proxy, latest);
+        return latest;
     };
 
     const resolveContainer = (target, proxy, basePath) => {
@@ -257,8 +261,19 @@ function useEasyObj(initialData = {}) {
                 if (prop === '__isProxy') return true;
                 if (prop === '__rawObject') return container;
                 if (prop === '__path') return [...basePath];
-                if (prop === 'toString') return () => JSON.stringify(target);
+                if (prop === 'toString' && isObject(container)) return () => JSON.stringify(container);
                 if (prop === 'toJSON') return () => deepCopy(container);
+                if (!isObject(container)) {
+                    if (prop === 'valueOf') return () => container;
+                    if (prop === 'toString') return () => String(container ?? '');
+                    if (prop === Symbol.toPrimitive) {
+                        return (hint) => {
+                            if (hint === 'number') return Number(container);
+                            if (hint === 'string') return String(container ?? '');
+                            return container;
+                        };
+                    }
+                }
                 if (prop === 'copy') {
                     return (sourceObj) => replaceBranch(basePath, sourceObj ?? {}, { source: 'program' });
                 }
@@ -291,7 +306,7 @@ function useEasyObj(initialData = {}) {
                     const value = readAtPath(fullPath);
                     return wrapValue(value, fullPath);
                 }
-                const baseObject = isObject(container) ? container : target;
+                const baseObject = isObject(container) ? container : Object(container ?? {});
                 const value = Reflect.get(baseObject, prop, receiver);
                 if (isObject(value)) {
                     const nextContainer = readAtPath(normalizePath(basePath, prop));
@@ -309,18 +324,27 @@ function useEasyObj(initialData = {}) {
             },
             has(target, prop) {
                 const container = resolveContainer(target, proxy, basePath);
-                const baseObject = isObject(container) ? container : target;
-                return Reflect.has(baseObject, prop);
+                if (!isObject(container)) {
+                    const boxed = Object(container ?? {});
+                    return Reflect.has(boxed, prop);
+                }
+                return Reflect.has(container, prop);
             },
             ownKeys(target) {
                 const container = resolveContainer(target, proxy, basePath);
-                const baseObject = isObject(container) ? container : target;
-                return Reflect.ownKeys(baseObject);
+                if (!isObject(container)) {
+                    const boxed = Object(container ?? {});
+                    return Reflect.ownKeys(boxed);
+                }
+                return Reflect.ownKeys(container);
             },
             getOwnPropertyDescriptor(target, prop) {
                 const container = resolveContainer(target, proxy, basePath);
-                const baseObject = isObject(container) ? container : target;
-                return Object.getOwnPropertyDescriptor(baseObject, prop);
+                if (!isObject(container)) {
+                    const boxed = Object(container ?? {});
+                    return Object.getOwnPropertyDescriptor(boxed, prop);
+                }
+                return Object.getOwnPropertyDescriptor(container, prop);
             },
         };
         proxy = new Proxy(raw, handler);

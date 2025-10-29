@@ -4,10 +4,10 @@
  * 갱신일: 2025-09-13
  * 설명: CheckButton UI 컴포넌트 구현
  */
-import { useState, useEffect, forwardRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { getBoundValue, setBoundValue, buildCtx, fireValueHandlers } from '../binding';
 
-const CheckButton = forwardRef(({
+const CheckButton = React.forwardRef(({
     children,
     name,
     onChange,
