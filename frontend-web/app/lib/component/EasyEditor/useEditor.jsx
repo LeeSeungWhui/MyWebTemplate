@@ -38,7 +38,14 @@ const normaliseExternalValue = (value, format) => {
     }
   }
 
-  if (typeof value === 'object') return value;
+  if (typeof value === 'object') {
+    try {
+      return JSON.parse(JSON.stringify(value));
+    } catch {
+      return createEmptyDoc();
+    }
+  }
+
   return createEmptyDoc();
 };
 
@@ -106,6 +113,9 @@ export function useEasyEditor({
       },
       onUpdate: ({ editor }) => {
         const nextValue = serialise(editor, serialization);
+        if (isEqualContent(nextValue, lastDispatched.current, serialization)) {
+          return;
+        }
         const ctx = isBound
           ? buildCtx({ dataObj, dataKey, source: 'user', dirty: true, valid: null })
           : { dataKey: dataKey ?? null, modelType: null, dirty: true, valid: null, source: 'user' };
