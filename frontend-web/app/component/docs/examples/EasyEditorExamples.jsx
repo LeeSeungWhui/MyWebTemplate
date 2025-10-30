@@ -1,8 +1,8 @@
 /**
- * ÆÄÀÏ¸í: EasyEditorExamples.jsx
- * ÀÛ¼ºÀÚ: Codex
- * ¼³¸í: EasyEditor ÄÄÆ÷³ÍÆ® ¿¹Á¦
- */
+ * EasyEditorExamples.jsx
+ * ì‘ì„±ì: Codex
+ * ì„¤ëª…: EasyEditor ì»´í¬ë„ŒíŠ¸ ì˜ˆì œ
+*/
 import * as Lib from '@/app/lib';
 
 const summariseHtml = (value) => {
@@ -10,16 +10,16 @@ const summariseHtml = (value) => {
     ? value
     : '';
   const stripped = text.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
-  if (!stripped) return '³»¿ë ¾øÀ½';
+  if (!stripped) return 'ë‚´ìš© ì—†ìŒ';
   return stripped.length > 40 ? `${stripped.slice(0, 40)} ...` : stripped;
 };
 
 export const EasyEditorExamples = () => {
   const dataObj = Lib.EasyObj({
     announcement: '<p></p>',
-    onboardingGuide: '<h2>¿Âº¸µù °¡ÀÌµå</h2><p>»õ·Î¿î ÆÀ¿øÀ» È¯¿µÇÕ´Ï´Ù. ¾Æ·¡ Ã¼Å©¸®½ºÆ®¸¦ È®ÀÎÇÏ¼¼¿ä.</p>',
+    onboardingGuide: '<h2>ì˜¨ë³´ë”© ê°€ì´ë“œ</h2><p>ìƒˆë¡œìš´ íŒ€ì›ì„ í™˜ì˜í•©ë‹ˆë‹¤. ì•„ë˜ ì²´í¬ë¦¬ìŠ¤íŠ¸ë¥¼ í™•ì¸í•˜ì„¸ìš”.</p>',
     htmlMemo:
-      '<h3>HTML ¸Ş¸ğ</h3><p>ÄÁÆ®·Ñµå ¸ğµå¿¡¼­´Â <strong>serialization="html"</strong>À» »ç¿ëÇÏ½Ê½Ã¿À.</p>',
+      '<h3>HTML ë©”ëª¨</h3><p>ì»¨íŠ¸ë¡¤ë“œ ëª¨ë“œì—ì„œëŠ” <strong>serialization="html"</strong>ì„ ì‚¬ìš©í•˜ì‹­ì‹œì˜¤.</p>',
   });
 
   const examples = [
@@ -31,24 +31,24 @@ export const EasyEditorExamples = () => {
             dataObj={dataObj}
             dataKey="announcement"
             serialization="html"
-            placeholder="ÆÀ °øÁö¸¦ ÀÛ¼ºÇÏ¼¼¿ä"
-            label="°øÁö ÀÛ¼º"
-            helperText="ÀúÀå ¹öÆ° ¾øÀÌ EasyObj¿¡ Áï½Ã ¹İ¿µµË´Ï´Ù."
+            placeholder="íŒ€ ê³µì§€ë¥¼ ì‘ì„±í•˜ì„¸ìš”"
+            label="ê³µì§€ ì‘ì„±"
+            helperText="ì €ì¥ ë²„íŠ¼ ì—†ì´ EasyObjì— ì¦‰ì‹œ ë°˜ì˜ë©ë‹ˆë‹¤."
           />
           <div className="rounded border bg-gray-50 p-3 text-sm text-gray-600">
-            <strong>ÇöÀç °ª ¿ä¾à:</strong>{' '}
+            <strong>í˜„ì¬ ê°’ ìš”ì•½:</strong>{' '}
             {summariseHtml(dataObj.announcement)}
           </div>
         </div>
       ),
-      description: 'EasyObj ¹ÙÀÎµù ±â¹İ ±âº» »ç¿ë',
+      description: 'EasyObj ë°”ì¸ë”© ê¸°ë°˜ ê¸°ë³¸ ì‚¬ìš©',
       code: `<Lib.EasyEditor
   dataObj={dataObj}
   dataKey="announcement"
   serialization="html"
-  placeholder="ÆÀ °øÁö¸¦ ÀÛ¼ºÇÏ¼¼¿ä"
-  label="°øÁö ÀÛ¼º"
-  helperText="ÀúÀå ¹öÆ° ¾øÀÌ EasyObj¿¡ Áï½Ã ¹İ¿µµË´Ï´Ù."
+  placeholder="íŒ€ ê³µì§€ë¥¼ ì‘ì„±í•˜ì„¸ìš”"
+  label="ê³µì§€ ì‘ì„±"
+  helperText="ì €ì¥ ë²„íŠ¼ ì—†ì´ EasyObjì— ì¦‰ì‹œ ë°˜ì˜ë©ë‹ˆë‹¤."
 />`,
     },
     {
@@ -59,23 +59,23 @@ export const EasyEditorExamples = () => {
             dataObj={dataObj}
             dataKey="onboardingGuide"
             serialization="html"
-            placeholder="¿Âº¸µù °¡ÀÌµå¸¦ ÀÛ¼ºÇÏ¼¼¿ä"
-            label="°¡ÀÌµå ÆíÁı"
+            placeholder="ì˜¨ë³´ë”© ê°€ì´ë“œë¥¼ ì‘ì„±í•˜ì„¸ìš”"
+            label="ê°€ì´ë“œ í¸ì§‘"
             status="success"
           />
           <div className="rounded border bg-gray-50 p-3 text-sm text-gray-600">
-            <strong>ÇöÀç °ª ¿ä¾à:</strong>{' '}
+            <strong>í˜„ì¬ ê°’ ìš”ì•½:</strong>{' '}
             {summariseHtml(dataObj.onboardingGuide)}
           </div>
         </div>
       ),
-      description: '½ºÅ¸ÅÍ ÄÜÅÙÃ÷°¡ ÀÖ´Â ¹ÙÀÎµù ÄÉÀÌ½º',
+      description: 'ìŠ¤íƒ€í„° ì½˜í…ì¸ ê°€ ìˆëŠ” ë°”ì¸ë”© ì¼€ì´ìŠ¤',
       code: `<Lib.EasyEditor
   dataObj={dataObj}
   dataKey="onboardingGuide"
   serialization="html"
-  placeholder="¿Âº¸µù °¡ÀÌµå¸¦ ÀÛ¼ºÇÏ¼¼¿ä"
-  label="°¡ÀÌµå ÆíÁı"
+  placeholder="ì˜¨ë³´ë”© ê°€ì´ë“œë¥¼ ì‘ì„±í•˜ì„¸ìš”"
+  label="ê°€ì´ë“œ í¸ì§‘"
   status="success"
 />`,
     },
@@ -89,8 +89,8 @@ export const EasyEditorExamples = () => {
             onChange={(next) => {
               dataObj.htmlMemo = next;
             }}
-            placeholder="HTML ¹®ÀÚ¿­À» Á÷Á¢ °ü¸®"
-            label="ÄÁÆ®·Ñµå HTML ÆíÁı±â"
+            placeholder="HTML ë¬¸ìì—´ì„ ì§ì ‘ ê´€ë¦¬"
+            label="ì»¨íŠ¸ë¡¤ë“œ HTML í¸ì§‘ê¸°"
             toolbar
           />
           <pre className="rounded bg-gray-900 p-3 text-xs text-gray-100 overflow-auto">
@@ -98,17 +98,17 @@ export const EasyEditorExamples = () => {
           </pre>
         </div>
       ),
-      description: 'ÄÁÆ®·Ñµå ¸ğµå + HTML Á÷·ÄÈ­',
+      description: 'ì»¨íŠ¸ë¡¤ë“œ ëª¨ë“œ + HTML ì§ë ¬í™”',
       code: `const ControlledHtml = () => {
-  const store = Lib.EasyObj({ value: '<p>ÃÊ±â HTML</p>' });
+  const store = Lib.EasyObj({ value: '<p>ì´ˆê¸° HTML</p>' });
   return (
     <>
       <Lib.EasyEditor
         value={store.value}
         serialization="html"
         onChange={(next) => { store.value = next; }}
-        placeholder="HTML ¹®ÀÚ¿­À» Á÷Á¢ °ü¸®"
-        label="ÄÁÆ®·Ñµå HTML ÆíÁı±â"
+        placeholder="HTML ë¬¸ìì—´ì„ ì§ì ‘ ê´€ë¦¬"
+        label="ì»¨íŠ¸ë¡¤ë“œ HTML í¸ì§‘ê¸°"
       />
       <pre>{store.value}</pre>
     </>
