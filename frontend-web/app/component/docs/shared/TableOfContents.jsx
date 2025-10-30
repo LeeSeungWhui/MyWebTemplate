@@ -250,6 +250,14 @@ const TableOfContents = () => {
             <li><a href="#stat-more" className="text-blue-600 hover:text-blue-800">- 추가 예시</a></li>
           </ul>
         </li>
+        <li>
+          <a href="#editors" className="text-blue-600 hover:text-blue-800">31. 리치 에디터 (EasyEditor)</a>
+          <ul className="ml-4 mt-1 space-y-1">
+            <li><a href="#editor-basic" className="text-blue-600 hover:text-blue-800">- 기본 사용</a></li>
+            <li><a href="#editor-bound" className="text-blue-600 hover:text-blue-800">- EasyObj 스타터</a></li>
+            <li><a href="#editor-controlled" className="text-blue-600 hover:text-blue-800">- 컨트롤드 / HTML 직렬화</a></li>
+          </ul>
+        </li>
       </ul>
     </section>
   );

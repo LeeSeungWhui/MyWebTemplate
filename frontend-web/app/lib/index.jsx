@@ -35,6 +35,8 @@ export { default as Table } from './component/Table';
 export { default as Pagination } from './component/Pagination';
 export { default as Dropdown } from './component/Dropdown';
 export { default as Stat } from './component/Stat';
+export { default as EasyEditor } from './component/EasyEditor';
+export { useEasyEditor } from './component/EasyEditor';
 // Datasets
 export { default as EasyObj } from './dataset/EasyObj';
 export { default as EasyList } from './dataset/EasyList';

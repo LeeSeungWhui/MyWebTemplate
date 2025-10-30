@@ -38,6 +38,7 @@ import StatDocs from './docs/components/StatDocs'
 import TableDocs from './docs/components/TableDocs'
 import SkeletonDocs from './docs/components/SkeletonDocs'
 import EmptyDocs from './docs/components/EmptyDocs'
+import EasyEditorDocs from './docs/components/EasyEditorDocs'
 
 /**
  * 컴포넌트 문서 페이지
@@ -86,6 +87,7 @@ export default function ComponentsPage() {
           <PaginationDocs />
           <DropdownDocs />
           <StatDocs />
+          <EasyEditorDocs />
         </div>
       </div>
 
