@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useMemo, useRef } from 'react';
 import { useEditor as useTiptapEditor } from '@tiptap/react';
@@ -128,18 +128,8 @@ export function useEasyEditor({
           return;
         }
 
-        const ctx = isBound
-          ? buildCtx({ dataObj, dataKey, source: 'user', dirty: true, valid: null })
-          : { dataKey: dataKey ?? null, modelType: null, dirty: true, valid: null, source: 'user' };
-        const event = {
-          type: 'easyeditor:update',
-          target: { value: nextValue },
-          detail: { value: nextValue, ctx, editor },
-          preventDefault() {},
-          stopPropagation() {},
-        };
-
         if (isBound) {
+          const ctx = buildCtx({ dataObj, dataKey, source: 'user', dirty: true, valid: null });
           const stored = cloneForStorage(nextValue, serialization);
           const current = normaliseExternalValue(getBoundValue(dataObj, dataKey), serialization);
           const currentPrint = fingerprint(current, serialization);
@@ -147,6 +137,13 @@ export function useEasyEditor({
             setBoundValue(dataObj, dataKey, stored, { source: 'user' });
           }
           lastFingerprint.current = nextPrint;
+          const event = {
+            type: 'easyeditor:update',
+            target: { value: stored },
+            detail: { value: stored, ctx, editor },
+            preventDefault() {},
+            stopPropagation() {},
+          };
           fireValueHandlers({
             onChange,
             onValueChange,
@@ -156,13 +153,9 @@ export function useEasyEditor({
           });
         } else {
           lastFingerprint.current = nextPrint;
-          fireValueHandlers({
-            onChange,
-            onValueChange,
-            value: nextValue,
-            ctx,
-            event,
-          });
+          const payload = { editor };
+          onChange?.(nextValue, payload);
+          onValueChange?.(nextValue, payload);
         }
       },
     },
