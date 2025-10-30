@@ -1,8 +1,12 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from 'react';
-import { Worker, Viewer } from '@react-pdf-viewer/core';
+import dynamic from 'next/dynamic';
 import '@react-pdf-viewer/core/lib/styles/index.css';
+
+// Load PDF Viewer only on client to avoid SSR requiring node-canvas
+const Viewer = dynamic(() => import('@react-pdf-viewer/core').then((m) => m.Viewer), { ssr: false });
+const Worker = dynamic(() => import('@react-pdf-viewer/core').then((m) => m.Worker), { ssr: false });
 
 const isBlobLike = (v) => v && typeof v === 'object' && (v instanceof Blob || v instanceof File);
 
@@ -32,14 +36,16 @@ const PdfViewer = ({
   useEffect(() => {
     setObjectUrl(fileUrl);
     return () => {
-      if (fileUrl && fileUrl.startsWith('blob:')) URL.revokeObjectURL(fileUrl);
+      if (fileUrl && typeof fileUrl === 'string' && fileUrl.startsWith('blob:')) {
+        try { URL.revokeObjectURL(fileUrl); } catch {}
+      }
     };
   }, [fileUrl]);
 
   if (!objectUrl) {
     return (
       <div className={`w-full h-64 flex items-center justify-center text-gray-500 border rounded ${className}`} style={style}>
-        PDF 소스가 없습니다.
+        PDF 소스를 지정하세요.
       </div>
     );
   }
