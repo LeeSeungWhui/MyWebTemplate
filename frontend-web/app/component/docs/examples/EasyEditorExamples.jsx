@@ -1,36 +1,25 @@
 /**
- * íŒŒì¼ëª…: EasyEditorExamples.jsx
- * ì‘ì„±ì: Codex
- * ì„¤ëª…: EasyEditor ì»´í¬ë„ŒíŠ¸ ì˜ˆì œ
+ * ÆÄÀÏ¸í: EasyEditorExamples.jsx
+ * ÀÛ¼ºÀÚ: Codex
+ * ¼³¸í: EasyEditor ÄÄÆ÷³ÍÆ® ¿¹Á¦
  */
 import * as Lib from '@/app/lib';
 
-const readContent = (value) =>
-  value?.content?.length
-    ? `${value.content[0]?.content?.[0]?.text ?? ''} ...`
-    : 'ë‚´ìš© ì—†ìŒ';
+const summariseHtml = (value) => {
+  const text = typeof value === 'string'
+    ? value
+    : '';
+  const stripped = text.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+  if (!stripped) return '³»¿ë ¾øÀ½';
+  return stripped.length > 40 ? `${stripped.slice(0, 40)} ...` : stripped;
+};
 
 export const EasyEditorExamples = () => {
   const dataObj = Lib.EasyObj({
-    announcement: null,
-    onboardingGuide: {
-      type: 'doc',
-      content: [
-        {
-          type: 'heading',
-          attrs: { level: 2 },
-          content: [{ type: 'text', text: 'ì˜¨ë³´ë”© ê°€ì´ë“œ' }],
-        },
-        {
-          type: 'paragraph',
-          content: [
-            { type: 'text', text: 'ìƒˆë¡œìš´ íŒ€ì›ì„ í™˜ì˜í•©ë‹ˆë‹¤. ì•„ë˜ ì²´í¬ë¦¬ìŠ¤íŠ¸ë¥¼ í™•ì¸í•˜ì„¸ìš”.' },
-          ],
-        },
-      ],
-    },
+    announcement: '<p></p>',
+    onboardingGuide: '<h2>¿Âº¸µù °¡ÀÌµå</h2><p>»õ·Î¿î ÆÀ¿øÀ» È¯¿µÇÕ´Ï´Ù. ¾Æ·¡ Ã¼Å©¸®½ºÆ®¸¦ È®ÀÎÇÏ¼¼¿ä.</p>',
     htmlMemo:
-      '<h3>HTML ë©”ëª¨</h3><p>ì»¨íŠ¸ë¡¤ë“œ ëª¨ë“œì—ì„œëŠ” <strong>serialization="html"</strong>ì„ ì‚¬ìš©í•˜ì‹­ì‹œì˜¤.</p>',
+      '<h3>HTML ¸Ş¸ğ</h3><p>ÄÁÆ®·Ñµå ¸ğµå¿¡¼­´Â <strong>serialization="html"</strong>À» »ç¿ëÇÏ½Ê½Ã¿À.</p>',
   });
 
   const examples = [
@@ -41,42 +30,52 @@ export const EasyEditorExamples = () => {
           <Lib.EasyEditor
             dataObj={dataObj}
             dataKey="announcement"
-            placeholder="íŒ€ ê³µì§€ë¥¼ ì‘ì„±í•˜ì„¸ìš”"
-            label="ê³µì§€ ì‘ì„±"
-            helperText="ì €ì¥ ë²„íŠ¼ ì—†ì´ EasyObjì— ì¦‰ì‹œ ë°˜ì˜ë©ë‹ˆë‹¤."
+            serialization="html"
+            placeholder="ÆÀ °øÁö¸¦ ÀÛ¼ºÇÏ¼¼¿ä"
+            label="°øÁö ÀÛ¼º"
+            helperText="ÀúÀå ¹öÆ° ¾øÀÌ EasyObj¿¡ Áï½Ã ¹İ¿µµË´Ï´Ù."
           />
           <div className="rounded border bg-gray-50 p-3 text-sm text-gray-600">
-            <strong>í˜„ì¬ ê°’ ìš”ì•½:</strong>{' '}
-            {readContent(dataObj.announcement)}
+            <strong>ÇöÀç °ª ¿ä¾à:</strong>{' '}
+            {summariseHtml(dataObj.announcement)}
           </div>
         </div>
       ),
-      description: 'EasyObj ë°”ì¸ë”© ê¸°ë°˜ ê¸°ë³¸ ì‚¬ìš©',
+      description: 'EasyObj ¹ÙÀÎµù ±â¹İ ±âº» »ç¿ë',
       code: `<Lib.EasyEditor
   dataObj={dataObj}
   dataKey="announcement"
-  placeholder="íŒ€ ê³µì§€ë¥¼ ì‘ì„±í•˜ì„¸ìš”"
-  label="ê³µì§€ ì‘ì„±"
-  helperText="ì €ì¥ ë²„íŠ¼ ì—†ì´ EasyObjì— ì¦‰ì‹œ ë°˜ì˜ë©ë‹ˆë‹¤."
+  serialization="html"
+  placeholder="ÆÀ °øÁö¸¦ ÀÛ¼ºÇÏ¼¼¿ä"
+  label="°øÁö ÀÛ¼º"
+  helperText="ÀúÀå ¹öÆ° ¾øÀÌ EasyObj¿¡ Áï½Ã ¹İ¿µµË´Ï´Ù."
 />`,
     },
     {
       anchor: 'editor-bound',
       component: (
-        <Lib.EasyEditor
-          dataObj={dataObj}
-          dataKey="onboardingGuide"
-          placeholder="ì˜¨ë³´ë”© ê°€ì´ë“œë¥¼ ì‘ì„±í•˜ì„¸ìš”"
-          label="ê°€ì´ë“œ í¸ì§‘"
-          status="success"
-        />
+        <div className="space-y-3">
+          <Lib.EasyEditor
+            dataObj={dataObj}
+            dataKey="onboardingGuide"
+            serialization="html"
+            placeholder="¿Âº¸µù °¡ÀÌµå¸¦ ÀÛ¼ºÇÏ¼¼¿ä"
+            label="°¡ÀÌµå ÆíÁı"
+            status="success"
+          />
+          <div className="rounded border bg-gray-50 p-3 text-sm text-gray-600">
+            <strong>ÇöÀç °ª ¿ä¾à:</strong>{' '}
+            {summariseHtml(dataObj.onboardingGuide)}
+          </div>
+        </div>
       ),
-      description: 'ìŠ¤íƒ€í„° ì½˜í…ì¸ ê°€ ìˆëŠ” ë°”ì¸ë”© ì¼€ì´ìŠ¤',
+      description: '½ºÅ¸ÅÍ ÄÜÅÙÃ÷°¡ ÀÖ´Â ¹ÙÀÎµù ÄÉÀÌ½º',
       code: `<Lib.EasyEditor
   dataObj={dataObj}
   dataKey="onboardingGuide"
-  placeholder="ì˜¨ë³´ë”© ê°€ì´ë“œë¥¼ ì‘ì„±í•˜ì„¸ìš”"
-  label="ê°€ì´ë“œ í¸ì§‘"
+  serialization="html"
+  placeholder="¿Âº¸µù °¡ÀÌµå¸¦ ÀÛ¼ºÇÏ¼¼¿ä"
+  label="°¡ÀÌµå ÆíÁı"
   status="success"
 />`,
     },
@@ -90,8 +89,8 @@ export const EasyEditorExamples = () => {
             onChange={(next) => {
               dataObj.htmlMemo = next;
             }}
-            placeholder="HTML ë¬¸ìì—´ì„ ì§ì ‘ ê´€ë¦¬"
-            label="ì»¨íŠ¸ë¡¤ë“œ HTML í¸ì§‘ê¸°"
+            placeholder="HTML ¹®ÀÚ¿­À» Á÷Á¢ °ü¸®"
+            label="ÄÁÆ®·Ñµå HTML ÆíÁı±â"
             toolbar
           />
           <pre className="rounded bg-gray-900 p-3 text-xs text-gray-100 overflow-auto">
@@ -99,17 +98,17 @@ export const EasyEditorExamples = () => {
           </pre>
         </div>
       ),
-      description: 'ì»¨íŠ¸ë¡¤ë“œ ëª¨ë“œ + HTML ì§ë ¬í™”',
+      description: 'ÄÁÆ®·Ñµå ¸ğµå + HTML Á÷·ÄÈ­',
       code: `const ControlledHtml = () => {
-  const store = Lib.EasyObj({ value: '<p>ì´ˆê¸° HTML</p>' });
+  const store = Lib.EasyObj({ value: '<p>ÃÊ±â HTML</p>' });
   return (
     <>
       <Lib.EasyEditor
         value={store.value}
         serialization="html"
         onChange={(next) => { store.value = next; }}
-        placeholder="HTML ë¬¸ìì—´ì„ ì§ì ‘ ê´€ë¦¬"
-        label="ì»¨íŠ¸ë¡¤ë“œ HTML í¸ì§‘ê¸°"
+        placeholder="HTML ¹®ÀÚ¿­À» Á÷Á¢ °ü¸®"
+        label="ÄÁÆ®·Ñµå HTML ÆíÁı±â"
       />
       <pre>{store.value}</pre>
     </>
