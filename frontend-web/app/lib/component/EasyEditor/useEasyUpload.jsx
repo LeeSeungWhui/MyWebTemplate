@@ -1,6 +1,5 @@
 ﻿import { useState, useCallback } from 'react';
-import Alert from '../../Alert';
-
+import { Alert } from '../..';
 const DEFAULT_MESSAGE = 'EasyUpload.jsx에 파일 업로드 api를 입력하세요.';
 
 const useEasyUpload = ({ imageUploadUrl, fileUploadUrl } = {}) => {

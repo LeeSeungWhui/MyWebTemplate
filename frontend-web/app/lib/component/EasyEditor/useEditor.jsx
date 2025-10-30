@@ -181,8 +181,8 @@ export function useEasyEditor({
             type: 'easyeditor:update',
             target: { value: stored },
             detail: { value: stored, ctx, editor },
-            preventDefault() {},
-            stopPropagation() {},
+            preventDefault() { },
+            stopPropagation() { },
           };
           fireValueHandlers({
             onChange,
