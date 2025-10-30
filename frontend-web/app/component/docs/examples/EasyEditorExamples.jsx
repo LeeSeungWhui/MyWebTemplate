@@ -1,8 +1,8 @@
-/**
+﻿/**
  * EasyEditorExamples.jsx
  * 작성자: Codex
  * 설명: EasyEditor 컴포넌트 예제
-*/
+ */
 import * as Lib from '@/app/lib';
 
 const summariseHtml = (value) => {
@@ -33,7 +33,7 @@ export const EasyEditorExamples = () => {
             serialization="html"
             placeholder="팀 공지를 작성하세요"
             label="공지 작성"
-            helperText="저장 버튼 없이 EasyObj에 즉시 반영됩니다."
+            helperText="툴바에서 폰트, 색상, 정렬, HTML 모드를 시험해보세요."
           />
           <div className="rounded border bg-gray-50 p-3 text-sm text-gray-600">
             <strong>현재 값 요약:</strong>{' '}
@@ -48,7 +48,7 @@ export const EasyEditorExamples = () => {
   serialization="html"
   placeholder="팀 공지를 작성하세요"
   label="공지 작성"
-  helperText="저장 버튼 없이 EasyObj에 즉시 반영됩니다."
+  helperText="툴바에서 폰트, 색상, 정렬, HTML 모드를 시험해보세요."
 />`,
     },
     {
@@ -62,6 +62,7 @@ export const EasyEditorExamples = () => {
             placeholder="온보딩 가이드를 작성하세요"
             label="가이드 편집"
             status="success"
+            helperText="status='success'로 상태 프리셋을 표시합니다."
           />
           <div className="rounded border bg-gray-50 p-3 text-sm text-gray-600">
             <strong>현재 값 요약:</strong>{' '}
@@ -77,6 +78,7 @@ export const EasyEditorExamples = () => {
   placeholder="온보딩 가이드를 작성하세요"
   label="가이드 편집"
   status="success"
+  helperText="status='success'로 상태 프리셋을 표시합니다."
 />`,
     },
     {

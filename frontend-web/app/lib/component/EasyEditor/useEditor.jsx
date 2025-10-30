@@ -6,9 +6,42 @@ import StarterKit from '@tiptap/starter-kit';
 import Placeholder from '@tiptap/extension-placeholder';
 import Image from '@tiptap/extension-image';
 import Underline from '@tiptap/extension-underline';
+import TextStyle from '@tiptap/extension-text-style';
+import Color from '@tiptap/extension-color';
+import TextAlign from '@tiptap/extension-text-align';
+import { Extension } from '@tiptap/core';
 import { getBoundValue, setBoundValue, buildCtx, fireValueHandlers } from '../../binding';
 
 const EMPTY_EXTENSIONS = [];
+
+const FontSize = Extension.create({
+  name: 'fontSize',
+  addGlobalAttributes() {
+    return [
+      {
+        types: ['textStyle'],
+        attributes: {
+          fontSize: {
+            default: null,
+            parseHTML: (element) => element.style.fontSize || null,
+            renderHTML: (attributes) => {
+              if (!attributes.fontSize) return {};
+              return { style: `font-size: ${attributes.fontSize}` };
+            },
+          },
+        },
+      },
+    ];
+  },
+  addCommands() {
+    return {
+      setFontSize:
+        (size) => ({ chain }) => chain().setMark('textStyle', { fontSize: size }).run(),
+      unsetFontSize:
+        () => ({ chain }) => chain().setMark('textStyle', { fontSize: null }).removeEmptyTextStyle().run(),
+    };
+  },
+});
 
 const createEmptyDoc = () => ({
   type: 'doc',
@@ -102,6 +135,10 @@ export function useEasyEditor({
       Underline,
       Placeholder.configure({ placeholder }),
       Image.configure({ inline: false }),
+      TextStyle,
+      Color.configure({ types: ['textStyle'] }),
+      TextAlign.configure({ types: ['heading', 'paragraph'] }),
+      FontSize,
     ];
     if (extensionList.length > 0) base.push(...extensionList);
     return base;
