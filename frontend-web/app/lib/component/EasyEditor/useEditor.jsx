@@ -49,14 +49,12 @@ const normaliseExternalValue = (value, format) => {
   return createEmptyDoc();
 };
 
-const isEqualContent = (a, b, format) => {
-  if (format === 'html' || format === 'text') {
-    return String(a ?? '') === String(b ?? '');
-  }
+const fingerprint = (value, format) => {
+  if (format === 'html' || format === 'text') return String(value ?? '');
   try {
-    return JSON.stringify(a ?? createEmptyDoc()) === JSON.stringify(b ?? createEmptyDoc());
+    return JSON.stringify(value ?? createEmptyDoc());
   } catch (error) {
-    return false;
+    return JSON.stringify(createEmptyDoc());
   }
 };
 
@@ -83,7 +81,7 @@ export function useEasyEditor({
   onReady,
 } = {}) {
   const isBound = Boolean(dataObj && dataKey);
-  const lastDispatched = useRef(null);
+  const lastFingerprint = useRef(null);
 
   const resolvedExtensions = useMemo(() => {
     const base = [
@@ -108,14 +106,17 @@ export function useEasyEditor({
       autofocus,
       editable: !readOnly,
       onCreate: ({ editor }) => {
-        lastDispatched.current = serialise(editor, serialization);
+        const initialValue = serialise(editor, serialization);
+        lastFingerprint.current = fingerprint(initialValue, serialization);
         onReady?.(editor);
       },
       onUpdate: ({ editor }) => {
         const nextValue = serialise(editor, serialization);
-        if (isEqualContent(nextValue, lastDispatched.current, serialization)) {
+        const nextPrint = fingerprint(nextValue, serialization);
+        if (nextPrint === lastFingerprint.current) {
           return;
         }
+
         const ctx = isBound
           ? buildCtx({ dataObj, dataKey, source: 'user', dirty: true, valid: null })
           : { dataKey: dataKey ?? null, modelType: null, dirty: true, valid: null, source: 'user' };
@@ -129,8 +130,12 @@ export function useEasyEditor({
 
         if (isBound) {
           const stored = cloneForStorage(nextValue, serialization);
-          setBoundValue(dataObj, dataKey, stored, { source: 'user' });
-          lastDispatched.current = stored;
+          const current = normaliseExternalValue(getBoundValue(dataObj, dataKey), serialization);
+          const currentPrint = fingerprint(current, serialization);
+          if (currentPrint !== nextPrint) {
+            setBoundValue(dataObj, dataKey, stored, { source: 'user' });
+          }
+          lastFingerprint.current = nextPrint;
           fireValueHandlers({
             onChange,
             onValueChange,
@@ -139,7 +144,7 @@ export function useEasyEditor({
             event,
           });
         } else {
-          lastDispatched.current = nextValue;
+          lastFingerprint.current = nextPrint;
           fireValueHandlers({
             onChange,
             onValueChange,
@@ -162,15 +167,16 @@ export function useEasyEditor({
     if (!editor) return;
     const external = isBound ? getBoundValue(dataObj, dataKey) : value;
     const normalised = normaliseExternalValue(external, serialization);
+    const nextPrint = fingerprint(normalised, serialization);
 
-    if (isEqualContent(normalised, lastDispatched.current, serialization)) return;
+    if (nextPrint === lastFingerprint.current) return;
 
     if (serialization === 'html' || serialization === 'text') {
       editor.commands.setContent(normalised || '<p></p>', false);
     } else {
       editor.commands.setContent(normalised || createEmptyDoc(), false);
     }
-    lastDispatched.current = normalised;
+    lastFingerprint.current = nextPrint;
   }, [editor, isBound, dataObj, dataKey, value, serialization]);
 
   return { editor };
