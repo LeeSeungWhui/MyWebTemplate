@@ -32,6 +32,14 @@ const Select = forwardRef(({
     const isBound = !!(dataObj && dataKey);
     const isControlled = !isBound && typeof value !== 'undefined';
 
+    // 혼용 방지 경고 (관측성): 바운드+컨트롤드 동시에 주는 경우
+    useEffect(() => {
+        if (dataObj && typeof value !== 'undefined') {
+            // eslint-disable-next-line no-console
+            console.warn('[Select] dataObj/dataKey와 value를 동시에 전달했습니다. 컨트롤 모드를 하나만 선택하세요. (CU-WEB-003)');
+        }
+    }, [dataObj, value]);
+
     // 내부 상태는 '언컨트롤드'에서만 사용
     const [innerValue, setInnerValue] = useState(() => {
         if (isBound) return '';
@@ -168,4 +176,3 @@ const Select = forwardRef(({
 Select.displayName = 'Select';
 
 export default Select;
-
