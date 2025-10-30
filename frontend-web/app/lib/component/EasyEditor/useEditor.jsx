@@ -18,6 +18,11 @@ const createEmptyDoc = () => ({
   ],
 });
 
+const unwrap = (value) => {
+  if (value && typeof value === 'object' && value.__rawObject) return value.__rawObject;
+  return value;
+};
+
 const serialise = (editor, format) => {
   if (format === 'html') return editor.getHTML();
   if (format === 'text') return editor.getText();
@@ -25,23 +30,26 @@ const serialise = (editor, format) => {
 };
 
 const normaliseExternalValue = (value, format) => {
-  if (format === 'html' || format === 'text') return value ? String(value) : '';
+  const raw = unwrap(value);
 
-  if (!value) return createEmptyDoc();
+  if (format === 'html' || format === 'text') return raw ? String(raw) : '';
 
-  if (typeof value === 'string') {
+  if (!raw) return createEmptyDoc();
+
+  if (typeof raw === 'string') {
     try {
-      return JSON.parse(value);
+      return JSON.parse(raw);
     } catch (error) {
       console.warn('[EasyEditor] Failed to parse JSON content, using empty document instead.', error);
       return createEmptyDoc();
     }
   }
 
-  if (typeof value === 'object') {
+  if (typeof raw === 'object') {
     try {
-      return JSON.parse(JSON.stringify(value));
-    } catch {
+      return JSON.parse(JSON.stringify(raw));
+    } catch (error) {
+      console.warn('[EasyEditor] Unable to clone document, using empty document instead.', error);
       return createEmptyDoc();
     }
   }
@@ -50,18 +58,20 @@ const normaliseExternalValue = (value, format) => {
 };
 
 const fingerprint = (value, format) => {
-  if (format === 'html' || format === 'text') return String(value ?? '');
+  const raw = unwrap(value);
+  if (format === 'html' || format === 'text') return String(raw ?? '');
   try {
-    return JSON.stringify(value ?? createEmptyDoc());
+    return JSON.stringify(raw ?? createEmptyDoc());
   } catch (error) {
     return JSON.stringify(createEmptyDoc());
   }
 };
 
 const cloneForStorage = (value, format) => {
-  if (format === 'html' || format === 'text') return String(value ?? '');
+  const raw = unwrap(value);
+  if (format === 'html' || format === 'text') return String(raw ?? '');
   try {
-    return JSON.parse(JSON.stringify(value ?? createEmptyDoc()));
+    return JSON.parse(JSON.stringify(raw ?? createEmptyDoc()));
   } catch (error) {
     return createEmptyDoc();
   }
@@ -105,6 +115,7 @@ export function useEasyEditor({
       content: initialContent,
       autofocus,
       editable: !readOnly,
+      immediatelyRender: false,
       onCreate: ({ editor }) => {
         const initialValue = serialise(editor, serialization);
         lastFingerprint.current = fingerprint(initialValue, serialization);
