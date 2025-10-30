@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useCallback, useMemo, useRef } from 'react';
 import { EditorContent } from '@tiptap/react';
@@ -57,6 +57,8 @@ function buildSyntheticEvent(value, ctx, editor) {
   };
 }
 
+const EMPTY_EXTENSIONS = [];
+
 const EasyEditor = ({
   dataObj,
   dataKey,
@@ -73,13 +75,14 @@ const EasyEditor = ({
   id,
   name,
   serialization = 'json',
-  extensions = [],
+  extensions,
   autofocus = false,
   onUploadImage,
   toolbar = true,
   minHeight = '240px',
 }) => {
   const fileInputRef = useRef(null);
+  const extensionList = useMemo(() => extensions ?? EMPTY_EXTENSIONS, [extensions]);
 
   const { editor } = useEasyEditor({
     dataObj,
@@ -90,7 +93,7 @@ const EasyEditor = ({
     placeholder,
     readOnly,
     serialization,
-    extensions,
+    extensions: extensionList,
     autofocus,
   });
 

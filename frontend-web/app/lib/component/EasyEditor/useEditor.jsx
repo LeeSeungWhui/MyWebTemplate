@@ -8,6 +8,8 @@ import Image from '@tiptap/extension-image';
 import Underline from '@tiptap/extension-underline';
 import { getBoundValue, setBoundValue, buildCtx, fireValueHandlers } from '../../binding';
 
+const EMPTY_EXTENSIONS = [];
+
 const createEmptyDoc = () => ({
   type: 'doc',
   content: [
@@ -86,12 +88,13 @@ export function useEasyEditor({
   placeholder = '내용을 입력하세요',
   readOnly = false,
   serialization = 'json',
-  extensions = [],
+  extensions,
   autofocus = false,
   onReady,
 } = {}) {
   const isBound = Boolean(dataObj && dataKey);
   const lastFingerprint = useRef(null);
+  const extensionList = useMemo(() => extensions ?? EMPTY_EXTENSIONS, [extensions]);
 
   const resolvedExtensions = useMemo(() => {
     const base = [
@@ -100,9 +103,9 @@ export function useEasyEditor({
       Placeholder.configure({ placeholder }),
       Image.configure({ inline: false }),
     ];
-    if (extensions?.length) base.push(...extensions);
+    if (extensionList.length > 0) base.push(...extensionList);
     return base;
-  }, [placeholder, extensions]);
+  }, [placeholder, extensionList]);
 
   const initialContent = useMemo(() => {
     const source = isBound ? getBoundValue(dataObj, dataKey) : value;
