@@ -22,7 +22,26 @@ export function getOpenApiClient() {
         withCredentials: true,
       },
     });
-    __clientCache = { base, promise: api.init().then((c) => c) };
+    __clientCache = { base, promise: api.init().then((c) => {
+      // 글로벌 401 인터셉터: 토큰 만료 시 로그인으로 이동
+      try {
+        c.interceptors.response.use(
+          (res) => res,
+          (err) => {
+            const status = err?.response?.status
+            if (typeof window !== 'undefined' && status === 401) {
+              const { pathname, search } = window.location
+              if (!pathname.startsWith('/login')) {
+                const next = pathname + (search || '')
+                window.location.assign(`/login?next=${encodeURIComponent(next)}`)
+              }
+            }
+            return Promise.reject(err)
+          },
+        )
+      } catch (_) { /* noop */ }
+      return c
+    }) };
   }
   return __clientCache.promise;
 }
@@ -55,4 +74,3 @@ export async function postWithCsrf(path, body) {
 }
 
 export default { getOpenApiClient, getSession, postWithCsrf }
-
