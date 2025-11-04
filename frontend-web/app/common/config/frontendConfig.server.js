@@ -10,21 +10,17 @@ import path from 'node:path'
 
 /**
  * 설명: config.ini 파일을 읽어 JSON 객체로 변환한다.
- * 우선순위: FRONTEND_CONFIG_PATH > config_prod.ini(프로덕션) > config_dev.ini > config.ini
+ * 우선순위: config.ini > config_prod.ini > config_dev.ini (env 변수 미사용)
  */
 export function loadFrontendConfig() {
   const cwd = process.cwd()
-  const envPath = process.env.FRONTEND_CONFIG_PATH && path.isAbsolute(process.env.FRONTEND_CONFIG_PATH)
-    ? process.env.FRONTEND_CONFIG_PATH
-    : (process.env.FRONTEND_CONFIG_PATH ? path.join(cwd, process.env.FRONTEND_CONFIG_PATH) : null)
-
-  const candidates = []
-  if (envPath) candidates.push(envPath)
-  if (process.env.NODE_ENV === 'production') {
-    candidates.push(path.join(cwd, 'config_prod.ini'))
-  }
-  candidates.push(path.join(cwd, 'config_dev.ini'))
-  candidates.push(path.join(cwd, 'config.ini'))
+  // 환경 변수 의존 제거. 운영/개발 선택은 CI/CD가 config.ini를 준비하도록 강제한다.
+  // 존재 순서: config.ini > config_prod.ini > config_dev.ini
+  const candidates = [
+    path.join(cwd, 'config.ini'),
+    path.join(cwd, 'config_prod.ini'),
+    path.join(cwd, 'config_dev.ini'),
+  ]
 
   for (const p of candidates) {
     try {
@@ -91,4 +87,3 @@ function coerceValue(valueRaw) {
   }
   return valueRaw
 }
-
