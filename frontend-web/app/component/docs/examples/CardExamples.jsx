@@ -1,3 +1,4 @@
+"use client";
 /**
  * 파일명: CardExamples.jsx
  * 작성자: LSH
@@ -95,4 +96,3 @@ export const CardExamples = () => {
 
   return examples;
 };
-

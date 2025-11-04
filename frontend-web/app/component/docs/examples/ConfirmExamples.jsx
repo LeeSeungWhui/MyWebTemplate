@@ -1,3 +1,4 @@
+"use client";
 /**
  * 파일명: ConfirmExamples.jsx
  * 작성자: LSH
@@ -153,4 +154,3 @@ const inputRef = useRef(null);
 
   return examples;
 };
-

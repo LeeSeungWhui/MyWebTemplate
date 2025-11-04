@@ -1,3 +1,4 @@
+"use client";
 /**
  * 파일명: AlertExamples.jsx
  * 작성자: LSH
@@ -118,4 +119,3 @@ const inputRef = useRef(null);
 
   return examples;
 };
-

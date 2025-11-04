@@ -1,3 +1,4 @@
+"use client";
 /**
  * 파일명: ToastExamples.jsx
  * 작성자: LSH
@@ -98,4 +99,3 @@ showToast('자동으로 사라지지 않습니다.', { duration: Infinity });`
 
   return examples;
 };
-

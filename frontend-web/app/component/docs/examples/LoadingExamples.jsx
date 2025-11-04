@@ -1,3 +1,4 @@
+"use client";
 /**
  * 파일명: LoadingExamples.jsx
  * 작성자: LSH
@@ -40,4 +41,3 @@ const { setLoading } = useGlobalUi();
 
   return examples;
 };
-
