@@ -14,6 +14,8 @@ export const useSharedStore = create((set, get) => ({
   setUser: (user) => set({ user }),
   userJson: null,
   setUserJson: (userJson) => set({ userJson }),
+  config: {},
+  setConfig: (config) => set({ config: config && typeof config === 'object' ? config : {} }),
   shared: {},
   setShared: (patch) => set((s) => ({ shared: { ...s.shared, ...(patch || {}) } })),
 
