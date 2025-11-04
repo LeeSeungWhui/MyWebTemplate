@@ -1,2 +1,15 @@
 ignoredBuiltDependencies:
+  - '@tailwindcss/oxide'
   - canvas
+  - core-js-pure
+  - esbuild
+  - sharp
+  - unrs-resolver
+
+onlyBuiltDependencies:
+  - '@tailwindcss/oxide'
+  - canvas
+  - core-js-pure
+  - esbuild
+  - sharp
+  - unrs-resolver
