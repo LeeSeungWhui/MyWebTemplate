@@ -1,10 +1,10 @@
-/**
- * 파일명: ssr.jsx
- * 작성자: LSH
- * 갱신일: 2025-09-13
- * 설명: SSR 렌더링 유틸
+﻿/**
+ * ?뚯씪紐? ssr.jsx
+ * ?묒꽦?? LSH
+ * 媛깆떊?? 2025-09-13
+ * ?ㅻ챸: SSR ?뚮뜑留??좏떥
  */
-const BASE = process.env.NEXT_PUBLIC_API_BASE || 'http://localhost:8000'
+import { getApiBase } from \"@/app/common/config/getApiBase\"
 
 export async function buildSSRHeaders(extra = {}) {
   // Next.js 15 dynamic APIs must be awaited
@@ -22,7 +22,8 @@ export async function buildSSRHeaders(extra = {}) {
 
 export async function ssrJSON(path, init = {}) {
   const headers = await buildSSRHeaders(init.headers)
-  const res = await fetch(BASE + path, { cache: 'no-store', ...init, headers })
+  const res = await fetch(getApiBase() + path, { cache: 'no-store', ...init, headers })
   return res.json()
 }
+
 
