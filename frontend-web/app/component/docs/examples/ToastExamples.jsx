@@ -1,84 +1,74 @@
-/**
- * 파일명: ToastExamples.jsx
- * 작성자: LSH
- * 갱신일: 2025-09-13
- * 설명: Toast 컴포넌트 예제
+﻿/**
+ * ?뚯씪紐? ToastExamples.jsx
+ * ?묒꽦?? LSH
+ * 媛깆떊?? 2025-09-13
+ * ?ㅻ챸: Toast 而댄룷?뚰듃 ?덉젣
  */
 import * as Lib from '@/app/lib';
 import { useSharedStore } from '@/app/common/store/SharedStore';
 
 export const ToastExamples = () => {
-    const app = useSharedStore();
+    const showToast = useSharedStore(s => s.showToast);
 
     const examples = [
         {
             component: (
                 <div className="space-y-4">
                     <Lib.Button onClick={() => {
-                        app.showToast("기본 토스트 메시지입니다.");
+                        showToast("湲곕낯 ?좎뒪??硫붿떆吏?낅땲??");
                     }}>
-                        기본 토스트
-                    </Lib.Button>
+                        湲곕낯 ?좎뒪??                    </Lib.Button>
                 </div>
             ),
-            description: "기본 토스트",
-            code: `// useSharedStore 사용
-const app = useSharedStore();
+            description: "湲곕낯 ?좎뒪??,
+            code: `// useSharedStore ?ъ슜
+const showToast = useSharedStore(s => s.showToast);
 
-// 기본 토스트
-app.showToast("기본 토스트 메시지입니다.");`
+// 湲곕낯 ?좎뒪??showToast("湲곕낯 ?좎뒪??硫붿떆吏?낅땲??");`
         },
         {
             component: (
                 <div className="flex flex-wrap gap-2">
                     <Lib.Button onClick={() => {
-                        app.showToast("정보 토스트 메시지입니다.", {
+                        showToast("?뺣낫 ?좎뒪??硫붿떆吏?낅땲??", {
                             type: "info"
                         });
                     }}>
-                        정보 토스트
-                    </Lib.Button>
+                        ?뺣낫 ?좎뒪??                    </Lib.Button>
                     <Lib.Button onClick={() => {
-                        app.showToast("성공 토스트 메시지입니다.", {
+                        showToast("?깃났 ?좎뒪??硫붿떆吏?낅땲??", {
                             type: "success"
                         });
                     }}>
-                        성공 토스트
-                    </Lib.Button>
+                        ?깃났 ?좎뒪??                    </Lib.Button>
                     <Lib.Button onClick={() => {
-                        app.showToast("경고 토스트 메시지입니다.", {
+                        showToast("寃쎄퀬 ?좎뒪??硫붿떆吏?낅땲??", {
                             type: "warning"
                         });
                     }}>
-                        경고 토스트
-                    </Lib.Button>
+                        寃쎄퀬 ?좎뒪??                    </Lib.Button>
                     <Lib.Button onClick={() => {
-                        app.showToast("오류 토스트 메시지입니다.", {
+                        showToast("?ㅻ쪟 ?좎뒪??硫붿떆吏?낅땲??", {
                             type: "error"
                         });
                     }}>
-                        오류 토스트
-                    </Lib.Button>
+                        ?ㅻ쪟 ?좎뒪??                    </Lib.Button>
                 </div>
             ),
-            description: "토스트 유형",
-            code: `// 정보 토스트
-app.showToast("정보 토스트 메시지입니다.", {
+            description: "?좎뒪???좏삎",
+            code: `// ?뺣낫 ?좎뒪??showToast("?뺣낫 ?좎뒪??硫붿떆吏?낅땲??", {
     type: "info",
 });
 
-// 성공 토스트
-app.showToast("성공 토스트 메시지입니다.", {
+// ?깃났 ?좎뒪??showToast("?깃났 ?좎뒪??硫붿떆吏?낅땲??", {
     type: "success",
 });
 
-// 경고 토스트
-app.showToast("경고 토스트 메시지입니다.", {
+// 寃쎄퀬 ?좎뒪??showToast("寃쎄퀬 ?좎뒪??硫붿떆吏?낅땲??", {
     type: "warning",
 });
 
-// 오류 토스트
-app.showToast("오류 토스트 메시지입니다.", {
+// ?ㅻ쪟 ?좎뒪??showToast("?ㅻ쪟 ?좎뒪??硫붿떆吏?낅땲??", {
     type: "error",
 });`
         },
@@ -86,77 +76,73 @@ app.showToast("오류 토스트 메시지입니다.", {
             component: (
                 <div className="flex flex-wrap gap-2">
                     <Lib.Button onClick={() => {
-                        app.showToast("상단 왼쪽에 표시됩니다.", {
+                        showToast("?곷떒 ?쇱そ???쒖떆?⑸땲??", {
                             position: "top-left"
                         });
                     }}>
-                        상단 왼쪽
+                        ?곷떒 ?쇱そ
                     </Lib.Button>
                     <Lib.Button onClick={() => {
-                        app.showToast("상단 중앙에 표시됩니다.", {
+                        showToast("?곷떒 以묒븰???쒖떆?⑸땲??", {
                             position: "top-center"
                         });
                     }}>
-                        상단 중앙
+                        ?곷떒 以묒븰
                     </Lib.Button>
                     <Lib.Button onClick={() => {
-                        app.showToast("상단 오른쪽에 표시됩니다.", {
+                        showToast("?곷떒 ?ㅻⅨ履쎌뿉 ?쒖떆?⑸땲??", {
                             position: "top-right"
                         });
                     }}>
-                        상단 오른쪽
-                    </Lib.Button>
+                        ?곷떒 ?ㅻⅨ履?                    </Lib.Button>
                     <Lib.Button onClick={() => {
-                        app.showToast("하단 왼쪽에 표시됩니다.", {
+                        showToast("?섎떒 ?쇱そ???쒖떆?⑸땲??", {
                             position: "bottom-left"
                         });
                     }}>
-                        하단 왼쪽
+                        ?섎떒 ?쇱そ
                     </Lib.Button>
                     <Lib.Button onClick={() => {
-                        app.showToast("하단 중앙에 표시됩니다.", {
+                        showToast("?섎떒 以묒븰???쒖떆?⑸땲??", {
                             position: "bottom-center"
                         });
                     }}>
-                        하단 중앙
+                        ?섎떒 以묒븰
                     </Lib.Button>
                     <Lib.Button onClick={() => {
-                        app.showToast("하단 오른쪽에 표시됩니다.", {
+                        showToast("?섎떒 ?ㅻⅨ履쎌뿉 ?쒖떆?⑸땲??", {
                             position: "bottom-right"
                         });
                     }}>
-                        하단 오른쪽
-                    </Lib.Button>
+                        ?섎떒 ?ㅻⅨ履?                    </Lib.Button>
                 </div>
             ),
-            description: "토스트 위치",
-            code: `// 상단 왼쪽
-app.showToast("상단 왼쪽에 표시됩니다.", {
+            description: "?좎뒪???꾩튂",
+            code: `// ?곷떒 ?쇱そ
+showToast("?곷떒 ?쇱そ???쒖떆?⑸땲??", {
     position: "top-left",
 });
 
-// 상단 중앙
-app.showToast("상단 중앙에 표시됩니다.", {
+// ?곷떒 以묒븰
+showToast("?곷떒 以묒븰???쒖떆?⑸땲??", {
     position: "top-center",
 });
 
-// 상단 오른쪽
-app.showToast("상단 오른쪽에 표시됩니다.", {
+// ?곷떒 ?ㅻⅨ履?showToast("?곷떒 ?ㅻⅨ履쎌뿉 ?쒖떆?⑸땲??", {
     position: "top-right",
 });
 
-// 하단 왼쪽
-app.showToast("하단 왼쪽에 표시됩니다.", {
+// ?섎떒 ?쇱そ
+showToast("?섎떒 ?쇱そ???쒖떆?⑸땲??", {
     position: "bottom-left",
 });
 
-// 하단 중앙
-app.showToast("하단 중앙에 표시됩니다.", {
+// ?섎떒 以묒븰
+showToast("?섎떒 以묒븰???쒖떆?⑸땲??", {
     position: "bottom-center",
 });
 
-// 하단 오른쪽
-app.showToast("하단 오른쪽에 표시됩니다.", {
+// ?섎떒 ?ㅻⅨ履?showToast("?섎떒 ?ㅻⅨ履쎌뿉 ?쒖떆?⑸땲??", {
     position: "bottom-right",
 });`
         },
@@ -164,41 +150,41 @@ app.showToast("하단 오른쪽에 표시됩니다.", {
             component: (
                 <div className="flex flex-wrap gap-2">
                     <Lib.Button onClick={() => {
-                        app.showToast("2초에 사라집니다.", {
+                        showToast("2珥덉뿉 ?щ씪吏묐땲??", {
                             duration: 2000
                         });
                     }}>
-                        2초 유지
+                        2珥??좎?
                     </Lib.Button>
                     <Lib.Button onClick={() => {
-                        app.showToast("5초에 사라집니다.", {
+                        showToast("5珥덉뿉 ?щ씪吏묐땲??", {
                             duration: 5000
                         });
                     }}>
-                        5초 유지
+                        5珥??좎?
                     </Lib.Button>
                     <Lib.Button onClick={() => {
-                        app.showToast("자동으로 사라지지 않습니다.", {
+                        showToast("?먮룞?쇰줈 ?щ씪吏吏 ?딆뒿?덈떎.", {
                             duration: Infinity
                         });
                     }}>
-                        수동 닫기
+                        ?섎룞 ?リ린
                     </Lib.Button>
                 </div>
             ),
-            description: "토스트 지속 시간",
-            code: `// 2초 후 닫힘
-app.showToast("2초에 사라집니다.", {
+            description: "?좎뒪??吏???쒓컙",
+            code: `// 2珥????ロ옒
+showToast("2珥덉뿉 ?щ씪吏묐땲??", {
     duration: 2000,
 });
 
-// 5초 후 닫힘
-app.showToast("5초에 사라집니다.", {
+// 5珥????ロ옒
+showToast("5珥덉뿉 ?щ씪吏묐땲??", {
     duration: 5000,
 });
 
-// 자동으로 닫히지 않음 (수동 닫기 비활성화)
-app.showToast("자동으로 사라지지 않습니다.", {
+// ?먮룞?쇰줈 ?ロ엳吏 ?딆쓬 (?섎룞 ?リ린 鍮꾪솢?깊솕)
+showToast("?먮룞?쇰줈 ?щ씪吏吏 ?딆뒿?덈떎.", {
     duration: Infinity,
 });`
         }
@@ -206,4 +192,5 @@ app.showToast("자동으로 사라지지 않습니다.", {
 
     return examples;
 };
+
 

@@ -1,15 +1,15 @@
-/**
- * 파일명: ConfirmExamples.jsx
- * 작성자: LSH
- * 갱신일: 2025-09-13
- * 설명: Confirm 컴포넌트 예제
+﻿/**
+ * ?뚯씪紐? ConfirmExamples.jsx
+ * ?묒꽦?? LSH
+ * 媛깆떊?? 2025-09-13
+ * ?ㅻ챸: Confirm 而댄룷?뚰듃 ?덉젣
  */
 import * as Lib from '@/app/lib';
 import { useRef } from 'react';
 import { useSharedStore } from '@/app/common/store/SharedStore';
 
 export const ConfirmExamples = () => {
-    const app = useSharedStore();
+    const showConfirm = useSharedStore(s => s.showConfirm);\n    const showAlert = useSharedStore(s => s.showAlert);
     const inputRef = useRef(null);
 
     const examples = [
@@ -17,24 +17,24 @@ export const ConfirmExamples = () => {
             component: (
                 <div className="space-y-4">
                     <Lib.Button onClick={() => {
-                        app.showConfirm("정말 삭제하시겠습니까?").then(result => {
+                        showConfirm("?뺣쭚 ??젣?섏떆寃좎뒿?덇퉴?").then(result => {
                             if (result) {
-                                app.showAlert("삭제되었습니다.");
+                                showAlert("??젣?섏뿀?듬땲??");
                             }
                         });
                     }}>
-                        기본 확인
+                        湲곕낯 ?뺤씤
                     </Lib.Button>
                 </div>
             ),
-            description: "기본 확인 대화상자",
-            code: `// useSharedStore 사용
-const app = useSharedStore();
+            description: "湲곕낯 ?뺤씤 ??붿긽??,
+            code: `// useSharedStore ?ъ슜
+const showConfirm = useSharedStore(s => s.showConfirm);\n    const showAlert = useSharedStore(s => s.showAlert);
 
-// 기본 확인
-app.showConfirm("정말 삭제하시겠습니까?").then(result => {
+// 湲곕낯 ?뺤씤
+showConfirm("?뺣쭚 ??젣?섏떆寃좎뒿?덇퉴?").then(result => {
     if (result) {
-        app.showAlert("삭제되었습니다.");
+        showAlert("??젣?섏뿀?듬땲??");
     }
 });`
         },
@@ -42,77 +42,77 @@ app.showConfirm("정말 삭제하시겠습니까?").then(result => {
             component: (
                 <div className="flex flex-wrap gap-2">
                     <Lib.Button onClick={() => {
-                        app.showConfirm("이 작업은 되돌릴 수 없습니다.\\n계속하시겠습니까?", {
-                            title: "주의",
+                        showConfirm("???묒뾽? ?섎룎由????놁뒿?덈떎.\\n怨꾩냽?섏떆寃좎뒿?덇퉴?", {
+                            title: "二쇱쓽",
                             type: "warning",
-                            confirmText: "계속",
-                            cancelText: "중단"
+                            confirmText: "怨꾩냽",
+                            cancelText: "以묐떒"
                         });
                     }}>
-                        경고 확인
+                        寃쎄퀬 ?뺤씤
                     </Lib.Button>
                     <Lib.Button onClick={() => {
-                        app.showConfirm("모든 데이터가 삭제됩니다.\\n정말 삭제하시겠습니까?", {
-                            title: "삭제 확인",
+                        showConfirm("紐⑤뱺 ?곗씠?곌? ??젣?⑸땲??\\n?뺣쭚 ??젣?섏떆寃좎뒿?덇퉴?", {
+                            title: "??젣 ?뺤씤",
                             type: "danger",
-                            confirmText: "삭제",
-                            cancelText: "취소"
+                            confirmText: "??젣",
+                            cancelText: "痍⑥냼"
                         });
                     }}>
-                        위험 확인
+                        ?꾪뿕 ?뺤씤
                     </Lib.Button>
                 </div>
             ),
-            description: "확인 대화상자 유형",
-            code: `// 경고 확인
-app.showConfirm("이 작업은 되돌릴 수 없습니다.\\\\n계속하시겠습니까?", {
-    title: "주의",
+            description: "?뺤씤 ??붿긽???좏삎",
+            code: `// 寃쎄퀬 ?뺤씤
+showConfirm("???묒뾽? ?섎룎由????놁뒿?덈떎.\\\\n怨꾩냽?섏떆寃좎뒿?덇퉴?", {
+    title: "二쇱쓽",
     type: "warning",
-    confirmText: "계속",
-    cancelText: "중단"
+    confirmText: "怨꾩냽",
+    cancelText: "以묐떒"
 });
 
-// 위험 확인
-app.showConfirm("모든 데이터가 삭제됩니다.\\\\n정말 삭제하시겠습니까?", {
-    title: "삭제 확인",
+// ?꾪뿕 ?뺤씤
+showConfirm("紐⑤뱺 ?곗씠?곌? ??젣?⑸땲??\\\\n?뺣쭚 ??젣?섏떆寃좎뒿?덇퉴?", {
+    title: "??젣 ?뺤씤",
     type: "danger",
-    confirmText: "삭제",
-    cancelText: "취소"
+    confirmText: "??젣",
+    cancelText: "痍⑥냼"
 });`
         },
         {
             component: (
                 <div className="space-y-4">
                     <Lib.Button onClick={() => {
-                        app.showConfirm("데이터를 삭제하시겠습니까?", {
-                            title: "삭제 확인",
+                        showConfirm("?곗씠?곕? ??젣?섏떆寃좎뒿?덇퉴?", {
+                            title: "??젣 ?뺤씤",
                             type: "danger",
-                            confirmText: "삭제",
-                            cancelText: "취소",
+                            confirmText: "??젣",
+                            cancelText: "痍⑥냼",
                             onConfirm: () => {
-                                app.showAlert("삭제가 완료되었습니다.");
+                                showAlert("??젣媛 ?꾨즺?섏뿀?듬땲??");
                             },
                             onCancel: () => {
-                                app.showAlert("삭제가 취소되었습니다.");
+                                showAlert("??젣媛 痍⑥냼?섏뿀?듬땲??");
                             }
                         });
                     }}>
-                        콜백 함수 예시
+                        肄쒕갚 ?⑥닔 ?덉떆
                     </Lib.Button>
                 </div>
             ),
-            description: "확인/취소 콜백",
-            code: `// 확인/취소 시 실행될 콜백 함수
-app.showConfirm("데이터를 삭제하시겠습니까?", {
-    title: "삭제 확인",
+            description: "?뺤씤/痍⑥냼 肄쒕갚",
+            code: `// ?뺤씤/痍⑥냼 ???ㅽ뻾??肄쒕갚 ?⑥닔
+showConfirm("?곗씠?곕? ??젣?섏떆寃좎뒿?덇퉴?", {
+    title: "??젣 ?뺤씤",
     type: "danger",
-    confirmText: "삭제",
-    cancelText: "취소",
+    confirmText: "??젣",
+    cancelText: "痍⑥냼",
     onConfirm: () => {
-        app.showAlert("삭제가 완료되었습니다.");
+        showAlert("??젣媛 ?꾨즺?섏뿀?듬땲??");
     },
     onCancel: () => {
-        app.showAlert("삭제가 취소되었습니다.");
+        showAlert("??젣媛 痍⑥냼?섏뿀?듬땲??");
     }
 });`
         },
@@ -122,40 +122,40 @@ app.showConfirm("데이터를 삭제하시겠습니까?", {
                     <div className="flex gap-4 items-center">
                         <Lib.Button
                             onClick={() => {
-                                app.showConfirm("확인 대화상자가 닫히면 입력창으로 포커스가 이동합니다.", {
-                                    title: "포커스 이동",
+                                showConfirm("?뺤씤 ??붿긽?먭? ?ロ엳硫??낅젰李쎌쑝濡??ъ빱?ㅺ? ?대룞?⑸땲??", {
+                                    title: "?ъ빱???대룞",
                                     onFocus: () => inputRef.current?.focus()
                                 });
                             }}
                         >
-                            포커스 이동 예시
+                            ?ъ빱???대룞 ?덉떆
                         </Lib.Button>
                         <Lib.Input
                             ref={inputRef}
-                            placeholder="포커스가 여기로 이동합니다"
+                            placeholder="?ъ빱?ㅺ? ?ш린濡??대룞?⑸땲??
                         />
                     </div>
                 </div>
             ),
-            description: "확인 대화상자가 닫힐 때 지정된 요소로 포커스가 이동합니다.",
-            code: `// useRef 훅으로 입력창 참조 생성
+            description: "?뺤씤 ??붿긽?먭? ?ロ옄 ??吏?뺣맂 ?붿냼濡??ъ빱?ㅺ? ?대룞?⑸땲??",
+            code: `// useRef ?낆쑝濡??낅젰李?李몄“ ?앹꽦
 const inputRef = useRef(null);
 
-// 확인 대화상자가 닫힐 때 입력창으로 포커스 이동
+// ?뺤씤 ??붿긽?먭? ?ロ옄 ???낅젰李쎌쑝濡??ъ빱???대룞
 <div className="flex gap-4 items-center">
     <Lib.Button
         onClick={() => {
-            app.showConfirm("확인 대화상자가 닫히면 입력창으로 포커스가 이동합니다.", {
-                title: "포커스 이동",
+            showConfirm("?뺤씤 ??붿긽?먭? ?ロ엳硫??낅젰李쎌쑝濡??ъ빱?ㅺ? ?대룞?⑸땲??", {
+                title: "?ъ빱???대룞",
                 onFocus: () => inputRef.current?.focus()
             });
         }}
     >
-        포커스 이동 예시
+        ?ъ빱???대룞 ?덉떆
     </Lib.Button>
     <Lib.Input
         ref={inputRef}
-        placeholder="포커스가 여기로 이동합니다"
+        placeholder="?ъ빱?ㅺ? ?ш린濡??대룞?⑸땲??
     />
 </div>`
         }
@@ -163,4 +163,5 @@ const inputRef = useRef(null);
 
     return examples;
 };
+
 
