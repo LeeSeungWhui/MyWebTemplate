@@ -84,12 +84,12 @@ export default function ComponentsPage() {
           <DrawerDocs />
           <SkeletonDocs />
           <EmptyDocs />
-          <PdfViewerDocs />
           <TableDocs />
           <PaginationDocs />
           <DropdownDocs />
           <StatDocs />
           <EasyEditorDocs />
+          <PdfViewerDocs />
         </div>
       </div>
 
@@ -97,4 +97,3 @@ export default function ComponentsPage() {
     </div>
   )
 }
-

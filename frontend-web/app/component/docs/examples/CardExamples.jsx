@@ -1,98 +1,99 @@
+"use client";
 /**
- * 파일명: CardExamples.jsx
- * 작성자: LSH
- * 갱신일: 2025-09-13
- * 설명: Card 컴포넌트 예제
+ * ���ϸ�: CardExamples.jsx
+ * �ۼ���: LSH
+ * ������: 2025-09-13
+ * ����: Card ������Ʈ ����
  */
 import * as Lib from '@/app/lib';
-import { useSharedStore } from '@/app/common/store/SharedStore';
+import { useGlobalUi } from '@/app/common/store/SharedStore';
+
+const ActionCard = () => {
+  const { showAlert } = useGlobalUi();
+  return (
+    <Lib.Card
+      title="�׼� ī��"
+      subtitle="��ư�� �Բ�"
+      actions={<Lib.Button onClick={() => showAlert('��ư �׼�')}>Action</Lib.Button>}
+      footer="Ǫ�� �ؽ�Ʈ"
+    >
+      <div className="space-y-2">
+        <div>����Ʈ �׸� 1</div>
+        <div>����Ʈ �׸� 2</div>
+      </div>
+    </Lib.Card>
+  );
+};
 
 export const CardExamples = () => {
-  const app = useSharedStore();
-
-  const examples = [
+  return [
     {
       component: (
-        <Lib.Card title="간단 카드" subtitle="보조 설명">
-          카드 본문은 간결하게 구성합니다.
+        <Lib.Card title="���� ī��" subtitle="���� ����">
+          ī�� ������ �����ϰ� �����մϴ�.
         </Lib.Card>
       ),
-      description: '기본 Card: title + subtitle + 본문',
-      code: `<Lib.Card title="간단 카드" subtitle="보조 설명">
-  카드 본문은 간결하게 구성합니다.
-</Lib.Card>`
+      description: '�⺻ Card: title + subtitle + ����',
+      code: <Lib.Card title="���� ī��" subtitle="���� ����">
+  ī�� ������ �����ϰ� �����մϴ�.
+</Lib.Card>
     },
     {
-      component: (
-        <Lib.Card
-          title="액션 카드"
-          subtitle="버튼과 함께"
-          actions={<Lib.Button onClick={() => app.showAlert("버튼 액션")}>Action</Lib.Button>}
-          footer="푸터 텍스트"
-        >
-          <div className="space-y-2">
-            <div>리스트 항목 1</div>
-            <div>리스트 항목 2</div>
-          </div>
-        </Lib.Card>
-      ),
-      description: 'actions + footer 사용',
-      code: `<Lib.Card
-  title="액션 카드"
-  subtitle="버튼과 함께"
-  actions={<Lib.Button onClick={() => app.showAlert("버튼 액션")}>Action</Lib.Button>}
-  footer="푸터 텍스트"
+      component: <ActionCard />,
+      description: 'actions + footer ���',
+      code: <Lib.Card
+  title="�׼� ī��"
+  subtitle="��ư�� �Բ�"
+  actions={<Lib.Button onClick={() => showAlert('��ư �׼�')}>Action</Lib.Button>}
+  footer="Ǫ�� �ؽ�Ʈ"
 >
   <div className="space-y-2">
-    <div>리스트 항목 1</div>
-    <div>리스트 항목 2</div>
+    <div>����Ʈ �׸� 1</div>
+    <div>����Ʈ �׸� 2</div>
   </div>
-</Lib.Card>`
+</Lib.Card>
     },
     {
       component: (
         <Lib.Card className="bg-slate-50" bodyClassName="p-6" headerClassName="p-3" footerClassName="p-2">
-          헤더/푸터 없이 본문만 있는 카드입니다.
+          ���/Ǫ�� �е��� �ִ� ī���Դϴ�.
         </Lib.Card>
       ),
-      description: '헤더 없이 본문만 (custom className*)',
-      code: `<Lib.Card className="bg-slate-50" bodyClassName="p-6">
-  헤더/푸터 없이 본문만 있는 카드입니다.
-</Lib.Card>`
+      description: '���/Ǫ�� �е�(custom className*)',
+      code: <Lib.Card className="bg-slate-50" bodyClassName="p-6">
+  ���/Ǫ�� �е��� �ִ� ī���Դϴ�.
+</Lib.Card>
     },
     {
       component: (
         <Lib.Card
-          title="조합 예시"
+          title="���� ����"
           actions={<Lib.Badge variant="primary">New</Lib.Badge>}
-          footer={<div className="flex items-center gap-2 text-xs"><Lib.Icon icon="md:MdSchedule" /> 업데이트: 방금 전</div>}
+          footer={<div className="flex items-center gap-2 text-xs"><Lib.Icon icon="md:MdSchedule" /> ������Ʈ: ��� ��</div>}
         >
           <div className="flex items-start gap-3">
             <div className="h-12 w-12 rounded bg-blue-100 flex items-center justify-center text-blue-700">IMG</div>
             <div>
-              <div className="font-medium">이미지/아이콘과 텍스트</div>
-              <div className="text-sm text-gray-600">레이아웃을 자유롭게 구성</div>
+              <div className="font-medium">�̹���/�����ܰ� �ؽ�Ʈ</div>
+              <div className="text-sm text-gray-600">���̾ƿ�� ���� ����</div>
             </div>
           </div>
         </Lib.Card>
       ),
-      description: 'Badge, Icon 등과 조합',
-      code: `<Lib.Card
-  title="조합 예시"
+      description: 'Badge, Icon ����',
+      code: <Lib.Card
+  title="���� ����"
   actions={<Lib.Badge variant="primary">New</Lib.Badge>}
-  footer={<div className="flex items-center gap-2 text-xs"><Lib.Icon icon="md:MdSchedule" /> 업데이트: 방금 전</div>}
+  footer={<div className="flex items-center gap-2 text-xs"><Lib.Icon icon="md:MdSchedule" /> ������Ʈ: ��� ��</div>}
 >
   <div className="flex items-start gap-3">
     <div className="h-12 w-12 rounded bg-blue-100 flex items-center justify-center text-blue-700">IMG</div>
     <div>
-      <div className="font-medium">이미지/아이콘과 텍스트</div>
-      <div className="text-sm text-gray-600">레이아웃을 자유롭게 구성</div>
+      <div className="font-medium">�̹���/�����ܰ� �ؽ�Ʈ</div>
+      <div className="text-sm text-gray-600">���̾ƿ�� ���� ����</div>
     </div>
   </div>
-</Lib.Card>`
+</Lib.Card>
     }
   ];
-
-  return examples;
 };
-

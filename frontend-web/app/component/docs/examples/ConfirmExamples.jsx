@@ -1,166 +1,178 @@
+"use client";
 /**
- * 파일명: ConfirmExamples.jsx
- * 작성자: LSH
- * 갱신일: 2025-09-13
- * 설명: Confirm 컴포넌트 예제
+ * ���ϸ�: ConfirmExamples.jsx
+ * �ۼ���: LSH
+ * ������: 2025-09-13
+ * ����: Confirm ������Ʈ ����
  */
 import * as Lib from '@/app/lib';
 import { useRef } from 'react';
-import { useSharedStore } from '@/app/common/store/SharedStore';
+import { useGlobalUi } from '@/app/common/store/SharedStore';
 
-export const ConfirmExamples = () => {
-    const app = useSharedStore();
-    const inputRef = useRef(null);
-
-    const examples = [
-        {
-            component: (
-                <div className="space-y-4">
-                    <Lib.Button onClick={() => {
-                        app.showConfirm("정말 삭제하시겠습니까?").then(result => {
-                            if (result) {
-                                app.showAlert("삭제되었습니다.");
-                            }
-                        });
-                    }}>
-                        기본 확인
-                    </Lib.Button>
-                </div>
-            ),
-            description: "기본 확인 대화상자",
-            code: `// useSharedStore 사용
-const app = useSharedStore();
-
-// 기본 확인
-app.showConfirm("정말 삭제하시겠습니까?").then(result => {
-    if (result) {
-        app.showAlert("삭제되었습니다.");
-    }
-});`
-        },
-        {
-            component: (
-                <div className="flex flex-wrap gap-2">
-                    <Lib.Button onClick={() => {
-                        app.showConfirm("이 작업은 되돌릴 수 없습니다.\\n계속하시겠습니까?", {
-                            title: "주의",
-                            type: "warning",
-                            confirmText: "계속",
-                            cancelText: "중단"
-                        });
-                    }}>
-                        경고 확인
-                    </Lib.Button>
-                    <Lib.Button onClick={() => {
-                        app.showConfirm("모든 데이터가 삭제됩니다.\\n정말 삭제하시겠습니까?", {
-                            title: "삭제 확인",
-                            type: "danger",
-                            confirmText: "삭제",
-                            cancelText: "취소"
-                        });
-                    }}>
-                        위험 확인
-                    </Lib.Button>
-                </div>
-            ),
-            description: "확인 대화상자 유형",
-            code: `// 경고 확인
-app.showConfirm("이 작업은 되돌릴 수 없습니다.\\\\n계속하시겠습니까?", {
-    title: "주의",
-    type: "warning",
-    confirmText: "계속",
-    cancelText: "중단"
-});
-
-// 위험 확인
-app.showConfirm("모든 데이터가 삭제됩니다.\\\\n정말 삭제하시겠습니까?", {
-    title: "삭제 확인",
-    type: "danger",
-    confirmText: "삭제",
-    cancelText: "취소"
-});`
-        },
-        {
-            component: (
-                <div className="space-y-4">
-                    <Lib.Button onClick={() => {
-                        app.showConfirm("데이터를 삭제하시겠습니까?", {
-                            title: "삭제 확인",
-                            type: "danger",
-                            confirmText: "삭제",
-                            cancelText: "취소",
-                            onConfirm: () => {
-                                app.showAlert("삭제가 완료되었습니다.");
-                            },
-                            onCancel: () => {
-                                app.showAlert("삭제가 취소되었습니다.");
-                            }
-                        });
-                    }}>
-                        콜백 함수 예시
-                    </Lib.Button>
-                </div>
-            ),
-            description: "확인/취소 콜백",
-            code: `// 확인/취소 시 실행될 콜백 함수
-app.showConfirm("데이터를 삭제하시겠습니까?", {
-    title: "삭제 확인",
-    type: "danger",
-    confirmText: "삭제",
-    cancelText: "취소",
-    onConfirm: () => {
-        app.showAlert("삭제가 완료되었습니다.");
-    },
-    onCancel: () => {
-        app.showAlert("삭제가 취소되었습니다.");
-    }
-});`
-        },
-        {
-            component: (
-                <div className="space-y-4">
-                    <div className="flex gap-4 items-center">
-                        <Lib.Button
-                            onClick={() => {
-                                app.showConfirm("확인 대화상자가 닫히면 입력창으로 포커스가 이동합니다.", {
-                                    title: "포커스 이동",
-                                    onFocus: () => inputRef.current?.focus()
-                                });
-                            }}
-                        >
-                            포커스 이동 예시
-                        </Lib.Button>
-                        <Lib.Input
-                            ref={inputRef}
-                            placeholder="포커스가 여기로 이동합니다"
-                        />
-                    </div>
-                </div>
-            ),
-            description: "확인 대화상자가 닫힐 때 지정된 요소로 포커스가 이동합니다.",
-            code: `// useRef 훅으로 입력창 참조 생성
-const inputRef = useRef(null);
-
-// 확인 대화상자가 닫힐 때 입력창으로 포커스 이동
-<div className="flex gap-4 items-center">
+const BasicConfirm = () => {
+  const { showConfirm, showAlert } = useGlobalUi();
+  return (
     <Lib.Button
-        onClick={() => {
-            app.showConfirm("확인 대화상자가 닫히면 입력창으로 포커스가 이동합니다.", {
-                title: "포커스 이동",
-                onFocus: () => inputRef.current?.focus()
-            });
-        }}
+      onClick={() => {
+        showConfirm('���� �����Ͻðڽ��ϱ�?').then((result) => {
+          if (result) showAlert('Ȯ���߽��ϴ�.');
+        });
+      }}
     >
-        포커스 이동 예시
+      �⺻ Ȯ��
     </Lib.Button>
-    <Lib.Input
-        ref={inputRef}
-        placeholder="포커스가 여기로 이동합니다"
-    />
-</div>`
-        }
-    ];
-
-    return examples;
+  );
 };
 
+const ConfirmVariants = () => {
+  const { showConfirm } = useGlobalUi();
+  return (
+    <div className="flex flex-wrap gap-2">
+      <Lib.Button
+        onClick={() =>
+          showConfirm('�ش� �۾��� �ǵ��� �� �����ϴ�.\n����Ͻðڽ��ϱ�?', {
+            title: '����',
+            type: 'warning',
+            confirmText: '���',
+            cancelText: '�ߴ�',
+          })
+        }
+      >
+        ��� Ȯ��
+      </Lib.Button>
+      <Lib.Button
+        onClick={() =>
+          showConfirm('��� �����͸� �����մϴ�.\n���� �����Ͻðڽ��ϱ�?', {
+            title: '���� Ȯ��',
+            type: 'danger',
+            confirmText: '����',
+            cancelText: '���',
+          })
+        }
+      >
+        ���� Ȯ��
+      </Lib.Button>
+    </div>
+  );
+};
+
+const ConfirmCallbacks = () => {
+  const { showConfirm, showAlert } = useGlobalUi();
+  return (
+    <Lib.Button
+      onClick={() =>
+        showConfirm('������ �����Ͻðڽ��ϱ�?', {
+          title: '���� Ȯ��',
+          type: 'danger',
+          confirmText: '����',
+          cancelText: '���',
+          onConfirm: () => showAlert('������ �Ϸ�Ǿ����ϴ�.'),
+          onCancel: () => showAlert('������ ��ҵǾ����ϴ�.'),
+        })
+      }
+    >
+      �ݹ� �Լ� ǥ��
+    </Lib.Button>
+  );
+};
+
+const ConfirmFocus = () => {
+  const { showConfirm } = useGlobalUi();
+  const inputRef = useRef(null);
+  return (
+    <div className="flex gap-4 items-center">
+      <Lib.Button
+        onClick={() =>
+          showConfirm('Ȯ�� ����� ������ �Է�â���� Ŀ���� �̵��մϴ�.', {
+            title: '��Ŀ�� �̵�',
+            onFocus: () => inputRef.current?.focus(),
+          })
+        }
+      >
+        ��Ŀ�� �̵� ǥ��
+      </Lib.Button>
+      <Lib.Input ref={inputRef} placeholder="Ŀ���� ����� �̵��մϴ�" />
+    </div>
+  );
+};
+
+export const ConfirmExamples = () => {
+  return [
+    {
+      component: (
+        <div className="space-y-4">
+          <BasicConfirm />
+        </div>
+      ),
+      description: '�⺻ Ȯ�� ���',
+      code: `// useSharedStore ���
+const { showConfirm, showAlert } = useGlobalUi();
+
+// �⺻ Ȯ��
+showConfirm('���� �����Ͻðڽ��ϱ�?').then((result) => {
+  if (result) showAlert('Ȯ���߽��ϴ�.');
+});`
+    },
+    {
+      component: <ConfirmVariants />,
+      description: 'Ȯ�� ��� ����',
+      code: `// ��� Ȯ��
+showConfirm('�ش� �۾��� �ǵ��� �� �����ϴ�.\\n����Ͻðڽ��ϱ�?', {
+  title: '����',
+  type: 'warning',
+  confirmText: '���',
+  cancelText: '�ߴ�',
+});
+
+// ���� Ȯ��
+showConfirm('��� �����͸� �����մϴ�.\\n���� �����Ͻðڽ��ϱ�?', {
+  title: '���� Ȯ��',
+  type: 'danger',
+  confirmText: '����',
+  cancelText: '���',
+});`
+    },
+    {
+      component: (
+        <div className="space-y-4">
+          <ConfirmCallbacks />
+        </div>
+      ),
+      description: 'Ȯ��/��� �ݹ�',
+      code: `// Ȯ��/��� �� ����� �ݹ�
+showConfirm('������ �����Ͻðڽ��ϱ�?', {
+  title: '���� Ȯ��',
+  type: 'danger',
+  confirmText: '����',
+  cancelText: '���',
+  onConfirm: () => showAlert('������ �Ϸ�Ǿ����ϴ�.'),
+  onCancel: () => showAlert('������ ��ҵǾ����ϴ�.'),
+});`
+    },
+    {
+      component: (
+        <div className="space-y-4">
+          <ConfirmFocus />
+        </div>
+      ),
+      description: 'Ȯ�� ��� ���� �� ��Ŀ�� �̵�',
+      code: `// useRef �� �Է�â ���� ����
+const inputRef = useRef(null);
+
+// ��� ���� �� �Է�â���� ��Ŀ�� �̵�
+<div className="flex gap-4 items-center">
+  <Lib.Button
+    onClick={() => {
+      showConfirm('Ȯ�� ����� ������ �Է�â���� Ŀ���� �̵��մϴ�.', {
+        title: '��Ŀ�� �̵�',
+        onFocus: () => inputRef.current?.focus(),
+      });
+    }}
+  >
+    ��Ŀ�� �̵� ǥ��
+  </Lib.Button>
+  <Lib.Input ref={inputRef} placeholder="Ŀ���� ����� �̵��մϴ�" />
+</div>`
+    }
+  ];
+};

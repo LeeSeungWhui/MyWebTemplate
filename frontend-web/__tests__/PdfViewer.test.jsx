@@ -10,7 +10,7 @@ import { render, screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import PdfViewer from '../app/lib/component/PdfViewer/PdfViewer.jsx';
 
-const defaultLayoutPluginMock = vi.fn(() => ({ name: 'default-layout-plugin' }));
+const defaultLayoutPluginMock = vi.hoisted(() => vi.fn(() => ({ name: 'default-layout-plugin' })));
 
 vi.mock('next/dynamic', () => {
   const ReactLib = require('react');

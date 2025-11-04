@@ -14,12 +14,23 @@ export const PdfViewerExamples = () => {
       anchor: 'pdf-basic',
       component: (
         <div className="space-y-3">
-          <p className="text-sm text-gray-600">public/SAMPLE.pdf 파일을 제공하면 아래 뷰어로 렌더링됩니다.</p>
-          <Lib.PdfViewer src={'/SAMPLE.pdf'} />
+          <p className="text-sm text-gray-600">public/pdf-sample.pdf 파일이 제공되면 아래 뷰어가 렌더링됩니다.</p>
+          <Lib.PdfViewer src={'/pdf-sample.pdf'} />
         </div>
       ),
-      description: 'public 폴더의 SAMPLE.pdf 렌더링',
-      code: `<Lib.PdfViewer src={'/SAMPLE.pdf'} />`,
+      description: 'public 폴더의 pdf-sample.pdf 미리보기',
+      code: `<Lib.PdfViewer src={'/pdf-sample.pdf'} />`,
+    },
+    {
+      anchor: 'pdf-no-toolbar',
+      component: (
+        <div className="space-y-3">
+          <p className="text-sm text-gray-600">툴바 비활성화(페이지/검색/줌 UI 숨김)</p>
+          <Lib.PdfViewer src={'/pdf-sample.pdf'} withToolbar={false} />
+        </div>
+      ),
+      description: 'withToolbar=false 예시',
+      code: `<Lib.PdfViewer src={'/pdf-sample.pdf'} withToolbar={false} />`,
     },
     {
       anchor: 'pdf-local',
@@ -56,8 +67,18 @@ export const PdfViewerExamples = () => {
 <input value={url} onChange={(e)=>setUrl(e.target.value)} />
 {url && <Lib.PdfViewer src={url} />}`,
     },
+    {
+      anchor: 'pdf-error',
+      component: (
+        <div className="space-y-3">
+          <p className="text-sm text-gray-600">오류 상태(404) 시 Empty 안내로 대체</p>
+          <Lib.PdfViewer src={'/not-exists.pdf'} />
+        </div>
+      ),
+      description: '404/네트워크 오류시 오류 안내 렌더링',
+      code: `<Lib.PdfViewer src={'/not-exists.pdf'} />`,
+    },
   ];
 
   return examples;
 };
-
