@@ -384,6 +384,7 @@ const EasyEditor = ({
           aria-multiline="true"
           aria-invalid={invalid || undefined}
           aria-readonly={readOnly || undefined}
+          aria-hidden={isHtmlMode ? 'true' : undefined}
           data-name={name}
           style={{ minHeight }}
           className={clsx(editorBody, isHtmlMode && 'hidden')}
