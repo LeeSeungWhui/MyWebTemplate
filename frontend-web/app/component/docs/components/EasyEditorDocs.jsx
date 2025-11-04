@@ -1,4 +1,4 @@
-﻿/**
+/**
  * EasyEditorDocs.jsx
  * 작성자: LSH
  * 설명: EasyEditor 컴포넌트 문서

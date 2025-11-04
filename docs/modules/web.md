@@ -10,7 +10,7 @@
 - React 19
 - Tailwind CSS v4
 - 상태/데이터: SWR, Zustand
-- 문서/테스트: Storybook 8+, Playwright/Vitest(예정)
+- 문서/테스트: Docs 페이지, Playwright/Vitest(예정)
 - 언어: JavaScript Only(TypeScript 금지)
 
 ## 포함 Unit
@@ -39,7 +39,7 @@
 - 페이지별 MODE 가이드(`page.jsx` 스니펫, 개발자 플레이북) 마무리
 - 보호 페이지 기본값을 `revalidate=0`, `dynamic='force-dynamic'`, `runtime='nodejs'`, `fetchCache='only-no-store'`로 고정
 - OpenAPI 기반 클라이언트 헬퍼에 공통 에러 핸들링 추가, `credentials:'include'` + CSRF 헤더 주입 강제
-- Next/Tailwind 프리셋으로 Storybook 구성 및 CU-WEB-003 시나리오 수록
+- Next/Tailwind 프리셋 기반 Docs 페이지에서 CU-WEB-003 시나리오 정리
 - 인증 리다이렉트/204 로그인 흐름/세션 복구 Playwright·Vitest 커버리지 추가
 - EasyObj/EasyList 프록시가 JSON 직접 대입, 도트 키, ctx 알림을 지원하도록 리팩터(CU-WEB-003)
 

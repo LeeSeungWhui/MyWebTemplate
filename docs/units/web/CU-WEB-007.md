@@ -19,7 +19,7 @@ links: [CU-WEB-001, CU-WEB-002, CU-WEB-003, CU-WEB-004, CU-WEB-005, CU-WEB-006, 
   - 인증 흐름 정합: 204 로그인/세션 확인/로그아웃(CU-WEB-001, CU-BE-001)
   - API 연동: OpenAPI JS 클라 규약(CU-WEB-005)
     - SSR/CSR: 페이지 설정 + MODE 규약(CU-WEB-006)
-  - Storybook/테스트/CI 이행
+  - Docs/테스트/CI 이행
 - 제외
   - 서드파티 리치 컴포넌트 교체, 멀티테넌시/복잡 권한(차기)
 
@@ -28,7 +28,7 @@ links: [CU-WEB-001, CU-WEB-002, CU-WEB-003, CU-WEB-004, CU-WEB-005, CU-WEB-006, 
   - `/login` → 로그인 페이지(공개)
   - `/` → 대시보드(보호)
   - `/dashboard` → 대시보드 별칭(보호)
-  - `/docs/*` → 스토리북 또는 문서 라우팅(전환 정책 별도)
+  - `/docs/*` → Docs 라우팅(전환 정책 별도)
 - 빌드/실행
    - 레거시 `frontend-web-old` 동결(FREEZE), 신규 `frontend-web` 도입
    - ENV: `NEXT_PUBLIC_API_BASE`, `NEXT_REVALIDATE_SECONDS`
@@ -52,18 +52,18 @@ links: [CU-WEB-001, CU-WEB-002, CU-WEB-003, CU-WEB-004, CU-WEB-005, CU-WEB-006, 
 - AC-3 API 정합: 모든 호출이 표준 응답 래퍼 파싱·에러 맵핑 규칙을 따른다(CU-WEB-005).
 - AC-4 컴포넌트 정합: 레거시 UI를 CU-WEB-003 규약으로 조립했고 SSR/CSR 전환에도 안정적이다.
 - AC-5 모드 전환: 페이지 `MODE` 변경으로 SSR↔CSR 전환해도 로그인→대시보드 흐름이 유지(CU-WEB-006).
-- AC-6 품질 게이트: Storybook A11y/Controls 통과, E2E(로그인/리다이렉트/세션 복원) 통과, 콘솔 에러 0.
+- AC-6 품질 게이트: Docs 페이지 접근성/컨트롤 체크리스트 통과, E2E(로그인/리다이렉트/세션 복원) 통과, 콘솔 에러 0.
 
 ### Tasks
 - T1 Freeze/브랜치: `frontend-web-old` READ-ONLY 선언, 마이그레이션 브랜치 생성
-- T2 스캐폴드: `frontend-web` 생성(Next 15, JS-only, Tailwind v4, ESLint/Prettier, Storybook 8)
+- T2 스캐폴드: `frontend-web` 생성(Next 15, JS-only, Tailwind v4, ESLint/Prettier)
 - T3 라우팅 전환: App Router 도입, 공개/보호 분리, 미들웨어 가드 배치(CU-WEB-008)
 - T4 컴포넌트 이관 v1: 버튼/입력/피드백/리스트 핵심 도입(CU-WEB-003 준수)
 - T5 인증 연결: 204 로그인/세션/로그아웃(쿠키·CSRF 규칙), 실패 UX 정합(CU-WEB-001)
 - T6 대시보드 구성: 레이아웃/카드/리스트/스탯 SSR 기본으로 이식(CU-WEB-002)
 - T7 API 클라 연결: OpenAPI JS 클라, SWR 캐시·무효화 정합(CU-WEB-005)
 - T8 런타임: `NEXT_REVALIDATE_SECONDS` 적용, 페이지 MODE 규약(CU-WEB-006)
-- T9 스토리북: 컴포넌트/페이지 상태 스토리 구축(A11y/다크/에러/로딩)
+- T9 Docs: 컴포넌트/페이지 상태 시나리오 구축(A11y/다크/에러/로딩)
 - T10 테스트/E2E: 로그인 204·리다이렉트·세션 복원·SWR 후속 패칭·401/403 처리 확인
 - T11 기록/문서: 라우트 매핑, 변경 목록, ENV 사용법, 운영 체크리스트 업데이트
 - T12 컷오버: 트래픽 레벨 전환(롤아웃·롤백 계획, 모니터링/알림 설정)
