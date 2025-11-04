@@ -1,6 +1,6 @@
 ﻿"use client";
 
-import { useCallback, useMemo, useRef, useState, useEffect } from 'react';
+import { useCallback, useMemo, useRef, useState, useEffect, useId } from 'react';
 import { EditorContent } from '@tiptap/react';
 import clsx from 'clsx';
 import useEasyEditor from './useEditor';
@@ -38,8 +38,16 @@ const toolbarClass =
 const statusStyles = {
   idle: '',
   loading: 'opacity-70 pointer-events-none',
+  empty: 'border-dashed border-gray-300 bg-gray-50',
   error: 'border-red-300 focus-within:ring-red-500',
   success: 'border-green-300 focus-within:ring-green-500',
+};
+
+const statusMessages = {
+  loading: 'Content is loading, hang tight.',
+  empty: 'No content yet - start typing to add something.',
+  error: 'We could not load the editor content.',
+  success: 'Content is up to date.',
 };
 
 const fontSizeOptions = [
@@ -85,6 +93,19 @@ const EasyEditor = ({
   toolbar = true,
   minHeight = '240px',
 }) => {
+  const generatedId = useId().replace(/:/g, '');
+  const fieldId = id ?? `easy-editor-${generatedId}`;
+  const htmlModeId = `${fieldId}-html`;
+  const helperId = helperText ? `${fieldId}-helper` : undefined;
+  const statusMessage = statusMessages[status];
+  const statusId = statusMessage ? `${fieldId}-status` : undefined;
+  const describedBy = [helperId, statusId].filter(Boolean).join(' ') || undefined;
+  const statusTone = status === 'error'
+    ? 'text-red-600'
+    : status === 'success'
+      ? 'text-green-600'
+      : 'text-gray-500';
+
   const fileInputRef = useRef(null);
   const attachmentInputRef = useRef(null);
   const extensionList = useMemo(() => extensions ?? EMPTY_EXTENSIONS, [extensions]);
@@ -250,11 +271,19 @@ const EasyEditor = ({
   return (
     <div className="space-y-2">
       {label && (
-        <label htmlFor={id} className="block text-sm font-medium text-gray-700">
+        <label
+          htmlFor={isHtmlMode ? htmlModeId : fieldId}
+          className="block text-sm font-medium text-gray-700"
+        >
           {label}
         </label>
       )}
-      <div className={containerClasses}>
+      <div
+        className={containerClasses}
+        data-status={status}
+        aria-busy={status === 'loading' ? true : undefined}
+        aria-live={status !== 'idle' ? 'polite' : undefined}
+      >
         {toolbar && editor && (
           <div className={toolbarClass}>
             <div className="flex items-center gap-2">
@@ -378,22 +407,26 @@ const EasyEditor = ({
           </div>
         )}
         <EditorContent
-          id={id}
+          id={fieldId}
           editor={editor}
           role="textbox"
           aria-multiline="true"
           aria-invalid={invalid || undefined}
           aria-readonly={readOnly || undefined}
+          aria-describedby={describedBy}
           data-name={name}
+          data-mode={mode}
           style={{ minHeight }}
           className={clsx(editorBody, isHtmlMode && 'hidden')}
         />
         {isHtmlMode && (
           <textarea
+            id={htmlModeId}
             className="font-mono text-sm w-full min-h-[200px] border-t border-gray-200 focus:outline-none p-3"
             value={htmlDraft}
             onChange={(event) => setHtmlDraft(event.target.value)}
             disabled={readOnly}
+            aria-describedby={describedBy}
           />
         )}
         <input
@@ -414,8 +447,22 @@ const EasyEditor = ({
           onChange={handleFileSelect}
         />
       </div>
+      {statusMessage && (
+        <p
+          id={statusId}
+          className={clsx('text-sm', statusTone)}
+          role={status === 'error' ? 'alert' : 'status'}
+          aria-live={status === 'error' ? 'assertive' : 'polite'}
+        >
+          {statusMessage}
+        </p>
+      )}
       {helperText && (
-        <p className={clsx('text-sm', invalid ? 'text-red-600' : 'text-gray-500')}>
+        <p
+          id={helperId}
+          className={clsx('text-sm', invalid ? 'text-red-600' : 'text-gray-500')}
+          aria-live={invalid ? 'assertive' : 'polite'}
+        >
           {helperText}
         </p>
       )}

@@ -62,6 +62,7 @@ const Button = forwardRef(({
     }[size];
 
     const isBusy = loading || status === 'loading';
+    const busyLabel = typeof children === 'string' ? children : 'Loading';
     return (
         <button
             ref={ref}
@@ -74,12 +75,14 @@ const Button = forwardRef(({
             {isBusy ? (
                 <>
                   <Icon icon="ri:RiLoader4Line" className="animate-spin mr-2" size={iconSize} />
-                  <span className="sr-only" role="status" aria-live="polite">Loading</span>
+                  <span className="sr-only" role="status" aria-live="polite">{busyLabel}</span>
                 </>
             ) : icon && iconPosition === 'left' ? (
                 <Icon icon={icon} className={iconSpacing} size={iconSize} />
             ) : null}
-            {children}
+            <span aria-hidden={isBusy ? 'true' : undefined}>
+                {children}
+            </span>
             {!isBusy && icon && iconPosition === 'right' && (
                 <Icon icon={icon} className={`ml-${iconSpacing.slice(3)}`} size={iconSize} />
             )}
