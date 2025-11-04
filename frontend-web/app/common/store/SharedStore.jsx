@@ -1,16 +1,16 @@
-'use client'
+"use client"
 /**
  * 파일명: SharedStore.jsx
  * 작성자: LSH
  * 갱신일: 2025-09-13
- * 설명: Zustand 기반 공유 스토어
+ * 설명: Zustand 기반 전역 공유 스토어
  */
 
 import { create } from 'zustand'
 import { shallow } from 'zustand/shallow'
 
 export const useSharedStore = create((set, get) => ({
-  // session-ish meta
+  // 세션/사용자 메타
   user: null,
   setUser: (user) => set({ user }),
   userJson: null,
@@ -18,7 +18,7 @@ export const useSharedStore = create((set, get) => ({
   shared: {},
   setShared: (patch) => set((s) => ({ shared: { ...s.shared, ...(patch || {}) } })),
 
-  // loading
+  // 로딩
   loadingCounter: 0,
   isLoading: false,
   updateLoading: (delta = 0) => set((s) => {
@@ -27,7 +27,7 @@ export const useSharedStore = create((set, get) => ({
   }),
   setLoading: (v) => set({ isLoading: !!v, loadingCounter: v ? 1 : 0 }),
 
-  // alert
+  // 알림
   alert: { show: false, title: '', message: '', type: 'info', onClick: undefined, onFocus: undefined },
   showAlert: (message, opts = {}) => set({
     alert: {
@@ -41,7 +41,7 @@ export const useSharedStore = create((set, get) => ({
   }),
   hideAlert: () => set({ alert: { show: false, title: '', message: '', type: 'info', onClick: undefined, onFocus: undefined } }),
 
-  // confirm (Promise-based API)
+  // 확인(프라미스 기반)
   confirm: { show: false, title: '', message: '', type: 'info', confirmText: '확인', cancelText: '취소', onFocus: undefined },
   confirmPromiseResolve: null,
   showConfirm: (message, opts = {}) => {
@@ -76,7 +76,7 @@ export const useSharedStore = create((set, get) => ({
     }
   },
 
-  // toast
+  // 토스트
   toast: { show: false, message: '', type: 'info', position: 'bottom-center', duration: 3000 },
   showToast: (message, opts = {}) => set({
     toast: {

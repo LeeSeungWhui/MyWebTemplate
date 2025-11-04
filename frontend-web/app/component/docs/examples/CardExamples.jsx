@@ -1,92 +1,92 @@
-﻿/**
- * ?뚯씪紐? CardExamples.jsx
- * ?묒꽦?? LSH
- * 媛깆떊?? 2025-09-13
- * ?ㅻ챸: Card 而댄룷?뚰듃 ?덉젣
+/**
+ * 파일명: CardExamples.jsx
+ * 작성자: LSH
+ * 갱신일: 2025-09-13
+ * 설명: Card 컴포넌트 예제
  */
 import * as Lib from '@/app/lib';
 import { useGlobalUi } from '@/app/common/store/SharedStore';
 
 export const CardExamples = () => {
-  const showAlert = useSharedStore(s => s.showAlert);
+  const { showAlert } = useGlobalUi();
 
   const examples = [
     {
       component: (
-        <Lib.Card title="媛꾨떒 移대뱶" subtitle="蹂댁“ ?ㅻ챸">
-          移대뱶 蹂몃Ц? 媛꾧껐?섍쾶 援ъ꽦?⑸땲??
+        <Lib.Card title="간단 카드" subtitle="보조 설명">
+          카드 본문을 간결하게 구성합니다.
         </Lib.Card>
       ),
-      description: '湲곕낯 Card: title + subtitle + 蹂몃Ц',
-      code: `<Lib.Card title="媛꾨떒 移대뱶" subtitle="蹂댁“ ?ㅻ챸">
-  移대뱶 蹂몃Ц? 媛꾧껐?섍쾶 援ъ꽦?⑸땲??
+      description: '기본 Card: title + subtitle + 본문',
+      code: `<Lib.Card title="간단 카드" subtitle="보조 설명">
+  카드 본문을 간결하게 구성합니다.
 </Lib.Card>`
     },
     {
       component: (
         <Lib.Card
-          title="?≪뀡 移대뱶"
-          subtitle="踰꾪듉怨??④퍡"
-          actions={<Lib.Button onClick={() => showAlert("踰꾪듉 ?≪뀡")}>Action</Lib.Button>}
-          footer="?명꽣 ?띿뒪??
+          title="액션 카드"
+          subtitle="버튼과 함께"
+          actions={<Lib.Button onClick={() => showAlert('버튼 액션')}>Action</Lib.Button>}
+          footer="푸터 텍스트"
         >
           <div className="space-y-2">
-            <div>由ъ뒪????ぉ 1</div>
-            <div>由ъ뒪????ぉ 2</div>
+            <div>리스트 항목 1</div>
+            <div>리스트 항목 2</div>
           </div>
         </Lib.Card>
       ),
-      description: 'actions + footer ?ъ슜',
+      description: 'actions + footer 사용',
       code: `<Lib.Card
-  title="?≪뀡 移대뱶"
-  subtitle="踰꾪듉怨??④퍡"
-  actions={<Lib.Button onClick={() => showAlert("踰꾪듉 ?≪뀡")}>Action</Lib.Button>}
-  footer="?명꽣 ?띿뒪??
+  title="액션 카드"
+  subtitle="버튼과 함께"
+  actions={<Lib.Button onClick={() => showAlert('버튼 액션')}>Action</Lib.Button>}
+  footer="푸터 텍스트"
 >
   <div className="space-y-2">
-    <div>由ъ뒪????ぉ 1</div>
-    <div>由ъ뒪????ぉ 2</div>
+    <div>리스트 항목 1</div>
+    <div>리스트 항목 2</div>
   </div>
 </Lib.Card>`
     },
     {
       component: (
         <Lib.Card className="bg-slate-50" bodyClassName="p-6" headerClassName="p-3" footerClassName="p-2">
-          ?ㅻ뜑/?명꽣 ?놁씠 蹂몃Ц留??덈뒗 移대뱶?낅땲??
+          헤더/푸터 패딩이 있는 카드입니다.
         </Lib.Card>
       ),
-      description: '?ㅻ뜑 ?놁씠 蹂몃Ц留?(custom className*)',
+      description: '헤더/푸터 패딩(custom className*)',
       code: `<Lib.Card className="bg-slate-50" bodyClassName="p-6">
-  ?ㅻ뜑/?명꽣 ?놁씠 蹂몃Ц留??덈뒗 移대뱶?낅땲??
+  헤더/푸터 패딩이 있는 카드입니다.
 </Lib.Card>`
     },
     {
       component: (
         <Lib.Card
-          title="議고빀 ?덉떆"
+          title="조합 예시"
           actions={<Lib.Badge variant="primary">New</Lib.Badge>}
-          footer={<div className="flex items-center gap-2 text-xs"><Lib.Icon icon="md:MdSchedule" /> ?낅뜲?댄듃: 諛⑷툑 ??/div>}
+          footer={<div className="flex items-center gap-2 text-xs"><Lib.Icon icon="md:MdSchedule" /> 업데이트: 방금 전</div>}
         >
           <div className="flex items-start gap-3">
             <div className="h-12 w-12 rounded bg-blue-100 flex items-center justify-center text-blue-700">IMG</div>
             <div>
-              <div className="font-medium">?대?吏/?꾩씠肄섍낵 ?띿뒪??/div>
-              <div className="text-sm text-gray-600">?덉씠?꾩썐???먯쑀濡?쾶 援ъ꽦</div>
+              <div className="font-medium">이미지/아이콘과 텍스트</div>
+              <div className="text-sm text-gray-600">레이아웃과 구성 예시</div>
             </div>
           </div>
         </Lib.Card>
       ),
-      description: 'Badge, Icon ?깃낵 議고빀',
+      description: 'Badge, Icon 조합',
       code: `<Lib.Card
-  title="議고빀 ?덉떆"
+  title="조합 예시"
   actions={<Lib.Badge variant="primary">New</Lib.Badge>}
-  footer={<div className="flex items-center gap-2 text-xs"><Lib.Icon icon="md:MdSchedule" /> ?낅뜲?댄듃: 諛⑷툑 ??/div>}
+  footer={<div className="flex items-center gap-2 text-xs"><Lib.Icon icon="md:MdSchedule" /> 업데이트: 방금 전</div>}
 >
   <div className="flex items-start gap-3">
     <div className="h-12 w-12 rounded bg-blue-100 flex items-center justify-center text-blue-700">IMG</div>
     <div>
-      <div className="font-medium">?대?吏/?꾩씠肄섍낵 ?띿뒪??/div>
-      <div className="text-sm text-gray-600">?덉씠?꾩썐???먯쑀濡?쾶 援ъ꽦</div>
+      <div className="font-medium">이미지/아이콘과 텍스트</div>
+      <div className="text-sm text-gray-600">레이아웃과 구성 예시</div>
     </div>
   </div>
 </Lib.Card>`
@@ -95,6 +95,4 @@ export const CardExamples = () => {
 
   return examples;
 };
-
-
 

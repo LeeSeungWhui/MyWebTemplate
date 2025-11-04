@@ -1,43 +1,43 @@
-﻿/**
- * ?뚯씪紐? LoadingExamples.jsx
- * ?묒꽦?? LSH
- * 媛깆떊?? 2025-09-13
- * ?ㅻ챸: Loading 而댄룷?뚰듃 ?덉젣
+/**
+ * 파일명: LoadingExamples.jsx
+ * 작성자: LSH
+ * 갱신일: 2025-09-13
+ * 설명: Loading 컴포넌트 예제
  */
 import * as Lib from '@/app/lib';
 import { useGlobalUi } from '@/app/common/store/SharedStore';
 
 export const LoadingExamples = () => {
-    const { setLoading } = useGlobalUi();
+  const { setLoading } = useGlobalUi();
 
-    const examples = [
-        {
-            component: (
-                <div className="space-y-4">
-                    <Lib.Button onClick={() => {
-                        setLoading(true);
-                        setTimeout(() => setLoading(false), 2000);
-                    }}>
-                        ?꾩껜 ?붾㈃ 濡쒕뵫 (2珥?
-                    </Lib.Button>
-                </div>
-            ),
-            description: "?꾩껜 ?붾㈃ 濡쒕뵫 ?덉떆",
-            code: `// useSharedStore ?ъ슜
+  const examples = [
+    {
+      component: (
+        <div className="space-y-4">
+          <Lib.Button
+            onClick={() => {
+              setLoading(true);
+              setTimeout(() => setLoading(false), 2000);
+            }}
+          >
+            전체 화면 로딩 (2초)
+          </Lib.Button>
+        </div>
+      ),
+      description: '전체 화면 로딩 표시',
+      code: `// useSharedStore 사용
 const { setLoading } = useGlobalUi();
 
-// 濡쒕뵫 ?쒖떆/?댁젣
+// 로딩 표시/해제
 <Lib.Button onClick={() => {
-    setLoading(true);
-    setTimeout(() => setLoading(false), 2000);
+  setLoading(true);
+  setTimeout(() => setLoading(false), 2000);
 }}>
-    ?꾩껜 ?붾㈃ 濡쒕뵫 (2珥?
+  전체 화면 로딩 (2초)
 </Lib.Button>`
-        },
-    ];
+    }
+  ];
 
-    return examples;
+  return examples;
 };
-
-
 
