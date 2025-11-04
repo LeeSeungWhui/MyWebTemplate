@@ -7,6 +7,7 @@
  */
 
 import { create } from 'zustand'
+import { shallow } from 'zustand/shallow'
 
 export const useSharedStore = create((set, get) => ({
   // session-ish meta
@@ -89,3 +90,38 @@ export const useSharedStore = create((set, get) => ({
   hideToast: () => set({ toast: { show: false, message: '', type: 'info', position: 'bottom-center', duration: 3000 } }),
 }))
 
+// Convenience hooks to reduce selector boilerplate
+export const useUser = () =>
+  useSharedStore(
+    (s) => ({ user: s.user, setUser: s.setUser }),
+    shallow,
+  )
+
+export const useSharedData = () =>
+  useSharedStore(
+    (s) => ({ shared: s.shared, setShared: s.setShared }),
+    shallow,
+  )
+
+export const useGlobalUi = () =>
+  useSharedStore(
+    (s) => ({
+      // loading
+      isLoading: s.isLoading,
+      setLoading: s.setLoading,
+      updateLoading: s.updateLoading,
+      // alert
+      alert: s.alert,
+      showAlert: s.showAlert,
+      hideAlert: s.hideAlert,
+      // confirm
+      confirm: s.confirm,
+      showConfirm: s.showConfirm,
+      hideConfirm: s.hideConfirm,
+      // toast
+      toast: s.toast,
+      showToast: s.showToast,
+      hideToast: s.hideToast,
+    }),
+    shallow,
+  )
