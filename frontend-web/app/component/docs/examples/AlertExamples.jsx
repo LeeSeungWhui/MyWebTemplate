@@ -1,9 +1,9 @@
 "use client";
 /**
- * ���ϸ�: AlertExamples.jsx
- * �ۼ���: LSH
- * ������: 2025-09-13
- * ����: Alert ������Ʈ ����
+ * 파일명: AlertExamples.jsx
+ * 작성자: LSH
+ * 갱신일: 2025-09-13
+ * 설명: Alert 컴포넌트 예제
  */
 import * as Lib from '@/app/lib';
 import { useRef } from 'react';
@@ -11,17 +11,17 @@ import { useGlobalUi } from '@/app/common/store/SharedStore';
 
 const BasicAlert = () => {
   const { showAlert } = useGlobalUi();
-  return <Lib.Button onClick={() => showAlert('�⺻ �˸� �޽����Դϴ�.')}>�⺻ �˸�</Lib.Button>;
+  return <Lib.Button onClick={() => showAlert('기본 알림 메시지입니다.')}>기본 알림</Lib.Button>;
 };
 
 const AlertVariants = () => {
   const { showAlert } = useGlobalUi();
   return (
     <div className="flex flex-wrap gap-2">
-      <Lib.Button onClick={() => showAlert('���� �˸� �޽����Դϴ�.', { title: '����', type: 'info' })}>���� �˸�</Lib.Button>
-      <Lib.Button onClick={() => showAlert('���� �˸� �޽����Դϴ�.', { title: '����', type: 'success' })}>���� �˸�</Lib.Button>
-      <Lib.Button onClick={() => showAlert('��� �˸� �޽����Դϴ�.', { title: '���', type: 'warning' })}>��� �˸�</Lib.Button>
-      <Lib.Button onClick={() => showAlert('���� �˸� �޽����Դϴ�.', { title: '����', type: 'error' })}>���� �˸�</Lib.Button>
+      <Lib.Button onClick={() => showAlert('정보 알림 메시지입니다.', { title: '정보', type: 'info' })}>정보 알림</Lib.Button>
+      <Lib.Button onClick={() => showAlert('성공 알림 메시지입니다.', { title: '성공', type: 'success' })}>성공 알림</Lib.Button>
+      <Lib.Button onClick={() => showAlert('경고 알림 메시지입니다.', { title: '경고', type: 'warning' })}>경고 알림</Lib.Button>
+      <Lib.Button onClick={() => showAlert('오류 알림 메시지입니다.', { title: '오류', type: 'error' })}>오류 알림</Lib.Button>
     </div>
   );
 };
@@ -31,15 +31,15 @@ const AlertCallback = () => {
   return (
     <Lib.Button
       onClick={() =>
-        showAlert('�۾��� �Ϸ�Ǿ����ϴ�.', {
-          title: '�˸�',
+        showAlert('작업이 완료되었습니다.', {
+          title: '알림',
           onClick: function () {
-            alert('�˸��� �ݾҽ��ϴ�.');
+            alert('알림을 닫았습니다.');
           },
         })
       }
     >
-      �ݹ� �Լ� ǥ��
+      콜백 함수 표시
     </Lib.Button>
   );
 };
@@ -53,15 +53,15 @@ const AlertFocusAfter = () => {
       <Lib.Button
         ref={buttonRef}
         onClick={() =>
-          showAlert('�˸��� ������ �Է�â���� Ŀ���� �̵��մϴ�.', {
-            title: '�˸�',
+          showAlert('알림을 닫히면 입력창으로 커서가 이동합니다.', {
+            title: '알림',
             onFocus: () => inputRef.current?.focus(),
           })
         }
       >
-        �˸� ����
+        알림 띄우기
       </Lib.Button>
-      <Lib.Input ref={inputRef} placeholder="Ŀ���� ����� �̵��մϴ�" />
+      <Lib.Input ref={inputRef} placeholder="커서가 여기로 이동합니다" />
     </div>
   );
 };
@@ -74,21 +74,21 @@ export const AlertExamples = () => {
           <BasicAlert />
         </div>
       ),
-      description: '�⺻ �˸�',
-      code: `// useSharedStore ���
+      description: '기본 알림',
+      code: `// useSharedStore 사용
 const { showAlert } = useGlobalUi();
 
-// �⺻ �˸�
-showAlert('�⺻ �˸� �޽����Դϴ�.');`
+// 기본 알림
+showAlert('기본 알림 메시지입니다.');`
     },
     {
       component: <AlertVariants />,
-      description: '�˸� ����',
-      code: `// ����/����/���/���� �˸�
-showAlert('���� �˸� �޽����Դϴ�.', { title: '����', type: 'info' });
-showAlert('���� �˸� �޽����Դϴ�.', { title: '����', type: 'success' });
-showAlert('��� �˸� �޽����Դϴ�.', { title: '���', type: 'warning' });
-showAlert('���� �˸� �޽����Դϴ�.', { title: '����', type: 'error' });`
+      description: '알림 유형',
+      code: `// 정보/성공/경고/오류 알림
+showAlert('정보 알림 메시지입니다.', { title: '정보', type: 'info' });
+showAlert('성공 알림 메시지입니다.', { title: '성공', type: 'success' });
+showAlert('경고 알림 메시지입니다.', { title: '경고', type: 'warning' });
+showAlert('오류 알림 메시지입니다.', { title: '오류', type: 'error' });`
     },
     {
       component: (
@@ -96,12 +96,12 @@ showAlert('���� �˸� �޽����Դϴ�.', { title: '���
           <AlertCallback />
         </div>
       ),
-      description: '�˸� ���� �ݹ�',
-      code: `// �˸� ���� �� ����� �ݹ�
-showAlert('�۾��� �Ϸ�Ǿ����ϴ�.', {
-  title: '�˸�',
+      description: '알림 닫힘 콜백',
+      code: `// 알림 닫힘 시 실행될 콜백
+showAlert('작업이 완료되었습니다.', {
+  title: '알림',
   onClick: function() {
-    alert('�˸��� �ݾҽ��ϴ�.');
+    alert('알림을 닫았습니다.');
   }
 });`
     },
@@ -111,24 +111,25 @@ showAlert('�۾��� �Ϸ�Ǿ����ϴ�.', {
           <AlertFocusAfter />
         </div>
       ),
-      description: '�˸� ���� �� ������ ��ҷ� ��Ŀ�� �̵�',
-      code: `// useRef �� �Է�â ���� ����
+      description: '알림 닫힘 후 지정된 요소로 포커스 이동',
+      code: `// useRef 로 입력창 참조 생성
 const inputRef = useRef(null);
 
-// �˸��� ������ �Է�â���� ��Ŀ�� �̵�
+// 알림을 닫으면 입력창으로 포커스 이동
 <div className="flex gap-4 items-center">
   <Lib.Button
     onClick={() => {
-      showAlert('�˸��� ������ �Է�â���� Ŀ���� �̵��մϴ�.', {
-        title: '�˸�',
+      showAlert('알림을 닫히면 입력창으로 커서가 이동합니다.', {
+        title: '알림',
         onFocus: () => inputRef.current?.focus(),
       });
     }}
   >
-    �˸� ����
+    알림 띄우기
   </Lib.Button>
-  <Lib.Input ref={inputRef} placeholder="Ŀ���� ����� �̵��մϴ�" />
+  <Lib.Input ref={inputRef} placeholder="커서가 여기로 이동합니다" />
 </div>`
     }
   ];
 };
+

@@ -1,9 +1,9 @@
 "use client";
 /**
- * ���ϸ�: LoadingExamples.jsx
- * �ۼ���: LSH
- * ������: 2025-09-13
- * ����: Loading ������Ʈ ����
+ * 파일명: LoadingExamples.jsx
+ * 작성자: LSH
+ * 갱신일: 2025-09-13
+ * 설명: Loading 컴포넌트 예제
  */
 import * as Lib from '@/app/lib';
 import { useGlobalUi } from '@/app/common/store/SharedStore';
@@ -17,7 +17,7 @@ const ShowGlobalLoading = () => {
         setTimeout(() => setLoading(false), 2000);
       }}
     >
-      ��ü ȭ�� �ε� (2��)
+      전체 화면 로딩 (2초)
     </Lib.Button>
   );
 };
@@ -30,17 +30,18 @@ export const LoadingExamples = () => {
           <ShowGlobalLoading />
         </div>
       ),
-      description: '��ü ȭ�� �ε� ǥ��',
-      code: `// useSharedStore ���
+      description: '전체 화면 로딩 표시',
+      code: `// useSharedStore 사용
 const { setLoading } = useGlobalUi();
 
-// �ε� ǥ��/����
+// 로딩 표시/해제
 <Lib.Button onClick={() => {
   setLoading(true);
   setTimeout(() => setLoading(false), 2000);
 }}>
-  ��ü ȭ�� �ε� (2��)
+  전체 화면 로딩 (2초)
 </Lib.Button>`
     }
   ];
 };
+

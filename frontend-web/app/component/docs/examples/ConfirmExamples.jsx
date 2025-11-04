@@ -1,9 +1,9 @@
 "use client";
 /**
- * ���ϸ�: ConfirmExamples.jsx
- * �ۼ���: LSH
- * ������: 2025-09-13
- * ����: Confirm ������Ʈ ����
+ * 파일명: ConfirmExamples.jsx
+ * 작성자: LSH
+ * 갱신일: 2025-09-13
+ * 설명: Confirm 컴포넌트 예제
  */
 import * as Lib from '@/app/lib';
 import { useRef } from 'react';
@@ -14,12 +14,12 @@ const BasicConfirm = () => {
   return (
     <Lib.Button
       onClick={() => {
-        showConfirm('���� �����Ͻðڽ��ϱ�?').then((result) => {
-          if (result) showAlert('Ȯ���߽��ϴ�.');
+        showConfirm('정말 진행하시겠습니까?').then((result) => {
+          if (result) showAlert('확인했습니다.');
         });
       }}
     >
-      �⺻ Ȯ��
+      기본 확인
     </Lib.Button>
   );
 };
@@ -30,27 +30,27 @@ const ConfirmVariants = () => {
     <div className="flex flex-wrap gap-2">
       <Lib.Button
         onClick={() =>
-          showConfirm('�ش� �۾��� �ǵ��� �� �����ϴ�.\n����Ͻðڽ��ϱ�?', {
-            title: '����',
+          showConfirm('해당 작업은 되돌릴 수 없습니다.\n계속하시겠습니까?', {
+            title: '주의',
             type: 'warning',
-            confirmText: '���',
-            cancelText: '�ߴ�',
+            confirmText: '계속',
+            cancelText: '중단',
           })
         }
       >
-        ��� Ȯ��
+        경고 확인
       </Lib.Button>
       <Lib.Button
         onClick={() =>
-          showConfirm('��� �����͸� �����մϴ�.\n���� �����Ͻðڽ��ϱ�?', {
-            title: '���� Ȯ��',
+          showConfirm('모든 데이터를 삭제합니다.\n정말 삭제하시겠습니까?', {
+            title: '위험 확인',
             type: 'danger',
-            confirmText: '����',
-            cancelText: '���',
+            confirmText: '삭제',
+            cancelText: '취소',
           })
         }
       >
-        ���� Ȯ��
+        위험 확인
       </Lib.Button>
     </div>
   );
@@ -61,17 +61,17 @@ const ConfirmCallbacks = () => {
   return (
     <Lib.Button
       onClick={() =>
-        showConfirm('������ �����Ͻðڽ��ϱ�?', {
-          title: '���� Ȯ��',
+        showConfirm('삭제를 진행하시겠습니까?', {
+          title: '위험 확인',
           type: 'danger',
-          confirmText: '����',
-          cancelText: '���',
-          onConfirm: () => showAlert('������ �Ϸ�Ǿ����ϴ�.'),
-          onCancel: () => showAlert('������ ��ҵǾ����ϴ�.'),
+          confirmText: '삭제',
+          cancelText: '취소',
+          onConfirm: () => showAlert('삭제가 완료되었습니다.'),
+          onCancel: () => showAlert('삭제가 취소되었습니다.'),
         })
       }
     >
-      �ݹ� �Լ� ǥ��
+      콜백 함수 표시
     </Lib.Button>
   );
 };
@@ -83,15 +83,15 @@ const ConfirmFocus = () => {
     <div className="flex gap-4 items-center">
       <Lib.Button
         onClick={() =>
-          showConfirm('Ȯ�� ����� ������ �Է�â���� Ŀ���� �̵��մϴ�.', {
-            title: '��Ŀ�� �̵�',
+          showConfirm('확인 모달이 닫히면 입력창으로 커서가 이동합니다.', {
+            title: '포커스 이동',
             onFocus: () => inputRef.current?.focus(),
           })
         }
       >
-        ��Ŀ�� �̵� ǥ��
+        포커스 이동 표시
       </Lib.Button>
-      <Lib.Input ref={inputRef} placeholder="Ŀ���� ����� �̵��մϴ�" />
+      <Lib.Input ref={inputRef} placeholder="커서가 여기로 이동합니다" />
     </div>
   );
 };
@@ -104,32 +104,32 @@ export const ConfirmExamples = () => {
           <BasicConfirm />
         </div>
       ),
-      description: '�⺻ Ȯ�� ���',
-      code: `// useSharedStore ���
+      description: '기본 확인 모달',
+      code: `// useSharedStore 사용
 const { showConfirm, showAlert } = useGlobalUi();
 
-// �⺻ Ȯ��
-showConfirm('���� �����Ͻðڽ��ϱ�?').then((result) => {
-  if (result) showAlert('Ȯ���߽��ϴ�.');
+// 기본 확인
+showConfirm('정말 진행하시겠습니까?').then((result) => {
+  if (result) showAlert('확인했습니다.');
 });`
     },
     {
       component: <ConfirmVariants />,
-      description: 'Ȯ�� ��� ����',
-      code: `// ��� Ȯ��
-showConfirm('�ش� �۾��� �ǵ��� �� �����ϴ�.\\n����Ͻðڽ��ϱ�?', {
-  title: '����',
+      description: '확인 모달 유형',
+      code: `// 경고 확인
+showConfirm('해당 작업은 되돌릴 수 없습니다.\\n계속하시겠습니까?', {
+  title: '주의',
   type: 'warning',
-  confirmText: '���',
-  cancelText: '�ߴ�',
+  confirmText: '계속',
+  cancelText: '중단',
 });
 
-// ���� Ȯ��
-showConfirm('��� �����͸� �����մϴ�.\\n���� �����Ͻðڽ��ϱ�?', {
-  title: '���� Ȯ��',
+// 위험 확인
+showConfirm('모든 데이터를 삭제합니다.\\n정말 삭제하시겠습니까?', {
+  title: '위험 확인',
   type: 'danger',
-  confirmText: '����',
-  cancelText: '���',
+  confirmText: '삭제',
+  cancelText: '취소',
 });`
     },
     {
@@ -138,15 +138,15 @@ showConfirm('��� �����͸� �����մϴ�.\\n����
           <ConfirmCallbacks />
         </div>
       ),
-      description: 'Ȯ��/��� �ݹ�',
-      code: `// Ȯ��/��� �� ����� �ݹ�
-showConfirm('������ �����Ͻðڽ��ϱ�?', {
-  title: '���� Ȯ��',
+      description: '확인/취소 콜백',
+      code: `// 확인/취소 시 실행될 콜백
+showConfirm('삭제를 진행하시겠습니까?', {
+  title: '위험 확인',
   type: 'danger',
-  confirmText: '����',
-  cancelText: '���',
-  onConfirm: () => showAlert('������ �Ϸ�Ǿ����ϴ�.'),
-  onCancel: () => showAlert('������ ��ҵǾ����ϴ�.'),
+  confirmText: '삭제',
+  cancelText: '취소',
+  onConfirm: () => showAlert('삭제가 완료되었습니다.'),
+  onCancel: () => showAlert('삭제가 취소되었습니다.'),
 });`
     },
     {
@@ -155,24 +155,25 @@ showConfirm('������ �����Ͻðڽ��ϱ�?', {
           <ConfirmFocus />
         </div>
       ),
-      description: 'Ȯ�� ��� ���� �� ��Ŀ�� �̵�',
-      code: `// useRef �� �Է�â ���� ����
+      description: '확인 모달 닫힘 후 포커스 이동',
+      code: `// useRef 로 입력창 참조 생성
 const inputRef = useRef(null);
 
-// ��� ���� �� �Է�â���� ��Ŀ�� �̵�
+// 모달 닫힘 후 입력창으로 포커스 이동
 <div className="flex gap-4 items-center">
   <Lib.Button
     onClick={() => {
-      showConfirm('Ȯ�� ����� ������ �Է�â���� Ŀ���� �̵��մϴ�.', {
-        title: '��Ŀ�� �̵�',
+      showConfirm('확인 모달이 닫히면 입력창으로 커서가 이동합니다.', {
+        title: '포커스 이동',
         onFocus: () => inputRef.current?.focus(),
       });
     }}
   >
-    ��Ŀ�� �̵� ǥ��
+    포커스 이동 표시
   </Lib.Button>
-  <Lib.Input ref={inputRef} placeholder="Ŀ���� ����� �̵��մϴ�" />
+  <Lib.Input ref={inputRef} placeholder="커서가 여기로 이동합니다" />
 </div>`
     }
   ];
 };
+

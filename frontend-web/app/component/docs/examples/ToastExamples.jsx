@@ -1,26 +1,26 @@
 "use client";
 /**
- * ���ϸ�: ToastExamples.jsx
- * �ۼ���: LSH
- * ������: 2025-09-13
- * ����: Toast ������Ʈ ����
+ * 파일명: ToastExamples.jsx
+ * 작성자: LSH
+ * 갱신일: 2025-09-13
+ * 설명: Toast 컴포넌트 예제
  */
 import * as Lib from '@/app/lib';
 import { useGlobalUi } from '@/app/common/store/SharedStore';
 
 const ToastBasic = () => {
   const { showToast } = useGlobalUi();
-  return <Lib.Button onClick={() => showToast('�⺻ �佺Ʈ �޽����Դϴ�.')}>�⺻ �佺Ʈ</Lib.Button>;
+  return <Lib.Button onClick={() => showToast('기본 토스트 메시지입니다.')}>기본 토스트</Lib.Button>;
 };
 
 const ToastTypes = () => {
   const { showToast } = useGlobalUi();
   return (
     <div className="flex flex-wrap gap-2">
-      <Lib.Button onClick={() => showToast('���� �佺Ʈ �޽����Դϴ�.', { type: 'info' })}>���� �佺Ʈ</Lib.Button>
-      <Lib.Button onClick={() => showToast('���� �佺Ʈ �޽����Դϴ�.', { type: 'success' })}>���� �佺Ʈ</Lib.Button>
-      <Lib.Button onClick={() => showToast('��� �佺Ʈ �޽����Դϴ�.', { type: 'warning' })}>��� �佺Ʈ</Lib.Button>
-      <Lib.Button onClick={() => showToast('���� �佺Ʈ �޽����Դϴ�.', { type: 'error' })}>���� �佺Ʈ</Lib.Button>
+      <Lib.Button onClick={() => showToast('정보 토스트 메시지입니다.', { type: 'info' })}>정보 토스트</Lib.Button>
+      <Lib.Button onClick={() => showToast('성공 토스트 메시지입니다.', { type: 'success' })}>성공 토스트</Lib.Button>
+      <Lib.Button onClick={() => showToast('경고 토스트 메시지입니다.', { type: 'warning' })}>경고 토스트</Lib.Button>
+      <Lib.Button onClick={() => showToast('오류 토스트 메시지입니다.', { type: 'error' })}>오류 토스트</Lib.Button>
     </div>
   );
 };
@@ -29,12 +29,12 @@ const ToastPositions = () => {
   const { showToast } = useGlobalUi();
   return (
     <div className="flex flex-wrap gap-2">
-      <Lib.Button onClick={() => showToast('��� ���ʿ� ǥ���մϴ�.', { position: 'top-left' })}>��� ����</Lib.Button>
-      <Lib.Button onClick={() => showToast('��� �߾ӿ� ǥ���մϴ�.', { position: 'top-center' })}>��� �߾�</Lib.Button>
-      <Lib.Button onClick={() => showToast('��� �����ʿ� ǥ���մϴ�.', { position: 'top-right' })}>��� ������</Lib.Button>
-      <Lib.Button onClick={() => showToast('�ϴ� ���ʿ� ǥ���մϴ�.', { position: 'bottom-left' })}>�ϴ� ����</Lib.Button>
-      <Lib.Button onClick={() => showToast('�ϴ� �߾ӿ� ǥ���մϴ�.', { position: 'bottom-center' })}>�ϴ� �߾�</Lib.Button>
-      <Lib.Button onClick={() => showToast('�ϴ� �����ʿ� ǥ���մϴ�.', { position: 'bottom-right' })}>�ϴ� ������</Lib.Button>
+      <Lib.Button onClick={() => showToast('상단 왼쪽에 표시합니다.', { position: 'top-left' })}>상단 왼쪽</Lib.Button>
+      <Lib.Button onClick={() => showToast('상단 중앙에 표시합니다.', { position: 'top-center' })}>상단 중앙</Lib.Button>
+      <Lib.Button onClick={() => showToast('상단 오른쪽에 표시합니다.', { position: 'top-right' })}>상단 오른쪽</Lib.Button>
+      <Lib.Button onClick={() => showToast('하단 왼쪽에 표시합니다.', { position: 'bottom-left' })}>하단 왼쪽</Lib.Button>
+      <Lib.Button onClick={() => showToast('하단 중앙에 표시합니다.', { position: 'bottom-center' })}>하단 중앙</Lib.Button>
+      <Lib.Button onClick={() => showToast('하단 오른쪽에 표시합니다.', { position: 'bottom-right' })}>하단 오른쪽</Lib.Button>
     </div>
   );
 };
@@ -43,9 +43,9 @@ const ToastDurations = () => {
   const { showToast } = useGlobalUi();
   return (
     <div className="flex flex-wrap gap-2">
-      <Lib.Button onClick={() => showToast('2�ʿ� ������ϴ�.', { duration: 2000 })}>2�� ����</Lib.Button>
-      <Lib.Button onClick={() => showToast('5�ʿ� ������ϴ�.', { duration: 5000 })}>5�� ����</Lib.Button>
-      <Lib.Button onClick={() => showToast('�ڵ����� ������� �ʽ��ϴ�.', { duration: Infinity })}>�ڵ� �ݱ� ��Ȱ��ȭ</Lib.Button>
+      <Lib.Button onClick={() => showToast('2초에 사라집니다.', { duration: 2000 })}>2초 유지</Lib.Button>
+      <Lib.Button onClick={() => showToast('5초에 사라집니다.', { duration: 5000 })}>5초 유지</Lib.Button>
+      <Lib.Button onClick={() => showToast('자동으로 사라지지 않습니다.', { duration: Infinity })}>자동 닫기 비활성화</Lib.Button>
     </div>
   );
 };
@@ -58,37 +58,38 @@ export const ToastExamples = () => {
           <ToastBasic />
         </div>
       ),
-      description: '�⺻ �佺Ʈ',
-      code: `// useSharedStore ���
+      description: '기본 토스트',
+      code: `// useSharedStore 사용
 const { showToast } = useGlobalUi();
 
-// �⺻ �佺Ʈ
-showToast('�⺻ �佺Ʈ �޽����Դϴ�.');`
+// 기본 토스트
+showToast('기본 토스트 메시지입니다.');`
     },
     {
       component: <ToastTypes />,
-      description: '�佺Ʈ ����',
-      code: `showToast('���� �佺Ʈ �޽����Դϴ�.', { type: 'info' });
-showToast('���� �佺Ʈ �޽����Դϴ�.', { type: 'success' });
-showToast('��� �佺Ʈ �޽����Դϴ�.', { type: 'warning' });
-showToast('���� �佺Ʈ �޽����Դϴ�.', { type: 'error' });`
+      description: '토스트 유형',
+      code: `showToast('정보 토스트 메시지입니다.', { type: 'info' });
+showToast('성공 토스트 메시지입니다.', { type: 'success' });
+showToast('경고 토스트 메시지입니다.', { type: 'warning' });
+showToast('오류 토스트 메시지입니다.', { type: 'error' });`
     },
     {
       component: <ToastPositions />,
-      description: '�佺Ʈ ��ġ',
-      code: `showToast('��� ���ʿ� ǥ���մϴ�.', { position: 'top-left' });
-showToast('��� �߾ӿ� ǥ���մϴ�.', { position: 'top-center' });
-showToast('��� �����ʿ� ǥ���մϴ�.', { position: 'top-right' });
-showToast('�ϴ� ���ʿ� ǥ���մϴ�.', { position: 'bottom-left' });
-showToast('�ϴ� �߾ӿ� ǥ���մϴ�.', { position: 'bottom-center' });
-showToast('�ϴ� �����ʿ� ǥ���մϴ�.', { position: 'bottom-right' });`
+      description: '토스트 위치',
+      code: `showToast('상단 왼쪽에 표시합니다.', { position: 'top-left' });
+showToast('상단 중앙에 표시합니다.', { position: 'top-center' });
+showToast('상단 오른쪽에 표시합니다.', { position: 'top-right' });
+showToast('하단 왼쪽에 표시합니다.', { position: 'bottom-left' });
+showToast('하단 중앙에 표시합니다.', { position: 'bottom-center' });
+showToast('하단 오른쪽에 표시합니다.', { position: 'bottom-right' });`
     },
     {
       component: <ToastDurations />,
-      description: '�佺Ʈ ���� �ð�',
-      code: `showToast('2�ʿ� ������ϴ�.', { duration: 2000 });
-showToast('5�ʿ� ������ϴ�.', { duration: 5000 });
-showToast('�ڵ����� ������� �ʽ��ϴ�.', { duration: Infinity });`
+      description: '토스트 유지 시간',
+      code: `showToast('2초에 사라집니다.', { duration: 2000 });
+showToast('5초에 사라집니다.', { duration: 5000 });
+showToast('자동으로 사라지지 않습니다.', { duration: Infinity });`
     }
   ];
 };
+

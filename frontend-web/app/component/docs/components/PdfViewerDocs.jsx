@@ -14,12 +14,10 @@ const PdfViewerDocs = () => {
       title="32. PDF 뷰어 (PdfViewer)"
       description={
         <div className="space-y-2 text-sm text-gray-700">
-          <p>
-            로컬 파일 또는 외부 URL의 PDF를 미리봅니다. public 폴더의 pdf-sample.pdf를 사용하면 기본 예제가 렌더링됩니다.
-          </p>
+          <p>로컬 파일 또는 외부 URL의 PDF를 미리봅니다. public/pdf-sample.pdf 예제가 포함되어 있습니다.</p>
           <ul className="list-disc pl-5">
             <li>Props: <code>src</code>(string|File|Blob|ArrayBuffer), <code>workerSrc?</code>, <code>withToolbar?</code></li>
-            <li>외부 URL은 CORS가 허용되어야 합니다.</li>
+            <li>외부 URL은 CORS 허용이 필요합니다.</li>
           </ul>
         </div>
       }
@@ -38,4 +36,3 @@ const PdfViewerDocs = () => {
 };
 
 export default PdfViewerDocs;
-
