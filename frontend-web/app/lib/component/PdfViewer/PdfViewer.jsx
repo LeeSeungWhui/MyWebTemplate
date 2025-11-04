@@ -4,6 +4,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import dynamic from 'next/dynamic';
 import '@react-pdf-viewer/core/lib/styles/index.css';
 import '@react-pdf-viewer/default-layout/lib/styles/index.css';
+import { defaultLayoutPlugin } from '@react-pdf-viewer/default-layout';
 import Empty from '../Empty.jsx';
 
 // Viewer/Worker stay client-only to avoid node-canvas crashes under SSR
@@ -49,53 +50,23 @@ const PdfViewer = ({
   const [viewerError, setViewerError] = useState(null);
   const [isLoading, setIsLoading] = useState(Boolean(src));
   const [documentState, setDocumentState] = useState(() => initialDocumentState(normalizedInitialPage));
-  const [defaultLayoutPluginInstance, setDefaultLayoutPluginInstance] = useState(null);
-  const [toolbarFailed, setToolbarFailed] = useState(false);
+  // Initialize toolbar plugin during render to avoid invalid hook call
+  const defaultLayoutPluginInstance = useMemo(() => {
+    if (!withToolbar) return null;
+    try {
+      return defaultLayoutPlugin({
+        renderToolbar: (Toolbar) => <Toolbar />,
+      });
+    } catch (e) {
+      console.error('PdfViewer: failed to init toolbar plugin', e);
+      return null;
+    }
+  }, [withToolbar]);
 
   const fileUrl = useMemo(() => toObjectUrl(src), [src]);
-  const plugins = useMemo(() => {
-    if (!withToolbar || !defaultLayoutPluginInstance) return [];
-    return [defaultLayoutPluginInstance];
-  }, [withToolbar, defaultLayoutPluginInstance]);
-  const toolbarReady = !withToolbar || Boolean(defaultLayoutPluginInstance) || toolbarFailed;
-  const awaitingToolbar = withToolbar && !toolbarFailed && Boolean(objectUrl) && !defaultLayoutPluginInstance;
+  const plugins = useMemo(() => (defaultLayoutPluginInstance ? [defaultLayoutPluginInstance] : []), [defaultLayoutPluginInstance]);
 
-  useEffect(() => {
-    let isCancelled = false;
-
-    if (!withToolbar) {
-      setDefaultLayoutPluginInstance(null);
-      setToolbarFailed(false);
-      return () => {
-        isCancelled = true;
-      };
-    }
-
-    setToolbarFailed(false);
-
-    const loadPlugin = async () => {
-      try {
-        const mod = await import('@react-pdf-viewer/default-layout');
-        if (isCancelled) return;
-        const instance = mod.defaultLayoutPlugin({
-          renderToolbar: (Toolbar) => <Toolbar />,
-        });
-        setToolbarFailed(false);
-        setDefaultLayoutPluginInstance(instance);
-      } catch (error) {
-        // Fall back to bare viewer if toolbar bundle fails to load
-        setToolbarFailed(true);
-        setDefaultLayoutPluginInstance(null);
-        console.error('PdfViewer: failed to load toolbar plugin', error);
-      }
-    };
-
-    loadPlugin();
-
-    return () => {
-      isCancelled = true;
-    };
-  }, [withToolbar]);
+  // No dynamic import for plugin; created synchronously above.
 
   useEffect(() => {
     setObjectUrl(fileUrl);
@@ -123,7 +94,7 @@ const PdfViewer = ({
   const describeDocumentStatus = () => {
     if (viewerError) return 'PDF document failed to load.';
     if (!objectUrl) return 'PDF source is unavailable.';
-    if (isLoading || awaitingToolbar || documentState.totalPages === 0) {
+    if (isLoading || documentState.totalPages === 0) {
       return 'PDF document is loading.';
     }
     if (documentState.totalPages > 0) {
@@ -179,7 +150,7 @@ const PdfViewer = ({
     return 'Unable to display the PDF document.';
   })();
 
-  const shouldRenderViewer = Boolean(objectUrl) && !viewerError && toolbarReady;
+  const shouldRenderViewer = Boolean(objectUrl) && !viewerError;
   const showMissingSource = !viewerError && !objectUrl && !isLoading;
 
   return (
@@ -188,7 +159,7 @@ const PdfViewer = ({
       style={style}
       role="document"
       aria-label="PDF viewer"
-      aria-busy={isLoading || awaitingToolbar ? 'true' : 'false'}
+      aria-busy={isLoading ? 'true' : 'false'}
       data-page={documentState.currentPage}
       data-page-count={documentState.totalPages}
       data-zoom={documentState.zoom.toFixed(2)}
@@ -197,7 +168,7 @@ const PdfViewer = ({
         {describeDocumentStatus()}
       </span>
 
-      {(isLoading || awaitingToolbar) && !viewerError && (
+      {isLoading && !viewerError && (
         <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/75 backdrop-blur-sm" aria-hidden="true">
           <div className="flex flex-col items-center gap-3 text-gray-600">
             <svg
