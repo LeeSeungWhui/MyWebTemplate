@@ -27,6 +27,13 @@
 - 시크릿: 레포 저장 금지. ENV/CI 시크릿 사용, 키 롤테이션 정책 유지
 - 전송/보관: 운영 HTTPS 강제, 민감 데이터 저장 시 암호화
 
+### 인증 가드 원칙(옵션1 단일화)
+- 가드 위치: `frontend-web/middleware.js`에서만 인증 가드 수행. 서버 컴포넌트/레이아웃에서 재검사 금지
+- 공개 경로: `frontend-web/app/common/config/publicRoutes.js`에서만 관리. 여기에 없으면 기본 보호(Default protect)
+- 복귀(next) 처리: 비인증 접근 시 미들웨어가 httpOnly 쿠키 `nx`에 원 경로를 저장하고 `/login`으로 리다이렉트한다
+- 로그인 접근: 인증 상태에서 `/login` 접근 시 홈(`/`)으로 리다이렉트, 잔여 `nx`는 삭제
+- 매처: `export const config.matcher = ['/((?!api|_next/static|_next/image|favicon.ico|.*\\.).*)']`로 페이지 중심 적용(Next 내부/정적 제외)
+
 ## 성능(Performance)
 - Web: LCP < 2.5s, INP < 200ms, CLS < 0.1, Lighthouse ≥ 80
 - API: P95 응답 < 400ms(핵심 엔드포인트), 타임아웃/재시도/서킷브레이커 고려
@@ -57,10 +64,6 @@
 - 분류: PII/민감정보 최소 수집. 보존 기간과 파기 정책 명시
 - 암호화: 전송/보관 시 암호화. 키 관리는 KMS 등 사용
 
-## 환경/설정
-- 환경 분리: `.env.local`/`.env.dev`/`.env.prod`. 운영 시 시크릿은 CI/CD 주입
-- 설정 유효성: 필수 설정 누락 시 부팅 실패하도록 검증
-
 ### 로컬 개발(PowerShell)
 - 테스트/로컬 실행 전 윈도우면 `.\env.ps1`, 리눅스면 `.\env.sh` 실행해 PATH 설정(또는 절대 경로 실행)  
 
@@ -76,4 +79,3 @@
 - 보안 체크리스트 통과(CORS/CSRF/시크릿/입력 검증/SQL 바인딩)
 - 문서 업데이트(README, 설계/모듈/Unit, 변경 로그)
 - 코드 리뷰 승인 ≥ 1, CI/CD 파이프라인 그린
-

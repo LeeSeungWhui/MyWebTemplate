@@ -19,6 +19,7 @@ export function loadFrontendConfig() {
   const candidates = [
     path.join(cwd, 'config.ini'),
     path.join(cwd, 'config_prod.ini'),
+    path.join(cwd, 'config_qa.ini'),
     path.join(cwd, 'config_dev.ini'),
   ]
 

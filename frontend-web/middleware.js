@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { isPublicPath } from '@/app/common/config/publicRoutes'
 
 function sanitizeNext(next) {
   // allow only same-origin absolute-path beginning with single '/'
@@ -12,7 +13,6 @@ function sanitizeNext(next) {
 export function middleware(req) {
   const url = new URL(req.url)
   const path = url.pathname
-  const isProtected = path === '/' || path.startsWith('/dashboard') || path.startsWith('/app') || path.startsWith('/settings')
   const sid = req.cookies.get('sid')
 
   // If already authenticated and visiting /login, bounce to home
@@ -33,7 +33,8 @@ export function middleware(req) {
     return NextResponse.next()
   }
 
-  if (!isProtected) return NextResponse.next()
+  // Allow public routes to pass without auth
+  if (isPublicPath(path)) return NextResponse.next()
 
   if (!sid) {
     const res = NextResponse.redirect(new URL('/login', req.url))
@@ -46,5 +47,6 @@ export function middleware(req) {
 }
 
 export const config = {
-  matcher: ['/', '/dashboard/:path*', '/app/:path*', '/settings/:path*', '/login'],
+  // 모든 페이지에 적용하되 Next 내부/정적/파비콘 등은 제외
+  matcher: ['/((?!api|_next/static|_next/image|favicon.ico|.*\\.).*)'],
 }

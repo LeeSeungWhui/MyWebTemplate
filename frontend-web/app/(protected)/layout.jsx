@@ -8,25 +8,14 @@ export const dynamic = 'force-dynamic'
 export const revalidate = 0
 export const runtime = 'nodejs'
 
-import { redirect } from 'next/navigation'
 import SharedHydrator from '@/app/common/store/SharedHydrator'
-import { ssrJSON } from '@/app/lib/runtime/ssr'
-
-const SESSION_PATH = '/api/v1/auth/session'
-
 export default async function ProtectedLayout({ children }) {
-  const init = await ssrJSON(SESSION_PATH).catch(() => null)
-  const authed = !!(init && init.result && init.result.authenticated)
-  if (!authed) {
-    // Not authenticated -> go to login (middleware adds next when possible)
-    redirect('/login')
-  }
-  const userJson = init && init.result ? { userId: init.result.userId, name: init.result.name } : null
+  // 인증 검사는 전부 middleware에서 수행한다. 서버 컴포넌트에서는 재검사하지 않는다.
+  // 필요 시 클라이언트에서 세션을 가져가도록 하고, SSR 시엔 별도 유저 주입을 하지 않는다.
   return (
     <>
-      <SharedHydrator userJson={userJson} />
+      <SharedHydrator />
       {children}
     </>
   )
 }
-
