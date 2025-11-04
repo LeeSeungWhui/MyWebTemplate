@@ -1,0 +1,74 @@
+﻿# Web (Next.js)
+
+## 紐⑹쟻
+- 蹂댄샇 寃쎈줈? 怨듦컻 寃쎈줈瑜?紐⑤몢 而ㅻ쾭?섎뒗 Next.js(App Router) ?쒗뵆由우쓣 ?쒓났?쒕떎.
+- ?섏씠吏留덈떎 `MODE = 'SSR' | 'CSR'` ?곸닔留뚯쑝濡?SSR/CSR 紐⑤뱶瑜??좏깮?????덇쾶 ?쒕떎.
+
+## 湲곗닠 ?ㅽ깮
+- Node 22.19.0
+- Next.js 15+ (App Router)
+- React 19
+- Tailwind CSS v4
+- ?곹깭/?곗씠?? SWR, Zustand
+- 臾몄꽌/?뚯뒪?? Docs ?섏씠吏, Playwright/Vitest(?덉젙)
+- ?몄뼱: JavaScript Only(TypeScript 湲덉?)
+- ?ㅼ젙: `frontend-web/config.ini` + ?섍꼍蹂??섑뵆(`config_dev.ini`, `config_prod.ini`)
+
+## ?ы븿 Unit
+- CU-WEB-001 Auth & Login Page
+- CU-WEB-002 Dashboard (Cards/List/Stats Dummy)
+- CU-WEB-003 UI Component Pack (EasyObj/EasyList 諛붿씤??
+- CU-WEB-004 Routing & Guard (Protected Routes)
+- CU-WEB-005 API Client (OpenAPI JS ?곕룞)
+- CU-WEB-006 Page-level SSR/CSR Mode Convention
+- CU-WEB-007 Migration (Vite ??Next)
+- CU-WEB-008 Middleware Guard & Redirect
+- CU-WEB-009 Data Fetch Strategy (Page MODE)
+
+## Unit 吏꾪뻾 ?꾪솴
+- CU-WEB-001: in-progress ??濡쒓렇???섏씠吏 SSR/CSR 遺꾨━???숈옉, UX/A11y 蹂댁셿 ?꾩슂
+- CU-WEB-002: planned ????쒕낫???꾩젽 ?뺤쓽 ?덉젙
+- CU-WEB-003: in-progress ???듭떖 而댄룷?뚰듃 議댁옱, ?꾨줉??諛붿씤??由ы뙥???뚯뒪???湲?
+- CU-WEB-004: in-progress ??誘몃뱾?⑥뼱/?쒕쾭 媛??遺遺?援ы쁽, ?뚮씪誘명꽣쨌401 泥섎━ 蹂댁셿 ?꾩슂
+- CU-WEB-005: in-progress ??CSRF ??議댁옱, OpenAPI ?대씪?댁뼵?????援ъ꽦 誘몄셿
+- CU-WEB-006: in-progress ???섏씠吏蹂?MODE 洹쒖빟 珥덉븞 ?묒꽦, ENV 諛곗꽑 ?덉젙
+- CU-WEB-007: completed ??`frontend-web`??Vite ??Next 留덉씠洹몃젅?댁뀡 諛섏쁺 ?꾨즺
+- CU-WEB-008: in-progress ??`middleware.js` 荑좏궎 由щ떎?대젆??洹쒖튃 議댁옱, ?ｌ? 寃쎈줈 而ㅻ쾭由ъ? ?꾩슂
+- CU-WEB-009: in-progress ??`initData` + ?고???fetch ?ы띁 珥덉븞, AC 異⑹” 蹂닿컯 ?꾩슂
+
+## TODO
+- ?섏씠吏蹂?MODE 媛?대뱶(`page.jsx` ?ㅻ땲?? 媛쒕컻???뚮젅?대턿) 留덈Т由?
+- 蹂댄샇 ?섏씠吏 湲곕낯媛믪쓣 `revalidate=0`, `dynamic='force-dynamic'`, `runtime='nodejs'`, `fetchCache='only-no-store'`濡?怨좎젙
+- OpenAPI 湲곕컲 ?대씪?댁뼵???ы띁??怨듯넻 ?먮윭 ?몃뱾留?異붽?, `credentials:'include'` + CSRF ?ㅻ뜑 二쇱엯 媛뺤젣
+- Next/Tailwind ?꾨━??湲곕컲 Docs ?섏씠吏?먯꽌 CU-WEB-003 ?쒕굹由ъ삤 ?뺣━
+- ?몄쬆 由щ떎?대젆??204 濡쒓렇???먮쫫/?몄뀡 蹂듦뎄 Playwright쨌Vitest 而ㅻ쾭由ъ? 異붽?
+- EasyObj/EasyList ?꾨줉?쒓? JSON 吏곸젒 ??? ?꾪듃 ?? ctx ?뚮┝??吏?먰븯?꾨줉 由ы뙥??CU-WEB-003)
+- config.ini ?섍꼍 ?꾪솚 媛?대뱶 ?묒꽦(SharedStore.config ?섏씠?쒕젅?댁뀡)
+
+## 寃곗젙(怨좎젙)
+- ?꾩뿭 紐⑤뱶 ?뚮옒洹?`NEXT_RUNTIME_MODE`) ?먭린, ?섏씠吏蹂?`MODE`媛 ?⑥씪 吏꾩떎
+- 蹂댄샇 ?섏씠吏 湲곕낯 ?ㅼ젙: `revalidate=0`, `dynamic='force-dynamic'`, `runtime='nodejs'`, `fetchCache='only-no-store'`
+- 誘몃뱾?⑥뼱 寃쎈줈 ?뺤콉: 怨듦컻(/login, /_next/*, /public/*, /healthz), 蹂댄샇(/, /dashboard/*), API ?고쉶(/api/**)
+- CORS/?ㅻ뜑: `credentials:'include'`, ?ㅻ뜑 `X-CSRF-Token`, `Content-Type`, `Authorization`
+- JS Only 媛뺤젣: 由고듃/?꾨줈?앺듃 洹쒖튃?쇰줈 .ts/.tsx 嫄곕?
+- ?꾨줎???ㅼ젙: `frontend-web/config.ini`瑜??ㅽ뻾 ???좏깮 ?섍꼍 ?뚯씪濡?援먯껜??SharedStore.config濡?二쇱엯
+
+## ?꾨즺 湲곗?(?쒗뵆由?
+- ?몄쬆 ?뚮줈??濡쒖뺄 寃利?濡쒓렇????蹂댄샇 ?섏씠吏)
+- 蹂댄샇 寃쎈줈 誘몄씤利??묎렐 ???쒕쾭/?대씪?먯꽌 利됱떆 /login 由щ떎?대젆??
+- OpenAPI?먯꽌 API ?ㅽ궎留??앹꽦, 怨듯넻 ?대씪?댁뼵?멸? 401/403/422 泥섎━
+- CSRF ?좏겙 ?놁씠 蹂???붿껌 ??403 + UX ?쇰뱶諛?
+- SSR/CSR 紐⑤뱶媛 ?섏씠吏蹂?`MODE`瑜?議댁쨷?섍퀬 SSR ?섏씠吏??SEO 硫뷀??곗씠???몄텧
+- 怨듯넻 洹쒖튃(`docs/common-rules.md`) DoD 異⑹”
+
+## API ?대씪?댁뼵??怨꾩빟(珥덉븞)
+- Base URL: `NEXT_PUBLIC_API_BASE`
+- 荑좏궎: `credentials:'include'`
+- ?먮윭 ?ㅽ궎留? `{ status: false, code, requestId }` + Toast/Alert ?곕룞(CU-WEB-007)
+- ?쇱씠釉뚮윭由? openapi-client-axios (JS only)
+
+## ?고????꾨왂(珥덉븞)
+- 紐⑺몴: ?섏씠吏蹂?SSR/CSR ?좏깮 ???덉륫 媛?ν븳 ?깅뒫 ?뺣낫
+- 怨꾩빟 ?덉씠?대쭅:
+  - ?섏씠吏 怨꾩빟: `initData.jsx`?먯꽌 ?곗씠???뺥깭쨌媛?쒕? 湲곗닠
+  - ?고????ы띁: `app/lib/runtime/Ssr.jsx`(?쒕쾭, 荑좏궎/?ㅻ뜑, `no-store`), `app/lib/runtime/Csr.jsx`(?대씪?댁뼵?? SWR 移쒗솕)

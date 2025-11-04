@@ -1,16 +1,16 @@
-/**
- * 파일명: frontendConfig.server.js
- * 작성자: LSH
- * 갱신일: 2025-09-13
- * 설명: 프론트엔드 config.ini 로더
+﻿/**
+ * ?뚯씪紐? frontendConfig.server.js
+ * ?묒꽦?? LSH
+ * 媛깆떊?? 2025-09-13
+ * ?ㅻ챸: ?꾨줎?몄뿏??config.ini 濡쒕뜑
  */
 
 import fs from 'node:fs'
 import path from 'node:path'
 
 /**
- * 설명: config.ini 파일을 읽어 JSON으로 변환한다.
- * 갱신일: 2025-09-13
+ * ?ㅻ챸: config.ini ?뚯씪???쎌뼱 JSON?쇰줈 蹂?섑븳??
+ * 媛깆떊?? 2025-09-13
  */
 export function loadFrontendConfig() {
   const configPath = path.join(process.cwd(), 'config.ini')
@@ -18,15 +18,15 @@ export function loadFrontendConfig() {
   try {
     iniText = fs.readFileSync(configPath, 'utf-8')
   } catch (error) {
-    console.warn('[config] config.ini 읽기 실패, 기본 빈 객체 사용', error)
+    console.warn('[config] config.ini ?쎄린 ?ㅽ뙣, 湲곕낯 鍮?媛앹껜 ?ъ슜', error)
     return {}
   }
   return parseIni(iniText)
 }
 
 /**
- * 설명: INI 문자열을 객체로 파싱한다.
- * 갱신일: 2025-09-13
+ * ?ㅻ챸: INI 臾몄옄?댁쓣 媛앹껜濡??뚯떛?쒕떎.
+ * 媛깆떊?? 2025-09-13
  */
 export function parseIni(iniText) {
   const result = {}
@@ -55,8 +55,8 @@ export function parseIni(iniText) {
 }
 
 /**
- * 설명: INI 값 문자열을 타입에 맞게 변환한다.
- * 갱신일: 2025-09-13
+ * ?ㅻ챸: INI 媛?臾몄옄?댁쓣 ??낆뿉 留욊쾶 蹂?섑븳??
+ * 媛깆떊?? 2025-09-13
  */
 function coerceValue(valueRaw) {
   if (valueRaw === '') return ''
@@ -69,7 +69,10 @@ function coerceValue(valueRaw) {
     if ((valueRaw.startsWith('{') && valueRaw.endsWith('}')) || (valueRaw.startsWith('[') && valueRaw.endsWith(']')))
       return JSON.parse(valueRaw)
   } catch (error) {
-    console.warn('[config] JSON 파싱 실패', valueRaw, error)
+    console.warn('[config] JSON ?뚯떛 ?ㅽ뙣', valueRaw, error)
   }
   return valueRaw
 }
+
+
+
