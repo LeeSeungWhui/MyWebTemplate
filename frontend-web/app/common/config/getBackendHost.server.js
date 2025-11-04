@@ -1,7 +1,6 @@
-﻿// Server-side resolver: read API base from config.ini
-import { loadFrontendConfig } from './frontendConfig.server'
+﻿import { loadFrontendConfig } from './frontendConfig.server'
 
-export function getApiBase() {
+export function getBackendHost() {
   try {
     const cfg = loadFrontendConfig()
     const base = cfg?.API?.base
@@ -13,6 +12,3 @@ export function getApiBase() {
     return 'http://localhost:8000'
   }
 }
-
-
-

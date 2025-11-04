@@ -1,7 +1,6 @@
-﻿// Client-side resolver: read API base from hydrated store
-import { useSharedStore } from '@/app/common/store/SharedStore'
+﻿import { useSharedStore } from '@/app/common/store/SharedStore'
 
-export function getApiBase() {
+export function getBackendHost() {
   const cfg = useSharedStore.getState()?.config || {}
   const base = cfg?.API?.base
     ?? cfg?.APP?.backendHost
@@ -9,6 +8,3 @@ export function getApiBase() {
     ?? cfg?.APP?.serverHost
   return typeof base === 'string' && base ? base : 'http://localhost:8000'
 }
-
-
-

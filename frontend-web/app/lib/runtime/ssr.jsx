@@ -4,7 +4,7 @@
  * 媛깆떊?? 2025-09-13
  * ?ㅻ챸: SSR ?뚮뜑留??좏떥
  */
-import { getApiBase } from \"@/app/common/config/getApiBase\"
+import { getBackendHost } from \"@/app/common/config/getBackendHost\"
 
 export async function buildSSRHeaders(extra = {}) {
   // Next.js 15 dynamic APIs must be awaited
@@ -22,8 +22,9 @@ export async function buildSSRHeaders(extra = {}) {
 
 export async function ssrJSON(path, init = {}) {
   const headers = await buildSSRHeaders(init.headers)
-  const res = await fetch(getApiBase() + path, { cache: 'no-store', ...init, headers })
+  const res = await fetch(getBackendHost() + path, { cache: 'no-store', ...init, headers })
   return res.json()
 }
+
 
 
