@@ -1,3 +1,4 @@
+"use client";
 /**
  * 파일명: AlertExamples.jsx
  * 작성자: LSH
@@ -6,164 +7,129 @@
  */
 import * as Lib from '@/app/lib';
 import { useRef } from 'react';
-import { useSharedStore } from '@/app/common/store/SharedStore';
+import { useGlobalUi } from '@/app/common/store/SharedStore';
+
+const BasicAlert = () => {
+  const { showAlert } = useGlobalUi();
+  return <Lib.Button onClick={() => showAlert('기본 알림 메시지입니다.')}>기본 알림</Lib.Button>;
+};
+
+const AlertVariants = () => {
+  const { showAlert } = useGlobalUi();
+  return (
+    <div className="flex flex-wrap gap-2">
+      <Lib.Button onClick={() => showAlert('정보 알림 메시지입니다.', { title: '정보', type: 'info' })}>정보 알림</Lib.Button>
+      <Lib.Button onClick={() => showAlert('성공 알림 메시지입니다.', { title: '성공', type: 'success' })}>성공 알림</Lib.Button>
+      <Lib.Button onClick={() => showAlert('경고 알림 메시지입니다.', { title: '경고', type: 'warning' })}>경고 알림</Lib.Button>
+      <Lib.Button onClick={() => showAlert('오류 알림 메시지입니다.', { title: '오류', type: 'error' })}>오류 알림</Lib.Button>
+    </div>
+  );
+};
+
+const AlertCallback = () => {
+  const { showAlert } = useGlobalUi();
+  return (
+    <Lib.Button
+      onClick={() =>
+        showAlert('작업이 완료되었습니다.', {
+          title: '알림',
+          onClick: function () {
+            alert('알림을 닫았습니다.');
+          },
+        })
+      }
+    >
+      콜백 함수 표시
+    </Lib.Button>
+  );
+};
+
+const AlertFocusAfter = () => {
+  const { showAlert } = useGlobalUi();
+  const inputRef = useRef(null);
+  const buttonRef = useRef(null);
+  return (
+    <div className="flex gap-4 items-center">
+      <Lib.Button
+        ref={buttonRef}
+        onClick={() =>
+          showAlert('알림을 닫히면 입력창으로 커서가 이동합니다.', {
+            title: '알림',
+            onFocus: () => inputRef.current?.focus(),
+          })
+        }
+      >
+        알림 띄우기
+      </Lib.Button>
+      <Lib.Input ref={inputRef} placeholder="커서가 여기로 이동합니다" />
+    </div>
+  );
+};
 
 export const AlertExamples = () => {
-    const app = useSharedStore();
-    const buttonRef = useRef(null);
-    const inputRef = useRef(null);
-
-    const examples = [
-        {
-            component: (
-                <div className="space-y-4">
-                    <Lib.Button onClick={() => {
-                        app.showAlert("기본 알림 메시지입니다.");
-                    }}>
-                        기본 알림
-                    </Lib.Button>
-                </div>
-            ),
-            description: "기본 알림",
-            code: `// useSharedStore 사용
-const app = useSharedStore();
+  return [
+    {
+      component: (
+        <div className="space-y-4">
+          <BasicAlert />
+        </div>
+      ),
+      description: '기본 알림',
+      code: `// useSharedStore 사용
+const { showAlert } = useGlobalUi();
 
 // 기본 알림
-app.showAlert("기본 알림 메시지입니다.");`
-        },
-        {
-            component: (
-                <div className="flex flex-wrap gap-2">
-                    <Lib.Button onClick={() => {
-                        app.showAlert("정보 알림 메시지입니다.", {
-                            title: "정보",
-                            type: "info"
-                        });
-                    }}>
-                        정보 알림
-                    </Lib.Button>
-                    <Lib.Button onClick={() => {
-                        app.showAlert("성공 알림 메시지입니다.", {
-                            title: "성공",
-                            type: "success"
-                        });
-                    }}>
-                        성공 알림
-                    </Lib.Button>
-                    <Lib.Button onClick={() => {
-                        app.showAlert("경고 알림 메시지입니다.", {
-                            title: "경고",
-                            type: "warning"
-                        });
-                    }}>
-                        경고 알림
-                    </Lib.Button>
-                    <Lib.Button onClick={() => {
-                        app.showAlert("오류 알림 메시지입니다.", {
-                            title: "오류",
-                            type: "error"
-                        });
-                    }}>
-                        오류 알림
-                    </Lib.Button>
-                </div>
-            ),
-            description: "알림 유형",
-            code: `// 정보 알림
-app.showAlert("정보 알림 메시지입니다.", {
-    title: "정보",
-    type: "info"
-});
-
-// 성공 알림
-app.showAlert("성공 알림 메시지입니다.", {
-    title: "성공",
-    type: "success"
-});
-
-// 경고 알림
-app.showAlert("경고 알림 메시지입니다.", {
-    title: "경고",
-    type: "warning"
-});
-
-// 오류 알림
-app.showAlert("오류 알림 메시지입니다.", {
-    title: "오류",
-    type: "error"
+showAlert('기본 알림 메시지입니다.');`
+    },
+    {
+      component: <AlertVariants />,
+      description: '알림 유형',
+      code: `// 정보/성공/경고/오류 알림
+showAlert('정보 알림 메시지입니다.', { title: '정보', type: 'info' });
+showAlert('성공 알림 메시지입니다.', { title: '성공', type: 'success' });
+showAlert('경고 알림 메시지입니다.', { title: '경고', type: 'warning' });
+showAlert('오류 알림 메시지입니다.', { title: '오류', type: 'error' });`
+    },
+    {
+      component: (
+        <div className="space-y-4">
+          <AlertCallback />
+        </div>
+      ),
+      description: '알림 닫힘 콜백',
+      code: `// 알림 닫힘 시 실행될 콜백
+showAlert('작업이 완료되었습니다.', {
+  title: '알림',
+  onClick: function() {
+    alert('알림을 닫았습니다.');
+  }
 });`
-        },
-        {
-            component: (
-                <div className="space-y-4">
-                    <Lib.Button onClick={() => {
-                        app.showAlert("작업이 완료되었습니다.", {
-                            title: "알림",
-                            onClick: function () {
-                                alert("알림이 닫혔습니다.");
-                            }
-                        });
-                    }}>
-                        콜백 함수 예시
-                    </Lib.Button>
-                </div>
-            ),
-            description: "알림 닫힘 콜백",
-            code: `// 알림이 닫힐 때 실행될 콜백 함수
-app.showAlert("작업이 완료되었습니다.", {
-    title: "알림",
-    onClick: function() {
-        alert("알림이 닫혔습니다.");
-    }
-});`
-        },
-        {
-            component: (
-                <div className="space-y-4">
-                    <div className="flex gap-4 items-center">
-                        <Lib.Button
-                            ref={buttonRef}
-                            onClick={() => {
-                                app.showAlert("알림이 닫히면 입력창으로 포커스가 이동합니다.", {
-                                    title: "알림",
-                                    onFocus: () => inputRef.current?.focus()
-                                });
-                            }}
-                        >
-                            알림 열기
-                        </Lib.Button>
-                        <Lib.Input
-                            ref={inputRef}
-                            placeholder="포커스가 여기로 이동합니다"
-                        />
-                    </div>
-                </div>
-            ),
-            description: "알림 닫힘 후 지정된 요소로 포커스 이동",
-            code: `// useRef 훅으로 입력창 참조 생성
+    },
+    {
+      component: (
+        <div className="space-y-4">
+          <AlertFocusAfter />
+        </div>
+      ),
+      description: '알림 닫힘 후 지정된 요소로 포커스 이동',
+      code: `// useRef 로 입력창 참조 생성
 const inputRef = useRef(null);
 
-// 알림이 닫힐 때 입력창으로 포커스 이동
+// 알림을 닫으면 입력창으로 포커스 이동
 <div className="flex gap-4 items-center">
-    <Lib.Button
-        ref={buttonRef}
-        onClick={() => {
-            app.showAlert("알림이 닫히면 입력창으로 포커스가 이동합니다.", {
-                title: "알림",
-                onFocus: () => inputRef.current?.focus()
-            });
-        }}
-    >
-        알림 열기
-    </Lib.Button>
-    <Lib.Input
-        ref={inputRef}
-        placeholder="포커스가 여기로 이동합니다"
-    />
+  <Lib.Button
+    onClick={() => {
+      showAlert('알림을 닫히면 입력창으로 커서가 이동합니다.', {
+        title: '알림',
+        onFocus: () => inputRef.current?.focus(),
+      });
+    }}
+  >
+    알림 띄우기
+  </Lib.Button>
+  <Lib.Input ref={inputRef} placeholder="커서가 여기로 이동합니다" />
 </div>`
-        }
-    ];
-
-    return examples;
+    }
+  ];
 };
 

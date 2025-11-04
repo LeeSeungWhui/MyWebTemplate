@@ -117,6 +117,59 @@ export const EasyEditorExamples = () => {
   );
 };`,
     },
+    {
+      anchor: 'editor-states',
+      component: (
+        <div className="space-y-4">
+          <div className="grid md:grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Lib.EasyEditor
+                value={'<p>읽기 전용 내용</p>'}
+                serialization="html"
+                readOnly
+                toolbar={false}
+                label="읽기 전용(readOnly)"
+                helperText="툴바 숨김 + 수정 불가"
+              />
+            </div>
+            <div className="space-y-2">
+              <Lib.EasyEditor
+                value={'<p>유효성 오류 예시</p>'}
+                serialization="html"
+                invalid
+                label="유효성 오류(invalid)"
+                helperText="오류 스타일 및 안내"
+              />
+            </div>
+            <div className="space-y-2">
+              <Lib.EasyEditor
+                value={'<p>로딩 상태</p>'}
+                serialization="html"
+                status="loading"
+                label="status=loading"
+                helperText="처리 중 상태"
+              />
+            </div>
+            <div className="space-y-2">
+              <Lib.EasyEditor
+                value={'<p>성공 상태</p>'}
+                serialization="html"
+                status="success"
+                label="status=success"
+                helperText="성공 스타일"
+              />
+            </div>
+          </div>
+        </div>
+      ),
+      description: 'readOnly/invalid/status 매트릭스 예시',
+      code: `<div className="grid md:grid-cols-2 gap-4">
+  <Lib.EasyEditor value={'<p>읽기 전용 내용</p>'} serialization="html" readOnly toolbar={false} />
+  <Lib.EasyEditor value={'<p>유효성 오류 예시</p>'} serialization="html" invalid />
+  <Lib.EasyEditor value={'<p>로딩 상태</p>'} serialization="html" status="loading" />
+  <Lib.EasyEditor value={'<p>성공 상태</p>'} serialization="html" status="success" />
+</div>`,
+    },
   ];
 
   return examples;

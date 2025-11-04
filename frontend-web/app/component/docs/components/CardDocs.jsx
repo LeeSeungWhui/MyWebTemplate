@@ -1,11 +1,8 @@
+"use client";
 /**
  * 파일명: CardDocs.jsx
  * 작성자: LSH
  * 갱신일: 2025-09-13
- * 설명: Card 컴포넌트 문서
- */
-/**
- * 파일명: CardDocs.jsx
  * 설명: Card 컴포넌트 문서
  */
 import DocSection from '../shared/DocSection';
@@ -17,12 +14,13 @@ const CardDocs = () => {
   return (
     <DocSection
       id="cards"
-      title="18. 카드 (Card)" description={
+      title="18. 카드 (Card)"
+      description={
         <div>
           <p>헤더, 본문, 푸터로 구성된 컴포넌트입니다.</p>
           <ul className="list-disc pl-5 mt-2 text-sm text-gray-600">
             <li><code>children</code>: 본문 콘텐츠</li>
-            <li><code>title?</code>: 헤더에 표시할 제목</li>
+            <li><code>title?</code>: 헤더 제목</li>
             <li><code>subtitle?</code>: 제목 아래 보조 텍스트</li>
             <li><code>actions?</code>: 헤더 우측 액션 요소</li>
             <li><code>footer?</code>: 하단 푸터 콘텐츠</li>
@@ -71,3 +69,4 @@ const CardDocs = () => {
 };
 
 export default CardDocs;
+
