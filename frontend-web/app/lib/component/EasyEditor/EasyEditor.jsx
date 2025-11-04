@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useCallback, useMemo, useRef, useState, useEffect } from 'react';
 import { EditorContent } from '@tiptap/react';
