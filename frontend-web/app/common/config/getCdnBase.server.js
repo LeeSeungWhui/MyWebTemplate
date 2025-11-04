@@ -1,4 +1,4 @@
-﻿// Server-side CDN base resolver from config.ini
+// Server-side CDN base resolver from config.ini
 import { loadFrontendConfig } from './frontendConfig.server'
 
 export function getCdnBase() {

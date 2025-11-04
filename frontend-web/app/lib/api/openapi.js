@@ -1,9 +1,10 @@
-﻿/**
- * ?뚯씪紐? openapi.js
- * ?묒꽦?? LSH
- * 紐⑹쟻: OpenAPI JS ?대씪?댁뼵???ㅼ펷?덊넠 (openapi-client-axios)
+/**
+ * 파일명: openapi.js
+ * 작성자: LSH
+ * 설명: OpenAPI JS 클라이언트 래퍼 (openapi-client-axios)
  */
-import createClient from 'openapi-client-axios'\nimport { getBackendHost } from '@/app/common/config/getBackendHost'
+import OpenAPIClientAxios from 'openapi-client-axios'
+import { getBackendHost } from '@/app/common/config/getBackendHost'
 
 // API base is resolved from config.ini (SharedStore)
 // NEXT_PUBLIC_API_BASE is deprecated
@@ -14,8 +15,8 @@ let __clientCache = { base: null, promise: null }
 export function getOpenApiClient() {
   const base = getBackendHost();
   if (!__clientCache.promise || __clientCache.base !== base) {
-    const api = createClient({
-      definition: ${base}/openapi.json,
+    const api = new OpenAPIClientAxios({
+      definition: `${base}/openapi.json`,
       axiosConfigDefaults: {
         baseURL: base,
         withCredentials: true,
@@ -54,6 +55,4 @@ export async function postWithCsrf(path, body) {
 }
 
 export default { getOpenApiClient, getSession, postWithCsrf }
-
-
 

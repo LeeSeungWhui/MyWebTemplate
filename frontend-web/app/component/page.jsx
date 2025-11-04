@@ -2,7 +2,7 @@
  * 파일명: page.jsx
  * 작성자: LSH
  * 갱신일: 2025-09-13
- * 설명: 컴포넌트 문서 페이지
+ * 설명: 컴포넌트 문서 페이지
  */
 "use client"
 
@@ -42,7 +42,7 @@ import PdfViewerDocs from './docs/components/PdfViewerDocs'
 import EasyEditorDocs from './docs/components/EasyEditorDocs'
 
 /**
- * 컴포넌트 문서 페이지
+ * 컴포넌트 문서 페이지
  * @date 2025-09-13
  */
 export default function ComponentsPage() {

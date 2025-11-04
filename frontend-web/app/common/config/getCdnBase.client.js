@@ -1,4 +1,4 @@
-﻿// Client-side CDN base resolver from hydrated store
+// Client-side CDN base resolver from hydrated store
 import { useSharedStore } from '@/app/common/store/SharedStore'
 
 export function getCdnBase() {

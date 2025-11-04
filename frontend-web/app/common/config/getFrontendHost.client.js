@@ -1,4 +1,4 @@
-﻿import { useSharedStore } from '@/app/common/store/SharedStore'
+import { useSharedStore } from '@/app/common/store/SharedStore'
 
 export function getFrontendHost() {
   const cfg = useSharedStore.getState()?.config || {}

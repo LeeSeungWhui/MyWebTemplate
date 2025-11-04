@@ -62,11 +62,7 @@
 - 설정 유효성: 필수 설정 누락 시 부팅 실패하도록 검증
 
 ### 로컬 개발(PowerShell)
-- 테스트/로컬 실행 전 `.\env.ps1` 실행해 PATH 설정(또는 절대 경로 실행)
-  - `(Join-Path $Base 'Python3.12.8\Scripts')`
-  - `(Join-Path $Base 'Python3.12.8')`
-  - `(Join-Path $Base 'node-v22.19.0-win-x64')`
-- 실행 예: `. .\env.ps1` 또는 `powershell -ExecutionPolicy Bypass -File .\env.ps1`
+- 테스트/로컬 실행 전 윈도우면 `.\env.ps1`, 리눅스면 `.\env.sh` 실행해 PATH 설정(또는 절대 경로 실행)  
 
 ## CI/CD 게이트
 - 기본: Lint/Format/Typecheck/Unit Test/Build 모두 통과 시 머지

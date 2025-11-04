@@ -1,4 +1,4 @@
-﻿import { loadFrontendConfig } from './frontendConfig.server'
+import { loadFrontendConfig } from './frontendConfig.server'
 
 export function getBackendHost() {
   try {

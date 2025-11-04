@@ -1,9 +1,9 @@
-﻿'use client'
+'use client'
 /**
- * ?뚯씪紐? csr.jsx
- * ?묒꽦?? LSH
- * 媛깆떊?? 2025-09-13
- * ?ㅻ챸: CSR ?뚮뜑留??좏떥
+ * 파일명: csr.jsx
+ * 작성자: LSH
+ * 갱신일: 2025-09-13
+ * 설명: CSR 유틸리티 모듈
  */
 
 import { getBackendHost } from '@/app/common/config/getBackendHost'
@@ -28,6 +28,5 @@ export async function postWithCsrf(path, body) {
     body: JSON.stringify(body || {}),
   })
 }
-
 
 

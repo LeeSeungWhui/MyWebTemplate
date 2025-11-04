@@ -1,16 +1,16 @@
-﻿/**
- * ?뚯씪紐? frontendConfig.server.js
- * ?묒꽦?? LSH
- * 媛깆떊?? 2025-09-13
- * ?ㅻ챸: ?꾨윴?몄뿏??config.ini 濡쒕뜑
+/**
+ * 파일명: frontendConfig.server.js
+ * 작성자: LSH
+ * 갱신일: 2025-09-13
+ * 설명: 프론트엔드 config.ini 로더
  */
 
 import fs from 'node:fs'
 import path from 'node:path'
 
 /**
- * ?ㅻ챸: config.ini ?뚯씪???쎌뼱 JSON 媛앹껜濡?蹂?섑븳??
- * ?곗꽑?쒖쐞: FRONTEND_CONFIG_PATH > config_prod.ini(?꾨줈?뺤뀡) > config_dev.ini > config.ini
+ * 설명: config.ini 파일을 읽어 JSON 객체로 변환한다.
+ * 우선순위: FRONTEND_CONFIG_PATH > config_prod.ini(프로덕션) > config_dev.ini > config.ini
  */
 export function loadFrontendConfig() {
   const cwd = process.cwd()
@@ -33,15 +33,15 @@ export function loadFrontendConfig() {
         return parseIni(iniText)
       }
     } catch (error) {
-      console.warn('[config] ?쎄린 ?ㅽ뙣, ?ㅼ쓬 ?꾨낫濡?吏꾪뻾:', p, error)
+      console.warn('[config] 읽기 실패, 다음 후보로 진행:', p, error)
     }
   }
   return {}
 }
 
 /**
- * ?ㅻ챸: INI 臾몄옄?댁쓣 媛앹껜濡??뚯떛?쒕떎.
- * ?뱀뀡([SECTION])? 媛앹껜 ?ㅺ? ?섎ŉ, ?뱀뀡 諛??ㅻ뒗 理쒖긽?꾩뿉 留ㅽ븨?쒕떎.
+ * 설명: INI 문자열을 객체로 변환한다.
+ * 섹션([SECTION])은 객체 키가 되고, 섹션 밖 키는 최상위에 매핑한다.
  */
 export function parseIni(iniText) {
   const result = {}
@@ -68,8 +68,8 @@ export function parseIni(iniText) {
 }
 
 /**
- * ?ㅻ챸: INI 媛?臾몄옄?댁쓣 ??낆뿉 留욊쾶 蹂?섑븳??
- * true/false, ?レ옄, JSON 媛앹껜/諛곗뿴 ?뺥깭瑜??먮룞 蹂?섑븯怨??섎㉧吏??臾몄옄?대줈 ?좎??쒕떎.
+ * 설명: INI 값 문자열을 타입에 맞게 변환한다.
+ * true/false, 숫자, JSON 객체/배열 포맷을 자동 변환하고 실패 시 문자열로 유지한다.
  */
 function coerceValue(valueRaw) {
   if (valueRaw === '') return ''
@@ -91,5 +91,4 @@ function coerceValue(valueRaw) {
   }
   return valueRaw
 }
-
 
