@@ -14,10 +14,9 @@ links: [CU-WEB-001, CU-WEB-002, CU-WEB-005, CU-WEB-006, CU-WEB-008, CU-BE-001]
 ### Scope
 - 포함
   - 경로 분류: 공개(`/login`, 정적 자산) vs 보호(`/`, `/dashboard`, `/settings` 등)
-  - 가드 계층:
-    - 미들웨어 가드(경로 진입 즉시 판정; links: CU-WEB-008)
-    - 서버 가드(서버 컴포넌트에서 쿠키/세션 판정)
-    - 클라 보조 가드(SWR 세션 폴링/만료 대응)
+  - 가드 계층(단일화):
+    - 미들웨어 가드만 사용(경로 진입 즉시 판정; links: CU-WEB-008)
+    - 클라 보조 가드(SWR 세션 동기화/만료 대응)
   - 리다이렉트 규칙: 미인증 보호 경로 접근 시 `/login`, 인증 상태로 `/login` 접근 시 `/`
   - `next` 파라미터: 유효 경로만 허용
   - 비멱등 요청 CSRF 미포함 403 UX 대응(토스트/재시도)
@@ -29,12 +28,12 @@ links: [CU-WEB-001, CU-WEB-002, CU-WEB-005, CU-WEB-006, CU-WEB-008, CU-BE-001]
   - 공개: `/login`, `/404`, `/public/*`
   - 보호: `/`, `/dashboard`, `/settings`, `/app/**`
 - 리다이렉트 정책
-  - 미인증 → 보호 경로: 즉시 `/login`으로 리다이렉트(미들웨어/서버 레벨, 깜빡임 없음)
+  - 미인증 → 보호 경로: 즉시 `/login`으로 리다이렉트(미들웨어, 깜빡임 없음)
   - 인증 → `/login`: `/`로 리다이렉트
   - `next`는 유효 경로일 때만 사용, 무효는 `/` 백
 - HTTP/캐시
   - 세션 확인 응답은 `Cache-Control: no-store`(links: CU-BE-001 `/api/v1/auth/session`)
-  - 보호 페이지는 기본 SSR(`revalidate=0`), ISR/CSR 전환은 CU-WEB-006 규칙 적용
+  - 페이지 렌더 전략은 자유(SSR/ISR/CSR). 인증 판별은 미들웨어로 선제 처리
 - 오류 처리
   - 401(JSON `{status:false, code, requestId}`) 수신 시 세션 무효화 후 `/login` 이동(토스트 + requestId)
   - 403(CSRF 등) 수신 시 토스트 + CSRF 재발급 UX 유도(links: CU-BE-001)
@@ -62,7 +61,7 @@ links: [CU-WEB-001, CU-WEB-002, CU-WEB-005, CU-WEB-006, CU-WEB-008, CU-BE-001]
 ### Tasks
 - T1 경로 정책 정의: 공개/보호 목록 및 패턴 정의(정규/리스트)
 - T2 미들웨어 가드: 보호 경로 미인증→`/login`, `/login` 인증→`/` (links: CU-WEB-008)
-- T3 서버 가드: 보호 페이지 RSC에서 쿠키 판정 및 리다이렉트 처리
+- T3 (삭제) 서버 가드: 보호 페이지 RSC 판정은 사용하지 않음(미들웨어 단일화)
 - T4 클라 가드: SWR 기반 세션 동기화(만료/401 자동 핸들), 메시지 매핑(`AUTH_*`, `VALID_422_*`)
 - T5 `next` 파라미터 검증: 유효 경로만 허용, 기본 `/`, 문서화
 - T6 캐시/전략: 보호 페이지 `no-store`/SSR 기본, ISR/CSR 전환 규칙(CU-WEB-006)
@@ -75,5 +74,8 @@ links: [CU-WEB-001, CU-WEB-002, CU-WEB-005, CU-WEB-006, CU-WEB-008, CU-BE-001]
 - 레이아웃/명칭 레이어: `frontend-web` 일관 유지
 
 ### Implementation Notes
-- `frontend-web/middleware.js`에서 `sid` 쿠키가 없으면 `/login`으로 302 리다이렉트한다.
-- `app/(protected)/layout.jsx`는 `ssrJSON(SESSION_PATH)`로 세션을 확인하고 미인증 시 `redirect('/login')`을 호출한다.
+- `frontend-web/middleware.js`에서 기본 보호(Default protect)를 적용한다.
+  - 공개 경로는 `frontend-web/app/common/config/publicRoutes.js`에서만 관리한다.
+  - 공개 경로가 아니고 `sid` 쿠키가 없으면 `/login`으로 302 리다이렉트한다.
+  - 리다이렉트 시 httpOnly 쿠키 `nx`에 원 경로를 5분간 저장한다(오픈 리다이렉트 방지 sanitize 적용).
+- 서버 컴포넌트/레이아웃에서 인증 재검사는 하지 않는다. 미들웨어 통과를 전제한다.

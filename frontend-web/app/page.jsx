@@ -1,18 +1,17 @@
 "use client"
 /**
- * 파일명: view.jsx
- * 작성자: LSH
- * 갱신일: 2025-09-13
- * 설명: 보호된 페이지 뷰
+ * 파일명: page.jsx
+ * 작성자: Codex
+ * 갱신일: 2025-11-05
+ * 설명: 홈 페이지(미들웨어 단일 가드 전제, 클라이언트 렌더)
  */
 
 import useSWR from 'swr'
 import { csrJSON } from '@/app/lib/runtime/csr'
-import { SESSION_PATH } from './initData'
+import { SESSION_PATH } from '@/app/login/initData'
 
-export default function Home({ mode, init }) {
-  const { data } = useSWR(mode === 'CSR' ? 'session' : null, () => csrJSON(SESSION_PATH), {
-    fallbackData: init,
+export default function HomePage() {
+  const { data } = useSWR('session', () => csrJSON(SESSION_PATH), {
     revalidateOnFocus: false,
   })
   const authed = !!(data && data.result && data.result.authenticated)
