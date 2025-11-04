@@ -1,6 +1,6 @@
 """
 파일: backend/lib/Database.py
-작성: Codex CLI
+작성: LSH
 갱신: 2025-09-07
 설명: DB 매니저/쿼리 로더/디렉터리 감시. 파라미터 바인딩 강제·PII 마스킹 로깅.
 """

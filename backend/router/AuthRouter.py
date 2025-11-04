@@ -1,6 +1,6 @@
 """
 파일명: backend/router/AuthRouter.py
-작성자: Codex CLI
+작성자: LSH
 갱신일: 2025-09-07
 설명: 인증 API 라우터. 서비스 계층 호출만 수행.
 """

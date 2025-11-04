@@ -1,6 +1,6 @@
 """
 파일: backend/service/ObservabilityService.py
-작성: Codex CLI
+작성: LSH
 설명: 헬스체크 및 레디니스 서비스 로직.
 """
 

@@ -1,3 +1,10 @@
+/**
+ * 파일명: EasyEditor.stories.jsx
+ * 작성자: LSH
+ * 갱신일: 2025-11-04
+ * 설명: EasyEditor 컴포넌트 Storybook 시나리오 정의
+ */
+
 import { useMemo, useState } from 'react';
 import EasyEditor from '../app/lib/component/EasyEditor/EasyEditor.jsx';
 

@@ -1,3 +1,10 @@
+/**
+ * 파일명: EasyEditorHtmlMode.test.jsx
+ * 작성자: LSH
+ * 갱신일: 2025-11-04
+ * 설명: EasyEditor HTML 모드 전환 및 내용 동기화 시나리오 검증
+ */
+
 import React from 'react';
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
@@ -72,15 +79,15 @@ beforeAll(async () => {
 });
 
 describe('EasyEditor HTML mode', () => {
-beforeEach(() => {
-  editorStub = null;
-  mockUseEasyEditor.mockImplementation(() => {
-    if (!editorStub) {
-      editorStub = createEditorStub();
-    }
-    return { editor: editorStub };
+  beforeEach(() => {
+    editorStub = null;
+    mockUseEasyEditor.mockImplementation(() => {
+      if (!editorStub) {
+        editorStub = createEditorStub();
+      }
+      return { editor: editorStub };
+    });
   });
-});
 
   afterEach(() => {
     mockUseEasyEditor.mockReset();

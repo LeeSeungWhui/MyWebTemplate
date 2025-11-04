@@ -1,6 +1,6 @@
 """
 파일: backend/service/TransactionService.py
-작성: Codex CLI
+작성: LSH
 갱신: 2025-09-07
 설명: 트랜잭션 유틸 도메인 서비스. 테이블 보장/단일 커밋/유니크 위반 시뮬레이트.
 """

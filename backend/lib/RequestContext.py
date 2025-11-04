@@ -1,6 +1,6 @@
 """
 파일명: backend/lib/RequestContext.py
-작성자: Codex CLI
+작성자: LSH
 갱신일: 2025-09-07
 설명: 요청 스코프 값(ContextVar) 저장/조회 유틸.
 """

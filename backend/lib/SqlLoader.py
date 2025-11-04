@@ -1,6 +1,6 @@
 """
 파일: backend/lib/SqlLoader.py
-작성: Codex CLI
+작성: LSH
 갱신: 2025-09-07
 설명: .sql 파일에서 `-- name:` 블록을 파싱하여 쿼리 레지스트리를 구성.
 """

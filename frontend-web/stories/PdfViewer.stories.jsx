@@ -1,3 +1,10 @@
+/**
+ * 파일명: PdfViewer.stories.jsx
+ * 작성자: LSH
+ * 갱신일: 2025-11-04
+ * 설명: PdfViewer 컴포넌트 Storybook 시나리오 정의
+ */
+
 import PdfViewer from '../app/lib/component/PdfViewer/PdfViewer.jsx';
 
 const meta = {

@@ -1,6 +1,6 @@
 ﻿/**
  * EasyEditorExamples.jsx
- * 작성자: Codex
+ * 작성자: LSH
  * 설명: EasyEditor 컴포넌트 예제
  */
 import * as Lib from '@/app/lib';

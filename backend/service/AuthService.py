@@ -1,6 +1,6 @@
 """
 파일: backend/service/AuthService.py
-작성: Codex CLI
+작성: LSH
 설명: 인증 도메인 서비스. 라우터에서 호출되어 로그인/로그아웃/토큰 발급 등 처리.
 """
 

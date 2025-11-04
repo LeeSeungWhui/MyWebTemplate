@@ -1,3 +1,10 @@
+/**
+ * 파일명: PdfViewer.test.jsx
+ * 작성자: LSH
+ * 갱신일: 2025-11-04
+ * 설명: PdfViewer 컴포넌트의 렌더링 및 오류 처리 동작 검증
+ */
+
 import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';

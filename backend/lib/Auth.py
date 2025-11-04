@@ -1,6 +1,6 @@
 """
 파일명: backend/lib/Auth.py
-작성자: Codex CLI
+작성자: LSH
 갱신일: 2025-09-07
 설명: JWT 발급/검증과 인증 공통 설정.
 """

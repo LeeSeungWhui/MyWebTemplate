@@ -1,6 +1,6 @@
 """
 파일명: backend/router/TransactionRouter.py
-작성자: Codex CLI
+작성자: LSH
 갱신일: 2025-09-07
 설명: 트랜잭션 유틸 테스트 라우트. 공용 데모용 엔드포인트.
 """

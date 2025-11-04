@@ -1,6 +1,6 @@
 /**
  * 파일명: openapi.js
- * 작성자: Codex CLI
+ * 작성자: LSH
  * 목적: OpenAPI JS 클라이언트 스켈레톤 (openapi-client-axios)
  */
 import createClient from 'openapi-client-axios'
@@ -32,7 +32,7 @@ export async function getSession() {
       const res = await api.client.get('/api/v1/auth/session', { headers: { 'Cache-Control': 'no-store' } })
       return res.data
     }
-  } catch (_) {}
+  } catch (_) { }
   const r = await fetch(BASE + '/api/v1/auth/session', { credentials: 'include', headers: { 'Cache-Control': 'no-store' } })
   return r.json()
 }

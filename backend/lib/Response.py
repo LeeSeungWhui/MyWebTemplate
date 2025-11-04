@@ -1,6 +1,6 @@
 """
 파일명: backend/lib/Response.py
-작성자: Codex CLI
+작성자: LSH
 갱신일: 2025-09-07
 설명: 공통 응답 스키마/헬퍼. { status, message, result, count?, code?, requestId }.
 """

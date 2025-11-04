@@ -1,6 +1,6 @@
 """
 파일: backend/lib/OpenAPI.py
-작성: Codex CLI
+작성: LSH
 갱신: 2025-09-07
 설명: FastAPI OpenAPI 스키마 커스터마이저 부착(보안 스키마/표준 응답/CSRF/servers/codeSamples 등).
 """
