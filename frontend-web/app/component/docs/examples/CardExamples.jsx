@@ -5,7 +5,7 @@
  * ?ㅻ챸: Card 而댄룷?뚰듃 ?덉젣
  */
 import * as Lib from '@/app/lib';
-import { useSharedStore } from '@/app/common/store/SharedStore';
+import { useGlobalUi } from '@/app/common/store/SharedStore';
 
 export const CardExamples = () => {
   const showAlert = useSharedStore(s => s.showAlert);
@@ -95,5 +95,6 @@ export const CardExamples = () => {
 
   return examples;
 };
+
 
 

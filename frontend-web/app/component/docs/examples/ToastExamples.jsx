@@ -5,10 +5,10 @@
  * ?ㅻ챸: Toast 而댄룷?뚰듃 ?덉젣
  */
 import * as Lib from '@/app/lib';
-import { useSharedStore } from '@/app/common/store/SharedStore';
+import { useGlobalUi } from '@/app/common/store/SharedStore';
 
 export const ToastExamples = () => {
-    const showToast = useSharedStore(s => s.showToast);
+    const { showToast } = useGlobalUi();
 
     const examples = [
         {
@@ -22,7 +22,7 @@ export const ToastExamples = () => {
             ),
             description: "湲곕낯 ?좎뒪??,
             code: `// useSharedStore ?ъ슜
-const showToast = useSharedStore(s => s.showToast);
+const { showToast } = useGlobalUi();
 
 // 湲곕낯 ?좎뒪??showToast("湲곕낯 ?좎뒪??硫붿떆吏?낅땲??");`
         },
@@ -192,5 +192,6 @@ showToast("?먮룞?쇰줈 ?щ씪吏吏 ?딆뒿?덈떎.", {
 
     return examples;
 };
+
 
 

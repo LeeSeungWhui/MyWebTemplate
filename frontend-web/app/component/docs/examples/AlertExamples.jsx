@@ -6,10 +6,10 @@
  */
 import * as Lib from '@/app/lib';
 import { useRef } from 'react';
-import { useSharedStore } from '@/app/common/store/SharedStore';
+import { useGlobalUi } from '@/app/common/store/SharedStore';
 
 export const AlertExamples = () => {
-    const showAlert = useSharedStore(s => s.showAlert);
+    const { showAlert } = useGlobalUi();
     const buttonRef = useRef(null);
     const inputRef = useRef(null);
 
@@ -26,7 +26,7 @@ export const AlertExamples = () => {
             ),
             description: "湲곕낯 ?뚮┝",
             code: `// useSharedStore ?ъ슜
-const showAlert = useSharedStore(s => s.showAlert);
+const { showAlert } = useGlobalUi();
 
 // 湲곕낯 ?뚮┝
 showAlert("湲곕낯 ?뚮┝ 硫붿떆吏?낅땲??");`
@@ -166,5 +166,6 @@ const inputRef = useRef(null);
 
     return examples;
 };
+
 
 

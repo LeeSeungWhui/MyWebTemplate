@@ -6,10 +6,10 @@
  */
 import * as Lib from '@/app/lib';
 import { useRef } from 'react';
-import { useSharedStore } from '@/app/common/store/SharedStore';
+import { useGlobalUi } from '@/app/common/store/SharedStore';
 
 export const ConfirmExamples = () => {
-    const showConfirm = useSharedStore(s => s.showConfirm);\n    const showAlert = useSharedStore(s => s.showAlert);
+    const { showConfirm, showAlert } = useGlobalUi();\n    
     const inputRef = useRef(null);
 
     const examples = [
@@ -29,7 +29,7 @@ export const ConfirmExamples = () => {
             ),
             description: "湲곕낯 ?뺤씤 ??붿긽??,
             code: `// useSharedStore ?ъ슜
-const showConfirm = useSharedStore(s => s.showConfirm);\n    const showAlert = useSharedStore(s => s.showAlert);
+const { showConfirm, showAlert } = useGlobalUi();\n    
 
 // 湲곕낯 ?뺤씤
 showConfirm("?뺣쭚 ??젣?섏떆寃좎뒿?덇퉴?").then(result => {
@@ -163,5 +163,6 @@ const inputRef = useRef(null);
 
     return examples;
 };
+
 
 
