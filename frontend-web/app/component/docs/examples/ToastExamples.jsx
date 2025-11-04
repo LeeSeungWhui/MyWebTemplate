@@ -1,101 +1,94 @@
 "use client";
 /**
- * íŒŒì¼ëª…: ToastExamples.jsx
- * ì‘ì„±ì: LSH
- * ê°±ì‹ ì¼: 2025-09-13
- * ì„¤ëª…: Toast ì»´í¬ë„ŒíŠ¸ ì˜ˆì œ
+ * ÆÄÀÏ¸í: ToastExamples.jsx
+ * ÀÛ¼ºÀÚ: LSH
+ * °»½ÅÀÏ: 2025-09-13
+ * ¼³¸í: Toast ÄÄÆ÷³ÍÆ® ¿¹Á¦
  */
 import * as Lib from '@/app/lib';
 import { useGlobalUi } from '@/app/common/store/SharedStore';
 
-export const ToastExamples = () => {
+const ToastBasic = () => {
   const { showToast } = useGlobalUi();
+  return <Lib.Button onClick={() => showToast('±âº» Åä½ºÆ® ¸Ş½ÃÁöÀÔ´Ï´Ù.')}>±âº» Åä½ºÆ®</Lib.Button>;
+};
 
-  const examples = [
+const ToastTypes = () => {
+  const { showToast } = useGlobalUi();
+  return (
+    <div className="flex flex-wrap gap-2">
+      <Lib.Button onClick={() => showToast('Á¤º¸ Åä½ºÆ® ¸Ş½ÃÁöÀÔ´Ï´Ù.', { type: 'info' })}>Á¤º¸ Åä½ºÆ®</Lib.Button>
+      <Lib.Button onClick={() => showToast('¼º°ø Åä½ºÆ® ¸Ş½ÃÁöÀÔ´Ï´Ù.', { type: 'success' })}>¼º°ø Åä½ºÆ®</Lib.Button>
+      <Lib.Button onClick={() => showToast('°æ°í Åä½ºÆ® ¸Ş½ÃÁöÀÔ´Ï´Ù.', { type: 'warning' })}>°æ°í Åä½ºÆ®</Lib.Button>
+      <Lib.Button onClick={() => showToast('¿À·ù Åä½ºÆ® ¸Ş½ÃÁöÀÔ´Ï´Ù.', { type: 'error' })}>¿À·ù Åä½ºÆ®</Lib.Button>
+    </div>
+  );
+};
+
+const ToastPositions = () => {
+  const { showToast } = useGlobalUi();
+  return (
+    <div className="flex flex-wrap gap-2">
+      <Lib.Button onClick={() => showToast('»ó´Ü ¿ŞÂÊ¿¡ Ç¥½ÃÇÕ´Ï´Ù.', { position: 'top-left' })}>»ó´Ü ¿ŞÂÊ</Lib.Button>
+      <Lib.Button onClick={() => showToast('»ó´Ü Áß¾Ó¿¡ Ç¥½ÃÇÕ´Ï´Ù.', { position: 'top-center' })}>»ó´Ü Áß¾Ó</Lib.Button>
+      <Lib.Button onClick={() => showToast('»ó´Ü ¿À¸¥ÂÊ¿¡ Ç¥½ÃÇÕ´Ï´Ù.', { position: 'top-right' })}>»ó´Ü ¿À¸¥ÂÊ</Lib.Button>
+      <Lib.Button onClick={() => showToast('ÇÏ´Ü ¿ŞÂÊ¿¡ Ç¥½ÃÇÕ´Ï´Ù.', { position: 'bottom-left' })}>ÇÏ´Ü ¿ŞÂÊ</Lib.Button>
+      <Lib.Button onClick={() => showToast('ÇÏ´Ü Áß¾Ó¿¡ Ç¥½ÃÇÕ´Ï´Ù.', { position: 'bottom-center' })}>ÇÏ´Ü Áß¾Ó</Lib.Button>
+      <Lib.Button onClick={() => showToast('ÇÏ´Ü ¿À¸¥ÂÊ¿¡ Ç¥½ÃÇÕ´Ï´Ù.', { position: 'bottom-right' })}>ÇÏ´Ü ¿À¸¥ÂÊ</Lib.Button>
+    </div>
+  );
+};
+
+const ToastDurations = () => {
+  const { showToast } = useGlobalUi();
+  return (
+    <div className="flex flex-wrap gap-2">
+      <Lib.Button onClick={() => showToast('2ÃÊ¿¡ »ç¶óÁı´Ï´Ù.', { duration: 2000 })}>2ÃÊ À¯Áö</Lib.Button>
+      <Lib.Button onClick={() => showToast('5ÃÊ¿¡ »ç¶óÁı´Ï´Ù.', { duration: 5000 })}>5ÃÊ À¯Áö</Lib.Button>
+      <Lib.Button onClick={() => showToast('ÀÚµ¿À¸·Î »ç¶óÁöÁö ¾Ê½À´Ï´Ù.', { duration: Infinity })}>ÀÚµ¿ ´İ±â ºñÈ°¼ºÈ­</Lib.Button>
+    </div>
+  );
+};
+
+export const ToastExamples = () => {
+  return [
     {
       component: (
         <div className="space-y-4">
-          <Lib.Button onClick={() => showToast('ê¸°ë³¸ í† ìŠ¤íŠ¸ ë©”ì‹œì§€ì…ë‹ˆë‹¤.')}>ê¸°ë³¸ í† ìŠ¤íŠ¸</Lib.Button>
+          <ToastBasic />
         </div>
       ),
-      description: 'ê¸°ë³¸ í† ìŠ¤íŠ¸',
-      code: `// useSharedStore ì‚¬ìš©
+      description: '±âº» Åä½ºÆ®',
+      code: `// useSharedStore »ç¿ë
 const { showToast } = useGlobalUi();
 
-// ê¸°ë³¸ í† ìŠ¤íŠ¸
-showToast('ê¸°ë³¸ í† ìŠ¤íŠ¸ ë©”ì‹œì§€ì…ë‹ˆë‹¤.');`
+// ±âº» Åä½ºÆ®
+showToast('±âº» Åä½ºÆ® ¸Ş½ÃÁöÀÔ´Ï´Ù.');`
     },
     {
-      component: (
-        <div className="flex flex-wrap gap-2">
-          <Lib.Button onClick={() => showToast('ì •ë³´ í† ìŠ¤íŠ¸ ë©”ì‹œì§€ì…ë‹ˆë‹¤.', { type: 'info' })}>ì •ë³´ í† ìŠ¤íŠ¸</Lib.Button>
-          <Lib.Button onClick={() => showToast('ì„±ê³µ í† ìŠ¤íŠ¸ ë©”ì‹œì§€ì…ë‹ˆë‹¤.', { type: 'success' })}>ì„±ê³µ í† ìŠ¤íŠ¸</Lib.Button>
-          <Lib.Button onClick={() => showToast('ê²½ê³  í† ìŠ¤íŠ¸ ë©”ì‹œì§€ì…ë‹ˆë‹¤.', { type: 'warning' })}>ê²½ê³  í† ìŠ¤íŠ¸</Lib.Button>
-          <Lib.Button onClick={() => showToast('ì˜¤ë¥˜ í† ìŠ¤íŠ¸ ë©”ì‹œì§€ì…ë‹ˆë‹¤.', { type: 'error' })}>ì˜¤ë¥˜ í† ìŠ¤íŠ¸</Lib.Button>
-        </div>
-      ),
-      description: 'í† ìŠ¤íŠ¸ ìœ í˜•',
-      code: `// ì •ë³´ í† ìŠ¤íŠ¸
-showToast('ì •ë³´ í† ìŠ¤íŠ¸ ë©”ì‹œì§€ì…ë‹ˆë‹¤.', { type: 'info' });
-
-// ì„±ê³µ í† ìŠ¤íŠ¸
-showToast('ì„±ê³µ í† ìŠ¤íŠ¸ ë©”ì‹œì§€ì…ë‹ˆë‹¤.', { type: 'success' });
-
-// ê²½ê³  í† ìŠ¤íŠ¸
-showToast('ê²½ê³  í† ìŠ¤íŠ¸ ë©”ì‹œì§€ì…ë‹ˆë‹¤.', { type: 'warning' });
-
-// ì˜¤ë¥˜ í† ìŠ¤íŠ¸
-showToast('ì˜¤ë¥˜ í† ìŠ¤íŠ¸ ë©”ì‹œì§€ì…ë‹ˆë‹¤.', { type: 'error' });`
+      component: <ToastTypes />,
+      description: 'Åä½ºÆ® À¯Çü',
+      code: `showToast('Á¤º¸ Åä½ºÆ® ¸Ş½ÃÁöÀÔ´Ï´Ù.', { type: 'info' });
+showToast('¼º°ø Åä½ºÆ® ¸Ş½ÃÁöÀÔ´Ï´Ù.', { type: 'success' });
+showToast('°æ°í Åä½ºÆ® ¸Ş½ÃÁöÀÔ´Ï´Ù.', { type: 'warning' });
+showToast('¿À·ù Åä½ºÆ® ¸Ş½ÃÁöÀÔ´Ï´Ù.', { type: 'error' });`
     },
     {
-      component: (
-        <div className="flex flex-wrap gap-2">
-          <Lib.Button onClick={() => showToast('ìƒë‹¨ ì™¼ìª½ì— í‘œì‹œí•©ë‹ˆë‹¤.', { position: 'top-left' })}>ìƒë‹¨ ì™¼ìª½</Lib.Button>
-          <Lib.Button onClick={() => showToast('ìƒë‹¨ ì¤‘ì•™ì— í‘œì‹œí•©ë‹ˆë‹¤.', { position: 'top-center' })}>ìƒë‹¨ ì¤‘ì•™</Lib.Button>
-          <Lib.Button onClick={() => showToast('ìƒë‹¨ ì˜¤ë¥¸ìª½ì— í‘œì‹œí•©ë‹ˆë‹¤.', { position: 'top-right' })}>ìƒë‹¨ ì˜¤ë¥¸ìª½</Lib.Button>
-          <Lib.Button onClick={() => showToast('í•˜ë‹¨ ì™¼ìª½ì— í‘œì‹œí•©ë‹ˆë‹¤.', { position: 'bottom-left' })}>í•˜ë‹¨ ì™¼ìª½</Lib.Button>
-          <Lib.Button onClick={() => showToast('í•˜ë‹¨ ì¤‘ì•™ì— í‘œì‹œí•©ë‹ˆë‹¤.', { position: 'bottom-center' })}>í•˜ë‹¨ ì¤‘ì•™</Lib.Button>
-          <Lib.Button onClick={() => showToast('í•˜ë‹¨ ì˜¤ë¥¸ìª½ì— í‘œì‹œí•©ë‹ˆë‹¤.', { position: 'bottom-right' })}>í•˜ë‹¨ ì˜¤ë¥¸ìª½</Lib.Button>
-        </div>
-      ),
-      description: 'í† ìŠ¤íŠ¸ ìœ„ì¹˜',
-      code: `// ìƒë‹¨ ì™¼ìª½
-showToast('ìƒë‹¨ ì™¼ìª½ì— í‘œì‹œí•©ë‹ˆë‹¤.', { position: 'top-left' });
-
-// ìƒë‹¨ ì¤‘ì•™
-showToast('ìƒë‹¨ ì¤‘ì•™ì— í‘œì‹œí•©ë‹ˆë‹¤.', { position: 'top-center' });
-
-// ìƒë‹¨ ì˜¤ë¥¸ìª½
-showToast('ìƒë‹¨ ì˜¤ë¥¸ìª½ì— í‘œì‹œí•©ë‹ˆë‹¤.', { position: 'top-right' });
-
-// í•˜ë‹¨ ì™¼ìª½
-showToast('í•˜ë‹¨ ì™¼ìª½ì— í‘œì‹œí•©ë‹ˆë‹¤.', { position: 'bottom-left' });
-
-// í•˜ë‹¨ ì¤‘ì•™
-showToast('í•˜ë‹¨ ì¤‘ì•™ì— í‘œì‹œí•©ë‹ˆë‹¤.', { position: 'bottom-center' });
-
-// í•˜ë‹¨ ì˜¤ë¥¸ìª½
-showToast('í•˜ë‹¨ ì˜¤ë¥¸ìª½ì— í‘œì‹œí•©ë‹ˆë‹¤.', { position: 'bottom-right' });`
+      component: <ToastPositions />,
+      description: 'Åä½ºÆ® À§Ä¡',
+      code: `showToast('»ó´Ü ¿ŞÂÊ¿¡ Ç¥½ÃÇÕ´Ï´Ù.', { position: 'top-left' });
+showToast('»ó´Ü Áß¾Ó¿¡ Ç¥½ÃÇÕ´Ï´Ù.', { position: 'top-center' });
+showToast('»ó´Ü ¿À¸¥ÂÊ¿¡ Ç¥½ÃÇÕ´Ï´Ù.', { position: 'top-right' });
+showToast('ÇÏ´Ü ¿ŞÂÊ¿¡ Ç¥½ÃÇÕ´Ï´Ù.', { position: 'bottom-left' });
+showToast('ÇÏ´Ü Áß¾Ó¿¡ Ç¥½ÃÇÕ´Ï´Ù.', { position: 'bottom-center' });
+showToast('ÇÏ´Ü ¿À¸¥ÂÊ¿¡ Ç¥½ÃÇÕ´Ï´Ù.', { position: 'bottom-right' });`
     },
     {
-      component: (
-        <div className="flex flex-wrap gap-2">
-          <Lib.Button onClick={() => showToast('2ì´ˆì— ì‚¬ë¼ì§‘ë‹ˆë‹¤.', { duration: 2000 })}>2ì´ˆ ìœ ì§€</Lib.Button>
-          <Lib.Button onClick={() => showToast('5ì´ˆì— ì‚¬ë¼ì§‘ë‹ˆë‹¤.', { duration: 5000 })}>5ì´ˆ ìœ ì§€</Lib.Button>
-          <Lib.Button onClick={() => showToast('ìë™ìœ¼ë¡œ ì‚¬ë¼ì§€ì§€ ì•ŠìŠµë‹ˆë‹¤.', { duration: Infinity })}>ìë™ ë‹«ê¸° ë¹„í™œì„±í™”</Lib.Button>
-        </div>
-      ),
-      description: 'í† ìŠ¤íŠ¸ ìœ ì§€ ì‹œê°„',
-      code: `// 2ì´ˆ ìœ ì§€
-showToast('2ì´ˆì— ì‚¬ë¼ì§‘ë‹ˆë‹¤.', { duration: 2000 });
-
-// 5ì´ˆ ìœ ì§€
-showToast('5ì´ˆì— ì‚¬ë¼ì§‘ë‹ˆë‹¤.', { duration: 5000 });
-
-// ìë™ ë‹«ê¸° ë¹„í™œì„±í™”
-showToast('ìë™ìœ¼ë¡œ ì‚¬ë¼ì§€ì§€ ì•ŠìŠµë‹ˆë‹¤.', { duration: Infinity });`
+      component: <ToastDurations />,
+      description: 'Åä½ºÆ® À¯Áö ½Ã°£',
+      code: `showToast('2ÃÊ¿¡ »ç¶óÁı´Ï´Ù.', { duration: 2000 });
+showToast('5ÃÊ¿¡ »ç¶óÁı´Ï´Ù.', { duration: 5000 });
+showToast('ÀÚµ¿À¸·Î »ç¶óÁöÁö ¾Ê½À´Ï´Ù.', { duration: Infinity });`
     }
   ];
-
-  return examples;
 };

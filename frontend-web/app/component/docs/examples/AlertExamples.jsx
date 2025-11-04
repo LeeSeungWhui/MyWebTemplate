@@ -1,121 +1,134 @@
 "use client";
 /**
- * íŒŒì¼ëª…: AlertExamples.jsx
- * ì‘ì„±ì: LSH
- * ê°±ì‹ ì¼: 2025-09-13
- * ì„¤ëª…: Alert ì»´í¬ë„ŒíŠ¸ ì˜ˆì œ
+ * ÆÄÀÏ¸í: AlertExamples.jsx
+ * ÀÛ¼ºÀÚ: LSH
+ * °»½ÅÀÏ: 2025-09-13
+ * ¼³¸í: Alert ÄÄÆ÷³ÍÆ® ¿¹Á¦
  */
 import * as Lib from '@/app/lib';
 import { useRef } from 'react';
 import { useGlobalUi } from '@/app/common/store/SharedStore';
 
-export const AlertExamples = () => {
+const BasicAlert = () => {
   const { showAlert } = useGlobalUi();
-  const buttonRef = useRef(null);
-  const inputRef = useRef(null);
+  return <Lib.Button onClick={() => showAlert('±âº» ¾Ë¸² ¸Ş½ÃÁöÀÔ´Ï´Ù.')}>±âº» ¾Ë¸²</Lib.Button>;
+};
 
-  const examples = [
+const AlertVariants = () => {
+  const { showAlert } = useGlobalUi();
+  return (
+    <div className="flex flex-wrap gap-2">
+      <Lib.Button onClick={() => showAlert('Á¤º¸ ¾Ë¸² ¸Ş½ÃÁöÀÔ´Ï´Ù.', { title: 'Á¤º¸', type: 'info' })}>Á¤º¸ ¾Ë¸²</Lib.Button>
+      <Lib.Button onClick={() => showAlert('¼º°ø ¾Ë¸² ¸Ş½ÃÁöÀÔ´Ï´Ù.', { title: '¼º°ø', type: 'success' })}>¼º°ø ¾Ë¸²</Lib.Button>
+      <Lib.Button onClick={() => showAlert('°æ°í ¾Ë¸² ¸Ş½ÃÁöÀÔ´Ï´Ù.', { title: '°æ°í', type: 'warning' })}>°æ°í ¾Ë¸²</Lib.Button>
+      <Lib.Button onClick={() => showAlert('¿À·ù ¾Ë¸² ¸Ş½ÃÁöÀÔ´Ï´Ù.', { title: '¿À·ù', type: 'error' })}>¿À·ù ¾Ë¸²</Lib.Button>
+    </div>
+  );
+};
+
+const AlertCallback = () => {
+  const { showAlert } = useGlobalUi();
+  return (
+    <Lib.Button
+      onClick={() =>
+        showAlert('ÀÛ¾÷ÀÌ ¿Ï·áµÇ¾ú½À´Ï´Ù.', {
+          title: '¾Ë¸²',
+          onClick: function () {
+            alert('¾Ë¸²À» ´İ¾Ò½À´Ï´Ù.');
+          },
+        })
+      }
+    >
+      Äİ¹é ÇÔ¼ö Ç¥½Ã
+    </Lib.Button>
+  );
+};
+
+const AlertFocusAfter = () => {
+  const { showAlert } = useGlobalUi();
+  const inputRef = useRef(null);
+  const buttonRef = useRef(null);
+  return (
+    <div className="flex gap-4 items-center">
+      <Lib.Button
+        ref={buttonRef}
+        onClick={() =>
+          showAlert('¾Ë¸²À» ´İÈ÷¸é ÀÔ·ÂÃ¢À¸·Î Ä¿¼­°¡ ÀÌµ¿ÇÕ´Ï´Ù.', {
+            title: '¾Ë¸²',
+            onFocus: () => inputRef.current?.focus(),
+          })
+        }
+      >
+        ¾Ë¸² ¶ç¿ì±â
+      </Lib.Button>
+      <Lib.Input ref={inputRef} placeholder="Ä¿¼­°¡ ¿©±â·Î ÀÌµ¿ÇÕ´Ï´Ù" />
+    </div>
+  );
+};
+
+export const AlertExamples = () => {
+  return [
     {
       component: (
         <div className="space-y-4">
-          <Lib.Button onClick={() => showAlert('ê¸°ë³¸ ì•Œë¦¼ ë©”ì‹œì§€ì…ë‹ˆë‹¤.')}>ê¸°ë³¸ ì•Œë¦¼</Lib.Button>
+          <BasicAlert />
         </div>
       ),
-      description: 'ê¸°ë³¸ ì•Œë¦¼',
-      code: `// useSharedStore ì‚¬ìš©
+      description: '±âº» ¾Ë¸²',
+      code: `// useSharedStore »ç¿ë
 const { showAlert } = useGlobalUi();
 
-// ê¸°ë³¸ ì•Œë¦¼
-showAlert('ê¸°ë³¸ ì•Œë¦¼ ë©”ì‹œì§€ì…ë‹ˆë‹¤.');`
+// ±âº» ¾Ë¸²
+showAlert('±âº» ¾Ë¸² ¸Ş½ÃÁöÀÔ´Ï´Ù.');`
     },
     {
-      component: (
-        <div className="flex flex-wrap gap-2">
-          <Lib.Button onClick={() => showAlert('ì •ë³´ ì•Œë¦¼ ë©”ì‹œì§€ì…ë‹ˆë‹¤.', { title: 'ì •ë³´', type: 'info' })}>ì •ë³´ ì•Œë¦¼</Lib.Button>
-          <Lib.Button onClick={() => showAlert('ì„±ê³µ ì•Œë¦¼ ë©”ì‹œì§€ì…ë‹ˆë‹¤.', { title: 'ì„±ê³µ', type: 'success' })}>ì„±ê³µ ì•Œë¦¼</Lib.Button>
-          <Lib.Button onClick={() => showAlert('ê²½ê³  ì•Œë¦¼ ë©”ì‹œì§€ì…ë‹ˆë‹¤.', { title: 'ê²½ê³ ', type: 'warning' })}>ê²½ê³  ì•Œë¦¼</Lib.Button>
-          <Lib.Button onClick={() => showAlert('ì˜¤ë¥˜ ì•Œë¦¼ ë©”ì‹œì§€ì…ë‹ˆë‹¤.', { title: 'ì˜¤ë¥˜', type: 'error' })}>ì˜¤ë¥˜ ì•Œë¦¼</Lib.Button>
-        </div>
-      ),
-      description: 'ì•Œë¦¼ ìœ í˜•',
-      code: `// ì •ë³´ ì•Œë¦¼
-showAlert('ì •ë³´ ì•Œë¦¼ ë©”ì‹œì§€ì…ë‹ˆë‹¤.', { title: 'ì •ë³´', type: 'info' });
-
-// ì„±ê³µ ì•Œë¦¼
-showAlert('ì„±ê³µ ì•Œë¦¼ ë©”ì‹œì§€ì…ë‹ˆë‹¤.', { title: 'ì„±ê³µ', type: 'success' });
-
-// ê²½ê³  ì•Œë¦¼
-showAlert('ê²½ê³  ì•Œë¦¼ ë©”ì‹œì§€ì…ë‹ˆë‹¤.', { title: 'ê²½ê³ ', type: 'warning' });
-
-// ì˜¤ë¥˜ ì•Œë¦¼
-showAlert('ì˜¤ë¥˜ ì•Œë¦¼ ë©”ì‹œì§€ì…ë‹ˆë‹¤.', { title: 'ì˜¤ë¥˜', type: 'error' });`
+      component: <AlertVariants />,
+      description: '¾Ë¸² À¯Çü',
+      code: `// Á¤º¸/¼º°ø/°æ°í/¿À·ù ¾Ë¸²
+showAlert('Á¤º¸ ¾Ë¸² ¸Ş½ÃÁöÀÔ´Ï´Ù.', { title: 'Á¤º¸', type: 'info' });
+showAlert('¼º°ø ¾Ë¸² ¸Ş½ÃÁöÀÔ´Ï´Ù.', { title: '¼º°ø', type: 'success' });
+showAlert('°æ°í ¾Ë¸² ¸Ş½ÃÁöÀÔ´Ï´Ù.', { title: '°æ°í', type: 'warning' });
+showAlert('¿À·ù ¾Ë¸² ¸Ş½ÃÁöÀÔ´Ï´Ù.', { title: '¿À·ù', type: 'error' });`
     },
     {
       component: (
         <div className="space-y-4">
-          <Lib.Button
-            onClick={() =>
-              showAlert('ì‘ì—…ì´ ì™„ë£Œë˜ì—ˆìŠµë‹ˆë‹¤.', {
-                title: 'ì•Œë¦¼',
-                onClick: function () {
-                  alert('ì•Œë¦¼ì„ ë‹«ì•˜ìŠµë‹ˆë‹¤.');
-                },
-              })
-            }
-          >
-            ì½œë°± í•¨ìˆ˜ í‘œì‹œ
-          </Lib.Button>
+          <AlertCallback />
         </div>
       ),
-      description: 'ì•Œë¦¼ ë‹«í˜ ì½œë°±',
-      code: `// ì•Œë¦¼ì„ ë‹«ì„ ë•Œ ì‹¤í–‰ë  ì½œë°± í•¨ìˆ˜
-showAlert('ì‘ì—…ì´ ì™„ë£Œë˜ì—ˆìŠµë‹ˆë‹¤.', {
-  title: 'ì•Œë¦¼',
+      description: '¾Ë¸² ´İÈû Äİ¹é',
+      code: `// ¾Ë¸² ´İÈû ½Ã ½ÇÇàµÉ Äİ¹é
+showAlert('ÀÛ¾÷ÀÌ ¿Ï·áµÇ¾ú½À´Ï´Ù.', {
+  title: '¾Ë¸²',
   onClick: function() {
-    alert('ì•Œë¦¼ì„ ë‹«ì•˜ìŠµë‹ˆë‹¤.');
+    alert('¾Ë¸²À» ´İ¾Ò½À´Ï´Ù.');
   }
 });`
     },
     {
       component: (
         <div className="space-y-4">
-          <div className="flex gap-4 items-center">
-            <Lib.Button
-              ref={buttonRef}
-              onClick={() =>
-                showAlert('ì•Œë¦¼ì„ ë‹«íˆë©´ ì…ë ¥ì°½ìœ¼ë¡œ ì»¤ì„œê°€ ì´ë™í•©ë‹ˆë‹¤.', {
-                  title: 'ì•Œë¦¼',
-                  onFocus: () => inputRef.current?.focus(),
-                })
-              }
-            >
-              ì•Œë¦¼ ë„ìš°ê¸°
-            </Lib.Button>
-            <Lib.Input ref={inputRef} placeholder="ì»¤ì„œê°€ ì—¬ê¸°ë¡œ ì´ë™í•©ë‹ˆë‹¤" />
-          </div>
+          <AlertFocusAfter />
         </div>
       ),
-      description: 'ì•Œë¦¼ ë‹«í˜ í›„ ì§€ì •ëœ ìš”ì†Œë¡œ í¬ì»¤ìŠ¤ ì´ë™',
-      code: `// useRef ë¡œ ì…ë ¥ì°½ ì°¸ì¡° ìƒì„±
+      description: '¾Ë¸² ´İÈû ÈÄ ÁöÁ¤µÈ ¿ä¼Ò·Î Æ÷Ä¿½º ÀÌµ¿',
+      code: `// useRef ·Î ÀÔ·ÂÃ¢ ÂüÁ¶ »ı¼º
 const inputRef = useRef(null);
 
-// ì•Œë¦¼ì„ ë‹«ìœ¼ë©´ ì…ë ¥ì°½ìœ¼ë¡œ í¬ì»¤ìŠ¤ ì´ë™
+// ¾Ë¸²À» ´İÀ¸¸é ÀÔ·ÂÃ¢À¸·Î Æ÷Ä¿½º ÀÌµ¿
 <div className="flex gap-4 items-center">
   <Lib.Button
-    ref={buttonRef}
     onClick={() => {
-      showAlert('ì•Œë¦¼ì„ ë‹«íˆë©´ ì…ë ¥ì°½ìœ¼ë¡œ ì»¤ì„œê°€ ì´ë™í•©ë‹ˆë‹¤.', {
-        title: 'ì•Œë¦¼',
+      showAlert('¾Ë¸²À» ´İÈ÷¸é ÀÔ·ÂÃ¢À¸·Î Ä¿¼­°¡ ÀÌµ¿ÇÕ´Ï´Ù.', {
+        title: '¾Ë¸²',
         onFocus: () => inputRef.current?.focus(),
       });
     }}
   >
-    ì•Œë¦¼ ë„ìš°ê¸°
+    ¾Ë¸² ¶ç¿ì±â
   </Lib.Button>
-  <Lib.Input ref={inputRef} placeholder="ì»¤ì„œê°€ ì—¬ê¸°ë¡œ ì´ë™í•©ë‹ˆë‹¤" />
-  </div>`
+  <Lib.Input ref={inputRef} placeholder="Ä¿¼­°¡ ¿©±â·Î ÀÌµ¿ÇÕ´Ï´Ù" />
+</div>`
     }
   ];
-
-  return examples;
 };

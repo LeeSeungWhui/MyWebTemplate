@@ -1,43 +1,46 @@
 "use client";
 /**
- * íŒŒì¼ëª…: LoadingExamples.jsx
- * ìž‘ì„±ìž: LSH
- * ê°±ì‹ ì¼: 2025-09-13
- * ì„¤ëª…: Loading ì»´í¬ë„ŒíŠ¸ ì˜ˆì œ
+ * ÆÄÀÏ¸í: LoadingExamples.jsx
+ * ÀÛ¼ºÀÚ: LSH
+ * °»½ÅÀÏ: 2025-09-13
+ * ¼³¸í: Loading ÄÄÆ÷³ÍÆ® ¿¹Á¦
  */
 import * as Lib from '@/app/lib';
 import { useGlobalUi } from '@/app/common/store/SharedStore';
 
-export const LoadingExamples = () => {
+const ShowGlobalLoading = () => {
   const { setLoading } = useGlobalUi();
+  return (
+    <Lib.Button
+      onClick={() => {
+        setLoading(true);
+        setTimeout(() => setLoading(false), 2000);
+      }}
+    >
+      ÀüÃ¼ È­¸é ·Îµù (2ÃÊ)
+    </Lib.Button>
+  );
+};
 
-  const examples = [
+export const LoadingExamples = () => {
+  return [
     {
       component: (
         <div className="space-y-4">
-          <Lib.Button
-            onClick={() => {
-              setLoading(true);
-              setTimeout(() => setLoading(false), 2000);
-            }}
-          >
-            ì „ì²´ í™”ë©´ ë¡œë”© (2ì´ˆ)
-          </Lib.Button>
+          <ShowGlobalLoading />
         </div>
       ),
-      description: 'ì „ì²´ í™”ë©´ ë¡œë”© í‘œì‹œ',
-      code: `// useSharedStore ì‚¬ìš©
+      description: 'ÀüÃ¼ È­¸é ·Îµù Ç¥½Ã',
+      code: `// useSharedStore »ç¿ë
 const { setLoading } = useGlobalUi();
 
-// ë¡œë”© í‘œì‹œ/í•´ì œ
+// ·Îµù Ç¥½Ã/ÇØÁ¦
 <Lib.Button onClick={() => {
   setLoading(true);
   setTimeout(() => setLoading(false), 2000);
 }}>
-  ì „ì²´ í™”ë©´ ë¡œë”© (2ì´ˆ)
+  ÀüÃ¼ È­¸é ·Îµù (2ÃÊ)
 </Lib.Button>`
     }
   ];
-
-  return examples;
 };

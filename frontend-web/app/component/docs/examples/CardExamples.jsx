@@ -1,98 +1,99 @@
 "use client";
 /**
- * íŒŒì¼ëª…: CardExamples.jsx
- * ìž‘ì„±ìž: LSH
- * ê°±ì‹ ì¼: 2025-09-13
- * ì„¤ëª…: Card ì»´í¬ë„ŒíŠ¸ ì˜ˆì œ
+ * ÆÄÀÏ¸í: CardExamples.jsx
+ * ÀÛ¼ºÀÚ: LSH
+ * °»½ÅÀÏ: 2025-09-13
+ * ¼³¸í: Card ÄÄÆ÷³ÍÆ® ¿¹Á¦
  */
 import * as Lib from '@/app/lib';
 import { useGlobalUi } from '@/app/common/store/SharedStore';
 
-export const CardExamples = () => {
+const ActionCard = () => {
   const { showAlert } = useGlobalUi();
+  return (
+    <Lib.Card
+      title="¾×¼Ç Ä«µå"
+      subtitle="¹öÆ°°ú ÇÔ²²"
+      actions={<Lib.Button onClick={() => showAlert('¹öÆ° ¾×¼Ç')}>Action</Lib.Button>}
+      footer="ÇªÅÍ ÅØ½ºÆ®"
+    >
+      <div className="space-y-2">
+        <div>¸®½ºÆ® Ç×¸ñ 1</div>
+        <div>¸®½ºÆ® Ç×¸ñ 2</div>
+      </div>
+    </Lib.Card>
+  );
+};
 
-  const examples = [
+export const CardExamples = () => {
+  return [
     {
       component: (
-        <Lib.Card title="ê°„ë‹¨ ì¹´ë“œ" subtitle="ë³´ì¡° ì„¤ëª…">
-          ì¹´ë“œ ë³¸ë¬¸ì„ ê°„ê²°í•˜ê²Œ êµ¬ì„±í•©ë‹ˆë‹¤.
+        <Lib.Card title="°£´Ü Ä«µå" subtitle="º¸Á¶ ¼³¸í">
+          Ä«µå º»¹®À» °£°áÇÏ°Ô ±¸¼ºÇÕ´Ï´Ù.
         </Lib.Card>
       ),
-      description: 'ê¸°ë³¸ Card: title + subtitle + ë³¸ë¬¸',
-      code: `<Lib.Card title="ê°„ë‹¨ ì¹´ë“œ" subtitle="ë³´ì¡° ì„¤ëª…">
-  ì¹´ë“œ ë³¸ë¬¸ì„ ê°„ê²°í•˜ê²Œ êµ¬ì„±í•©ë‹ˆë‹¤.
-</Lib.Card>`
+      description: '±âº» Card: title + subtitle + º»¹®',
+      code: <Lib.Card title="°£´Ü Ä«µå" subtitle="º¸Á¶ ¼³¸í">
+  Ä«µå º»¹®À» °£°áÇÏ°Ô ±¸¼ºÇÕ´Ï´Ù.
+</Lib.Card>
     },
     {
-      component: (
-        <Lib.Card
-          title="ì•¡ì…˜ ì¹´ë“œ"
-          subtitle="ë²„íŠ¼ê³¼ í•¨ê»˜"
-          actions={<Lib.Button onClick={() => showAlert('ë²„íŠ¼ ì•¡ì…˜')}>Action</Lib.Button>}
-          footer="í‘¸í„° í…ìŠ¤íŠ¸"
-        >
-          <div className="space-y-2">
-            <div>ë¦¬ìŠ¤íŠ¸ í•­ëª© 1</div>
-            <div>ë¦¬ìŠ¤íŠ¸ í•­ëª© 2</div>
-          </div>
-        </Lib.Card>
-      ),
-      description: 'actions + footer ì‚¬ìš©',
-      code: `<Lib.Card
-  title="ì•¡ì…˜ ì¹´ë“œ"
-  subtitle="ë²„íŠ¼ê³¼ í•¨ê»˜"
-  actions={<Lib.Button onClick={() => showAlert('ë²„íŠ¼ ì•¡ì…˜')}>Action</Lib.Button>}
-  footer="í‘¸í„° í…ìŠ¤íŠ¸"
+      component: <ActionCard />,
+      description: 'actions + footer »ç¿ë',
+      code: <Lib.Card
+  title="¾×¼Ç Ä«µå"
+  subtitle="¹öÆ°°ú ÇÔ²²"
+  actions={<Lib.Button onClick={() => showAlert('¹öÆ° ¾×¼Ç')}>Action</Lib.Button>}
+  footer="ÇªÅÍ ÅØ½ºÆ®"
 >
   <div className="space-y-2">
-    <div>ë¦¬ìŠ¤íŠ¸ í•­ëª© 1</div>
-    <div>ë¦¬ìŠ¤íŠ¸ í•­ëª© 2</div>
+    <div>¸®½ºÆ® Ç×¸ñ 1</div>
+    <div>¸®½ºÆ® Ç×¸ñ 2</div>
   </div>
-</Lib.Card>`
+</Lib.Card>
     },
     {
       component: (
         <Lib.Card className="bg-slate-50" bodyClassName="p-6" headerClassName="p-3" footerClassName="p-2">
-          í—¤ë”/í‘¸í„° íŒ¨ë”©ì´ ìžˆëŠ” ì¹´ë“œìž…ë‹ˆë‹¤.
+          Çì´õ/ÇªÅÍ ÆÐµùÀÌ ÀÖ´Â Ä«µåÀÔ´Ï´Ù.
         </Lib.Card>
       ),
-      description: 'í—¤ë”/í‘¸í„° íŒ¨ë”©(custom className*)',
-      code: `<Lib.Card className="bg-slate-50" bodyClassName="p-6">
-  í—¤ë”/í‘¸í„° íŒ¨ë”©ì´ ìžˆëŠ” ì¹´ë“œìž…ë‹ˆë‹¤.
-</Lib.Card>`
+      description: 'Çì´õ/ÇªÅÍ ÆÐµù(custom className*)',
+      code: <Lib.Card className="bg-slate-50" bodyClassName="p-6">
+  Çì´õ/ÇªÅÍ ÆÐµùÀÌ ÀÖ´Â Ä«µåÀÔ´Ï´Ù.
+</Lib.Card>
     },
     {
       component: (
         <Lib.Card
-          title="ì¡°í•© ì˜ˆì‹œ"
+          title="Á¶ÇÕ ¿¹½Ã"
           actions={<Lib.Badge variant="primary">New</Lib.Badge>}
-          footer={<div className="flex items-center gap-2 text-xs"><Lib.Icon icon="md:MdSchedule" /> ì—…ë°ì´íŠ¸: ë°©ê¸ˆ ì „</div>}
+          footer={<div className="flex items-center gap-2 text-xs"><Lib.Icon icon="md:MdSchedule" /> ¾÷µ¥ÀÌÆ®: ¹æ±Ý Àü</div>}
         >
           <div className="flex items-start gap-3">
             <div className="h-12 w-12 rounded bg-blue-100 flex items-center justify-center text-blue-700">IMG</div>
             <div>
-              <div className="font-medium">ì´ë¯¸ì§€/ì•„ì´ì½˜ê³¼ í…ìŠ¤íŠ¸</div>
-              <div className="text-sm text-gray-600">ë ˆì´ì•„ì›ƒê³¼ êµ¬ì„± ì˜ˆì‹œ</div>
+              <div className="font-medium">ÀÌ¹ÌÁö/¾ÆÀÌÄÜ°ú ÅØ½ºÆ®</div>
+              <div className="text-sm text-gray-600">·¹ÀÌ¾Æ¿ô°ú ±¸¼º ¿¹½Ã</div>
             </div>
           </div>
         </Lib.Card>
       ),
-      description: 'Badge, Icon ì¡°í•©',
-      code: `<Lib.Card
-  title="ì¡°í•© ì˜ˆì‹œ"
+      description: 'Badge, Icon Á¶ÇÕ',
+      code: <Lib.Card
+  title="Á¶ÇÕ ¿¹½Ã"
   actions={<Lib.Badge variant="primary">New</Lib.Badge>}
-  footer={<div className="flex items-center gap-2 text-xs"><Lib.Icon icon="md:MdSchedule" /> ì—…ë°ì´íŠ¸: ë°©ê¸ˆ ì „</div>}
+  footer={<div className="flex items-center gap-2 text-xs"><Lib.Icon icon="md:MdSchedule" /> ¾÷µ¥ÀÌÆ®: ¹æ±Ý Àü</div>}
 >
   <div className="flex items-start gap-3">
     <div className="h-12 w-12 rounded bg-blue-100 flex items-center justify-center text-blue-700">IMG</div>
     <div>
-      <div className="font-medium">ì´ë¯¸ì§€/ì•„ì´ì½˜ê³¼ í…ìŠ¤íŠ¸</div>
-      <div className="text-sm text-gray-600">ë ˆì´ì•„ì›ƒê³¼ êµ¬ì„± ì˜ˆì‹œ</div>
+      <div className="font-medium">ÀÌ¹ÌÁö/¾ÆÀÌÄÜ°ú ÅØ½ºÆ®</div>
+      <div className="text-sm text-gray-600">·¹ÀÌ¾Æ¿ô°ú ±¸¼º ¿¹½Ã</div>
     </div>
   </div>
-</Lib.Card>`
+</Lib.Card>
     }
   ];
-
-  return examples;
 };

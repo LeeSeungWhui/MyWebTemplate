@@ -1,156 +1,178 @@
 "use client";
 /**
- * íŒŒì¼ëª…: ConfirmExamples.jsx
- * ì‘ì„±ì: LSH
- * ê°±ì‹ ì¼: 2025-09-13
- * ì„¤ëª…: Confirm ì»´í¬ë„ŒíŠ¸ ì˜ˆì œ
+ * ÆÄÀÏ¸í: ConfirmExamples.jsx
+ * ÀÛ¼ºÀÚ: LSH
+ * °»½ÅÀÏ: 2025-09-13
+ * ¼³¸í: Confirm ÄÄÆ÷³ÍÆ® ¿¹Á¦
  */
 import * as Lib from '@/app/lib';
 import { useRef } from 'react';
 import { useGlobalUi } from '@/app/common/store/SharedStore';
 
-export const ConfirmExamples = () => {
+const BasicConfirm = () => {
   const { showConfirm, showAlert } = useGlobalUi();
-  const inputRef = useRef(null);
+  return (
+    <Lib.Button
+      onClick={() => {
+        showConfirm('Á¤¸» ÁøÇàÇÏ½Ã°Ú½À´Ï±î?').then((result) => {
+          if (result) showAlert('È®ÀÎÇß½À´Ï´Ù.');
+        });
+      }}
+    >
+      ±âº» È®ÀÎ
+    </Lib.Button>
+  );
+};
 
-  const examples = [
+const ConfirmVariants = () => {
+  const { showConfirm } = useGlobalUi();
+  return (
+    <div className="flex flex-wrap gap-2">
+      <Lib.Button
+        onClick={() =>
+          showConfirm('ÇØ´ç ÀÛ¾÷Àº µÇµ¹¸± ¼ö ¾ø½À´Ï´Ù.\n°è¼ÓÇÏ½Ã°Ú½À´Ï±î?', {
+            title: 'ÁÖÀÇ',
+            type: 'warning',
+            confirmText: '°è¼Ó',
+            cancelText: 'Áß´Ü',
+          })
+        }
+      >
+        °æ°í È®ÀÎ
+      </Lib.Button>
+      <Lib.Button
+        onClick={() =>
+          showConfirm('¸ğµç µ¥ÀÌÅÍ¸¦ »èÁ¦ÇÕ´Ï´Ù.\nÁ¤¸» »èÁ¦ÇÏ½Ã°Ú½À´Ï±î?', {
+            title: 'À§Çè È®ÀÎ',
+            type: 'danger',
+            confirmText: '»èÁ¦',
+            cancelText: 'Ãë¼Ò',
+          })
+        }
+      >
+        À§Çè È®ÀÎ
+      </Lib.Button>
+    </div>
+  );
+};
+
+const ConfirmCallbacks = () => {
+  const { showConfirm, showAlert } = useGlobalUi();
+  return (
+    <Lib.Button
+      onClick={() =>
+        showConfirm('»èÁ¦¸¦ ÁøÇàÇÏ½Ã°Ú½À´Ï±î?', {
+          title: 'À§Çè È®ÀÎ',
+          type: 'danger',
+          confirmText: '»èÁ¦',
+          cancelText: 'Ãë¼Ò',
+          onConfirm: () => showAlert('»èÁ¦°¡ ¿Ï·áµÇ¾ú½À´Ï´Ù.'),
+          onCancel: () => showAlert('»èÁ¦°¡ Ãë¼ÒµÇ¾ú½À´Ï´Ù.'),
+        })
+      }
+    >
+      Äİ¹é ÇÔ¼ö Ç¥½Ã
+    </Lib.Button>
+  );
+};
+
+const ConfirmFocus = () => {
+  const { showConfirm } = useGlobalUi();
+  const inputRef = useRef(null);
+  return (
+    <div className="flex gap-4 items-center">
+      <Lib.Button
+        onClick={() =>
+          showConfirm('È®ÀÎ ¸ğ´ŞÀÌ ´İÈ÷¸é ÀÔ·ÂÃ¢À¸·Î Ä¿¼­°¡ ÀÌµ¿ÇÕ´Ï´Ù.', {
+            title: 'Æ÷Ä¿½º ÀÌµ¿',
+            onFocus: () => inputRef.current?.focus(),
+          })
+        }
+      >
+        Æ÷Ä¿½º ÀÌµ¿ Ç¥½Ã
+      </Lib.Button>
+      <Lib.Input ref={inputRef} placeholder="Ä¿¼­°¡ ¿©±â·Î ÀÌµ¿ÇÕ´Ï´Ù" />
+    </div>
+  );
+};
+
+export const ConfirmExamples = () => {
+  return [
     {
       component: (
         <div className="space-y-4">
-          <Lib.Button
-            onClick={() => {
-              showConfirm('ì •ë§ ì§„í–‰í•˜ì‹œê² ìŠµë‹ˆê¹Œ?').then((result) => {
-                if (result) showAlert('í™•ì¸í–ˆìŠµë‹ˆë‹¤.');
-              });
-            }}
-          >
-            ê¸°ë³¸ í™•ì¸
-          </Lib.Button>
+          <BasicConfirm />
         </div>
       ),
-      description: 'ê¸°ë³¸ í™•ì¸ ëª¨ë‹¬',
-      code: `// useSharedStore ì‚¬ìš©
+      description: '±âº» È®ÀÎ ¸ğ´Ş',
+      code: `// useSharedStore »ç¿ë
 const { showConfirm, showAlert } = useGlobalUi();
 
-// ê¸°ë³¸ í™•ì¸
-showConfirm('ì •ë§ ì§„í–‰í•˜ì‹œê² ìŠµë‹ˆê¹Œ?').then((result) => {
-  if (result) showAlert('í™•ì¸í–ˆìŠµë‹ˆë‹¤.');
+// ±âº» È®ÀÎ
+showConfirm('Á¤¸» ÁøÇàÇÏ½Ã°Ú½À´Ï±î?').then((result) => {
+  if (result) showAlert('È®ÀÎÇß½À´Ï´Ù.');
 });`
     },
     {
-      component: (
-        <div className="flex flex-wrap gap-2">
-          <Lib.Button
-            onClick={() =>
-              showConfirm('í•´ë‹¹ ì‘ì—…ì€ ë˜ëŒë¦´ ìˆ˜ ì—†ìŠµë‹ˆë‹¤.\nê³„ì†í•˜ì‹œê² ìŠµë‹ˆê¹Œ?', {
-                title: 'ì£¼ì˜',
-                type: 'warning',
-                confirmText: 'ê³„ì†',
-                cancelText: 'ì¤‘ë‹¨',
-              })
-            }
-          >
-            ê²½ê³  í™•ì¸
-          </Lib.Button>
-          <Lib.Button
-            onClick={() =>
-              showConfirm('ëª¨ë“  ë°ì´í„°ë¥¼ ì‚­ì œí•©ë‹ˆë‹¤.\nì •ë§ ì‚­ì œí•˜ì‹œê² ìŠµë‹ˆê¹Œ?', {
-                title: 'ìœ„í—˜ í™•ì¸',
-                type: 'danger',
-                confirmText: 'ì‚­ì œ',
-                cancelText: 'ì·¨ì†Œ',
-              })
-            }
-          >
-            ìœ„í—˜ í™•ì¸
-          </Lib.Button>
-        </div>
-      ),
-      description: 'í™•ì¸ ëª¨ë‹¬ ìœ í˜•',
-      code: `// ê²½ê³  í™•ì¸
-showConfirm('í•´ë‹¹ ì‘ì—…ì€ ë˜ëŒë¦´ ìˆ˜ ì—†ìŠµë‹ˆë‹¤.\\nê³„ì†í•˜ì‹œê² ìŠµë‹ˆê¹Œ?', {
-  title: 'ì£¼ì˜',
+      component: <ConfirmVariants />,
+      description: 'È®ÀÎ ¸ğ´Ş À¯Çü',
+      code: `// °æ°í È®ÀÎ
+showConfirm('ÇØ´ç ÀÛ¾÷Àº µÇµ¹¸± ¼ö ¾ø½À´Ï´Ù.\\n°è¼ÓÇÏ½Ã°Ú½À´Ï±î?', {
+  title: 'ÁÖÀÇ',
   type: 'warning',
-  confirmText: 'ê³„ì†',
-  cancelText: 'ì¤‘ë‹¨',
+  confirmText: '°è¼Ó',
+  cancelText: 'Áß´Ü',
 });
 
-// ìœ„í—˜ í™•ì¸
-showConfirm('ëª¨ë“  ë°ì´í„°ë¥¼ ì‚­ì œí•©ë‹ˆë‹¤.\\nì •ë§ ì‚­ì œí•˜ì‹œê² ìŠµë‹ˆê¹Œ?', {
-  title: 'ìœ„í—˜ í™•ì¸',
+// À§Çè È®ÀÎ
+showConfirm('¸ğµç µ¥ÀÌÅÍ¸¦ »èÁ¦ÇÕ´Ï´Ù.\\nÁ¤¸» »èÁ¦ÇÏ½Ã°Ú½À´Ï±î?', {
+  title: 'À§Çè È®ÀÎ',
   type: 'danger',
-  confirmText: 'ì‚­ì œ',
-  cancelText: 'ì·¨ì†Œ',
+  confirmText: '»èÁ¦',
+  cancelText: 'Ãë¼Ò',
 });`
     },
     {
       component: (
         <div className="space-y-4">
-          <Lib.Button
-            onClick={() =>
-              showConfirm('ì‚­ì œë¥¼ ì§„í–‰í•˜ì‹œê² ìŠµë‹ˆê¹Œ?', {
-                title: 'ìœ„í—˜ í™•ì¸',
-                type: 'danger',
-                confirmText: 'ì‚­ì œ',
-                cancelText: 'ì·¨ì†Œ',
-                onConfirm: () => showAlert('ì‚­ì œê°€ ì™„ë£Œë˜ì—ˆìŠµë‹ˆë‹¤.'),
-                onCancel: () => showAlert('ì‚­ì œê°€ ì·¨ì†Œë˜ì—ˆìŠµë‹ˆë‹¤.'),
-              })
-            }
-          >
-            ì½œë°± í•¨ìˆ˜ í‘œì‹œ
-          </Lib.Button>
+          <ConfirmCallbacks />
         </div>
       ),
-      description: 'í™•ì¸/ì·¨ì†Œ ì½œë°±',
-      code: `// í™•ì¸/ì·¨ì†Œ ì‹œ ì‹¤í–‰ë  ì½œë°±
-showConfirm('ì‚­ì œë¥¼ ì§„í–‰í•˜ì‹œê² ìŠµë‹ˆê¹Œ?', {
-  title: 'ìœ„í—˜ í™•ì¸',
+      description: 'È®ÀÎ/Ãë¼Ò Äİ¹é',
+      code: `// È®ÀÎ/Ãë¼Ò ½Ã ½ÇÇàµÉ Äİ¹é
+showConfirm('»èÁ¦¸¦ ÁøÇàÇÏ½Ã°Ú½À´Ï±î?', {
+  title: 'À§Çè È®ÀÎ',
   type: 'danger',
-  confirmText: 'ì‚­ì œ',
-  cancelText: 'ì·¨ì†Œ',
-  onConfirm: () => showAlert('ì‚­ì œê°€ ì™„ë£Œë˜ì—ˆìŠµë‹ˆë‹¤.'),
-  onCancel: () => showAlert('ì‚­ì œê°€ ì·¨ì†Œë˜ì—ˆìŠµë‹ˆë‹¤.'),
+  confirmText: '»èÁ¦',
+  cancelText: 'Ãë¼Ò',
+  onConfirm: () => showAlert('»èÁ¦°¡ ¿Ï·áµÇ¾ú½À´Ï´Ù.'),
+  onCancel: () => showAlert('»èÁ¦°¡ Ãë¼ÒµÇ¾ú½À´Ï´Ù.'),
 });`
     },
     {
       component: (
         <div className="space-y-4">
-          <div className="flex gap-4 items-center">
-            <Lib.Button
-              onClick={() =>
-                showConfirm('í™•ì¸ ëª¨ë‹¬ì´ ë‹«íˆë©´ ì…ë ¥ì°½ìœ¼ë¡œ ì»¤ì„œê°€ ì´ë™í•©ë‹ˆë‹¤.', {
-                  title: 'í¬ì»¤ìŠ¤ ì´ë™',
-                  onFocus: () => inputRef.current?.focus(),
-                })
-              }
-            >
-              í¬ì»¤ìŠ¤ ì´ë™ í‘œì‹œ
-            </Lib.Button>
-            <Lib.Input ref={inputRef} placeholder="ì»¤ì„œê°€ ì—¬ê¸°ë¡œ ì´ë™í•©ë‹ˆë‹¤" />
-          </div>
+          <ConfirmFocus />
         </div>
       ),
-      description: 'í™•ì¸ ëª¨ë‹¬ ë‹«í˜ í›„ í¬ì»¤ìŠ¤ ì´ë™',
-      code: `// useRef ë¡œ ì…ë ¥ì°½ ì°¸ì¡° ìƒì„±
+      description: 'È®ÀÎ ¸ğ´Ş ´İÈû ÈÄ Æ÷Ä¿½º ÀÌµ¿',
+      code: `// useRef ·Î ÀÔ·ÂÃ¢ ÂüÁ¶ »ı¼º
 const inputRef = useRef(null);
 
-// ëª¨ë‹¬ ë‹«í˜ í›„ ì…ë ¥ì°½ìœ¼ë¡œ í¬ì»¤ìŠ¤ ì´ë™
+// ¸ğ´Ş ´İÈû ÈÄ ÀÔ·ÂÃ¢À¸·Î Æ÷Ä¿½º ÀÌµ¿
 <div className="flex gap-4 items-center">
   <Lib.Button
     onClick={() => {
-      showConfirm('í™•ì¸ ëª¨ë‹¬ì´ ë‹«íˆë©´ ì…ë ¥ì°½ìœ¼ë¡œ ì»¤ì„œê°€ ì´ë™í•©ë‹ˆë‹¤.', {
-        title: 'í¬ì»¤ìŠ¤ ì´ë™',
+      showConfirm('È®ÀÎ ¸ğ´ŞÀÌ ´İÈ÷¸é ÀÔ·ÂÃ¢À¸·Î Ä¿¼­°¡ ÀÌµ¿ÇÕ´Ï´Ù.', {
+        title: 'Æ÷Ä¿½º ÀÌµ¿',
         onFocus: () => inputRef.current?.focus(),
       });
     }}
   >
-    í¬ì»¤ìŠ¤ ì´ë™ í‘œì‹œ
+    Æ÷Ä¿½º ÀÌµ¿ Ç¥½Ã
   </Lib.Button>
-  <Lib.Input ref={inputRef} placeholder="ì»¤ì„œê°€ ì—¬ê¸°ë¡œ ì´ë™í•©ë‹ˆë‹¤" />
+  <Lib.Input ref={inputRef} placeholder="Ä¿¼­°¡ ¿©±â·Î ÀÌµ¿ÇÕ´Ï´Ù" />
 </div>`
     }
   ];
-
-  return examples;
 };
