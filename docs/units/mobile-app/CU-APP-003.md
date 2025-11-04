@@ -48,7 +48,7 @@ links: [CU-APP-001, CU-APP-002, CU-APP-004, CU-APP-005, CU-APP-007]
 - AC-2: 리스트형 컴포넌트가 EasyList 선택/정렬/빈상태/스켈레톤을 지원한다.
 - AC-3: 전역 에러/모달 규약과 코드 사전(CU-APP-007)을 따른다.
 - AC-4: 라이트/다크 모드에서 레이아웃이 깨지지 않는다.
-- AC-5: Storybook에서 Variant/State/Size 조합이 탐색 가능하고 최신이다.
+- AC-5: Docs 페이지에서 Variant/State/Size 조합이 탐색 가능하고 최신이다.
 - AC-6: E2E에서 로그인/리스트/에러 토스트 흐름이 통과한다.
 
 ### Tasks
@@ -58,7 +58,7 @@ links: [CU-APP-001, CU-APP-002, CU-APP-004, CU-APP-005, CU-APP-007]
 - T4: 레이아웃/네비(AppBar, Tab/BottomBar, Card, ListItem, Divider)
 - T5: 데이터 바인딩 헬퍼(EasyObj/EasyList) 및 에러/검증 처리
 - T6: 접근성/모션 가이드(포커스/라벨/애니메이션 최소화)
-- T7: Storybook 카탈로그(상태/사이즈 매트릭스)
+- T7: Docs 카탈로그(상태/사이즈 매트릭스)
 - T8: 성능 점검(Interaction <100ms, 60fps), 콘솔 클린업
 - T9: 바인딩 규약/에러 코드/사용 가이드 문서화
 

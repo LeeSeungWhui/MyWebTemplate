@@ -57,7 +57,7 @@ links: [CU-WEB-001, CU-WEB-002, CU-WEB-004, CU-WEB-005, CU-WEB-006]
 - AC-2: 컨트롤드 모드가 모델과 분리된 상태에서도 바운드 모드와 동일한 UX를 제공한다.
 - AC-3: 로딩/에러/빈 상태 프리셋이 일관된 비주얼과 ARIA 속성으로 출력된다.
 - AC-4: 대시보드(CU-WEB-002)가 최소한의 글루 코드와 컴포넌트 조립만으로 SSR/CSR 환경에서 카드/리스트를 렌더링한다.
-- AC-5: Storybook에서 컨트롤·A11y 체크, 다크 모드, 바인딩 시나리오가 제공된다.
+- AC-5: Docs 페이지에서 컨트롤·A11y 체크, 다크 모드, 바인딩 시나리오가 제공된다.
 
 ### 컴포넌트 스펙: 리치 에디터(EasyEditor)
 - 목적: 문서/공지/가이드 등 리치 텍스트 입력을 EasyObj와 일관된 규약으로 제공한다.
@@ -77,7 +77,7 @@ links: [CU-WEB-001, CU-WEB-002, CU-WEB-004, CU-WEB-005, CU-WEB-006]
 - AC (추가)
   - AC-E1: Editor/HTML 모드 전환 시 내용 손실 없이 왕복 변환된다.
   - AC-E2: 이미지/파일 첨부 시 업로드 훅이 없으면 Alert로 가이드를 노출한다(템플릿 기본 동작).
-  - AC-E3: Storybook에서 바운드/컨트롤드/HTML 모드 시나리오와 A11y 체크를 통과한다.
+  - AC-E3: Docs 페이지에서 바운드/컨트롤드/HTML 모드 시나리오와 A11y 체크를 통과한다.
 
 ### 컴포넌트 스펙: PDF 뷰어(PdfViewer)
 - 목적: 로컬 파일 또는 원격 URL의 PDF를 페이지 탐색/확대/검색 가능한 뷰어로 표시한다.
@@ -98,6 +98,6 @@ links: [CU-WEB-001, CU-WEB-002, CU-WEB-004, CU-WEB-005, CU-WEB-006]
   - AC-P3: 403/404/네트워크 에러 시 사용자에게 Alert/Empty로 안내
 
 ### Tasks (추가)
-- T10 EasyEditor Storybook/문서/테스트(바운드/컨트롤드/HTML/업로드 알림)
-- T11 PdfViewer 컴포넌트 1차 구현(플러그인 최소 구성, CSR 전용), 예제/Storybook/간단 테스트
+- T10 EasyEditor Docs/문서/테스트(바운드/컨트롤드/HTML/업로드 알림)
+- T11 PdfViewer 컴포넌트 1차 구현(플러그인 최소 구성, CSR 전용), 예제/Docs/간단 테스트
 - T12 문서 보강: A11y/SSR 주의 사항 및 업로드/워커 경로 설정 가이드
