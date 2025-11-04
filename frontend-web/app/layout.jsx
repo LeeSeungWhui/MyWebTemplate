@@ -7,6 +7,8 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import AppShell from "./AppShell";
+import SharedHydrator from "./common/store/SharedHydrator";
+import { loadFrontendConfig } from "./common/config/frontendConfig.server";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -24,9 +26,11 @@ export const metadata = {
 };
 
 export default function RootLayout({ children }) {
+  const config = loadFrontendConfig()
   return (
     <html lang="en">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+        <SharedHydrator config={config} />
         <AppShell>
           <div className="bg-gray-50 text-gray-950 min-h-screen">{children}</div>
         </AppShell>

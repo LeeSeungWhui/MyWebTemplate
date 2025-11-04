@@ -12,6 +12,7 @@
 - 상태/데이터: SWR, Zustand
 - 문서/테스트: Docs 페이지, Playwright/Vitest(예정)
 - 언어: JavaScript Only(TypeScript 금지)
+- 설정: `frontend-web/config.ini` + 환경별 샘플(`config_dev.ini`, `config_prod.ini`)
 
 ## 포함 Unit
 - CU-WEB-001 Auth & Login Page
@@ -42,6 +43,7 @@
 - Next/Tailwind 프리셋 기반 Docs 페이지에서 CU-WEB-003 시나리오 정리
 - 인증 리다이렉트/204 로그인 흐름/세션 복구 Playwright·Vitest 커버리지 추가
 - EasyObj/EasyList 프록시가 JSON 직접 대입, 도트 키, ctx 알림을 지원하도록 리팩터(CU-WEB-003)
+- config.ini 환경 전환 가이드 작성(SharedStore.config 하이드레이션)
 
 ## 결정(고정)
 - 전역 모드 플래그(`NEXT_RUNTIME_MODE`) 폐기, 페이지별 `MODE`가 단일 진실
@@ -49,6 +51,7 @@
 - 미들웨어 경로 정책: 공개(/login, /_next/*, /public/*, /healthz), 보호(/, /dashboard/*), API 우회(/api/**)
 - CORS/헤더: `credentials:'include'`, 헤더 `X-CSRF-Token`, `Content-Type`, `Authorization`
 - JS Only 강제: 린트/프로젝트 규칙으로 .ts/.tsx 거부
+- 프론트 설정: `frontend-web/config.ini`를 실행 전 선택 환경 파일로 교체해 SharedStore.config로 주입
 
 ## 완료 기준(템플릿)
 - 인증 플로우 로컬 검증(로그인 → 보호 페이지)
