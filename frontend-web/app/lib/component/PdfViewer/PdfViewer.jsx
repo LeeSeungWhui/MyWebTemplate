@@ -50,18 +50,10 @@ const PdfViewer = ({
   const [viewerError, setViewerError] = useState(null);
   const [isLoading, setIsLoading] = useState(Boolean(src));
   const [documentState, setDocumentState] = useState(() => initialDocumentState(normalizedInitialPage));
-  // Initialize toolbar plugin during render to avoid invalid hook call
-  const defaultLayoutPluginInstance = useMemo(() => {
-    if (!withToolbar) return null;
-    try {
-      return defaultLayoutPlugin({
-        renderToolbar: (Toolbar) => <Toolbar />,
-      });
-    } catch (e) {
-      console.error('PdfViewer: failed to init toolbar plugin', e);
-      return null;
-    }
-  }, [withToolbar]);
+  // Initialize toolbar plugin at the top level (not inside another hook)
+  const defaultLayoutPluginInstance = withToolbar
+    ? defaultLayoutPlugin({ renderToolbar: (Toolbar) => <Toolbar /> })
+    : null;
 
   const fileUrl = useMemo(() => toObjectUrl(src), [src]);
   const plugins = useMemo(() => (defaultLayoutPluginInstance ? [defaultLayoutPluginInstance] : []), [defaultLayoutPluginInstance]);
