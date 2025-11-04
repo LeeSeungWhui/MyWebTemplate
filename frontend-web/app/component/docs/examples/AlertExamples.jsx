@@ -1,9 +1,9 @@
 "use client";
 /**
- * ÆÄÀÏ¸í: AlertExamples.jsx
- * ÀÛ¼ºÀÚ: LSH
- * °»½ÅÀÏ: 2025-09-13
- * ¼³¸í: Alert ÄÄÆ÷³ÍÆ® ¿¹Á¦
+ * ï¿½ï¿½ï¿½Ï¸ï¿½: AlertExamples.jsx
+ * ï¿½Û¼ï¿½ï¿½ï¿½: LSH
+ * ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½: 2025-09-13
+ * ï¿½ï¿½ï¿½ï¿½: Alert ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
  */
 import * as Lib from '@/app/lib';
 import { useRef } from 'react';
@@ -11,17 +11,17 @@ import { useGlobalUi } from '@/app/common/store/SharedStore';
 
 const BasicAlert = () => {
   const { showAlert } = useGlobalUi();
-  return <Lib.Button onClick={() => showAlert('±âº» ¾Ë¸² ¸Þ½ÃÁöÀÔ´Ï´Ù.')}>±âº» ¾Ë¸²</Lib.Button>;
+  return <Lib.Button onClick={() => showAlert('ï¿½âº» ï¿½Ë¸ï¿½ ï¿½Þ½ï¿½ï¿½ï¿½ï¿½Ô´Ï´ï¿½.')}>ï¿½âº» ï¿½Ë¸ï¿½</Lib.Button>;
 };
 
 const AlertVariants = () => {
   const { showAlert } = useGlobalUi();
   return (
     <div className="flex flex-wrap gap-2">
-      <Lib.Button onClick={() => showAlert('Á¤º¸ ¾Ë¸² ¸Þ½ÃÁöÀÔ´Ï´Ù.', { title: 'Á¤º¸', type: 'info' })}>Á¤º¸ ¾Ë¸²</Lib.Button>
-      <Lib.Button onClick={() => showAlert('¼º°ø ¾Ë¸² ¸Þ½ÃÁöÀÔ´Ï´Ù.', { title: '¼º°ø', type: 'success' })}>¼º°ø ¾Ë¸²</Lib.Button>
-      <Lib.Button onClick={() => showAlert('°æ°í ¾Ë¸² ¸Þ½ÃÁöÀÔ´Ï´Ù.', { title: '°æ°í', type: 'warning' })}>°æ°í ¾Ë¸²</Lib.Button>
-      <Lib.Button onClick={() => showAlert('¿À·ù ¾Ë¸² ¸Þ½ÃÁöÀÔ´Ï´Ù.', { title: '¿À·ù', type: 'error' })}>¿À·ù ¾Ë¸²</Lib.Button>
+      <Lib.Button onClick={() => showAlert('ï¿½ï¿½ï¿½ï¿½ ï¿½Ë¸ï¿½ ï¿½Þ½ï¿½ï¿½ï¿½ï¿½Ô´Ï´ï¿½.', { title: 'ï¿½ï¿½ï¿½ï¿½', type: 'info' })}>ï¿½ï¿½ï¿½ï¿½ ï¿½Ë¸ï¿½</Lib.Button>
+      <Lib.Button onClick={() => showAlert('ï¿½ï¿½ï¿½ï¿½ ï¿½Ë¸ï¿½ ï¿½Þ½ï¿½ï¿½ï¿½ï¿½Ô´Ï´ï¿½.', { title: 'ï¿½ï¿½ï¿½ï¿½', type: 'success' })}>ï¿½ï¿½ï¿½ï¿½ ï¿½Ë¸ï¿½</Lib.Button>
+      <Lib.Button onClick={() => showAlert('ï¿½ï¿½ï¿½ ï¿½Ë¸ï¿½ ï¿½Þ½ï¿½ï¿½ï¿½ï¿½Ô´Ï´ï¿½.', { title: 'ï¿½ï¿½ï¿½', type: 'warning' })}>ï¿½ï¿½ï¿½ ï¿½Ë¸ï¿½</Lib.Button>
+      <Lib.Button onClick={() => showAlert('ï¿½ï¿½ï¿½ï¿½ ï¿½Ë¸ï¿½ ï¿½Þ½ï¿½ï¿½ï¿½ï¿½Ô´Ï´ï¿½.', { title: 'ï¿½ï¿½ï¿½ï¿½', type: 'error' })}>ï¿½ï¿½ï¿½ï¿½ ï¿½Ë¸ï¿½</Lib.Button>
     </div>
   );
 };
@@ -31,15 +31,15 @@ const AlertCallback = () => {
   return (
     <Lib.Button
       onClick={() =>
-        showAlert('ÀÛ¾÷ÀÌ ¿Ï·áµÇ¾ú½À´Ï´Ù.', {
-          title: '¾Ë¸²',
+        showAlert('ï¿½Û¾ï¿½ï¿½ï¿½ ï¿½Ï·ï¿½Ç¾ï¿½ï¿½ï¿½ï¿½Ï´ï¿½.', {
+          title: 'ï¿½Ë¸ï¿½',
           onClick: function () {
-            alert('¾Ë¸²À» ´Ý¾Ò½À´Ï´Ù.');
+            alert('ï¿½Ë¸ï¿½ï¿½ï¿½ ï¿½Ý¾Ò½ï¿½ï¿½Ï´ï¿½.');
           },
         })
       }
     >
-      ÄÝ¹é ÇÔ¼ö Ç¥½Ã
+      ï¿½Ý¹ï¿½ ï¿½Ô¼ï¿½ Ç¥ï¿½ï¿½
     </Lib.Button>
   );
 };
@@ -53,15 +53,15 @@ const AlertFocusAfter = () => {
       <Lib.Button
         ref={buttonRef}
         onClick={() =>
-          showAlert('¾Ë¸²À» ´ÝÈ÷¸é ÀÔ·ÂÃ¢À¸·Î Ä¿¼­°¡ ÀÌµ¿ÇÕ´Ï´Ù.', {
-            title: '¾Ë¸²',
+          showAlert('ï¿½Ë¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ô·ï¿½Ã¢ï¿½ï¿½ï¿½ï¿½ Ä¿ï¿½ï¿½ï¿½ï¿½ ï¿½Ìµï¿½ï¿½Õ´Ï´ï¿½.', {
+            title: 'ï¿½Ë¸ï¿½',
             onFocus: () => inputRef.current?.focus(),
           })
         }
       >
-        ¾Ë¸² ¶ç¿ì±â
+        ï¿½Ë¸ï¿½ ï¿½ï¿½ï¿½ï¿½
       </Lib.Button>
-      <Lib.Input ref={inputRef} placeholder="Ä¿¼­°¡ ¿©±â·Î ÀÌµ¿ÇÕ´Ï´Ù" />
+      <Lib.Input ref={inputRef} placeholder="Ä¿ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ìµï¿½ï¿½Õ´Ï´ï¿½" />
     </div>
   );
 };
@@ -74,21 +74,21 @@ export const AlertExamples = () => {
           <BasicAlert />
         </div>
       ),
-      description: '±âº» ¾Ë¸²',
-      code: `// useSharedStore »ç¿ë
+      description: 'ï¿½âº» ï¿½Ë¸ï¿½',
+      code: `// useSharedStore ï¿½ï¿½ï¿½
 const { showAlert } = useGlobalUi();
 
-// ±âº» ¾Ë¸²
-showAlert('±âº» ¾Ë¸² ¸Þ½ÃÁöÀÔ´Ï´Ù.');`
+// ï¿½âº» ï¿½Ë¸ï¿½
+showAlert('ï¿½âº» ï¿½Ë¸ï¿½ ï¿½Þ½ï¿½ï¿½ï¿½ï¿½Ô´Ï´ï¿½.');`
     },
     {
       component: <AlertVariants />,
-      description: '¾Ë¸² À¯Çü',
-      code: `// Á¤º¸/¼º°ø/°æ°í/¿À·ù ¾Ë¸²
-showAlert('Á¤º¸ ¾Ë¸² ¸Þ½ÃÁöÀÔ´Ï´Ù.', { title: 'Á¤º¸', type: 'info' });
-showAlert('¼º°ø ¾Ë¸² ¸Þ½ÃÁöÀÔ´Ï´Ù.', { title: '¼º°ø', type: 'success' });
-showAlert('°æ°í ¾Ë¸² ¸Þ½ÃÁöÀÔ´Ï´Ù.', { title: '°æ°í', type: 'warning' });
-showAlert('¿À·ù ¾Ë¸² ¸Þ½ÃÁöÀÔ´Ï´Ù.', { title: '¿À·ù', type: 'error' });`
+      description: 'ï¿½Ë¸ï¿½ ï¿½ï¿½ï¿½ï¿½',
+      code: `// ï¿½ï¿½ï¿½ï¿½/ï¿½ï¿½ï¿½ï¿½/ï¿½ï¿½ï¿½/ï¿½ï¿½ï¿½ï¿½ ï¿½Ë¸ï¿½
+showAlert('ï¿½ï¿½ï¿½ï¿½ ï¿½Ë¸ï¿½ ï¿½Þ½ï¿½ï¿½ï¿½ï¿½Ô´Ï´ï¿½.', { title: 'ï¿½ï¿½ï¿½ï¿½', type: 'info' });
+showAlert('ï¿½ï¿½ï¿½ï¿½ ï¿½Ë¸ï¿½ ï¿½Þ½ï¿½ï¿½ï¿½ï¿½Ô´Ï´ï¿½.', { title: 'ï¿½ï¿½ï¿½ï¿½', type: 'success' });
+showAlert('ï¿½ï¿½ï¿½ ï¿½Ë¸ï¿½ ï¿½Þ½ï¿½ï¿½ï¿½ï¿½Ô´Ï´ï¿½.', { title: 'ï¿½ï¿½ï¿½', type: 'warning' });
+showAlert('ï¿½ï¿½ï¿½ï¿½ ï¿½Ë¸ï¿½ ï¿½Þ½ï¿½ï¿½ï¿½ï¿½Ô´Ï´ï¿½.', { title: 'ï¿½ï¿½ï¿½ï¿½', type: 'error' });`
     },
     {
       component: (
@@ -96,12 +96,12 @@ showAlert('¿À·ù ¾Ë¸² ¸Þ½ÃÁöÀÔ´Ï´Ù.', { title: '¿À·ù', type: 'error' });`
           <AlertCallback />
         </div>
       ),
-      description: '¾Ë¸² ´ÝÈû ÄÝ¹é',
-      code: `// ¾Ë¸² ´ÝÈû ½Ã ½ÇÇàµÉ ÄÝ¹é
-showAlert('ÀÛ¾÷ÀÌ ¿Ï·áµÇ¾ú½À´Ï´Ù.', {
-  title: '¾Ë¸²',
+      description: 'ï¿½Ë¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½Ý¹ï¿½',
+      code: `// ï¿½Ë¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ý¹ï¿½
+showAlert('ï¿½Û¾ï¿½ï¿½ï¿½ ï¿½Ï·ï¿½Ç¾ï¿½ï¿½ï¿½ï¿½Ï´ï¿½.', {
+  title: 'ï¿½Ë¸ï¿½',
   onClick: function() {
-    alert('¾Ë¸²À» ´Ý¾Ò½À´Ï´Ù.');
+    alert('ï¿½Ë¸ï¿½ï¿½ï¿½ ï¿½Ý¾Ò½ï¿½ï¿½Ï´ï¿½.');
   }
 });`
     },
@@ -111,23 +111,23 @@ showAlert('ÀÛ¾÷ÀÌ ¿Ï·áµÇ¾ú½À´Ï´Ù.', {
           <AlertFocusAfter />
         </div>
       ),
-      description: '¾Ë¸² ´ÝÈû ÈÄ ÁöÁ¤µÈ ¿ä¼Ò·Î Æ÷Ä¿½º ÀÌµ¿',
-      code: `// useRef ·Î ÀÔ·ÂÃ¢ ÂüÁ¶ »ý¼º
+      description: 'ï¿½Ë¸ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ò·ï¿½ ï¿½ï¿½Ä¿ï¿½ï¿½ ï¿½Ìµï¿½',
+      code: `// useRef ï¿½ï¿½ ï¿½Ô·ï¿½Ã¢ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 const inputRef = useRef(null);
 
-// ¾Ë¸²À» ´ÝÀ¸¸é ÀÔ·ÂÃ¢À¸·Î Æ÷Ä¿½º ÀÌµ¿
+// ï¿½Ë¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ô·ï¿½Ã¢ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¿ï¿½ï¿½ ï¿½Ìµï¿½
 <div className="flex gap-4 items-center">
   <Lib.Button
     onClick={() => {
-      showAlert('¾Ë¸²À» ´ÝÈ÷¸é ÀÔ·ÂÃ¢À¸·Î Ä¿¼­°¡ ÀÌµ¿ÇÕ´Ï´Ù.', {
-        title: '¾Ë¸²',
+      showAlert('ï¿½Ë¸ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ô·ï¿½Ã¢ï¿½ï¿½ï¿½ï¿½ Ä¿ï¿½ï¿½ï¿½ï¿½ ï¿½Ìµï¿½ï¿½Õ´Ï´ï¿½.', {
+        title: 'ï¿½Ë¸ï¿½',
         onFocus: () => inputRef.current?.focus(),
       });
     }}
   >
-    ¾Ë¸² ¶ç¿ì±â
+    ï¿½Ë¸ï¿½ ï¿½ï¿½ï¿½ï¿½
   </Lib.Button>
-  <Lib.Input ref={inputRef} placeholder="Ä¿¼­°¡ ¿©±â·Î ÀÌµ¿ÇÕ´Ï´Ù" />
+  <Lib.Input ref={inputRef} placeholder="Ä¿ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ìµï¿½ï¿½Õ´Ï´ï¿½" />
 </div>`
     }
   ];

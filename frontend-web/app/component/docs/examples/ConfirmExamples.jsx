@@ -1,9 +1,9 @@
 "use client";
 /**
- * ÆÄÀÏ¸í: ConfirmExamples.jsx
- * ÀÛ¼ºÀÚ: LSH
- * °»½ÅÀÏ: 2025-09-13
- * ¼³¸í: Confirm ÄÄÆ÷³ÍÆ® ¿¹Á¦
+ * ï¿½ï¿½ï¿½Ï¸ï¿½: ConfirmExamples.jsx
+ * ï¿½Û¼ï¿½ï¿½ï¿½: LSH
+ * ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½: 2025-09-13
+ * ï¿½ï¿½ï¿½ï¿½: Confirm ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
  */
 import * as Lib from '@/app/lib';
 import { useRef } from 'react';
@@ -14,12 +14,12 @@ const BasicConfirm = () => {
   return (
     <Lib.Button
       onClick={() => {
-        showConfirm('Á¤¸» ÁøÇàÇÏ½Ã°Ú½À´Ï±î?').then((result) => {
-          if (result) showAlert('È®ÀÎÇß½À´Ï´Ù.');
+        showConfirm('ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï½Ã°Ú½ï¿½ï¿½Ï±ï¿½?').then((result) => {
+          if (result) showAlert('È®ï¿½ï¿½ï¿½ß½ï¿½ï¿½Ï´ï¿½.');
         });
       }}
     >
-      ±âº» È®ÀÎ
+      ï¿½âº» È®ï¿½ï¿½
     </Lib.Button>
   );
 };
@@ -30,27 +30,27 @@ const ConfirmVariants = () => {
     <div className="flex flex-wrap gap-2">
       <Lib.Button
         onClick={() =>
-          showConfirm('ÇØ´ç ÀÛ¾÷Àº µÇµ¹¸± ¼ö ¾ø½À´Ï´Ù.\n°è¼ÓÇÏ½Ã°Ú½À´Ï±î?', {
-            title: 'ÁÖÀÇ',
+          showConfirm('ï¿½Ø´ï¿½ ï¿½Û¾ï¿½ï¿½ï¿½ ï¿½Çµï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½.\nï¿½ï¿½ï¿½ï¿½Ï½Ã°Ú½ï¿½ï¿½Ï±ï¿½?', {
+            title: 'ï¿½ï¿½ï¿½ï¿½',
             type: 'warning',
-            confirmText: '°è¼Ó',
-            cancelText: 'Áß´Ü',
+            confirmText: 'ï¿½ï¿½ï¿½',
+            cancelText: 'ï¿½ß´ï¿½',
           })
         }
       >
-        °æ°í È®ÀÎ
+        ï¿½ï¿½ï¿½ È®ï¿½ï¿½
       </Lib.Button>
       <Lib.Button
         onClick={() =>
-          showConfirm('¸ðµç µ¥ÀÌÅÍ¸¦ »èÁ¦ÇÕ´Ï´Ù.\nÁ¤¸» »èÁ¦ÇÏ½Ã°Ú½À´Ï±î?', {
-            title: 'À§Çè È®ÀÎ',
+          showConfirm('ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Í¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Õ´Ï´ï¿½.\nï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï½Ã°Ú½ï¿½ï¿½Ï±ï¿½?', {
+            title: 'ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½',
             type: 'danger',
-            confirmText: '»èÁ¦',
-            cancelText: 'Ãë¼Ò',
+            confirmText: 'ï¿½ï¿½ï¿½ï¿½',
+            cancelText: 'ï¿½ï¿½ï¿½',
           })
         }
       >
-        À§Çè È®ÀÎ
+        ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½
       </Lib.Button>
     </div>
   );
@@ -61,17 +61,17 @@ const ConfirmCallbacks = () => {
   return (
     <Lib.Button
       onClick={() =>
-        showConfirm('»èÁ¦¸¦ ÁøÇàÇÏ½Ã°Ú½À´Ï±î?', {
-          title: 'À§Çè È®ÀÎ',
+        showConfirm('ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï½Ã°Ú½ï¿½ï¿½Ï±ï¿½?', {
+          title: 'ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½',
           type: 'danger',
-          confirmText: '»èÁ¦',
-          cancelText: 'Ãë¼Ò',
-          onConfirm: () => showAlert('»èÁ¦°¡ ¿Ï·áµÇ¾ú½À´Ï´Ù.'),
-          onCancel: () => showAlert('»èÁ¦°¡ Ãë¼ÒµÇ¾ú½À´Ï´Ù.'),
+          confirmText: 'ï¿½ï¿½ï¿½ï¿½',
+          cancelText: 'ï¿½ï¿½ï¿½',
+          onConfirm: () => showAlert('ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ï·ï¿½Ç¾ï¿½ï¿½ï¿½ï¿½Ï´ï¿½.'),
+          onCancel: () => showAlert('ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ÒµÇ¾ï¿½ï¿½ï¿½ï¿½Ï´ï¿½.'),
         })
       }
     >
-      ÄÝ¹é ÇÔ¼ö Ç¥½Ã
+      ï¿½Ý¹ï¿½ ï¿½Ô¼ï¿½ Ç¥ï¿½ï¿½
     </Lib.Button>
   );
 };
@@ -83,15 +83,15 @@ const ConfirmFocus = () => {
     <div className="flex gap-4 items-center">
       <Lib.Button
         onClick={() =>
-          showConfirm('È®ÀÎ ¸ð´ÞÀÌ ´ÝÈ÷¸é ÀÔ·ÂÃ¢À¸·Î Ä¿¼­°¡ ÀÌµ¿ÇÕ´Ï´Ù.', {
-            title: 'Æ÷Ä¿½º ÀÌµ¿',
+          showConfirm('È®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ô·ï¿½Ã¢ï¿½ï¿½ï¿½ï¿½ Ä¿ï¿½ï¿½ï¿½ï¿½ ï¿½Ìµï¿½ï¿½Õ´Ï´ï¿½.', {
+            title: 'ï¿½ï¿½Ä¿ï¿½ï¿½ ï¿½Ìµï¿½',
             onFocus: () => inputRef.current?.focus(),
           })
         }
       >
-        Æ÷Ä¿½º ÀÌµ¿ Ç¥½Ã
+        ï¿½ï¿½Ä¿ï¿½ï¿½ ï¿½Ìµï¿½ Ç¥ï¿½ï¿½
       </Lib.Button>
-      <Lib.Input ref={inputRef} placeholder="Ä¿¼­°¡ ¿©±â·Î ÀÌµ¿ÇÕ´Ï´Ù" />
+      <Lib.Input ref={inputRef} placeholder="Ä¿ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ìµï¿½ï¿½Õ´Ï´ï¿½" />
     </div>
   );
 };
@@ -104,32 +104,32 @@ export const ConfirmExamples = () => {
           <BasicConfirm />
         </div>
       ),
-      description: '±âº» È®ÀÎ ¸ð´Þ',
-      code: `// useSharedStore »ç¿ë
+      description: 'ï¿½âº» È®ï¿½ï¿½ ï¿½ï¿½ï¿½',
+      code: `// useSharedStore ï¿½ï¿½ï¿½
 const { showConfirm, showAlert } = useGlobalUi();
 
-// ±âº» È®ÀÎ
-showConfirm('Á¤¸» ÁøÇàÇÏ½Ã°Ú½À´Ï±î?').then((result) => {
-  if (result) showAlert('È®ÀÎÇß½À´Ï´Ù.');
+// ï¿½âº» È®ï¿½ï¿½
+showConfirm('ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï½Ã°Ú½ï¿½ï¿½Ï±ï¿½?').then((result) => {
+  if (result) showAlert('È®ï¿½ï¿½ï¿½ß½ï¿½ï¿½Ï´ï¿½.');
 });`
     },
     {
       component: <ConfirmVariants />,
-      description: 'È®ÀÎ ¸ð´Þ À¯Çü',
-      code: `// °æ°í È®ÀÎ
-showConfirm('ÇØ´ç ÀÛ¾÷Àº µÇµ¹¸± ¼ö ¾ø½À´Ï´Ù.\\n°è¼ÓÇÏ½Ã°Ú½À´Ï±î?', {
-  title: 'ÁÖÀÇ',
+      description: 'È®ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½',
+      code: `// ï¿½ï¿½ï¿½ È®ï¿½ï¿½
+showConfirm('ï¿½Ø´ï¿½ ï¿½Û¾ï¿½ï¿½ï¿½ ï¿½Çµï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï´ï¿½.\\nï¿½ï¿½ï¿½ï¿½Ï½Ã°Ú½ï¿½ï¿½Ï±ï¿½?', {
+  title: 'ï¿½ï¿½ï¿½ï¿½',
   type: 'warning',
-  confirmText: '°è¼Ó',
-  cancelText: 'Áß´Ü',
+  confirmText: 'ï¿½ï¿½ï¿½',
+  cancelText: 'ï¿½ß´ï¿½',
 });
 
-// À§Çè È®ÀÎ
-showConfirm('¸ðµç µ¥ÀÌÅÍ¸¦ »èÁ¦ÇÕ´Ï´Ù.\\nÁ¤¸» »èÁ¦ÇÏ½Ã°Ú½À´Ï±î?', {
-  title: 'À§Çè È®ÀÎ',
+// ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½
+showConfirm('ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Í¸ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Õ´Ï´ï¿½.\\nï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï½Ã°Ú½ï¿½ï¿½Ï±ï¿½?', {
+  title: 'ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½',
   type: 'danger',
-  confirmText: '»èÁ¦',
-  cancelText: 'Ãë¼Ò',
+  confirmText: 'ï¿½ï¿½ï¿½ï¿½',
+  cancelText: 'ï¿½ï¿½ï¿½',
 });`
     },
     {
@@ -138,15 +138,15 @@ showConfirm('¸ðµç µ¥ÀÌÅÍ¸¦ »èÁ¦ÇÕ´Ï´Ù.\\nÁ¤¸» »èÁ¦ÇÏ½Ã°Ú½À´Ï±î?', {
           <ConfirmCallbacks />
         </div>
       ),
-      description: 'È®ÀÎ/Ãë¼Ò ÄÝ¹é',
-      code: `// È®ÀÎ/Ãë¼Ò ½Ã ½ÇÇàµÉ ÄÝ¹é
-showConfirm('»èÁ¦¸¦ ÁøÇàÇÏ½Ã°Ú½À´Ï±î?', {
-  title: 'À§Çè È®ÀÎ',
+      description: 'È®ï¿½ï¿½/ï¿½ï¿½ï¿½ ï¿½Ý¹ï¿½',
+      code: `// È®ï¿½ï¿½/ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ý¹ï¿½
+showConfirm('ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Ï½Ã°Ú½ï¿½ï¿½Ï±ï¿½?', {
+  title: 'ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½',
   type: 'danger',
-  confirmText: '»èÁ¦',
-  cancelText: 'Ãë¼Ò',
-  onConfirm: () => showAlert('»èÁ¦°¡ ¿Ï·áµÇ¾ú½À´Ï´Ù.'),
-  onCancel: () => showAlert('»èÁ¦°¡ Ãë¼ÒµÇ¾ú½À´Ï´Ù.'),
+  confirmText: 'ï¿½ï¿½ï¿½ï¿½',
+  cancelText: 'ï¿½ï¿½ï¿½',
+  onConfirm: () => showAlert('ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ï·ï¿½Ç¾ï¿½ï¿½ï¿½ï¿½Ï´ï¿½.'),
+  onCancel: () => showAlert('ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ÒµÇ¾ï¿½ï¿½ï¿½ï¿½Ï´ï¿½.'),
 });`
     },
     {
@@ -155,23 +155,23 @@ showConfirm('»èÁ¦¸¦ ÁøÇàÇÏ½Ã°Ú½À´Ï±î?', {
           <ConfirmFocus />
         </div>
       ),
-      description: 'È®ÀÎ ¸ð´Þ ´ÝÈû ÈÄ Æ÷Ä¿½º ÀÌµ¿',
-      code: `// useRef ·Î ÀÔ·ÂÃ¢ ÂüÁ¶ »ý¼º
+      description: 'È®ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½Ä¿ï¿½ï¿½ ï¿½Ìµï¿½',
+      code: `// useRef ï¿½ï¿½ ï¿½Ô·ï¿½Ã¢ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 const inputRef = useRef(null);
 
-// ¸ð´Þ ´ÝÈû ÈÄ ÀÔ·ÂÃ¢À¸·Î Æ÷Ä¿½º ÀÌµ¿
+// ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½Ô·ï¿½Ã¢ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ä¿ï¿½ï¿½ ï¿½Ìµï¿½
 <div className="flex gap-4 items-center">
   <Lib.Button
     onClick={() => {
-      showConfirm('È®ÀÎ ¸ð´ÞÀÌ ´ÝÈ÷¸é ÀÔ·ÂÃ¢À¸·Î Ä¿¼­°¡ ÀÌµ¿ÇÕ´Ï´Ù.', {
-        title: 'Æ÷Ä¿½º ÀÌµ¿',
+      showConfirm('È®ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ô·ï¿½Ã¢ï¿½ï¿½ï¿½ï¿½ Ä¿ï¿½ï¿½ï¿½ï¿½ ï¿½Ìµï¿½ï¿½Õ´Ï´ï¿½.', {
+        title: 'ï¿½ï¿½Ä¿ï¿½ï¿½ ï¿½Ìµï¿½',
         onFocus: () => inputRef.current?.focus(),
       });
     }}
   >
-    Æ÷Ä¿½º ÀÌµ¿ Ç¥½Ã
+    ï¿½ï¿½Ä¿ï¿½ï¿½ ï¿½Ìµï¿½ Ç¥ï¿½ï¿½
   </Lib.Button>
-  <Lib.Input ref={inputRef} placeholder="Ä¿¼­°¡ ¿©±â·Î ÀÌµ¿ÇÕ´Ï´Ù" />
+  <Lib.Input ref={inputRef} placeholder="Ä¿ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ìµï¿½ï¿½Õ´Ï´ï¿½" />
 </div>`
     }
   ];

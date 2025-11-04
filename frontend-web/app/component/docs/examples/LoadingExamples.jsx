@@ -1,9 +1,9 @@
 "use client";
 /**
- * ÆÄÀÏ¸í: LoadingExamples.jsx
- * ÀÛ¼ºÀÚ: LSH
- * °»½ÅÀÏ: 2025-09-13
- * ¼³¸í: Loading ÄÄÆ÷³ÍÆ® ¿¹Á¦
+ * ï¿½ï¿½ï¿½Ï¸ï¿½: LoadingExamples.jsx
+ * ï¿½Û¼ï¿½ï¿½ï¿½: LSH
+ * ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½: 2025-09-13
+ * ï¿½ï¿½ï¿½ï¿½: Loading ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Æ® ï¿½ï¿½ï¿½ï¿½
  */
 import * as Lib from '@/app/lib';
 import { useGlobalUi } from '@/app/common/store/SharedStore';
@@ -17,7 +17,7 @@ const ShowGlobalLoading = () => {
         setTimeout(() => setLoading(false), 2000);
       }}
     >
-      ÀüÃ¼ È­¸é ·Îµù (2ÃÊ)
+      ï¿½ï¿½Ã¼ È­ï¿½ï¿½ ï¿½Îµï¿½ (2ï¿½ï¿½)
     </Lib.Button>
   );
 };
@@ -30,16 +30,16 @@ export const LoadingExamples = () => {
           <ShowGlobalLoading />
         </div>
       ),
-      description: 'ÀüÃ¼ È­¸é ·Îµù Ç¥½Ã',
-      code: `// useSharedStore »ç¿ë
+      description: 'ï¿½ï¿½Ã¼ È­ï¿½ï¿½ ï¿½Îµï¿½ Ç¥ï¿½ï¿½',
+      code: `// useSharedStore ï¿½ï¿½ï¿½
 const { setLoading } = useGlobalUi();
 
-// ·Îµù Ç¥½Ã/ÇØÁ¦
+// ï¿½Îµï¿½ Ç¥ï¿½ï¿½/ï¿½ï¿½ï¿½ï¿½
 <Lib.Button onClick={() => {
   setLoading(true);
   setTimeout(() => setLoading(false), 2000);
 }}>
-  ÀüÃ¼ È­¸é ·Îµù (2ÃÊ)
+  ï¿½ï¿½Ã¼ È­ï¿½ï¿½ ï¿½Îµï¿½ (2ï¿½ï¿½)
 </Lib.Button>`
     }
   ];
