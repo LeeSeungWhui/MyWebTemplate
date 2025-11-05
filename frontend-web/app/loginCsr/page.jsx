@@ -6,6 +6,6 @@ import { CSR_ENTRY_PROPS } from './initData';
 
 export const dynamic = 'force-static';
 
-export default function Page() {
-  return <Client {...CSR_ENTRY_PROPS} />;
-}
+const Page = () => <Client {...CSR_ENTRY_PROPS} />;
+
+export default Page;

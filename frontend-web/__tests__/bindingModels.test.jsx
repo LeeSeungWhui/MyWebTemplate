@@ -206,11 +206,11 @@ describe('Component event pipeline', () => {
     });
 });
 
-function CheckButtonHarness({ onChange }) {
+const CheckButtonHarness = ({ onChange }) => {
     const model = EasyObj({ toggle: false });
     return (
         <CheckButton dataObj={model} dataKey="toggle" onChange={onChange}>
             Toggle
         </CheckButton>
     );
-}
+};

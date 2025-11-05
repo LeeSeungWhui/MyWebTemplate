@@ -21,7 +21,7 @@ const sanitizeRedirect = (candidate) => {
   return candidate;
 };
 
-export default function Client({ mode, init, nextHint }) {
+const Client = ({ mode, init, nextHint }) => {
   const loginObj = EasyObj(useMemo(() => createLoginFormModel(), []));
   const [pending, setPending] = useState(false);
   const { data, mutate } = useSWR(mode === 'CSR' ? 'session' : null, () => csrJSON(SESSION_PATH), {
@@ -184,3 +184,5 @@ export default function Client({ mode, init, nextHint }) {
     </main>
   );
 }
+
+export default Client;

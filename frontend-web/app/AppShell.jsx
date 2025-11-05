@@ -13,7 +13,7 @@ import Alert from '@/app/lib/component/Alert'
 import Confirm from '@/app/lib/component/Confirm'
 import Toast from '@/app/lib/component/Toast/Toast'
 
-export default function AppShell({ children }) {
+const AppShell = ({ children }) => {
   const {
     isLoading,
     alert, hideAlert,
@@ -73,3 +73,5 @@ export default function AppShell({ children }) {
     </>
   )
 }
+
+export default AppShell

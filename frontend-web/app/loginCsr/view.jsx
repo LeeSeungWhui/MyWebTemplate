@@ -21,7 +21,7 @@ const sanitizeRedirect = (candidate) => {
   return candidate;
 };
 
-export default function Client({ nextHint = null }) {
+const Client = ({ nextHint = null }) => {
   const router = useRouter();
   const loginObj = EasyObj(useMemo(() => createLoginFormModel(), []));
   const [session, setSession] = useState(null);
@@ -213,3 +213,5 @@ export default function Client({ nextHint = null }) {
     </main>
   );
 }
+
+export default Client;

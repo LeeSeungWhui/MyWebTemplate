@@ -10,7 +10,7 @@ import useSWR from 'swr'
 import { csrJSON } from '@/app/lib/runtime/csr'
 import { SESSION_PATH } from '@/app/login/initData'
 
-export default function HomePage() {
+const HomePage = () => {
   const { data } = useSWR('session', () => csrJSON(SESSION_PATH), {
     revalidateOnFocus: false,
   })
@@ -28,3 +28,4 @@ export default function HomePage() {
   )
 }
 
+export default HomePage

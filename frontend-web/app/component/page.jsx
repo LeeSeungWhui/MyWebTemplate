@@ -45,7 +45,7 @@ import EasyEditorDocs from './docs/components/EasyEditorDocs'
  * 컴포넌트 문서 페이지
  * @date 2025-09-13
  */
-export default function ComponentsPage() {
+const ComponentsPage = () => {
   return (
     <div className="flex">
       {/* Left sidebar (TOC) */}
@@ -97,3 +97,5 @@ export default function ComponentsPage() {
     </div>
   )
 }
+
+export default ComponentsPage

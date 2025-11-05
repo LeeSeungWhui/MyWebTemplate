@@ -11,7 +11,7 @@ import { useSharedStore } from './SharedStore'
 
 // Hydrates shared store from SSR-provided initial data.
 // Pass userJson (e.g., { userId, name }) and/or sharedPatch (partial shared object).
-export default function SharedHydrator({ userJson, sharedPatch, config }) {
+const SharedHydrator = ({ userJson, sharedPatch, config }) => {
   const { setUserJson, setUser, setShared, setConfig } = useSharedStore()
   useEffect(() => {
     if (typeof userJson !== 'undefined') {
@@ -32,3 +32,5 @@ export default function SharedHydrator({ userJson, sharedPatch, config }) {
   }, [userJson, sharedPatch, config, setUserJson, setUser, setShared, setConfig])
   return null
 }
+
+export default SharedHydrator

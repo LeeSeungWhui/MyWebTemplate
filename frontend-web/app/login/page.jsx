@@ -14,7 +14,7 @@ import { SESSION_PATH } from './initData'
 import SharedHydrator from '@/app/common/store/SharedHydrator'
 import { cookies } from 'next/headers'
 
-export default async function Page() {
+const Page = async () => {
   const MODE = 'SSR'
   const init = MODE === 'SSR' ? await ssrJSON(SESSION_PATH).catch(() => null) : null
   // Read next-hint from httpOnly cookie set by middleware (hidden from URL)
@@ -38,3 +38,5 @@ export default async function Page() {
     </>
   )
 }
+
+export default Page
