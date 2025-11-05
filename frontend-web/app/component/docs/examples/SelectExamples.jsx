@@ -20,6 +20,8 @@ export const SelectExamples = () => {
     { id: 'pm', label: '프로덕트 매니저' },
   ])
 
+  const emptyOptions = Lib.EasyList([])
+
   const [role, setRole] = useState('developer')
 
   const loadingOptions = Lib.EasyList([
@@ -137,6 +139,23 @@ const jobs = Lib.EasyList([
   textKey="label"
   status="error"
   statusMessage="필수 입력 항목입니다."
+/>`,
+    },
+    {
+      component: (
+        <Lib.Select
+          id="select-empty"
+          dataList={emptyOptions}
+          status="empty"
+          assistiveText="선택 가능한 항목이 비어 있습니다."
+        />
+      ),
+      description:
+        '빈 상태 — status="empty" 프리셋으로 항목 부재 안내 및 aria-live=assertive 적용',
+      code: `<Lib.Select
+  dataList={Lib.EasyList([])}
+  status="empty"
+  assistiveText="선택 가능한 항목이 비어 있습니다."
 />`,
     },
   ]
