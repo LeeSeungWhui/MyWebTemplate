@@ -25,40 +25,54 @@ const STATUS_PRESETS = {
     button:
       'border border-gray-300 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900',
     message: 'text-gray-600',
+    ariaLive: 'polite',
   },
   success: {
     button:
       'border border-green-400 focus:ring-green-500 focus:border-green-500 bg-white text-gray-900',
     message: 'text-green-600',
     defaultMessage: '선택이 저장되었습니다.',
+    ariaLive: 'polite',
   },
   warning: {
     button:
       'border border-yellow-400 focus:ring-yellow-500 focus:border-yellow-500 bg-white text-gray-900',
     message: 'text-yellow-700',
     defaultMessage: '추가 확인이 필요합니다.',
+    ariaLive: 'polite',
   },
   error: {
     button:
       'border border-red-400 focus:ring-red-500 focus:border-red-500 bg-white text-gray-900',
     message: 'text-red-600',
     defaultMessage: '유효하지 않은 값입니다.',
+    ariaLive: 'assertive',
   },
   info: {
     button:
       'border border-blue-300 focus:ring-blue-400 focus:border-blue-400 bg-white text-gray-900',
     message: 'text-blue-600',
+    ariaLive: 'polite',
   },
   loading: {
     button:
       'border border-blue-300 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 pr-9',
     message: 'text-blue-600',
     defaultMessage: '불러오는 중…',
+    ariaLive: 'polite',
+  },
+  empty: {
+    button:
+      'border border-gray-300 bg-white text-gray-500 focus:ring-blue-400 focus:border-blue-400',
+    message: 'text-gray-500',
+    defaultMessage: '표시할 항목이 없습니다.',
+    ariaLive: 'assertive',
   },
   disabled: {
     button:
       'border border-gray-300 bg-gray-100 text-gray-500 cursor-not-allowed',
     message: 'text-gray-500',
+    ariaLive: 'polite',
   },
 }
 
@@ -165,10 +179,6 @@ const Combobox = forwardRef((props, ref) => {
   const reactId = useId()
   const buttonId = id || `combobox-${reactId}`
   const listboxId = `${buttonId}-listbox`
-  const liveId =
-    statusMessage || assistiveText
-      ? `${buttonId}-status`
-      : undefined
 
   const isControlled = valueProp !== undefined
 
@@ -254,6 +264,11 @@ const Combobox = forwardRef((props, ref) => {
     statusMessage ??
     statusMeta.defaultMessage ??
     (normalizedStatus === 'disabled' ? '사용할 수 없는 상태입니다.' : '')
+
+  const messageId =
+    messageText || assistiveText
+      ? `${buttonId}-status`
+      : undefined
 
   const filtered = useMemo(() => {
     if (!filterable || !query) return options
@@ -411,7 +426,6 @@ const Combobox = forwardRef((props, ref) => {
     }
   }
 
-  const messageId = liveId
   const ariaDescribedBy = [ariaDescribedByProp, messageId]
     .filter(Boolean)
     .join(' ') || undefined
@@ -565,7 +579,7 @@ const Combobox = forwardRef((props, ref) => {
           className={`mt-1 text-xs ${
             messageText ? statusMeta.message : 'sr-only'
           }`}
-          aria-live="polite"
+          aria-live={statusMeta.ariaLive || 'polite'}
         >
           {messageText || assistiveText}
           {messageText && assistiveText && (

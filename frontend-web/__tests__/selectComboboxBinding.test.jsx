@@ -119,4 +119,28 @@ describe('Select & Combobox binding contracts', () => {
       expect(button).toHaveTextContent('인천'),
     )
   })
+
+  test('Select empty status surface default message with assertive aria-live', () => {
+    render(
+      <Select
+        dataList={[]}
+        status="empty"
+      />,
+    )
+    const message = screen.getByText('표시할 항목이 없습니다.')
+    expect(message).toBeVisible()
+    expect(message).toHaveAttribute('aria-live', 'assertive')
+  })
+
+  test('Combobox empty status surfaces default message with assertive aria-live', () => {
+    render(
+      <Combobox
+        dataList={[]}
+        status="empty"
+      />,
+    )
+    const message = screen.getByText('표시할 항목이 없습니다.')
+    expect(message).toBeVisible()
+    expect(message).toHaveAttribute('aria-live', 'assertive')
+  })
 })

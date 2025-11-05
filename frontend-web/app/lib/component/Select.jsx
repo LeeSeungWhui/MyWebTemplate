@@ -11,34 +11,47 @@ const STATUS_PRESETS = {
   default: {
     select: 'border border-gray-300 focus:ring-blue-500 focus:border-blue-500',
     message: 'text-gray-600',
+    ariaLive: 'polite',
   },
   success: {
     select: 'border border-green-400 focus:ring-green-500 focus:border-green-500',
     message: 'text-green-600',
     defaultMessage: '선택이 저장되었습니다.',
+    ariaLive: 'polite',
   },
   warning: {
     select: 'border border-yellow-400 focus:ring-yellow-500 focus:border-yellow-500',
     message: 'text-yellow-700',
     defaultMessage: '추가 확인이 필요합니다.',
+    ariaLive: 'polite',
   },
   error: {
     select: 'border border-red-400 focus:ring-red-500 focus:border-red-500',
     message: 'text-red-600',
     defaultMessage: '유효하지 않은 값입니다.',
+    ariaLive: 'assertive',
   },
   info: {
     select: 'border border-blue-300 focus:ring-blue-400 focus:border-blue-400',
     message: 'text-blue-600',
+    ariaLive: 'polite',
   },
   loading: {
     select: 'border border-blue-300 focus:ring-blue-500 focus:border-blue-500 pr-9',
     message: 'text-blue-600',
     defaultMessage: '불러오는 중…',
+    ariaLive: 'polite',
+  },
+  empty: {
+    select: 'border border-gray-300 bg-white text-gray-500 focus:ring-blue-400 focus:border-blue-400',
+    message: 'text-gray-500',
+    defaultMessage: '표시할 항목이 없습니다.',
+    ariaLive: 'assertive',
   },
   disabled: {
     select: 'bg-gray-100 text-gray-500 border border-gray-300 cursor-not-allowed',
     message: 'text-gray-500',
+    ariaLive: 'polite',
   },
 }
 
@@ -170,7 +183,8 @@ const Select = forwardRef((props, ref) => {
   const normalizedStatus = disabled
     ? 'disabled'
     : statusProp || (error ? 'error' : 'default')
-  const statusMeta = STATUS_PRESETS[normalizedStatus] || STATUS_PRESETS.default
+  const statusMeta =
+    STATUS_PRESETS[normalizedStatus] || STATUS_PRESETS.default
   const messageText =
     statusMessage ??
     statusMeta.defaultMessage ??
@@ -294,7 +308,7 @@ const Select = forwardRef((props, ref) => {
           className={`mt-1 text-xs ${
             messageText ? statusMeta.message : 'sr-only'
           }`}
-          aria-live="polite"
+          aria-live={statusMeta.ariaLive || 'polite'}
         >
           {messageText || assistiveText}
           {messageText && assistiveText && (
