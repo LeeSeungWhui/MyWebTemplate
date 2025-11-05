@@ -10,6 +10,7 @@ links: [CU-BE-001, CU-BE-005, CU-WEB-001, CU-WEB-004, CU-WEB-006]
 ### Purpose
 - OpenAPI 스키마 기반으로 JS용 API 클라이언트를 구성하고, 쿠키 세션 모드에 맞는 오류/보안/캐시 규약을 지킨다.
 - SSR/ISR/CSR 어디서 호출하든 응답 스키마/리다이렉트/에러 처리 정책이 일관되게 동작한다.
+- 401(세션 만료) 글로벌 처리: `/login?next=현재경로`로 이동 → 미들웨어가 `nx` 쿠키로 정리.
 
 ### Scope
 - 포함
@@ -32,6 +33,7 @@ links: [CU-BE-001, CU-BE-005, CU-WEB-001, CU-WEB-004, CU-WEB-006]
   - 모든 요청은 credentials:'include' 고정(쿠키 세션)
   - 세션 조회(/api/v1/auth/session)는 Cache-Control: no-store
   - 로그인(/api/v1/auth/login) 204(No Content) 처리(바디 없음)
+  - 401 수신 시 전역 인터셉터에서 `/login?next=현재경로`로 이동(루프 방지: `/login`에서는 미동작)
 - 응답/오류 규약
   - 성공: 응답 스키마 준수 + 요청ID 로깅
   - 실패:
@@ -55,7 +57,7 @@ links: [CU-BE-001, CU-BE-005, CU-WEB-001, CU-WEB-004, CU-WEB-006]
 ### Acceptance Criteria
 - AC-1: NEXT_PUBLIC_API_BASE 설정 후 모든 요청에서 credentials:'include'가 적용된다.
 - AC-2: 로그인 204가 정상 처리되고, 이후 세션 응답에서 authenticated=true가 반환된다.
-- AC-3: 실패 응답이 스키마화되고 401/403/422가 올바르게 매핑된다.
+- AC-3: 실패 응답이 스키마화되고 401/403/422가 올바르게 매핑된다(401 시 전역 리다이렉트 동작).
 - AC-4: useSession/useProfile이 로그인/로그아웃/변경에 맞춰 SWR 무효화가 반영된다.
 - AC-5: SSR/CSR 경로 모두에서 에러/리다이렉트 정책이 일관 동작한다.
 - AC-6: CI에서 OpenAPI 스키마 로드/샘플 호출 스모크가 통과한다.
@@ -81,4 +83,4 @@ links: [CU-BE-001, CU-BE-005, CU-WEB-001, CU-WEB-004, CU-WEB-006]
 
 ### Implementation Notes
 - `app/lib/runtime/ssr.jsx`와 `csr.jsx`에 기본 fetch 래퍼와 `postWithCsrf`가 구현되어 있다.
-- OpenAPI 클라이언트(openapi-client-axios) 연동과 오류 맵핑은 아직 미구성 상태다.
+- CSR fetch 래퍼와 OpenAPI(axios) 클라이언트에 401 전역 처리 인터셉터가 구현되어 있다.

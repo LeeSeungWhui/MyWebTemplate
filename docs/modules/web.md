@@ -65,14 +65,16 @@ theme = light
 ## 결정(고정)
 - 전역 모드 환경변수(`NEXT_RUNTIME_MODE`)는 쓰지 않음. 페이지의 `MODE`가 단일 진실
 - 보호 페이지 기본 옵션: `revalidate=0`, `dynamic='force-dynamic'`, `runtime='nodejs'`, `fetchCache='only-no-store'`
-- 미들웨어 경로 정책: 공개(/login, /_next/*, /public/*, /healthz), 보호(/, /dashboard/*), API 제외(/api/**)
+- 미들웨어 단일 가드(Default Protect): 모든 페이지에 적용하되 Next 내부/정적/파비콘/파일 확장자는 제외
+  - config.matcher: `/((?!api|_next/static|_next/image|favicon.ico|.*\.).*)`
+  - 공개 경로 Allowlist: `frontend-web/app/common/config/publicRoutes.js`에서만 관리
 - CORS/헤더: `credentials:'include'`, 헤더 `X-CSRF-Token`, `Content-Type`, `Authorization`
 - JS Only 강제: 린트/프리셋 규칙으로 .ts/.tsx 금지
 
 ## 완료 기준(DoD) 샘플
 - 인증 흐름 로컬 검증(로그인→보호 페이지)
-- 보호 경로 미인증 접근 시 서버/클라에서 즉시 /login 리다이렉트
-- OpenAPI 기반 API 호출 성공, 공통 클라이언트에서 401/403/422 처리
+- 보호 경로 미인증 접근 시 미들웨어에서 `/login`으로 즉시 리다이렉트하고 httpOnly `nx`에 복귀 경로 저장
+- OpenAPI/Fetch 공통 헬퍼에서 401 수신 시 `/login?next=현재경로`로 이동(미들웨어가 `nx`로 정리)
 - CSRF 토큰 미스매치 요청은 403 + UX 가이드 노출
 - SSR/CSR 모드가 페이지 `MODE`를 존중하고 SSR 페이지는 SEO 메타 정상 출력
 - 공통 규칙(`docs/common-rules.md`) DoD 충족
