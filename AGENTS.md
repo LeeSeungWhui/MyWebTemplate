@@ -6,8 +6,10 @@ CompactCST 템플릿 구조로 작성된 기획안을 구현하는 것이 목표
 프롬프트 예시
 docs/units/jobs/CU-001_job-card.md 스펙을 구현한다.
 
-***로컬 개발(PowerShell)
-- 테스트/로컬 실행 전 윈도우면 `.\env.ps1`, 리눅스면 `.\env.sh` 실행해 PATH 설정(또는 절대 경로 실행)  
+***로컬 개발
+- PowerShell(윈도우): `.\env.ps1`
+- Bash/리눅스: 반드시 `source ./env.sh` (또는 `. ./env.sh`)로 같은 셸에 적용하고, 명령은 그 셸에서 바로 실행
+  - CLI/자동화에서는 `bash -lc "source ./env.sh && <원하는 명령>"` 형태로 한 번에 실행  
 ***
 
 출력 기대

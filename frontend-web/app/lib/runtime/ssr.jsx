@@ -4,7 +4,7 @@
  * 갱신일: 2025-09-13
  * 설명: SSR 유틸리티 모듈
  */
-import { getBackendHost } from '@/app/common/config/getBackendHost'
+import { getBackendHost } from '@/app/common/config/getBackendHost.server'
 
 export async function buildSSRHeaders(extra = {}) {
   // Next.js 15 dynamic APIs must be awaited
@@ -25,5 +25,4 @@ export async function ssrJSON(path, init = {}) {
   const res = await fetch(getBackendHost() + path, { cache: 'no-store', ...init, headers })
   return res.json()
 }
-
 
