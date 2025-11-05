@@ -92,4 +92,6 @@ export async function postWithCsrf(path, body) {
   })
 }
 
-export default { getOpenApiClient, getSession, postWithCsrf }
+const openApiHelpers = { getOpenApiClient, getSession, postWithCsrf }
+
+export default openApiHelpers

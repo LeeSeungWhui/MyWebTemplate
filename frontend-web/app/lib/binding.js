@@ -71,9 +71,11 @@ export function fireValueHandlers({ onChange, onValueChange, value, ctx, event }
   if (typeof onValueChange === 'function') onValueChange(value, ctx);
 }
 
-export default {
+const bindingUtils = {
   getBoundValue,
   setBoundValue,
   buildCtx,
   fireValueHandlers,
 };
+
+export default bindingUtils
