@@ -24,6 +24,8 @@ export const ComboboxExamples = () => {
 
   const [controlledCity, setControlledCity] = useState('seoul')
 
+  const emptyCityList = Lib.EasyList([])
+
   return [
     {
       component: (
@@ -132,6 +134,23 @@ const profile = Lib.EasyObj({ address: { city: 'incheon' } });
   status="loading"
   assistiveText="도시 목록을 불러오는 중입니다."
   disabled
+/>`,
+    },
+    {
+      component: (
+        <Lib.Combobox
+          id="combobox-empty"
+          dataList={emptyCityList}
+          status="empty"
+          assistiveText="선택 가능한 도시가 없습니다."
+        />
+      ),
+      description:
+        '빈 상태 — status="empty" 프리셋으로 항목 부재 안내와 assertive 라이브 영역',
+      code: `<Lib.Combobox
+  dataList={Lib.EasyList([])}
+  status="empty"
+  assistiveText="선택 가능한 도시가 없습니다."
 />`,
     },
   ]
