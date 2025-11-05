@@ -12,6 +12,7 @@
 // - 최소 기본값: 로그인 페이지만 공개. 필요한 공개 경로는 이 리스트에 추가한다.
 export const publicRoutes = [
   '/login',
+  '/component',
 ]
 
 /**
