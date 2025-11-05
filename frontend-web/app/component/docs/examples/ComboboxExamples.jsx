@@ -1,89 +1,138 @@
 /**
  * 파일명: ComboboxExamples.jsx
  * 작성자: LSH
- * 갱신일: 2025-09-13
- * 설명: Combobox 컴포넌트 예제
+ * 갱신일: 2025-11-05
+ * 설명: Combobox 컴포넌트 예제 (EasyList/EasyObj 연동 포함)
  */
-import * as Lib from '@/app/lib';
-import { useState } from 'react';
+import { useState } from 'react'
+import * as Lib from '@/app/lib'
 
 export const ComboboxExamples = () => {
-  const citiesSelected = [
-    { value: 'seoul', text: '서울', selected: true },
-    { value: 'busan', text: '부산' },
-    { value: 'incheon', text: '인천' },
-    { value: 'daegu', text: '대구' },
-  ];
-  const cities = [
+  const cityList = Lib.EasyList([
     { value: 'seoul', text: '서울' },
     { value: 'busan', text: '부산' },
     { value: 'incheon', text: '인천' },
     { value: 'daegu', text: '대구' },
-  ];
-  const [ctlCity, setCtlCity] = useState('incheon');
+  ])
 
-  const examples = [
+  const profile = Lib.EasyObj({
+    address: {
+      city: 'incheon',
+      favorites: ['seoul', 'busan'],
+    },
+  })
+
+  const [controlledCity, setControlledCity] = useState('seoul')
+
+  return [
     {
       component: (
-        <div className="space-y-2">
-          <Lib.Combobox dataList={cities} placeholder="도시 선택" />
-        </div>
+        <Lib.Combobox
+          id="combobox-bound"
+          dataList={cityList}
+          dataObj={profile.address}
+          dataKey="city"
+          placeholder="도시 선택"
+          status="success"
+          statusMessage={`선택 도시: ${profile.address.city}`}
+        />
       ),
-      description: '기본: dataList(선택 없음) + 필터/초성검색',
-      code: `const cities = [
+      description:
+        'EasyObj 바운드 모드 — dataObj/dataKey로 주소 객체와 동기화',
+      code: `const cityList = Lib.EasyList([
   { value: 'seoul', text: '서울' },
   { value: 'busan', text: '부산' },
   { value: 'incheon', text: '인천' },
   { value: 'daegu', text: '대구' },
-];
+]);
+const profile = Lib.EasyObj({ address: { city: 'incheon' } });
 
-<Lib.Combobox dataList={cities} placeholder="도시 선택" />`
+<Lib.Combobox
+  dataList={cityList}
+  dataObj={profile.address}
+  dataKey="city"
+  placeholder="도시 선택"
+  status="success"
+  statusMessage={\`선택 도시: \${profile.address.city}\`}
+/>`,
     },
     {
       component: (
         <div className="space-y-2">
-          <Lib.Combobox dataList={citiesSelected} value={ctlCity} onValueChange={setCtlCity} placeholder="도시 선택 (컨트롤드)" />
-          <div className="text-xs text-gray-600">value = {String(ctlCity)}</div>
-          <div className="text-xs text-gray-500">초성검색 예: ㅅㅇ→서울, ㅂㅅ→부산</div>
+          <Lib.Combobox
+            id="combobox-controlled"
+            dataList={cityList}
+            value={controlledCity}
+            onValueChange={setControlledCity}
+            placeholder="도시 선택 (컨트롤드)"
+            status="info"
+            statusMessage={`value prop: ${controlledCity}`}
+          />
+          <div className="text-xs text-gray-500">
+            초성검색 예: ㅅㅇ→서울, ㅂㅅ→부산
+          </div>
         </div>
       ),
-      description: '컨트롤드: value + onValueChange + 초성검색',
-      code: `const [city, setCity] = useState('incheon');
+      description: '컨트롤드 모드 — value/onValueChange 조합',
+      code: `const [city, setCity] = useState('seoul');
 
 <Lib.Combobox
-  dataList={cities}
+  dataList={cityList}
   value={city}
   onValueChange={setCity}
   placeholder="도시 선택 (컨트롤드)"
-/>`
+  status="info"
+  statusMessage={\`value prop: \${city}\`}
+/>`,
     },
     {
       component: (
         <Lib.Combobox
-          dataList={[{ value: 'A', text: '사과' }, { value: 'B', text: '바나나' }, { value: 'C', text: '체리' }]}
-          multi
-          placeholder="과일 선택"
-        />
-      ),
-      description: 'multi: 다중 선택 (라벨 나열)',
-      code: `<Lib.Combobox dataList={[ { value: 'A', text: '사과' }, { value: 'B', text: '바나나' } ]} multi placeholder="과일 선택"/>`
-    },
-    {
-      component: (
-        <Lib.Combobox
-          dataList={[{ value: 'A', text: '사과' }, { value: 'B', text: '바나나' }, { value: 'C', text: '체리' }]}
+          id="combobox-multi"
+          dataList={cityList}
+          dataObj={profile.address}
+          dataKey="favorites"
           multi
           multiSummary
           showSelectAll
-          placeholder="과일 선택"
+          summaryText="{count}개 도시 선택"
+          placeholder="좋아하는 도시 선택"
+          status="warning"
+          statusMessage="다중 선택 (EasyList selected/바운드 값 동시 반영)"
         />
       ),
-      description: 'multi + 요약 뱃지 + 전체 선택/해제',
-      code: `<Lib.Combobox dataList={[ { value: 'A', text: '사과' }, { value: 'B', text: '바나나' }, { value: 'C', text: '체리' } ]}
-  multi multiSummary showSelectAll placeholder="과일 선택"/>`
-    }
-  ];
-
-  return examples;
-};
-
+      description:
+        'multi + EasyObj 배열 바운드 — favorites 배열과 EasyList selected 동기화',
+      code: `<Lib.Combobox
+  dataList={cityList}
+  dataObj={profile.address}
+  dataKey="favorites"
+  multi
+  multiSummary
+  showSelectAll
+  summaryText="{count}개 도시 선택"
+  placeholder="좋아하는 도시 선택"
+  status="warning"
+  statusMessage="다중 선택 (EasyList selected/바운드 값 동시 반영)"
+/>`,
+    },
+    {
+      component: (
+        <Lib.Combobox
+          id="combobox-loading"
+          dataList={Lib.EasyList([{ value: '', text: '불러오는 중', placeholder: true }])}
+          status="loading"
+          assistiveText="도시 목록을 불러오는 중입니다."
+          disabled
+        />
+      ),
+      description: '로딩/비활성화 — status="loading" + assistiveText',
+      code: `<Lib.Combobox
+  dataList={Lib.EasyList([{ value: '', text: '불러오는 중', placeholder: true }])}
+  status="loading"
+  assistiveText="도시 목록을 불러오는 중입니다."
+  disabled
+/>`,
+    },
+  ]
+}
