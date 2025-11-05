@@ -6,7 +6,14 @@
  * 설명: CSR 유틸리티 모듈
  */
 
-import { getBackendHost } from '@/app/common/config/getBackendHost'
+const BFF_PREFIX = '/api/bff'
+
+function toBffPath(path) {
+  if (!path || typeof path !== 'string') return BFF_PREFIX
+  if (path.startsWith(BFF_PREFIX)) return path
+  const normalized = path.startsWith('/') ? path : `/${path}`
+  return `${BFF_PREFIX}${normalized}`
+}
 
 /**
  * 설명: 현재 경로를 기준으로 로그인 페이지로 이동한다.
@@ -27,7 +34,8 @@ export async function csrJSON(path, init = {}) {
     'Accept-Language': (typeof navigator !== 'undefined' && navigator.language) || 'en',
     ...(init.headers || {}),
   }
-  const res = await fetch(getBackendHost() + path, { credentials: 'include', ...init, headers })
+  const target = toBffPath(path)
+  const res = await fetch(target, { credentials: 'include', ...init, headers })
   if (res && res.status === 401) {
     redirectToLoginFromClient()
     throw new Error('UNAUTHORIZED')
@@ -36,10 +44,15 @@ export async function csrJSON(path, init = {}) {
 }
 
 export async function postWithCsrf(path, body) {
-  const r = await fetch(getBackendHost() + '/api/v1/auth/csrf', { credentials: 'include' })
-  const j = await r.json()
-  const csrf = j?.result?.csrf
-  const res = await fetch(getBackendHost() + path, {
+  const csrfRes = await fetch(toBffPath('/api/v1/auth/csrf'), { credentials: 'include' })
+  if (csrfRes && csrfRes.status === 401) {
+    redirectToLoginFromClient()
+    throw new Error('UNAUTHORIZED')
+  }
+  const csrfPayload = await csrfRes.json()
+  const csrf = csrfPayload?.result?.csrf
+  const target = toBffPath(path)
+  const res = await fetch(target, {
     method: 'POST',
     credentials: 'include',
     headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrf },
@@ -50,4 +63,3 @@ export async function postWithCsrf(path, body) {
   }
   return res
 }
-

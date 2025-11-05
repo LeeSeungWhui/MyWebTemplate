@@ -13,6 +13,7 @@
 - 테스트/문서: Docs 페이지, Vitest (Playwright 예정)
 - 언어: JavaScript Only (TypeScript 금지)
 - 설정: `frontend-web/config.ini` + 환경별 오버레이(`config_dev.ini`, `config_prod.ini`)
+- BFF: `/api/bff/*` 라우트에서 Backend API를 프록시하며 쿠키를 재작성
 
 ## 포함 Unit
 - CU-WEB-001 Auth & Login Page
@@ -68,6 +69,8 @@ theme = light
 - 미들웨어 단일 가드(Default Protect): 모든 페이지에 적용하되 Next 내부/정적/파비콘/파일 확장자는 제외
   - config.matcher: `/((?!api|_next/static|_next/image|favicon.ico|.*\.).*)`
   - 공개 경로 Allowlist: `frontend-web/app/common/config/publicRoutes.js`에서만 관리
+- BFF 프록시: `frontend-web/app/api/bff/[...path]/route.js`가 Backend API를 호출하고 `Set-Cookie`를 프론트 도메인으로 재작성
+- CSR 헬퍼: `csrJSON`/`postWithCsrf`/OpenAPI 클라이언트는 `/api/bff`를 통해 통신(401 수신 시 `/login?next=...`)
 - CORS/헤더: `credentials:'include'`, 헤더 `X-CSRF-Token`, `Content-Type`, `Authorization`
 - JS Only 강제: 린트/프리셋 규칙으로 .ts/.tsx 금지
 

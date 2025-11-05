@@ -34,6 +34,7 @@ links: [CU-BE-001, CU-BE-005, CU-WEB-001, CU-WEB-004, CU-WEB-006]
   - 세션 조회(/api/v1/auth/session)는 Cache-Control: no-store
   - 로그인(/api/v1/auth/login) 204(No Content) 처리(바디 없음)
   - 401 수신 시 전역 인터셉터에서 `/login?next=현재경로`로 이동(루프 방지: `/login`에서는 미동작)
+  - CSR 호출은 `/api/bff/*` 프록시를 통해 Backend API로 전달되고, `Set-Cookie`는 프론트 도메인으로 재작성된다
 - 응답/오류 규약
   - 성공: 응답 스키마 준수 + 요청ID 로깅
   - 실패:
