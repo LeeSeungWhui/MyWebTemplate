@@ -71,7 +71,7 @@ theme = light
   - 공개 경로 Allowlist: `frontend-web/app/common/config/publicRoutes.js`에서만 관리
 - BFF 프록시: `frontend-web/app/api/bff/[...path]/route.js`가 Backend API를 호출하고 `Set-Cookie`를 프론트 도메인으로 재작성
 - 통신 계층: `app/lib/runtime/api.js`의 `apiJSON`/`apiRequest`를 단일 진실로 사용(SSR/CSR 공통)
-  - CSR에서 스트리밍/자동 재검증이 필요하면 `app/lib/hooks/useApiStream.jsx`(SWR 래퍼) 선택적 사용
+  - CSR에서 스트리밍/자동 재검증이 필요하면 `app/lib/hooks/useSwr.jsx`(SWR 래퍼) 선택적 사용
 - CORS/헤더: `credentials:'include'`, 헤더 `X-CSRF-Token`, `Content-Type`, `Authorization`
 - JS Only 강제: 린트/프리셋 규칙으로 .ts/.tsx 금지
 

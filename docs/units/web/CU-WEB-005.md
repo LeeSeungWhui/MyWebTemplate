@@ -19,14 +19,14 @@ links: [CU-BE-001, CU-BE-005, CU-WEB-001, CU-WEB-004, CU-WEB-006]
   - 응답 스키마: {status,message,result,count?,code?,requestId} 강제
   - 오류 정책: 401/403/422/5xx 처리 규칙(리다이렉트/토스트)
   - CSRF: 비멱등 자동 주입(누락 시 발급 후 재시도)
-  - 선택: `useApiStream`(SWR 래퍼) — 키 체계/재검증/무효화 규약
+  - 선택: `useSwr`(SWR 래퍼) — 키 체계/재검증/무효화 규약
 - 제외
   - TypeScript/백그라운드 리프레시 고도화(차기)
 
 ### Interface
 - Export
   - Runtime: `apiRequest`, `apiJSON`, `apiGet/post/put/patch/delete`
-  - Hook(optional): `useApiStream(key, path, options)`
+  - Hook(optional): `useSwr(key, path, options)`
 - ENV: `NEXT_PUBLIC_API_BASE`
    - `NEXT_REVALIDATE_SECONDS` (ISR 기본값)
 - 요청 규약
@@ -59,7 +59,7 @@ links: [CU-BE-001, CU-BE-005, CU-WEB-001, CU-WEB-004, CU-WEB-006]
 - AC-1: 모든 요청에서 credentials:'include'가 적용된다.
 - AC-2: 로그인 204가 정상 처리되고, 이후 세션 응답에서 authenticated=true가 반환된다.
 - AC-3: 실패 응답이 스키마화되고 401/403/422가 올바르게 매핑된다(401 시 전역 리다이렉트 동작).
-- AC-4: (선택) `useApiStream` 사용 시 재검증/무효화 규약이 정상 동작한다.
+- AC-4: (선택) `useSwr` 사용 시 재검증/무효화 규약이 정상 동작한다.
 - AC-5: SSR/CSR 경로 모두에서 에러/리다이렉트 정책이 일관 동작한다.
 - AC-6: CI 스모크에서 `/healthz` 또는 `/api/v1/auth/session` 호출이 통과한다.
 
@@ -68,7 +68,7 @@ links: [CU-BE-001, CU-BE-005, CU-WEB-001, CU-WEB-004, CU-WEB-006]
 - T2 CSRF 주입: 비멱등 자동 주입 + 실패 시 발급 리트라이
 - T3 오류 맵핑: AUTH_*/VALID_422_* 코드 처리, 401 리다이렉트 규칙
 - T4 BFF 프록시 연계: Set-Cookie 재작성, /api/bff 경로 매칭
-- T5 (선택) `useApiStream` 규약: 키 체계/무효화/재검증
+- T5 (선택) `useSwr` 규약: 키 체계/무효화/재검증
 - T6 SSR 연동: 서버 컴포넌트/세션에서 공통 유틸 사용 규칙 문서화
 - T7 시나리오: 204 로그인, 401→login, 403 발급, 422 맵핑, 재검증 흐름
 - T8 문서: ENV/요청 규약/리다이렉트/오류 코드 및 최소 로깅
