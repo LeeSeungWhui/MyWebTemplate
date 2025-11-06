@@ -32,27 +32,52 @@ async function getServerCsrf(headers) {
   return j?.result?.csrf
 }
 
-export async function apiJSON(path, init = {}) {
+function isBodyLike(v) {
+  return (
+    typeof v === 'string' ||
+    (typeof FormData !== 'undefined' && v instanceof FormData) ||
+    (typeof Blob !== 'undefined' && v instanceof Blob) ||
+    (typeof ArrayBuffer !== 'undefined' && v instanceof ArrayBuffer)
+  )
+}
+
+function serializeBody(input) {
+  if (input == null) return undefined
+  if (isBodyLike(input)) return input
+  // EasyObj/EasyList proxies expose toJSON; JSON.stringify will respect it.
+  // Also supports plain objects/arrays directly.
+  try {
+    return typeof input === 'string' ? input : JSON.stringify(input)
+  } catch {
+    // Fallback: attempt structured clone via toJSON where possible
+    try {
+      // This will call toJSON on proxies and drop unsupported values
+      return JSON.stringify(JSON.parse(JSON.stringify(input)))
+    } catch {
+      return JSON.stringify({})
+    }
+  }
+}
+
+export async function apiRequest(path, init = {}) {
   const method = (init.method || 'GET').toUpperCase()
   const headersIn = init.headers || {}
 
   if (isServer()) {
     const { backend, buildSSRHeaders } = await resolveServerBase()
     const headers = await buildSSRHeaders({ 'Content-Type': 'application/json', ...headersIn })
-    let body = init.body
-    if (body && typeof body !== 'string') body = JSON.stringify(body)
+    const body = serializeBody(init.body)
     if (method !== 'GET' && method !== 'HEAD' && !headers['X-CSRF-Token']) {
       const csrf = await getServerCsrf(headers)
       if (csrf) headers['X-CSRF-Token'] = csrf
     }
-    const res = await fetch(`${backend}${path.startsWith('/') ? path : `/${path}`}`, {
+    return fetch(`${backend}${path.startsWith('/') ? path : `/${path}`}`, {
       method,
       credentials: 'include',
       headers,
       cache: 'no-store',
       body,
     })
-    return res.json()
   }
 
   // Client: delegate to CSR helpers
@@ -67,7 +92,7 @@ export async function apiJSON(path, init = {}) {
       }
       throw new Error('UNAUTHORIZED')
     }
-    return res.json()
+    return res
   }
 
   // Non-GET: obtain CSRF and POST via BFF
@@ -78,7 +103,7 @@ export async function apiJSON(path, init = {}) {
     method,
     credentials: 'include',
     headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrf, ...headersIn },
-    body: typeof init.body === 'string' ? init.body : JSON.stringify(init.body || {}),
+    body: serializeBody(init.body) ?? '{}',
   })
   if (res.status === 401) {
     const { pathname, search } = window.location
@@ -86,6 +111,11 @@ export async function apiJSON(path, init = {}) {
       window.location.assign(`/login?next=${encodeURIComponent(pathname + (search || ''))}`)
     }
   }
+  return res
+}
+
+export const apiJSON = async (path, init = {}) => {
+  const res = await apiRequest(path, init)
   return res.json()
 }
 
@@ -94,4 +124,3 @@ export const apiPost = (path, body, init = {}) => apiJSON(path, { ...init, metho
 export const apiPut = (path, body, init = {}) => apiJSON(path, { ...init, method: 'PUT', body })
 export const apiPatch = (path, body, init = {}) => apiJSON(path, { ...init, method: 'PATCH', body })
 export const apiDelete = (path, body, init = {}) => apiJSON(path, { ...init, method: 'DELETE', body })
-

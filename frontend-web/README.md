@@ -31,6 +31,6 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
 - Data fetch strategy: Choose MODE per page.
   - SSR: call common contract in page.jsx (server). SEO-ready.
   - CSR: call the same contract in client component. Interactive.
-- Common contract: `data/fetch.js` delegates to runtime utils:
-  - SSR: `app/lib/runtime/ssr.js` (forwards Cookie/Accept-Language + no-store)
-  - CSR: `app/lib/runtime/csr.js` (credentials + CSRF for non-idempotent)
+- 공통 통신 계층: `app/lib/runtime/api.js`
+  - `apiRequest`/`apiJSON`는 SSR/CSR 모두 지원 (쿠키 포워딩, CSRF 포함)
+  - 클라이언트 컴포넌트는 `app/lib/hooks/useApi.jsx`로 SWR 패턴 사용

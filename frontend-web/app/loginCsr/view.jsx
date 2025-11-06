@@ -10,7 +10,7 @@ import EasyObj from '@/app/lib/dataset/EasyObj';
 import Input from '@/app/lib/component/Input';
 import Button from '@/app/lib/component/Button';
 import Checkbox from '@/app/lib/component/Checkbox';
-import { csrJSON, postWithCsrf } from '@/app/lib/runtime/csr';
+import { apiRequest, apiJSON } from '@/app/lib/runtime/api';
 import { SESSION_PATH, createLoginFormModel } from './initData';
 
 const sanitizeRedirect = (candidate) => {
@@ -32,7 +32,7 @@ const Client = ({ nextHint = null }) => {
     let alive = true;
     (async () => {
       try {
-        const payload = await csrJSON(SESSION_PATH);
+        const payload = await apiJSON(SESSION_PATH, { method: 'GET' });
         if (!alive) return;
         setSession(payload);
         if (payload?.result?.authenticated) {
@@ -86,19 +86,22 @@ const Client = ({ nextHint = null }) => {
 
     setPending(true);
     try {
-      const response = await postWithCsrf('/api/v1/auth/login', {
-        username: loginObj.email,
-        password: loginObj.password,
-        rememberMe: !!loginObj.rememberMe,
+      const response = await apiRequest('/api/v1/auth/login', {
+        method: 'POST',
+        body: {
+          username: loginObj.email,
+          password: loginObj.password,
+          rememberMe: !!loginObj.rememberMe,
+        },
       });
 
       if (response?.status === 204) {
-        const payload = await csrJSON(SESSION_PATH).catch(() => null);
+        const payload = await apiJSON(SESSION_PATH, { method: 'GET' }).catch(() => null);
         setSession(payload);
         const target = sanitizeRedirect(nextHint) || '/';
         router.replace(target);
       } else {
-        const body = await response.json().catch(() => ({}));
+        const body = await response?.json?.().catch(() => ({}));
         loginObj.errors.password = body?.message || '로그인에 실패했습니다';
       }
     } catch (error) {

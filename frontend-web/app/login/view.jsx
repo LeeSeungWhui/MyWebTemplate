@@ -4,12 +4,12 @@
  */
 
 import { useState, useMemo } from 'react';
-import useSWR from 'swr';
 import EasyObj from '@/app/lib/dataset/EasyObj';
 import Button from '@/app/lib/component/Button';
 import Input from '@/app/lib/component/Input';
 import Checkbox from '@/app/lib/component/Checkbox';
-import { csrJSON, postWithCsrf } from '@/app/lib/runtime/csr';
+import { apiRequest } from '@/app/lib/runtime/api';
+import useApi from '@/app/lib/hooks/useApi';
 import { SESSION_PATH, createLoginFormModel } from './initData';
 import Link from 'next/link';
 
@@ -24,10 +24,16 @@ const sanitizeRedirect = (candidate) => {
 const Client = ({ mode, init, nextHint }) => {
   const loginObj = EasyObj(useMemo(() => createLoginFormModel(), []));
   const [pending, setPending] = useState(false);
-  const { data, mutate } = useSWR(mode === 'CSR' ? 'session' : null, () => csrJSON(SESSION_PATH), {
-    fallbackData: init,
-    revalidateOnFocus: false,
-  });
+  const { data, mutate } = useApi(
+    mode === 'CSR' ? 'session' : null,
+    SESSION_PATH,
+    {
+      swr: {
+        fallbackData: init,
+        revalidateOnFocus: false,
+      },
+    },
+  );
 
   const authed = !!(data && data.result && data.result.authenticated);
 
@@ -72,14 +78,14 @@ const Client = ({ mode, init, nextHint }) => {
         password: loginObj.password,
         rememberMe: !!loginObj.rememberMe,
       };
-      const response = await postWithCsrf('/api/v1/auth/login', payload);
+      const response = await apiRequest('/api/v1/auth/login', { method: 'POST', body: payload });
 
       if (response && response.status === 204) {
-        await mutate();
+        await mutate?.();
         const target = sanitizeRedirect(nextHint) || '/';
         window.location.assign(target);
       } else {
-        const body = await response.json().catch(() => ({}));
+        const body = await response?.json?.().catch(() => ({}));
         loginObj.errors.password = body?.message || '로그인에 실패했습니다';
       }
     } catch (error) {

@@ -9,14 +9,13 @@ export const revalidate = 0
 export const runtime = 'nodejs'
 
 import Client from './view'
-import { ssrJSON } from '@/app/lib/runtime/ssr'
+import { apiJSON } from '@/app/lib/runtime/api'
 import { SESSION_PATH } from './initData'
 import SharedHydrator from '@/app/common/store/SharedHydrator'
 import { cookies } from 'next/headers'
 
 const Page = async () => {
-  const MODE = 'SSR'
-  const init = MODE === 'SSR' ? await ssrJSON(SESSION_PATH).catch(() => null) : null
+  const init = await apiJSON(SESSION_PATH, { method: 'GET' }).catch(() => null)
   // Read next-hint from httpOnly cookie set by middleware (hidden from URL)
   const cookieStore = await cookies()
   const rawNext = cookieStore.get('nx')?.value || null
@@ -33,8 +32,8 @@ const Page = async () => {
     : null
   return (
     <>
-      {MODE === 'SSR' && <SharedHydrator userJson={userJson} />}
-      <Client mode={MODE} init={init} nextHint={nextHint} />
+      <SharedHydrator userJson={userJson} />
+      <Client mode="SSR" init={init} nextHint={nextHint} />
     </>
   )
 }

@@ -6,14 +6,11 @@
  * 설명: 홈 페이지(미들웨어 단일 가드 전제, 클라이언트 렌더)
  */
 
-import useSWR from 'swr'
-import { csrJSON } from '@/app/lib/runtime/csr'
+import useApi from '@/app/lib/hooks/useApi'
 import { SESSION_PATH } from '@/app/login/initData'
 
 const HomePage = () => {
-  const { data } = useSWR('session', () => csrJSON(SESSION_PATH), {
-    revalidateOnFocus: false,
-  })
+  const { data } = useApi('session', SESSION_PATH)
   const authed = !!(data && data.result && data.result.authenticated)
   const name = authed ? (data.result.name || 'user') : null
   return (
