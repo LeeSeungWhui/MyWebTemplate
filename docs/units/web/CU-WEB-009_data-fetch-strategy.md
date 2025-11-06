@@ -14,24 +14,21 @@ links: [CU-WEB-001, CU-WEB-002, CU-WEB-004, CU-WEB-005, CU-WEB-006, CU-WEB-008, 
 ### Principles
 - Per-page 초기 로딩 계약: 각 페이지 디렉토리의 `initData.jsx`에 초기 로드용 엔드포인트를 정의한다(예: `export const SESSION_PATH = '/api/v1/auth/session'`).
 - 실행 위치:
-  - SSR: `page.jsx`(Server Component)에서 `ssrJSON` 호출로 초기 데이터 주입(SEO 반영).
-  - CSR: `'use client'` 컴포넌트에서 `csrJSON`(+SWR)으로 가져오기. 비멱등 요청은 `postWithCsrf` 사용.
+  - SSR: `page.jsx`(Server Component)에서 `apiJSON`으로 초기 데이터 주입(SEO 반영).
+  - CSR: `'use client'` 컴포넌트에서 `apiJSON`으로 단발 패치. 실시간/자동 재검증이 필요할 때만 `useApiStream`(SWR 래퍼) 사용.
 - 기본 전략: 보호 페이지는 SSR(nodejs, no-store) 기본. 무거운 위젯/상호작용 위주 섹션은 CSR로 분리한다.
 
 ### Responsibilities
 - initData.jsx(페이지 초기 로딩 계약)
   - 초기 로드에 필요한 엔드포인트 상수 정의(예: `SESSION_PATH`).
-- app/lib/runtime/Ssr.jsx(서버 유틸)
-  - `buildSSRHeaders`로 쿠키/언어 전달, `ssrJSON`은 `cache: 'no-store'` 기본.
-- app/lib/runtime/Csr.jsx(클라이언트 유틸)
-  - `csrJSON`은 `credentials: 'include'` 고정. `postWithCsrf`는 비멱등 요청에 CSRF 자동 주입.
+- app/lib/runtime/api.js(공통 유틸)
+  - `apiJSON`/`apiRequest`로 SSR/CSR 통일. 서버는 헤더 포워딩과 CSRF 자동 주입, 클라는 `/api/bff` 경유.
 - page.jsx(서버 컴포넌트)
-  - `const MODE = 'SSR' | 'CSR'`로 분기. SSR일 때만 `ssrJSON(SESSION_PATH)`로 초기 데이터 전달(SEO 반영) + `SharedHydrator`로 스토어 하이드레이션.
+  - SSR일 때 `apiJSON(SESSION_PATH)`로 초기 데이터 전달(SEO 반영) + `SharedHydrator` 하이드레이션.
 - view.jsx(클라이언트 컴포넌트)
-  - CSR 모드일 때 `useSWR` + `csrJSON(SESSION_PATH)`로 데이터 패치. POST 등은 `postWithCsrf` 직접 호출.
+  - CSR 모드일 때 `apiJSON(SESSION_PATH)`로 데이터 패치. 실시간/캐시가 필요한 경우에만 `useApiStream` 사용.
 
-### Interaction with OpenAPI Client
-- OpenAPI 연동은 `openapi-client-axios` 기반 별도 래퍼에서 다룬다(CU-WEB-005). 본 유닛은 fetch 유틸의 규약을 맞추는 데 집중한다.
+### Interaction
 - SSR/CSR 경로에서 동일한 응답 스키마와 에러 규약을 사용하며, `initData.jsx`가 의존 엔드포인트를 명시한다.
 
 ### Acceptance Criteria
@@ -49,4 +46,3 @@ links: [CU-WEB-001, CU-WEB-002, CU-WEB-004, CU-WEB-005, CU-WEB-006, CU-WEB-008, 
 - 각 페이지 `initData.jsx`에 초기 엔드포인트 상수 정리 및 주석화.
 - 401/403 공통 처리 규약을 런타임 유틸/클라이언트 래퍼(CU-WEB-005)와 합의.
 - 문서·예제에서 ENV 기반 모드 스위치(NEXT_RUNTIME_MODE) 언급 제거.
-

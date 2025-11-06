@@ -9,7 +9,7 @@
 - Next.js 15+ (App Router)
 - React 19
 - Tailwind CSS v4
-- 상태/데이터: SWR, Zustand
+- 상태/데이터: Zustand (+선택적 SWR)
 - 테스트/문서: Docs 페이지, Vitest (Playwright 예정)
 - 언어: JavaScript Only (TypeScript 금지)
 - 설정: `frontend-web/config.ini` + 환경별 오버레이(`config_dev.ini`, `config_prod.ini`)
@@ -70,7 +70,8 @@ theme = light
   - config.matcher: `/((?!api|_next/static|_next/image|favicon.ico|.*\.).*)`
   - 공개 경로 Allowlist: `frontend-web/app/common/config/publicRoutes.js`에서만 관리
 - BFF 프록시: `frontend-web/app/api/bff/[...path]/route.js`가 Backend API를 호출하고 `Set-Cookie`를 프론트 도메인으로 재작성
-- CSR 헬퍼: `csrJSON`/`postWithCsrf`/OpenAPI 클라이언트는 `/api/bff`를 통해 통신(401 수신 시 `/login?next=...`)
+- 통신 계층: `app/lib/runtime/api.js`의 `apiJSON`/`apiRequest`를 단일 진실로 사용(SSR/CSR 공통)
+  - CSR에서 스트리밍/자동 재검증이 필요하면 `app/lib/hooks/useApiStream.jsx`(SWR 래퍼) 선택적 사용
 - CORS/헤더: `credentials:'include'`, 헤더 `X-CSRF-Token`, `Content-Type`, `Authorization`
 - JS Only 강제: 린트/프리셋 규칙으로 .ts/.tsx 금지
 
@@ -82,11 +83,11 @@ theme = light
 - SSR/CSR 모드가 페이지 `MODE`를 존중하고 SSR 페이지는 SEO 메타 정상 출력
 - 공통 규칙(`docs/common-rules.md`) DoD 충족
 
-## API 클라이언트 계약(초안)
-- Base URL: `NEXT_PUBLIC_API_BASE`
-- 쿠키: `credentials:'include'`
-- 에러 패킷 `{ status: false, code, requestId }` + Toast/Alert 연동(CU-WEB-007)
-- 라이브러리: openapi-client-axios (JS only)
+## API 통신 계약(고정)
+- 접근: `app/lib/runtime/api.js` — `apiJSON`(기본) / `apiRequest`(Response 제어 필요 시)
+- BFF: 클라이언트는 `/api/bff/*` 경유(쿠키/도메인 재작성), 서버는 백엔드 직통 + 헤더 포워딩
+- 쿠키/보안: `credentials: include`, 비멱등은 CSRF 자동 주입
+- 에러 규약: 401 수신 시 로그인 리다이렉트 처리(미들웨어가 `nx`로 복귀 정리), 403은 CSRF UX 유도
 
 ## 데이터 전략(초안)
 - 목표: 페이지별 SSR/CSR 선택과 예측 가능한 성능 확보

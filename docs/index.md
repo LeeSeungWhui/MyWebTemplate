@@ -26,7 +26,7 @@
   - DB 커넥션 유틸(SQLAlchemy+databases), 쿼리 로더, 트랜잭션 데코레이터
   - 로그인 API(샘플 사용자/해시), 표준 응답, 로깅, `/healthz`
 - 공통
-  - Docker 로컬 실행, 기본 CI(lint/test/build), OpenAPI 스키마 제공(JS 클라이언트 연동)
+  - Docker 로컬 실행, 기본 CI(lint/test/build), OpenAPI 스키마 제공
 
 ## 제외(차기)
 - 관리자 콘솔/권한관리 고도화, 결제/푸시, 멀티테넌시, 고급 CDN/캐시 전략
@@ -39,9 +39,9 @@
 
 ## 아키텍처 개요
 
-- Web: Next.js 15+ App Router, RSC, SSR/CSR 전략, SWR
+- Web: Next.js 15+ App Router, RSC, SSR/CSR 전략(선택적 SWR)
 - App: React Native(Expo), OTA(EAS Update), 네이티브 최소화
-- Backend: FastAPI(Uvicorn), SQLAlchemy, OpenAPI 스키마(문서/JS 클라이언트)
+- Backend: FastAPI(Uvicorn), SQLAlchemy, OpenAPI 스키마(문서)
 - 공통 데이터/상태: EasyObj/EasyList + 바인딩 규약(value/onChange/model)
 - 배포/관측성: Docker, Nginx, gh-actions, `/healthz`, JSON 로그, Sentry/Prometheus
 
@@ -82,14 +82,14 @@
 - 로컬에서 Web/App/Backend를 실행해 샘플 계정으로 로그인 후 메인 대시보드를 확인할 수 있다.
 - Web/App은 보호 라우팅이 적용되고, 로그인 상태가 새로고침/재시작 후에도 유지된다.
 - Backend는 표준 응답 스키마/에러 규격으로 로그인 API를 제공하고 `/healthz`가 200을 반환한다.
-- OpenAPI 스키마가 제공되며, 프런트는 JS OpenAPI 클라이언트(openapi-client-axios)로 호출할 수 있다.
+- OpenAPI 스키마가 제공되며, 프런트는 통합 유틸(`apiJSON`/`apiRequest`)로 백엔드와 통신한다.
 - 공통 규칙(common-rules.md)의 DoD를 충족한다.
 - Ops 문서(server-environments.md) 설정만으로 dev/stage/prod에서 “로그인→대시보드” 시나리오가 재현된다.
 
 ## 로드맵(초안)
 
 - W1~2: 스캐폴딩(Next/Expo/FastAPI) + Docker 통합 + 로그인 API 골격
-- W3~4: Web/App 로그인→대시보드 구현, 보호 라우팅/상태 유지, OpenAPI 연동(JS 클라이언트)
+- W3~4: Web/App 로그인→대시보드 구현, 보호 라우팅/상태 유지, 통합 API 유틸 정리
 - W5: 문서/헬스체크/CI 마감, 템플릿 검증 시나리오 확정, **Ops 문서(Dev/Stage/Prod) 최종화**
 
 
