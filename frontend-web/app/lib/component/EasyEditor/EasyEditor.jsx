@@ -4,7 +4,7 @@ import { useCallback, useMemo, useRef, useState, useEffect } from 'react';
 import { EditorContent } from '@tiptap/react';
 import clsx from 'clsx';
 import useEasyEditor from './useEditor';
-import useEasyUpload from './useEasyUpload';
+import useEasyUpload from '../../hooks/useEasyUpload';
 
 const ToolbarButton = ({ active, label, onClick, children, disabled }) => (
   <button

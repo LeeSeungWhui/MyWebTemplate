@@ -10,7 +10,8 @@ import EasyObj from '@/app/lib/dataset/EasyObj';
 import Input from '@/app/lib/component/Input';
 import Button from '@/app/lib/component/Button';
 import Checkbox from '@/app/lib/component/Checkbox';
-import { apiRequest, apiJSON } from '@/app/lib/runtime/api';
+import { apiRequest } from '@/app/lib/runtime/api';
+import useSwr from '@/app/lib/hooks/useSwr';
 import { SESSION_PATH, createLoginFormModel } from './initData';
 
 const sanitizeRedirect = (candidate) => {
@@ -24,31 +25,15 @@ const sanitizeRedirect = (candidate) => {
 const Client = ({ nextHint = null }) => {
   const router = useRouter();
   const loginObj = EasyObj(useMemo(() => createLoginFormModel(), []));
-  const [session, setSession] = useState(null);
-  const [checking, setChecking] = useState(true);
+  const { data: session, isLoading: checking, mutate } = useSwr('session', SESSION_PATH, { swr: { revalidateOnFocus: true } });
   const [pending, setPending] = useState(false);
 
   useEffect(() => {
-    let alive = true;
-    (async () => {
-      try {
-        const payload = await apiJSON(SESSION_PATH, { method: 'GET' });
-        if (!alive) return;
-        setSession(payload);
-        if (payload?.result?.authenticated) {
-          const target = sanitizeRedirect(nextHint) || '/';
-          router.replace(target);
-        }
-      } catch (error) {
-        console.error('세션 확인 실패:', error);
-      } finally {
-        if (alive) setChecking(false);
-      }
-    })();
-    return () => {
-      alive = false;
-    };
-  }, [nextHint, router]);
+    if (session?.result?.authenticated) {
+      const target = sanitizeRedirect(nextHint) || '/';
+      router.replace(target);
+    }
+  }, [session?.result?.authenticated, nextHint, router]);
 
   const resetErrors = () => {
     loginObj.errors.email = '';
@@ -96,8 +81,7 @@ const Client = ({ nextHint = null }) => {
       });
 
       if (response?.status === 204) {
-        const payload = await apiJSON(SESSION_PATH, { method: 'GET' }).catch(() => null);
-        setSession(payload);
+        await mutate?.();
         const target = sanitizeRedirect(nextHint) || '/';
         router.replace(target);
       } else {

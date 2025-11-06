@@ -8,7 +8,8 @@ import EasyObj from '@/app/lib/dataset/EasyObj';
 import Button from '@/app/lib/component/Button';
 import Input from '@/app/lib/component/Input';
 import Checkbox from '@/app/lib/component/Checkbox';
-import { apiRequest, apiJSON } from '@/app/lib/runtime/api';
+import { apiRequest } from '@/app/lib/runtime/api';
+import useSwr from '@/app/lib/hooks/useSwr';
 import { SESSION_PATH, createLoginFormModel } from './initData';
 import Link from 'next/link';
 
@@ -23,25 +24,7 @@ const sanitizeRedirect = (candidate) => {
 const Client = ({ mode, init, nextHint }) => {
   const loginObj = EasyObj(useMemo(() => createLoginFormModel(), []));
   const [pending, setPending] = useState(false);
-  const [sessionData, setSessionData] = useState(init || null);
-
-  useEffect(() => {
-    if (mode !== 'CSR') return undefined;
-    let alive = true;
-    (async () => {
-      try {
-        const payload = await apiJSON(SESSION_PATH, { method: 'GET' });
-        if (!alive) return;
-        setSessionData(payload);
-      } catch (error) {
-        console.error('세션 조회 실패:', error);
-      }
-    })();
-    return () => {
-      alive = false;
-    };
-  }, [mode]);
-
+  const { data: sessionData, mutate } = useSwr('session', SESSION_PATH, { swr: { fallbackData: init, revalidateOnFocus: true } });
   const authed = !!(sessionData && sessionData.result && sessionData.result.authenticated);
 
   const resetErrors = () => {
@@ -88,8 +71,7 @@ const Client = ({ mode, init, nextHint }) => {
       const response = await apiRequest('/api/v1/auth/login', { method: 'POST', body: payload });
 
       if (response && response.status === 204) {
-        const refreshed = await apiJSON(SESSION_PATH, { method: 'GET' }).catch(() => null);
-        setSessionData(refreshed);
+        await mutate?.();
         const target = sanitizeRedirect(nextHint) || '/';
         window.location.assign(target);
       } else {

@@ -21,8 +21,22 @@ const toSegments = (key) => {
     return [String(key)];
 };
 
+/**
+ * @description 프록시 감싸면 안 되는 내장 객체 여부를 판별한다.
+ * @param {unknown} value
+ * @returns {boolean}
+ */
+const isNativeFileLike = (value) => {
+    if (!isObject(value)) return false;
+    if (Array.isArray(value)) return false;
+    if (typeof File !== 'undefined' && value instanceof File) return true;
+    if (typeof Blob !== 'undefined' && value instanceof Blob) return true;
+    if (typeof FileList !== 'undefined' && value instanceof FileList) return true;
+    return false;
+};
+
 const deepCopy = (value) => {
-    if (!isObject(value)) return value;
+    if (!isObject(value) || isNativeFileLike(value)) return value;
     if (Array.isArray(value)) return value.map((item) => deepCopy(item));
     const out = {};
     for (const key of Object.keys(value)) out[key] = deepCopy(value[key]);
@@ -134,7 +148,7 @@ function useEasyList(initialData = []) {
     };
 
     const wrapValue = (rawValue, pathSegments) => {
-        if (!isObject(rawValue)) return rawValue;
+        if (!isObject(rawValue) || isNativeFileLike(rawValue)) return rawValue;
         if (!pathSegments.length) return ensureRootProxy();
         return getOrCreateProxy(rawValue, pathSegments);
     };
@@ -307,7 +321,7 @@ function useEasyList(initialData = []) {
                 }
                 if (prop === 'subscribe') {
                     return (listener) => {
-                        if (typeof listener !== 'function') return () => {};
+                        if (typeof listener !== 'function') return () => { };
                         listenersRef.current.add(listener);
                         return () => listenersRef.current.delete(listener);
                     };
@@ -368,7 +382,7 @@ function useEasyList(initialData = []) {
                 }
                 const baseObject = isObject(container) ? container : Object(container ?? {});
                 const value = Reflect.get(baseObject, prop, receiver);
-                if (isObject(value)) {
+                if (isObject(value) && !isNativeFileLike(value)) {
                     const nextContainer = readAtPath(normalizePath(basePath, prop));
                     return getOrCreateProxy(nextContainer ?? value, [...basePath, typeof prop === 'symbol' ? prop : String(prop)]);
                 }
