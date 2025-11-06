@@ -3,13 +3,12 @@
  * Login page client view
  */
 
-import { useState, useMemo } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import EasyObj from '@/app/lib/dataset/EasyObj';
 import Button from '@/app/lib/component/Button';
 import Input from '@/app/lib/component/Input';
 import Checkbox from '@/app/lib/component/Checkbox';
-import { apiRequest } from '@/app/lib/runtime/api';
-import useApi from '@/app/lib/hooks/useApi';
+import { apiRequest, apiJSON } from '@/app/lib/runtime/api';
 import { SESSION_PATH, createLoginFormModel } from './initData';
 import Link from 'next/link';
 
@@ -24,18 +23,26 @@ const sanitizeRedirect = (candidate) => {
 const Client = ({ mode, init, nextHint }) => {
   const loginObj = EasyObj(useMemo(() => createLoginFormModel(), []));
   const [pending, setPending] = useState(false);
-  const { data, mutate } = useApi(
-    mode === 'CSR' ? 'session' : null,
-    SESSION_PATH,
-    {
-      swr: {
-        fallbackData: init,
-        revalidateOnFocus: false,
-      },
-    },
-  );
+  const [sessionData, setSessionData] = useState(init || null);
 
-  const authed = !!(data && data.result && data.result.authenticated);
+  useEffect(() => {
+    if (mode !== 'CSR') return undefined;
+    let alive = true;
+    (async () => {
+      try {
+        const payload = await apiJSON(SESSION_PATH, { method: 'GET' });
+        if (!alive) return;
+        setSessionData(payload);
+      } catch (error) {
+        console.error('세션 조회 실패:', error);
+      }
+    })();
+    return () => {
+      alive = false;
+    };
+  }, [mode]);
+
+  const authed = !!(sessionData && sessionData.result && sessionData.result.authenticated);
 
   const resetErrors = () => {
     loginObj.errors.email = '';
@@ -81,7 +88,8 @@ const Client = ({ mode, init, nextHint }) => {
       const response = await apiRequest('/api/v1/auth/login', { method: 'POST', body: payload });
 
       if (response && response.status === 204) {
-        await mutate?.();
+        const refreshed = await apiJSON(SESSION_PATH, { method: 'GET' }).catch(() => null);
+        setSessionData(refreshed);
         const target = sanitizeRedirect(nextHint) || '/';
         window.location.assign(target);
       } else {

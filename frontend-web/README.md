@@ -32,5 +32,5 @@ You can check out [the Next.js GitHub repository](https://github.com/vercel/next
   - SSR: call common contract in page.jsx (server). SEO-ready.
   - CSR: call the same contract in client component. Interactive.
 - 공통 통신 계층: `app/lib/runtime/api.js`
-  - `apiRequest`/`apiJSON`는 SSR/CSR 모두 지원 (쿠키 포워딩, CSRF 포함)
-  - 클라이언트 컴포넌트는 `app/lib/hooks/useApi.jsx`로 SWR 패턴 사용
+  - 기본: `apiJSON` (JSON 리턴), 필요 시 `apiRequest`로 Response 전체 제어
+  - 클라이언트에서 스트리밍/자동 재검증이 필요하면 `app/lib/hooks/useApiStream.jsx` 사용 (SWR 래퍼)
