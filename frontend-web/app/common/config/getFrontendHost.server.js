@@ -1,11 +1,23 @@
 import { loadFrontendConfig } from './frontendConfig.server'
 
-export function getFrontendHost() {
+let cachedFrontendHost = null
+
+const DEFAULT_FRONTEND = 'http://localhost:3000'
+
+export async function getFrontendHost() {
+  if (cachedFrontendHost) return cachedFrontendHost
   try {
-    const cfg = loadFrontendConfig()
+    const cfg = await loadFrontendConfig()
     const base = cfg?.APP?.frontendHost
-    return typeof base === 'string' && base ? base.replace(/\/$/, '') : 'http://localhost:3000'
+    cachedFrontendHost = typeof base === 'string' && base ? base.replace(/\/$/, '') : DEFAULT_FRONTEND
   } catch {
-    return 'http://localhost:3000'
+    cachedFrontendHost = DEFAULT_FRONTEND
   }
+  if (typeof globalThis !== 'undefined') {
+    globalThis.__APP_FRONTEND_HOST__ = cachedFrontendHost
+  }
+  if (typeof process !== 'undefined' && process?.env && !process.env.APP_FRONTEND_HOST) {
+    process.env.APP_FRONTEND_HOST = cachedFrontendHost
+  }
+  return cachedFrontendHost
 }

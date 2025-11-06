@@ -13,12 +13,11 @@ export const runtime = 'nodejs'
 
 const SKIP_HEADERS = new Set(['connection', 'content-length', 'host'])
 
-function toBackendUrl(pathSegments = [], search = '') {
+function toBackendUrl(pathSegments = [], search = '', backendHost = 'http://localhost:8200') {
   const normalizedPath = Array.isArray(pathSegments) && pathSegments.length
     ? `/${pathSegments.join('/')}`
     : '/'
-  const backend = getBackendHost()
-  return new URL(`${normalizedPath}${search}`, backend)
+  return new URL(`${normalizedPath}${search}`, backendHost)
 }
 
 function cloneRequestHeaders(req) {
@@ -47,9 +46,11 @@ function rewriteSetCookie(rawValue) {
   return rewritten.join('; ')
 }
 
-async function proxy(req, { params }) {
+async function proxy(req, context = {}) {
   try {
-    const target = toBackendUrl(params?.path, req.nextUrl.search)
+    const params = await context?.params
+    const backendHost = await getBackendHost()
+    const target = toBackendUrl(params?.path, req.nextUrl.search, backendHost)
     const headers = cloneRequestHeaders(req)
     // 세션 쿠키가 프론트 도메인에만 존재하므로, 받은 Cookie 헤더를 그대로 전달하면 충분하다.
     // 필요 시 추가 쿠키 재작성 가능.

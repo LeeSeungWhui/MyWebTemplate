@@ -5,35 +5,52 @@
  * 설명: 프론트엔드 config.ini 로더
  */
 
-import fs from 'node:fs'
-import path from 'node:path'
+let cachedConfig = null
+
+const isServerRuntime = () => typeof window === 'undefined'
 
 /**
  * 설명: config.ini 파일을 읽어 JSON 객체로 변환한다.
  * 우선순위: config.ini > config_prod.ini > config_dev.ini (env 변수 미사용)
  */
-export function loadFrontendConfig() {
+export async function loadFrontendConfig() {
+  if (!isServerRuntime()) {
+    return cachedConfig ?? {}
+  }
+  if (cachedConfig) return cachedConfig
+
+  const { existsSync, readFileSync } = await import('node:fs')
+  const { join } = await import('node:path')
+
   const cwd = process.cwd()
   // 환경 변수 의존 제거. 운영/개발 선택은 CI/CD가 config.ini를 준비하도록 강제한다.
   // 존재 순서: config.ini > config_prod.ini > config_dev.ini
   const candidates = [
-    path.join(cwd, 'config.ini'),
-    path.join(cwd, 'config_prod.ini'),
-    path.join(cwd, 'config_qa.ini'),
-    path.join(cwd, 'config_dev.ini'),
+    join(cwd, 'config.ini'),
+    join(cwd, 'config_prod.ini'),
+    join(cwd, 'config_qa.ini'),
+    join(cwd, 'config_dev.ini'),
   ]
 
   for (const p of candidates) {
     try {
-      if (fs.existsSync(p)) {
-        const iniText = fs.readFileSync(p, 'utf-8')
-        return parseIni(iniText)
+      if (existsSync(p)) {
+        const iniText = readFileSync(p, 'utf-8')
+        cachedConfig = parseIni(iniText)
+        if (typeof globalThis !== 'undefined') {
+          globalThis.__APP_RUNTIME_CONFIG__ = cachedConfig
+        }
+        return cachedConfig
       }
     } catch (error) {
       console.warn('[config] 읽기 실패, 다음 후보로 진행:', p, error)
     }
   }
-  return {}
+  cachedConfig = {}
+  if (typeof globalThis !== 'undefined') {
+    globalThis.__APP_RUNTIME_CONFIG__ = cachedConfig
+  }
+  return cachedConfig
 }
 
 /**

@@ -17,17 +17,14 @@ function toBffPath(path) {
   return `${BFF_PREFIX}${p.startsWith('/') ? p : `/${p}`}`
 }
 
-async function resolveServerBase() {
-  const mod = await import('@/app/common/config/getBackendHost.server')
-  const backend = mod.getBackendHost()
+async function getServerCsrf(extraHeaders) {
   const { buildSSRHeaders } = await import('@/app/lib/runtime/ssr')
-  return { backend, buildSSRHeaders }
-}
-
-async function getServerCsrf(headers) {
-  const { backend, buildSSRHeaders } = await resolveServerBase()
-  const h = await buildSSRHeaders(headers)
-  const r = await fetch(`${backend}/api/v1/auth/csrf`, { credentials: 'include', headers: h, cache: 'no-store' })
+  const headers = await buildSSRHeaders(extraHeaders)
+  const r = await fetch(toBffPath('/api/v1/auth/csrf'), {
+    credentials: 'include',
+    headers,
+    cache: 'no-store',
+  })
   const j = await r.json().catch(() => ({}))
   return j?.result?.csrf
 }
@@ -64,20 +61,28 @@ export async function apiRequest(path, init = {}) {
   const headersIn = init.headers || {}
 
   if (isServer()) {
-    const { backend, buildSSRHeaders } = await resolveServerBase()
-    const headers = await buildSSRHeaders({ 'Content-Type': 'application/json', ...headersIn })
+    const { buildSSRHeaders } = await import('@/app/lib/runtime/ssr')
+    const baseHeaders = (
+      method === 'GET' || method === 'HEAD'
+        ? { ...headersIn }
+        : { 'Content-Type': 'application/json', ...headersIn }
+    )
+    const headers = await buildSSRHeaders(baseHeaders)
     const body = serializeBody(init.body)
     if (method !== 'GET' && method !== 'HEAD' && !headers['X-CSRF-Token']) {
-      const csrf = await getServerCsrf(headers)
+      const csrf = await getServerCsrf(baseHeaders)
       if (csrf) headers['X-CSRF-Token'] = csrf
     }
-    return fetch(`${backend}${path.startsWith('/') ? path : `/${path}`}`, {
+    const requestInit = {
       method,
       credentials: 'include',
       headers,
       cache: 'no-store',
-      body,
-    })
+    }
+    if (method !== 'GET' && method !== 'HEAD' && typeof body !== 'undefined') {
+      requestInit.body = body
+    }
+    return fetch(toBffPath(path), requestInit)
   }
 
   // Client: delegate to CSR helpers
