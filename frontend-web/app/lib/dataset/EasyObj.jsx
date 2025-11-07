@@ -301,6 +301,23 @@ function useEasyObj(initialData = {}) {
                         return () => listenersRef.current.delete(listener);
                     };
                 }
+                if (prop === 'forAll') {
+                    // 모든 1단계 필드를 순회하며 콜백을 적용한다.
+                    // 콜백은 (value, key, obj) 인자를 받고, 반환값이 undefined가 아니면 해당 키에 대입한다.
+                    return (fn) => {
+                        if (typeof fn !== 'function') return wrapValue(container, basePath);
+                        const keys = isObject(container) ? Object.keys(container) : [];
+                        for (let i = 0; i < keys.length; i += 1) {
+                            const key = keys[i];
+                            const current = container[key];
+                            const next = fn(current, key, container);
+                            if (typeof next !== 'undefined') {
+                                applySet(normalizePath(basePath, key), next, { source: 'program' });
+                            }
+                        }
+                        return wrapValue(container, basePath);
+                    };
+                }
                 if (typeof prop === 'string' && prop.includes('.')) {
                     const fullPath = normalizePath(basePath, prop);
                     const value = readAtPath(fullPath);
