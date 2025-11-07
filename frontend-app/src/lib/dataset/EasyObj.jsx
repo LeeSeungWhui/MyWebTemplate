@@ -37,6 +37,23 @@ function useEasyObj(initialData = {}) {
                         forceUpdate({});
                     };
                 }
+                if (prop === 'forAll') {
+                    // EasyList와 유사한 스타일로 모든 1단계 필드를 순회하며 콜백을 적용한다.
+                    // 콜백은 (value, key, obj) 인자를 받고, 반환값이 undefined가 아니면 해당 키에 대입한다.
+                    return (fn) => {
+                        if (typeof fn !== 'function') return obj;
+                        const keys = Object.keys(obj);
+                        for (let i = 0; i < keys.length; i += 1) {
+                            const key = keys[i];
+                            const current = obj[key];
+                            const next = fn(current, key, obj);
+                            if (typeof next !== 'undefined') obj[key] = next;
+                        }
+                        // React Native에서는 requestAnimationFrame을 통해 리렌더 스케줄링
+                        requestAnimationFrame(() => forceUpdate({}));
+                        return obj;
+                    };
+                }
                 if (prop === 'toString') {
                     return () => JSON.stringify(obj);
                 }
