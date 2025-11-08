@@ -56,7 +56,60 @@ function serializeBody(input) {
   }
 }
 
-export async function apiRequest(path, init = {}) {
+function normalizeArgs(path, a2, a3) {
+  // Supports overloading:
+  // - api*(path)
+  // - api*(path, init)
+  // - api*(path, body)
+  // - api*(path, body, 'authless')
+  // - api*(path, body, { csrf: 'skip' | 'auto', authless: boolean })
+  // - api*(path, initLike, 'authless' | options)
+  const isInitLike = (v) => {
+    if (!v || typeof v !== 'object') return false
+    if (isBodyLike(v)) return false
+    const keys = Object.keys(v)
+    return (
+      'method' in v || 'headers' in v || 'body' in v ||
+      'csrf' in v || 'auth' in v || 'authless' in v || keys.length === 0
+    )
+  }
+
+  let init = {}
+  let csrfMode = 'auto' // 'auto' | 'skip'
+
+  const applyMode = (m) => {
+    if (!m) return
+    const s = String(m).toLowerCase()
+    if (s === 'authless' || s === 'skip' || s === 'csrf-skip' || s === 'no-csrf') csrfMode = 'skip'
+    if (s === 'auto' || s === 'csrf' || s === 'require') csrfMode = 'auto'
+  }
+
+  if (typeof a2 === 'string') applyMode(a2)
+  else if (isInitLike(a2)) init = { ...a2 }
+  else if (typeof a2 !== 'undefined') {
+    init = { method: 'POST', body: a2 }
+  }
+
+  if (typeof a3 === 'string') applyMode(a3)
+  else if (a3 && typeof a3 === 'object') {
+    if ('csrf' in a3) applyMode(a3.csrf)
+    if ('authless' in a3 && a3.authless) applyMode('authless')
+    // allow mixing extra init fields inside options too
+    const { csrf, authless, ...rest } = a3
+    if (Object.keys(rest).length) init = { ...init, ...rest }
+  }
+
+  // Also allow init.csrf/init.authless
+  if (init && typeof init === 'object') {
+    if ('csrf' in init) applyMode(init.csrf)
+    if ('authless' in init && init.authless) applyMode('authless')
+  }
+
+  return { path, init, csrfMode }
+}
+
+export async function apiRequest(path, initOrBody = {}, modeOrOptions) {
+  const { init, csrfMode } = normalizeArgs(path, initOrBody, modeOrOptions)
   const method = (init.method || 'GET').toUpperCase()
   const headersIn = init.headers || {}
 
@@ -69,7 +122,11 @@ export async function apiRequest(path, init = {}) {
     )
     const headers = await buildSSRHeaders(baseHeaders)
     const body = serializeBody(init.body)
-    if (method !== 'GET' && method !== 'HEAD' && !headers['X-CSRF-Token']) {
+    if (
+      method !== 'GET' && method !== 'HEAD' &&
+      csrfMode !== 'skip' &&
+      !headers['X-CSRF-Token']
+    ) {
       const csrf = await getServerCsrf(baseHeaders)
       if (csrf) headers['X-CSRF-Token'] = csrf
     }
@@ -101,13 +158,20 @@ export async function apiRequest(path, init = {}) {
   }
 
   // Non-GET: obtain CSRF and POST via BFF
-  const csrfRes = await fetch(toBffPath('/api/v1/auth/csrf'), { credentials: 'include' })
-  const csrfJson = await csrfRes.json().catch(() => ({}))
-  const csrf = csrfJson?.result?.csrf
+  let csrf
+  if (csrfMode !== 'skip') {
+    const csrfRes = await fetch(toBffPath('/api/v1/auth/csrf'), { credentials: 'include' })
+    const csrfJson = await csrfRes.json().catch(() => ({}))
+    csrf = csrfJson?.result?.csrf
+  }
   const res = await fetch(toBffPath(path), {
     method,
     credentials: 'include',
-    headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': csrf, ...headersIn },
+    headers: {
+      'Content-Type': 'application/json',
+      ...(csrfMode !== 'skip' ? { 'X-CSRF-Token': csrf } : {}),
+      ...headersIn,
+    },
     body: serializeBody(init.body) ?? '{}',
   })
   if (res.status === 401) {
@@ -119,8 +183,8 @@ export async function apiRequest(path, init = {}) {
   return res
 }
 
-export const apiJSON = async (path, init = {}) => {
-  const res = await apiRequest(path, init)
+export const apiJSON = async (path, initOrBody = {}, modeOrOptions) => {
+  const res = await apiRequest(path, initOrBody, modeOrOptions)
   return res.json()
 }
 
