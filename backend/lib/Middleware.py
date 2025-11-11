@@ -60,8 +60,3 @@ class RequestLogMiddleware(BaseHTTPMiddleware):
             return response
         finally:
             reset_request_id(token)
-"""
-Module: lib.Middleware
-Purpose: Request logging middleware with requestId propagation.
-Logs structured JSON and lowers noise for health endpoints.
-"""

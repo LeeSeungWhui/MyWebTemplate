@@ -1,7 +1,7 @@
 """
-파일: backend/service/ObservabilityService.py
+파일: backend/service/CommonService.py
 작성: LSH
-설명: 헬스체크 및 레디니스 서비스 로직.
+설명: 공통(헬스체크 및 레디니스) 서비스 로직.
 """
 
 import asyncio

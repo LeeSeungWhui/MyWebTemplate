@@ -25,9 +25,6 @@ from lib.Config import get_auth
 from lib.RateLimit import check_rate_limit
 
 
-# 설정/레이트리밋은 lib 모듈로 이동하여 재사용한다.
-
-
 async def _ensure_auth_tables():
     """No-op placeholder.
 
@@ -43,7 +40,9 @@ def _validate_input(request: Request, username: str, password: str) -> Optional[
         return JSONResponse(
             status_code=422,
             content=errorResponse(
-                message=i18n_t("error.invalid_input", "invalid input", loc), result=None, code="AUTH_422_INVALID_INPUT"
+                message=i18n_t("error.invalid_input", "invalid input", loc),
+                result=None,
+                code="AUTH_422_INVALID_INPUT",
             ),
             headers={"WWW-Authenticate": "Cookie"},
         )
@@ -51,7 +50,9 @@ def _validate_input(request: Request, username: str, password: str) -> Optional[
         return JSONResponse(
             status_code=422,
             content=errorResponse(
-                message=i18n_t("error.invalid_input", "invalid input", loc), result=None, code="AUTH_422_INVALID_INPUT"
+                message=i18n_t("error.invalid_input", "invalid input", loc),
+                result=None,
+                code="AUTH_422_INVALID_INPUT",
             ),
             headers={"WWW-Authenticate": "Cookie"},
         )
@@ -66,7 +67,9 @@ def _require_csrf(request: Request) -> Optional[Response]:
         return JSONResponse(
             status_code=403,
             content=errorResponse(
-                message=i18n_t("error.csrf_required", "csrf required", detect_locale(request)), result=None, code="AUTH_403_CSRF_REQUIRED"
+                message=i18n_t("error.csrf_required", "csrf required", detect_locale(request)),
+                result=None,
+                code="AUTH_403_CSRF_REQUIRED",
             ),
             headers={"WWW-Authenticate": "Cookie"},
         )
@@ -76,7 +79,12 @@ def _require_csrf(request: Request) -> Optional[Response]:
 async def login(request: Request):
     # Optional CSRF requirement for login when configured
     try:
-        require_login_csrf = get_auth("login_require_csrf", "false").lower() in ("1", "true", "yes", "on")
+        require_login_csrf = get_auth("login_require_csrf", "false").lower() in (
+            "1",
+            "true",
+            "yes",
+            "on",
+        )
     except Exception:
         require_login_csrf = False
     if require_login_csrf:
@@ -99,7 +107,9 @@ async def login(request: Request):
         loc = detect_locale(request)
         return JSONResponse(
             status_code=500,
-            content=errorResponse(message=i18n_t("db.unavailable", "db unavailable", loc), code="AUTH_500_DB"),
+            content=errorResponse(
+                message=i18n_t("db.unavailable", "db unavailable", loc), code="AUTH_500_DB"
+            ),
         )
     # db is not None due to check above
     user = await db.fetchOneQuery("tmpl.user.selectByUsername", {"u": username})
@@ -110,7 +120,12 @@ async def login(request: Request):
             return limited
         return JSONResponse(
             status_code=401,
-            content=errorResponse(message=i18n_t("error.invalid_credentials", "invalid credentials", detect_locale(request)), code="AUTH_401_INVALID"),
+            content=errorResponse(
+                message=i18n_t(
+                    "error.invalid_credentials", "invalid credentials", detect_locale(request)
+                ),
+                code="AUTH_401_INVALID",
+            ),
             headers={"WWW-Authenticate": "Cookie"},
         )
     if not _verify_password(password, user.get("password_hash") or ""):
@@ -120,7 +135,12 @@ async def login(request: Request):
             return limited
         return JSONResponse(
             status_code=401,
-            content=errorResponse(message=i18n_t("error.invalid_credentials", "invalid credentials", detect_locale(request)), code="AUTH_401_INVALID"),
+            content=errorResponse(
+                message=i18n_t(
+                    "error.invalid_credentials", "invalid credentials", detect_locale(request)
+                ),
+                code="AUTH_401_INVALID",
+            ),
             headers={"WWW-Authenticate": "Cookie"},
         )
 
@@ -182,9 +202,13 @@ async def logout(request: Request):
 
 async def get_session(request: Request):
     authed = "userId" in request.session
-    result = {"authenticated": bool(authed)}
+    # Pylance 정적 추론 시 dict 리터럴만 두면 value 타입을 bool로 고정 판단한다.
+    # 이후 문자열/None을 update하면 타입 불일치 경고가 뜨므로 명시 타입으로 풀어준다.
+    result: dict[str, object] = {"authenticated": bool(authed)}
     if authed:
-        result.update({"userId": request.session.get("userId"), "name": request.session.get("name")})
+        result.update(
+            {"userId": request.session.get("userId"), "name": request.session.get("name")}
+        )
     resp = successResponse(result=result)
     r = JSONResponse(content=resp, status_code=200)
     r.headers["Cache-Control"] = "no-store"
@@ -198,7 +222,8 @@ async def issue_token(request: Request):
 
     invalid = _validate_input(request, username, password)
     if invalid is not None:
-        invalid.headers = {"WWW-Authenticate": "Bearer"}
+        # headers 속성은 dict 교체가 아닌 항목 단위 설정만 허용한다.
+        invalid.headers["WWW-Authenticate"] = "Bearer"
         return invalid
 
     await _ensure_auth_tables()
@@ -207,9 +232,11 @@ async def issue_token(request: Request):
         loc = detect_locale(request)
         return JSONResponse(
             status_code=500,
-            content=errorResponse(message=i18n_t("db.unavailable", "db unavailable", loc), code="AUTH_500_DB"),
+            content=errorResponse(
+                message=i18n_t("db.unavailable", "db unavailable", loc), code="AUTH_500_DB"
+            ),
         )
-    
+
     user = await db.fetchOneQuery("tmpl.user.selectByUsername", {"u": username})
     if not user or not _verify_password(password, user.get("password_hash") or ""):
         logger.info("auth.token.fail invalid")
@@ -218,7 +245,12 @@ async def issue_token(request: Request):
             return limited
         return JSONResponse(
             status_code=401,
-            content=errorResponse(message=i18n_t("error.invalid_credentials", "invalid credentials", detect_locale(request)), code="AUTH_401_INVALID"),
+            content=errorResponse(
+                message=i18n_t(
+                    "error.invalid_credentials", "invalid credentials", detect_locale(request)
+                ),
+                code="AUTH_401_INVALID",
+            ),
             headers={"WWW-Authenticate": "Bearer"},
         )
 
@@ -240,6 +272,8 @@ async def issue_csrf(request: Request):
 
 async def me(user):
     return successResponse(result={"username": user.username})
+
+
 def _verify_password(plain: str, stored: str) -> bool:
     try:
         if stored and stored.startswith("pbkdf2$"):
@@ -249,10 +283,14 @@ def _verify_password(plain: str, stored: str) -> bool:
             expected = base64.b64decode(parts[3])
             dk = hashlib.pbkdf2_hmac("sha256", plain.encode("utf-8"), salt, iters)
             return hmac.compare_digest(dk, expected)
-        # fallback to bcrypt if library available and stored looks like bcrypt
-        try:
-            return bool(hasattr(bcrypt, "checkpw") and bcrypt.checkpw(plain.encode(), stored.encode()))
-        except Exception:
-            return False
+        # bcrypt 해시($2a$/$2b$)일 경우에만 시도. getattr로 안전 호출해 Pylance 경고를 피한다.
+        if stored.startswith("$2a$") or stored.startswith("$2b$"):
+            fn = getattr(bcrypt, "checkpw", None)
+            if callable(fn):
+                try:
+                    return bool(fn(plain.encode("utf-8"), stored.encode("utf-8")))
+                except Exception:
+                    return False
+        return False
     except Exception:
         return False
