@@ -21,7 +21,7 @@ from .RequestContext import resetRequestId, setRequestId
 class RequestLogMiddleware(BaseHTTPMiddleware):
     """
     설명: X-Request-Id 생성/전파 및 구조적 JSON 접근 로그 기록.
-    갱신일: 2025-09-07
+    갱신일: 2025-11-12
     """
 
     async def dispatch(self, request: Request, callNext: Callable[[Request], Awaitable[StarletteResponse]]) -> StarletteResponse:

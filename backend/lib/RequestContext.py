@@ -18,7 +18,7 @@ _requestIdVar: contextvars.ContextVar[Optional[str]] = contextvars.ContextVar(
 def setRequestId(requestId: str) -> contextvars.Token:
     """
     설명: 요청ID를 컨텍스트에 저장하고 reset 토큰을 반환.
-    갱신일: 2025-09-07
+    갱신일: 2025-11-12
     """
     return _requestIdVar.set(requestId)
 
@@ -26,7 +26,7 @@ def setRequestId(requestId: str) -> contextvars.Token:
 def getRequestId() -> Optional[str]:
     """
     설명: 현재 컨텍스트의 요청ID를 반환.
-    갱신일: 2025-09-07
+    갱신일: 2025-11-12
     """
     return _requestIdVar.get()
 
@@ -34,7 +34,7 @@ def getRequestId() -> Optional[str]:
 def resetRequestId(token: contextvars.Token) -> None:
     """
     설명: 저장된 요청ID를 초기 상태로 되돌림.
-    갱신일: 2025-09-07
+    갱신일: 2025-11-12
     """
     try:
         _requestIdVar.reset(token)

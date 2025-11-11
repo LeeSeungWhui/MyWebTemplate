@@ -26,13 +26,8 @@ def transaction(
 ):
     """
     설명: 단일/다중 DB 트랜잭션을 지원하는 데코레이터.
-
-    Args:
-      dbNames: lib.Database.dbManagers에 등록된 DB 이름 or 리스트
-      isolation: 격리수준 힌트(데이터베이스 드라이버가 강제하진 않음)
-      timeoutMs: 시간 경과 힌트(로그에만 활용)
-      retries: retryOn 매칭 시 재시도 횟수
-      retryOn: 재시도 대상 예외 타입 튜플
+    인자: dbNames/isolation/timeoutMs/retries/retryOn.
+    갱신일: 2025-11-12
     """
     if isinstance(dbNames, str):
         dbList = [dbNames]
@@ -114,6 +109,7 @@ def transaction(
 
 
 async def _sleepBackoff(attempt: int) -> None:
+    """설명: 재시도 간 백오프(최대 0.5초)를 수행. 갱신일: 2025-11-12"""
     try:
         import anyio
 
@@ -123,17 +119,21 @@ async def _sleepBackoff(attempt: int) -> None:
 
 
 class _Savepoint:
+    """설명: SAVEPOINT 관리용 컨텍스트. 갱신일: 2025-11-12"""
+
     def __init__(self, dbName: str, name: str):
         self.dbName = dbName
         self.name = name
 
     async def __aenter__(self):
+        """설명: savepoint를 생성하고 self를 반환. 갱신일: 2025-11-12"""
         if self.dbName not in dbManagers:
             raise TransactionError(f"database not found: {self.dbName}")
         await dbManagers[self.dbName].execute(f"SAVEPOINT {self.name}")
         return self
 
     async def __aexit__(self, exc_type, exc, tb):
+        """설명: 예외 여부에 따라 롤백/해제를 수행. 갱신일: 2025-11-12"""
         if exc:
             # rollback partial work then release
             try:
@@ -148,21 +148,10 @@ class _Savepoint:
 
 
 def savepoint(dbName: str, name: str) -> _Savepoint:
-    """Create an async savepoint context for partial rollback.
-
-    Usage:
-      async with savepoint('main_db', 'sp1'):
-          ...
-    """
+    """설명: 부분 롤백용 SAVEPOINT 컨텍스트를 생성. 갱신일: 2025-11-12"""
     return _Savepoint(dbName, name)
 
 
 def transactionDefault():
-    """Shortcut transaction decorator using the primary DB name.
-
-    Example:
-        @transactionDefault()
-        async def handler():
-            ...
-    """
+    """설명: 기본 DB에 대한 transaction() 데코레이터 숏컷. 갱신일: 2025-11-12"""
     return transaction(DB.getPrimaryDbName())

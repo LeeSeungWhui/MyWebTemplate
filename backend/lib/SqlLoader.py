@@ -16,9 +16,9 @@ NAME_MARK = "-- name:"
 
 def parseSqlFile(filePath: str) -> List[Tuple[str, str]]:
     """
-    이름: parseSqlFile
-    설명: 단일 .sql 파일을 "-- name:" 마커 기준으로 (name, sql) 목록으로 파싱.
-    제약: 파일 내 중복 name 금지. UTF-8 가정.
+    설명: 단일 SQL 파일을 name/sql 쌍 목록으로 파싱한다.
+    제약: 파일 내 중복 금지 / UTF-8.
+    갱신일: 2025-11-12
     """
     entries: List[Tuple[str, str]] = []
     if not os.path.exists(filePath):
@@ -58,10 +58,9 @@ def parseSqlFile(filePath: str) -> List[Tuple[str, str]]:
 
 def scanSqlQueries(folderPath: str) -> Tuple[Dict[str, str], Dict[str, str], Dict[str, Set[str]]]:
     """
-    이름: scanSqlQueries
-    설명: 폴더를 재귀 스캔해 .sql 파일을 읽고 {name: sql} 레지스트리를 생성하며,
-         name→file, file→names 매핑을 함께 구축한다.
-    제약: 파일 간 중복 키 발견 시 즉시 예외로 실패(fail-fast).
+    설명: 폴더를 스캔해 쿼리/파일 매핑을 구성한다.
+    제약: 파일 간 중복 발견 시 예외.
+    갱신일: 2025-11-12
     """
     queries: Dict[str, str] = {}
     nameToFile: Dict[str, str] = {}
@@ -96,8 +95,8 @@ def scanSqlQueries(folderPath: str) -> Tuple[Dict[str, str], Dict[str, str], Dic
 
 def loadSqlQueries(folderPath: str) -> Dict[str, str]:
     """
-    이름: loadSqlQueries
-    설명: scanSqlQueries의 호환 래퍼. {name: sql}만 반환.
+    설명: scanSqlQueries 결과 중 쿼리 dict만 반환.
+    갱신일: 2025-11-12
     """
     queries, _, _ = scanSqlQueries(folderPath)
     return queries

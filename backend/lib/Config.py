@@ -34,23 +34,19 @@ def _resolvePath(filename: str) -> str:
 
 
 def get(section: str, key: str, default: Optional[str] = None) -> str:
-    """일반 섹션 값 읽기 (서버 전역 의존성 없이)."""
+    """설명: 지정 섹션/키 값을 조회한다. 갱신일: 2025-11-12"""
     conf = getConfig()
     sec = conf[section]
     return sec.get(key, default) if default is not None else sec[key]
 
 
 def getAuth(key: str, default: Optional[str] = None) -> str:
-    """[AUTH] 섹션 값 읽기."""
+    """설명: AUTH 섹션 키를 조회한다. 갱신일: 2025-11-12"""
     return get("AUTH", key, default)
 
 
 def loadConfig(filename: str) -> ConfigParser:
-    """backend 디렉터리 기준으로 설정 파일을 로드한다.
-
-    - filename이 절대경로가 아니면 backend/ 아래로 해석한다.
-    - UTF-8로 읽는다.
-    """
+    """설명: backend 기준 상대경로로 설정 파일을 읽는다. 갱신일: 2025-11-12"""
     if logger:
         try:
             logger.info("config load start")
@@ -72,11 +68,7 @@ def loadConfig(filename: str) -> ConfigParser:
 
 
 def getConfig(path: Optional[str] = None, forceReload: bool = False) -> ConfigParser:
-    """싱글톤 구성 인스턴스 반환.
-
-    - path가 주어지면 해당 파일을 기준으로 초기화/교체
-    - 재호출 시 캐시된 ConfigParser를 반환 (forceReload=True면 다시 읽음)
-    """
+    """설명: 설정 캐시를 반환하고 필요 시 재로딩한다. 갱신일: 2025-11-12"""
     global _CONFIG, _CONFIG_PATH
 
     # 환경변수 우선
@@ -91,5 +83,5 @@ def getConfig(path: Optional[str] = None, forceReload: bool = False) -> ConfigPa
 
 
 def reloadConfig() -> ConfigParser:
-    """캐시 무시하고 다시 로드."""
+    """설명: 캐시를 무시하고 설정을 다시 읽는다. 갱신일: 2025-11-12"""
     return getConfig(forceReload=True)

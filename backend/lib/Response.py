@@ -24,7 +24,7 @@ class StandardResponse(BaseModel):
 def successResponse(result: Any = None, message: str = "success") -> Dict[str, Any]:
     """
     설명: 성공 응답 본문 생성. 리스트일 경우 count 자동 포함.
-    갱신일: 2025-09-07
+    갱신일: 2025-11-12
     """
     count = len(result) if isinstance(result, list) else None
     return StandardResponse(
@@ -41,6 +41,6 @@ def errorResponse(
 ) -> Dict[str, Any]:
     """
     설명: 표준 에러 응답 본문 생성. 오류 코드를 포함할 수 있음.
-    갱신일: 2025-09-07
+    갱신일: 2025-11-12
     """
     return StandardResponse(status=False, message=message, result=result, code=code, requestId=getRequestId(),).model_dump(exclude_none=True)

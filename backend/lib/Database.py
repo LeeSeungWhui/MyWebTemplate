@@ -45,6 +45,7 @@ _sqlCountVar: contextvars.ContextVar[int] = contextvars.ContextVar("sql_count", 
 
 
 def getSqlCount() -> int:
+    """설명: 현재 요청 컨텍스트의 SQL 실행 누계를 반환. 갱신일: 2025-11-12"""
     try:
         return int(_sqlCountVar.get())
     except Exception:
@@ -52,11 +53,13 @@ def getSqlCount() -> int:
 
 
 def setPrimaryDbName(name: str) -> None:
+    """설명: 기본 DB 이름을 설정한다. 갱신일: 2025-11-12"""
     global _primaryDbName
     _primaryDbName = (name or "").strip() or None
 
 
 def getPrimaryDbName() -> str:
+    """설명: 우선순위(설정→ENV→보유목록)로 기본 DB 이름을 반환. 갱신일: 2025-11-12"""
     # Resolve in order: explicit setter -> env -> common default -> first available
     if _primaryDbName:
         return _primaryDbName
@@ -75,11 +78,13 @@ def getPrimaryDbName() -> str:
 
 
 def getManager(name: Optional[str] = None) -> Optional["DatabaseManager"]:
+    """설명: 이름(없으면 기본 DB)으로 DatabaseManager를 조회. 갱신일: 2025-11-12"""
     key = (name or "").strip() or getPrimaryDbName()
     return dbManagers.get(key)
 
 
 def _incSqlCount(n: int = 1) -> None:
+    """설명: 현재 컨텍스트 SQL 카운터를 증가. 갱신일: 2025-11-12"""
     try:
         cur = int(_sqlCountVar.get())
         _sqlCountVar.set(cur + int(n))
@@ -92,6 +97,7 @@ class QueryManager:
 
     @staticmethod
     def getInstance():
+        """설명: 싱글톤 QueryManager를 반환한다. 갱신일: 2025-11-12"""
         if QueryManager._instance is None:
             QueryManager._instance = QueryManager()
         return QueryManager._instance
@@ -103,35 +109,44 @@ class QueryManager:
             self.fileToNames: Dict[str, Set[str]] = {}
 
     def setAll(self, queries: Dict[str, str], nameToFile: Dict[str, str], fileToNames: Dict[str, Set[str]]):
+        """설명: 전체 쿼리/파일 매핑을 덮어쓴다. 갱신일: 2025-11-12"""
         self.queries = dict(queries or {})
         self.nameToFile = dict(nameToFile or {})
         self.fileToNames = {fp: set(names) for fp, names in (fileToNames or {}).items()}
 
     def setQueries(self, queries: dict):
+        """설명: 쿼리 테이블만 교체(레거시 호환). 갱신일: 2025-11-12"""
         # legacy compatibility for callers only setting queries
         self.queries = dict(queries or {})
 
     def getQuery(self, queryName: str) -> Optional[str]:
+        """설명: 이름으로 SQL 텍스트를 조회한다. 갱신일: 2025-11-12"""
         return self.queries.get(queryName)
 
 
 class DatabaseManager:
+    """설명: databases.Database 래퍼로 실행/바인딩 검증 담당. 갱신일: 2025-11-12"""
+
     def __init__(self, databaseUrl: str):
+        """설명: DB 연결 URL을 받아 클라이언트를 준비한다. 갱신일: 2025-11-12"""
         self.databaseUrl = databaseUrl
         self.database = Database(databaseUrl)
         self.metadata = MetaData()
         self.queryManager = QueryManager.getInstance()
 
     def _maskParams(self, values: Optional[Dict[str, Any]]) -> Dict[str, str]:
+        """설명: 로그에 사용할 파라미터 키만 노출. 갱신일: 2025-11-12"""
         if not values:
             return {}
         return {k: "***" for k in values.keys()}
 
     def _extractPlaceholders(self, query: str) -> Set[str]:
+        """설명: 쿼리에서 :name 형 플레이스홀더 목록을 추출. 갱신일: 2025-11-12"""
         # named params: :id, :user_name, etc.
         return set(re.findall(r":([a-zA-Z_][a-zA-Z0-9_]*)", query or ""))
 
     def _validateBindParameters(self, query: str, values: Optional[Dict[str, Any]]):
+        """설명: 제공된 파라미터와 플레이스홀더 일치 여부를 검사. 갱신일: 2025-11-12"""
         values = values or {}
         placeholders = self._extractPlaceholders(query)
         provided = set(values.keys())
@@ -178,6 +193,7 @@ class DatabaseManager:
             raise ValueError("DB_400_PARAM_UNUSED")
 
     async def connect(self):
+        """설명: DB 연결을 시작하고 SQLite 튜닝을 적용. 갱신일: 2025-11-12"""
         await self.database.connect()
         logger.info(f"Connected to database {self.databaseUrl}")
         # Apply pragmatic settings for SQLite to reduce 'database is locked'
@@ -190,9 +206,11 @@ class DatabaseManager:
             pass
 
     async def disconnect(self):
+        """설명: 데이터베이스 연결을 종료한다. 갱신일: 2025-11-12"""
         await self.database.disconnect()
 
     async def execute(self, query: str, values: Optional[Dict[str, Any]] = None) -> Any:
+        """설명: 쓰기 쿼리를 실행하고 영향 행을 반환. 갱신일: 2025-11-12"""
         self._validateBindParameters(query, values)
         logger.info("executing query")
         logger.debug(
@@ -204,6 +222,7 @@ class DatabaseManager:
         return result
 
     async def fetchOne(self, query: str, values: Optional[Dict[str, Any]] = None) -> Optional[Dict[str, Any]]:
+        """설명: 단일 행을 조회해 dict로 반환. 갱신일: 2025-11-12"""
         self._validateBindParameters(query, values)
         logger.info("fetch_one")
         logger.debug(
@@ -221,6 +240,7 @@ class DatabaseManager:
             return None
 
     async def fetchAll(self, query: str, values: Optional[Dict[str, Any]] = None) -> Optional[List[Dict[str, Any]]]:
+        """설명: 여러 행을 리스트로 반환. 갱신일: 2025-11-12"""
         self._validateBindParameters(query, values)
         logger.info("fetch_all")
         logger.debug(
@@ -238,6 +258,7 @@ class DatabaseManager:
             return None
 
     async def executeQuery(self, queryName: str, values: Optional[Dict[str, Any]] = None) -> Any:
+        """설명: 등록된 이름 기반 쿼리를 실행. 갱신일: 2025-11-12"""
         query = self.queryManager.getQuery(queryName)
         if not query:
             logger.info(f"cannot find query name : {queryName}")
@@ -246,6 +267,7 @@ class DatabaseManager:
         return await self.execute(query, values)
 
     async def fetchOneQuery(self, queryName: str, values: Optional[Dict[str, Any]] = None) -> Optional[Dict[str, Any]]:
+        """설명: 등록 쿼리 중 단일 행을 가져온다. 갱신일: 2025-11-12"""
         query = self.queryManager.getQuery(queryName)
         if not query:
             logger.info(f"cannot find query name : {queryName}")
@@ -254,6 +276,7 @@ class DatabaseManager:
         return await self.fetchOne(query, values)
 
     async def fetchAllQuery(self, queryName: str, values: Optional[Dict[str, Any]] = None) -> Optional[List[Dict[str, Any]]]:
+        """설명: 등록 쿼리 중 여러 행을 가져온다. 갱신일: 2025-11-12"""
         query = self.queryManager.getQuery(queryName)
         if not query:
             logger.info(f"cannot find query name : {queryName}")
@@ -268,6 +291,7 @@ class DatabaseManager:
 
 
 def setQueryConfig(queryDirParam: str, watch: bool, debounceMsParam: int):
+    """설명: 쿼리 디렉터리/워치 설정을 업데이트. 갱신일: 2025-11-12"""
     global queryDir, queryWatch, debounceMs
     if not os.path.isabs(queryDirParam):
         queryDirParam = os.path.join(baseDir, queryDirParam)
@@ -277,6 +301,7 @@ def setQueryConfig(queryDirParam: str, watch: bool, debounceMsParam: int):
 
 
 def loadQueries() -> int:
+    """설명: SQL 폴더를 파싱해 QueryManager에 로드. 갱신일: 2025-11-12"""
     started = time.perf_counter()
     queries, nameToFile, fileToNames = scanSqlQueries(queryDir)
     QueryManager.getInstance().setAll(queries, nameToFile, fileToNames)
@@ -301,6 +326,7 @@ def loadQueries() -> int:
 
 
 def scheduleReload(changedPath: Optional[str]):
+    """설명: 변경된 파일을 기록하고 디바운스 타이머를 기동. 갱신일: 2025-11-12"""
     global debounceTimer, lastChangedFile
     lastChangedFile = changedPath
     if debounceTimer and debounceTimer.is_alive():
@@ -311,6 +337,7 @@ def scheduleReload(changedPath: Optional[str]):
 
 
 def doReload() -> bool:
+    """설명: 디바운스 이후 실제로 쿼리 파일을 다시 읽는다. 갱신일: 2025-11-12"""
     started = time.perf_counter()
     changedFile = lastChangedFile or queryDir
     try:
@@ -371,6 +398,7 @@ def doReload() -> bool:
 
 
 def startWatchingQueryFolder() -> Optional[Any]:
+    """설명: watchdog으로 쿼리 폴더 변화를 감시. 갱신일: 2025-11-12"""
     if not queryWatch:
         return None
     observer = Observer()
@@ -381,11 +409,14 @@ def startWatchingQueryFolder() -> Optional[Any]:
 
 
 class QueryFolderEventHandler(FileSystemEventHandler):
+    """설명: SQL 파일 변경을 감지해 재로딩을 예약. 갱신일: 2025-11-12"""
+
     def __init__(self, onChange):
         super().__init__()
         self.onChange = onChange
 
     def maybe(self, event: FileSystemEvent):
+        """설명: SQL 파일이면 콜백을 호출한다. 갱신일: 2025-11-12"""
         path = getattr(event, "src_path", None) or getattr(event, "dest_path", None)
         if not path:
             return
@@ -393,17 +424,21 @@ class QueryFolderEventHandler(FileSystemEventHandler):
             self.onChange(path)
 
     def on_modified(self, event: FileSystemEvent):
+        """설명: 수정 이벤트 처리. 갱신일: 2025-11-12"""
         if not event.is_directory:
             self.maybe(event)
 
     def on_created(self, event: FileSystemEvent):
+        """설명: 생성 이벤트 처리. 갱신일: 2025-11-12"""
         if not event.is_directory:
             self.maybe(event)
 
     def on_moved(self, event: FileSystemEvent):
+        """설명: 이동 이벤트 처리. 갱신일: 2025-11-12"""
         if not event.is_directory:
             self.maybe(event)
 
     def on_deleted(self, event: FileSystemEvent):
+        """설명: 삭제 이벤트 처리. 갱신일: 2025-11-12"""
         if not event.is_directory:
             self.maybe(event)

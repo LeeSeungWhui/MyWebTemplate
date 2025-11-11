@@ -32,7 +32,7 @@ MESSAGES = {
 
 
 def detectLocale(request: Any) -> str:
-    """요청 헤더를 바탕으로 'ko' 또는 'en' 로케일을 추론한다."""
+    """설명: Accept-Language로 ko/en을 판별. 갱신일: 2025-11-12"""
     try:
         lang = (request.headers.get("Accept-Language") or "").lower()
     except Exception:
@@ -43,7 +43,7 @@ def detectLocale(request: Any) -> str:
 
 
 def translate(key: str, default: str, locale: Optional[str] = None) -> str:
-    """로케일별 메시지를 조회하고 실패 시 기본 문자열을 반환한다."""
+    """설명: 메시지 키를 번역하고 실패 시 기본값 반환. 갱신일: 2025-11-12"""
     loc = locale or "en"
     try:
         return MESSAGES.get(loc, {}).get(key) or default
