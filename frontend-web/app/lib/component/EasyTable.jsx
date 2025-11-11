@@ -1,8 +1,11 @@
 /**
  * 파일명: EasyTable.jsx
  * 작성자: LSH
- * 갱신일: 2025-11-11
- * 설명: EasyTable UI 컴포넌트 (구 Table)
+ * 갱신일: 2025-09-13
+ * 설명: Table UI 컴포넌트 구현
+ */
+/**
+ * EasyTable.jsx
  * Lightweight, flexible data Table/Card component with controlled/uncontrolled pagination
  * - Decoupled from project-specific Checkbox/Icon
  * - Supports array or EasyList-like datasets
@@ -114,153 +117,229 @@ const EasyTable = forwardRef(function EasyTable(
     headerClassName = '',
     rowClassName = '',
     cellClassName = '',
-    rowsClassName = '',
-    // empty/loading
+    rowsClassName = '', // container for rows (e.g., 'space-y-2')
+    preserveRowSpace = false,
     empty = '데이터가 없습니다.',
     loading = false,
-    // variant: table | card
-    variant = 'table',
-    renderCard = null,
-    gridClassName = 'grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3',
-    // paging
+    // interactions
+    onRowClick,
+    // pagination
     page: pageProp,
     defaultPage = 1,
     pageSize = 10,
+    maxPageButtons = 10,
+    total: totalProp, // for server paging
+    pageParam, // e.g. 'page' to sync with URL
+    persistKey, // sessionStorage key
+    persist = 'session', // 'session' | 'local'
     onPageChange,
-    pageParam = null,
-    persist = true,
-    persistKey = 'easy-table-page',
-    maxPageButtons = 7,
-    // events
-    onRowClick,
+    // variant
+    variant = 'table', // 'table' | 'card'
+    // card-only
+    renderCard,
+    cardsPerRow = 4,
+    gridClassName = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4',
+    // status & error
+    status,
+    errorText,
   },
-  ref,
+  ref
 ) {
-  const mountedRef = useRef(false);
-  const [page, setPage] = useState(() => pageProp ?? defaultPage);
+  // derive initial page
+  const initPage = (typeof pageProp === 'number') ? pageProp : defaultPage;
 
-  const total = useMemo(() => (isListLike(data) ? listSize(data) : (Array.isArray(data) ? data.length : 0)), [data]);
-  const pageCount = Math.max(1, Math.ceil(total / Math.max(1, pageSize)));
-  const currentPage = clamp(pageProp ?? page, 1, pageCount);
+  const [pageState, setPageState] = useState(initPage);
+  const page = typeof pageProp === 'number' ? pageProp : pageState;
 
-  // persist: url param
+  const size = useMemo(() => (totalProp != null ? totalProp : (isListLike(data) ? listSize(data) : 0)), [data, totalProp]);
+  const effectivePageSize = Math.max(1, pageSize);
+  const pageCount = Math.max(1, Math.ceil(size / effectivePageSize));
+
+  // clamp when data size changes (uncontrolled only)
   useEffect(() => {
-    if (!pageParam) return;
-    if (typeof window === 'undefined') return;
-    const url = new URL(window.location.href);
-    url.searchParams.set(pageParam, String(currentPage));
-    window.history.replaceState({}, '', url.toString());
-  }, [currentPage, pageParam]);
+    if (typeof pageProp === 'number') return;
+    if (page > pageCount) setPageState(pageCount);
+  }, [pageCount]);
 
-  // persist: storage
+  // initialize from URL/persist AFTER hydration to avoid SSR mismatch (uncontrolled)
   useEffect(() => {
-    if (!persist) return;
+    if (typeof pageProp === 'number') return;
     if (typeof window === 'undefined') return;
-    const key = `easy-table:${persistKey}`;
-    try { window.sessionStorage.setItem(key, String(currentPage)); } catch {}
-  }, [currentPage, persist, persistKey]);
+    let next = defaultPage;
+    let fromParam = null;
+    if (pageParam) {
+      const sp = new URLSearchParams(window.location.search);
+      const v = sp.get(pageParam);
+      const p = parseInt(v || '');
+      if (!isNaN(p) && p > 0) fromParam = p;
+    }
+    if (fromParam != null) next = fromParam;
+    else if (persistKey) {
+      const store = persist === 'local' ? window.localStorage : window.sessionStorage;
+      const raw = store.getItem(persistKey);
+      if (raw) {
+        const p = parseInt(raw);
+        if (!isNaN(p) && p > 0) next = p;
+      }
+    }
+    if (next !== pageState) setPageState(next);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pageProp, pageParam, persistKey, persist, defaultPage]);
 
-  // restore from storage on mount when uncontrolled
+  // persist + URL sync (uncontrolled)
   useEffect(() => {
-    if (mountedRef.current) return;
-    mountedRef.current = true;
-    if (pageProp != null) return;
-    if (!persist) return;
-    if (typeof window === 'undefined') return;
-    const key = `easy-table:${persistKey}`;
-    try {
-      const saved = Number(window.sessionStorage.getItem(key));
-      if (!Number.isNaN(saved) && saved >= 1) setPage(saved);
-    } catch {}
-  }, [pageProp, persist, persistKey]);
+    if (typeof pageProp === 'number') return;
+    if (persistKey && typeof window !== 'undefined') {
+      const store = persist === 'local' ? window.localStorage : window.sessionStorage;
+      store.setItem(persistKey, String(page));
+    }
+    if (pageParam && typeof window !== 'undefined') {
+      const url = new URL(window.location.href);
+      url.searchParams.set(pageParam, String(page));
+      window.history.replaceState(null, '', url.toString());
+    }
+  }, [page, pageProp, persistKey, persist, pageParam]);
 
-  const handlePageChange = (next) => {
-    const nextPage = clamp(next, 1, pageCount);
-    if (pageProp == null) setPage(nextPage);
-    onPageChange?.(nextPage);
-  };
+  const sliceRange = useMemo(() => {
+    const start = (page - 1) * effectivePageSize;
+    const end = Math.min(start + effectivePageSize, size);
+    return { start, end };
+  }, [page, effectivePageSize, size]);
 
   const rows = useMemo(() => {
-    const start = (currentPage - 1) * pageSize;
-    const end = Math.min(total, start + pageSize);
+    const { start, end } = sliceRange;
+    if (!isListLike(data)) return [];
     const out = [];
-    for (let i = start; i < end; i += 1) out.push(listGet(data, i));
+    for (let i = start; i < end; i++) out.push(listGet(data, i));
     return out;
-  }, [data, total, currentPage, pageSize]);
+  }, [data, sliceRange]);
 
-  if (loading) {
-    return (
-      <div className={`w-full ${className}`} ref={ref}>
-        <div className="p-6 text-center text-gray-500">불러오는 중…</div>
-      </div>
-    );
-  }
+  const fillerCount = preserveRowSpace && variant === 'table'
+    ? Math.max(0, effectivePageSize - rows.length)
+    : 0;
 
-  if (!total) {
-    return (
-      <div className={`w-full ${className}`} ref={ref}>
-        <div className="p-6 text-center text-gray-500">{empty}</div>
-      </div>
-    );
-  }
+  const header = (
+    <div role="row" className={`grid w-full bg-[#667586] text-white text-sm font-semibold items-center ${headerClassName}`.trim()} style={{ gridTemplateColumns: columns.map(c => c.width || '1fr').join(' ') }}>
+      {columns.map((col, i) => (
+        <div
+          key={col.key ?? i}
+          role="columnheader"
+          className={`px-3 py-3 text-center ${col.headerClassName || ''}`}
+          style={{ width: col.width || 'auto' }}
+        >
+          {typeof col.header === 'function' ? col.header() : col.header}
+        </div>
+      ))}
+    </div>
+  );
 
-  if (variant === 'card') {
-    return (
-      <div className={`w-full ${className}`} ref={ref}>
-        <div className={gridClassName}>
-          {rows.map((row, idx) => (
-            <div key={defaultRowKey(row, idx)} onClick={() => onRowClick?.(row, idx)}>
-              {renderCard ? renderCard(row, idx) : (
-                <div className="border rounded p-3">
-                  <pre className="text-xs overflow-auto">{JSON.stringify(row, null, 2)}</pre>
-                </div>
-              )}
+  const renderCell = (col, row, rowIdx) => {
+    if (typeof col.render === 'function') return col.render(row, rowIdx);
+    if (col.key == null) return null;
+    if (row && typeof row.get === 'function') return row.get(col.key);
+    return row?.[col.key];
+  };
+
+  const onChangePage = (next) => {
+    const target = clamp(next, 1, pageCount);
+    if (typeof pageProp === 'number') {
+      // controlled
+      onPageChange?.(target);
+    } else {
+      setPageState(target);
+    }
+  };
+
+  const bodyTable = (
+    <div role="rowgroup" className={`w-full ${rowsClassName}`.trim()}>
+      {rows.map((row, i) => {
+        const globalIdx = (page - 1) * effectivePageSize + i;
+        const keyVal = typeof rowKey === 'function' ? rowKey(row, globalIdx) : (typeof rowKey === 'string' ? (row?.get ? row.get(rowKey) : row?.[rowKey]) : defaultRowKey(row, globalIdx));
+        return (
+          <div
+            key={keyVal}
+            role="row"
+            className={`grid w-full bg-white text-sm text-center items-center border-b hover:bg-gray-50 ${rowClassName}`.trim()}
+            style={{ gridTemplateColumns: columns.map(c => c.width || '1fr').join(' ') }}
+            onClick={onRowClick ? () => onRowClick(row, globalIdx) : undefined}
+          >
+            {columns.map((col, ci) => (
+              <div
+                key={col.key ?? ci}
+                role="cell"
+                className={`px-3 py-3 ${cellClassName} ${col.cellClassName || ''}`.trim()}
+                style={{ width: col.width || 'auto', textAlign: col.align || 'center' }}
+              >
+                {renderCell(col, row, globalIdx)}
+              </div>
+            ))}
+          </div>
+        );
+      })}
+      {Array.from({ length: fillerCount }).map((_, fillerIdx) => (
+        <div
+          key={`filler-${fillerIdx}`}
+          role="row"
+          aria-hidden="true"
+          className={`grid w-full text-sm border-b opacity-0 pointer-events-none select-none ${rowClassName}`.trim()}
+          style={{ gridTemplateColumns: columns.map(c => c.width || '1fr').join(' ') }}
+        >
+          {columns.map((col, ci) => (
+            <div
+              key={`filler-cell-${ci}`}
+              role="cell"
+              aria-hidden="true"
+              className={`px-3 py-3 ${cellClassName} ${col.cellClassName || ''}`.trim()}
+              style={{ width: col.width || 'auto', textAlign: col.align || 'center' }}
+            >
+              &nbsp;
             </div>
           ))}
         </div>
-        {pageCount > 1 && (
-          <div className="mt-4 flex justify-center">
-            <Pagination page={currentPage} pageCount={pageCount} onChange={handlePageChange} maxButtons={maxPageButtons} />
-          </div>
-        )}
-      </div>
-    );
-  }
+      ))}
+    </div>
+  );
 
-  // table variant
+  const bodyCards = (
+    <div className={gridClassName}>
+      {rows.map((row, i) => {
+        const globalIdx = (page - 1) * effectivePageSize + i;
+        const keyVal = typeof rowKey === 'function' ? rowKey(row, globalIdx) : (typeof rowKey === 'string' ? (row?.get ? row.get(rowKey) : row?.[rowKey]) : defaultRowKey(row, globalIdx));
+        return (
+          <div key={keyVal} className="w-full">
+            {typeof renderCard === 'function' ? renderCard(row, globalIdx) : (
+              <div className="border rounded p-4">No renderCard provided</div>
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+
+  const pager = (
+    <div className="flex justify-center items-center py-4">
+      <Pagination page={page} pageCount={pageCount} onChange={onChangePage} maxButtons={maxPageButtons} />
+    </div>
+  );
+
+  const effStatus = status ?? (loading ? 'loading' : (rows.length === 0 ? 'empty' : 'idle'));
+  const isBusy = effStatus === 'loading';
+  const isError = effStatus === 'error';
+  const isEmpty = effStatus === 'empty' && !isError && !isBusy;
+
   return (
-    <div className={`w-full ${className}`} ref={ref}>
-      <div className={`grid items-center gap-2 ${headerClassName}`} style={{ gridTemplateColumns: columns.map(c => c.width || '1fr').join(' ') }}>
-        {columns.map((col) => (
-          <div key={String(col.key)} className={`text-sm font-medium text-gray-600 ${col.headerClassName || ''}`}>
-            {col.header ?? col.key}
-          </div>
-        ))}
-      </div>
-      <div className={`mt-2 space-y-2 ${rowsClassName}`}>
-        {rows.map((row, rIdx) => (
-          <div
-            key={defaultRowKey(row, rIdx)}
-            className={`grid items-center gap-2 rounded-xl border border-gray-200 p-3 hover:shadow-sm ${rowClassName}`}
-            style={{ gridTemplateColumns: columns.map(c => c.width || '1fr').join(' ') }}
-            onClick={() => onRowClick?.(row, rIdx)}
-          >
-            {columns.map((col) => {
-              const value = typeof row?.get === 'function' ? row.get(col.key) : row?.[col.key];
-              return (
-                <div key={String(col.key)} className={`${col.cellClassName || cellClassName}`} style={{ textAlign: col.align || 'left' }}>
-                  {typeof col.render === 'function' ? col.render(row, rIdx) : (value ?? '')}
-                </div>
-              );
-            })}
-          </div>
-        ))}
-      </div>
-      {pageCount > 1 && (
-        <div className="mt-4 flex justify-center">
-          <Pagination page={currentPage} pageCount={pageCount} onChange={handlePageChange} maxButtons={maxPageButtons} />
-        </div>
+    <div ref={ref} className={`w-full border border-gray-200 rounded ${className}`.trim()} role="table" aria-busy={isBusy ? 'true' : undefined}>
+      {variant === 'table' && header}
+      {isBusy ? (
+        <div className="p-6 text-center text-gray-500" role="status" aria-live="polite">Loading...</div>
+      ) : isError ? (
+        <div className="p-6 text-center text-red-600" role="alert">{errorText || 'Error'}</div>
+      ) : isEmpty ? (
+        <div className="p-6 text-center text-gray-500">{empty}</div>
+      ) : (
+        variant === 'table' ? bodyTable : bodyCards
       )}
+      {pageCount > 1 && !isBusy && !isError && pager}
     </div>
   );
 });
@@ -268,4 +347,3 @@ const EasyTable = forwardRef(function EasyTable(
 EasyTable.displayName = 'EasyTable';
 
 export default EasyTable;
-
