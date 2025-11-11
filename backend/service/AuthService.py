@@ -60,6 +60,7 @@ async def issue_token_for_credentials(username: str, password: str) -> Optional[
         }
     )
 
+
 def _verify_password(plain: str, stored: str) -> bool:
     try:
         if stored and stored.startswith("pbkdf2$"):

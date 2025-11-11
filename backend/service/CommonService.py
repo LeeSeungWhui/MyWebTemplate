@@ -7,14 +7,9 @@
 import asyncio
 import os
 from datetime import datetime, timezone
-from typing import Dict
-
-from fastapi import Request
-from fastapi.responses import JSONResponse
+from typing import Dict, Tuple
 
 from lib import Database as DB
-from lib.Response import successResponse, errorResponse
-from lib.I18n import detect_locale, t as i18n_t
 
 _started_at = datetime.now(timezone.utc)
 
@@ -29,22 +24,17 @@ def _version_info() -> Dict[str, str]:
     }
 
 
-async def healthz(request: Request):
+async def build_healthz_result() -> Dict[str, str | int | bool]:
     now = datetime.now(timezone.utc)
     uptime_s = int((now - _started_at).total_seconds())
-    payload = {
+    return {
         "ok": True,
         **_version_info(),
         "uptime_s": uptime_s,
     }
-    resp = successResponse(result=payload)
-    request.scope["state"] = getattr(request, "state", None)
-    response = JSONResponse(content=resp, status_code=200)
-    response.headers["Cache-Control"] = "no-store"
-    return response
 
 
-async def readyz(request: Request):
+async def build_readyz_checks() -> Tuple[Dict[str, str | bool], bool]:
     maintenance = os.getenv("MAINTENANCE_MODE", "false").lower() in ("1", "true", "yes")
     checks: Dict[str, str] = {}
     ok = True
@@ -58,7 +48,7 @@ async def readyz(request: Request):
                 primary = DB.getPrimaryDbName()
             except Exception:
                 primary = None
-            targets = ([primary] if primary in DB.dbManagers else list(DB.dbManagers.keys()))
+            targets = [primary] if primary in DB.dbManagers else list(DB.dbManagers.keys())
             if not targets:
                 checks["db"] = "up"
             else:
@@ -87,13 +77,5 @@ async def readyz(request: Request):
             checks["db"] = "down"
             ok = False
 
-    status_code = 200 if ok else 503
     payload = {"ok": ok, **checks}
-    if ok:
-        resp = successResponse(result=payload)
-    else:
-        loc = detect_locale(request)
-        resp = errorResponse(message=i18n_t("obs.not_ready", "not ready", loc), result=payload, code="OBS_503_NOT_READY")
-    response = JSONResponse(content=resp, status_code=status_code)
-    response.headers["Cache-Control"] = "no-store"
-    return response
+    return payload, ok

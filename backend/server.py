@@ -103,10 +103,15 @@ async def onStartup():
             continue
 
         if dbType == "sqlite":
-            dbPath = dbConfig.get("database")
+            # 데이터베이스 파일 경로 안전 처리(None/빈문자열 대비)
+            raw_path = dbConfig.get("database")
             base_dir = os.path.dirname(__file__)
-            if not os.path.isabs(dbPath):
-                dbPath = os.path.join(base_dir, dbPath)
+            if not raw_path:
+                dbPath = os.path.join(base_dir, "data", "main.db")
+            else:
+                dbPath = raw_path
+                if not os.path.isabs(dbPath):
+                    dbPath = os.path.join(base_dir, dbPath)
             os.makedirs(os.path.dirname(dbPath), exist_ok=True)
             dbUrl = f"sqlite:///{dbPath}"
         elif dbType in ["mysql", "mariadb"]:
@@ -200,10 +205,7 @@ async def onStartup():
 
 config = loadConfig("config.ini")
 # expose primary DB name to DB helper for non-hardcoded access
-try:
-    from .lib import Database as DB  # type: ignore
-except Exception:
-    from lib import Database as DB
+# Primary DB 이름 노출(초기화 실패 시 조용히 무시)
 try:
     DB.setPrimaryDbName(config["DATABASE"].get("name", "main_db"))
 except Exception:
