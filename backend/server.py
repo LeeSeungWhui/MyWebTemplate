@@ -192,16 +192,18 @@ async def onStartup():
 # Application setup
 # ---------------------------------------------------------------------------
 
-# Ensure configuration is loaded once (singleton), then access via get_config()
+# Ensure configuration is loaded once (singleton) and reuse local reference
+cfg = get_config()
+
 # expose primary DB name to DB helper for non-hardcoded access
 # Primary DB 이름 노출(초기화 실패 시 조용히 무시)
 try:
-    DB.setPrimaryDbName(get_config()["DATABASE"].get("name", "main_db"))
+    DB.setPrimaryDbName(cfg["DATABASE"].get("name", "main_db"))
 except Exception:
     pass
 
 # CORS config
-cors_conf = get_config()["CORS"]
+cors_conf = cfg["CORS"]
 origins_raw = cors_conf.get("allow_origins", "").strip()
 origin_regex_raw = cors_conf.get("allow_origin_regex", "").strip()
 try:
@@ -241,11 +243,11 @@ app.add_middleware(RequestLogMiddleware)
 # Session (cookie-based) for Web
 app.add_middleware(
     SessionMiddleware,
-    secret_key=get_config()["AUTH"]["secret_key"],
-    session_cookie=get_config()["AUTH"].get("session_cookie", "sid"),
+    secret_key=cfg["AUTH"]["secret_key"],
+    session_cookie=cfg["AUTH"].get("session_cookie", "sid"),
     same_site="lax",
     https_only=os.getenv("ENV", "dev").lower() == "prod",
-    max_age=get_config()["AUTH"].getint("token_expire", 3600),
+    max_age=cfg["AUTH"].getint("token_expire", 3600),
 )
 
 # load routers
@@ -253,7 +255,7 @@ logger.info("router load start")
 # Optional: disable demo/example routers via config
 disable_demo_routes = False
 try:
-    disable_demo_routes = get_config()["SERVER"].getboolean("disable_demo_routes", False)
+    disable_demo_routes = cfg["SERVER"].getboolean("disable_demo_routes", False)
 except Exception:
     disable_demo_routes = False
 
