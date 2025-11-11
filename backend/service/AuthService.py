@@ -115,7 +115,8 @@ async def _ensure_auth_tables():
     if not db:
         return
     try:
-        row = await db.fetchOneQuery("user.selectByUsername", {"u": "demo"})
+        # 템플릿 테이블 기반 사용자 조회(존재 확인용)
+        row = await db.fetchOneQuery("tmpl.user.selectByUsername", {"u": "demo"})
     except Exception:
         # table or query may not exist yet; do not create or seed here
         return
@@ -206,7 +207,7 @@ async def login(request: Request):
             content=errorResponse(message=i18n_t("db.unavailable", "db unavailable", loc), code="AUTH_500_DB"),
         )
     # db is not None due to check above
-    user = await db.fetchOneQuery("user.selectByUsername", {"u": username})
+    user = await db.fetchOneQuery("tmpl.user.selectByUsername", {"u": username})
     if not user:
         logger.info("auth.login.fail username")
         limited = _rate_limit(request, username=username)
@@ -314,7 +315,7 @@ async def issue_token(request: Request):
             content=errorResponse(message=i18n_t("db.unavailable", "db unavailable", loc), code="AUTH_500_DB"),
         )
     
-    user = await db.fetchOneQuery("user.selectByUsername", {"u": username})
+    user = await db.fetchOneQuery("tmpl.user.selectByUsername", {"u": username})
     if not user or not _verify_password(password, user.get("password_hash") or ""):
         logger.info("auth.token.fail invalid")
         limited = _rate_limit(request, username=username)
