@@ -18,7 +18,7 @@ from service import AuthService
 router = APIRouter(prefix="/api/v1/auth", tags=["auth"])
 
 
-@router.post("/login", status_code=204)
+@router.post("/login")
 async def login(request: Request):
     body = await request.json()
     payload = {
@@ -38,8 +38,8 @@ async def login(request: Request):
             headers={"WWW-Authenticate": "Cookie"},
         )
 
-    user = await AuthService.login(payload)
-    if not user:
+    authResult = await AuthService.login(payload)
+    if not authResult:
         limited = checkRateLimit(request, username=username)
         if limited is not None:
             return limited
@@ -49,13 +49,17 @@ async def login(request: Request):
             headers={"WWW-Authenticate": "Cookie"},
         )
 
+    user = authResult["user"]
+    tokenPayload = authResult["token"]
     # 세션/CSRF 설정은 라우터에서 처리
     request.session.clear()
     request.session["userId"] = user["username"]
     request.session["name"] = user.get("name") or None
-    request.session["csrf"] = AuthService.csrf({}).get("csrf")
+    csrfData = AuthService.csrf({})
+    request.session["csrf"] = csrfData["csrf"]
 
-    res = Response(status_code=204)
+    res = JSONResponse(status_code=200, content=successResponse(result=tokenPayload))
+    res.headers["Cache-Control"] = "no-store"
     if remember:
         res.set_cookie("rememberMe", "1", max_age=60 * 60 * 24 * 30, httponly=False)
     return res

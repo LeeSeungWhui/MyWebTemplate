@@ -5,7 +5,7 @@
 """
 
 import uuid
-from typing import Optional
+from typing import Optional, Tuple
 
 import base64
 import hashlib
@@ -22,20 +22,12 @@ async def me(user):
 
 
 async def login(payload: dict) -> Optional[dict]:
-    """로그인 요청 payload(dict)를 받아 사용자 레코드를 반환."""
-    username = (payload or {}).get("username")
-    password = (payload or {}).get("password")
-    if not isinstance(username, str) or not isinstance(password, str):
+    """로그인 요청을 처리하고 사용자/토큰 정보를 함께 반환."""
+    authUser, username = await _authenticate(payload)
+    if not authUser or not username:
         return None
-    db = DB.getManager()
-    if not db:
-        return None
-    user = await db.fetchOneQuery("tmpl.user.selectByUsername", {"u": username})
-    if not user:
-        return None
-    if not _verify_password(password, user.get("password_hash") or ""):
-        return None
-    return user
+    tokenPayload = _issue_token_payload(username)
+    return {"user": authUser, "token": tokenPayload}
 
 
 def session(payload: dict) -> dict:
@@ -56,18 +48,11 @@ def csrf(_: Optional[dict] = None) -> dict:
 
 async def token(payload: dict) -> Optional[dict]:
     """토큰 발급 요청 payload(dict)를 처리."""
-    user = await login(payload)
-    if not user:
+    authUser, username = await _authenticate(payload)
+    if not authUser or not username:
         return None
-    username = (payload or {}).get("username")
-    token: Token = createAccessToken({"sub": username})
-    return successResponse(
-        result={
-            "access_token": token.accessToken,
-            "token_type": token.tokenType,
-            "expires_in": token.expiresIn,
-        }
-    )
+    tokenPayload = _issue_token_payload(username)
+    return successResponse(result=tokenPayload)
 
 
 def _verify_password(plain: str, stored: str) -> bool:
@@ -90,3 +75,32 @@ def _verify_password(plain: str, stored: str) -> bool:
         return False
     except Exception:
         return False
+
+
+async def _authenticate(payload: dict) -> Tuple[Optional[dict], Optional[str]]:
+    """payload에서 자격 증명을 추출해 사용자/아이디를 반환."""
+    if not isinstance(payload, dict):
+        return None, None
+    username = payload.get("username")
+    password = payload.get("password")
+    if not isinstance(username, str) or not isinstance(password, str):
+        return None, None
+    db = DB.getManager()
+    if not db:
+        return None, None
+    user = await db.fetchOneQuery("tmpl.user.selectByUsername", {"u": username})
+    if not user:
+        return None, None
+    if not _verify_password(password, user.get("password_hash") or ""):
+        return None, None
+    return user, username
+
+
+def _issue_token_payload(username: str) -> dict:
+    """주어진 사용자명으로 액세스 토큰 페이로드를 생성."""
+    token: Token = createAccessToken({"sub": username})
+    return {
+        "access_token": token.accessToken,
+        "token_type": token.tokenType,
+        "expires_in": token.expiresIn,
+    }
