@@ -92,14 +92,14 @@ async def onStartup():
 
         if dbType == "sqlite":
             # 데이터베이스 파일 경로 안전 처리(None/빈문자열 대비)
-            raw_path = dbConfig.get("database")
-            base_dir = os.path.dirname(__file__)
-            if not raw_path:
-                dbPath = os.path.join(base_dir, "data", "main.db")
+            rawPath = dbConfig.get("database")
+            baseDir = os.path.dirname(__file__)
+            if not rawPath:
+                dbPath = os.path.join(baseDir, "data", "main.db")
             else:
-                dbPath = raw_path
+                dbPath = rawPath
                 if not os.path.isabs(dbPath):
-                    dbPath = os.path.join(base_dir, dbPath)
+                    dbPath = os.path.join(baseDir, dbPath)
             os.makedirs(os.path.dirname(dbPath), exist_ok=True)
             dbUrl = f"sqlite:///{dbPath}"
         elif dbType in ["mysql", "mariadb"]:
@@ -139,30 +139,30 @@ async def onStartup():
     except Exception:
         dbGlobal = None
 
-    base_dir = os.path.dirname(__file__)
-    repo_root = os.path.dirname(base_dir)
-    qdir_raw = (dbGlobal.get("query_dir") if dbGlobal else None) or "query"
-    if not os.path.isabs(qdir_raw):
-        norm = qdir_raw.replace("\\", "/")
+    baseDir = os.path.dirname(__file__)
+    repoRoot = os.path.dirname(baseDir)
+    queryDirRaw = (dbGlobal.get("query_dir") if dbGlobal else None) or "query"
+    if not os.path.isabs(queryDirRaw):
+        norm = queryDirRaw.replace("\\", "/")
         if norm.startswith("backend/"):
-            qdir_abs = os.path.join(repo_root, qdir_raw)
+            queryDirAbs = os.path.join(repoRoot, queryDirRaw)
         else:
-            qdir_abs = os.path.join(base_dir, qdir_raw)
+            queryDirAbs = os.path.join(baseDir, queryDirRaw)
     else:
-        qdir_abs = qdir_raw
+        queryDirAbs = queryDirRaw
 
-    qwatch = True
+    queryWatch = True
     try:
-        qwatch = dbGlobal.getboolean("query_watch", True) if dbGlobal else True
+        queryWatch = dbGlobal.getboolean("query_watch", True) if dbGlobal else True
     except Exception:
         pass
 
     try:
-        qdebounce = dbGlobal.getint("query_watch_debounce_ms", 150) if dbGlobal else 150
+        queryWatchDebounceMs = dbGlobal.getint("query_watch_debounce_ms", 150) if dbGlobal else 150
     except Exception:
-        qdebounce = 150
+        queryWatchDebounceMs = 150
 
-    setQueryConfig(qdir_abs, qwatch, qdebounce)
+    setQueryConfig(queryDirAbs, queryWatch, queryWatchDebounceMs)
 
     loadQueries()
     logger.info("query load done")
@@ -202,32 +202,32 @@ except Exception:
     pass
 
 # CORS 설정
-cors_conf = cfg["CORS"]
-origins_raw = cors_conf.get("allow_origins", "").strip()
-origin_regex_raw = cors_conf.get("allow_origin_regex", "").strip()
+corsConfig = cfg["CORS"]
+originsRaw = corsConfig.get("allow_origins", "").strip()
+originRegexRaw = corsConfig.get("allow_origin_regex", "").strip()
 try:
-    allow_credentials = cors_conf.getboolean("allow_credentials", True)
+    allowCredentials = corsConfig.getboolean("allow_credentials", True)
 except Exception:
-    allow_credentials = True
+    allowCredentials = True
 
 # 엄격 모드: 자격 증명 허용 시 '*' 사용 금지
-if origins_raw == "*":
-    if allow_credentials:
+if originsRaw == "*":
+    if allowCredentials:
         raise ValueError(
             "CORS misconfig: '*' cannot be used with allow_credentials=true. "
             "Either set allow_credentials=false or list explicit origins."
         )
     origins = ["*"]
 else:
-    origins = [o.strip() for o in origins_raw.split(",") if o.strip()]
+    origins = [o.strip() for o in originsRaw.split(",") if o.strip()]
 
-allow_origin_regex = origin_regex_raw or None
+allowOriginRegex = originRegexRaw or None
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
-    allow_origin_regex=allow_origin_regex,
-    allow_credentials=allow_credentials,
+    allow_origin_regex=allowOriginRegex,
+    allow_credentials=allowCredentials,
     allow_methods=["*"],
     allow_headers=["*"]
 )
@@ -252,15 +252,15 @@ app.add_middleware(
 # 라우터 로딩
 logger.info("router load start")
 # 설정값에 따라 데모 라우터를 비활성화할 수 있음
-disable_demo_routes = False
+disableDemoRoutes = False
 try:
-    disable_demo_routes = cfg["SERVER"].getboolean("disable_demo_routes", False)
+    disableDemoRoutes = cfg["SERVER"].getboolean("disable_demo_routes", False)
 except Exception:
-    disable_demo_routes = False
+    disableDemoRoutes = False
 
 for _, moduleName, _ in pkgutil.iter_modules(router.__path__, router.__name__ + "."):
     # 데모 TransactionRouter는 비활성화 시 제외
-    if disable_demo_routes and moduleName.endswith(".TransactionRouter"):
+    if disableDemoRoutes and moduleName.endswith(".TransactionRouter"):
         continue
     module = importlib.import_module(moduleName)
     if hasattr(module, "router"):
