@@ -115,7 +115,8 @@ async def onStartup():
             database = dbConfig.get("database")
             user = dbConfig.get("user")
             password = dbConfig.get("password")
-            dbUrl = f"mysql+pymysql://{user}:{password}@{host}:{port}/{database}"
+            # Use async driver for compatibility with `databases` (async I/O)
+            dbUrl = f"mysql+aiomysql://{user}:{password}@{host}:{port}/{database}"
         elif dbType == "postgresql":
             host = dbConfig.get("host", "localhost")
             port = dbConfig.get("port", "5432")
@@ -264,4 +265,3 @@ async def globalExceptionHandler(request: Request, exc: Exception):
         status_code=500,
         content=errorResponse(message=str(exc), result={"path": request.url.path}),
     )
-
