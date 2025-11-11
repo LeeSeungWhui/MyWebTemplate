@@ -211,14 +211,14 @@ try:
 except Exception:
     allow_credentials = True
 
-# If '*' is specified while credentials are enabled, fall back to a single dev origin.
+# Strict mode: forbid '*' when credentials are enabled.
 if origins_raw == "*":
-    # With credentials enabled, browsers forbid '*' — use a single dev origin fallback.
-    # Without credentials, we can allow wildcard safely.
     if allow_credentials:
-        origins = [os.getenv("DEV_WEB_ORIGIN", "http://localhost:3000")]
-    else:
-        origins = ["*"]
+        raise ValueError(
+            "CORS misconfig: '*' cannot be used with allow_credentials=true. "
+            "Either set allow_credentials=false or list explicit origins."
+        )
+    origins = ["*"]
 else:
     origins = [o.strip() for o in origins_raw.split(",") if o.strip()]
 
