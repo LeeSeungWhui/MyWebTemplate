@@ -34,7 +34,7 @@ try:  # package context
     from .lib.Response import errorResponse  # type: ignore
     from .lib.Middleware import RequestLogMiddleware  # type: ignore
     from .lib.OpenAPI import attachOpenAPI  # type: ignore
-    from .lib.Config import loadConfig  # type: ignore
+    from .lib.Config import get_config  # type: ignore
 except Exception:  # module context
     from lib.Auth import AuthConfig
     from lib.Database import (
@@ -49,7 +49,7 @@ except Exception:  # module context
     from lib.Response import errorResponse
     from lib.Middleware import RequestLogMiddleware
     from lib.OpenAPI import attachOpenAPI
-    from lib.Config import loadConfig
+    from lib.Config import get_config
 
 app = FastAPI()
 
@@ -78,6 +78,7 @@ async def onStartup():
     logger.info("database connect start")
     global sqlObserver
 
+    config = get_config()
     dbSections = [s for s in config.sections() if s.startswith("DATABASE")]
 
     for section in dbSections:
@@ -170,6 +171,7 @@ async def onStartup():
         logger.info("query watcher started")
 
     # load auth config
+    config = get_config()
     authConfig = config["AUTH"]
     AuthConfig.initConfig(
         secretKey=authConfig["secret_key"],
@@ -181,7 +183,7 @@ async def onStartup():
     # Avoid implicit DDL/DML on startup to respect external DBs.
 
     try:
-        attachOpenAPI(app, config)
+        attachOpenAPI(app, get_config())
     except Exception:
         pass
 
@@ -190,17 +192,17 @@ async def onStartup():
 # Application setup
 # ---------------------------------------------------------------------------
 
-config = loadConfig("config.ini")
+# Ensure configuration is loaded once (singleton), then access via get_config()
 # expose primary DB name to DB helper for non-hardcoded access
 # Primary DB 이름 노출(초기화 실패 시 조용히 무시)
 try:
-    DB.setPrimaryDbName(config["DATABASE"].get("name", "main_db"))
+    DB.setPrimaryDbName(get_config()["DATABASE"].get("name", "main_db"))
 except Exception:
     pass
 
 # CORS config
-origins_raw = config["CORS"].get("allow_origins", "").strip()
-origin_regex_raw = config["CORS"].get("allow_origin_regex", "").strip()
+origins_raw = get_config("config.ini")["CORS"].get("allow_origins", "").strip()
+origin_regex_raw = get_config()["CORS"].get("allow_origin_regex", "").strip()
 
 # If '*' is specified while credentials are enabled, fall back to a single dev origin.
 if origins_raw == "*":
@@ -229,11 +231,11 @@ app.add_middleware(RequestLogMiddleware)
 # Session (cookie-based) for Web
 app.add_middleware(
     SessionMiddleware,
-    secret_key=config["AUTH"]["secret_key"],
-    session_cookie=config["AUTH"].get("session_cookie", "sid"),
+    secret_key=get_config()["AUTH"]["secret_key"],
+    session_cookie=get_config()["AUTH"].get("session_cookie", "sid"),
     same_site="lax",
     https_only=os.getenv("ENV", "dev").lower() == "prod",
-    max_age=config["AUTH"].getint("token_expire", 3600),
+    max_age=get_config()["AUTH"].getint("token_expire", 3600),
 )
 
 # load routers
@@ -241,7 +243,7 @@ logger.info("router load start")
 # Optional: disable demo/example routers via config
 disable_demo_routes = False
 try:
-    disable_demo_routes = config["SERVER"].getboolean("disable_demo_routes", False)
+    disable_demo_routes = get_config()["SERVER"].getboolean("disable_demo_routes", False)
 except Exception:
     disable_demo_routes = False
 
