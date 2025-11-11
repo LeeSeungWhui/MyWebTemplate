@@ -28,9 +28,11 @@ from lib.RequestContext import get_request_id
 
 def _cfg(key: str, default: Optional[str] = None) -> str:
     """
-    Read AUTH config robustly regardless of import style.
-    Prefer backend.server when available (as tests mutate it),
-    otherwise fall back to top-level server.
+    AUTH 설정값을 안전하게 읽어오는 헬퍼.
+
+    - 서버 모듈 import 방식(패키지/모듈)과 무관하게 backend.server → server 순으로 탐색한다.
+    - 반환: config.ini 의 [AUTH] 섹션에서 주어진 키의 값을 문자열로 반환한다.
+      default 가 주어지면 해당 기본값을 허용한다.
     """
     import importlib
 
@@ -56,6 +58,13 @@ def _cfg(key: str, default: Optional[str] = None) -> str:
 
 # Simple in-memory rate limiter (per-process)
 class _RateLimiter:
+    """
+    초간단 인메모리 속도 제한기(프로세스 단위).
+
+    - limit: 허용 횟수(윈도우 내 최대 요청 수)
+    - window_sec: 윈도우(초)
+    - hit(key): 호출 시 현재 윈도우의 카운트를 검사하고, 초과하면 (False, retry_after) 반환
+    """
     def __init__(self, limit: int = 5, window_sec: int = 60):
         self.limit = limit
         self.window = window_sec
@@ -85,6 +94,14 @@ _rl = _RateLimiter(limit=int(os.getenv("AUTH_RATE_LIMIT", "5")), window_sec=60)
 
 
 def _rate_limit(request: Request, username: Optional[str] = None) -> Optional[Response]:
+    """
+    속도 제한 검사 유틸.
+
+    - 기준 키: 클라이언트 IP(+선택 username) 조합으로 1분(window) 동안 limit 회를 허용한다.
+    - 환경변수 AUTH_RATE_LIMIT 로 분당 허용치를 조정할 수 있다(기본 5회/분).
+    - 초과 시: 429 상태와 Retry-After 헤더, 표준 오류 응답을 반환한다.
+    - 통과 시: None 반환.
+    """
     ip = getattr(request.client, "host", "unknown")
     keys = [f"ip:{ip}"]
     if username:
