@@ -64,21 +64,21 @@ def attachOpenAPI(app: FastAPI, config) -> None:
                 "description": "CSRF token header for cookie-mode unsafe requests.",
             }
 
-            # Resolve server URLs from config
+            # 설정값에서 서버 URL 목록을 구성
             def _resolveServers():
                 urls = []
                 try:
                     serverSection = config["SERVER"]
                 except Exception:
                     serverSection = None
-                # Optional: comma-separated list in [SERVER].servers
+                # [SERVER].servers 콤마 리스트가 있으면 우선 사용
                 if serverSection is not None:
                     raw = (serverSection.get("servers") or "").strip()
                     if raw:
                         for u in [x.strip() for x in raw.split(",") if x.strip()]:
                             if u not in urls:
                                 urls.append(u)
-                    # Fallback to backendHost if provided
+                    # backendHost/base_url/host 값이 있으면 보조로 삽입
                     bh = (
                         serverSection.get("backendHost")
                         or serverSection.get("base_url")
@@ -124,7 +124,7 @@ def attachOpenAPI(app: FastAPI, config) -> None:
             if isinstance(logout, dict):
                 logout.setdefault("parameters", []).append({"$ref": "#/components/parameters/CSRFToken"})
 
-            # Generalize CSRF parameter to all unsafe methods
+            # 비멱등 메서드 전체에 CSRF 파라미터를 공통으로 추가
             csrfRef = {"$ref": "#/components/parameters/CSRFToken"}
             unsafeMethods = ("post", "put", "patch", "delete")
             for _pathKey, ops in paths.items():

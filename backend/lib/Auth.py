@@ -58,7 +58,7 @@ def createAccessToken(data: dict) -> Token:
     expire = now + timedelta(
         minutes=AuthConfig.ACCESS_TOKEN_EXPIRE_MINUTES
     )
-    # Standard claims: exp, iat, jti
+    # 표준 클레임: exp, iat, jti
     toEncode.update({
         "exp": expire,
         "iat": int(now.timestamp()),

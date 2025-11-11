@@ -33,10 +33,10 @@ class RequestLogMiddleware(BaseHTTPMiddleware):
         reqId = request.headers.get("X-Request-Id") or str(uuid.uuid4())
         token = setRequestId(reqId)
         try:
-            # process
+            # 실제 비즈니스 핸들러 호출
             response = await callNext(request)
 
-            # attach request id header
+            # 응답 헤더에 요청 ID를 추가
             try:
                 response.headers["X-Request-Id"] = reqId
             except Exception:
@@ -54,7 +54,7 @@ class RequestLogMiddleware(BaseHTTPMiddleware):
                 "latency_ms": elapsedMs,
                 "msg": "access",
             }
-            # write as a single JSON string for structured logs
+            # 구조적 로그를 위해 JSON 문자열로 기록
             msg = json.dumps(logObj, ensure_ascii=False)
             logger.info(msg)
             return response

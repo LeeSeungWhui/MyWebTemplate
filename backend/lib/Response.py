@@ -16,7 +16,7 @@ class StandardResponse(BaseModel):
     status: bool = True
     message: str = "success"
     result: Optional[Any] = None
-    count: Optional[int] = None  # present only for list responses
+    count: Optional[int] = None  # 리스트 응답일 때만 포함
     code: Optional[str] = None
     requestId: Optional[str] = None
 

@@ -10,7 +10,7 @@ from __future__ import annotations
 from typing import Optional, Any
 
 
-# Minimal message catalog
+# 최소 메시지 카탈로그 정의
 MESSAGES = {
     "en": {
         "success": "success",

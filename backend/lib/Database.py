@@ -23,24 +23,24 @@ from watchdog.events import FileSystemEvent, FileSystemEventHandler
 from watchdog.observers import Observer
 
 # =========================
-# Module state
+# 모듈 전역 상태
 # =========================
 
 dbManagers: Dict[str, "DatabaseManager"] = {}
-# Name of the primary DB (template default is 'main_db').
+# 기본 DB 이름(템플릿 기본값은 main_db)
 _primaryDbName: Optional[str] = None
 # 일부 서드파티 패키지는 PEP 561 타입 스텁이 없어 Pylance가 Unknown으로 인식한다.
 sqlObserver: Optional[Any] = None
 
 baseDir = os.path.dirname(__file__)
-# default: backend/query (one level up from this file)
+# 기본 쿼리 디렉터리: backend/query
 queryDir: str = os.path.normpath(os.path.join(baseDir, "..", "query"))
 queryWatch: bool = True
 debounceMs: int = 150
 debounceTimer: Optional[threading.Timer] = None
 lastChangedFile: Optional[str] = None
 
-# Per-request SQL counter (ContextVar)
+# 요청 단위 SQL 카운터(ContextVar)
 _sqlCountVar: contextvars.ContextVar[int] = contextvars.ContextVar("sql_count", default=0)
 
 
@@ -60,7 +60,7 @@ def setPrimaryDbName(name: str) -> None:
 
 def getPrimaryDbName() -> str:
     """설명: 우선순위(설정→ENV→보유목록)로 기본 DB 이름을 반환. 갱신일: 2025-11-12"""
-    # Resolve in order: explicit setter -> env -> common default -> first available
+    # 우선순위: 명시적 설정 → 환경변수 → 템플릿 기본값 → 등록된 첫 DB
     if _primaryDbName:
         return _primaryDbName
     env = os.getenv("DB_PRIMARY")
@@ -69,7 +69,7 @@ def getPrimaryDbName() -> str:
     if "main_db" in dbManagers:
         return "main_db"
     if dbManagers:
-        # return first key deterministically
+        # 키가 여러 개면 사전순 첫 번째를 사용
         try:
             return sorted(dbManagers.keys())[0]
         except Exception:
@@ -116,7 +116,7 @@ class QueryManager:
 
     def setQueries(self, queries: dict):
         """설명: 쿼리 테이블만 교체(레거시 호환). 갱신일: 2025-11-12"""
-        # legacy compatibility for callers only setting queries
+        # 이전 코드 호환을 위해 쿼리 dict만 갱신 허용
         self.queries = dict(queries or {})
 
     def getQuery(self, queryName: str) -> Optional[str]:
@@ -142,7 +142,7 @@ class DatabaseManager:
 
     def _extractPlaceholders(self, query: str) -> Set[str]:
         """설명: 쿼리에서 :name 형 플레이스홀더 목록을 추출. 갱신일: 2025-11-12"""
-        # named params: :id, :user_name, etc.
+        # 예시: :id, :user_name 등 명명 파라미터
         return set(re.findall(r":([a-zA-Z_][a-zA-Z0-9_]*)", query or ""))
 
     def _validateBindParameters(self, query: str, values: Optional[Dict[str, Any]]):
@@ -152,7 +152,7 @@ class DatabaseManager:
         provided = set(values.keys())
 
         if provided and not placeholders:
-            # Provided values but query has no binds -> likely string interpolation misuse
+            # 값만 있고 바인딩이 없으면 문자열 치환 오용 가능성
             logger.warning(
                 json.dumps(
                     {
@@ -196,7 +196,7 @@ class DatabaseManager:
         """설명: DB 연결을 시작하고 SQLite 튜닝을 적용. 갱신일: 2025-11-12"""
         await self.database.connect()
         logger.info(f"Connected to database {self.databaseUrl}")
-        # Apply pragmatic settings for SQLite to reduce 'database is locked'
+        # SQLite 잠금 오류를 줄이기 위한 pragma 적용
         try:
             if (self.databaseUrl or "").startswith("sqlite"):
                 await self.database.execute("PRAGMA journal_mode=WAL;")
@@ -286,7 +286,7 @@ class DatabaseManager:
 
 
 # =========================
-# Query loader config & ops
+# 쿼리 로더 설정 및 동작
 # =========================
 
 
@@ -343,18 +343,18 @@ def doReload() -> bool:
     try:
         qm = QueryManager.getInstance()
         if changedFile and os.path.isfile(changedFile):
-            # partial reload for single file
+            # 특정 파일만 부분 재로딩
             pairs = parseSqlFile(changedFile)
-            # copy current state
+            # 기존 상태를 복사
             newQueries = dict(qm.queries)
             newNameToFile = dict(qm.nameToFile)
             newFileToNames = {fp: set(names) for fp, names in qm.fileToNames.items()}
-            # remove old names from this file
+            # 해당 파일에서 이전 키 삭제
             oldNames = newFileToNames.get(changedFile, set())
             for n in oldNames:
                 newQueries.pop(n, None)
                 newNameToFile.pop(n, None)
-            # add new ones (cross-file duplicate detection)
+            # 새 항목 추가 + 파일 간 중복 검사
             for name, sql in pairs:
                 owner = newNameToFile.get(name)
                 if owner is not None and owner != changedFile:
@@ -373,10 +373,10 @@ def doReload() -> bool:
             "duration_ms": durationMs,
         }
         logger.error(json.dumps(errPayload, ensure_ascii=False))
-        # keep last good version intact
+        # 실패 시 기존 상태 유지
         return False
 
-    # success -> swap to new queries
+    # 성공하면 새로운 쿼리 매핑으로 교체
     qm.setAll(newQueries, newNameToFile, newFileToNames)
     durationMs = int((time.perf_counter() - started) * 1000)
     keysFromFile: Optional[list] = None

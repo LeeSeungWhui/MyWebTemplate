@@ -46,7 +46,7 @@ def transaction(
                 started = time.perf_counter()
                 try:
                     stack = AsyncExitStack()
-                    # enter all transactions (nested) so all DB ops use the same connections via contextvars
+                    # 중첩된 모든 DB 트랜잭션을 열어 동일 커넥션을 보장
                     for name in dbList:
                         if name not in dbManagers:
                             raise TransactionError(f"database not found: {name}")
@@ -70,7 +70,7 @@ def transaction(
                     return result
 
                 except BaseException as e:
-                    # ensure underlying transaction contexts see the exception -> rollback
+                    # 하위 트랜잭션이 예외를 인지해 롤백하도록 보장
                     if stack is not None:
                         try:
                             await stack.__aexit__(type(e), e, e.__traceback__)
@@ -135,12 +135,12 @@ class _Savepoint:
     async def __aexit__(self, exc_type, exc, tb):
         """설명: 예외 여부에 따라 롤백/해제를 수행. 갱신일: 2025-11-12"""
         if exc:
-            # rollback partial work then release
+            # 부분 작업을 롤백한 뒤 savepoint 해제
             try:
                 await dbManagers[self.dbName].execute(f"ROLLBACK TO SAVEPOINT {self.name}")
             finally:
                 await dbManagers[self.dbName].execute(f"RELEASE SAVEPOINT {self.name}")
-            # Suppress the exception to keep outer transaction usable
+            # 외부 트랜잭션을 유지하기 위해 예외를 삼킨다
             return True
         else:
             await dbManagers[self.dbName].execute(f"RELEASE SAVEPOINT {self.name}")
