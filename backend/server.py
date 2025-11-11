@@ -201,12 +201,22 @@ except Exception:
     pass
 
 # CORS config
-origins_raw = get_config("config.ini")["CORS"].get("allow_origins", "").strip()
-origin_regex_raw = get_config()["CORS"].get("allow_origin_regex", "").strip()
+cors_conf = get_config()["CORS"]
+origins_raw = cors_conf.get("allow_origins", "").strip()
+origin_regex_raw = cors_conf.get("allow_origin_regex", "").strip()
+try:
+    allow_credentials = cors_conf.getboolean("allow_credentials", True)
+except Exception:
+    allow_credentials = True
 
 # If '*' is specified while credentials are enabled, fall back to a single dev origin.
 if origins_raw == "*":
-    origins = [os.getenv("DEV_WEB_ORIGIN", "http://localhost:3000")]
+    # With credentials enabled, browsers forbid '*' — use a single dev origin fallback.
+    # Without credentials, we can allow wildcard safely.
+    if allow_credentials:
+        origins = [os.getenv("DEV_WEB_ORIGIN", "http://localhost:3000")]
+    else:
+        origins = ["*"]
 else:
     origins = [o.strip() for o in origins_raw.split(",") if o.strip()]
 
@@ -216,7 +226,7 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
     allow_origin_regex=allow_origin_regex,
-    allow_credentials=True,
+    allow_credentials=allow_credentials,
     allow_methods=["*"],
     allow_headers=["*"]
 )
