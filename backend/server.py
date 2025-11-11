@@ -8,7 +8,6 @@ Desc: Bootstrap FastAPI server. Initialize databases, CORS, logging and router l
 import importlib
 import os
 import pkgutil
-from configparser import ConfigParser
 
 try:
     from . import router as router  # when imported as package
@@ -35,6 +34,7 @@ try:  # package context
     from .lib.Response import errorResponse  # type: ignore
     from .lib.Middleware import RequestLogMiddleware  # type: ignore
     from .lib.OpenAPI import attachOpenAPI  # type: ignore
+    from .lib.Config import loadConfig  # type: ignore
 except Exception:  # module context
     from lib.Auth import AuthConfig
     from lib.Database import (
@@ -49,26 +49,13 @@ except Exception:  # module context
     from lib.Response import errorResponse
     from lib.Middleware import RequestLogMiddleware
     from lib.OpenAPI import attachOpenAPI
+    from lib.Config import loadConfig
 
 app = FastAPI()
 
 # ---------------------------------------------------------------------------
 # Config helpers
 # ---------------------------------------------------------------------------
-
-
-def loadConfig(filename: str) -> ConfigParser:
-    """Read configuration file relative to this module."""
-    logger.info("config load start")
-    config = ConfigParser()
-    base_dir = os.path.dirname(__file__)
-    cfg_path = filename
-    if not os.path.isabs(filename):
-        cfg_path = os.path.join(base_dir, filename)
-    with open(cfg_path, "r", encoding="utf-8") as f:
-        config.read_file(f)
-    logger.info("config load done")
-    return config
 
 
 async def onShutdown():
