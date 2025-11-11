@@ -8,9 +8,10 @@
 import json
 import time
 import uuid
-from typing import Callable
+from typing import Callable, Awaitable
 
 from fastapi import Request
+from starlette.responses import Response as StarletteResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from lib.Logger import logger
@@ -23,7 +24,7 @@ class RequestLogMiddleware(BaseHTTPMiddleware):
     갱신일: 2025-09-07
     """
 
-    async def dispatch(self, request: Request, call_next: Callable):
+    async def dispatch(self, request: Request, call_next: Callable[[Request], Awaitable[StarletteResponse]]) -> StarletteResponse:
         """
         설명: 요청 처리 시간/상태/경로 등을 수집하여 INFO 레벨로 로그 출력.
         갱신일: 2025-09-07

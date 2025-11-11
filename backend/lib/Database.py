@@ -12,7 +12,7 @@ import os
 import re
 import threading
 import time
-from typing import Dict, Optional, Set
+from typing import Dict, Optional, Set, Any, List
 import contextvars
 
 from databases import Database
@@ -121,7 +121,7 @@ class DatabaseManager:
         self.metadata = MetaData()
         self.queryManager = QueryManager.getInstance()
 
-    def _mask_params(self, values: Dict) -> Dict:
+    def _mask_params(self, values: Optional[Dict[str, Any]]) -> Dict[str, str]:
         if not values:
             return {}
         return {k: "***" for k in values.keys()}
@@ -130,7 +130,7 @@ class DatabaseManager:
         # named params: :id, :user_name, etc.
         return set(re.findall(r":([a-zA-Z_][a-zA-Z0-9_]*)", query or ""))
 
-    def _validate_bind_parameters(self, query: str, values: Optional[Dict]):
+    def _validate_bind_parameters(self, query: str, values: Optional[Dict[str, Any]]):
         values = values or {}
         placeholders = self._extract_placeholders(query)
         provided = set(values.keys())
@@ -191,7 +191,7 @@ class DatabaseManager:
     async def disconnect(self):
         await self.database.disconnect()
 
-    async def execute(self, query: str, values: Dict = None):
+    async def execute(self, query: str, values: Optional[Dict[str, Any]] = None) -> Any:
         self._validate_bind_parameters(query, values)
         logger.info("executing query")
         logger.debug(
@@ -202,7 +202,7 @@ class DatabaseManager:
         _inc_sql_count()
         return result
 
-    async def fetchOne(self, query: str, values: Dict = None):
+    async def fetchOne(self, query: str, values: Optional[Dict[str, Any]] = None) -> Optional[Dict[str, Any]]:
         self._validate_bind_parameters(query, values)
         logger.info("fetch_one")
         logger.debug(
@@ -210,7 +210,7 @@ class DatabaseManager:
         )
         result = await self.database.fetch_one(query=query, values=values or {})
         if result is not None:
-            data = dict(result)
+            data: Dict[str, Any] = dict(result)
             logger.info("rows_returned=1")
             _inc_sql_count()
             return data
@@ -219,7 +219,7 @@ class DatabaseManager:
             _inc_sql_count()
             return None
 
-    async def fetchAll(self, query: str, values: Dict = None):
+    async def fetchAll(self, query: str, values: Optional[Dict[str, Any]] = None) -> Optional[List[Dict[str, Any]]]:
         self._validate_bind_parameters(query, values)
         logger.info("fetch_all")
         logger.debug(
@@ -227,7 +227,7 @@ class DatabaseManager:
         )
         result = await self.database.fetch_all(query=query, values=values or {})
         if result is not None:
-            data = [{column: row[column] for column in row.keys()} for row in result]
+            data: List[Dict[str, Any]] = [{column: row[column] for column in row.keys()} for row in result]  # type: ignore[index]
             logger.info(f"rows_returned={len(data)}")
             _inc_sql_count()
             return data
@@ -236,7 +236,7 @@ class DatabaseManager:
             _inc_sql_count()
             return None
 
-    async def executeQuery(self, queryName: str, values: Dict = None):
+    async def executeQuery(self, queryName: str, values: Optional[Dict[str, Any]] = None) -> Any:
         query = self.queryManager.getQuery(queryName)
         if not query:
             logger.info(f"cannot find query name : {queryName}")
@@ -244,7 +244,7 @@ class DatabaseManager:
         logger.info(f"execute named query: {queryName}")
         return await self.execute(query, values)
 
-    async def fetchOneQuery(self, queryName: str, values: Dict = None):
+    async def fetchOneQuery(self, queryName: str, values: Optional[Dict[str, Any]] = None) -> Optional[Dict[str, Any]]:
         query = self.queryManager.getQuery(queryName)
         if not query:
             logger.info(f"cannot find query name : {queryName}")
@@ -252,7 +252,7 @@ class DatabaseManager:
         logger.info(f"fetchOne named query: {queryName}")
         return await self.fetchOne(query, values)
 
-    async def fetchAllQuery(self, queryName: str, values: Dict = None):
+    async def fetchAllQuery(self, queryName: str, values: Optional[Dict[str, Any]] = None) -> Optional[List[Dict[str, Any]]]:
         query = self.queryManager.getQuery(queryName)
         if not query:
             logger.info(f"cannot find query name : {queryName}")

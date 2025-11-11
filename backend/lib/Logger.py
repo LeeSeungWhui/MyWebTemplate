@@ -18,7 +18,7 @@ if not os.path.exists(logDir):
 logFilename = os.path.join(logDir, f"{datetime.now().strftime('%Y%m%d_%H%M%S')}.log")
 
 # 로거 설정
-logger = logging.getLogger()
+logger: logging.Logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
 # 파일 핸들러 설정 (UTF-8 인코딩)

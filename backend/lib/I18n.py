@@ -7,7 +7,7 @@ Simple i18n message utility.
 
 from __future__ import annotations
 
-from typing import Optional
+from typing import Optional, Any
 
 
 # Minimal message catalog
@@ -31,7 +31,7 @@ MESSAGES = {
 }
 
 
-def detect_locale(request) -> str:
+def detect_locale(request: Any) -> str:
     try:
         lang = (request.headers.get("Accept-Language") or "").lower()
     except Exception:

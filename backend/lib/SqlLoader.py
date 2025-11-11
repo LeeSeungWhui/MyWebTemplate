@@ -6,7 +6,7 @@
 """
 
 import os
-from typing import Dict, List, Tuple, Set
+from typing import Dict, List, Tuple, Set, Optional
 
 from lib.Logger import logger
 
@@ -24,7 +24,7 @@ def parseSqlFile(filePath: str) -> List[Tuple[str, str]]:
     if not os.path.exists(filePath):
         return entries
 
-    current_name = None
+    current_name: Optional[str] = None
     current_buf: List[str] = []
     with open(filePath, "r", encoding="utf-8") as f:
         for raw in f:

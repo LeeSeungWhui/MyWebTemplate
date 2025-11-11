@@ -5,7 +5,7 @@
 설명: 공통 응답 스키마/헬퍼. { status, message, result, count?, code?, requestId }.
 """
 
-from typing import Any, Optional
+from typing import Any, Optional, Dict
 
 from pydantic import BaseModel
 
@@ -21,7 +21,7 @@ class StandardResponse(BaseModel):
     requestId: Optional[str] = None
 
 
-def successResponse(result: Any = None, message: str = "success") -> dict:
+def successResponse(result: Any = None, message: str = "success") -> Dict[str, Any]:
     """
     설명: 성공 응답 본문 생성. 리스트일 경우 count 자동 포함.
     갱신일: 2025-09-07
@@ -38,15 +38,9 @@ def successResponse(result: Any = None, message: str = "success") -> dict:
 
 def errorResponse(
     message: str = "error", result: Any = None, code: Optional[str] = None
-) -> dict:
+) -> Dict[str, Any]:
     """
     설명: 표준 에러 응답 본문 생성. 오류 코드를 포함할 수 있음.
     갱신일: 2025-09-07
     """
-    return StandardResponse(
-        status=False,
-        message=message,
-        result=result,
-        code=code,
-        requestId=get_request_id(),
-    ).model_dump(exclude_none=True)
+    return StandardResponse(status=False, message=message, result=result, code=code, requestId=get_request_id(),).model_dump(exclude_none=True)

@@ -1,6 +1,6 @@
 """
 파일: backend/lib/Config.py
-작성: Codex
+작성: LSH
 설명: server.config 접근 헬퍼. import 경로(backend.server/server)와 무관하게 [섹션]/키 값을 읽는다.
 """
 
@@ -41,4 +41,3 @@ def get(section: str, key: str, default: Optional[str] = None) -> str:
 def get_auth(key: str, default: Optional[str] = None) -> str:
     """[AUTH] 섹션 값 읽기."""
     return get("AUTH", key, default)
-

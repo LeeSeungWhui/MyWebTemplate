@@ -27,7 +27,8 @@ class TokenData(BaseModel):
 
 
 class AuthConfig:
-    SECRET_KEY: str = None
+    # Pylance 정적 타입 경고 방지를 위해 Optional[str]로 선언
+    SECRET_KEY: Optional[str] = None
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
     TOKEN_ENABLE: bool = True
@@ -89,11 +90,15 @@ async def getCurrentUser(token: str = Depends(oauth2Scheme)):
     )
 
     try:
-        payload = jwt.decode(
-            token, AuthConfig.SECRET_KEY, algorithms=[AuthConfig.ALGORITHM]
-        )
-        username: str = payload.get("sub")
-        if username is None:
+        # SECRET_KEY가 None일 수 있다는 Pylance 경고를 없애기 위해 런타임 가드를 추가한다.
+        secret = AuthConfig.SECRET_KEY
+        if not secret:
+            logger.error("AuthConfig.SECRET_KEY not configured")
+            raise HTTPException(status_code=500, detail="server misconfigured")
+        payload = jwt.decode(token, secret, algorithms=[AuthConfig.ALGORITHM])
+        # payload.get는 Optional[Any]를 반환하므로 런타임 타입 검사로 보수적으로 확인한다.
+        username = payload.get("sub")
+        if not isinstance(username, str) or not username:
             raise credentialsException
         tokenData = TokenData(username=username)
     except JWTError as e:
