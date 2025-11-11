@@ -24,7 +24,7 @@ def _version_info() -> Dict[str, str]:
     }
 
 
-async def build_healthz_result() -> Dict[str, str | int | bool]:
+async def healthz(_: Dict | None = None) -> Dict[str, str | int | bool]:
     now = datetime.now(timezone.utc)
     uptime_s = int((now - _started_at).total_seconds())
     return {
@@ -34,7 +34,7 @@ async def build_healthz_result() -> Dict[str, str | int | bool]:
     }
 
 
-async def build_readyz_checks() -> Tuple[Dict[str, str | bool], bool]:
+async def readyz(_: Dict | None = None) -> Tuple[Dict[str, str | bool], bool]:
     maintenance = os.getenv("MAINTENANCE_MODE", "false").lower() in ("1", "true", "yes")
     checks: Dict[str, str] = {}
     ok = True

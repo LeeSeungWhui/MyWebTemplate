@@ -21,8 +21,12 @@ async def me(user):
     return successResponse(result={"username": user.username})
 
 
-async def verify_user_credentials(username: str, password: str) -> Optional[dict]:
-    """사용자명/비밀번호 검증(HTTP 비의존). 유효 시 사용자 레코드(dict) 반환."""
+async def login(payload: dict) -> Optional[dict]:
+    """로그인 요청 payload(dict)를 받아 사용자 레코드를 반환."""
+    username = (payload or {}).get("username")
+    password = (payload or {}).get("password")
+    if not isinstance(username, str) or not isinstance(password, str):
+        return None
     db = DB.getManager()
     if not db:
         return None
@@ -34,8 +38,10 @@ async def verify_user_credentials(username: str, password: str) -> Optional[dict
     return user
 
 
-def build_session_result(user_id: Optional[str], name: Optional[str]) -> dict:
-    """세션 JSON(result)만 구성한다."""
+def session(payload: dict) -> dict:
+    """세션 조회 요청 payload(dict)로 응답 result를 구성."""
+    user_id = (payload or {}).get("userId")
+    name = (payload or {}).get("name")
     authed = bool(user_id)
     result: dict[str, object] = {"authenticated": authed}
     if authed:
@@ -43,14 +49,17 @@ def build_session_result(user_id: Optional[str], name: Optional[str]) -> dict:
     return result
 
 
-def make_csrf_token() -> str:
-    return uuid.uuid4().hex
+def csrf(_: Optional[dict] = None) -> dict:
+    """CSRF 토큰 응답 payload를 반환."""
+    return {"csrf": uuid.uuid4().hex}
 
 
-async def issue_token_for_credentials(username: str, password: str) -> Optional[dict]:
-    user = await verify_user_credentials(username, password)
+async def token(payload: dict) -> Optional[dict]:
+    """토큰 발급 요청 payload(dict)를 처리."""
+    user = await login(payload)
     if not user:
         return None
+    username = (payload or {}).get("username")
     token: Token = createAccessToken({"sub": username})
     return successResponse(
         result={

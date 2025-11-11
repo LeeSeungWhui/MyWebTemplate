@@ -21,12 +21,16 @@ router = APIRouter(prefix="/api/v1/auth", tags=["auth"])
 @router.post("/login", status_code=204)
 async def login(request: Request):
     body = await request.json()
-    username = body.get("username")
-    password = body.get("password")
+    payload = {
+        "username": body.get("username"),
+        "password": body.get("password"),
+    }
     remember = bool(body.get("rememberMe", False))
 
     # 간단 입력 검증
     loc = detectLocale(request)
+    username = payload.get("username")
+    password = payload.get("password")
     if not isinstance(username, str) or not isinstance(password, str) or len(username) < 3 or len(password) < 8:
         return JSONResponse(
             status_code=422,
@@ -34,7 +38,7 @@ async def login(request: Request):
             headers={"WWW-Authenticate": "Cookie"},
         )
 
-    user = await AuthService.verify_user_credentials(username, password)
+    user = await AuthService.login(payload)
     if not user:
         limited = checkRateLimit(request, username=username)
         if limited is not None:
@@ -49,7 +53,7 @@ async def login(request: Request):
     request.session.clear()
     request.session["userId"] = user["username"]
     request.session["name"] = user.get("name") or None
-    request.session["csrf"] = AuthService.make_csrf_token()
+    request.session["csrf"] = AuthService.csrf({}).get("csrf")
 
     res = Response(status_code=204)
     if remember:
@@ -79,9 +83,8 @@ async def logout(request: Request):
 
 @router.get("/session")
 async def get_session(request: Request):
-    result = AuthService.build_session_result(
-        user_id=request.session.get("userId"), name=request.session.get("name")
-    )
+    payload = {"userId": request.session.get("userId"), "name": request.session.get("name")}
+    result = AuthService.session(payload)
     resp = successResponse(result=result)
     r = JSONResponse(content=resp, status_code=200)
     r.headers["Cache-Control"] = "no-store"
@@ -91,10 +94,14 @@ async def get_session(request: Request):
 @router.post("/token")
 async def issue_token(request: Request):
     body = await request.json()
-    username = body.get("username")
-    password = body.get("password")
+    payload = {
+        "username": body.get("username"),
+        "password": body.get("password"),
+    }
 
     loc = detectLocale(request)
+    username = payload.get("username")
+    password = payload.get("password")
     if not isinstance(username, str) or not isinstance(password, str) or len(username) < 3 or len(password) < 8:
         res = JSONResponse(
             status_code=422,
@@ -103,7 +110,7 @@ async def issue_token(request: Request):
         res.headers["WWW-Authenticate"] = "Bearer"
         return res
 
-    data = await AuthService.issue_token_for_credentials(username, password)
+    data = await AuthService.token(payload)
     if not data:
         limited = checkRateLimit(request, username=username)
         if limited is not None:
@@ -119,9 +126,10 @@ async def issue_token(request: Request):
 
 @router.get("/csrf")
 async def issue_csrf(request: Request):
-    csrf = AuthService.make_csrf_token()
-    request.session["csrf"] = csrf
-    return successResponse(result={"csrf": csrf})
+    payload = {"csrf": request.session.get("csrf")}
+    csrf_result = AuthService.csrf(payload)
+    request.session["csrf"] = csrf_result["csrf"]
+    return successResponse(result=csrf_result)
 
 
 @router.get("/me")

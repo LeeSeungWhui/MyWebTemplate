@@ -17,7 +17,7 @@ router = APIRouter(tags=["common"])
 
 @router.get("/healthz")
 async def healthz(request: Request):
-    result = await CommonService.build_healthz_result()
+    result = await CommonService.healthz({})
     resp = successResponse(result=result)
     r = JSONResponse(content=resp, status_code=200)
     r.headers["Cache-Control"] = "no-store"
@@ -26,7 +26,7 @@ async def healthz(request: Request):
 
 @router.get("/readyz")
 async def readyz(request: Request):
-    result, ok = await CommonService.build_readyz_checks()
+    result, ok = await CommonService.readyz({})
     if ok:
         resp = successResponse(result=result)
         status = 200
