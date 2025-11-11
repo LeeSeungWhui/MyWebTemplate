@@ -14,12 +14,11 @@ from typing import Optional
 import base64
 import hashlib
 import hmac
-import secrets
 import bcrypt  # optional; used only if available
 from fastapi import Request
 from fastapi.responses import JSONResponse, Response
 
-from lib.Auth import AuthConfig, Token, createAccessToken
+from lib.Auth import Token, createAccessToken
 from lib import Database as DB
 from lib.Response import errorResponse, successResponse
 from lib.Logger import logger
@@ -104,42 +103,12 @@ def _rate_limit(request: Request, username: Optional[str] = None) -> Optional[Re
 
 
 async def _ensure_auth_tables():
-    """No-op for table creation/seed in runtime.
+    """No-op placeholder.
 
-    Historically ensured user table and demo account. To avoid mutating
-    external databases from the app, tests/scripts handle initialization.
-    We keep a lightweight, best-effort password hash upgrade if the row
-    already exists, but we never create tables or insert users here.
+    DB 생성/시드는 별도 스크립트(`backend/scripts/init_templates.py`)에서 수행한다.
+    런타임에서는 테이블을 만들거나 변경하지 않는다.
     """
-    db = DB.getManager()
-    if not db:
-        return
-    try:
-        # 템플릿 테이블 기반 사용자 조회(존재 확인용)
-        row = await db.fetchOneQuery("tmpl.user.selectByUsername", {"u": "demo"})
-    except Exception:
-        # table or query may not exist yet; do not create or seed here
-        return
-    # upgrade legacy hash to pbkdf2 if needed (non-creation DML only)
-    def _hash_password(plain: str) -> str:
-        salt = secrets.token_bytes(16)
-        iters = 100_000
-        dk = hashlib.pbkdf2_hmac("sha256", plain.encode("utf-8"), salt, iters)
-        return "pbkdf2$%d$%s$%s" % (
-            iters,
-            base64.b64encode(salt).decode(),
-            base64.b64encode(dk).decode(),
-        )
-    try:
-        if row and not str(row.get("password_hash") or "").startswith("pbkdf2$"):
-            new_hash = _hash_password("password123")
-            await db.execute(
-                "UPDATE T_USER SET password_hash = :p WHERE username = :u",
-                {"p": new_hash, "u": "demo"},
-            )
-    except Exception:
-        # best-effort only
-        pass
+    return
 
 
 def _validate_input(request: Request, username: str, password: str) -> Optional[Response]:
