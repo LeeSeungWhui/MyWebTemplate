@@ -8,13 +8,14 @@ links: [CU-WEB-001, CU-WEB-002, CU-WEB-004, CU-WEB-005, CU-WEB-008, CU-BE-001]
 ---
 
 ### Purpose
-- 전역 ENV 스위치 없이 페이지 내부 상수 `MODE = 'SSR' | 'CSR'`만으로 렌더링·데이터 패치 모드를 결정하는 규약을 정의한다.
+- 전역 ENV 스위치 없이 페이지 파일 설정(`dynamic`/`runtime`/`revalidate`) 또는 `'use client'` 게이팅으로 렌더링·데이터 패치 모드를 결정하는 규약을 정의한다.
+- (선택) 문서 편의용 `MODE = 'SSR' | 'CSR'` 상수를 사용할 수 있으나 강제는 아니다.
 - 인증(쿠키), 캐시, 에러 처리에서 SSR/CSR 간 일관된 경험을 제공한다.
 
 ### Scope
 - 포함
-  - 페이지 상수: `MODE = 'SSR' | 'CSR'`
   - 페이지 설정: `revalidate`, `dynamic`, `runtime`, `fetchCache`(선언 시 페이지가 ENV보다 우선)
+  - (선택) `MODE = 'SSR' | 'CSR'` 상수 패턴 샘플
   - 경계 규칙: SSR=서버 패치, CSR=클라 패치(SWR)
   - 보호 경로 기본 전략: SSR(nodejs)
   - 캐시/헤더 규칙: 세션/민감 데이터 `no-store`
@@ -23,7 +24,7 @@ links: [CU-WEB-001, CU-WEB-002, CU-WEB-004, CU-WEB-005, CU-WEB-008, CU-BE-001]
   - ISR — MVP 범위에서 제외
 
 ### Interface
-- ENV: `NEXT_PUBLIC_API_BASE`
+- ENV: 전역 모드 스위치 없음. API Base는 config.ini(`[API].base`)에서 로드(getBackendHost).
 - 페이지 설정(필요 시 선언)
   - `revalidate`: 0(SSR)
   - `dynamic`: `force-dynamic` | `auto`
@@ -47,8 +48,8 @@ links: [CU-WEB-001, CU-WEB-002, CU-WEB-004, CU-WEB-005, CU-WEB-008, CU-BE-001]
 - 보호 페이지: SSR(nodejs)
 - 세션 요청: `fetchCache='only-no-store'`
 
-### Acceptance Criteria
-- AC-1: `MODE` 변경만으로 SSR↔CSR 전환이 동작한다(빌드/ENV 의존 없음).
+- ### Acceptance Criteria
+- AC-1: 페이지 파일 설정(`dynamic/runtime/revalidate`) 또는 `'use client'` 게이팅만으로 SSR↔CSR 전환이 동작한다(빌드/ENV 의존 없음). `MODE` 상수는 선택 구현이다.
 - AC-2: 보호 페이지는 SSR(nodejs)에서 깜빡임 없이 동작한다.
 - AC-3: 401/403 핸들링이 SSR/CSR에서 일관(401→/login, 403→CSRF UX).
 - AC-4: 페이지 로컬 설정(`revalidate/dynamic/runtime/fetchCache`)이 존재하면 이를 우선 적용한다.
@@ -61,4 +62,3 @@ links: [CU-WEB-001, CU-WEB-002, CU-WEB-004, CU-WEB-005, CU-WEB-008, CU-BE-001]
 ### Notes
 - 기술: JavaScript Only, Next 15(App Router), 기본 nodejs.
 - 연계: 001(로그인), 004(가드), 005(API 클라), 008(미들웨어).
-

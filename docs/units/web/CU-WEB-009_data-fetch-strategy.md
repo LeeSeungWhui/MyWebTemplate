@@ -8,7 +8,8 @@ links: [CU-WEB-001, CU-WEB-002, CU-WEB-004, CU-WEB-005, CU-WEB-006, CU-WEB-008, 
 ---
 
 ### Purpose
-- 전역(ENV) 모드 스위치 없이, 각 페이지의 `page.jsx` 내 상수 `MODE = 'SSR' | 'CSR'`로 데이터 패치 방식을 결정한다.
+- 전역(ENV) 모드 스위치 없이, 각 페이지 파일의 설정(`dynamic`/`runtime`/`revalidate`) 또는 `'use client'` 게이팅으로 데이터 패치 방식을 결정한다.
+- (선택) 문서 편의용 `MODE = 'SSR' | 'CSR'` 상수를 사용할 수 있으나 강제는 아니다.
 - 초기 데이터의 엔드포인트 정의는 각 페이지의 `initData.jsx`에 둔다. 런타임 유틸은 공통 규약만 보장한다.
 
 ### Principles
@@ -31,8 +32,8 @@ links: [CU-WEB-001, CU-WEB-002, CU-WEB-004, CU-WEB-005, CU-WEB-006, CU-WEB-008, 
 ### Interaction
 - SSR/CSR 경로에서 동일한 응답 스키마와 에러 규약을 사용하며, `initData.jsx`가 의존 엔드포인트를 명시한다.
 
-### Acceptance Criteria
-- 각 페이지의 `page.jsx`에서 `MODE`만 바꿔도 SSR/CSR 동작이 전환된다. SSR 경로는 SEO(HTML/메타)가 반영된다.
+- ### Acceptance Criteria
+- 각 페이지의 `page.jsx`에서 파일 설정(`dynamic/runtime/revalidate`) 또는 `'use client'` 게이팅만 바꿔도 SSR/CSR 동작이 전환된다. SSR 경로는 SEO(HTML/메타)가 반영된다.
 - 공통 규약에 따라 SSR/CSR 모두 401/403 처리 일관(401→/login, 403→CSRF 발급 UX 연동)하게 동작한다.
 - 보호 페이지는 기본 SSR(nodejs, no-store)이며, 무거운 위젯은 CSR로 분리되어 깜빡임이 최소화된다.
 - 각 페이지의 `initData.jsx`가 초기 데이터 엔드포인트를 명시한다(예: `SESSION_PATH`).

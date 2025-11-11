@@ -2,7 +2,7 @@
 
 ## 목적
 - 보호 경로와 공개 경로를 모두 커버하는 Next.js(App Router) 템플릿 제공
-- 페이지별 `MODE = 'SSR' | 'CSR'` 값만으로 SSR/CSR 모드 선택이 명확하고 일관되게 동작
+- 페이지 파일 설정(`dynamic`/`runtime`/`revalidate`) 또는 `'use client'` 게이팅으로 SSR/CSR 모드가 명확·일관 되게 동작
 
 ## 기술 스택
 - Node 22.19.0
@@ -84,7 +84,7 @@ theme = light
 
 ## API 통신 계약(고정)
 - 접근: `app/lib/runtime/api.js` — `apiJSON`(기본) / `apiRequest`(Response 제어 필요 시)
-- BFF: 클라이언트는 `/api/bff/*` 경유(쿠키/도메인 재작성), 서버는 백엔드 직통 + 헤더 포워딩
+- BFF: 기본적으로 클라이언트와 서버 모두 상대 경로 호출은 `/api/bff/*` 경유(쿠키/도메인 재작성). 절대 URL을 넘기면 서버에서 백엔드 직통 + 헤더 포워딩 가능.
 - 쿠키/보안: `credentials: include`, 비멱등은 CSRF 자동 주입
 - 에러 규약: 401 수신 시 로그인 리다이렉트 처리(미들웨어가 `nx`로 복귀 정리), 403은 CSRF UX 유도
 
