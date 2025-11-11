@@ -8,6 +8,8 @@
       "source.organizeImports.ruff": true
     }
   },
-  "prettier.disableLanguages": ["python"]
+  "prettier.disableLanguages": ["python"],
+  "black-formatter.interpreter": [
+    "${workspaceFolder}/../../../Python3.12.10/bin/python3"
+  ]
 }
-
