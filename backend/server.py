@@ -213,13 +213,20 @@ except Exception:
 
 # CORS config
 origins_raw = config["CORS"].get("allow_origins", "").strip()
+origin_regex_raw = config["CORS"].get("allow_origin_regex", "").strip()
+
+# If '*' is specified while credentials are enabled, fall back to a single dev origin.
 if origins_raw == "*":
     origins = [os.getenv("DEV_WEB_ORIGIN", "http://localhost:3000")]
 else:
     origins = [o.strip() for o in origins_raw.split(",") if o.strip()]
+
+allow_origin_regex = origin_regex_raw or None
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
+    allow_origin_regex=allow_origin_regex,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"]
