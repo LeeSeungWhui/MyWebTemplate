@@ -64,10 +64,33 @@ def attachOpenAPI(app: FastAPI, config) -> None:
                 "description": "CSRF token header for cookie-mode unsafe requests.",
             }
 
-            schema["servers"] = [
-                {"url": "http://localhost:2000"},
-                {"url": "https://api.example.com"},
-            ]
+            # Resolve server URLs from config
+            def _resolve_servers():
+                urls = []
+                try:
+                    server_section = config["SERVER"]
+                except Exception:
+                    server_section = None
+                # Optional: comma-separated list in [SERVER].servers
+                if server_section is not None:
+                    raw = (server_section.get("servers") or "").strip()
+                    if raw:
+                        for u in [x.strip() for x in raw.split(",") if x.strip()]:
+                            if u not in urls:
+                                urls.append(u)
+                    # Fallback to backendHost if provided
+                    bh = (
+                        server_section.get("backendHost")
+                        or server_section.get("base_url")
+                        or server_section.get("host")
+                    )
+                    if bh and bh not in urls:
+                        urls.insert(0, bh)
+                if not urls:
+                    urls = ["http://localhost:2000"]
+                return [{"url": u} for u in urls]
+
+            schema["servers"] = _resolve_servers()
 
             tags = sorted({tag for tag in (t.get("name") for t in schema.get("tags", [])) if tag})
             if tags:
