@@ -27,8 +27,7 @@ links: [CU-BE-001, CU-BE-005, CU-WEB-001, CU-WEB-004, CU-WEB-006]
 - Export
   - Runtime: `apiRequest`, `apiJSON`, `apiGet/post/put/patch/delete`
   - Hook(optional): `useSwr(key, path, options)`
-- ENV: `NEXT_PUBLIC_API_BASE`
-   - `NEXT_REVALIDATE_SECONDS` (ISR 기본값)
+- ENV: 전역 ENV 스위치 사용 안 함. API Base는 config.ini(`[API].base`)에서 로드(getBackendHost)한다.
 - 요청 규약
   - 모든 요청은 credentials:'include' 고정(쿠키 세션)
   - 세션 조회(/api/v1/auth/session)는 Cache-Control: no-store

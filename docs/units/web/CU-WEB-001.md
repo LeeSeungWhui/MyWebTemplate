@@ -68,10 +68,10 @@ links: [CU-BE-001, CU-WEB-004, CU-WEB-005, CU-WEB-008]
 - T9: 테스트(Playwright/Vitest): 폼 유효성/204 처리/401 메시지/`next` 검증/가드 리다이렉트/로그인 흐름
 
 ### Notes
-- ENV: `NEXT_PUBLIC_API_BASE`
+- ENV: 별도 전역 ENV 스위치 없음. API Base는 config.ini(`[API].base`)에서 로드(getBackendHost)하며, 프런트는 `/api/bff/*`를 통해 호출된다.
 - 기본 runtime은 nodejs(쿠키 접근), 경로에 따라 edge 선택 가능
 - UI 바인딩(EasyObj): value/onChange 규약 준수, 폼모델과 EasyObj 연결(SWR와 충돌 없게 분리)
 
 ### Implementation Notes
-- `frontend-web/app/login`은 SSR `ssrJSON`으로 세션을 확인하고 `SharedHydrator`로 상태를 초기화한다.
-- 로그인 요청은 `postWithCsrf`로 처리하며, 미구현된 오류 UX·A11y는 후속 보완이 필요하다.
+- `frontend-web/app/login/page.jsx`는 SSR에서 `apiJSON(SESSION_PATH)`으로 세션을 확인하고 `SharedHydrator`로 상태를 초기화한다.
+- 로그인 요청은 `apiRequest('/api/v1/auth/login', { method:'POST', body })`로 처리한다(204 기대). 성공 시 SWR로 세션을 무효화/재패치 후 `nx` 쿠키 힌트 또는 `/`로 이동한다.

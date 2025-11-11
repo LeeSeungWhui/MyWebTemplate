@@ -38,7 +38,7 @@
 - CU-WEB-009: in-progress — `initData` + 런타임 fetch 헬퍼 초안, AC 충족 보강 필요
 
 ## 프런트 설정: config.ini
-- 파일 위치: `frontend-web/config.ini` (우선순위: `FRONTEND_CONFIG_PATH` > `config_prod.ini`(prod) > `config_dev.ini` > `config.ini`)
+- 파일 위치: `frontend-web/config.ini` (우선순위: `config.ini` > `config_prod.ini` > `config_qa.ini` > `config_dev.ini`)
 - 로더: `app/common/config/frontendConfig.server.js` (서버에서 읽어 SharedStore로 주입)
 - 주입: `app/layout.jsx` → `loadFrontendConfig()` → `<SharedHydrator config={config} />` → `useSharedStore().config`
 
@@ -46,11 +46,9 @@
 ```
 [WEB]
 mode_default = CSR
-public_paths = /login,/healthz,/public/*,/favicon.ico
-protected_paths = /,/dashboard/*
 
 [API]
-base = http://localhost:8000
+base = http://localhost:8200
 csrf_header = X-CSRF-Token
 credentials = include
 
@@ -60,7 +58,8 @@ theme = light
 ```
 
 주의
-- API Base는 `.env.local`의 `NEXT_PUBLIC_API_BASE`가 최우선이며, 없으면 `config.ini` 값, 최종적으로 `http://localhost:8000`로 폴백
+- 공개/보호 경로는 config.ini로 관리하지 않는다. 공개 경로 Allowlist는 `frontend-web/app/common/config/publicRoutes.js`에서만 관리하며, 그 외는 기본 보호(Default protect).
+- API Base는 config에서만 로드된다. 서버는 `app/common/config/getBackendHost.server.js`, 클라는 `getBackendHost.client.js`가 `[API].base`(또는 `[APP].backendHost` 등 대체 키)를 읽어 사용한다. 미설정 시 기본값은 `http://localhost:8200`.
 - 서버만 파일 접근 가능. 클라이언트에서는 `SharedStore.config`를 통해 접근
 
 ## 결정(고정)

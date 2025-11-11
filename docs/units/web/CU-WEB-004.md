@@ -16,7 +16,7 @@ links: [CU-WEB-001, CU-WEB-002, CU-WEB-005, CU-WEB-006, CU-WEB-008, CU-BE-001]
   - 경로 분류: 공개(`/login`, 정적 자산) vs 보호(`/`, `/dashboard`, `/settings` 등)
   - 가드 계층(단일화):
     - 미들웨어 가드만 사용(경로 진입 즉시 판정; links: CU-WEB-008)
-    - (선택) 클라 보조 가드: 세션 표시/만료 대응은 `apiJSON`으로 단발 패치하거나, 실시간이 필요할 때만 `useApiStream`
+    - (선택) 클라 보조 가드: 세션 표시/만료 대응은 `apiJSON`으로 단발 패치하거나, 실시간/자동 재검증이 필요할 때만 `useSwr`(SWR 래퍼)
   - 리다이렉트 규칙: 미인증 보호 경로 접근 시 `/login`, 인증 상태로 `/login` 접근 시 `/`
   - `next` 파라미터: 유효 경로만 허용
   - 비멱등 요청 CSRF 미포함 403 UX 대응(토스트/재시도)
@@ -42,7 +42,7 @@ links: [CU-WEB-001, CU-WEB-002, CU-WEB-005, CU-WEB-006, CU-WEB-008, CU-BE-001]
 - 세션 보호: 쿠키 `sid` 존재/검증 1차(미들웨어/서버). 클라에선 `/api/v1/auth/session`으로 동기화
 - `credentials: 'include'`가 아닌 요청은 보호 경로에서 금지(쿠키 플로우 일관성)
 - 오픈 리다이렉트 방어: `next`는 URL/프로토콜 제거 후 경로만 허용
-- 상태 동기화: 로그인/로그아웃 후 세션 패치(필요 시 `useApiStream` 무효화 규약)
+- 상태 동기화: 로그인/로그아웃 후 세션 패치(필요 시 `useSwr` 무효화 규약)
 - UX: 리다이렉트/401 처리 시 주요 포커스/알림 UX 일관 유지
 
 ### NFR & A11y
@@ -62,14 +62,14 @@ links: [CU-WEB-001, CU-WEB-002, CU-WEB-005, CU-WEB-006, CU-WEB-008, CU-BE-001]
 - T1 경로 정책 정의: 공개/보호 목록 및 패턴 정의(정규/리스트)
 - T2 미들웨어 가드: 보호 경로 미인증→`/login`, `/login` 인증→`/` (links: CU-WEB-008)
 - T3 (삭제) 서버 가드: 보호 페이지 RSC 판정은 사용하지 않음(미들웨어 단일화)
-- T4 클라 가드: 세션 동기화(만료/401 자동 핸들). 필요 시 `useApiStream` 규약 적용, 메시지 매핑(`AUTH_*`, `VALID_422_*`)
+- T4 클라 가드: 세션 동기화(만료/401 자동 핸들). 필요 시 `useSwr` 규약 적용, 메시지 매핑(`AUTH_*`, `VALID_422_*`)
 - T5 `next` 파라미터 검증: 유효 경로만 허용, 기본 `/`, 문서화
 - T6 캐시/전략: 보호 페이지 `no-store`/SSR 기본, ISR/CSR 전환 규칙(CU-WEB-006)
 - T7 테스트: 인증/비인증 보호경로 접근, `/login` 접근, `next` 유효/무효, 401 처리 후 캐시 무효
 - T8 문서/스토리: 가드 상태별 UX 및 에러 코드 매핑 가이드
 
 ### Notes
-- ENV: `NEXT_PUBLIC_API_BASE`
+- ENV: 별도 전역 ENV 스위치 없음. API Base는 config.ini(`[API].base`)에서 로드(getBackendHost)하며, 프런트는 `/api/bff/*`를 통해 호출된다.
 - 백엔드 연동: `/api/v1/auth/*` (CU-BE-001), 표준 응답 `{status,message,result,count?,code?,requestId}`
 - 레이아웃/명칭 레이어: `frontend-web` 일관 유지
 
