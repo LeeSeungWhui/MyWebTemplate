@@ -21,12 +21,12 @@ class RateLimiter:
     """
     초간단 인메모리 속도 제한기(프로세스 단위).
     - limit: 윈도우 내 허용 횟수
-    - window_sec: 윈도우 길이(초)
+    - windowSec: 윈도우 길이(초)
     """
 
-    def __init__(self, limit: int = 5, window_sec: int = 60):
+    def __init__(self, limit: int = 5, windowSec: int = 60):
         self.limit = int(limit)
-        self.window = int(window_sec)
+        self.window = int(windowSec)
         self.store = {}
 
     def _now(self):
@@ -41,16 +41,16 @@ class RateLimiter:
         while dq and now - dq[0] > self.window:
             dq.popleft()
         if len(dq) >= self.limit:
-            retry_after = max(1, int(self.window - (now - dq[0])))
-            return False, retry_after
+            retryAfter = max(1, int(self.window - (now - dq[0])))
+            return False, retryAfter
         dq.append(now)
         return True, 0
 
 
-_GLOBAL_LIMIT = RateLimiter(limit=int(os.getenv("AUTH_RATE_LIMIT", "5")), window_sec=60)
+_GLOBAL_LIMIT = RateLimiter(limit=int(os.getenv("AUTH_RATE_LIMIT", "5")), windowSec=60)
 
 
-def check_rate_limit(request: Request, username: Optional[str] = None) -> Optional[JSONResponse]:
+def checkRateLimit(request: Request, username: Optional[str] = None) -> Optional[JSONResponse]:
     """
     속도 제한 검사 유틸. 초과 시 JSONResponse(429)를 반환, 통과 시 None.
     키: ip:{ip} 와 user:{username}(옵션) 조합.
@@ -60,11 +60,11 @@ def check_rate_limit(request: Request, username: Optional[str] = None) -> Option
     if username:
         keys.append(f"user:{username}")
     for k in keys:
-        ok, retry_after = _GLOBAL_LIMIT.hit(k)
+        ok, retryAfter = _GLOBAL_LIMIT.hit(k)
         if not ok:
             return JSONResponse(
                 status_code=429,
                 content=errorResponse(message="too many requests", code="AUTH_429_RATE_LIMIT"),
-                headers={"Retry-After": str(retry_after)},
+                headers={"Retry-After": str(retryAfter)},
             )
     return None

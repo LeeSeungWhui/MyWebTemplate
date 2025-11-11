@@ -41,12 +41,12 @@ debounceTimer: Optional[threading.Timer] = None
 lastChangedFile: Optional[str] = None
 
 # Per-request SQL counter (ContextVar)
-_sql_count_var: contextvars.ContextVar[int] = contextvars.ContextVar("sql_count", default=0)
+_sqlCountVar: contextvars.ContextVar[int] = contextvars.ContextVar("sql_count", default=0)
 
 
 def getSqlCount() -> int:
     try:
-        return int(_sql_count_var.get())
+        return int(_sqlCountVar.get())
     except Exception:
         return 0
 
@@ -79,10 +79,10 @@ def getManager(name: Optional[str] = None) -> Optional["DatabaseManager"]:
     return dbManagers.get(key)
 
 
-def _inc_sql_count(n: int = 1) -> None:
+def _incSqlCount(n: int = 1) -> None:
     try:
-        cur = int(_sql_count_var.get())
-        _sql_count_var.set(cur + int(n))
+        cur = int(_sqlCountVar.get())
+        _sqlCountVar.set(cur + int(n))
     except Exception:
         pass
 
@@ -122,18 +122,18 @@ class DatabaseManager:
         self.metadata = MetaData()
         self.queryManager = QueryManager.getInstance()
 
-    def _mask_params(self, values: Optional[Dict[str, Any]]) -> Dict[str, str]:
+    def _maskParams(self, values: Optional[Dict[str, Any]]) -> Dict[str, str]:
         if not values:
             return {}
         return {k: "***" for k in values.keys()}
 
-    def _extract_placeholders(self, query: str) -> Set[str]:
+    def _extractPlaceholders(self, query: str) -> Set[str]:
         # named params: :id, :user_name, etc.
         return set(re.findall(r":([a-zA-Z_][a-zA-Z0-9_]*)", query or ""))
 
-    def _validate_bind_parameters(self, query: str, values: Optional[Dict[str, Any]]):
+    def _validateBindParameters(self, query: str, values: Optional[Dict[str, Any]]):
         values = values or {}
-        placeholders = self._extract_placeholders(query)
+        placeholders = self._extractPlaceholders(query)
         provided = set(values.keys())
 
         if provided and not placeholders:
@@ -193,48 +193,48 @@ class DatabaseManager:
         await self.database.disconnect()
 
     async def execute(self, query: str, values: Optional[Dict[str, Any]] = None) -> Any:
-        self._validate_bind_parameters(query, values)
+        self._validateBindParameters(query, values)
         logger.info("executing query")
         logger.debug(
-            f"sql={query}; params={self._mask_params(values or {})}"
+            f"sql={query}; params={self._maskParams(values or {})}"
         )
         result = await self.database.execute(query=query, values=values or {})
         logger.info(f"rows_affected={result}")
-        _inc_sql_count()
+        _incSqlCount()
         return result
 
     async def fetchOne(self, query: str, values: Optional[Dict[str, Any]] = None) -> Optional[Dict[str, Any]]:
-        self._validate_bind_parameters(query, values)
+        self._validateBindParameters(query, values)
         logger.info("fetch_one")
         logger.debug(
-            f"sql={query}; params={self._mask_params(values or {})}"
+            f"sql={query}; params={self._maskParams(values or {})}"
         )
         result = await self.database.fetch_one(query=query, values=values or {})
         if result is not None:
             data: Dict[str, Any] = dict(result)
             logger.info("rows_returned=1")
-            _inc_sql_count()
+            _incSqlCount()
             return data
         else:
             logger.info("rows_returned=0")
-            _inc_sql_count()
+            _incSqlCount()
             return None
 
     async def fetchAll(self, query: str, values: Optional[Dict[str, Any]] = None) -> Optional[List[Dict[str, Any]]]:
-        self._validate_bind_parameters(query, values)
+        self._validateBindParameters(query, values)
         logger.info("fetch_all")
         logger.debug(
-            f"sql={query}; params={self._mask_params(values or {})}"
+            f"sql={query}; params={self._maskParams(values or {})}"
         )
         result = await self.database.fetch_all(query=query, values=values or {})
         if result is not None:
             data: List[Dict[str, Any]] = [{column: row[column] for column in row.keys()} for row in result]  # type: ignore[index]
             logger.info(f"rows_returned={len(data)}")
-            _inc_sql_count()
+            _incSqlCount()
             return data
         else:
             logger.info("rows_returned=0")
-            _inc_sql_count()
+            _incSqlCount()
             return None
 
     async def executeQuery(self, queryName: str, values: Optional[Dict[str, Any]] = None) -> Any:
@@ -267,20 +267,20 @@ class DatabaseManager:
 # =========================
 
 
-def setQueryConfig(query_dir: str, watch: bool, debounce_ms: int):
+def setQueryConfig(queryDirParam: str, watch: bool, debounceMsParam: int):
     global queryDir, queryWatch, debounceMs
-    if not os.path.isabs(query_dir):
-        query_dir = os.path.join(baseDir, query_dir)
-    queryDir = query_dir
+    if not os.path.isabs(queryDirParam):
+        queryDirParam = os.path.join(baseDir, queryDirParam)
+    queryDir = queryDirParam
     queryWatch = bool(watch)
-    debounceMs = int(debounce_ms)
+    debounceMs = int(debounceMsParam)
 
 
 def loadQueries() -> int:
     started = time.perf_counter()
     queries, nameToFile, fileToNames = scanSqlQueries(queryDir)
     QueryManager.getInstance().setAll(queries, nameToFile, fileToNames)
-    duration_ms = int((time.perf_counter() - started) * 1000)
+    durationMs = int((time.perf_counter() - started) * 1000)
     try:
         msg = json.dumps(
             {
@@ -288,14 +288,14 @@ def loadQueries() -> int:
                 "file": queryDir,
                 "keys": sorted(list(queries.keys()))[:20],
                 "count": len(queries),
-                "duration_ms": duration_ms,
+                "duration_ms": durationMs,
             },
             ensure_ascii=False,
         )
         logger.info(msg)
     except Exception:
         logger.info(
-            f"queries_loaded dir={queryDir} count={len(queries)} duration_ms={duration_ms}"
+            f"queries_loaded dir={queryDir} count={len(queries)} duration_ms={durationMs}"
         )
     return len(queries)
 
@@ -312,59 +312,59 @@ def scheduleReload(changedPath: Optional[str]):
 
 def doReload() -> bool:
     started = time.perf_counter()
-    changed_file = lastChangedFile or queryDir
+    changedFile = lastChangedFile or queryDir
     try:
         qm = QueryManager.getInstance()
-        if changed_file and os.path.isfile(changed_file):
+        if changedFile and os.path.isfile(changedFile):
             # partial reload for single file
-            pairs = parseSqlFile(changed_file)
+            pairs = parseSqlFile(changedFile)
             # copy current state
             newQueries = dict(qm.queries)
             newNameToFile = dict(qm.nameToFile)
             newFileToNames = {fp: set(names) for fp, names in qm.fileToNames.items()}
             # remove old names from this file
-            oldNames = newFileToNames.get(changed_file, set())
+            oldNames = newFileToNames.get(changedFile, set())
             for n in oldNames:
                 newQueries.pop(n, None)
                 newNameToFile.pop(n, None)
             # add new ones (cross-file duplicate detection)
             for name, sql in pairs:
                 owner = newNameToFile.get(name)
-                if owner is not None and owner != changed_file:
+                if owner is not None and owner != changedFile:
                     raise ValueError(f"duplicate query key across files: {name}")
                 newQueries[name] = sql
-                newNameToFile[name] = changed_file
-            newFileToNames[changed_file] = set(n for n, _ in pairs)
+                newNameToFile[name] = changedFile
+            newFileToNames[changedFile] = set(n for n, _ in pairs)
         else:
             newQueries, newNameToFile, newFileToNames = scanSqlQueries(queryDir)
     except Exception as e:
-        duration_ms = int((time.perf_counter() - started) * 1000)
-        err_payload = {
+        durationMs = int((time.perf_counter() - started) * 1000)
+        errPayload = {
             "event": "query.reload.error",
-            "file": changed_file,
+            "file": changedFile,
             "error": str(e),
-            "duration_ms": duration_ms,
+            "duration_ms": durationMs,
         }
-        logger.error(json.dumps(err_payload, ensure_ascii=False))
+        logger.error(json.dumps(errPayload, ensure_ascii=False))
         # keep last good version intact
         return False
 
     # success -> swap to new queries
     qm.setAll(newQueries, newNameToFile, newFileToNames)
-    duration_ms = int((time.perf_counter() - started) * 1000)
-    keys_from_file: Optional[list] = None
+    durationMs = int((time.perf_counter() - started) * 1000)
+    keysFromFile: Optional[list] = None
     try:
-        if changed_file and os.path.isfile(changed_file):
-            pairs2 = parseSqlFile(changed_file)
-            keys_from_file = [name for name, _ in pairs2]
+        if changedFile and os.path.isfile(changedFile):
+            pairs2 = parseSqlFile(changedFile)
+            keysFromFile = [name for name, _ in pairs2]
     except Exception:
-        keys_from_file = None
+        keysFromFile = None
     payload = {
         "event": "query.reload",
-        "file": changed_file,
-        "keys": keys_from_file if keys_from_file is not None else sorted(list(newQueries.keys()))[:20],
+        "file": changedFile,
+        "keys": keysFromFile if keysFromFile is not None else sorted(list(newQueries.keys()))[:20],
         "count": len(newQueries),
-        "duration_ms": duration_ms,
+        "duration_ms": durationMs,
     }
     logger.info(json.dumps(payload, ensure_ascii=False))
     return True

@@ -23,24 +23,24 @@ _CONFIG: Optional[ConfigParser] = None
 _CONFIG_PATH: Optional[str] = None
 
 
-def _backend_dir() -> str:
+def _backendDir() -> str:
     return os.path.dirname(os.path.dirname(__file__))
 
 
-def _resolve_path(filename: str) -> str:
+def _resolvePath(filename: str) -> str:
     if os.path.isabs(filename):
         return filename
-    return os.path.join(_backend_dir(), filename)
+    return os.path.join(_backendDir(), filename)
 
 
 def get(section: str, key: str, default: Optional[str] = None) -> str:
     """일반 섹션 값 읽기 (서버 전역 의존성 없이)."""
-    conf = get_config()
+    conf = getConfig()
     sec = conf[section]
     return sec.get(key, default) if default is not None else sec[key]
 
 
-def get_auth(key: str, default: Optional[str] = None) -> str:
+def getAuth(key: str, default: Optional[str] = None) -> str:
     """[AUTH] 섹션 값 읽기."""
     return get("AUTH", key, default)
 
@@ -59,8 +59,8 @@ def loadConfig(filename: str) -> ConfigParser:
 
     config = ConfigParser()
     # backend/lib → backend 로 맞춤
-    cfg_path = _resolve_path(filename)
-    with open(cfg_path, "r", encoding="utf-8") as f:
+    cfgPath = _resolvePath(filename)
+    with open(cfgPath, "r", encoding="utf-8") as f:
         config.read_file(f)
 
     if logger:
@@ -71,11 +71,11 @@ def loadConfig(filename: str) -> ConfigParser:
     return config
 
 
-def get_config(path: Optional[str] = None, force_reload: bool = False) -> ConfigParser:
+def getConfig(path: Optional[str] = None, forceReload: bool = False) -> ConfigParser:
     """싱글톤 구성 인스턴스 반환.
 
     - path가 주어지면 해당 파일을 기준으로 초기화/교체
-    - 재호출 시 캐시된 ConfigParser를 반환 (force_reload=True면 다시 읽음)
+    - 재호출 시 캐시된 ConfigParser를 반환 (forceReload=True면 다시 읽음)
     """
     global _CONFIG, _CONFIG_PATH
 
@@ -83,13 +83,13 @@ def get_config(path: Optional[str] = None, force_reload: bool = False) -> Config
     if path is None:
         path = os.getenv("BACKEND_CONFIG", _CONFIG_PATH or "config.ini")
 
-    resolved = _resolve_path(path)
-    if force_reload or _CONFIG is None or _CONFIG_PATH != resolved:
+    resolved = _resolvePath(path)
+    if forceReload or _CONFIG is None or _CONFIG_PATH != resolved:
         _CONFIG = loadConfig(path)
         _CONFIG_PATH = resolved
     return _CONFIG
 
 
-def reload_config() -> ConfigParser:
+def reloadConfig() -> ConfigParser:
     """캐시 무시하고 다시 로드."""
-    return get_config(force_reload=True)
+    return getConfig(forceReload=True)

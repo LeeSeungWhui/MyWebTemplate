@@ -15,7 +15,7 @@ from starlette.responses import Response as StarletteResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from lib.Logger import logger
-from .RequestContext import reset_request_id, set_request_id
+from .RequestContext import resetRequestId, setRequestId
 
 
 class RequestLogMiddleware(BaseHTTPMiddleware):
@@ -24,39 +24,39 @@ class RequestLogMiddleware(BaseHTTPMiddleware):
     갱신일: 2025-09-07
     """
 
-    async def dispatch(self, request: Request, call_next: Callable[[Request], Awaitable[StarletteResponse]]) -> StarletteResponse:
+    async def dispatch(self, request: Request, callNext: Callable[[Request], Awaitable[StarletteResponse]]) -> StarletteResponse:
         """
         설명: 요청 처리 시간/상태/경로 등을 수집하여 INFO 레벨로 로그 출력.
-        갱신일: 2025-09-07
+        갱신일: 2025-11-12
         """
         started = time.perf_counter()
-        req_id = request.headers.get("X-Request-Id") or str(uuid.uuid4())
-        token = set_request_id(req_id)
+        reqId = request.headers.get("X-Request-Id") or str(uuid.uuid4())
+        token = setRequestId(reqId)
         try:
             # process
-            response = await call_next(request)
+            response = await callNext(request)
 
             # attach request id header
             try:
-                response.headers["X-Request-Id"] = req_id
+                response.headers["X-Request-Id"] = reqId
             except Exception:
                 pass
 
-            elapsed_ms = int((time.perf_counter() - started) * 1000)
+            elapsedMs = int((time.perf_counter() - started) * 1000)
             level = "INFO"
-            log_obj = {
+            logObj = {
                 "ts": int(time.time() * 1000),
                 "level": level,
-                "requestId": req_id,
+                "requestId": reqId,
                 "method": request.method,
                 "path": request.url.path,
                 "status": response.status_code,
-                "latency_ms": elapsed_ms,
+                "latency_ms": elapsedMs,
                 "msg": "access",
             }
             # write as a single JSON string for structured logs
-            msg = json.dumps(log_obj, ensure_ascii=False)
+            msg = json.dumps(logObj, ensure_ascii=False)
             logger.info(msg)
             return response
         finally:
-            reset_request_id(token)
+            resetRequestId(token)

@@ -9,7 +9,7 @@ from typing import Any, Optional, Dict
 
 from pydantic import BaseModel
 
-from .RequestContext import get_request_id
+from .RequestContext import getRequestId
 
 
 class StandardResponse(BaseModel):
@@ -32,7 +32,7 @@ def successResponse(result: Any = None, message: str = "success") -> Dict[str, A
         message=message,
         result=result,
         count=count,
-        requestId=get_request_id(),
+        requestId=getRequestId(),
     ).model_dump(exclude_none=True)
 
 
@@ -43,4 +43,4 @@ def errorResponse(
     설명: 표준 에러 응답 본문 생성. 오류 코드를 포함할 수 있음.
     갱신일: 2025-09-07
     """
-    return StandardResponse(status=False, message=message, result=result, code=code, requestId=get_request_id(),).model_dump(exclude_none=True)
+    return StandardResponse(status=False, message=message, result=result, code=code, requestId=getRequestId(),).model_dump(exclude_none=True)

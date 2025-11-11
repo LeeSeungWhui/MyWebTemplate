@@ -21,17 +21,17 @@ def attachOpenAPI(app: FastAPI, config) -> None:
     설명: 주어진 app에 custom openapi 함수 부착. config는 [AUTH]/기타 값을 제공.
     """
 
-    def _patch_openapi(schema: Dict[str, Any]) -> Dict[str, Any]:
+    def _patchOpenapi(schema: Dict[str, Any]) -> Dict[str, Any]:
         try:
             components = schema.setdefault("components", {})
-            security_schemes = components.setdefault("securitySchemes", {})
-            session_cookie = config["AUTH"].get("session_cookie", "sid")
-            security_schemes.update(
+            securitySchemes = components.setdefault("securitySchemes", {})
+            sessionCookie = config["AUTH"].get("session_cookie", "sid")
+            securitySchemes.update(
                 {
                     "cookieAuth": {
                         "type": "apiKey",
                         "in": "cookie",
-                        "name": session_cookie,
+                        "name": sessionCookie,
                     },
                     "bearerAuth": {"type": "http", "scheme": "bearer", "bearerFormat": "JWT"},
                 }
@@ -55,9 +55,9 @@ def attachOpenAPI(app: FastAPI, config) -> None:
                 schemas["ErrorResponse"] = schemas["StandardResponse"]
 
             params = components.setdefault("parameters", {})
-            csrf_header_name = config["AUTH"].get("csrf_header", "X-CSRF-Token")
+            csrfHeaderName = config["AUTH"].get("csrf_header", "X-CSRF-Token")
             params["CSRFToken"] = {
-                "name": csrf_header_name,
+                "name": csrfHeaderName,
                 "in": "header",
                 "required": False,
                 "schema": {"type": "string"},
@@ -65,24 +65,24 @@ def attachOpenAPI(app: FastAPI, config) -> None:
             }
 
             # Resolve server URLs from config
-            def _resolve_servers():
+            def _resolveServers():
                 urls = []
                 try:
-                    server_section = config["SERVER"]
+                    serverSection = config["SERVER"]
                 except Exception:
-                    server_section = None
+                    serverSection = None
                 # Optional: comma-separated list in [SERVER].servers
-                if server_section is not None:
-                    raw = (server_section.get("servers") or "").strip()
+                if serverSection is not None:
+                    raw = (serverSection.get("servers") or "").strip()
                     if raw:
                         for u in [x.strip() for x in raw.split(",") if x.strip()]:
                             if u not in urls:
                                 urls.append(u)
                     # Fallback to backendHost if provided
                     bh = (
-                        server_section.get("backendHost")
-                        or server_section.get("base_url")
-                        or server_section.get("host")
+                        serverSection.get("backendHost")
+                        or serverSection.get("base_url")
+                        or serverSection.get("host")
                     )
                     if bh and bh not in urls:
                         urls.insert(0, bh)
@@ -90,7 +90,7 @@ def attachOpenAPI(app: FastAPI, config) -> None:
                     urls = ["http://localhost:2000"]
                 return [{"url": u} for u in urls]
 
-            schema["servers"] = _resolve_servers()
+            schema["servers"] = _resolveServers()
 
             tags = sorted({tag for tag in (t.get("name") for t in schema.get("tags", [])) if tag})
             if tags:
@@ -125,32 +125,32 @@ def attachOpenAPI(app: FastAPI, config) -> None:
                 logout.setdefault("parameters", []).append({"$ref": "#/components/parameters/CSRFToken"})
 
             # Generalize CSRF parameter to all unsafe methods
-            csrf_ref = {"$ref": "#/components/parameters/CSRFToken"}
-            unsafe_methods = ("post", "put", "patch", "delete")
-            for _p, ops in paths.items():
+            csrfRef = {"$ref": "#/components/parameters/CSRFToken"}
+            unsafeMethods = ("post", "put", "patch", "delete")
+            for _pathKey, ops in paths.items():
                 if not isinstance(ops, dict):
                     continue
-                for m in unsafe_methods:
-                    op = ops.get(m)
+                for methodName in unsafeMethods:
+                    op = ops.get(methodName)
                     if not isinstance(op, dict):
                         continue
                     params = op.setdefault("parameters", [])
-                    if not any(isinstance(p, dict) and p.get("$ref") == csrf_ref["$ref"] for p in params):
-                        params.append(dict(csrf_ref))
+                    if not any(isinstance(param, dict) and param.get("$ref") == csrfRef["$ref"] for param in params):
+                        params.append(dict(csrfRef))
         except Exception as e:
             logger.error(f"OpenAPI schema patching failed: {e}")
         return schema
 
-    def custom_openapi():
+    def customOpenapi():
         if app.openapi_schema:
             return app.openapi_schema
-        openapi_schema = get_openapi(
+        openapiSchema = get_openapi(
             title="MyWebTemplate API",
             version=os.getenv("APP_VERSION", "dev"),
             description="API for Web/App backend.",
             routes=app.routes,
         )
-        app.openapi_schema = _patch_openapi(openapi_schema)
+        app.openapi_schema = _patchOpenapi(openapiSchema)
         return app.openapi_schema
 
-    app.openapi = custom_openapi  # type: ignore
+    app.openapi = customOpenapi  # type: ignore

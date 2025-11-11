@@ -8,7 +8,7 @@ import uuid
 
 from lib.Database import dbManagers
 from lib import Database as DB
-from lib.RequestContext import get_request_id
+from lib.RequestContext import getRequestId
 from lib.Logger import logger
 
 
@@ -17,59 +17,59 @@ class TransactionError(Exception):
 
 
 def transaction(
-    db_names: Union[str, List[str]],
+    dbNames: Union[str, List[str]],
     *,
     isolation: str | None = None,
-    timeout_ms: int | None = None,
+    timeoutMs: int | None = None,
     retries: int = 0,
-    retry_on: Tuple[type[BaseException], ...] = (),
+    retryOn: Tuple[type[BaseException], ...] = (),
 ):
     """
-    Transaction decorator supporting single/multi DB transactions.
+    설명: 단일/다중 DB 트랜잭션을 지원하는 데코레이터.
 
     Args:
-      db_names: database name or list of names found in lib.Database.dbManagers
-      isolation: hint only (not enforced by databases library)
-      timeout_ms: hint only, logged
-      retries: number of retries on exceptions matching retry_on
-      retry_on: tuple of exception types eligible for retry
+      dbNames: lib.Database.dbManagers에 등록된 DB 이름 or 리스트
+      isolation: 격리수준 힌트(데이터베이스 드라이버가 강제하진 않음)
+      timeoutMs: 시간 경과 힌트(로그에만 활용)
+      retries: retryOn 매칭 시 재시도 횟수
+      retryOn: 재시도 대상 예외 타입 튜플
     """
-    if isinstance(db_names, str):
-        db_list = [db_names]
+    if isinstance(dbNames, str):
+        dbList = [dbNames]
     else:
-        db_list = list(db_names)
+        dbList = list(dbNames)
 
     def decorator(func):
         @wraps(func)
         async def wrapper(*args, **kwargs):
             attempt = 0
-            last_exc: BaseException | None = None
+            lastExc: BaseException | None = None
             while attempt <= max(0, retries):
                 attempt += 1
-                tx_id = uuid.uuid4().hex[:12]
+                txId = uuid.uuid4().hex[:12]
                 stack: AsyncExitStack | None = None
                 started = time.perf_counter()
                 try:
                     stack = AsyncExitStack()
                     # enter all transactions (nested) so all DB ops use the same connections via contextvars
-                    for name in db_list:
+                    for name in dbList:
                         if name not in dbManagers:
                             raise TransactionError(f"database not found: {name}")
                         await stack.enter_async_context(dbManagers[name].database.transaction())
                         try:
                             logger.info(
-                                f"tx.begin tx_id={tx_id} db={name} isolation={isolation} timeout_ms={timeout_ms} requestId={get_request_id()}"
+                                f"tx.begin txId={txId} db={name} isolation={isolation} timeoutMs={timeoutMs} requestId={getRequestId()}"
                             )
                         except Exception:
                             pass
 
-                    start_count = DB.getSqlCount()
+                    startCount = DB.getSqlCount()
                     result = await func(*args, **kwargs)
 
                     try:
-                        elapsed_ms = int((time.perf_counter() - started) * 1000)
-                        sql_count = max(0, DB.getSqlCount() - start_count)
-                        logger.info(f"tx.commit tx_id={tx_id} latency_ms={elapsed_ms} sql_count={sql_count} requestId={get_request_id()}")
+                        elapsedMs = int((time.perf_counter() - started) * 1000)
+                        sqlCount = max(0, DB.getSqlCount() - startCount)
+                        logger.info(f"tx.commit txId={txId} latency_ms={elapsedMs} sql_count={sqlCount} requestId={getRequestId()}")
                     except Exception:
                         pass
                     return result
@@ -84,16 +84,16 @@ def transaction(
                         finally:
                             stack = None
                     try:
-                        sql_count = max(0, DB.getSqlCount() - start_count)
-                        logger.error(f"tx.rollback tx_id={tx_id} error={e} sql_count={sql_count} requestId={get_request_id()}")
+                        sqlCount = max(0, DB.getSqlCount() - startCount)
+                        logger.error(f"tx.rollback txId={txId} error={e} sql_count={sqlCount} requestId={getRequestId()}")
                     except Exception:
                         pass
-                    last_exc = e
-                    if retry_on and not isinstance(e, retry_on):
+                    lastExc = e
+                    if retryOn and not isinstance(e, retryOn):
                         break
                     if attempt > retries:
                         break
-                    await _sleep_backoff(attempt)
+                    await _sleepBackoff(attempt)
                 finally:
                     if stack is not None:
                         try:
@@ -101,19 +101,19 @@ def transaction(
                         except Exception:
                             pass
                     try:
-                        elapsed_ms = int((time.perf_counter() - started) * 1000)
-                        logger.info(f"tx.end tx_id={tx_id} latency_ms={elapsed_ms} requestId={get_request_id()}")
+                        elapsedMs = int((time.perf_counter() - started) * 1000)
+                        logger.info(f"tx.end txId={txId} latency_ms={elapsedMs} requestId={getRequestId()}")
                     except Exception:
                         pass
-            assert last_exc is not None
-            raise last_exc
+            assert lastExc is not None
+            raise lastExc
 
         return wrapper
 
     return decorator
 
 
-async def _sleep_backoff(attempt: int) -> None:
+async def _sleepBackoff(attempt: int) -> None:
     try:
         import anyio
 
@@ -123,45 +123,45 @@ async def _sleep_backoff(attempt: int) -> None:
 
 
 class _Savepoint:
-    def __init__(self, db_name: str, name: str):
-        self.db_name = db_name
+    def __init__(self, dbName: str, name: str):
+        self.dbName = dbName
         self.name = name
 
     async def __aenter__(self):
-        if self.db_name not in dbManagers:
-            raise TransactionError(f"database not found: {self.db_name}")
-        await dbManagers[self.db_name].execute(f"SAVEPOINT {self.name}")
+        if self.dbName not in dbManagers:
+            raise TransactionError(f"database not found: {self.dbName}")
+        await dbManagers[self.dbName].execute(f"SAVEPOINT {self.name}")
         return self
 
     async def __aexit__(self, exc_type, exc, tb):
         if exc:
             # rollback partial work then release
             try:
-                await dbManagers[self.db_name].execute(f"ROLLBACK TO SAVEPOINT {self.name}")
+                await dbManagers[self.dbName].execute(f"ROLLBACK TO SAVEPOINT {self.name}")
             finally:
-                await dbManagers[self.db_name].execute(f"RELEASE SAVEPOINT {self.name}")
+                await dbManagers[self.dbName].execute(f"RELEASE SAVEPOINT {self.name}")
             # Suppress the exception to keep outer transaction usable
             return True
         else:
-            await dbManagers[self.db_name].execute(f"RELEASE SAVEPOINT {self.name}")
+            await dbManagers[self.dbName].execute(f"RELEASE SAVEPOINT {self.name}")
             return False
 
 
-def savepoint(db_name: str, name: str) -> _Savepoint:
+def savepoint(dbName: str, name: str) -> _Savepoint:
     """Create an async savepoint context for partial rollback.
 
     Usage:
       async with savepoint('main_db', 'sp1'):
           ...
     """
-    return _Savepoint(db_name, name)
+    return _Savepoint(dbName, name)
 
 
-def transaction_default():
+def transactionDefault():
     """Shortcut transaction decorator using the primary DB name.
 
     Example:
-        @transaction_default()
+        @transactionDefault()
         async def handler():
             ...
     """

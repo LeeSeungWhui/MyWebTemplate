@@ -34,7 +34,7 @@ try:  # 패키지 컨텍스트
     from .lib.Response import errorResponse  # type: ignore
     from .lib.Middleware import RequestLogMiddleware  # type: ignore
     from .lib.OpenAPI import attachOpenAPI  # type: ignore
-    from .lib.Config import get_config  # type: ignore
+    from .lib.Config import getConfig  # type: ignore
 except Exception:  # 모듈 컨텍스트
     from lib.Auth import AuthConfig
     from lib.Database import (
@@ -49,7 +49,7 @@ except Exception:  # 모듈 컨텍스트
     from lib.Response import errorResponse
     from lib.Middleware import RequestLogMiddleware
     from lib.OpenAPI import attachOpenAPI
-    from lib.Config import get_config
+    from lib.Config import getConfig
 
 app = FastAPI()
 
@@ -78,7 +78,7 @@ async def onStartup():
     logger.info("database connect start")
     global sqlObserver
 
-    config = get_config()
+    config = getConfig()
     dbSections = [s for s in config.sections() if s.startswith("DATABASE")]
 
     for section in dbSections:
@@ -171,7 +171,7 @@ async def onStartup():
         logger.info("query watcher started")
 
     # 인증 설정 로딩
-    config = get_config()
+    config = getConfig()
     authConfig = config["AUTH"]
     AuthConfig.initConfig(
         secretKey=authConfig["secret_key"],
@@ -183,7 +183,7 @@ async def onStartup():
     # 외부 DB를 존중하기 위해 스타트업 단계에서 묵시적 DDL/DML을 수행하지 않는다.
 
     try:
-        attachOpenAPI(app, get_config())
+        attachOpenAPI(app, getConfig())
     except Exception:
         pass
 
@@ -193,7 +193,7 @@ async def onStartup():
 # ---------------------------------------------------------------------------
 
 # 설정은 한 번만 로드해 재사용
-cfg = get_config()
+cfg = getConfig()
 
 # DB 헬퍼가 기본 DB 이름을 알 수 있도록 전달(실패 시 무시)
 try:

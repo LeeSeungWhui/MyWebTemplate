@@ -8,7 +8,7 @@
 from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
 
-from lib.I18n import detect_locale, t as i18n_t
+from lib.I18n import detectLocale, translate as i18nTranslate
 from lib.Response import errorResponse, successResponse
 from service import CommonService
 
@@ -31,8 +31,8 @@ async def readyz(request: Request):
         resp = successResponse(result=result)
         status = 200
     else:
-        loc = detect_locale(request)
-        resp = errorResponse(message=i18n_t("obs.not_ready", "not ready", loc), result=result, code="OBS_503_NOT_READY")
+        loc = detectLocale(request)
+        resp = errorResponse(message=i18nTranslate("obs.not_ready", "not ready", loc), result=result, code="OBS_503_NOT_READY")
         status = 503
     r = JSONResponse(content=resp, status_code=status)
     r.headers["Cache-Control"] = "no-store"

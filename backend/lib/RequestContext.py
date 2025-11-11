@@ -10,33 +10,33 @@ from typing import Optional
 
 
 # 요청ID 등 요청 스코프 값을 저장하는 컨텍스트 변수
-_request_id_var: contextvars.ContextVar[Optional[str]] = contextvars.ContextVar(
+_requestIdVar: contextvars.ContextVar[Optional[str]] = contextvars.ContextVar(
     "request_id", default=None
 )
 
 
-def set_request_id(request_id: str) -> contextvars.Token:
+def setRequestId(requestId: str) -> contextvars.Token:
     """
     설명: 요청ID를 컨텍스트에 저장하고 reset 토큰을 반환.
     갱신일: 2025-09-07
     """
-    return _request_id_var.set(request_id)
+    return _requestIdVar.set(requestId)
 
 
-def get_request_id() -> Optional[str]:
+def getRequestId() -> Optional[str]:
     """
     설명: 현재 컨텍스트의 요청ID를 반환.
     갱신일: 2025-09-07
     """
-    return _request_id_var.get()
+    return _requestIdVar.get()
 
 
-def reset_request_id(token: contextvars.Token) -> None:
+def resetRequestId(token: contextvars.Token) -> None:
     """
     설명: 저장된 요청ID를 초기 상태로 되돌림.
     갱신일: 2025-09-07
     """
     try:
-        _request_id_var.reset(token)
+        _requestIdVar.reset(token)
     except Exception:
         pass

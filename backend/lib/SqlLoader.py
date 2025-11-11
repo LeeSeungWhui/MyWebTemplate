@@ -24,18 +24,18 @@ def parseSqlFile(filePath: str) -> List[Tuple[str, str]]:
     if not os.path.exists(filePath):
         return entries
 
-    current_name: Optional[str] = None
-    current_buf: List[str] = []
+    currentName: Optional[str] = None
+    currentBuf: List[str] = []
     with open(filePath, "r", encoding="utf-8") as f:
         for raw in f:
             line = raw.rstrip("\n")
             if NAME_MARK in line:
                 # flush previous
-                if current_name is not None:
-                    sql = ("\n".join(current_buf)).strip()
+                if currentName is not None:
+                    sql = ("\n".join(currentBuf)).strip()
                     if sql:
-                        entries.append((current_name, sql))
-                    current_buf = []
+                        entries.append((currentName, sql))
+                    currentBuf = []
                 # extract name after marker
                 name = line.split(NAME_MARK, 1)[1].strip()
                 if not name:
@@ -43,15 +43,15 @@ def parseSqlFile(filePath: str) -> List[Tuple[str, str]]:
                 # check duplication within same file
                 if any(n == name for (n, _) in entries):
                     raise ValueError(f"duplicate query name in {filePath}: {name}")
-                current_name = name
+                currentName = name
             else:
-                if current_name is not None:
-                    current_buf.append(raw)
+                if currentName is not None:
+                    currentBuf.append(raw)
 
-    if current_name is not None and current_buf:
-        sql = ("\n".join(current_buf)).strip()
+    if currentName is not None and currentBuf:
+        sql = ("\n".join(currentBuf)).strip()
         if sql:
-            entries.append((current_name, sql))
+            entries.append((currentName, sql))
 
     return entries
 

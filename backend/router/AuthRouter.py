@@ -9,9 +9,9 @@ from fastapi import APIRouter, Depends, Request
 from fastapi.responses import JSONResponse, Response
 
 from lib.Auth import getCurrentUser
-from lib.Config import get_auth
-from lib.I18n import detect_locale, t as i18n_t
-from lib.RateLimit import check_rate_limit
+from lib.Config import getAuth
+from lib.I18n import detectLocale, translate as i18nTranslate
+from lib.RateLimit import checkRateLimit
 from lib.Response import errorResponse, successResponse
 from service import AuthService
 
@@ -26,22 +26,22 @@ async def login(request: Request):
     remember = bool(body.get("rememberMe", False))
 
     # 간단 입력 검증
-    loc = detect_locale(request)
+    loc = detectLocale(request)
     if not isinstance(username, str) or not isinstance(password, str) or len(username) < 3 or len(password) < 8:
         return JSONResponse(
             status_code=422,
-            content=errorResponse(message=i18n_t("error.invalid_input", "invalid input", loc), code="AUTH_422_INVALID_INPUT"),
+            content=errorResponse(message=i18nTranslate("error.invalid_input", "invalid input", loc), code="AUTH_422_INVALID_INPUT"),
             headers={"WWW-Authenticate": "Cookie"},
         )
 
     user = await AuthService.verify_user_credentials(username, password)
     if not user:
-        limited = check_rate_limit(request, username=username)
+        limited = checkRateLimit(request, username=username)
         if limited is not None:
             return limited
         return JSONResponse(
             status_code=401,
-            content=errorResponse(message=i18n_t("error.invalid_credentials", "invalid credentials", loc), code="AUTH_401_INVALID"),
+            content=errorResponse(message=i18nTranslate("error.invalid_credentials", "invalid credentials", loc), code="AUTH_401_INVALID"),
             headers={"WWW-Authenticate": "Cookie"},
         )
 
@@ -59,20 +59,20 @@ async def login(request: Request):
 
 @router.post("/logout", status_code=204)
 async def logout(request: Request):
-    header_name = get_auth("csrf_header", "X-CSRF-Token")
+    header_name = getAuth("csrf_header", "X-CSRF-Token")
     expected = request.session.get("csrf")
     provided = request.headers.get(header_name)
     if not expected or not provided or expected != provided:
-        loc = detect_locale(request)
+        loc = detectLocale(request)
         return JSONResponse(
             status_code=403,
-            content=errorResponse(message=i18n_t("error.csrf_required", "csrf required", loc), code="AUTH_403_CSRF_REQUIRED"),
+            content=errorResponse(message=i18nTranslate("error.csrf_required", "csrf required", loc), code="AUTH_403_CSRF_REQUIRED"),
             headers={"WWW-Authenticate": "Cookie"},
         )
     _uid = request.session.get("userId")
     request.session.clear()
     res = Response(status_code=204)
-    session_cookie = get_auth("session_cookie", "sid")
+    session_cookie = getAuth("session_cookie", "sid")
     res.delete_cookie(session_cookie)
     return res
 
@@ -94,23 +94,23 @@ async def issue_token(request: Request):
     username = body.get("username")
     password = body.get("password")
 
-    loc = detect_locale(request)
+    loc = detectLocale(request)
     if not isinstance(username, str) or not isinstance(password, str) or len(username) < 3 or len(password) < 8:
         res = JSONResponse(
             status_code=422,
-            content=errorResponse(message=i18n_t("error.invalid_input", "invalid input", loc), code="AUTH_422_INVALID_INPUT"),
+            content=errorResponse(message=i18nTranslate("error.invalid_input", "invalid input", loc), code="AUTH_422_INVALID_INPUT"),
         )
         res.headers["WWW-Authenticate"] = "Bearer"
         return res
 
     data = await AuthService.issue_token_for_credentials(username, password)
     if not data:
-        limited = check_rate_limit(request, username=username)
+        limited = checkRateLimit(request, username=username)
         if limited is not None:
             return limited
         res = JSONResponse(
             status_code=401,
-            content=errorResponse(message=i18n_t("error.invalid_credentials", "invalid credentials", loc), code="AUTH_401_INVALID"),
+            content=errorResponse(message=i18nTranslate("error.invalid_credentials", "invalid credentials", loc), code="AUTH_401_INVALID"),
         )
         res.headers["WWW-Authenticate"] = "Bearer"
         return res
