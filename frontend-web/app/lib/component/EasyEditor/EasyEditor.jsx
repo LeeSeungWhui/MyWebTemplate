@@ -4,7 +4,7 @@ import { useCallback, useMemo, useRef, useState, useEffect } from 'react';
 import { EditorContent } from '@tiptap/react';
 import clsx from 'clsx';
 import useEasyEditor from './useEditor';
-import useEasyUpload from '../../hooks/useEasyUpload';
+import useEditorUpload from './useEditorUpload';
 
 const ToolbarButton = ({ active, label, onClick, children, disabled }) => (
   <button
@@ -89,7 +89,7 @@ const EasyEditor = ({
   const attachmentInputRef = useRef(null);
   const extensionList = useMemo(() => extensions ?? EMPTY_EXTENSIONS, [extensions]);
 
-  const { uploadImage, uploadFile, alertElement } = useEasyUpload({ imageUploadUrl, fileUploadUrl });
+  const { uploadImage, uploadFile, alertElement } = useEditorUpload({ imageUploadUrl, fileUploadUrl });
 
   const { editor } = useEasyEditor({
     dataObj,

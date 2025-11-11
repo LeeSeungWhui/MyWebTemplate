@@ -1,3 +1,5 @@
+import { parseJsonPayload, normalizeNestedJsonFields } from '@/app/lib/runtime/jsonPayload'
+
 /**
  * 파일명: api.js
  * 작성자: Codex
@@ -6,9 +8,14 @@
  */
 
 const BFF_PREFIX = '/api/bff'
+const EMPTY_BODY_STATUS = new Set([204, 205, 304])
 
 function isServer() {
   return typeof window === 'undefined'
+}
+
+function isAbsoluteUrl(input) {
+  return typeof input === 'string' && /^https?:\/\//i.test(input)
 }
 
 function toBffPath(path) {
@@ -108,10 +115,43 @@ function normalizeArgs(path, a2, a3) {
   return { path, init, csrfMode }
 }
 
+/**
+ * 응답 본문을 안전하게 텍스트로 변환
+ * @param {Response} response fetch Response 객체
+ * @returns {Promise<string>} 본문 텍스트
+ */
+async function readResponseText(response) {
+  if (!response || typeof response.text !== 'function') return ''
+  if (EMPTY_BODY_STATUS.has(response.status)) return ''
+  try {
+    return await response.text()
+  } catch {
+    return ''
+  }
+}
+
+/**
+ * 백엔드 JSON 문자열을 보정/정규화
+ * @param {Response} response fetch Response
+ * @returns {Promise<object|null>} 파싱 결과
+ */
+async function parseJsonResponseBody(response) {
+  const rawText = await readResponseText(response)
+  if (!rawText) return null
+  const parsed = parseJsonPayload(rawText, { context: 'apiJSON' })
+  if (!parsed) {
+    const syntaxError = new SyntaxError('Invalid JSON response')
+    syntaxError.cause = rawText
+    throw syntaxError
+  }
+  return normalizeNestedJsonFields(parsed)
+}
+
 export async function apiRequest(path, initOrBody = {}, modeOrOptions) {
   const { init, csrfMode } = normalizeArgs(path, initOrBody, modeOrOptions)
   const method = (init.method || 'GET').toUpperCase()
   const headersIn = init.headers || {}
+  const absoluteUrl = isAbsoluteUrl(path)
 
   if (isServer()) {
     const { buildSSRHeaders } = await import('@/app/lib/runtime/ssr')
@@ -122,10 +162,12 @@ export async function apiRequest(path, initOrBody = {}, modeOrOptions) {
     )
     const headers = await buildSSRHeaders(baseHeaders)
     const body = serializeBody(init.body)
-    if (
-      method !== 'GET' && method !== 'HEAD' &&
-      csrfMode !== 'skip' &&
-      !headers['X-CSRF-Token']
+    if (!absoluteUrl &&
+      (
+        method !== 'GET' && method !== 'HEAD' &&
+        csrfMode !== 'skip' &&
+        !headers['X-CSRF-Token']
+      )
     ) {
       const csrf = await getServerCsrf(baseHeaders)
       if (csrf) headers['X-CSRF-Token'] = csrf
@@ -139,13 +181,15 @@ export async function apiRequest(path, initOrBody = {}, modeOrOptions) {
     if (method !== 'GET' && method !== 'HEAD' && typeof body !== 'undefined') {
       requestInit.body = body
     }
-    return fetch(toBffPath(path), requestInit)
+    const targetUrl = absoluteUrl ? path : toBffPath(path)
+    return fetch(targetUrl, requestInit)
   }
 
   // Client: delegate to CSR helpers
   if (method === 'GET' || method === 'HEAD') {
     const h = { 'Accept-Language': navigator.language || 'en', ...headersIn }
-    const res = await fetch(toBffPath(path), { credentials: 'include', headers: h })
+    const targetUrl = absoluteUrl ? path : toBffPath(path)
+    const res = await fetch(targetUrl, { credentials: 'include', headers: h })
     if (res.status === 401) {
       // redirect to login preserving next
       const { pathname, search } = window.location
@@ -159,17 +203,18 @@ export async function apiRequest(path, initOrBody = {}, modeOrOptions) {
 
   // Non-GET: obtain CSRF and POST via BFF
   let csrf
-  if (csrfMode !== 'skip') {
+  if (csrfMode !== 'skip' && !absoluteUrl) {
     const csrfRes = await fetch(toBffPath('/api/v1/auth/csrf'), { credentials: 'include' })
     const csrfJson = await csrfRes.json().catch(() => ({}))
     csrf = csrfJson?.result?.csrf
   }
-  const res = await fetch(toBffPath(path), {
+  const targetUrl = absoluteUrl ? path : toBffPath(path)
+  const res = await fetch(targetUrl, {
     method,
     credentials: 'include',
     headers: {
       'Content-Type': 'application/json',
-      ...(csrfMode !== 'skip' ? { 'X-CSRF-Token': csrf } : {}),
+      ...(csrfMode !== 'skip' && !absoluteUrl ? { 'X-CSRF-Token': csrf } : {}),
       ...headersIn,
     },
     body: serializeBody(init.body) ?? '{}',
@@ -185,7 +230,7 @@ export async function apiRequest(path, initOrBody = {}, modeOrOptions) {
 
 export const apiJSON = async (path, initOrBody = {}, modeOrOptions) => {
   const res = await apiRequest(path, initOrBody, modeOrOptions)
-  return res.json()
+  return parseJsonResponseBody(res)
 }
 
 export const apiGet = (path, init = {}) => apiJSON(path, { ...init, method: 'GET' })

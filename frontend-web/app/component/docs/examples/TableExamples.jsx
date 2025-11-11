@@ -2,11 +2,11 @@
  * 파일명: TableExamples.jsx
  * 작성자: LSH
  * 갱신일: 2025-09-13
- * 설명: Table 컴포넌트 예제
+ * 설명: EasyTable 컴포넌트 예제
  */
 /**
  * TableExamples.jsx
- * Table 컴포넌트 사용 예제 모음
+ * EasyTable 컴포넌트 사용 예제 모음
  */
 import * as Lib from '@/app/lib';
 import { useMemo, useState } from 'react';
@@ -40,7 +40,7 @@ export const TableExamples = () => {
   const examples = [
     {
       component: (
-        <Lib.Table
+        <Lib.EasyTable
           data={data}
           columns={columns}
           pageParam="page"
@@ -65,7 +65,7 @@ const columns = [
 ];
 
 // 사용
-<Lib.Table
+<Lib.EasyTable
   data={data}
   columns={columns}
   pageParam="page"
@@ -76,7 +76,7 @@ const columns = [
     },
     {
       component: (
-        <Lib.Table
+        <Lib.EasyTable
           data={data}
           columns={columns}
           page={page}
@@ -101,7 +101,7 @@ const columns = [
 ];
 
 // 사용 (page 상태는 외부에서 관리)
-<Lib.Table
+<Lib.EasyTable
   data={data}
   columns={columns}
   page={page}
@@ -112,7 +112,7 @@ const columns = [
     },
     {
       component: (
-        <Lib.Table
+        <Lib.EasyTable
           variant="card"
           data={data}
           pageSize={8}
@@ -127,7 +127,7 @@ const columns = [
         />
       ),
       description: '카드 변형: variant="card" + renderCard로 카드 UI 구성',
-      code: `<Lib.Table
+      code: `<Lib.EasyTable
   variant="card"
   data={data}
   pageSize={8}
@@ -143,7 +143,7 @@ const columns = [
     },
     {
       component: (
-        <Lib.Table
+        <Lib.EasyTable
           data={data}
           columns={styledColumns}
           headerClassName="bg-transparent gap-2"
@@ -169,7 +169,7 @@ const styledColumns = [
 ];
 
 // 사용
-<Lib.Table
+<Lib.EasyTable
   data={data}
   columns={styledColumns}
   headerClassName="bg-transparent gap-2"
@@ -181,7 +181,7 @@ const styledColumns = [
     },
     {
       component: (
-        <Lib.Table
+        <Lib.EasyTable
           data={[]}
           columns={columns}
           empty="표시할 데이터가 없습니다."
@@ -196,7 +196,7 @@ const columns = [
   { key: 'role', header: '권한', width: '120px' },
 ];
 
-<Lib.Table data={[]} columns={columns} empty="표시할 데이터가 없습니다." />`
+<Lib.EasyTable data={[]} columns={columns} empty="표시할 데이터가 없습니다." />`
     },
   ];
 

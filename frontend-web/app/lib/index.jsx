@@ -31,7 +31,7 @@ export { default as Toast } from './component/Toast';
 export { default as Drawer } from './component/Drawer';
 export { default as Skeleton } from './component/Skeleton';
 export { default as Empty } from './component/Empty';
-export { default as Table } from './component/Table';
+export { default as EasyTable } from './component/EasyTable';
 export { default as Pagination } from './component/Pagination';
 export { default as Dropdown } from './component/Dropdown';
 export { default as Stat } from './component/Stat';
