@@ -13,7 +13,7 @@ export const runtime = 'nodejs'
 
 const SKIP_HEADERS = new Set(['connection', 'content-length', 'host'])
 
-function toBackendUrl(pathSegments = [], search = '', backendHost = 'http://localhost:8200') {
+function toBackendUrl(pathSegments = [], search = '', backendHost = 'http://localhost:2000') {
   const normalizedPath = Array.isArray(pathSegments) && pathSegments.length
     ? `/${pathSegments.join('/')}`
     : '/'

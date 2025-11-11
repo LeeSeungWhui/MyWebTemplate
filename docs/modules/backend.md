@@ -100,7 +100,7 @@ allow_origins = http://localhost:3000
 allow_credentials = true
 
 [SERVER]
-port = 8000
+port = 2000
 ```
 
 ## 실행

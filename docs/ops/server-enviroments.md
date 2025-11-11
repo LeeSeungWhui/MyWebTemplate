@@ -13,8 +13,8 @@ Nginx는 배포 전용. 로컬은 직결(Next↔FastAPI) 원칙.
 1) Local (개발)
 
 Topology:
-Browser → Next(dev:3000) ↔(credentials) FastAPI(8000)
-Expo(App) → FastAPI(8000)
+Browser → Next(dev:3000) ↔(credentials) FastAPI(2000)
+Expo(App) → FastAPI(2000)
 
 CORS: http://localhost:3000만 허용 + allow_credentials=true
 
@@ -22,9 +22,9 @@ CORS: http://localhost:3000만 허용 + allow_credentials=true
 
 API Base:
 
-Web: NEXT_PUBLIC_API_BASE = http://localhost:8000/api/v1
+Web: NEXT_PUBLIC_API_BASE = http://localhost:2000/api/v1
 
-App: EXPO_PUBLIC_API_BASE = http://<LAN-IP>:8000/api/v1
+App: EXPO_PUBLIC_API_BASE = http://<LAN-IP>:2000/api/v1
 
 Nginx: 사용 안 함
 
@@ -50,8 +50,8 @@ EAS Update 채널 production (silent → 다음 콜드스타트 적용)
 
 ENV 키 매트릭스 (핵심만)
 구분	키	Local	Staging	Prod
-Web	NEXT_PUBLIC_API_BASE	http://localhost:8000/api/v1	https://stage.example.com/api/v1	https://api.example.com/api/v1
-App	EXPO_PUBLIC_API_BASE	http://<LAN-IP>:8000/api/v1	https://stage.example.com/api/v1	https://api.example.com/api/v1
+Web	NEXT_PUBLIC_API_BASE	http://localhost:2000/api/v1	https://stage.example.com/api/v1	https://api.example.com/api/v1
+App	EXPO_PUBLIC_API_BASE	http://<LAN-IP>:2000/api/v1	https://stage.example.com/api/v1	https://api.example.com/api/v1
 BE	AUTH.secret_key	dev 키	stage 키	prod 키(회전 계획)
 BE	AUTH.token_expire	3600	3600	3600
 BE	CORS.allow_origins	http://localhost:3000	https://stage.example.com	https://web.example.com

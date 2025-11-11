@@ -1,5 +1,5 @@
 // Minimal JS smoke to hit a couple of endpoints using built-in fetch (Node >=18)
-const BASE = process.env.BASE || 'http://localhost:8000';
+const BASE = process.env.BASE || 'http://localhost:2000';
 
 async function smoke() {
   const health = await fetch(`${BASE}/healthz`);
@@ -10,4 +10,3 @@ async function smoke() {
 }
 
 smoke().catch((e) => { console.error(e); process.exit(1); });
-

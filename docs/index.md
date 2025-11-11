@@ -53,10 +53,10 @@
 ```
 
 ## 운영 환경(Ops) 개요
-- Dev(로컬): `Browser → Next(3000) ↔ FastAPI(8000)`, `Expo → FastAPI(8000)`
-  - CORS: `http://localhost:3000` + credentials=true
+- Dev(로컬): `Browser → Next(3000) ↔ FastAPI(2000)`, `Expo → FastAPI(2000)`
+- CORS: `http://localhost:3000` + credentials=true
   - Web 쿠키: HttpOnly; SameSite=Lax; Secure(미적용)
-  - API Base: Web=`http://localhost:8000/api/v1`, App=`http://<LAN-IP>:8000/api/v1`
+- API Base: Web=`http://localhost:2000/api/v1`, App=`http://<LAN-IP>:2000/api/v1`
 - Stage: `Client → Nginx(HTTPS) → FastAPI(/api) & Next`
   - 쿠키 Secure 강제, `/healthz`/`/readyz` 헬스 포함
   - EAS Update 채널: `staging`

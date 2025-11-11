@@ -65,7 +65,7 @@ def attachOpenAPI(app: FastAPI, config) -> None:
             }
 
             schema["servers"] = [
-                {"url": "http://localhost:8000"},
+                {"url": "http://localhost:2000"},
                 {"url": "https://api.example.com"},
             ]
 

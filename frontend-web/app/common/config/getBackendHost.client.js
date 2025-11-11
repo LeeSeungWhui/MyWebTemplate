@@ -6,5 +6,5 @@ export function getBackendHost() {
     ?? cfg?.APP?.backendHost
     ?? cfg?.APP?.api_base_url
     ?? cfg?.APP?.serverHost
-  return typeof base === 'string' && base ? base : 'http://localhost:8000'
+  return typeof base === 'string' && base ? base : 'http://localhost:2000'
 }

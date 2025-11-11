@@ -27,7 +27,7 @@ links: [CU-BE-001]
   - `components.securitySchemes`
   - `components.schemas.StandardResponse`, `ErrorResponse`
   - `components.parameters.CSRFToken`
-  - `servers: [{url:"http://localhost:8000"}, {url:"https://api.example.com"}]`
+  - `servers: [{url:"http://localhost:2000"}, {url:"https://api.example.com"}]`
   - 태그 그룹용 `x-tagGroups`
   - `openapi-client-axios` 예제를 담은 `x-codeSamples`
 
@@ -64,4 +64,3 @@ links: [CU-BE-001]
 - T6: `openapi-client-axios` 코드 샘플 추가.
 - T7: CI에 OpenAPI 검증과 JS 스모크 테스트 포함.
 - T8: Swagger UI 예제는 최소화하고 자격 증명은 숨긴다.
-

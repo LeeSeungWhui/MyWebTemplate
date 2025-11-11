@@ -2,7 +2,7 @@ import { loadFrontendConfig } from './frontendConfig.server'
 
 let cachedBackendHost = null
 
-const DEFAULT_BACKEND = 'http://localhost:8200'
+const DEFAULT_BACKEND = 'http://localhost:2000'
 
 export async function getBackendHost() {
   if (cachedBackendHost) return cachedBackendHost

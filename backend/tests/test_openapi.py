@@ -17,7 +17,7 @@ def test_openapi_components_and_servers():
         assert "CSRFToken" in params
         servers = j.get("servers", [])
         urls = [s.get("url") for s in servers]
-        assert "http://localhost:8000" in urls
+        assert "http://localhost:2000" in urls
 
 
 def test_login_204_set_cookie_documented():

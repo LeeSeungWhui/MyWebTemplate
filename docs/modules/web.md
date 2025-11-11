@@ -47,8 +47,8 @@
 [WEB]
 mode_default = CSR
 
-[API]
-base = http://localhost:8200
+ [API]
+ base = http://localhost:2000
 csrf_header = X-CSRF-Token
 credentials = include
 
@@ -59,7 +59,7 @@ theme = light
 
 주의
 - 공개/보호 경로는 config.ini로 관리하지 않는다. 공개 경로 Allowlist는 `frontend-web/app/common/config/publicRoutes.js`에서만 관리하며, 그 외는 기본 보호(Default protect).
-- API Base는 config에서만 로드된다. 서버는 `app/common/config/getBackendHost.server.js`, 클라는 `getBackendHost.client.js`가 `[API].base`(또는 `[APP].backendHost` 등 대체 키)를 읽어 사용한다. 미설정 시 기본값은 `http://localhost:8200`.
+- API Base는 config에서만 로드된다. 서버는 `app/common/config/getBackendHost.server.js`, 클라는 `getBackendHost.client.js`가 `[API].base`(또는 `[APP].backendHost` 등 대체 키)를 읽어 사용한다. 미설정 시 기본값은 `http://localhost:2000`.
 - 서버만 파일 접근 가능. 클라이언트에서는 `SharedStore.config`를 통해 접근
 
 ## 결정(고정)
