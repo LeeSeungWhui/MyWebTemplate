@@ -106,4 +106,3 @@ async def getCurrentUser(token: str = Depends(oauth2Scheme)):
         raise credentialsException
 
     return tokenData
- 

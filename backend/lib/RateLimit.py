@@ -68,4 +68,3 @@ def check_rate_limit(request: Request, username: Optional[str] = None) -> Option
                 headers={"Retry-After": str(retry_after)},
             )
     return None
-

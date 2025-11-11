@@ -113,7 +113,11 @@ def attachOpenAPI(app: FastAPI, config) -> None:
                     {
                         "lang": "JavaScript",
                         "label": "openapi-client-axios",
-                        "source": "// Example using openapi-client-axios\n// const client = ...;\n// await client.POST('/api/v1/auth/login', { body: { username: 'demo', password: 'password123' } });",
+                        "source": (
+                            "// Example using openapi-client-axios\n"
+                            "// const client = ...;\n"
+                            "// await client.POST('/api/v1/auth/login', { body: { username: 'demo', password: 'password123' } });"
+                        ),
                     }
                 )
             logout = paths.get("/api/v1/auth/logout", {}).get("post")

@@ -69,7 +69,7 @@ def scanSqlQueries(folderPath: str) -> Tuple[Dict[str, str], Dict[str, str], Dic
 
     if not os.path.exists(folderPath):
         os.makedirs(folderPath, exist_ok=True)
-        return queries
+        return queries, nameToFile, fileToNames
 
     for root, _, files in os.walk(folderPath):
         for fileName in files:

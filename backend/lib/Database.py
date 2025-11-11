@@ -17,7 +17,7 @@ import contextvars
 
 from databases import Database
 from lib.Logger import logger
-from lib.SqlLoader import loadSqlQueries, parseSqlFile, scanSqlQueries
+from lib.SqlLoader import parseSqlFile, scanSqlQueries
 from sqlalchemy import MetaData
 from watchdog.events import FileSystemEvent, FileSystemEventHandler
 from watchdog.observers import Observer
@@ -29,7 +29,8 @@ from watchdog.observers import Observer
 dbManagers: Dict[str, "DatabaseManager"] = {}
 # Name of the primary DB (template default is 'main_db').
 _primaryDbName: Optional[str] = None
-sqlObserver: Optional[Observer] = None
+# 일부 서드파티 패키지는 PEP 561 타입 스텁이 없어 Pylance가 Unknown으로 인식한다.
+sqlObserver: Optional[Any] = None
 
 baseDir = os.path.dirname(__file__)
 # default: backend/query (one level up from this file)
@@ -369,7 +370,7 @@ def doReload() -> bool:
     return True
 
 
-def startWatchingQueryFolder() -> Optional[Observer]:
+def startWatchingQueryFolder() -> Optional[Any]:
     if not queryWatch:
         return None
     observer = Observer()
