@@ -1,9 +1,12 @@
 "use client";
 /**
- * Login page client view
+ * 파일명: app/login/view.jsx
+ * 작성자: Codex
+ * 갱신일: 2025-12-02
+ * 설명: 로그인 페이지 클라이언트 뷰
  */
 
-import { useEffect, useState, useMemo } from "react";
+import { useMemo, useRef, useState } from "react";
 import EasyObj from "@/app/lib/dataset/EasyObj";
 import Button from "@/app/lib/component/Button";
 import Input from "@/app/lib/component/Input";
@@ -12,6 +15,9 @@ import { apiRequest } from "@/app/lib/runtime/api";
 import useSwr from "@/app/lib/hooks/useSwr";
 import { SESSION_PATH, createLoginFormModel } from "./initData";
 import Link from "next/link";
+
+const MIN_USERNAME_LENGTH = 3;
+const MIN_PASSWORD_LENGTH = 8;
 
 const sanitizeRedirect = (candidate) => {
   if (!candidate || typeof candidate !== "string") return null;
@@ -24,6 +30,10 @@ const sanitizeRedirect = (candidate) => {
 const Client = ({ mode, init, nextHint }) => {
   const loginObj = EasyObj(useMemo(() => createLoginFormModel(), []));
   const [pending, setPending] = useState(false);
+  const [formError, setFormError] = useState("");
+  const emailRef = useRef(null);
+  const passwordRef = useRef(null);
+  const errorSummaryRef = useRef(null);
   const { data: sessionData, mutate } = useSwr("session", SESSION_PATH, {
     swr: { fallbackData: init, revalidateOnFocus: true },
   });
@@ -36,11 +46,46 @@ const Client = ({ mode, init, nextHint }) => {
   const resetErrors = () => {
     loginObj.errors.email = "";
     loginObj.errors.password = "";
+    setFormError("");
+  };
+
+  const focusOnError = (ref) => {
+    if (!ref || !ref.current) return;
+    requestAnimationFrame(() => {
+      ref.current?.focus();
+    });
+  };
+
+  const resolveBackendError = (body, response) => {
+    const code = body?.code;
+    if (code === "AUTH_429_RATE_LIMIT") {
+      const retry = response?.headers?.get?.("Retry-After");
+      if (retry) {
+        return { message: `로그인 시도가 너무 많아. ${retry}초 뒤에 다시 해.` };
+      }
+      return { message: "로그인 시도가 너무 많아. 잠깐 쉬었다가 해." };
+    }
+    if (code === "AUTH_401_INVALID") {
+      return {
+        message: "이메일 또는 비밀번호가 올바르지 않아.",
+        field: "password",
+      };
+    }
+    if (
+      response?.status === 401 &&
+      response?.headers?.get?.("WWW-Authenticate")
+    ) {
+      return { message: "세션이 만료됐어. 다시 로그인해." };
+    }
+    if (body?.message) {
+      return { message: body.message };
+    }
+    return { message: "로그인에 실패했어." };
   };
 
   const validateForm = () => {
     resetErrors();
-    let isValid = true;
+    const issues = [];
 
     const email = String(loginObj.email || "").trim();
     const password = String(loginObj.password || "");
@@ -49,18 +94,29 @@ const Client = ({ mode, init, nextHint }) => {
 
     if (!email) {
       loginObj.errors.email = "이메일을 입력해주세요";
-      isValid = false;
+      issues.push({ ref: emailRef, summary: loginObj.errors.email });
+    } else if (email.length < MIN_USERNAME_LENGTH) {
+      loginObj.errors.email = "아이디는 최소 3자 이상 입력해주세요";
+      issues.push({ ref: emailRef, summary: loginObj.errors.email });
     } else if (!/\S+@\S+\.\S+/.test(email)) {
       loginObj.errors.email = "올바른 이메일 형식이 아닙니다";
-      isValid = false;
+      issues.push({ ref: emailRef, summary: loginObj.errors.email });
     }
 
     if (!password) {
       loginObj.errors.password = "비밀번호를 입력해주세요";
-      isValid = false;
+      issues.push({ ref: passwordRef, summary: loginObj.errors.password });
+    } else if (password.length < MIN_PASSWORD_LENGTH) {
+      loginObj.errors.password = "비밀번호는 최소 8자 이상이야";
+      issues.push({ ref: passwordRef, summary: loginObj.errors.password });
     }
 
-    return isValid;
+    if (issues.length) {
+      setFormError(issues[0].summary || "입력값을 확인해줘.");
+      focusOnError(issues[0].ref);
+      return false;
+    }
+    return true;
   };
 
   const handleSubmit = async (e) => {
@@ -85,16 +141,27 @@ const Client = ({ mode, init, nextHint }) => {
           nextData.result &&
           nextData.result.username
         );
-        const target =
-          sanitizeRedirect(nextHint) || (authed ? "/dashboard" : "/");
+        const target = sanitizeRedirect(nextHint) || "/dashboard";
         window.location.assign(target);
         return;
       }
       const body = await response?.json?.().catch(() => ({}));
-      loginObj.errors.password = body?.message || "로그인에 실패했습니다";
+      const { message, field } = resolveBackendError(body, response);
+      if (field === "email") {
+        loginObj.errors.email = message;
+        focusOnError(emailRef);
+      } else if (field === "password") {
+        loginObj.errors.password = message;
+        focusOnError(passwordRef);
+      } else {
+        focusOnError(errorSummaryRef);
+      }
+      setFormError(message);
     } catch (error) {
       console.error(error);
       loginObj.errors.password = "로그인 중 오류가 발생했습니다";
+      setFormError("로그인 중 오류가 발생했습니다");
+      focusOnError(errorSummaryRef);
     } finally {
       setPending(false);
     }
@@ -139,6 +206,17 @@ const Client = ({ mode, init, nextHint }) => {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6" noValidate>
+            {formError ? (
+              <div
+                ref={errorSummaryRef}
+                tabIndex={-1}
+                role="alert"
+                aria-live="assertive"
+                className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700"
+              >
+                {formError}
+              </div>
+            ) : null}
             <div>
               <label
                 htmlFor="login-email"
@@ -152,6 +230,7 @@ const Client = ({ mode, init, nextHint }) => {
                   type="email"
                   dataObj={loginObj}
                   dataKey="email"
+                  ref={emailRef}
                   placeholder="이메일을 입력하세요"
                   aria-describedby={emailErrorId}
                   error={loginObj.errors.email}
@@ -177,6 +256,7 @@ const Client = ({ mode, init, nextHint }) => {
                   type="password"
                   dataObj={loginObj}
                   dataKey="password"
+                  ref={passwordRef}
                   placeholder="비밀번호를 입력하세요"
                   aria-describedby={passwordErrorId}
                   error={loginObj.errors.password}

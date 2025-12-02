@@ -77,6 +77,6 @@ links: [CU-BE-004, CU-BE-005]
 - T2: Sample 계정 시드/검증(bcrypt)
 - T3: 표준 응답 스키마 및 WWW-Authenticate 헤더 적용
 - T4: Swagger 보안 스키마(Access/Refresh 쿠키 + Bearer) 문서화 (links: CU-BE-005)
-- T5: 레이트리밋 적용(로그인)
-- T6: pytest: 로그인 성공/실패, refresh 성공/실패, logout, 401/429 헤더 검증
-- T7: 감사 로그(성공/실패/로그아웃/refresh). 민감정보 마스킹.
+  - T5: 레이트리밋 적용(로그인)
+  - T6: (테스트 제외) pytest 항목은 환경 제약으로 실행하지 않는다.
+  - T7: 감사 로그(성공/실패/로그아웃/refresh). 민감정보 마스킹.

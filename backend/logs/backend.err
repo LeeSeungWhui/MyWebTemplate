@@ -1592,3 +1592,514 @@ pymysql.err.OperationalError: (2013, 'Lost connection to MySQL server during que
 2025-12-02 19:27:37 INFO: rows_returned=3
 2025-12-02 19:27:37 INFO: {"ts": 1764671257858, "level": "INFO", "requestId": "9b68e981-f854-4476-8d52-6233a125f68f", "method": "GET", "path": "/api/v1/dashboard/list", "status": 200, "latency_ms": 517, "msg": "access"}
 2025-12-02 19:27:37 INFO: {"ts": 1764671257858, "level": "INFO", "requestId": "37878dbf-93a8-4f27-a065-ac868453c4c2", "method": "GET", "path": "/api/v1/dashboard/stats", "status": 200, "latency_ms": 519, "msg": "access"}
+2025-12-02 19:54:24 INFO: {"ts": 1764672864153, "level": "INFO", "requestId": "070e2386-7768-45f5-86bc-fe8f925fa790", "method": "POST", "path": "/api/v1/auth/logout", "status": 204, "latency_ms": 1, "msg": "access"}
+2025-12-02 19:54:24 INFO: {"ts": 1764672864585, "level": "INFO", "requestId": "b31a1587-b62d-4346-ae9e-87af3c32d6d5", "method": "GET", "path": "/api/v1/auth/me", "status": 401, "latency_ms": 0, "msg": "access"}
+2025-12-02 19:54:25 INFO: {"ts": 1764672865022, "level": "INFO", "requestId": "b09d638e-e585-479e-9a0f-8d59b395536b", "method": "GET", "path": "/api/v1/auth/me", "status": 401, "latency_ms": 0, "msg": "access"}
+2025-12-02 19:54:25 INFO: {"ts": 1764672865410, "level": "INFO", "requestId": "16130b8f-f749-4fe6-b542-44d17cb6015b", "method": "POST", "path": "/api/v1/auth/refresh", "status": 401, "latency_ms": 0, "msg": "access"}
+2025-12-02 19:54:26 INFO: {"ts": 1764672866376, "level": "INFO", "requestId": "d35319d3-974d-4dbf-a5ce-0f2639790826", "method": "GET", "path": "/api/v1/auth/me", "status": 401, "latency_ms": 0, "msg": "access"}
+2025-12-02 19:54:27 INFO: {"ts": 1764672867725, "level": "INFO", "requestId": "60144d81-5e11-4999-a569-8162e303f94a", "method": "GET", "path": "/api/v1/auth/me", "status": 401, "latency_ms": 0, "msg": "access"}
+2025-12-02 19:54:28 INFO: {"ts": 1764672868149, "level": "INFO", "requestId": "47a7792c-3b92-4322-ae74-9e4a0610f95f", "method": "POST", "path": "/api/v1/auth/refresh", "status": 401, "latency_ms": 0, "msg": "access"}
+2025-12-02 19:54:28 INFO: {"ts": 1764672868298, "level": "INFO", "requestId": "6fec6edd-8f27-4670-a14e-334293a28371", "method": "GET", "path": "/api/v1/auth/me", "status": 401, "latency_ms": 0, "msg": "access"}
+2025-12-02 19:54:29 INFO: {"ts": 1764672869759, "level": "INFO", "requestId": "faaba341-9f58-4bf4-849a-ebcd6c287ecf", "method": "GET", "path": "/api/v1/auth/me", "status": 401, "latency_ms": 0, "msg": "access"}
+2025-12-02 19:54:30 INFO: {"ts": 1764672870045, "level": "INFO", "requestId": "fc427b01-b575-4156-ace2-8d0827d1069f", "method": "POST", "path": "/api/v1/auth/refresh", "status": 401, "latency_ms": 0, "msg": "access"}
+2025-12-02 19:54:35 INFO: {"ts": 1764672875360, "level": "INFO", "requestId": "270cda3d-a5f7-41ec-b4b9-2672fcf03c68", "method": "GET", "path": "/api/v1/auth/me", "status": 401, "latency_ms": 0, "msg": "access"}
+2025-12-02 19:54:35 INFO: {"ts": 1764672875633, "level": "INFO", "requestId": "3ca25288-7ce4-4179-bee4-16e7201e9660", "method": "POST", "path": "/api/v1/auth/refresh", "status": 401, "latency_ms": 0, "msg": "access"}
+2025-12-02 19:54:51 INFO: {"ts": 1764672891009, "level": "INFO", "requestId": "14e173c1-d6dc-4c7e-ba97-a2d344937739", "method": "GET", "path": "/api/v1/auth/me", "status": 401, "latency_ms": 0, "msg": "access"}
+2025-12-02 19:54:51 INFO: {"ts": 1764672891279, "level": "INFO", "requestId": "5365707e-6447-478f-8ce3-c1cdbb40c712", "method": "POST", "path": "/api/v1/auth/refresh", "status": 401, "latency_ms": 0, "msg": "access"}
+2025-12-02 19:55:31 INFO: {"ts": 1764672931631, "level": "INFO", "requestId": "db92c2f6-6e10-455a-91be-73725ad6babb", "method": "GET", "path": "/api/v1/auth/me", "status": 401, "latency_ms": 0, "msg": "access"}
+2025-12-02 19:55:32 INFO: {"ts": 1764672932038, "level": "INFO", "requestId": "4c88310b-039d-4713-96dd-e7130f1c03d3", "method": "POST", "path": "/api/v1/auth/refresh", "status": 401, "latency_ms": 0, "msg": "access"}
+WARNING:  StatReload detected changes in 'service/AuthService.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+2025-12-02 20:13:52 INFO: Disconnected from database mysql+aiomysql://sunkus711:********@218.153.129.202:9731/personal_db
+2025-12-02 20:13:52 INFO: Disconnected from database sqlite:////home/sunkus711/Project/workspace/My/MyWebTemplate/backend/./data/main.db
+INFO:     Application shutdown complete.
+INFO:     Finished server process [125733]
+2025-12-02 20:13:53 INFO: config load start
+2025-12-02 20:13:53 INFO: config load done
+2025-12-02 20:13:53 INFO: router load start
+2025-12-02 20:13:53 INFO: router load done
+INFO:     Started server process [156038]
+INFO:     Waiting for application startup.
+2025-12-02 20:13:53 INFO: database connect start
+2025-12-02 20:13:53 INFO: Connected to database mysql+aiomysql://sunkus711:********@218.153.129.202:9731/personal_db
+2025-12-02 20:13:53 INFO: Connected to database mysql+aiomysql://sunkus711:Rmlduqrml1!@218.153.129.202:9731/personal_db
+2025-12-02 20:13:53 INFO: database connected: main_db
+2025-12-02 20:13:53 INFO: Connected to database sqlite:////home/sunkus711/Project/workspace/My/MyWebTemplate/backend/./data/main.db
+2025-12-02 20:13:53 INFO: Connected to database sqlite:////home/sunkus711/Project/workspace/My/MyWebTemplate/backend/./data/main.db
+2025-12-02 20:13:53 INFO: database connected: main_db2
+2025-12-02 20:13:53 INFO: database connect done
+2025-12-02 20:13:53 INFO: query load start
+2025-12-02 20:13:53 INFO: {"event": "query.load", "file": "/home/sunkus711/Project/workspace/My/MyWebTemplate/backend/query", "keys": ["auth.userByUsername", "dashboard.list", "dashboard.statusSummary"], "count": 3, "duration_ms": 0}
+2025-12-02 20:13:53 INFO: query load done
+2025-12-02 20:13:53 INFO: query watcher started
+INFO:     Application startup complete.
+WARNING:  StatReload detected changes in 'router/AuthRouter.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+2025-12-02 20:14:09 INFO: Disconnected from database mysql+aiomysql://sunkus711:********@218.153.129.202:9731/personal_db
+2025-12-02 20:14:09 INFO: Disconnected from database sqlite:////home/sunkus711/Project/workspace/My/MyWebTemplate/backend/./data/main.db
+INFO:     Application shutdown complete.
+INFO:     Finished server process [156038]
+2025-12-02 20:14:10 INFO: config load start
+2025-12-02 20:14:10 INFO: config load done
+2025-12-02 20:14:10 INFO: router load start
+2025-12-02 20:14:10 INFO: router load done
+INFO:     Started server process [156118]
+INFO:     Waiting for application startup.
+2025-12-02 20:14:10 INFO: database connect start
+2025-12-02 20:14:10 INFO: Connected to database mysql+aiomysql://sunkus711:********@218.153.129.202:9731/personal_db
+2025-12-02 20:14:10 INFO: Connected to database mysql+aiomysql://sunkus711:Rmlduqrml1!@218.153.129.202:9731/personal_db
+2025-12-02 20:14:10 INFO: database connected: main_db
+2025-12-02 20:14:10 INFO: Connected to database sqlite:////home/sunkus711/Project/workspace/My/MyWebTemplate/backend/./data/main.db
+2025-12-02 20:14:10 INFO: Connected to database sqlite:////home/sunkus711/Project/workspace/My/MyWebTemplate/backend/./data/main.db
+2025-12-02 20:14:10 INFO: database connected: main_db2
+2025-12-02 20:14:10 INFO: database connect done
+2025-12-02 20:14:10 INFO: query load start
+2025-12-02 20:14:10 INFO: {"event": "query.load", "file": "/home/sunkus711/Project/workspace/My/MyWebTemplate/backend/query", "keys": ["auth.userByUsername", "dashboard.list", "dashboard.statusSummary"], "count": 3, "duration_ms": 0}
+2025-12-02 20:14:10 INFO: query load done
+2025-12-02 20:14:10 INFO: query watcher started
+INFO:     Application startup complete.
+WARNING:  StatReload detected changes in 'lib/Auth.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+2025-12-02 20:14:26 INFO: Disconnected from database mysql+aiomysql://sunkus711:********@218.153.129.202:9731/personal_db
+2025-12-02 20:14:26 INFO: Disconnected from database sqlite:////home/sunkus711/Project/workspace/My/MyWebTemplate/backend/./data/main.db
+INFO:     Application shutdown complete.
+INFO:     Finished server process [156118]
+2025-12-02 20:14:26 INFO: config load start
+2025-12-02 20:14:26 INFO: config load done
+2025-12-02 20:14:26 INFO: router load start
+2025-12-02 20:14:26 INFO: router load done
+INFO:     Started server process [156198]
+INFO:     Waiting for application startup.
+2025-12-02 20:14:26 INFO: database connect start
+2025-12-02 20:14:26 INFO: Connected to database mysql+aiomysql://sunkus711:********@218.153.129.202:9731/personal_db
+2025-12-02 20:14:26 INFO: Connected to database mysql+aiomysql://sunkus711:Rmlduqrml1!@218.153.129.202:9731/personal_db
+2025-12-02 20:14:26 INFO: database connected: main_db
+2025-12-02 20:14:26 INFO: Connected to database sqlite:////home/sunkus711/Project/workspace/My/MyWebTemplate/backend/./data/main.db
+2025-12-02 20:14:26 INFO: Connected to database sqlite:////home/sunkus711/Project/workspace/My/MyWebTemplate/backend/./data/main.db
+2025-12-02 20:14:26 INFO: database connected: main_db2
+2025-12-02 20:14:26 INFO: database connect done
+2025-12-02 20:14:26 INFO: query load start
+2025-12-02 20:14:26 INFO: {"event": "query.load", "file": "/home/sunkus711/Project/workspace/My/MyWebTemplate/backend/query", "keys": ["auth.userByUsername", "dashboard.list", "dashboard.statusSummary"], "count": 3, "duration_ms": 0}
+2025-12-02 20:14:26 INFO: query load done
+2025-12-02 20:14:26 INFO: query watcher started
+INFO:     Application startup complete.
+WARNING:  StatReload detected changes in 'tests/test_auth.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+2025-12-02 20:18:01 INFO: Disconnected from database mysql+aiomysql://sunkus711:********@218.153.129.202:9731/personal_db
+2025-12-02 20:18:01 INFO: Disconnected from database sqlite:////home/sunkus711/Project/workspace/My/MyWebTemplate/backend/./data/main.db
+INFO:     Application shutdown complete.
+INFO:     Finished server process [156198]
+2025-12-02 20:18:02 INFO: config load start
+2025-12-02 20:18:02 INFO: config load done
+2025-12-02 20:18:02 INFO: router load start
+2025-12-02 20:18:02 INFO: router load done
+INFO:     Started server process [157239]
+INFO:     Waiting for application startup.
+2025-12-02 20:18:02 INFO: database connect start
+2025-12-02 20:18:02 INFO: Connected to database mysql+aiomysql://sunkus711:********@218.153.129.202:9731/personal_db
+2025-12-02 20:18:02 INFO: Connected to database mysql+aiomysql://sunkus711:Rmlduqrml1!@218.153.129.202:9731/personal_db
+2025-12-02 20:18:02 INFO: database connected: main_db
+2025-12-02 20:18:02 INFO: Connected to database sqlite:////home/sunkus711/Project/workspace/My/MyWebTemplate/backend/./data/main.db
+2025-12-02 20:18:02 INFO: Connected to database sqlite:////home/sunkus711/Project/workspace/My/MyWebTemplate/backend/./data/main.db
+2025-12-02 20:18:02 INFO: database connected: main_db2
+2025-12-02 20:18:02 INFO: database connect done
+2025-12-02 20:18:02 INFO: query load start
+2025-12-02 20:18:02 INFO: {"event": "query.load", "file": "/home/sunkus711/Project/workspace/My/MyWebTemplate/backend/query", "keys": ["auth.userByUsername", "dashboard.list", "dashboard.statusSummary"], "count": 3, "duration_ms": 0}
+2025-12-02 20:18:02 INFO: query load done
+2025-12-02 20:18:02 INFO: query watcher started
+INFO:     Application startup complete.
+WARNING:  StatReload detected changes in 'tests/test_auth.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+2025-12-02 20:18:27 INFO: Disconnected from database mysql+aiomysql://sunkus711:********@218.153.129.202:9731/personal_db
+2025-12-02 20:18:27 INFO: Disconnected from database sqlite:////home/sunkus711/Project/workspace/My/MyWebTemplate/backend/./data/main.db
+INFO:     Application shutdown complete.
+INFO:     Finished server process [157239]
+2025-12-02 20:18:28 INFO: config load start
+2025-12-02 20:18:28 INFO: config load done
+2025-12-02 20:18:28 INFO: router load start
+2025-12-02 20:18:28 INFO: router load done
+INFO:     Started server process [157349]
+INFO:     Waiting for application startup.
+2025-12-02 20:18:28 INFO: database connect start
+2025-12-02 20:18:28 INFO: Connected to database mysql+aiomysql://sunkus711:********@218.153.129.202:9731/personal_db
+2025-12-02 20:18:28 INFO: Connected to database mysql+aiomysql://sunkus711:Rmlduqrml1!@218.153.129.202:9731/personal_db
+2025-12-02 20:18:28 INFO: database connected: main_db
+2025-12-02 20:18:28 INFO: Connected to database sqlite:////home/sunkus711/Project/workspace/My/MyWebTemplate/backend/./data/main.db
+2025-12-02 20:18:28 INFO: Connected to database sqlite:////home/sunkus711/Project/workspace/My/MyWebTemplate/backend/./data/main.db
+2025-12-02 20:18:28 INFO: database connected: main_db2
+2025-12-02 20:18:28 INFO: database connect done
+2025-12-02 20:18:28 INFO: query load start
+2025-12-02 20:18:28 INFO: {"event": "query.load", "file": "/home/sunkus711/Project/workspace/My/MyWebTemplate/backend/query", "keys": ["auth.userByUsername", "dashboard.list", "dashboard.statusSummary"], "count": 3, "duration_ms": 0}
+2025-12-02 20:18:28 INFO: query load done
+2025-12-02 20:18:28 INFO: query watcher started
+INFO:     Application startup complete.
+2025-12-02 20:28:55 INFO: {"ts": 1764674935557, "level": "INFO", "requestId": "61d42a41-46fe-4c81-91e0-99aca408fa39", "method": "GET", "path": "/api/v1/auth/me", "status": 401, "latency_ms": 1, "msg": "access"}
+2025-12-02 20:28:57 INFO: {"ts": 1764674937029, "level": "INFO", "requestId": "4370d085-0984-4344-b1d7-1baf5850db7c", "method": "POST", "path": "/api/v1/auth/refresh", "status": 401, "latency_ms": 1, "msg": "access"}
+2025-12-02 20:28:57 INFO: {"ts": 1764674937135, "level": "INFO", "requestId": "74fedefb-e302-4122-b4ff-f899f47303b0", "method": "GET", "path": "/api/v1/auth/me", "status": 401, "latency_ms": 0, "msg": "access"}
+WARNING:  StatReload detected changes in 'tests/conftest.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+2025-12-02 20:28:57 INFO: Disconnected from database mysql+aiomysql://sunkus711:********@218.153.129.202:9731/personal_db
+2025-12-02 20:28:57 INFO: Disconnected from database sqlite:////home/sunkus711/Project/workspace/My/MyWebTemplate/backend/./data/main.db
+INFO:     Application shutdown complete.
+INFO:     Finished server process [157349]
+2025-12-02 20:28:58 INFO: config load start
+2025-12-02 20:28:58 INFO: config load done
+2025-12-02 20:28:58 INFO: router load start
+2025-12-02 20:28:58 INFO: router load done
+INFO:     Started server process [161238]
+INFO:     Waiting for application startup.
+2025-12-02 20:28:58 INFO: database connect start
+2025-12-02 20:28:59 INFO: Connected to database mysql+aiomysql://sunkus711:********@218.153.129.202:9731/personal_db
+2025-12-02 20:28:59 INFO: Connected to database mysql+aiomysql://sunkus711:Rmlduqrml1!@218.153.129.202:9731/personal_db
+2025-12-02 20:28:59 INFO: database connected: main_db
+2025-12-02 20:28:59 INFO: Connected to database sqlite:////home/sunkus711/Project/workspace/My/MyWebTemplate/backend/./data/main.db
+2025-12-02 20:28:59 INFO: Connected to database sqlite:////home/sunkus711/Project/workspace/My/MyWebTemplate/backend/./data/main.db
+2025-12-02 20:28:59 INFO: database connected: main_db2
+2025-12-02 20:28:59 INFO: database connect done
+2025-12-02 20:28:59 INFO: query load start
+2025-12-02 20:28:59 INFO: {"event": "query.load", "file": "/home/sunkus711/Project/workspace/My/MyWebTemplate/backend/query", "keys": ["auth.userByUsername", "dashboard.list", "dashboard.statusSummary"], "count": 3, "duration_ms": 0}
+2025-12-02 20:28:59 INFO: query load done
+2025-12-02 20:28:59 INFO: query watcher started
+INFO:     Application startup complete.
+2025-12-02 20:28:59 INFO: {"ts": 1764674939375, "level": "INFO", "requestId": "de7f1578-2068-47ac-8d26-fc49db41f62d", "method": "GET", "path": "/api/v1/auth/me", "status": 401, "latency_ms": 0, "msg": "access"}
+2025-12-02 20:28:59 INFO: {"ts": 1764674939830, "level": "INFO", "requestId": "0897e5eb-d6fa-4449-9b73-1d9c64c2572e", "method": "POST", "path": "/api/v1/auth/refresh", "status": 401, "latency_ms": 0, "msg": "access"}
+2025-12-02 20:29:03 INFO: fetchOne named query: auth.userByUsername
+2025-12-02 20:29:03 INFO: fetch_one
+2025-12-02 20:29:03 INFO: rows_returned=1
+2025-12-02 20:29:03 INFO: {"ts": 1764674943536, "level": "INFO", "requestId": "4ab8e04e-76ad-482e-a4c5-d7ba4277cb39", "method": "POST", "path": "/api/v1/auth/login", "status": 200, "latency_ms": 200, "msg": "access"}
+2025-12-02 20:29:03 INFO: {"ts": 1764674943846, "level": "INFO", "requestId": "50ebb163-1718-4e2e-a3c2-effe27639e44", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 0, "msg": "access"}
+2025-12-02 20:29:04 INFO: {"ts": 1764674944258, "level": "INFO", "requestId": "400fb04c-c66c-4384-943c-4fa10470a93c", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 0, "msg": "access"}
+2025-12-02 20:29:07 INFO: {"ts": 1764674947325, "level": "INFO", "requestId": "0f9c67c8-1757-429e-950b-48dddf8bb1f3", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 0, "msg": "access"}
+2025-12-02 20:29:13 INFO: {"ts": 1764674953901, "level": "INFO", "requestId": "455ce0f2-4437-4d39-88b5-9632001eefc6", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 1, "msg": "access"}
+2025-12-02 20:29:15 INFO: fetchAll named query: dashboard.statusSummary
+2025-12-02 20:29:15 INFO: fetch_all
+2025-12-02 20:29:15 INFO: fetchAll named query: dashboard.list
+2025-12-02 20:29:15 INFO: fetch_all
+2025-12-02 20:29:15 INFO: rows_returned=3
+2025-12-02 20:29:15 INFO: {"ts": 1764674955757, "level": "INFO", "requestId": "ea46dcd5-f14a-4936-b509-779effe02ddc", "method": "GET", "path": "/api/v1/dashboard/stats", "status": 200, "latency_ms": 536, "msg": "access"}
+2025-12-02 20:29:15 INFO: rows_returned=5
+2025-12-02 20:29:15 INFO: {"ts": 1764674955766, "level": "INFO", "requestId": "b7d30840-9d70-44b4-a8de-40816db17f0f", "method": "GET", "path": "/api/v1/dashboard/list", "status": 200, "latency_ms": 540, "msg": "access"}
+WARNING:  StatReload detected changes in 'tests/conftest.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+2025-12-02 20:29:18 INFO: Disconnected from database mysql+aiomysql://sunkus711:********@218.153.129.202:9731/personal_db
+2025-12-02 20:29:18 INFO: Disconnected from database sqlite:////home/sunkus711/Project/workspace/My/MyWebTemplate/backend/./data/main.db
+INFO:     Application shutdown complete.
+INFO:     Finished server process [161238]
+2025-12-02 20:29:19 INFO: config load start
+2025-12-02 20:29:19 INFO: config load done
+2025-12-02 20:29:19 INFO: router load start
+2025-12-02 20:29:19 INFO: router load done
+INFO:     Started server process [161522]
+INFO:     Waiting for application startup.
+2025-12-02 20:29:19 INFO: database connect start
+2025-12-02 20:29:20 INFO: Connected to database mysql+aiomysql://sunkus711:********@218.153.129.202:9731/personal_db
+2025-12-02 20:29:20 INFO: Connected to database mysql+aiomysql://sunkus711:Rmlduqrml1!@218.153.129.202:9731/personal_db
+2025-12-02 20:29:20 INFO: database connected: main_db
+2025-12-02 20:29:20 INFO: Connected to database sqlite:////home/sunkus711/Project/workspace/My/MyWebTemplate/backend/./data/main.db
+2025-12-02 20:29:20 INFO: Connected to database sqlite:////home/sunkus711/Project/workspace/My/MyWebTemplate/backend/./data/main.db
+2025-12-02 20:29:20 INFO: database connected: main_db2
+2025-12-02 20:29:20 INFO: database connect done
+2025-12-02 20:29:20 INFO: query load start
+2025-12-02 20:29:20 INFO: {"event": "query.load", "file": "/home/sunkus711/Project/workspace/My/MyWebTemplate/backend/query", "keys": ["auth.userByUsername", "dashboard.list", "dashboard.statusSummary"], "count": 3, "duration_ms": 0}
+2025-12-02 20:29:20 INFO: query load done
+2025-12-02 20:29:20 INFO: query watcher started
+INFO:     Application startup complete.
+2025-12-02 20:29:20 INFO: {"ts": 1764674960343, "level": "INFO", "requestId": "f7e18bb1-3dfa-4d28-81b3-45eddbd7d470", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 3, "msg": "access"}
+2025-12-02 20:29:21 INFO: {"ts": 1764674961858, "level": "INFO", "requestId": "d7ff5cd9-739f-483a-ad0e-b216aad08a59", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 1, "msg": "access"}
+2025-12-02 20:29:28 INFO: {"ts": 1764674968202, "level": "INFO", "requestId": "6f79a08b-d91d-4107-b28c-398c877294e0", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 1, "msg": "access"}
+2025-12-02 20:29:29 INFO: {"ts": 1764674969952, "level": "INFO", "requestId": "966f91a1-3b56-49d1-ad7d-733eba493744", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 1, "msg": "access"}
+2025-12-02 20:30:33 INFO: {"ts": 1764675033290, "level": "INFO", "requestId": "271fc733-dbc2-4688-8e2e-dea8b04ffc9b", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 1, "msg": "access"}
+2025-12-02 20:30:34 INFO: {"ts": 1764675034860, "level": "INFO", "requestId": "43fa907f-9438-4db3-940d-d9135a8ca3b8", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 0, "msg": "access"}
+2025-12-02 20:30:57 INFO: {"ts": 1764675057168, "level": "INFO", "requestId": "1be304e7-d1e4-4d33-9a44-c664309127b7", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 1, "msg": "access"}
+2025-12-02 20:30:57 INFO: {"ts": 1764675057455, "level": "INFO", "requestId": "377b5dbf-3fd9-4dbf-8a00-78597f7affa1", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 0, "msg": "access"}
+2025-12-02 20:30:58 INFO: {"ts": 1764675058950, "level": "INFO", "requestId": "00ade22b-91de-4a6e-8ebd-19e212d2da5d", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 0, "msg": "access"}
+2025-12-02 20:36:16 INFO: {"ts": 1764675376892, "level": "INFO", "requestId": "05836d5b-400f-42d1-9f0e-e2bfc408dbea", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 1, "msg": "access"}
+2025-12-02 20:36:17 INFO: {"ts": 1764675377168, "level": "INFO", "requestId": "ca07d53b-1990-4599-ae6b-dbe3890a63f5", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 0, "msg": "access"}
+2025-12-02 20:36:18 INFO: {"ts": 1764675378534, "level": "INFO", "requestId": "f6e333d3-6573-4c87-b1e4-21f18e262aaa", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 0, "msg": "access"}
+2025-12-02 20:36:20 INFO: {"ts": 1764675380353, "level": "INFO", "requestId": "1c706115-2412-4e83-8ee0-d8ddf2e3bf80", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 0, "msg": "access"}
+2025-12-02 20:36:21 INFO: {"ts": 1764675381372, "level": "INFO", "requestId": "829a3809-f4a5-4903-9249-a191ffecfbce", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 1, "msg": "access"}
+2025-12-02 20:36:26 INFO: {"ts": 1764675386592, "level": "INFO", "requestId": "089a3fa9-59a1-441d-98c0-9d1dffa35d57", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 1, "msg": "access"}
+2025-12-02 20:36:26 INFO: {"ts": 1764675386869, "level": "INFO", "requestId": "9d0fed9f-60e6-4ae8-bbfb-568aa0f09adf", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 0, "msg": "access"}
+2025-12-02 20:36:28 INFO: {"ts": 1764675388222, "level": "INFO", "requestId": "0fd2c072-9239-4239-bda6-7180e749b1e8", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 0, "msg": "access"}
+2025-12-02 20:36:41 INFO: {"ts": 1764675401103, "level": "INFO", "requestId": "012ad783-fd9b-46b8-8839-4792178c1108", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 1, "msg": "access"}
+2025-12-02 20:36:42 INFO: {"ts": 1764675402703, "level": "INFO", "requestId": "e3a86323-1c9e-4577-810b-dd1e90055b26", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 0, "msg": "access"}
+2025-12-02 20:37:03 INFO: {"ts": 1764675423626, "level": "INFO", "requestId": "d893e18e-708f-4d71-aa64-955bd65830ef", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 0, "msg": "access"}
+2025-12-02 20:37:09 INFO: {"ts": 1764675429458, "level": "INFO", "requestId": "02eb81f5-74d0-4955-b4d5-7a08f7747193", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 0, "msg": "access"}
+2025-12-02 20:37:48 INFO: {"ts": 1764675468215, "level": "INFO", "requestId": "7acf17c4-4271-493f-9150-441fc6ce2a5b", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 1, "msg": "access"}
+2025-12-02 20:37:49 INFO: {"ts": 1764675469675, "level": "INFO", "requestId": "612bf90e-c24c-46dd-b83b-7bc8ab6a5e2e", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 0, "msg": "access"}
+2025-12-02 20:37:53 INFO: {"ts": 1764675473056, "level": "INFO", "requestId": "4a863e37-e69a-4356-9b89-6ce5b8dc81f0", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 0, "msg": "access"}
+2025-12-02 20:37:53 INFO: {"ts": 1764675473347, "level": "INFO", "requestId": "72c4e7a7-2d40-4c34-8a4a-cb14d6a910eb", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 0, "msg": "access"}
+2025-12-02 20:37:54 INFO: {"ts": 1764675474653, "level": "INFO", "requestId": "65bb7eb9-0015-4c1b-8396-e9a167c68923", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 0, "msg": "access"}
+2025-12-02 20:37:57 INFO: {"ts": 1764675477798, "level": "INFO", "requestId": "a4fcb072-40ee-4cb5-a399-4404d3d4bcdf", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 0, "msg": "access"}
+2025-12-02 20:38:00 INFO: fetchAll named query: dashboard.statusSummary
+2025-12-02 20:38:00 INFO: fetch_all
+2025-12-02 20:38:00 INFO: fetchAll named query: dashboard.list
+2025-12-02 20:38:00 INFO: fetch_all
+ERROR:    Exception in ASGI application
+Traceback (most recent call last):
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/aiomysql/connection.py", line 657, in _read_bytes
+    data = await self._reader.readexactly(num_bytes)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/asyncio/streams.py", line 752, in readexactly
+    await self._wait_for_data('readexactly')
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/asyncio/streams.py", line 545, in _wait_for_data
+    await self._waiter
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/asyncio/selector_events.py", line 1013, in _read_ready__data_received
+    data = self._sock.recv(self.max_size)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ConnectionResetError: [Errno 104] Connection reset by peer
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/uvicorn/protocols/http/h11_impl.py", line 403, in run_asgi
+    result = await app(  # type: ignore[func-returns-value]
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/uvicorn/middleware/proxy_headers.py", line 60, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/fastapi/applications.py", line 1054, in __call__
+    await super().__call__(scope, receive, send)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/applications.py", line 113, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/middleware/errors.py", line 186, in __call__
+    raise exc
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/middleware/errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/middleware/base.py", line 182, in __call__
+    with recv_stream, send_stream, collapse_excgroups():
+                                   ^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/contextlib.py", line 158, in __exit__
+    self.gen.throw(value)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/_utils.py", line 85, in collapse_excgroups
+    raise exc
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/middleware/base.py", line 184, in __call__
+    response = await self.dispatch_func(request, call_next)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/workspace/My/MyWebTemplate/backend/lib/Middleware.py", line 37, in dispatch
+    response = await callNext(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/middleware/base.py", line 159, in call_next
+    raise app_exc
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/middleware/base.py", line 144, in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/middleware/cors.py", line 85, in __call__
+    await self.app(scope, receive, send)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/routing.py", line 290, in handle
+    await self.app(scope, receive, send)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/routing.py", line 78, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/routing.py", line 75, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/fastapi/routing.py", line 302, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/fastapi/routing.py", line 213, in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/workspace/My/MyWebTemplate/backend/router/DashboardRouter.py", line 35, in dataTemplateStats
+    result = await DashboardService.dataTemplateStats()
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/workspace/My/MyWebTemplate/backend/service/DashboardService.py", line 52, in dataTemplateStats
+    rows: List[Dict[str, Any]] = await db.fetchAllQuery("dashboard.statusSummary", {}) or []
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/workspace/My/MyWebTemplate/backend/lib/Database.py", line 285, in fetchAllQuery
+    return await self.fetchAll(query, values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/workspace/My/MyWebTemplate/backend/lib/Database.py", line 249, in fetchAll
+    result = await self.database.fetch_all(query=query, values=values or {})
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/databases/core.py", line 174, in fetch_all
+    return await connection.fetch_all(query, values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/databases/core.py", line 290, in fetch_all
+    return await self._connection.fetch_all(built_query)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/databases/backends/mysql.py", line 118, in fetch_all
+    await cursor.execute(query_str, args)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/aiomysql/cursors.py", line 239, in execute
+    await self._query(query)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/aiomysql/cursors.py", line 457, in _query
+    await conn.query(q)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/aiomysql/connection.py", line 469, in query
+    await self._read_query_result(unbuffered=unbuffered)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/aiomysql/connection.py", line 683, in _read_query_result
+    await result.read()
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/aiomysql/connection.py", line 1164, in read
+    first_packet = await self.connection._read_packet()
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/aiomysql/connection.py", line 609, in _read_packet
+    packet_header = await self._read_bytes(4)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/aiomysql/connection.py", line 665, in _read_bytes
+    raise OperationalError(CR.CR_SERVER_LOST, msg) from e
+pymysql.err.OperationalError: (2013, 'Lost connection to MySQL server during query ([Errno 104] Connection reset by peer)')
+2025-12-02 20:38:01 INFO: rows_returned=5
+2025-12-02 20:38:01 INFO: {"ts": 1764675481158, "level": "INFO", "requestId": "4b0c44df-6919-487a-8e7d-320291d4e33d", "method": "GET", "path": "/api/v1/dashboard/list", "status": 200, "latency_ms": 412, "msg": "access"}
+2025-12-02 20:38:03 INFO: fetchAll named query: dashboard.list
+2025-12-02 20:38:03 INFO: fetch_all
+2025-12-02 20:38:03 INFO: fetchAll named query: dashboard.statusSummary
+2025-12-02 20:38:03 INFO: fetch_all
+2025-12-02 20:38:03 INFO: rows_returned=5
+2025-12-02 20:38:03 INFO: {"ts": 1764675483388, "level": "INFO", "requestId": "00b7cdf5-4662-48fe-95c5-6ace79e0f17a", "method": "GET", "path": "/api/v1/dashboard/list", "status": 200, "latency_ms": 228, "msg": "access"}
+2025-12-02 20:38:03 INFO: rows_returned=3
+2025-12-02 20:38:03 INFO: {"ts": 1764675483394, "level": "INFO", "requestId": "f1cf9609-178a-4f3d-8f5d-dd8b75890546", "method": "GET", "path": "/api/v1/dashboard/stats", "status": 200, "latency_ms": 230, "msg": "access"}
+2025-12-02 20:38:03 INFO: {"ts": 1764675483418, "level": "INFO", "requestId": "47aeab34-57c4-4979-89ce-aec172590c20", "method": "POST", "path": "/api/v1/auth/logout", "status": 204, "latency_ms": 0, "msg": "access"}
+2025-12-02 20:38:05 INFO: {"ts": 1764675485118, "level": "INFO", "requestId": "c94a80bb-4249-4549-9bc9-7b7778e8d1ea", "method": "GET", "path": "/api/v1/auth/me", "status": 401, "latency_ms": 0, "msg": "access"}
+2025-12-02 20:38:05 INFO: {"ts": 1764675485568, "level": "INFO", "requestId": "f26d5cd6-f97c-4576-8b77-d4f161931abf", "method": "GET", "path": "/api/v1/auth/me", "status": 401, "latency_ms": 0, "msg": "access"}
+2025-12-02 20:38:05 INFO: {"ts": 1764675485877, "level": "INFO", "requestId": "519347d6-b8a8-4504-8968-fa844240fa1d", "method": "POST", "path": "/api/v1/auth/refresh", "status": 401, "latency_ms": 0, "msg": "access"}
+2025-12-02 20:38:11 INFO: {"ts": 1764675491186, "level": "INFO", "requestId": "ca8128d3-6d37-4f8f-a525-cfd7b96a420e", "method": "GET", "path": "/api/v1/auth/me", "status": 401, "latency_ms": 0, "msg": "access"}
+2025-12-02 20:38:11 INFO: {"ts": 1764675491461, "level": "INFO", "requestId": "b0f9a408-4a79-41ac-9e0a-0318e4e39e5e", "method": "POST", "path": "/api/v1/auth/refresh", "status": 401, "latency_ms": 0, "msg": "access"}
+2025-12-02 20:38:17 INFO: fetchOne named query: auth.userByUsername
+2025-12-02 20:38:17 INFO: fetch_one
+2025-12-02 20:38:17 INFO: rows_returned=1
+2025-12-02 20:38:17 INFO: {"ts": 1764675497594, "level": "INFO", "requestId": "8356fdfc-2ac0-4025-8b6e-55002e5a38be", "method": "POST", "path": "/api/v1/auth/login", "status": 200, "latency_ms": 506, "msg": "access"}
+2025-12-02 20:38:17 INFO: {"ts": 1764675497915, "level": "INFO", "requestId": "9715ad3c-64e4-4817-925a-47f27656f44b", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 0, "msg": "access"}
+2025-12-02 20:38:18 INFO: {"ts": 1764675498253, "level": "INFO", "requestId": "31d00919-d172-42b3-8da4-63cb4342c387", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 0, "msg": "access"}
+2025-12-02 20:38:18 INFO: fetchAll named query: dashboard.statusSummary
+2025-12-02 20:38:18 INFO: fetch_all
+2025-12-02 20:38:18 INFO: fetchAll named query: dashboard.list
+2025-12-02 20:38:18 INFO: fetch_all
+2025-12-02 20:38:18 INFO: rows_returned=3
+2025-12-02 20:38:18 INFO: {"ts": 1764675498865, "level": "INFO", "requestId": "8eb8a6be-052b-4e78-9d29-45566ded9dda", "method": "GET", "path": "/api/v1/dashboard/stats", "status": 200, "latency_ms": 120, "msg": "access"}
+2025-12-02 20:38:18 INFO: rows_returned=5
+2025-12-02 20:38:18 INFO: {"ts": 1764675498868, "level": "INFO", "requestId": "6a80c592-b0b2-4e7d-89c8-eaa3ae723869", "method": "GET", "path": "/api/v1/dashboard/list", "status": 200, "latency_ms": 119, "msg": "access"}
+2025-12-02 20:38:24 INFO: {"ts": 1764675504214, "level": "INFO", "requestId": "4ac2e709-677e-469c-9fda-82d5e5dab4d6", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 0, "msg": "access"}
+2025-12-02 20:38:24 INFO: {"ts": 1764675504532, "level": "INFO", "requestId": "6e058936-2ada-4a2b-8207-aa3c68a83053", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 0, "msg": "access"}
+2025-12-02 20:38:25 INFO: {"ts": 1764675505807, "level": "INFO", "requestId": "17e62c33-bdb1-41f1-8973-e7419e35724e", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 0, "msg": "access"}
+2025-12-02 20:39:40 INFO: {"ts": 1764675580906, "level": "INFO", "requestId": "d5ec0505-d969-4f91-a1c4-5413e4a290ec", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 1, "msg": "access"}
+2025-12-02 20:39:41 INFO: {"ts": 1764675581188, "level": "INFO", "requestId": "090c5366-d206-4cd0-81d3-c72c184e68b9", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 0, "msg": "access"}
+2025-12-02 20:39:41 INFO: fetchAll named query: dashboard.statusSummary
+2025-12-02 20:39:41 INFO: fetch_all
+2025-12-02 20:39:41 INFO: fetchAll named query: dashboard.list
+2025-12-02 20:39:41 INFO: fetch_all
+2025-12-02 20:39:42 INFO: rows_returned=3
+2025-12-02 20:39:42 INFO: {"ts": 1764675582211, "level": "INFO", "requestId": "e2e97721-43b8-4a04-995a-c87a09159b95", "method": "GET", "path": "/api/v1/dashboard/stats", "status": 200, "latency_ms": 556, "msg": "access"}
+2025-12-02 20:39:42 INFO: rows_returned=5
+2025-12-02 20:39:42 INFO: {"ts": 1764675582212, "level": "INFO", "requestId": "a0cdcaed-e12a-4e3c-a1f2-287f573f0249", "method": "GET", "path": "/api/v1/dashboard/list", "status": 200, "latency_ms": 553, "msg": "access"}
+WARNING:  StatReload detected changes in 'tests/test_auth.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+2025-12-02 20:45:13 INFO: Disconnected from database mysql+aiomysql://sunkus711:********@218.153.129.202:9731/personal_db
+2025-12-02 20:45:13 INFO: Disconnected from database sqlite:////home/sunkus711/Project/workspace/My/MyWebTemplate/backend/./data/main.db
+INFO:     Application shutdown complete.
+INFO:     Finished server process [161522]
+2025-12-02 20:45:14 INFO: config load start
+2025-12-02 20:45:14 INFO: config load done
+2025-12-02 20:45:14 INFO: router load start
+2025-12-02 20:45:14 INFO: router load done
+INFO:     Started server process [166661]
+INFO:     Waiting for application startup.
+2025-12-02 20:45:14 INFO: database connect start
+2025-12-02 20:45:14 INFO: Connected to database mysql+aiomysql://sunkus711:********@218.153.129.202:9731/personal_db
+2025-12-02 20:45:14 INFO: Connected to database mysql+aiomysql://sunkus711:Rmlduqrml1!@218.153.129.202:9731/personal_db
+2025-12-02 20:45:14 INFO: database connected: main_db
+2025-12-02 20:45:14 INFO: Connected to database sqlite:////home/sunkus711/Project/workspace/My/MyWebTemplate/backend/./data/main.db
+2025-12-02 20:45:14 INFO: Connected to database sqlite:////home/sunkus711/Project/workspace/My/MyWebTemplate/backend/./data/main.db
+2025-12-02 20:45:14 INFO: database connected: main_db2
+2025-12-02 20:45:14 INFO: database connect done
+2025-12-02 20:45:14 INFO: query load start
+2025-12-02 20:45:14 INFO: {"event": "query.load", "file": "/home/sunkus711/Project/workspace/My/MyWebTemplate/backend/query", "keys": ["auth.userByUsername", "dashboard.list", "dashboard.statusSummary"], "count": 3, "duration_ms": 0}
+2025-12-02 20:45:14 INFO: query load done
+2025-12-02 20:45:14 INFO: query watcher started
+INFO:     Application startup complete.
+WARNING:  StatReload detected changes in 'service/AuthService.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+2025-12-02 20:45:29 INFO: Disconnected from database mysql+aiomysql://sunkus711:********@218.153.129.202:9731/personal_db
+2025-12-02 20:45:29 INFO: Disconnected from database sqlite:////home/sunkus711/Project/workspace/My/MyWebTemplate/backend/./data/main.db
+INFO:     Application shutdown complete.
+INFO:     Finished server process [166661]
+2025-12-02 20:45:30 INFO: config load start
+2025-12-02 20:45:30 INFO: config load done
+2025-12-02 20:45:30 INFO: router load start
+2025-12-02 20:45:30 INFO: router load done
+INFO:     Started server process [166742]
+INFO:     Waiting for application startup.
+2025-12-02 20:45:30 INFO: database connect start
+2025-12-02 20:45:30 INFO: Connected to database mysql+aiomysql://sunkus711:********@218.153.129.202:9731/personal_db
+2025-12-02 20:45:30 INFO: Connected to database mysql+aiomysql://sunkus711:Rmlduqrml1!@218.153.129.202:9731/personal_db
+2025-12-02 20:45:30 INFO: database connected: main_db
+2025-12-02 20:45:30 INFO: Connected to database sqlite:////home/sunkus711/Project/workspace/My/MyWebTemplate/backend/./data/main.db
+2025-12-02 20:45:30 INFO: Connected to database sqlite:////home/sunkus711/Project/workspace/My/MyWebTemplate/backend/./data/main.db
+2025-12-02 20:45:30 INFO: database connected: main_db2
+2025-12-02 20:45:30 INFO: database connect done
+2025-12-02 20:45:30 INFO: query load start
+2025-12-02 20:45:30 INFO: {"event": "query.load", "file": "/home/sunkus711/Project/workspace/My/MyWebTemplate/backend/query", "keys": ["auth.userByUsername", "dashboard.list", "dashboard.statusSummary"], "count": 3, "duration_ms": 0}
+2025-12-02 20:45:30 INFO: query load done
+2025-12-02 20:45:30 INFO: query watcher started
+INFO:     Application startup complete.
+WARNING:  StatReload detected changes in 'tests/test_auth.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+2025-12-02 20:45:50 INFO: Disconnected from database mysql+aiomysql://sunkus711:********@218.153.129.202:9731/personal_db
+2025-12-02 20:45:50 INFO: Disconnected from database sqlite:////home/sunkus711/Project/workspace/My/MyWebTemplate/backend/./data/main.db
+INFO:     Application shutdown complete.
+INFO:     Finished server process [166742]
+2025-12-02 20:45:51 INFO: config load start
+2025-12-02 20:45:51 INFO: config load done
+2025-12-02 20:45:51 INFO: router load start
+2025-12-02 20:45:51 INFO: router load done
+INFO:     Started server process [166899]
+INFO:     Waiting for application startup.
+2025-12-02 20:45:51 INFO: database connect start
+2025-12-02 20:45:51 INFO: Connected to database mysql+aiomysql://sunkus711:********@218.153.129.202:9731/personal_db
+2025-12-02 20:45:51 INFO: Connected to database mysql+aiomysql://sunkus711:Rmlduqrml1!@218.153.129.202:9731/personal_db
+2025-12-02 20:45:51 INFO: database connected: main_db
+2025-12-02 20:45:51 INFO: Connected to database sqlite:////home/sunkus711/Project/workspace/My/MyWebTemplate/backend/./data/main.db
+2025-12-02 20:45:51 INFO: Connected to database sqlite:////home/sunkus711/Project/workspace/My/MyWebTemplate/backend/./data/main.db
+2025-12-02 20:45:51 INFO: database connected: main_db2
+2025-12-02 20:45:51 INFO: database connect done
+2025-12-02 20:45:51 INFO: query load start
+2025-12-02 20:45:51 INFO: {"event": "query.load", "file": "/home/sunkus711/Project/workspace/My/MyWebTemplate/backend/query", "keys": ["auth.userByUsername", "dashboard.list", "dashboard.statusSummary"], "count": 3, "duration_ms": 0}
+2025-12-02 20:45:51 INFO: query load done
+2025-12-02 20:45:51 INFO: query watcher started
+INFO:     Application startup complete.
+WARNING:  StatReload detected changes in 'tests/test_auth.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+2025-12-02 20:46:25 INFO: Disconnected from database mysql+aiomysql://sunkus711:********@218.153.129.202:9731/personal_db
+2025-12-02 20:46:25 INFO: Disconnected from database sqlite:////home/sunkus711/Project/workspace/My/MyWebTemplate/backend/./data/main.db
+INFO:     Application shutdown complete.
+INFO:     Finished server process [166899]
+2025-12-02 20:46:25 INFO: config load start
+2025-12-02 20:46:25 INFO: config load done
+2025-12-02 20:46:25 INFO: router load start
+2025-12-02 20:46:25 INFO: router load done
+INFO:     Started server process [167092]
+INFO:     Waiting for application startup.
+2025-12-02 20:46:25 INFO: database connect start
+2025-12-02 20:46:26 INFO: Connected to database mysql+aiomysql://sunkus711:********@218.153.129.202:9731/personal_db
+2025-12-02 20:46:26 INFO: Connected to database mysql+aiomysql://sunkus711:Rmlduqrml1!@218.153.129.202:9731/personal_db
+2025-12-02 20:46:26 INFO: database connected: main_db
+2025-12-02 20:46:26 INFO: Connected to database sqlite:////home/sunkus711/Project/workspace/My/MyWebTemplate/backend/./data/main.db
+2025-12-02 20:46:26 INFO: Connected to database sqlite:////home/sunkus711/Project/workspace/My/MyWebTemplate/backend/./data/main.db
+2025-12-02 20:46:26 INFO: database connected: main_db2
+2025-12-02 20:46:26 INFO: database connect done
+2025-12-02 20:46:26 INFO: query load start
+2025-12-02 20:46:26 INFO: {"event": "query.load", "file": "/home/sunkus711/Project/workspace/My/MyWebTemplate/backend/query", "keys": ["auth.userByUsername", "dashboard.list", "dashboard.statusSummary"], "count": 3, "duration_ms": 0}
+2025-12-02 20:46:26 INFO: query load done
+2025-12-02 20:46:26 INFO: query watcher started
+INFO:     Application startup complete.

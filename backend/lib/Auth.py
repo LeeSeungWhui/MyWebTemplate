@@ -121,9 +121,7 @@ async def getCurrentUser(
         return TokenData(username="anonymous")
 
     if not token:
-        token = request.cookies.get(AuthConfig.ACCESS_COOKIE_NAME)
-        if not token:
-            raise credentialsException
+        raise credentialsException
 
     try:
         # SECRET_KEY가 None일 수 있다는 Pylance 경고를 없애기 위해 런타임 가드를 추가한다.

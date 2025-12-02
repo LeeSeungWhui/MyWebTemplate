@@ -70,7 +70,9 @@ async def login(request: Request):
     tokenPayload = authResult["token"]
     accessMaxAge = AuthConfig.ACCESS_TOKEN_EXPIRE_MINUTES * 60
     refreshMaxAge = (
-        AuthConfig.REFRESH_TOKEN_EXPIRE_MINUTES * 60 if remember else None
+        AuthConfig.REFRESH_TOKEN_EXPIRE_MINUTES * 60
+        if tokenPayload.get("remember")
+        else None
     )
 
     res = JSONResponse(status_code=200, content=successResponse(result={
@@ -102,7 +104,11 @@ async def refresh(request: Request):
             headers={"WWW-Authenticate": "Bearer"},
         )
     accessMaxAge = AuthConfig.ACCESS_TOKEN_EXPIRE_MINUTES * 60
-    refreshMaxAge = AuthConfig.REFRESH_TOKEN_EXPIRE_MINUTES * 60
+    refreshMaxAge = (
+        AuthConfig.REFRESH_TOKEN_EXPIRE_MINUTES * 60
+        if tokenPayload.get("remember")
+        else None
+    )
     res = JSONResponse(
         status_code=200,
         content=successResponse(

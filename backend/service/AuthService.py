@@ -28,8 +28,7 @@ async def login(payload: dict, rememberMe: bool = False) -> Optional[dict]:
     authUser, username = await authenticateUser(payload)
     if not authUser or not username:
         return None
-    tokenPayload = issueTokens(username)
-    tokenPayload["rememberMe"] = bool(rememberMe)
+    tokenPayload = issueTokens(username, rememberMe)
     return {"user": authUser, "token": tokenPayload}
 
 
@@ -58,9 +57,10 @@ async def refresh(refreshToken: str) -> Optional[dict]:
         payload = jwt.decode(refreshToken, secret, algorithms=[AuthConfig.ALGORITHM])
         username = payload.get("sub")
         tokenType = payload.get("typ")
+        remember = bool(payload.get("remember"))
         if tokenType != "refresh" or not isinstance(username, str) or not username:
             return None
-        return issueTokens(username)
+        return issueTokens(username, remember)
     except JWTError:
         return None
 
@@ -106,14 +106,19 @@ async def authenticateUser(payload: dict) -> Tuple[Optional[dict], Optional[str]
     return user, username
 
 
-def issueTokens(username: str) -> dict:
+def issueTokens(username: str, remember: bool = False) -> dict:
     """주어진 사용자명으로 액세스/리프레시 토큰 페이로드를 생성."""
-    accessToken: Token = createAccessToken({"sub": username}, tokenType="access")
-    refreshToken: Token = createRefreshToken({"sub": username})
+    accessToken: Token = createAccessToken(
+        {"sub": username, "remember": remember}, tokenType="access"
+    )
+    refreshToken: Token = createRefreshToken(
+        {"sub": username, "remember": remember}
+    )
     return {
         "access_token": accessToken.accessToken,
         "refresh_token": refreshToken.accessToken,
         "token_type": accessToken.tokenType,
         "expires_in": accessToken.expiresIn,
         "refresh_expires_in": refreshToken.expiresIn,
+        "remember": remember,
     }

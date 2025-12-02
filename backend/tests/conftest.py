@@ -1,6 +1,10 @@
 import os
 import sys
 import sqlite3
+import base64
+import os
+import secrets
+import hashlib
 from configparser import ConfigParser
 
 # Ensure backend/ is importable
@@ -13,19 +17,50 @@ def _load_db_path() -> str:
     # Read backend/config.ini to resolve database path relative to backend/
     cfg = ConfigParser()
     cfg.read(os.path.join(BASE_DIR, 'config.ini'), encoding='utf-8')
-    db_rel = cfg['DATABASE'].get('database', './data/main.db')
+    # Accept legacy [DATABASE] and current [DATABASE_1]/[DATABASE_2] sections.
+    section = None
+    for candidate in ('DATABASE', 'DATABASE_1', 'DATABASE_2'):
+        if candidate in cfg:
+            section = candidate
+            break
+    db_rel = cfg[section].get('database', './data/main.db') if section else './data/main.db'
     if not os.path.isabs(db_rel):
         return os.path.normpath(os.path.join(BASE_DIR, db_rel))
     return db_rel
 
 
-def _ensure_user_table_and_demo(db_path: str) -> None:
-    from scripts import users_seed  # backend/scripts/users_seed.py
+def _hash_password_pbkdf2(plain: str, iterations: int = 260000) -> str:
+    salt = secrets.token_bytes(16)
+    dk = hashlib.pbkdf2_hmac("sha256", plain.encode("utf-8"), salt, iterations)
+    return f"pbkdf2${iterations}${base64.b64encode(salt).decode()}${base64.b64encode(dk).decode()}"
 
-    con = users_seed.connect(db_path)
+
+def _ensure_user_table_and_demo(db_path: str) -> None:
+    os.makedirs(os.path.dirname(db_path), exist_ok=True)
+    con = sqlite3.connect(db_path)
     try:
-        users_seed.ensure_table(con)
-        users_seed.seed_demo(con)
+        con.execute(
+            """
+            CREATE TABLE IF NOT EXISTS user_template (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                username TEXT UNIQUE NOT NULL,
+                password_hash TEXT NOT NULL,
+                name TEXT,
+                email TEXT,
+                role TEXT
+            )
+            """
+        )
+        con.commit()
+        cur = con.execute("SELECT 1 FROM user_template WHERE username = ?", ("demo",))
+        if cur.fetchone():
+            return
+        pwd_hash = _hash_password_pbkdf2("password123")
+        con.execute(
+            "INSERT INTO user_template (username, password_hash, name, email, role) VALUES (?,?,?,?,?)",
+            ("demo", pwd_hash, "Demo User", "demo@demo.demo", "user"),
+        )
+        con.commit()
     finally:
         con.close()
 
@@ -52,4 +87,3 @@ def pytest_sessionstart(session):
     db_path = _load_db_path()
     _ensure_user_table_and_demo(db_path)
     _ensure_tx_table(db_path)
-
