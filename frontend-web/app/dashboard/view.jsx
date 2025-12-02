@@ -1,0 +1,243 @@
+"use client";
+/**
+ * 파일명: dashboard/view.jsx
+ * 작성자: Codex
+ * 갱신일: 2025-11-27
+ * 설명: 대시보드 클라이언트 뷰
+ */
+
+import { useEffect, useMemo, useState } from "react";
+import { useEasyList } from "@/app/lib/dataset/EasyList";
+import Button from "@/app/lib/component/Button";
+import Card from "@/app/lib/component/Card";
+import EasyChart from "@/app/lib/component/EasyChart";
+import EasyTable from "@/app/lib/component/EasyTable";
+import Stat from "@/app/lib/component/Stat";
+import { apiJSON } from "@/app/lib/runtime/api";
+import { PAGE_MODE } from "./initData";
+
+const CHART_HEIGHT = 180;
+const DONUT_HEIGHT = 240;
+const STATUS_LABELS = {
+  ready: "준비",
+  pending: "대기",
+  running: "진행중",
+  done: "완료",
+  failed: "실패",
+};
+
+const monthKey = (iso) => {
+  if (!iso) return "알수없음";
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return "알수없음";
+  const month = date.getMonth() + 1;
+  return `${month}월`;
+};
+
+const formatCurrency = (value) => {
+  const num = Number(value || 0);
+  if (Number.isNaN(num)) return "0";
+  return num.toLocaleString("ko-KR");
+};
+
+const DashboardView = ({ statList, dataList, initialError }) => {
+  const statsList = useEasyList(statList || []);
+  const tableList = useEasyList(dataList || []);
+  const [isLoading, setIsLoading] = useState(
+    !statList?.length || !dataList?.length
+  );
+  const [error, setError] = useState(initialError);
+  const endpoints = PAGE_MODE.endPoints || {};
+  const hasEndpoint = Boolean(endpoints.stats && endpoints.list);
+
+  const fetchDashboard = async () => {
+    if (!hasEndpoint) {
+      setError("ENDPOINT_MISSING");
+      return;
+    }
+    setIsLoading(true);
+    setError(null);
+    try {
+      const [statsRes, listRes] = await Promise.all([
+        apiJSON(endpoints.stats),
+        apiJSON(endpoints.list),
+      ]);
+      statsList.copy(statsRes?.result?.byStatus || []);
+      tableList.copy(listRes?.result?.items || []);
+    } catch (err) {
+      console.error("대시보드 데이터 조회 실패", err);
+      setError("FETCH_FAILED");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (statList?.length && dataList?.length) return;
+    fetchDashboard();
+  }, [statList, dataList, hasEndpoint]);
+
+  const statCards = useMemo(() => {
+    const byStatus = statsList.toJSON();
+    const totalCount = byStatus.reduce((acc, row) => acc + (row.count ?? 0), 0);
+    const totalAmount = byStatus.reduce(
+      (acc, row) => acc + Number(row.amount_sum ?? 0),
+      0
+    );
+    const readyCount =
+      byStatus.find((row) => row.status === "ready")?.count ?? 0;
+    return [
+      {
+        label: "전체 건수",
+        value: totalCount.toLocaleString("ko-KR"),
+        delta: null,
+        helpText: "data_template 총합",
+        deltaType: "neutral",
+      },
+      {
+        label: "총 금액",
+        value: `${formatCurrency(totalAmount)}`,
+        delta: null,
+        helpText: "amount 합계",
+        deltaType: "neutral",
+      },
+      {
+        label: "준비 상태",
+        value: readyCount.toLocaleString("ko-KR"),
+        delta: null,
+        helpText: "status=ready",
+        deltaType: "neutral",
+      },
+    ];
+  }, [statsList]);
+
+  const donutData = useMemo(() => {
+    const byStatus = statsList.toJSON();
+    return byStatus.map((row) => ({
+      label: STATUS_LABELS[row.status] || row.status || "알수없음",
+      value: row.count ?? 0,
+    }));
+  }, [statsList]);
+
+  const lineData = useMemo(() => {
+    const items = tableList.toJSON();
+    const byMonth = new Map();
+    items.forEach((item) => {
+      const key = monthKey(item.created_at);
+      const bucket = byMonth.get(key) || { label: key, count: 0, amount: 0 };
+      bucket.count += 1;
+      bucket.amount += Number(item.amount || 0);
+      byMonth.set(key, bucket);
+    });
+    return Array.from(byMonth.values());
+  }, [tableList]);
+
+  const tableData = tableList;
+
+  const legendFontSize = 12;
+  const errorText =
+    error === "ENDPOINT_MISSING"
+      ? "엔드포인트가 설정되지 않았어."
+      : error === "FETCH_FAILED"
+      ? "대시보드 데이터를 불러오지 못했어."
+      : null;
+
+  return (
+    <div className="space-y-3">
+      {errorText ? (
+        <section aria-label="오류 안내">
+          <div
+            className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+            role="alert"
+          >
+            {errorText}
+          </div>
+        </section>
+      ) : null}
+
+      <section aria-label="지표 요약" className="grid gap-3 md:grid-cols-3">
+        {statCards.map((item) => (
+          <Stat key={item.label} {...item} className="p-1" />
+        ))}
+      </section>
+
+      <section aria-label="차트 영역" className="grid gap-3 xl:grid-cols-2">
+        <EasyChart
+          title="가입/활성 추이"
+          subtitle="월별 등록/금액"
+          dataList={lineData}
+          seriesList={[
+            {
+              seriesId: "count",
+              seriesNm: "건수",
+              dataKey: "count",
+              color: "#2563eb",
+            },
+            {
+              seriesId: "amount",
+              seriesNm: "금액",
+              dataKey: "amount",
+              color: "#10b981",
+            },
+          ]}
+          xKey="label"
+          type="line"
+          height={CHART_HEIGHT}
+          hideLegend={false}
+          legendFontSize={legendFontSize}
+          actions={
+            <Button size="sm" onClick={fetchDashboard} disabled={isLoading}>
+              새로고침
+            </Button>
+          }
+        />
+
+        <EasyChart
+          title="상태 분포"
+          subtitle="status 그룹"
+          dataList={donutData}
+          seriesList={[
+            {
+              seriesId: "value",
+              seriesNm: "건수",
+              dataKey: "value",
+              type: "donut",
+            },
+          ]}
+          xKey="label"
+          type="donut"
+          height={DONUT_HEIGHT}
+          hideLegend={false}
+          legendFontSize={legendFontSize}
+          pieLabelFontSize={11}
+        />
+      </section>
+
+      <section aria-label="업무 테이블">
+        <Card
+          title="최근 업무"
+          subtitle="최신 4건"
+          actions={
+            <Button size="sm" variant="secondary">
+              전체보기
+            </Button>
+          }
+        >
+          <EasyTable
+            data={tableData}
+            columns={[
+              { key: "title", header: "제목" },
+              { key: "status", header: "상태" },
+              { key: "amount", header: "금액" },
+              { key: "created_at", header: "생성일" },
+            ]}
+            pageSize={4}
+            empty={error ? "데이터를 불러오지 못했어." : "업무가 없습니다."}
+          />
+        </Card>
+      </section>
+    </div>
+  );
+};
+
+export default DashboardView;
