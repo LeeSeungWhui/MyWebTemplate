@@ -16,7 +16,7 @@ links: [CU-BE-001, CU-WEB-004, CU-WEB-005, CU-WEB-008]
   - 로그인 폼(아이디/비밀번호/rememberMe), 기본 유효성/에러 UX, 비밀번호 표시 토글
   - API 연동: `POST /api/v1/auth/login` → Access/Refresh 쿠키 + `{access_token,...}`, `POST /api/v1/auth/refresh` → Access/Refresh 회전, `POST /api/v1/auth/logout`
   - 토큰 플로우: `credentials:'include'` 고정, Authorization 헤더는 BFF가 Access 쿠키에서 주입
-  - 리다이렉트: `next=/protected` 지원(유효 경로만 허용)
+- 리다이렉트: `next=/protected` 지원(유효 경로만 허용, 없으면 `/dashboard`로 이동)
   - A11y: 레이블/에러 ARIA 연결, 오류/토스트 관리
 - 제외
   - 소셜 로그인/비밀번호 초기화/2FA(차기)
@@ -39,7 +39,7 @@ links: [CU-BE-001, CU-WEB-004, CU-WEB-005, CU-WEB-008]
 - 보안/정책
   - Access/Refresh 쿠키: HttpOnly, SameSite=Lax, prod Secure. rememberMe=false → Refresh 세션 쿠키, true → 장기 max-age
   - 에러 메시지 모호화(계정/비번 구분 금지), 레이트리밋 문구 별도
-  - 오픈 리다이렉트 방어: `next`는 유효 경로만 허용(무효는 `/` 백)
+- 오픈 리다이렉트 방어: `next`는 유효 경로만 허용(무효는 `/dashboard` 백)
   - 토큰/민감정보 로컬스토리지 금지(쿠키/헤더로만 사용)
 
 ### NFR & A11y
@@ -48,18 +48,18 @@ links: [CU-BE-001, CU-WEB-004, CU-WEB-005, CU-WEB-008]
 - 접근성: 레이블/에러 `aria-describedby`, 오류 요약/포커스 이동, 콘트라스트 4.5:1+
 
 ### Acceptance Criteria
-- AC-1: 유효 자격 증명 시 `POST /api/v1/auth/login` 2xx 수신, Access/Refresh 쿠키 설정. `next`가 있으면 해당 경로로, 없으면 `/` 이동.
+- AC-1: 유효 자격 증명 시 `POST /api/v1/auth/login` 2xx 수신, Access/Refresh 쿠키 설정. `next`가 있으면 해당 경로로, 없으면 `/dashboard` 이동.
 - AC-2: 잘못된 자격 증명 시 401 + `{status:false, code:'AUTH_401_INVALID', requestId}` 파싱, 사용자 에러 노출(문구 모호화).
 - AC-3: Access 만료 후 401 발생 시 `/api/v1/auth/refresh`로 재발급하여 재시도, 실패 시 `/login` 리다이렉트.
 - AC-4: 로그아웃 시 `POST /api/v1/auth/logout` 204 후 Refresh 쿠키 삭제, `/login` 이동.
 - AC-5: A11y — 스크린리더에 레이블/에러가 읽히고, 포커스가 올바르며, Enter 제출 가능.
-- AC-6: 보안 — `next`는 유효한 URL 경로만 허용, 무효는 `/` 백.
+- AC-6: 보안 — `next`는 유효한 URL 경로만 허용, 무효는 `/dashboard` 백.
 
 ### Tasks
 - T1: `/login` 페이지 마크업(입력 2 + 체크박스 1 + 제출) 및 상태(loading/disabled) 구현
 - T2: API 래퍼(JS-only) 연결: `credentials:'include'`, 2xx 처리 및 에러 파싱, Access/Refresh 쿠키 사용
 - T3: 서버 가드(CU-WEB-008): 인증 시 `/login` 접근 302 `/`, 미인증 보호경로 접근 302 `/login` (401→refresh 재시도 포함)
-- T4: `next` 파라미터 처리(유효경로 검증 + 기본 리다이렉트 `/`)
+- T4: `next` 파라미터 처리(유효경로 검증 + 기본 리다이렉트 `/dashboard`)
 - T5: 에러 코드 맵핑 및 사용자 메시지 표준(예: `AUTH_401_INVALID`, `AUTH_429_RATE_LIMIT`)
 - T6: Access 만료/401 인터셉트 → refresh→재시도 흐름 구현
 - T7: SWR 캐시 무효화 규칙: 로그인/로그아웃/refresh 시 세션 상태 갱신

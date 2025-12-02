@@ -1,3 +1,10 @@
+/**
+ * 파일명: tests/login.view.test.jsx
+ * 작성자: Codex
+ * 갱신일: 2025-12-02
+ * 설명: 로그인 뷰 유효성/에러/리다이렉트 테스트
+ */
+
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { vi } from "vitest";
 

@@ -2,9 +2,15 @@ import os
 import sys
 import sqlite3
 import base64
-import os
 import secrets
 import hashlib
+
+"""
+파일명: backend/tests/conftest.py
+작성자: Codex
+갱신일: 2025-12-02
+설명: pytest 사전 준비(테스트 DB 경로 및 사용자 시드)
+"""
 from configparser import ConfigParser
 
 # Ensure backend/ is importable

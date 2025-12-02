@@ -25,8 +25,8 @@ links: [CU-WEB-001, CU-WEB-004, CU-WEB-005, CU-WEB-006, CU-WEB-002, CU-BE-001]
 - 공개 경로: `frontend-web/app/common/config/publicRoutes.js`에서만 관리(Allowlist)
 - 보호 경로: Allowlist 외 전부(Default Protect). 정적/내부/파비콘/파일확장자는 제외
 - 리다이렉트 정책
-  - 미인증 → 보호 경로: 즉시 `/login` 302 + httpOnly 쿠키 `nx`에 원경로 저장(5분)
-  - 인증 → `/login`: `/` 302 + 잔여 `nx` 삭제
+- 미인증 → 보호 경로: 즉시 `/login` 302 + httpOnly 쿠키 `nx`에 원경로 저장(5분)
+- 인증 → `/login`: `/dashboard` 302 + 잔여 `nx` 삭제
   - 로그인 URL에 `?next`가 붙어오면 sanitize 후 `nx`로 변환하고 깨끗한 `/login`으로 정리
 
 ### Data & Rules
@@ -47,7 +47,7 @@ links: [CU-WEB-001, CU-WEB-004, CU-WEB-005, CU-WEB-006, CU-WEB-002, CU-BE-001]
 
 ### Acceptance Criteria
 - AC-1: 미인증 사용자가 보호 경로 접근 시 미들웨어에서 `/login`으로 즉시 302, `nx` 쿠키에 복귀 경로가 저장된다.
-- AC-2: 인증 사용자가 `/login` 접근 시 `/`로 302, 남아있던 `nx`가 삭제된다.
+- AC-2: 인증 사용자가 `/login` 접근 시 `/dashboard`로 302, 남아있던 `nx`가 삭제된다.
 - AC-3: `/login?next=...`로 접근 시 `next`는 sanitize되어 `nx`로 변환되고, 주소창은 `/login`으로 정리된다.
 - AC-4: `/api/**`, 정적 자산, `/_next/*` 요청은 미들웨어가 변경하지 않는다.
 - AC-5: 프리페치 요청은 리다이렉트하지 않고 통과(내비 UX 영향 없음).

@@ -1,3 +1,10 @@
+/**
+ * 파일명: middleware.js
+ * 작성자: Codex
+ * 갱신일: 2025-12-02
+ * 설명: Next 미들웨어 인증 가드 및 리다이렉트 로직
+ */
+
 import { NextResponse } from 'next/server'
 import { isPublicPath } from '@/app/common/config/publicRoutes'
 
@@ -57,11 +64,8 @@ function applyCookies(res, cookies = []) {
 export async function middleware(req) {
   const url = new URL(req.url)
   const path = url.pathname
-  const hasAuthCookie = Boolean(
-    req.cookies.get('sid') ||
-    req.cookies.get('access_token') ||
-    req.cookies.get('refresh_token'),
-  )
+  // refresh_token이 있어야 인증 상태로 간주한다(access_token 단독/없는 경우는 재인증 유도)
+  const hasAuthCookie = Boolean(req.cookies.get('refresh_token'))
   const purpose = (req.headers.get('purpose') || req.headers.get('sec-purpose') || '').toLowerCase()
   if (purpose.includes('prefetch')) return NextResponse.next()
 

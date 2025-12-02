@@ -31,7 +31,7 @@
 - 가드 위치: `frontend-web/middleware.js`에서만 인증 가드 수행. 서버 컴포넌트/레이아웃에서 재검사 금지
 - 공개 경로: `frontend-web/app/common/config/publicRoutes.js`에서만 관리. 여기에 없으면 기본 보호(Default protect)
 - 복귀(next) 처리: 비인증 접근 시 미들웨어가 httpOnly 쿠키 `nx`에 원 경로를 저장하고 `/login`으로 리다이렉트한다
-- 로그인 접근: 인증 상태에서 `/login` 접근 시 홈(`/`)으로 리다이렉트, 잔여 `nx`는 삭제
+- 로그인 접근: 인증 상태에서 `/login` 접근 시 `/dashboard`로 리다이렉트, 잔여 `nx`는 삭제
 - 매처: `export const config.matcher = ['/((?!api|_next/static|_next/image|favicon.ico|.*\\.).*)']`로 페이지 중심 적용(Next 내부/정적 제외)
 
 ## 성능(Performance)

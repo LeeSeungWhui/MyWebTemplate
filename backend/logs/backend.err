@@ -2103,3 +2103,29 @@ INFO:     Waiting for application startup.
 2025-12-02 20:46:26 INFO: query load done
 2025-12-02 20:46:26 INFO: query watcher started
 INFO:     Application startup complete.
+WARNING:  StatReload detected changes in 'tests/conftest.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+2025-12-02 20:54:08 INFO: Disconnected from database mysql+aiomysql://sunkus711:********@218.153.129.202:9731/personal_db
+2025-12-02 20:54:08 INFO: Disconnected from database sqlite:////home/sunkus711/Project/workspace/My/MyWebTemplate/backend/./data/main.db
+INFO:     Application shutdown complete.
+INFO:     Finished server process [167092]
+2025-12-02 20:54:09 INFO: config load start
+2025-12-02 20:54:09 INFO: config load done
+2025-12-02 20:54:09 INFO: router load start
+2025-12-02 20:54:09 INFO: router load done
+INFO:     Started server process [168812]
+INFO:     Waiting for application startup.
+2025-12-02 20:54:09 INFO: database connect start
+2025-12-02 20:54:09 INFO: Connected to database mysql+aiomysql://sunkus711:********@218.153.129.202:9731/personal_db
+2025-12-02 20:54:09 INFO: Connected to database mysql+aiomysql://sunkus711:Rmlduqrml1!@218.153.129.202:9731/personal_db
+2025-12-02 20:54:09 INFO: database connected: main_db
+2025-12-02 20:54:09 INFO: Connected to database sqlite:////home/sunkus711/Project/workspace/My/MyWebTemplate/backend/./data/main.db
+2025-12-02 20:54:09 INFO: Connected to database sqlite:////home/sunkus711/Project/workspace/My/MyWebTemplate/backend/./data/main.db
+2025-12-02 20:54:09 INFO: database connected: main_db2
+2025-12-02 20:54:09 INFO: database connect done
+2025-12-02 20:54:09 INFO: query load start
+2025-12-02 20:54:09 INFO: {"event": "query.load", "file": "/home/sunkus711/Project/workspace/My/MyWebTemplate/backend/query", "keys": ["auth.userByUsername", "dashboard.list", "dashboard.statusSummary"], "count": 3, "duration_ms": 0}
+2025-12-02 20:54:09 INFO: query load done
+2025-12-02 20:54:09 INFO: query watcher started
+INFO:     Application startup complete.
