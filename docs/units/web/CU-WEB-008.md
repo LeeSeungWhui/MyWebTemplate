@@ -25,20 +25,20 @@ links: [CU-WEB-001, CU-WEB-004, CU-WEB-005, CU-WEB-006, CU-WEB-002, CU-BE-001]
 - 공개 경로: `frontend-web/app/common/config/publicRoutes.js`에서만 관리(Allowlist)
 - 보호 경로: Allowlist 외 전부(Default Protect). 정적/내부/파비콘/파일확장자는 제외
 - 리다이렉트 정책
-- 미인증 → 보호 경로: 즉시 `/login` 302 + httpOnly 쿠키 `nx`에 원경로 저장(5분)
-- 인증 → `/login`: `/dashboard` 302 + 잔여 `nx` 삭제
+  - 미인증 → 보호 경로: 즉시 `/login` 302 + httpOnly 쿠키 `nx`에 원경로 저장(5분)
+  - 인증 → `/login`: `/dashboard` 302 + 잔여 `nx` 삭제
   - 로그인 URL에 `?next`가 붙어오면 sanitize 후 `nx`로 변환하고 깨끗한 `/login`으로 정리
 
 ### Data & Rules
-- 판정 근거: 쿠키 `sid` 존재 여부만 사용(서명/유효성 검증은 서버 가드 담당, CU-WEB-004 / CU-BE-001)
+- 판정 근거: HttpOnly `refresh_token` 존재 여부를 1차 사용(서명/유효성 검증은 서버 가드 담당, CU-WEB-004 / CU-BE-001)
 - 캐시/프리페치
   - 프리페치/프리로드 요청 헤더(예: `purpose=prefetch`)는 리다이렉트하지 않음
 - Bypass
   - `/api/**`는 미들웨어에서 판정하지 않음(백엔드에서 인증·CSRF 처리)
   - 정적·문서 자산, 이미지 최적화 라우트, favicon 등은 그대로 통과
 - 보안
-  - 오픈 리다이렉트 방지: `next`에 `://` 또는 도메인이 포함되면 무시하고 `/`로 대체
-  - 쿠키 속성/경로는 백엔드 정책 준수(sid 만료/속성은 CU-BE-001)
+  - 오픈 리다이렉트 방지: `next`에 `://` 또는 도메인이 포함되면 무시하고 `/dashboard`로 대체
+  - 쿠키 속성/경로는 백엔드 정책 준수(refresh_token 기준, CU-BE-001)
 
 ### NFR & A11y
 - 성능: 미들웨어 판정 추가 지연 P95 < 10ms

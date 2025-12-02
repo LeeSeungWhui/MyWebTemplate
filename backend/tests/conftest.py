@@ -15,21 +15,18 @@ from configparser import ConfigParser
 
 # Ensure backend/ is importable
 BASE_DIR = os.path.dirname(os.path.dirname(__file__))
+TEST_CONFIG_PATH = os.path.join(BASE_DIR, "config.test.ini")
+os.environ["BACKEND_CONFIG"] = TEST_CONFIG_PATH
 if BASE_DIR not in sys.path:
     sys.path.insert(0, BASE_DIR)
 
 
 def _load_db_path() -> str:
-    # Read backend/config.ini to resolve database path relative to backend/
+    # 테스트 전용 config(test)에서 DB 경로를 읽는다.
     cfg = ConfigParser()
-    cfg.read(os.path.join(BASE_DIR, 'config.ini'), encoding='utf-8')
-    # Accept legacy [DATABASE] and current [DATABASE_1]/[DATABASE_2] sections.
-    section = None
-    for candidate in ('DATABASE', 'DATABASE_1', 'DATABASE_2'):
-        if candidate in cfg:
-            section = candidate
-            break
-    db_rel = cfg[section].get('database', './data/main.db') if section else './data/main.db'
+    cfg.read(TEST_CONFIG_PATH, encoding='utf-8')
+    section = 'DATABASE'
+    db_rel = cfg[section].get('database', './data/test.db') if section in cfg else './data/test.db'
     if not os.path.isabs(db_rel):
         return os.path.normpath(os.path.join(BASE_DIR, db_rel))
     return db_rel
@@ -58,13 +55,13 @@ def _ensure_user_table_and_demo(db_path: str) -> None:
             """
         )
         con.commit()
-        cur = con.execute("SELECT 1 FROM user_template WHERE username = ?", ("demo",))
+        cur = con.execute("SELECT 1 FROM user_template WHERE username = ?", ("demo@demo.demo",))
         if cur.fetchone():
             return
         pwd_hash = _hash_password_pbkdf2("password123")
         con.execute(
             "INSERT INTO user_template (username, password_hash, name, email, role) VALUES (?,?,?,?,?)",
-            ("demo", pwd_hash, "Demo User", "demo@demo.demo", "user"),
+            ("demo@demo.demo", pwd_hash, "Demo User", "demo@demo.demo", "user"),
         )
         con.commit()
     finally:

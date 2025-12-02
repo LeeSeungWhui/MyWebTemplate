@@ -10,10 +10,10 @@ import { isPublicPath } from '@/app/common/config/publicRoutes'
 
 function sanitizeNext(next) {
   // allow only same-origin absolute-path beginning with single '/'
-  if (!next || typeof next !== 'string') return '/'
-  if (!next.startsWith('/')) return '/'
-  if (next.startsWith('//')) return '/'
-  if (/^https?:/i.test(next)) return '/'
+  if (!next || typeof next !== 'string') return '/dashboard'
+  if (!next.startsWith('/')) return '/dashboard'
+  if (next.startsWith('//')) return '/dashboard'
+  if (/^https?:/i.test(next)) return '/dashboard'
   return next
 }
 
