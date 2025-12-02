@@ -75,7 +75,7 @@
 ## 현재 구현 상태(요약)
 
 - Backend: FastAPI 앱/라우터 자동 로드, 로그인·헤더·트랜잭션 샘플, sqlite(`backend/data/main.db`), 사용자 테이블 시드 스크립트(`backend/scripts/users_seed.py`).
-- Web: Next.js `frontend-web` 로그인 페이지와 보호 레이아웃 구현, 레거시 `frontend-web-old` 보관.
+- Web: Next.js `frontend-web` SSR 로그인(`/login`) + CSR 대안(`/loginCsr`), 보호 레이아웃, EasyObj/EasyList 바인딩 컴포넌트 묶음(Input/Textarea/EasyTable/useEasyUpload 등 최신 규약)과 컴포넌트 Docs 페이지 포함.
 - App: Expo 골격/네비게이션 + 기본 컴포넌트 + Dataset 구현.
 
 ## Acceptance Criteria(템플릿 완료)

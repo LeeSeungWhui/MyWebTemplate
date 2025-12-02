@@ -26,8 +26,8 @@ async def healthz(request: Request):
 
 @router.get("/readyz")
 async def readyz(request: Request):
-    result, ok = await CommonService.readyz({})
-    if ok:
+    result, is_ready = await CommonService.readyz({})
+    if is_ready:
         resp = successResponse(result=result)
         status = 200
     else:

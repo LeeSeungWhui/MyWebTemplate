@@ -39,7 +39,7 @@ const Card = ({
           )}
         </div>
       )}
-      <div className={`p-4 ${bodyClassName}`.trim()}>
+      <div className={`p-4 min-w-0 w-full ${bodyClassName}`.trim()}>
         {children}
       </div>
       {footer && (
@@ -52,4 +52,3 @@ const Card = ({
 };
 
 export default Card;
-

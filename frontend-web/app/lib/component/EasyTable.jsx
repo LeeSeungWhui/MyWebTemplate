@@ -118,7 +118,7 @@ const EasyTable = forwardRef(function EasyTable(
     rowClassName = '',
     cellClassName = '',
     rowsClassName = '', // container for rows (e.g., 'space-y-2')
-    preserveRowSpace = false,
+    preserveRowSpace = true,
     empty = '데이터가 없습니다.',
     loading = false,
     // interactions
@@ -219,7 +219,7 @@ const EasyTable = forwardRef(function EasyTable(
     : 0;
 
   const header = (
-    <div role="row" className={`grid w-full bg-[#667586] text-white text-sm font-semibold items-center ${headerClassName}`.trim()} style={{ gridTemplateColumns: columns.map(c => c.width || '1fr').join(' ') }}>
+    <div role="row" className={`grid w-full bg-[#667586] text-white text-sm font-semibold items-center ${headerClassName}`.trim()} style={{ gridTemplateColumns: columns.map(c => c.width ? 'auto' : '1fr').join(' ') }}>
       {columns.map((col, i) => (
         <div
           key={col.key ?? i}
@@ -260,7 +260,7 @@ const EasyTable = forwardRef(function EasyTable(
             key={keyVal}
             role="row"
             className={`grid w-full bg-white text-sm text-center items-center border-b hover:bg-gray-50 ${rowClassName}`.trim()}
-            style={{ gridTemplateColumns: columns.map(c => c.width || '1fr').join(' ') }}
+            style={{ gridTemplateColumns: columns.map(c => c.width ? 'auto' : '1fr').join(' ') }}
             onClick={onRowClick ? () => onRowClick(row, globalIdx) : undefined}
           >
             {columns.map((col, ci) => (
@@ -279,20 +279,19 @@ const EasyTable = forwardRef(function EasyTable(
       {Array.from({ length: fillerCount }).map((_, fillerIdx) => (
         <div
           key={`filler-${fillerIdx}`}
-          role="row"
+          role="presentation"
           aria-hidden="true"
           className={`grid w-full text-sm border-b opacity-0 pointer-events-none select-none ${rowClassName}`.trim()}
-          style={{ gridTemplateColumns: columns.map(c => c.width || '1fr').join(' ') }}
+          style={{ gridTemplateColumns: columns.map(c => c.width ? 'auto' : '1fr').join(' ') }}
         >
           {columns.map((col, ci) => (
             <div
               key={`filler-cell-${ci}`}
-              role="cell"
               aria-hidden="true"
               className={`px-3 py-3 ${cellClassName} ${col.cellClassName || ''}`.trim()}
               style={{ width: col.width || 'auto', textAlign: col.align || 'center' }}
             >
-              &nbsp;
+              Dummy
             </div>
           ))}
         </div>

@@ -38,6 +38,7 @@ export { default as Stat } from './component/Stat';
 export { default as EasyEditor } from './component/EasyEditor';
 export { useEasyEditor } from './component/EasyEditor';
 export { default as PdfViewer } from './component/PdfViewer/PdfViewer';
+export { default as EasyChart } from './component/EasyChart';
 // Datasets
 export { default as EasyObj } from './dataset/EasyObj';
 export { default as EasyList } from './dataset/EasyList';

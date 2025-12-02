@@ -13,13 +13,13 @@ function sanitizeNext(next) {
 export function middleware(req) {
   const url = new URL(req.url)
   const path = url.pathname
-  const sid = req.cookies.get('sid')
+  const sidCookie = req.cookies.get('sid') || req.cookies.get('access_token')
 
-  // If already authenticated and visiting /login, bounce to home
+  // If already authenticated and visiting /login or root, bounce to home/dashboard
   if (path.startsWith('/login')) {
     // If authed, clear any leftover next-hint cookie and redirect home
-    if (sid) {
-      const res = NextResponse.redirect(new URL('/', req.url))
+    if (sidCookie) {
+      const res = NextResponse.redirect(new URL('/dashboard', req.url))
       res.cookies.set('nx', '', { path: '/', maxAge: 0 })
       return res
     }
@@ -33,10 +33,15 @@ export function middleware(req) {
     return NextResponse.next()
   }
 
+  if (path === '/' && sidCookie) {
+    const res = NextResponse.redirect(new URL('/dashboard', req.url))
+    return res
+  }
+
   // Allow public routes to pass without auth
   if (isPublicPath(path)) return NextResponse.next()
 
-  if (!sid) {
+  if (!sidCookie) {
     const res = NextResponse.redirect(new URL('/login', req.url))
     const nextValue = sanitizeNext(path + (url.search || ''))
     // Stash desired path in httpOnly cookie (hidden from address bar and client JS)

@@ -11,10 +11,10 @@
 - Docs/Client: OpenAPI(Swagger UI/Redoc), JS 클라이언트(openapi-client-axios)
 
 ## 인증 모드 & CORS
-- Web(Next): 쿠키 세션(SessionMiddleware). HttpOnly, (prod) Secure, SameSite=Lax.
-- App(Expo): Bearer 토큰(SecureStore 보관).
-- CORS(dev): Web 쿠키 모드 origin= http://localhost:3000 + allow_credentials=true. 토큰 전용은 * 허용+allow_credentials=false 가능.
-- CSRF(쿠키 모드): POST/PUT/PATCH/DELETE 요청에서 X-CSRF-Token(설정값) 필수.
+- Web/APP 공통: 토큰 기반. 액세스 토큰은 짧게 발급해 HttpOnly Access 쿠키로 내려주고, 리프레시 토큰은 HttpOnly Refresh 쿠키로 관리(rememberMe에 따라 session/장기).
+- BFF(Next)에서 Access 쿠키를 읽어 `Authorization: Bearer ...` 헤더로 백엔드에 전달, 401 시 한 번 `/api/v1/auth/refresh` 후 재시도.
+- CORS(dev): origin= http://localhost:3000 + allow_credentials=true(리프레시 쿠키 전달). 필요 시 allow_origin_regex 사용.
+- CSRF: 세션을 쓰지 않으므로 비멱등 요청에서 CSRF 헤더 요구를 제거. Refresh는 HttpOnly 쿠키 검증으로 처리.
 
 ## 버전
 - 모든 업무 도메인 경로는 /api/v1/... 사용. 과거 .do 경로는 이관/리다이렉트.
@@ -109,7 +109,7 @@ port = 2000
 - 배포: gunicorn -k uvicorn.workers.UvicornWorker server:app -w 4 -b 0.0.0.0:8000
 
 ## 체크리스트
-- SessionMiddleware: HttpOnly/SameSite=Lax, prod Secure. max_age=[AUTH].token_expire
+- 토큰 방식: Access/Refresh 둘 다 HttpOnly 쿠키. Access는 짧게, Refresh는 rememberMe에 따라 session/장기. 401 → refresh → 재시도.
 - Health: GET /healthz, GET /readyz(DB ping/캐시) 제공
 - OpenAPI: 스키마/보안 정의, 쿠키+Bearer 병행
 - JS 클라이언트: openapi-client-axios 가이드(타입스크립트 금지)

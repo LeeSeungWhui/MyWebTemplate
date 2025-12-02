@@ -19,6 +19,9 @@ const Input = forwardRef(({
     className = "",
     placeholder,
     onChange,
+    onValueChange,
+    value: propValue,
+    defaultValue = "",
     error,
     filter,
     mask,
@@ -27,13 +30,13 @@ const Input = forwardRef(({
     prefix,
     suffix,
     togglePassword,
-    ...props
+    ...rest
 }, ref) => {
     const isControlled = dataObj && dataKey;
     const [showPassword, setShowPassword] = useState(false);
     const [isComposing, setIsComposing] = useState(false);
     const [draftValue, setDraftValue] = useState(undefined);
-    const [innerValue, setInnerValue] = useState(() => props.value ?? props.defaultValue ?? "");
+    const [innerValue, setInnerValue] = useState(() => propValue ?? defaultValue ?? "");
     const composingRef = useRef(false);
     const baseStyle = "appearance-none block w-full px-3 py-2 border rounded-md shadow-sm text-sm focus:outline-none focus:ring-2 focus:ring-offset-0";
     const HANGUL_RE = /[\u1100-\u11FF\u3130-\u318F\uAC00-\uD7A3]/; // 한글 범위
@@ -255,7 +258,7 @@ const Input = forwardRef(({
             try { e.target.value = committed; } catch (_) { /* ignore readonly target */ }
         }
         const ctx = buildCtx({ dataKey, dataObj, source: 'user', valid: null, dirty: true });
-        fireValueHandlers({ onChange, onValueChange: props.onValueChange, value: committed, ctx, event: e });
+        fireValueHandlers({ onChange, onValueChange, value: committed, ctx, event: e });
     };
 
     const inputClass = `
@@ -303,7 +306,7 @@ const Input = forwardRef(({
                         try { e.target.value = committed; } catch (_) { /* ignore */ }
                     }
                     const ctx = buildCtx({ dataKey, dataObj, source: 'user', valid: null, dirty: true });
-                    fireValueHandlers({ onChange, onValueChange: props.onValueChange, value: committed, ctx, event: e });
+                    fireValueHandlers({ onChange, onValueChange, value: committed, ctx, event: e });
                 }}
                 onBlur={(e) => {
                     // Ensure final sanitize on blur in case some IME didn't fire compositionend properly
@@ -312,7 +315,7 @@ const Input = forwardRef(({
                         try { e.target.value = committed; } catch (_) { /* ignore */ }
                     }
                     const ctx = buildCtx({ dataKey, dataObj, source: 'user', valid: null, dirty: true });
-                    fireValueHandlers({ onChange, onValueChange: props.onValueChange, value: committed, ctx, event: e });
+                    fireValueHandlers({ onChange, onValueChange, value: committed, ctx, event: e });
                 }}
                 className={`
                     ${inputClass}
@@ -321,7 +324,7 @@ const Input = forwardRef(({
                     ${togglePassword ? 'pr-10' : ''}
                 `}
                 aria-invalid={!!error}
-                {...props}
+                {...rest}
             />
             {suffix && (
                 <div className="absolute right-3 top-1/2 transform -translate-y-1/2">

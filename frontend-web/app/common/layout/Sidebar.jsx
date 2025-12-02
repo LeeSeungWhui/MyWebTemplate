@@ -61,7 +61,6 @@ const Sidebar = ({
     if (!isOpen) return -EXPANDED_WIDTH;
     return 0;
   });
-  const [isAnimating, setIsAnimating] = useState(false);
   const isFirstRenderRef = useRef(true);
   const [expanded, setExpanded] = useState({});
   const pathname = usePathname();
@@ -111,68 +110,44 @@ const Sidebar = ({
   useEffect(() => {
     if (isFirstRenderRef.current) {
       isFirstRenderRef.current = false;
+      setRenderWidth(isOpen ? (collapsed ? COLLAPSED_WIDTH : EXPANDED_WIDTH) : 0);
+      setTranslateX(isOpen ? 0 : -EXPANDED_WIDTH);
       return;
     }
-    setIsAnimating(true);
     let timer = null;
-
-    // 닫기: 왼쪽으로 밀어낸 뒤 폭 제거
-    if (!isOpen) {
-      setTranslateX(-renderWidth || -EXPANDED_WIDTH);
-      timer = setTimeout(() => {
-        setRenderWidth(0);
-        setTranslateX(-EXPANDED_WIDTH);
-        setIsAnimating(false);
-      }, TRANSITION_MS);
-      return () => {
-        if (timer) clearTimeout(timer);
-      };
-    }
-
     const targetWidth = collapsed ? COLLAPSED_WIDTH : EXPANDED_WIDTH;
 
-    // 열기: 오른쪽으로 먼저 밀어 넣고, 이동 후 폭을 복원
+    // 닫기: 현재 폭만큼 왼쪽으로 밀고, 애니메이션 뒤 폭 0
+    if (!isOpen) {
+      setTranslateX(-renderWidth || -targetWidth);
+      timer = setTimeout(() => {
+        setRenderWidth(0);
+      }, TRANSITION_MS);
+      return () => {
+        if (timer) clearTimeout(timer);
+      };
+    }
+
+    // 열기: 폭을 먼저 복원하고 화면 밖에서 슬라이드 인
     if (renderWidth === 0) {
-      setTranslateX(0);
-      timer = setTimeout(() => {
-        setRenderWidth(targetWidth);
-        setTranslateX(0);
-        setIsAnimating(false);
-      }, TRANSITION_MS);
-      return () => {
-        if (timer) clearTimeout(timer);
-      };
+      setRenderWidth(targetWidth);
+      setTranslateX(-targetWidth);
+      requestAnimationFrame(() => setTranslateX(0));
+      return;
     }
 
-    // 축소/확대 전환: 이동 → 폭 변경 순서
-    if (collapsed) {
-      setTranslateX(-(EXPANDED_WIDTH - COLLAPSED_WIDTH));
-      timer = setTimeout(() => {
-        setRenderWidth(COLLAPSED_WIDTH);
-        setTranslateX(0);
-        setIsAnimating(false);
-      }, TRANSITION_MS);
-      return () => {
-        if (timer) clearTimeout(timer);
-      };
-    }
-
-    // 확대(축소 → 확장)
-    setTranslateX(EXPANDED_WIDTH - COLLAPSED_WIDTH);
-    timer = setTimeout(() => {
-      setRenderWidth(EXPANDED_WIDTH);
-      setTranslateX(0);
-      setIsAnimating(false);
-    }, TRANSITION_MS);
+    // 축소/확대: 폭만 바꾸고 위치는 고정
+    setRenderWidth(targetWidth);
+    setTranslateX(0);
     return () => {
       if (timer) clearTimeout(timer);
     };
-  }, [isOpen, collapsed, renderWidth, COLLAPSED_WIDTH, EXPANDED_WIDTH, TRANSITION_MS]);
+  }, [collapsed, isOpen, COLLAPSED_WIDTH, EXPANDED_WIDTH, TRANSITION_MS, renderWidth]);
 
-  const transitionStyle = {
+  const drawerStyle = {
     width: `${renderWidth}px`,
     transform: `translateX(${translateX}px)`,
-    transition: isAnimating ? `transform ${TRANSITION_MS}ms ease, width ${TRANSITION_MS}ms ease` : undefined,
+    transition: `transform ${TRANSITION_MS}ms ease`,
   };
   const toggleGroup = (key) => {
     setExpanded((prev) => ({ ...prev, [key]: !prev[key] }));
@@ -212,141 +187,147 @@ const Sidebar = ({
       active ? "bg-blue-50 text-blue-700 font-semibold ring-1 ring-blue-100" : "text-gray-700 hover:bg-gray-50",
     ].join(" ");
 
+  const renderContent = (isMini) => (
+    <>
+      {logo ? (
+        <div className="px-4 py-3">
+          <div className={`${isMini ? "sr-only" : ""} text-sm font-semibold text-gray-900`}>{logo}</div>
+        </div>
+      ) : null}
+
+      <button
+        type="button"
+        onClick={toggleCollapsed}
+        aria-label={isMini ? "사이드바 펼치기" : "사이드바 접기"}
+        className="absolute -right-3 top-1/2 -translate-y-1/2 hidden h-8 w-8 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-600 shadow-sm hover:bg-gray-50 lg:flex"
+      >
+        <Icon icon={isMini ? "ri:RiArrowRightSLine" : "ri:RiArrowLeftSLine"} size="1.2em" />
+      </button>
+
+      <button
+        type="button"
+        onClick={onClose}
+        aria-label="사이드바 닫기"
+        className="absolute right-2 top-2 rounded-md p-2 text-gray-500 hover:bg-gray-100 lg:hidden"
+      >
+        <Icon icon="ri:RiCloseLine" size="1.1em" />
+      </button>
+
+      <nav className="flex-1 overflow-y-auto px-3 py-4" aria-label="사이드바 메뉴">
+        <ul className="space-y-1">
+          {resolvedItems.map((item) => {
+            const key = item.key || item.label || item.href;
+            const children = subMenuMap.get(item.key) || [];
+            const active = isActive(item, children);
+            const hasChildren = children.length > 0;
+            const isOpenGroup = expanded[key] || false;
+
+            const content = (
+              <div className="flex w-full items-center gap-3">
+                {item.icon ? <Icon icon={item.icon} size="1.1em" ariaLabel={item.label} /> : null}
+                <span className={`${isMini ? "sr-only" : "truncate"}`}>{item.label}</span>
+                {item.badge && !isMini ? (
+                  <span className="ml-auto rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-700">{item.badge}</span>
+                ) : null}
+                {hasChildren ? (
+                  <Icon
+                    icon={isOpenGroup ? "ri:RiArrowUpSLine" : "ri:RiArrowDownSLine"}
+                    size="1em"
+                    className={`ml-auto text-gray-500 ${isMini ? "hidden" : ""}`}
+                  />
+                ) : null}
+              </div>
+            );
+
+            return (
+              <li key={key}>
+                {hasChildren ? (
+                  <>
+                    <button
+                      type="button"
+                      className={navItemClass(active)}
+                      onClick={() => toggleGroup(key)}
+                      aria-expanded={isOpenGroup ? "true" : "false"}
+                      aria-controls={`${key}-children-${isMini ? "mini" : "full"}`}
+                      title={item.label}
+                    >
+                      {content}
+                    </button>
+                    <ul
+                      id={`${key}-children-${isMini ? "mini" : "full"}`}
+                      className={`${isOpenGroup ? "mt-1 space-y-1" : "hidden"} ${isMini ? "" : "pl-3"}`}
+                      aria-label={`${item.label} 하위 메뉴`}
+                    >
+                      {children.map((child) => {
+                        const childKey = child.key || child.label || child.href;
+                        const childActive = isActive(child);
+                        const childClass = navItemClass(childActive);
+                        const childContent = (
+                          <div className="flex w-full items-center gap-3 pl-2">
+                            {child.icon ? (
+                              <Icon icon={child.icon} size="1.05em" ariaLabel={child.label} />
+                            ) : (
+                              <span className="h-1.5 w-1.5 rounded-full bg-gray-300" aria-hidden />
+                            )}
+                            <span className={`${isMini ? "sr-only" : "truncate"}`}>{child.label}</span>
+                            {child.badge && !isMini ? (
+                              <span className="ml-auto rounded-full bg-gray-50 px-2 py-0.5 text-xs text-gray-600">
+                                {child.badge}
+                              </span>
+                            ) : null}
+                          </div>
+                        );
+                        if (child.href) {
+                          return (
+                            <li key={childKey}>
+                              <Link href={child.href} className={childClass} aria-current={childActive ? "page" : undefined} title={child.label}>
+                                {childContent}
+                              </Link>
+                            </li>
+                          );
+                        }
+                        return (
+                          <li key={childKey}>
+                            <button type="button" className={childClass} onClick={child.onClick} title={child.label}>
+                              {childContent}
+                            </button>
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  </>
+                ) : item.href ? (
+                  <Link
+                    href={item.href}
+                    className={navItemClass(active)}
+                    aria-current={active ? "page" : undefined}
+                    title={item.label}
+                  >
+                    {content}
+                  </Link>
+                ) : (
+                  <button type="button" onClick={item.onClick} className={navItemClass(active)} title={item.label}>
+                    {content}
+                  </button>
+                )}
+              </li>
+            );
+          })}
+        </ul>
+      </nav>
+      {footerSlot ? <div className="border-t border-gray-100 p-3 text-xs text-gray-500">{footerSlot}</div> : null}
+    </>
+  );
+
   return (
     <>
       <div className={`fixed inset-0 z-30 bg-gray-900/30 lg:hidden ${isOpen ? "" : "hidden"}`} onClick={onClose} aria-hidden="true" />
       <aside
-        className={`relative z-40 flex min-h-full flex-col border-r border-gray-200 bg-white shadow-sm lg:static ${isOpen ? "" : "pointer-events-none"} ${className}`.trim()}
+        className={`relative z-40 flex min-h-full flex-none flex-col overflow-visible border-r border-gray-200 bg-white shadow-sm lg:static ${isOpen ? "" : "pointer-events-none"} ${className}`.trim()}
         aria-label="사이드바 내비게이션"
-        style={transitionStyle}
+        style={drawerStyle}
       >
-        {logo ? (
-          <div className="px-4 py-3">
-            <div className={`${collapsed ? "sr-only" : ""} text-sm font-semibold text-gray-900`}>{logo}</div>
-          </div>
-        ) : null}
-
-        <button
-          type="button"
-          onClick={toggleCollapsed}
-          aria-label={collapsed ? "사이드바 펼치기" : "사이드바 접기"}
-          className="absolute -right-3 top-1/2 -translate-y-1/2 hidden h-8 w-8 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-600 shadow-sm hover:bg-gray-50 lg:flex"
-        >
-          <Icon icon={collapsed ? "ri:RiArrowRightSLine" : "ri:RiArrowLeftSLine"} size="1.2em" />
-        </button>
-
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label="사이드바 닫기"
-          className="absolute right-2 top-2 rounded-md p-2 text-gray-500 hover:bg-gray-100 lg:hidden"
-        >
-          <Icon icon="ri:RiCloseLine" size="1.1em" />
-        </button>
-
-        <nav className="flex-1 overflow-y-auto px-3 py-4" aria-label="사이드바 메뉴">
-          <ul className="space-y-1">
-            {resolvedItems.map((item) => {
-              const key = item.key || item.label || item.href;
-              const children = subMenuMap.get(item.key) || [];
-              const active = isActive(item, children);
-              const hasChildren = children.length > 0;
-              const isOpenGroup = expanded[key] || false;
-
-              const content = (
-                <div className="flex w-full items-center gap-3">
-                  {item.icon ? <Icon icon={item.icon} size="1.1em" ariaLabel={item.label} /> : null}
-                  <span className={`${collapsed ? "sr-only" : "truncate"}`}>{item.label}</span>
-                  {item.badge && !collapsed ? (
-                    <span className="ml-auto rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-700">{item.badge}</span>
-                  ) : null}
-                  {hasChildren ? (
-                    <Icon
-                      icon={isOpenGroup ? "ri:RiArrowUpSLine" : "ri:RiArrowDownSLine"}
-                      size="1em"
-                      className={`ml-auto text-gray-500 ${collapsed ? "hidden" : ""}`}
-                    />
-                  ) : null}
-                </div>
-              );
-
-              return (
-                <li key={key}>
-                  {hasChildren ? (
-                    <>
-                      <button
-                        type="button"
-                        className={navItemClass(active)}
-                        onClick={() => toggleGroup(key)}
-                        aria-expanded={isOpenGroup ? "true" : "false"}
-                        aria-controls={`${key}-children`}
-                        title={item.label}
-                      >
-                        {content}
-                      </button>
-                      <ul
-                        id={`${key}-children`}
-                        className={`${isOpenGroup ? "mt-1 space-y-1" : "hidden"} ${collapsed ? "" : "pl-3"}`}
-                        aria-label={`${item.label} 하위 메뉴`}
-                      >
-                        {children.map((child) => {
-                          const childKey = child.key || child.label || child.href;
-                          const childActive = isActive(child);
-                          const childClass = navItemClass(childActive);
-                          const childContent = (
-                            <div className="flex w-full items-center gap-3 pl-2">
-                              {child.icon ? (
-                                <Icon icon={child.icon} size="1.05em" ariaLabel={child.label} />
-                              ) : (
-                                <span className="h-1.5 w-1.5 rounded-full bg-gray-300" aria-hidden />
-                              )}
-                              <span className={`${collapsed ? "sr-only" : "truncate"}`}>{child.label}</span>
-                              {child.badge && !collapsed ? (
-                                <span className="ml-auto rounded-full bg-gray-50 px-2 py-0.5 text-xs text-gray-600">
-                                  {child.badge}
-                                </span>
-                              ) : null}
-                            </div>
-                          );
-                          if (child.href) {
-                            return (
-                              <li key={childKey}>
-                                <Link href={child.href} className={childClass} aria-current={childActive ? "page" : undefined} title={child.label}>
-                                  {childContent}
-                                </Link>
-                              </li>
-                            );
-                          }
-                          return (
-                            <li key={childKey}>
-                              <button type="button" className={childClass} onClick={child.onClick} title={child.label}>
-                                {childContent}
-                              </button>
-                            </li>
-                          );
-                        })}
-                      </ul>
-                    </>
-                  ) : item.href ? (
-                    <Link
-                      href={item.href}
-                      className={navItemClass(active)}
-                      aria-current={active ? "page" : undefined}
-                      title={item.label}
-                    >
-                      {content}
-                    </Link>
-                  ) : (
-                    <button type="button" onClick={item.onClick} className={navItemClass(active)} title={item.label}>
-                      {content}
-                    </button>
-                  )}
-                </li>
-              );
-            })}
-          </ul>
-        </nav>
-        {footerSlot ? <div className="border-t border-gray-100 p-3 text-xs text-gray-500">{footerSlot}</div> : null}
+        {renderContent(collapsed)}
       </aside>
     </>
   );

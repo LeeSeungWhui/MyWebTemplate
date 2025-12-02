@@ -2,7 +2,7 @@
 /**
  * 파일명: EasyChart.jsx
  * 작성자: Codex
- * 갱신일: 2025-11-26
+ * 갱신일: 2025-11-27
  * 설명: Recharts 기반 대시보드 차트 카드 래퍼
  */
 
@@ -39,6 +39,7 @@ const palette = [
   "#14b8a6",
 ];
 const defaultMargin = { top: 12, right: 20, left: 10, bottom: 12 };
+const donutMargin = { top: 36, right: 16, bottom: 24, left: 16 };
 const isListLike = (list) =>
   !!list && (typeof list.size === "function" || Array.isArray(list));
 const toArray = (list) => {
@@ -135,10 +136,10 @@ const EasyChart = ({
     useComposed && hasSeries
       ? ComposedChart
       : type === "bar"
-      ? BarChart
-      : type === "area"
-      ? AreaChart
-      : LineChart;
+        ? BarChart
+        : type === "area"
+          ? AreaChart
+          : LineChart;
 
   const renderSeries = () => {
     if (!hasSeries) return null;
@@ -252,17 +253,20 @@ const EasyChart = ({
         );
       };
 
+      const pieHeight = Math.max(height, 180);
       return (
-        <div style={{ height, minWidth: 0 }} className="min-w-0 w-full pt-1">
+        <div style={{ height: pieHeight, minWidth: 0 }} className="min-w-0 w-full">
           <ResponsiveContainer width="100%" height="100%" minWidth={0}>
-            <PieChart>
+            <PieChart margin={donutMargin}>
               <Tooltip
                 contentStyle={{ borderRadius: 8, borderColor: "#e5e7eb" }}
                 labelStyle={{ color: "#111827", fontWeight: 600 }}
               />
               {!hideLegend && (
                 <Legend
-                  wrapperStyle={{ paddingTop: 8, fontSize: legendFontSize }}
+                  verticalAlign="bottom"
+                  align="center"
+                  wrapperStyle={{ paddingTop: 6, bottom: 8, fontSize: legendFontSize }}
                   iconType="circle"
                   iconSize={10}
                 />
@@ -295,7 +299,7 @@ const EasyChart = ({
       );
     }
     return (
-      <div style={{ height, minWidth: 0 }} className="min-w-0 w-full pt-1">
+      <div style={{ height, minWidth: 0 }} className="min-w-0 w-full">
         <ResponsiveContainer width="100%" height="100%" minWidth={0}>
           <ChartComponent data={resolvedData} margin={defaultMargin}>
             <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
@@ -320,7 +324,9 @@ const EasyChart = ({
             />
             {!hideLegend && (
               <Legend
-                wrapperStyle={{ paddingTop: 8, fontSize: legendFontSize }}
+                verticalAlign="bottom"
+                align="center"
+                wrapperStyle={{ paddingTop: 6, bottom: 8, fontSize: legendFontSize }}
                 iconType="circle"
                 iconSize={10}
               />
@@ -338,7 +344,7 @@ const EasyChart = ({
       subtitle={subtitle}
       actions={actions}
       className={`h-full ${className}`.trim()}
-      bodyClassName="space-y-4"
+      bodyClassName="space-y-2"
       {...cardProps}
     >
       {renderBody()}

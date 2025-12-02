@@ -40,6 +40,7 @@ import SkeletonDocs from './docs/components/SkeletonDocs'
 import EmptyDocs from './docs/components/EmptyDocs'
 import PdfViewerDocs from './docs/components/PdfViewerDocs'
 import EasyEditorDocs from './docs/components/EasyEditorDocs'
+import EasyChartDocs from './docs/components/EasyChartDocs'
 
 /**
  * 컴포넌트 문서 페이지
@@ -89,6 +90,7 @@ const ComponentsPage = () => {
           <DropdownDocs />
           <StatDocs />
           <EasyEditorDocs />
+          <EasyChartDocs />
           <PdfViewerDocs />
         </div>
       </div>

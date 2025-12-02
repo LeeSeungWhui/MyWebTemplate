@@ -17,7 +17,6 @@ except Exception:  # pragma: no cover - 단일 스크립트 실행 대응
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from starlette.middleware.sessions import SessionMiddleware
 
 # backend.server / server 양쪽 임포트 경로를 모두 지원
 try:  # 패키지 컨텍스트
@@ -175,8 +174,12 @@ async def onStartup():
     authConfig = config["AUTH"]
     AuthConfig.initConfig(
         secretKey=authConfig["secret_key"],
-        expireMinutes=authConfig.getint("token_expire", 3600) // 60,
+        accessExpireMinutes=authConfig.getint("token_expire", 3600) // 60,
+        refreshExpireMinutes=authConfig.getint("refresh_expire", 3600 * 24 * 7)
+        // 60,
         tokenEnable=authConfig.getboolean("token_enable", True),
+        accessCookie=authConfig.get("access_cookie", "access_token"),
+        refreshCookie=authConfig.get("refresh_cookie", "refresh_token"),
     )
 
     # 사용자 테이블 생성/시드는 스크립트나 AuthService가 담당하므로 여기서는 건드리지 않는다.
@@ -238,16 +241,6 @@ app.add_event_handler("shutdown", onShutdown)
 
 # 요청 로그 및 request id 전파 미들웨어
 app.add_middleware(RequestLogMiddleware)
-
-# 웹 세션 쿠키 미들웨어
-app.add_middleware(
-    SessionMiddleware,
-    secret_key=cfg["AUTH"]["secret_key"],
-    session_cookie=cfg["AUTH"].get("session_cookie", "sid"),
-    same_site="lax",
-    https_only=os.getenv("ENV", "dev").lower() == "prod",
-    max_age=cfg["AUTH"].getint("token_expire", 3600),
-)
 
 # 라우터 로딩
 logger.info("router load start")

@@ -1,75 +1,67 @@
 {
-	"folders": [
-		{
-			"path": "."
-		},
-	],
-	"settings": {
-		// ── Windows 터미널 프로필
-		"terminal.integrated.profiles.windows": {
-			"Command Prompt": {
-				"path": "cmd.exe",
-				"args": [
-					"/K",
-					".\\env.bat"
-				]
-			},
-			"PowerShell": {
-				"source": "PowerShell",
-				"icon": "terminal-powershell",
-				"args": [
-					"-NoExit",
-					"-Command",
-					"& { . '.\\env.ps1' }"
-				]
-			}
-		},
-		"terminal.integrated.defaultProfile.windows": "PowerShell",
-		// ── Linux(WSL) 전용 터미널 프로필: env.sh를 소스하고 로그인 셸로 전환
-		"terminal.integrated.profiles.linux": {
-			"Project Env (bash)": {
-				"path": "/bin/bash",
-				"args": [
-					"-l",
-					"-c",
-					"source ./env.sh; exec bash -l"
-				],
-				"icon": "terminal-bash"
-			}
-		},
-		"terminal.integrated.defaultProfile.linux": "Project Env (bash)",
-		"files.exclude": {
-			"**/node_modules": true
-		},
-		//"python.defaultInterpreterPath": "${workspaceFolder}/../../../Python3.12.8/python.exe",
-			"python.defaultInterpreterPath": "${workspaceFolder}/../../../Python3.12.10/bin/python3",
-			"[python]": {
-				"editor.defaultFormatter": "ms-python.black-formatter",
-				"editor.formatOnSave": true,
-				"editor.codeActionsOnSave": {
-					"source.fixAll.ruff": "explicit",
-					"source.organizeImports.ruff": "explicit"
-				}
-			},
-			"black-formatter.args": [],
-			"black-formatter.interpreter": [
-				"${workspaceFolder}/../../../Python3.12.10/bin/python3"
-			],
-			"prettier.disableLanguages": ["python"],
-			"chatgpt.openOnStartup": true
-		},
-	"extensions": {
-		"recommendations": [
-			"johnstoncode.svn-scm",
-			"simonsiefke.svg-preview",
-			"pkief.material-icon-theme",
-			"ms-ceintl.vscode-language-pack-ko",
-			"donjayamanne.githistory",
-			"dbaeumer.vscode-eslint",
-			"rodrigovallades.es7-react-js-snippets",
-			"clinyong.vscode-css-modules",
-			"formulahendry.auto-rename-tag",
-			"formulahendry.auto-close-tag"
-		]
-	}
+  "folders": [
+    {
+      "path": "."
+    },
+    {
+      "path": "../../ScoutPartners/cvfit-service-frontend"
+    }
+  ],
+  "settings": {
+    // ── Windows 터미널 프로필
+    "terminal.integrated.profiles.windows": {
+      "Command Prompt": {
+        "path": "cmd.exe",
+        "args": ["/K", ".\\env.bat"]
+      },
+      "PowerShell": {
+        "source": "PowerShell",
+        "icon": "terminal-powershell",
+        "args": ["-NoExit", "-Command", "& { . '.\\env.ps1' }"]
+      }
+    },
+    "terminal.integrated.defaultProfile.windows": "PowerShell",
+    // ── Linux(WSL) 전용 터미널 프로필: env.sh를 소스하고 로그인 셸로 전환
+    "terminal.integrated.profiles.linux": {
+      "Project Env (bash)": {
+        "path": "/bin/bash",
+        "args": ["-l", "-c", "source ./env.sh; exec bash -l"],
+        "icon": "terminal-bash"
+      }
+    },
+    "terminal.integrated.defaultProfile.linux": "Project Env (bash)",
+    "files.exclude": {
+      "**/node_modules": true
+    },
+    //"python.defaultInterpreterPath": "${workspaceFolder}/../../../Python3.12.8/python.exe",
+    "python.defaultInterpreterPath": "${workspaceFolder}/../../../Python3.12.10/bin/python3",
+    "[python]": {
+      "editor.defaultFormatter": "ms-python.black-formatter",
+      "editor.formatOnSave": true,
+      "editor.codeActionsOnSave": {
+        "source.fixAll.ruff": "explicit",
+        "source.organizeImports.ruff": "explicit"
+      }
+    },
+    "black-formatter.args": [],
+    "black-formatter.interpreter": [
+      "${workspaceFolder}/../../../Python3.12.10/bin/python3"
+    ],
+    "prettier.disableLanguages": ["python"],
+    "chatgpt.openOnStartup": true
+  },
+  "extensions": {
+    "recommendations": [
+      "johnstoncode.svn-scm",
+      "simonsiefke.svg-preview",
+      "pkief.material-icon-theme",
+      "ms-ceintl.vscode-language-pack-ko",
+      "donjayamanne.githistory",
+      "dbaeumer.vscode-eslint",
+      "rodrigovallades.es7-react-js-snippets",
+      "clinyong.vscode-css-modules",
+      "formulahendry.auto-rename-tag",
+      "formulahendry.auto-close-tag"
+    ]
+  }
 }

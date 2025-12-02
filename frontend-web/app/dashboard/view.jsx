@@ -17,7 +17,7 @@ import { apiJSON } from "@/app/lib/runtime/api";
 import { PAGE_MODE } from "./initData";
 
 const CHART_HEIGHT = 180;
-const DONUT_HEIGHT = 240;
+const DONUT_HEIGHT = 180;
 const STATUS_LABELS = {
   ready: "준비",
   pending: "대기",
@@ -84,28 +84,25 @@ const DashboardView = ({ statList, dataList, initialError }) => {
       (acc, row) => acc + Number(row.amount_sum ?? 0),
       0
     );
-    const readyCount =
-      byStatus.find((row) => row.status === "ready")?.count ?? 0;
+    const activeCount =
+      byStatus.find((row) => row.status === "active")?.count ?? 0;
     return [
       {
         label: "전체 건수",
         value: totalCount.toLocaleString("ko-KR"),
         delta: null,
-        helpText: "data_template 총합",
         deltaType: "neutral",
       },
       {
         label: "총 금액",
         value: `${formatCurrency(totalAmount)}`,
         delta: null,
-        helpText: "amount 합계",
         deltaType: "neutral",
       },
       {
-        label: "준비 상태",
-        value: readyCount.toLocaleString("ko-KR"),
+        label: "활성 상태",
+        value: activeCount.toLocaleString("ko-KR"),
         delta: null,
-        helpText: "status=ready",
         deltaType: "neutral",
       },
     ];
@@ -143,7 +140,7 @@ const DashboardView = ({ statList, dataList, initialError }) => {
       : null;
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-2">
       {errorText ? (
         <section aria-label="오류 안내">
           <div
@@ -161,10 +158,9 @@ const DashboardView = ({ statList, dataList, initialError }) => {
         ))}
       </section>
 
-      <section aria-label="차트 영역" className="grid gap-3 xl:grid-cols-2">
+      <section aria-label="차트 영역" className="grid gap-3 md:grid-cols-2">
         <EasyChart
           title="가입/활성 추이"
-          subtitle="월별 등록/금액"
           dataList={lineData}
           seriesList={[
             {
@@ -185,16 +181,10 @@ const DashboardView = ({ statList, dataList, initialError }) => {
           height={CHART_HEIGHT}
           hideLegend={false}
           legendFontSize={legendFontSize}
-          actions={
-            <Button size="sm" onClick={fetchDashboard} disabled={isLoading}>
-              새로고침
-            </Button>
-          }
         />
 
         <EasyChart
           title="상태 분포"
-          subtitle="status 그룹"
           dataList={donutData}
           seriesList={[
             {
@@ -216,7 +206,6 @@ const DashboardView = ({ statList, dataList, initialError }) => {
       <section aria-label="업무 테이블">
         <Card
           title="최근 업무"
-          subtitle="최신 4건"
           actions={
             <Button size="sm" variant="secondary">
               전체보기

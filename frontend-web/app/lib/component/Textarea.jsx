@@ -36,15 +36,16 @@ const Textarea = forwardRef(({
   };
 
   useEffect(() => {
-    // When external control changes, clear draft to reflect new source
-    setDraftValue(undefined);
+    const external = getExternalValue();
+    if (draftValue !== undefined && draftValue === external) {
+      setDraftValue(undefined);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [propValue, dataObj, dataKey]);
+  }, [propValue, dataObj, dataKey, draftValue]);
 
   const commit = (raw, e) => {
     if (isData) setBoundValue(dataObj, dataKey, raw);
     if (!isPropControlled && !isData) setInnerValue(raw);
-    setDraftValue(undefined);
     const ctx = buildCtx({ dataKey, dataObj, source: 'user', dirty: true, valid: null });
     const evt = e ? { ...e, target: { ...e.target, value: raw } } : { target: { value: raw } };
     fireValueHandlers({ onChange, onValueChange, value: raw, ctx, event: evt });
@@ -53,7 +54,7 @@ const Textarea = forwardRef(({
   const base = 'block w-full px-3 py-2 text-sm rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-0 bg-white';
   const states = error ? 'border border-red-300 focus:ring-red-500 focus:border-red-500' : 'border border-gray-300 focus:ring-blue-500 focus:border-blue-500';
 
-  const value = (draftValue ?? getExternalValue());
+  const value = draftValue ?? getExternalValue();
 
   return (
     <textarea
@@ -64,11 +65,10 @@ const Textarea = forwardRef(({
       onChange={(e) => {
         const composing = e.nativeEvent?.isComposing || composingRef.current;
         const raw = e.target.value;
-        if (composing) {
-          setDraftValue(raw);
-          return;
+        setDraftValue(raw);
+        if (!composing) {
+          commit(raw, e);
         }
-        commit(raw, e);
       }}
       onCompositionStart={() => { composingRef.current = true; }}
       onCompositionEnd={(e) => { composingRef.current = false; commit(e.target.value, e); }}

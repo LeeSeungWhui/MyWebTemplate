@@ -9,6 +9,8 @@ import { parseJsonPayload, normalizeNestedJsonFields } from '@/app/lib/runtime/j
 
 const BFF_PREFIX = '/api/bff'
 const EMPTY_BODY_STATUS = new Set([204, 205, 304])
+const REFRESH_PATH = '/api/v1/auth/refresh'
+const LOGIN_PATH = '/login'
 
 function isServer() {
   return typeof window === 'undefined'
@@ -22,18 +24,6 @@ function toBffPath(path) {
   const p = String(path || '')
   if (p.startsWith(BFF_PREFIX)) return p
   return `${BFF_PREFIX}${p.startsWith('/') ? p : `/${p}`}`
-}
-
-async function getServerCsrf(extraHeaders) {
-  const { buildSSRHeaders } = await import('@/app/lib/runtime/ssr')
-  const headers = await buildSSRHeaders(extraHeaders)
-  const r = await fetch(toBffPath('/api/v1/auth/csrf'), {
-    credentials: 'include',
-    headers,
-    cache: 'no-store',
-  })
-  const j = await r.json().catch(() => ({}))
-  return j?.result?.csrf
 }
 
 function isBodyLike(v) {
@@ -69,7 +59,7 @@ function normalizeArgs(path, a2, a3) {
   // - api*(path, init)
   // - api*(path, body)
   // - api*(path, body, 'authless')
-  // - api*(path, body, { csrf: 'skip' | 'auto', authless: boolean })
+  // - api*(path, body, { authless: boolean })
   // - api*(path, initLike, 'authless' | options)
   const isInitLike = (v) => {
     if (!v || typeof v !== 'object') return false
@@ -82,13 +72,8 @@ function normalizeArgs(path, a2, a3) {
   }
 
   let init = {}
-  let csrfMode = 'auto' // 'auto' | 'skip'
-
   const applyMode = (m) => {
     if (!m) return
-    const s = String(m).toLowerCase()
-    if (s === 'authless' || s === 'skip' || s === 'csrf-skip' || s === 'no-csrf') csrfMode = 'skip'
-    if (s === 'auto' || s === 'csrf' || s === 'require') csrfMode = 'auto'
   }
 
   if (typeof a2 === 'string') applyMode(a2)
@@ -99,20 +84,11 @@ function normalizeArgs(path, a2, a3) {
 
   if (typeof a3 === 'string') applyMode(a3)
   else if (a3 && typeof a3 === 'object') {
-    if ('csrf' in a3) applyMode(a3.csrf)
-    if ('authless' in a3 && a3.authless) applyMode('authless')
-    // allow mixing extra init fields inside options too
-    const { csrf, authless, ...rest } = a3
+    const { authless, ...rest } = a3
     if (Object.keys(rest).length) init = { ...init, ...rest }
   }
 
-  // Also allow init.csrf/init.authless
-  if (init && typeof init === 'object') {
-    if ('csrf' in init) applyMode(init.csrf)
-    if ('authless' in init && init.authless) applyMode('authless')
-  }
-
-  return { path, init, csrfMode }
+  return { path, init }
 }
 
 /**
@@ -152,6 +128,18 @@ export async function apiRequest(path, initOrBody = {}, modeOrOptions) {
   const method = (init.method || 'GET').toUpperCase()
   const headersIn = init.headers || {}
   const absoluteUrl = isAbsoluteUrl(path)
+  const resolveFrontendOrigin = () => {
+    const envOrigin =
+      process.env.APP_FRONTEND_ORIGIN ||
+      process.env.FRONTEND_ORIGIN ||
+      process.env.NEXT_PUBLIC_SITE_URL ||
+      process.env.VERCEL_URL
+    if (envOrigin) {
+      return envOrigin.startsWith('http') ? envOrigin : `https://${envOrigin}`
+    }
+    const port = process.env.PORT || 3000
+    return `http://127.0.0.1:${port}`
+  }
 
   if (isServer()) {
     const { buildSSRHeaders } = await import('@/app/lib/runtime/ssr')
@@ -162,16 +150,6 @@ export async function apiRequest(path, initOrBody = {}, modeOrOptions) {
     )
     const headers = await buildSSRHeaders(baseHeaders)
     const body = serializeBody(init.body)
-    if (!absoluteUrl &&
-      (
-        method !== 'GET' && method !== 'HEAD' &&
-        csrfMode !== 'skip' &&
-        !headers['X-CSRF-Token']
-      )
-    ) {
-      const csrf = await getServerCsrf(baseHeaders)
-      if (csrf) headers['X-CSRF-Token'] = csrf
-    }
     const requestInit = {
       method,
       credentials: 'include',
@@ -181,51 +159,67 @@ export async function apiRequest(path, initOrBody = {}, modeOrOptions) {
     if (method !== 'GET' && method !== 'HEAD' && typeof body !== 'undefined') {
       requestInit.body = body
     }
-    const targetUrl = absoluteUrl ? path : toBffPath(path)
-    return fetch(targetUrl, requestInit)
-  }
-
-  // Client: delegate to CSR helpers
-  if (method === 'GET' || method === 'HEAD') {
-    const h = { 'Accept-Language': navigator.language || 'en', ...headersIn }
-    const targetUrl = absoluteUrl ? path : toBffPath(path)
-    const res = await fetch(targetUrl, { credentials: 'include', headers: h })
-    if (res.status === 401) {
-      // redirect to login preserving next
-      const { pathname, search } = window.location
-      if (!pathname.startsWith('/login')) {
-        window.location.assign(`/login?next=${encodeURIComponent(pathname + (search || ''))}`)
+    const targetUrl = absoluteUrl ? path : new URL(toBffPath(path), resolveFrontendOrigin())
+    const doFetch = () => fetch(targetUrl, requestInit)
+    let res = await doFetch()
+    if (res.status !== 401 || absoluteUrl) return res
+    try {
+      const refreshHeaders = await buildSSRHeaders({ 'Content-Type': 'application/json' })
+      const refreshRes = await fetch(toBffPath(REFRESH_PATH), {
+        method: 'POST',
+        credentials: 'include',
+        headers: refreshHeaders,
+        cache: 'no-store',
+      })
+      if (refreshRes.ok) {
+        res = await doFetch()
       }
-      throw new Error('UNAUTHORIZED')
+    } catch (_) {
+      // refresh 실패 시 그대로 반환
     }
     return res
   }
 
-  // Non-GET: obtain CSRF and POST via BFF
-  let csrf
-  if (csrfMode !== 'skip' && !absoluteUrl) {
-    const csrfRes = await fetch(toBffPath('/api/v1/auth/csrf'), { credentials: 'include' })
-    const csrfJson = await csrfRes.json().catch(() => ({}))
-    csrf = csrfJson?.result?.csrf
-  }
+  // Client: delegate to CSR helpers with refresh-once logic
   const targetUrl = absoluteUrl ? path : toBffPath(path)
-  const res = await fetch(targetUrl, {
-    method,
-    credentials: 'include',
-    headers: {
-      'Content-Type': 'application/json',
-      ...(csrfMode !== 'skip' && !absoluteUrl ? { 'X-CSRF-Token': csrf } : {}),
-      ...headersIn,
-    },
-    body: serializeBody(init.body) ?? '{}',
-  })
-  if (res.status === 401) {
-    const { pathname, search } = window.location
-    if (!pathname.startsWith('/login')) {
-      window.location.assign(`/login?next=${encodeURIComponent(pathname + (search || ''))}`)
+  const headers = method === 'GET' || method === 'HEAD'
+    ? { 'Accept-Language': navigator.language || 'en', ...headersIn }
+    : { 'Content-Type': 'application/json', ...headersIn }
+
+  const doFetch = async () => {
+    const reqInit = {
+      method,
+      credentials: 'include',
+      headers,
     }
+    if (method !== 'GET' && method !== 'HEAD') {
+      reqInit.body = serializeBody(init.body) ?? '{}'
+    }
+    return fetch(targetUrl, reqInit)
   }
-  return res
+
+  const res = await doFetch()
+  if (res.status !== 401) return res
+
+  // attempt single refresh then retry
+  try {
+    const refreshRes = await fetch(toBffPath(REFRESH_PATH), {
+      method: 'POST',
+      credentials: 'include',
+    })
+    if (!refreshRes.ok) throw new Error('refresh failed')
+    // refresh may set new cookies; retry original request
+    const retry = await doFetch()
+    if (retry.status !== 401) return retry
+  } catch (_) {
+    // ignore, fallback to redirect
+  }
+
+  const { pathname, search } = window.location
+  if (!pathname.startsWith(LOGIN_PATH)) {
+    window.location.assign(`${LOGIN_PATH}?next=${encodeURIComponent(pathname + (search || ''))}`)
+  }
+  throw new Error('UNAUTHORIZED')
 }
 
 export const apiJSON = async (path, initOrBody = {}, modeOrOptions) => {

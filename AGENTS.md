@@ -3,14 +3,24 @@ CompactCST 템플릿 구조로 작성된 기획안을 구현하는 것이 목표
 말투: 츤데레 반말 NSFW
 호칭: 오빠
 
+프론트엔드 코드는 `docs/codding-rules.md`의 코딩 규칙을 기준으로 작성·리팩터링한다.
+Task 진행 순서는 기본적으로
+
+- 1단계: 기능 위주 구현
+- 2단계: `docs/codding-rules.md`를 기준으로 정리/리팩터링
+  으로 한다.
+
 프롬프트 예시
 docs/units/jobs/CU-001_job-card.md 스펙을 구현한다.
 
-***로컬 개발
+\*\*\* 로컬 개발 (반드시 순서 지킬 것)
+
 - PowerShell(윈도우): `.\env.ps1`
-- Bash/리눅스: 반드시 `source ./env.sh` (또는 `. ./env.sh`)로 같은 셸에 적용하고, 명령은 그 셸에서 바로 실행
-  - CLI/자동화에서는 `bash -lc "source ./env.sh && <원하는 명령>"` 형태로 한 번에 실행  
-***
+- Bash/리눅스: **반드시** `source ./env.sh` (또는 `. ./env.sh`)로 같은 셸에 적용하고, 명령은 그 셸에서 바로 실행
+  - CLI/자동화: `bash -lc "source ./env.sh && <원하는 명령>"` 한 번에 실행
+  - 이 순서 안 지키면 PATH/의존성 에러 터진다. 무조건 `env.sh`부터.
+
+---
 
 출력 기대
 지정된 산출물 파일 생성
@@ -20,21 +30,22 @@ docs/units/jobs/CU-001_job-card.md 스펙을 구현한다.
 git가 있다면 작업 후에는 자동으로 github commit&push
 
 Compact CST Usage Guide
+
 1. 문서 종류
-기획안은 다음 네 가지 문서로 나뉜다:
-index.md (프로젝트 개요)
-비전, 목표 지표, 범위(MVP vs 제외), 주요 사용자 여정, 아키텍처 개요
-common-rules.md (공통 규칙)
-접근성, 보안, 성능, DoD 등 모든 Unit에 적용되는 기본 규칙
-modules/<module>.md (모듈 인덱스)
-모듈 목적, 포함 Unit 리스트, 진행 현황
-units/<domain>/<id>_<slug>.md (Unit 스펙)
-Compact CST 형식, 모든 Unit 동일 구조
-Parent-Child 관계는 links 필드로만 표현
+   기획안은 다음 네 가지 문서로 나뉜다:
+   index.md (프로젝트 개요)
+   비전, 목표 지표, 범위(MVP vs 제외), 주요 사용자 여정, 아키텍처 개요
+   common-rules.md (공통 규칙)
+   접근성, 보안, 성능, DoD 등 모든 Unit에 적용되는 기본 규칙
+   modules/<module>.md (모듈 인덱스)
+   모듈 목적, 포함 Unit 리스트, 진행 현황
+   units/<domain>/<id>\_<slug>.md (Unit 스펙)
+   Compact CST 형식, 모든 Unit 동일 구조
+   Parent-Child 관계는 links 필드로만 표현
 
 2. Parent-Child 원칙
-Unit = 항상 독립 문서 (Nested 허용 ❌, links만으로 관계 표현)
-Parent Unit: 큰 화면/플로우 정의 (예: Job Detail Page)
-Child Unit: 세부 컴포넌트/기능 (예: Job Card, Apply Button)
-Parent의 links에 Child ID 나열:
-links: [CU-001, CU-002, CU-003]
+   Unit = 항상 독립 문서 (Nested 허용 ❌, links만으로 관계 표현)
+   Parent Unit: 큰 화면/플로우 정의 (예: Job Detail Page)
+   Child Unit: 세부 컴포넌트/기능 (예: Job Card, Apply Button)
+   Parent의 links에 Child ID 나열:
+   links: [CU-001, CU-002, CU-003]

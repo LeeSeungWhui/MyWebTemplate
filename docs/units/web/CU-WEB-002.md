@@ -13,8 +13,9 @@ links: [CU-WEB-001, CU-WEB-003, CU-WEB-004, CU-WEB-005, CU-WEB-006, CU-BE-002]
 
 ### Scope
 - 포함
-  - 레이아웃: 상단 헤더 영역(세션 표시), 본문 그리드(카드 3~4 + 리스트 1 + 미니차트/통계 3)
-  - 데이터: 로그인 세션(CU-BE-001), 데모 통계/리스트용 API 또는 더미 배치
+  - 레이아웃: Header/Sidebar/Footer 공용 컴포넌트(`app/common/layout/*`) 활용. Sidebar는 햄버거로 접힘/펼침, Header 메뉴/서브메뉴 지원.
+  - 메인 본문: 카드형 차트 3~4개(EasyChart, Recharts 기반) + 하단 EasyTable 섹션
+  - 데이터: 로그인 세션(CU-BE-001), `data_template` 테이블(id, title, description, status, amount, tags(JSON), created_at) 기반 리스트/차트 더미 또는 API
   - 상태: 로딩/빈상태/에러 상태 스켈레톤 및 메시지
   - 렌더링 전략: 기본 SSR, ENV로 ISR/CSR 전환(links: CU-WEB-006)
   - A11y: 정보 구조/ARIA 가이드(라이브리 최소)
@@ -58,9 +59,10 @@ links: [CU-WEB-001, CU-WEB-003, CU-WEB-004, CU-WEB-005, CU-WEB-006, CU-BE-002]
 - AC-6: 필수 landmark/role/테이블이 유효하며 콘트라스트 기준을 충족한다.
 
 ### Tasks
-- T1 레이아웃: 상단 헤더 + 12-그리드 본문(카드 3~4, 리스트 1, 미니 통계 3) 반응형 구성
+- T1 레이아웃: Header/Sidebar/Footer(공용) 조합 + 12-그리드 본문(차트 카드 3~4, 리스트 1, 통계 3) 반응형 구성
 - T2 데이터 연동: 통계/리스트 데모 API 호출(공통 응답 파싱), 에러·로딩·빈상태 처리
-- T3 바인딩: EasyObj/EasyList 동작 규칙 구현(필터 변경→리스트 갱신)
+- T3 차트: Recharts 기반 EasyChart 래퍼(lib/component) 추가 및 샘플 시리즈 렌더
+- T4 바인딩: EasyObj/EasyList 동작 규칙 구현(필터 변경→리스트 갱신)
 - T4 상태관리: SWR 캐시 무효화 규칙 정리(토큰/로그아웃 시 리셋)
 - T5 렌더링: SSR 기본 + ISR/CSR 전환 ENV 적용(links: CU-WEB-006)
 - T6 A11y/UX: 스켈레톤, 에러 코드 맵핑, 정보 탐색/네비게이션 커버리지
@@ -71,4 +73,3 @@ links: [CU-WEB-001, CU-WEB-003, CU-WEB-004, CU-WEB-005, CU-WEB-006, CU-BE-002]
 - 인증/가드: 보호 경로 진입용 미들웨어 가이드(CU-WEB-004, CU-WEB-008)
 - 성능: 카드/리스트는 경량 유지, 차트는 CSR 분리 권장
 - ENV: `NEXT_PUBLIC_API_BASE`, `NEXT_REVALIDATE_SECONDS` 최소 세트
-

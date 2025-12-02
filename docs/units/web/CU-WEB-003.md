@@ -15,7 +15,8 @@ links: [CU-WEB-001, CU-WEB-002, CU-WEB-004, CU-WEB-005, CU-WEB-006]
 - 포함
   - 입력 계열: Input, Password, Textarea, Select, Combobox, Checkbox, RadioGroup, Switch, Date/Time(경량), Number
   - 피드백: Toast, Alert, Tooltip, Modal/Slider, Loading, Skeleton, Empty
-  - 표시/레이아웃: Card, Stat, Badge/Tag, List/Table(경량), Dropdown, Pagination(경량), Tabs
+  - 표시/레이아웃: Card, Stat, Badge/Tag, List/Table(경량), Dropdown, Pagination(경량), Tabs, EasyChart(Recharts 래퍼)
+  - 레이아웃 파트: Header/Sidebar/Footer(공용 레이아웃 슬롯; app/common/layout/*)
   - EasyObj/EasyList 인지 컴포넌트가 공유하는 바인딩 계약
   - 상태 프리셋: `loading`, `empty`, `error`, `disabled`, `readonly`, `required`
   - 디자인 토큰 정렬: Tailwind v4 토큰 기반
@@ -101,3 +102,14 @@ links: [CU-WEB-001, CU-WEB-002, CU-WEB-004, CU-WEB-005, CU-WEB-006]
 - T10 EasyEditor Docs/문서/테스트(바운드/컨트롤드/HTML/업로드 알림)
 - T11 PdfViewer 컴포넌트 1차 구현(플러그인 최소 구성, CSR 전용), 예제/Docs/간단 테스트
 - T12 문서 보강: A11y/SSR 주의 사항 및 업로드/워커 경로 설정 가이드
+- T13 EasyChart(Recharts) 컴포넌트 추가 및 Docs/예제
+- T14 Header/Sidebar/Footer 공용 레이아웃 컴포넌트 초안(app/common/layout/*) 및 간단 Docs
+
+### Implementation Snapshot (템플릿 동기화)
+- Input: `value/defaultValue` 병행 지원, `onValueChange` 분리, IME/마스크/숫자 필터 안전 커밋, 패스워드 토글 포함
+- Textarea: draft 유지 + IME 커밋 개선, 외부 값과 동기화
+- EasyTable: `width` 지정 컬럼은 `grid-template-columns:auto`, filler row는 dummy role로 접근성 충돌 제거
+- useEasyUpload: 업로드 URL을 백엔드 호스트 기준 절대 경로로 해석(프리사인/별도 업로드 엔드포인트 대응)
+- EasyChart: Recharts 기반 경량 래퍼, type/data/xKey/yKeys/height/색상 props 제공 예정
+- Layout 파트: Header/Sidebar/Footer를 공용 위치(app/common/layout)로 제공(햄버거 토글, 메뉴/서브메뉴 지원)
+- Docs: `app/component` 페이지에서 주요 컴포넌트 예제/가이드 제공 (EasyEditor/PdfViewer는 후속)

@@ -1,3 +1,10 @@
+/**
+ * 파일명: useEasyUpload.jsx
+ * 작성자: Codex
+ * 갱신일: 2025-11-11
+ * 설명: 파일 업로드 유틸. BFF/백엔드 호스트를 자동 해석해 FormData 업로드를 수행한다.
+ */
+
 import { useSharedStore } from '@/app/common/store/SharedStore';
 import { getBackendHost } from '@/app/common/config/getBackendHost.client';
 import { parseJsonPayload, normalizeNestedJsonFields } from '@/app/lib/runtime/jsonPayload';
@@ -9,7 +16,6 @@ const DEFAULT_OPTIONS = {
   credentials: 'include',
   extraFormData: null,
   headers: {},
-  csrf: 'auto', // 'auto' | 'skip'
 };
 
 const normalizeErrorMessage = async (response) => {
@@ -26,24 +32,20 @@ const normalizeErrorMessage = async (response) => {
 
 const resolveUploadUrl = (url) => {
   if (!url || typeof url !== 'string') return '';
-  // Absolute URLs are used as-is (e.g., S3 presigned)
   if (/^https?:\/\//i.test(url)) return url;
-  // Already BFF-prefixed
-  if (url.startsWith('/api/bff/')) return url;
-  // Prefer BFF for same-origin relative uploads to preserve cookie semantics
-  const normalized = url.startsWith('/') ? url : `/${url}`;
-  return `/api/bff${normalized}`;
-};
-
-async function getClientCsrf() {
-  try {
-    const res = await fetch('/api/bff/api/v1/auth/csrf', { credentials: 'include', cache: 'no-store' });
-    const j = await res.json().catch(() => ({}));
-    return j?.result?.csrf || null;
-  } catch (_) {
-    return null;
+  if (url.startsWith('/api/bff/')) {
+    return url;
   }
-}
+  try {
+    const backend = getBackendHost();
+    if (!backend) return url;
+    const normalizedBackend = backend.endsWith('/') ? backend.slice(0, -1) : backend;
+    if (url.startsWith('/')) return `${normalizedBackend}${url}`;
+    return `${normalizedBackend}/${url}`;
+  } catch (_) {
+    return url;
+  }
+};
 
 const toArray = (filesInput) => {
   if (!filesInput) return [];
@@ -110,17 +112,11 @@ export default async function useEasyUpload(filesInput, options = {}) {
   }
   try {
     const targetUrl = resolveUploadUrl(config.fileUploadUrl);
-    const headers = { ...(config.headers || {}) };
-    // CSRF: add only for same-origin BFF calls
-    if (config.csrf !== 'skip' && targetUrl.startsWith('/api/bff/')) {
-      const csrf = await getClientCsrf();
-      if (csrf) headers['X-CSRF-Token'] = csrf;
-    }
     const response = await fetch(targetUrl, {
       method: 'POST',
       body: formData,
       credentials: config.credentials,
-      headers,
+      headers: config.headers,
     });
 
     if (!response.ok) {

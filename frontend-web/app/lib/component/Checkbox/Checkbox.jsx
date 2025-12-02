@@ -12,6 +12,7 @@ const Checkbox = forwardRef(({
     label,
     name,
     onChange,
+    onValueChange,
     dataObj,
     dataKey,
     className = "",
@@ -54,7 +55,7 @@ const Checkbox = forwardRef(({
         }
 
         const ctx = buildCtx({ dataKey: dataKeyName, dataObj, source: 'user', dirty: true, valid: null });
-        fireValueHandlers({ onChange, onValueChange: props.onValueChange, value: newChecked, ctx, event: e });
+        fireValueHandlers({ onChange, onValueChange, value: newChecked, ctx, event: e });
     };
 
     const getCheckedState = () => {

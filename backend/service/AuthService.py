@@ -12,7 +12,9 @@ import hashlib
 import hmac
 import bcrypt  # optional; used only if available
 
-from lib.Auth import Token, createAccessToken
+from jose import JWTError, jwt
+
+from lib.Auth import AuthConfig, Token, createAccessToken, createRefreshToken
 from lib import Database as DB
 from lib.Response import successResponse
 
@@ -21,23 +23,24 @@ async def me(user):
     return successResponse(result={"username": user.username})
 
 
-async def login(payload: dict) -> Optional[dict]:
+async def login(payload: dict, rememberMe: bool = False) -> Optional[dict]:
     """로그인 요청을 처리하고 사용자/토큰 정보를 함께 반환."""
-    authUser, username = await _authenticate(payload)
+    authUser, username = await authenticateUser(payload)
     if not authUser or not username:
         return None
-    tokenPayload = _issue_token_payload(username)
+    tokenPayload = issueTokens(username)
+    tokenPayload["rememberMe"] = bool(rememberMe)
     return {"user": authUser, "token": tokenPayload}
 
 
 def session(payload: dict) -> dict:
     """세션 조회 요청 payload(dict)로 응답 result를 구성."""
-    user_id = (payload or {}).get("userId")
+    userId = (payload or {}).get("userId")
     name = (payload or {}).get("name")
-    authed = bool(user_id)
+    authed = bool(userId)
     result: dict[str, object] = {"authenticated": authed}
     if authed:
-        result.update({"userId": user_id, "name": name})
+        result.update({"userId": userId, "name": name})
     return result
 
 
@@ -46,16 +49,23 @@ def csrf(_: Optional[dict] = None) -> dict:
     return {"csrf": uuid.uuid4().hex}
 
 
-async def token(payload: dict) -> Optional[dict]:
-    """토큰 발급 요청 payload(dict)를 처리."""
-    authUser, username = await _authenticate(payload)
-    if not authUser or not username:
+async def refresh(refreshToken: str) -> Optional[dict]:
+    """리프레시 토큰으로 새 액세스/리프레시 토큰을 발급한다."""
+    try:
+        secret = AuthConfig.SECRET_KEY
+        if not secret:
+            return None
+        payload = jwt.decode(refreshToken, secret, algorithms=[AuthConfig.ALGORITHM])
+        username = payload.get("sub")
+        tokenType = payload.get("typ")
+        if tokenType != "refresh" or not isinstance(username, str) or not username:
+            return None
+        return issueTokens(username)
+    except JWTError:
         return None
-    tokenPayload = _issue_token_payload(username)
-    return successResponse(result=tokenPayload)
 
 
-def _verify_password(plain: str, stored: str) -> bool:
+def verifyPassword(plain: str, stored: str) -> bool:
     try:
         if stored and stored.startswith("pbkdf2$"):
             parts = stored.split("$")
@@ -77,7 +87,7 @@ def _verify_password(plain: str, stored: str) -> bool:
         return False
 
 
-async def _authenticate(payload: dict) -> Tuple[Optional[dict], Optional[str]]:
+async def authenticateUser(payload: dict) -> Tuple[Optional[dict], Optional[str]]:
     """payload에서 자격 증명을 추출해 사용자/아이디를 반환."""
     if not isinstance(payload, dict):
         return None, None
@@ -88,19 +98,22 @@ async def _authenticate(payload: dict) -> Tuple[Optional[dict], Optional[str]]:
     db = DB.getManager()
     if not db:
         return None, None
-    user = await db.fetchOneQuery("tmpl.user.selectByUsername", {"u": username})
+    user = await db.fetchOneQuery("auth.userByUsername", {"u": username})
     if not user:
         return None, None
-    if not _verify_password(password, user.get("password_hash") or ""):
+    if not verifyPassword(password, user.get("password_hash") or ""):
         return None, None
     return user, username
 
 
-def _issue_token_payload(username: str) -> dict:
-    """주어진 사용자명으로 액세스 토큰 페이로드를 생성."""
-    token: Token = createAccessToken({"sub": username})
+def issueTokens(username: str) -> dict:
+    """주어진 사용자명으로 액세스/리프레시 토큰 페이로드를 생성."""
+    accessToken: Token = createAccessToken({"sub": username}, tokenType="access")
+    refreshToken: Token = createRefreshToken({"sub": username})
     return {
-        "access_token": token.accessToken,
-        "token_type": token.tokenType,
-        "expires_in": token.expiresIn,
+        "access_token": accessToken.accessToken,
+        "refresh_token": refreshToken.accessToken,
+        "token_type": accessToken.tokenType,
+        "expires_in": accessToken.expiresIn,
+        "refresh_expires_in": refreshToken.expiresIn,
     }

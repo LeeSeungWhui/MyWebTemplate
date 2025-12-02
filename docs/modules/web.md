@@ -27,14 +27,14 @@
 - CU-WEB-009 Data Fetch Strategy (Page MODE)
 
 ## Unit 진행 현황
-- CU-WEB-001: in-progress — 로그인 페이지 SSR/CSR 분리, UX/A11y 보완 필요
+- CU-WEB-001: in-progress — `/login` SSR/CSR, 토큰+쿠키(Access/Refresh) 플로우로 전환 예정, A11y/UX 보완 필요
 - CU-WEB-002: planned — 대시보드 위젯 목업 구성
-- CU-WEB-003: in-progress — 핵심 컴포넌트 존재, 바인딩 리팩터 필요
+- CU-WEB-003: in-progress — Input/Textarea/EasyTable/useEasyUpload 등 핵심 바인딩 컴포넌트/업로드 훅 반영, Docs 페이지 포함. EasyEditor/고급 그리드 남음
 - CU-WEB-004: in-progress — 미들웨어/서버 가드 부분 구현, 파라미터·401 처리 보완 필요
-- CU-WEB-005: in-progress — CSRF 미구현, OpenAPI 클라이언트 공통구성 미완
+- CU-WEB-005: in-progress — OpenAPI 클라이언트 공통구성 미완
 - CU-WEB-006: in-progress — 페이지 MODE 규약 초안 작성, ENV 배선 진행
 - CU-WEB-007: completed — `frontend-web` Vite → Next 마이그레이션 반영 완료
-- CU-WEB-008: in-progress — `middleware.js` 쿠키 리다이렉트 규칙 존재, 예외 경로 커버리지 보완 필요
+- CU-WEB-008: in-progress — `middleware.js` 리다이렉트 규칙 존재, 예외 경로 커버리지 보완 필요
 - CU-WEB-009: in-progress — `initData` + 런타임 fetch 헬퍼 초안, AC 충족 보강 필요
 
 ## 프런트 설정: config.ini
@@ -68,10 +68,11 @@ theme = light
 - 미들웨어 단일 가드(Default Protect): 모든 페이지에 적용하되 Next 내부/정적/파비콘/파일 확장자는 제외
   - config.matcher: `/((?!api|_next/static|_next/image|favicon.ico|.*\.).*)`
   - 공개 경로 Allowlist: `frontend-web/app/common/config/publicRoutes.js`에서만 관리
+- 인증/토큰: BFF(`app/api/bff`)가 HttpOnly Access/Refresh 쿠키를 받아 Authorization 헤더로 백엔드에 전달. 401 → `/api/v1/auth/refresh` 한 번 호출 후 재시도, 실패 시 `/login?next=...` 리다이렉트.
 - BFF 프록시: `frontend-web/app/api/bff/[...path]/route.js`가 Backend API를 호출하고 `Set-Cookie`를 프론트 도메인으로 재작성
 - 통신 계층: `app/lib/runtime/api.js`의 `apiJSON`/`apiRequest`를 단일 진실로 사용(SSR/CSR 공통)
   - CSR에서 스트리밍/자동 재검증이 필요하면 `app/lib/hooks/useSwr.jsx`(SWR 래퍼) 선택적 사용
-- CORS/헤더: `credentials:'include'`, 헤더 `X-CSRF-Token`, `Content-Type`, `Authorization`
+- CORS/헤더: `credentials:'include'`, 헤더 `Authorization` 기본. CSRF 헤더는 사용하지 않음(세션 미사용).
 - JS Only 강제: 린트/프리셋 규칙으로 .ts/.tsx 금지
 
 ## 완료 기준(DoD) 샘플

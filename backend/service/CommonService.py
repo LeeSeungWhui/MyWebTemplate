@@ -11,26 +11,26 @@ from typing import Dict, Tuple
 
 from lib import Database as DB
 
-_started_at = datetime.now(timezone.utc)
+startedAt = datetime.now(timezone.utc)
 
 
-def _version_info() -> Dict[str, str]:
+def versionInfo() -> Dict[str, str]:
     version = os.getenv("APP_VERSION", "dev")
-    git_sha = os.getenv("GIT_SHA", "unknown")
+    gitSha = os.getenv("GIT_SHA", "unknown")
     return {
         "version": version,
-        "git_sha": git_sha,
-        "started_at": _started_at.isoformat(),
+        "git_sha": gitSha,
+        "started_at": startedAt.isoformat(),
     }
 
 
 async def healthz(_: Dict | None = None) -> Dict[str, str | int | bool]:
     now = datetime.now(timezone.utc)
-    uptime_s = int((now - _started_at).total_seconds())
+    uptimeSeconds = int((now - startedAt).total_seconds())
     return {
         "ok": True,
-        **_version_info(),
-        "uptime_s": uptime_s,
+        **versionInfo(),
+        "uptime_s": uptimeSeconds,
     }
 
 

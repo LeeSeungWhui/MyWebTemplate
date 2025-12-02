@@ -297,7 +297,21 @@ const TableOfContents = () => {
         </li>
 
         <li>
-          <a href="#pdfviewer" className="text-blue-600 hover:text-blue-800">32. PDF 뷰어 (PdfViewer)</a>
+          <a href="#easychart" className="text-blue-600 hover:text-blue-800">32. 차트 (EasyChart)</a>
+          <ul className="ml-4 mt-1 space-y-1">
+            <li><a href="#easychart-line" className="text-blue-600 hover:text-blue-800">- 라인</a></li>
+            <li><a href="#easychart-bar" className="text-blue-600 hover:text-blue-800">- 바</a></li>
+            <li><a href="#easychart-mixed" className="text-blue-600 hover:text-blue-800">- 혼합</a></li>
+            <li><a href="#easychart-pie" className="text-blue-600 hover:text-blue-800">- 파이</a></li>
+            <li><a href="#easychart-donut" className="text-blue-600 hover:text-blue-800">- 도넛</a></li>
+            <li><a href="#easychart-loading" className="text-blue-600 hover:text-blue-800">- 로딩</a></li>
+            <li><a href="#easychart-empty" className="text-blue-600 hover:text-blue-800">- 빈 상태</a></li>
+            <li><a href="#easychart-error" className="text-blue-600 hover:text-blue-800">- 에러</a></li>
+          </ul>
+        </li>
+
+        <li>
+          <a href="#pdfviewer" className="text-blue-600 hover:text-blue-800">33. PDF 뷰어 (PdfViewer)</a>
           <ul className="ml-4 mt-1 space-y-1">
             <li><a href="#pdf-basic" className="text-blue-600 hover:text-blue-800">- 기본</a></li>
             <li><a href="#pdf-local" className="text-blue-600 hover:text-blue-800">- 로컬 파일</a></li>

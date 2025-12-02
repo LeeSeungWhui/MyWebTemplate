@@ -50,7 +50,7 @@ class RateLimiter:
         return True, 0
 
 
-_GLOBAL_LIMIT = RateLimiter(limit=int(os.getenv("AUTH_RATE_LIMIT", "5")), windowSec=60)
+globalRateLimiter = RateLimiter(limit=int(os.getenv("AUTH_RATE_LIMIT", "5")), windowSec=60)
 
 
 def checkRateLimit(request: Request, username: Optional[str] = None) -> Optional[JSONResponse]:
@@ -64,7 +64,7 @@ def checkRateLimit(request: Request, username: Optional[str] = None) -> Optional
     if username:
         keys.append(f"user:{username}")
     for k in keys:
-        ok, retryAfter = _GLOBAL_LIMIT.hit(k)
+        ok, retryAfter = globalRateLimiter.hit(k)
         if not ok:
             return JSONResponse(
                 status_code=429,

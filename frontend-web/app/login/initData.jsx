@@ -5,7 +5,7 @@
  * 설명: 로그인 초기 데이터 엔드포인트
  */
 // Endpoints for initial (SEO-friendly) data fetch on login
-export const SESSION_PATH = '/api/v1/auth/session'
+export const SESSION_PATH = '/api/v1/auth/me'
 
 export const createLoginFormModel = () => ({
   email: '',
@@ -23,4 +23,3 @@ export const CLIENT_ONLY_MODE = {
   init: null,
   nextHint: null,
 }
-

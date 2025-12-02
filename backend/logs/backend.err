@@ -1,0 +1,1594 @@
+INFO:     Will watch for changes in these directories: ['/home/sunkus711/Project/workspace/My/MyWebTemplate/backend']
+INFO:     Uvicorn running on http://0.0.0.0:2000 (Press CTRL+C to quit)
+INFO:     Started reloader process [921694] using StatReload
+2025-11-26 21:56:44 INFO: config load start
+2025-11-26 21:56:44 INFO: config load done
+2025-11-26 21:56:44 INFO: router load start
+2025-11-26 21:56:44 INFO: router load done
+INFO:     Started server process [921697]
+INFO:     Waiting for application startup.
+2025-11-26 21:56:44 INFO: database connect start
+2025-11-26 21:56:44 INFO: Connected to database mysql+aiomysql://sunkus711:********@218.153.129.202:9731/personal_db
+2025-11-26 21:56:44 INFO: Connected to database mysql+aiomysql://sunkus711:Rmlduqrml1!@218.153.129.202:9731/personal_db
+2025-11-26 21:56:44 INFO: database connected: main_db
+2025-11-26 21:56:44 INFO: Connected to database sqlite:////home/sunkus711/Project/workspace/My/MyWebTemplate/backend/./data/main.db
+2025-11-26 21:56:44 INFO: Connected to database sqlite:////home/sunkus711/Project/workspace/My/MyWebTemplate/backend/./data/main.db
+2025-11-26 21:56:44 INFO: database connected: main_db2
+2025-11-26 21:56:44 INFO: database connect done
+2025-11-26 21:56:44 INFO: query load start
+2025-11-26 21:56:44 INFO: {"event": "query.load", "file": "/home/sunkus711/Project/workspace/My/MyWebTemplate/backend/query", "keys": ["auth.ensureUserTable", "auth.insertDemoUser", "sys.oraclePing", "sys.ping", "tmpl.user.selectByUsername", "user.count", "user.selectByUsername"], "count": 7, "duration_ms": 1}
+2025-11-26 21:56:44 INFO: query load done
+2025-11-26 21:56:44 INFO: query watcher started
+INFO:     Application startup complete.
+2025-11-26 21:57:25 INFO: {"ts": 1764161845942, "level": "INFO", "requestId": "58e38891-ba73-4130-800d-b37e0393794f", "method": "GET", "path": "/api/v1/auth/me", "status": 401, "latency_ms": 0, "msg": "access"}
+2025-11-26 21:57:26 INFO: {"ts": 1764161846299, "level": "INFO", "requestId": "5ddfc262-2214-4a18-a6d6-10add087d478", "method": "POST", "path": "/api/v1/auth/refresh", "status": 401, "latency_ms": 0, "msg": "access"}
+2025-11-26 21:57:36 INFO: {"ts": 1764161856414, "level": "INFO", "requestId": "4156618b-8b52-45ff-94c2-4f5e2541e728", "method": "GET", "path": "/api/v1/auth/me", "status": 401, "latency_ms": 1, "msg": "access"}
+2025-11-26 21:57:36 INFO: {"ts": 1764161856680, "level": "INFO", "requestId": "4f41d903-7f63-4337-b544-e11a0aa69b8d", "method": "POST", "path": "/api/v1/auth/refresh", "status": 401, "latency_ms": 0, "msg": "access"}
+2025-11-26 21:57:46 INFO: {"ts": 1764161866819, "level": "INFO", "requestId": "ebe809ac-952c-4d14-93e7-fe17055d9017", "method": "GET", "path": "/api/v1/auth/me", "status": 401, "latency_ms": 0, "msg": "access"}
+2025-11-26 21:57:47 INFO: {"ts": 1764161867081, "level": "INFO", "requestId": "5f0d8ceb-b706-4b8b-bead-6b43040ec6a7", "method": "POST", "path": "/api/v1/auth/refresh", "status": 401, "latency_ms": 0, "msg": "access"}
+2025-11-26 21:58:37 INFO: {"ts": 1764161917714, "level": "INFO", "requestId": "408bb059-e695-4f0b-ad3f-afefe8524bd4", "method": "GET", "path": "/api/v1/auth/me", "status": 401, "latency_ms": 3, "msg": "access"}
+2025-11-26 21:58:37 INFO: {"ts": 1764161917994, "level": "INFO", "requestId": "e812c1c9-ac0a-44cc-b037-570e2f719b41", "method": "POST", "path": "/api/v1/auth/refresh", "status": 401, "latency_ms": 1, "msg": "access"}
+2025-11-26 21:58:52 INFO: {"ts": 1764161932332, "level": "INFO", "requestId": "56970f11-d9a6-4892-99b2-276020da4ce6", "method": "GET", "path": "/api/v1/auth/me", "status": 401, "latency_ms": 0, "msg": "access"}
+2025-11-26 21:58:52 INFO: {"ts": 1764161932602, "level": "INFO", "requestId": "3c8c3dca-c29f-4801-9497-ce051566fbb6", "method": "POST", "path": "/api/v1/auth/refresh", "status": 401, "latency_ms": 0, "msg": "access"}
+2025-11-26 21:59:01 INFO: {"ts": 1764161941071, "level": "INFO", "requestId": "24b63e6f-57f4-4ed3-afd4-cf0cab6aa22a", "method": "GET", "path": "/api/v1/auth/me", "status": 401, "latency_ms": 0, "msg": "access"}
+2025-11-26 21:59:01 INFO: {"ts": 1764161941337, "level": "INFO", "requestId": "77c6f375-1439-4787-9d14-4295652eb6a1", "method": "POST", "path": "/api/v1/auth/refresh", "status": 401, "latency_ms": 0, "msg": "access"}
+2025-11-26 21:59:02 INFO: {"ts": 1764161942763, "level": "INFO", "requestId": "93ef5681-0b68-4475-9520-afa103747e2f", "method": "GET", "path": "/api/v1/auth/me", "status": 401, "latency_ms": 0, "msg": "access"}
+2025-11-26 21:59:03 INFO: {"ts": 1764161943032, "level": "INFO", "requestId": "bd37bfcf-a6fc-498c-aa02-b3000b3a00a1", "method": "POST", "path": "/api/v1/auth/refresh", "status": 401, "latency_ms": 0, "msg": "access"}
+2025-11-26 21:59:12 INFO: {"ts": 1764161952013, "level": "INFO", "requestId": "b05c5458-5d8b-41f5-8d6a-9be279987ecd", "method": "GET", "path": "/api/v1/auth/me", "status": 401, "latency_ms": 0, "msg": "access"}
+2025-11-26 21:59:12 INFO: {"ts": 1764161952305, "level": "INFO", "requestId": "f040dbc8-1c1b-464e-8baa-bfd71a6e4aa0", "method": "POST", "path": "/api/v1/auth/refresh", "status": 401, "latency_ms": 0, "msg": "access"}
+2025-11-26 21:59:28 INFO: {"ts": 1764161968466, "level": "INFO", "requestId": "d5cec4e9-ce1e-4e5d-9a03-1165dcaef810", "method": "GET", "path": "/api/v1/auth/me", "status": 401, "latency_ms": 0, "msg": "access"}
+2025-11-26 21:59:28 INFO: {"ts": 1764161968746, "level": "INFO", "requestId": "f79a15dc-a064-47d3-ac49-b3bf4d085955", "method": "POST", "path": "/api/v1/auth/refresh", "status": 401, "latency_ms": 0, "msg": "access"}
+2025-11-26 21:59:37 INFO: {"ts": 1764161977738, "level": "INFO", "requestId": "4df63f68-7d04-4419-ba01-bcd4bf1ca698", "method": "GET", "path": "/api/v1/auth/me", "status": 401, "latency_ms": 0, "msg": "access"}
+2025-11-26 21:59:38 INFO: {"ts": 1764161978005, "level": "INFO", "requestId": "72bb0a97-cfde-4ccf-891b-2f9e8bc0c50a", "method": "POST", "path": "/api/v1/auth/refresh", "status": 401, "latency_ms": 0, "msg": "access"}
+2025-11-26 21:59:41 INFO: {"ts": 1764161981533, "level": "INFO", "requestId": "6237bb99-e5e2-4e24-a505-7ae5020b3f55", "method": "GET", "path": "/api/v1/auth/me", "status": 401, "latency_ms": 0, "msg": "access"}
+2025-11-26 21:59:41 INFO: {"ts": 1764161981801, "level": "INFO", "requestId": "dbbb152b-c4b4-439e-80f3-bcb3d4a2b947", "method": "POST", "path": "/api/v1/auth/refresh", "status": 401, "latency_ms": 0, "msg": "access"}
+2025-11-26 21:59:46 INFO: fetchOne named query: tmpl.user.selectByUsername
+2025-11-26 21:59:46 INFO: fetch_one
+2025-11-26 21:59:46 INFO: rows_returned=1
+2025-11-26 21:59:46 INFO: {"ts": 1764161986573, "level": "INFO", "requestId": "72b1ea68-371d-4b12-89b3-d1ac6125aca2", "method": "POST", "path": "/api/v1/auth/login", "status": 200, "latency_ms": 207, "msg": "access"}
+2025-11-26 21:59:46 INFO: {"ts": 1764161986841, "level": "INFO", "requestId": "7ce4601a-b182-4544-972f-2d5528807c65", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 0, "msg": "access"}
+2025-11-26 21:59:48 INFO: {"ts": 1764161988410, "level": "INFO", "requestId": "05d3515a-744a-4009-9c33-33539b17645f", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 0, "msg": "access"}
+2025-11-26 21:59:50 INFO: {"ts": 1764161990074, "level": "INFO", "requestId": "0c65f217-4f25-47e1-bf9c-22c50ecd8350", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 0, "msg": "access"}
+2025-11-26 21:59:51 INFO: {"ts": 1764161991652, "level": "INFO", "requestId": "b1c9bd3e-0cc4-452e-b94d-709e03a9ef3b", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 0, "msg": "access"}
+2025-11-26 21:59:52 INFO: {"ts": 1764161992893, "level": "INFO", "requestId": "5d062b30-843b-47d6-b48e-a1d1a0f149db", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 0, "msg": "access"}
+2025-11-26 21:59:54 INFO: {"ts": 1764161994682, "level": "INFO", "requestId": "0a90f70c-804b-4b35-9517-9d773124486d", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 0, "msg": "access"}
+2025-11-26 21:59:56 INFO: {"ts": 1764161996454, "level": "INFO", "requestId": "f54f8088-8eb3-41ee-9f3a-6643414aab9d", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 2, "msg": "access"}
+WARNING:  StatReload detected changes in 'service/AuthService.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+2025-11-26 22:08:32 INFO: Disconnected from database mysql+aiomysql://sunkus711:********@218.153.129.202:9731/personal_db
+2025-11-26 22:08:32 INFO: Disconnected from database sqlite:////home/sunkus711/Project/workspace/My/MyWebTemplate/backend/./data/main.db
+INFO:     Application shutdown complete.
+INFO:     Finished server process [921697]
+2025-11-26 22:08:33 INFO: config load start
+2025-11-26 22:08:33 INFO: config load done
+2025-11-26 22:08:33 INFO: router load start
+2025-11-26 22:08:33 INFO: router load done
+INFO:     Started server process [924358]
+INFO:     Waiting for application startup.
+2025-11-26 22:08:33 INFO: database connect start
+2025-11-26 22:08:33 INFO: Connected to database mysql+aiomysql://sunkus711:********@218.153.129.202:9731/personal_db
+2025-11-26 22:08:33 INFO: Connected to database mysql+aiomysql://sunkus711:Rmlduqrml1!@218.153.129.202:9731/personal_db
+2025-11-26 22:08:33 INFO: database connected: main_db
+2025-11-26 22:08:33 INFO: Connected to database sqlite:////home/sunkus711/Project/workspace/My/MyWebTemplate/backend/./data/main.db
+2025-11-26 22:08:33 INFO: Connected to database sqlite:////home/sunkus711/Project/workspace/My/MyWebTemplate/backend/./data/main.db
+2025-11-26 22:08:33 INFO: database connected: main_db2
+2025-11-26 22:08:33 INFO: database connect done
+2025-11-26 22:08:33 INFO: query load start
+2025-11-26 22:08:33 INFO: {"event": "query.load", "file": "/home/sunkus711/Project/workspace/My/MyWebTemplate/backend/query", "keys": ["auth.ensureUserTable", "auth.insertDemoUser", "sys.oraclePing", "sys.ping", "tmpl.user.selectByUsername", "user.count", "user.selectByUsername"], "count": 7, "duration_ms": 0}
+2025-11-26 22:08:33 INFO: query load done
+2025-11-26 22:08:33 INFO: query watcher started
+INFO:     Application startup complete.
+WARNING:  StatReload detected changes in 'router/AuthRouter.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+2025-11-26 22:08:43 INFO: Disconnected from database mysql+aiomysql://sunkus711:********@218.153.129.202:9731/personal_db
+2025-11-26 22:08:43 INFO: Disconnected from database sqlite:////home/sunkus711/Project/workspace/My/MyWebTemplate/backend/./data/main.db
+INFO:     Application shutdown complete.
+INFO:     Finished server process [924358]
+2025-11-26 22:08:44 INFO: config load start
+2025-11-26 22:08:44 INFO: config load done
+2025-11-26 22:08:44 INFO: router load start
+2025-11-26 22:08:44 INFO: router load done
+INFO:     Started server process [924403]
+INFO:     Waiting for application startup.
+2025-11-26 22:08:44 INFO: database connect start
+2025-11-26 22:08:44 INFO: Connected to database mysql+aiomysql://sunkus711:********@218.153.129.202:9731/personal_db
+2025-11-26 22:08:44 INFO: Connected to database mysql+aiomysql://sunkus711:Rmlduqrml1!@218.153.129.202:9731/personal_db
+2025-11-26 22:08:44 INFO: database connected: main_db
+2025-11-26 22:08:44 INFO: Connected to database sqlite:////home/sunkus711/Project/workspace/My/MyWebTemplate/backend/./data/main.db
+2025-11-26 22:08:44 INFO: Connected to database sqlite:////home/sunkus711/Project/workspace/My/MyWebTemplate/backend/./data/main.db
+2025-11-26 22:08:44 INFO: database connected: main_db2
+2025-11-26 22:08:44 INFO: database connect done
+2025-11-26 22:08:44 INFO: query load start
+2025-11-26 22:08:44 INFO: {"event": "query.load", "file": "/home/sunkus711/Project/workspace/My/MyWebTemplate/backend/query", "keys": ["auth.ensureUserTable", "auth.insertDemoUser", "sys.oraclePing", "sys.ping", "tmpl.user.selectByUsername", "user.count", "user.selectByUsername"], "count": 7, "duration_ms": 0}
+2025-11-26 22:08:44 INFO: query load done
+2025-11-26 22:08:44 INFO: query watcher started
+INFO:     Application startup complete.
+2025-11-26 23:15:14 INFO: {"event": "query.reload", "file": "/home/sunkus711/Project/workspace/My/MyWebTemplate/backend/query/template.sql", "keys": ["tmpl.user.selectByUsername", "tmpl.dataTemplate.list", "tmpl.dataTemplate.statusSummary"], "count": 9, "duration_ms": 3}
+2025-11-26 23:17:35 INFO: {"event": "query.reload", "file": "/home/sunkus711/Project/workspace/My/MyWebTemplate/backend/query/template.sql", "keys": ["tmpl.user.selectByUsername"], "count": 7, "duration_ms": 0}
+2025-11-26 23:17:41 INFO: {"event": "query.reload", "file": "/home/sunkus711/Project/workspace/My/MyWebTemplate/backend/query/dashboard.sql", "keys": ["dashboard.list", "dashboard.statusSummary"], "count": 9, "duration_ms": 0}
+2025-11-26 23:19:43 INFO: {"event": "query.reload", "file": "/home/sunkus711/Project/workspace/My/MyWebTemplate/backend/query/template.sql", "keys": ["auth.ensureUserTable", "auth.insertDemoUser", "dashboard.list", "dashboard.statusSummary", "sys.oraclePing", "sys.ping", "user.count", "user.selectByUsername"], "count": 8, "duration_ms": 2}
+2025-11-26 23:19:53 INFO: {"event": "query.reload", "file": "/home/sunkus711/Project/workspace/My/MyWebTemplate/backend/query/auth.sql", "keys": ["auth.userByUsername"], "count": 7, "duration_ms": 0}
+WARNING:  StatReload detected changes in 'service/AuthService.py'. Reloading...
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+2025-11-26 23:20:00 INFO: Disconnected from database mysql+aiomysql://sunkus711:********@218.153.129.202:9731/personal_db
+2025-11-26 23:20:00 INFO: Disconnected from database sqlite:////home/sunkus711/Project/workspace/My/MyWebTemplate/backend/./data/main.db
+INFO:     Application shutdown complete.
+INFO:     Finished server process [924403]
+2025-11-26 23:20:01 INFO: config load start
+2025-11-26 23:20:01 INFO: config load done
+2025-11-26 23:20:01 INFO: router load start
+2025-11-26 23:20:01 INFO: router load done
+INFO:     Started server process [938005]
+INFO:     Waiting for application startup.
+2025-11-26 23:20:01 INFO: database connect start
+2025-11-26 23:20:01 INFO: Connected to database mysql+aiomysql://sunkus711:********@218.153.129.202:9731/personal_db
+2025-11-26 23:20:01 INFO: Connected to database mysql+aiomysql://sunkus711:Rmlduqrml1!@218.153.129.202:9731/personal_db
+2025-11-26 23:20:01 INFO: database connected: main_db
+2025-11-26 23:20:01 INFO: Connected to database sqlite:////home/sunkus711/Project/workspace/My/MyWebTemplate/backend/./data/main.db
+2025-11-26 23:20:01 INFO: Connected to database sqlite:////home/sunkus711/Project/workspace/My/MyWebTemplate/backend/./data/main.db
+2025-11-26 23:20:01 INFO: database connected: main_db2
+2025-11-26 23:20:01 INFO: database connect done
+2025-11-26 23:20:01 INFO: query load start
+2025-11-26 23:20:01 INFO: {"event": "query.load", "file": "/home/sunkus711/Project/workspace/My/MyWebTemplate/backend/query", "keys": ["auth.userByUsername", "dashboard.list", "dashboard.statusSummary", "sys.oraclePing", "sys.ping", "user.count", "user.selectByUsername"], "count": 7, "duration_ms": 0}
+2025-11-26 23:20:01 INFO: query load done
+2025-11-26 23:20:01 INFO: query watcher started
+INFO:     Application startup complete.
+2025-11-26 23:20:41 INFO: {"ts": 1764166841988, "level": "INFO", "requestId": "fbda94e2-8dc6-4772-8f09-ff2c22b22e30", "method": "GET", "path": "/dispatch.asp", "status": 404, "latency_ms": 1, "msg": "access"}
+2025-11-26 23:20:56 INFO: {"event": "query.reload", "file": "/home/sunkus711/Project/workspace/My/MyWebTemplate/backend/query/users.sql", "keys": ["auth.userByUsername", "dashboard.list", "dashboard.statusSummary"], "count": 3, "duration_ms": 1}
+WARNING:  Invalid HTTP request received.
+2025-11-27 01:08:25 INFO: {"ts": 1764173305211, "level": "INFO", "requestId": "348a335f-de59-4ebb-ad84-5c11c307a21c", "method": "GET", "path": "/api/v1/auth/me", "status": 401, "latency_ms": 24, "msg": "access"}
+2025-11-27 01:08:25 INFO: {"ts": 1764173305509, "level": "INFO", "requestId": "a097c6df-2d10-44de-b4e1-6d1379c2ef4e", "method": "POST", "path": "/api/v1/auth/refresh", "status": 200, "latency_ms": 25, "msg": "access"}
+2025-11-27 01:08:25 INFO: {"ts": 1764173305825, "level": "INFO", "requestId": "41450d2f-f2a9-42b8-b5ed-ad4368165e02", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 2, "msg": "access"}
+2025-11-27 01:08:26 INFO: {"ts": 1764173306772, "level": "INFO", "requestId": "1fb3ec3a-48f8-4ae4-ab35-aad402e6c3fe", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 0, "msg": "access"}
+2025-11-27 01:08:27 INFO: {"ts": 1764173307763, "level": "INFO", "requestId": "ec388198-ffcb-49bc-87b5-8a4473e059b9", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 0, "msg": "access"}
+2025-11-27 01:08:28 INFO: {"ts": 1764173308725, "level": "INFO", "requestId": "c07d9069-ee8c-4bc9-8b59-9f9143b46dbd", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 0, "msg": "access"}
+2025-11-27 01:08:29 INFO: {"ts": 1764173309890, "level": "INFO", "requestId": "ab7a216a-5749-474e-a183-75554239706e", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 0, "msg": "access"}
+2025-11-27 01:08:30 INFO: {"ts": 1764173310951, "level": "INFO", "requestId": "084a57d0-2e2f-4452-aae7-cb562b3151cc", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 0, "msg": "access"}
+2025-11-27 01:08:31 INFO: {"ts": 1764173311920, "level": "INFO", "requestId": "c1dc06ab-5d76-401d-9ddc-60b0f905c6be", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 1, "msg": "access"}
+2025-11-27 01:08:32 INFO: {"ts": 1764173312868, "level": "INFO", "requestId": "904c0dbd-d184-4309-ad57-8f5929f7e9c7", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 0, "msg": "access"}
+2025-11-27 01:09:49 INFO: {"ts": 1764173389188, "level": "INFO", "requestId": "2e16a882-a004-4e73-bc72-3d2c290177c2", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 5, "msg": "access"}
+2025-11-27 01:09:50 INFO: {"ts": 1764173390196, "level": "INFO", "requestId": "90844cf3-31fc-4f28-af08-14cd7be9a4be", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 0, "msg": "access"}
+2025-11-27 01:09:51 INFO: {"ts": 1764173391208, "level": "INFO", "requestId": "85b71769-1e67-4189-8628-109d92bc0f08", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 0, "msg": "access"}
+2025-11-27 01:09:52 INFO: {"ts": 1764173392095, "level": "INFO", "requestId": "52ea44a7-9e51-439f-b197-15cfa1ab0861", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 0, "msg": "access"}
+2025-11-27 01:09:54 INFO: {"ts": 1764173394067, "level": "INFO", "requestId": "73b6a475-f173-4ce0-af13-1496bee21843", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 0, "msg": "access"}
+2025-11-27 01:09:55 INFO: {"ts": 1764173395697, "level": "INFO", "requestId": "51124b87-3c44-46c9-a559-cc2e996e6016", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 0, "msg": "access"}
+2025-11-27 01:09:56 INFO: {"ts": 1764173396993, "level": "INFO", "requestId": "ccd39ff3-dd26-4b99-9408-ddc05c581b20", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 0, "msg": "access"}
+2025-11-27 01:09:58 INFO: {"ts": 1764173398892, "level": "INFO", "requestId": "584cc05d-b938-40d4-8d88-c8662817f1fe", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 0, "msg": "access"}
+2025-11-27 01:10:00 INFO: {"ts": 1764173400655, "level": "INFO", "requestId": "62ce8fef-6f33-4019-bfea-c958cce4d4cf", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 0, "msg": "access"}
+2025-11-27 01:10:02 INFO: {"ts": 1764173402301, "level": "INFO", "requestId": "0805a792-1e24-4f5e-b9ce-0cf0d08d2ffc", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 2, "msg": "access"}
+2025-11-27 01:10:04 INFO: {"ts": 1764173404197, "level": "INFO", "requestId": "74b03210-709f-4641-b6c3-68a485f4e763", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 3, "msg": "access"}
+2025-11-27 01:10:05 INFO: {"ts": 1764173405934, "level": "INFO", "requestId": "ac125dbb-da1b-42bf-b5c7-44ead76e096b", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 0, "msg": "access"}
+2025-11-27 01:10:07 INFO: {"ts": 1764173407281, "level": "INFO", "requestId": "574602eb-5f99-4e1d-9f2f-93a1d6ff7b73", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 0, "msg": "access"}
+2025-11-27 01:10:09 INFO: {"ts": 1764173409123, "level": "INFO", "requestId": "25bd4d72-68af-4127-b5fa-bb2fc32845a2", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 3, "msg": "access"}
+2025-11-27 01:10:10 INFO: {"ts": 1764173410755, "level": "INFO", "requestId": "807b55a1-596d-42d1-9d87-5bfe471a5343", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 1, "msg": "access"}
+2025-11-27 01:10:13 INFO: {"ts": 1764173413234, "level": "INFO", "requestId": "0543ac6b-0bff-4222-8fe7-e6a23ad267a6", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 2, "msg": "access"}
+2025-11-27 01:10:15 INFO: {"ts": 1764173415184, "level": "INFO", "requestId": "6c8a30cc-ffd3-4621-b348-337eaff65d19", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 1, "msg": "access"}
+2025-11-27 01:10:16 INFO: {"ts": 1764173416970, "level": "INFO", "requestId": "9bb51893-f504-463a-b443-93d1e5fd8eb1", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 1, "msg": "access"}
+2025-11-27 01:10:18 INFO: {"ts": 1764173418792, "level": "INFO", "requestId": "6fcbdea3-d19e-44ca-abb5-665528f53a7c", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 0, "msg": "access"}
+2025-11-27 01:10:20 INFO: {"ts": 1764173420508, "level": "INFO", "requestId": "f955aa7a-9d93-40ff-afb4-9b835734e8a7", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 1, "msg": "access"}
+2025-11-27 01:10:22 INFO: {"ts": 1764173422274, "level": "INFO", "requestId": "f50751c3-a6e8-415d-8456-d97f71828450", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 2, "msg": "access"}
+2025-11-27 01:10:23 INFO: {"ts": 1764173423910, "level": "INFO", "requestId": "4aaf06b4-a287-4181-a69f-5b285f24f8bb", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 5, "msg": "access"}
+2025-11-27 01:10:25 INFO: {"ts": 1764173425695, "level": "INFO", "requestId": "8f4cb24f-5170-492c-85d6-d557d752d658", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 2, "msg": "access"}
+2025-11-27 01:10:27 INFO: {"ts": 1764173427459, "level": "INFO", "requestId": "7ffcef5a-64e7-4d3b-8b79-95300e6264e4", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 1, "msg": "access"}
+2025-11-27 01:10:29 INFO: {"ts": 1764173429199, "level": "INFO", "requestId": "c22dba4b-0824-49a0-b3f5-d3a11f64e281", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 1, "msg": "access"}
+2025-11-27 01:10:30 INFO: {"ts": 1764173430928, "level": "INFO", "requestId": "e68322ff-72e0-42da-a4c0-9644875a302d", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 1, "msg": "access"}
+2025-11-27 01:10:32 INFO: {"ts": 1764173432732, "level": "INFO", "requestId": "6d7cdac8-02a0-4b0c-968c-0400d6a0d62c", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 1, "msg": "access"}
+2025-11-27 01:10:34 INFO: {"ts": 1764173434429, "level": "INFO", "requestId": "25fdd56c-d5bd-45d3-8742-30b81f6d224e", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 0, "msg": "access"}
+2025-11-27 01:10:36 INFO: {"ts": 1764173436161, "level": "INFO", "requestId": "e3fa5788-144a-4220-9a11-c47c1c4b0424", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 0, "msg": "access"}
+2025-11-27 01:10:37 INFO: {"ts": 1764173437886, "level": "INFO", "requestId": "ae7d48bd-17f8-48fd-b3ed-491c4288b633", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 0, "msg": "access"}
+2025-11-27 01:10:39 INFO: {"ts": 1764173439593, "level": "INFO", "requestId": "b82fcfd2-2070-49d6-b9da-ceb71a264982", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 2, "msg": "access"}
+2025-11-27 01:10:41 INFO: {"ts": 1764173441519, "level": "INFO", "requestId": "20a6ce44-f6cc-4016-887f-c85f72192104", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 1, "msg": "access"}
+2025-11-27 01:10:43 INFO: {"ts": 1764173443279, "level": "INFO", "requestId": "2965a4c1-87bf-415a-8061-72d77ed23306", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 1, "msg": "access"}
+2025-11-27 01:10:44 INFO: {"ts": 1764173444991, "level": "INFO", "requestId": "a1f26709-fdfd-4fec-a240-8c3f29a04e28", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 0, "msg": "access"}
+2025-11-27 01:10:47 INFO: {"ts": 1764173447596, "level": "INFO", "requestId": "f72521f7-6309-440f-a8c4-ddb112d23119", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 0, "msg": "access"}
+2025-11-27 01:10:49 INFO: {"ts": 1764173449963, "level": "INFO", "requestId": "d969ed4d-f077-44e4-aa69-8bcdcec567a0", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 1, "msg": "access"}
+2025-11-27 01:10:52 INFO: {"ts": 1764173452246, "level": "INFO", "requestId": "976b66d9-db35-4678-ba22-d7c1cce79c68", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 2, "msg": "access"}
+2025-11-27 01:10:54 INFO: {"ts": 1764173454139, "level": "INFO", "requestId": "8e915a48-d9d8-41b2-a749-9219c84635a2", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 0, "msg": "access"}
+2025-11-27 01:10:56 INFO: {"ts": 1764173456169, "level": "INFO", "requestId": "90c73aa3-b08f-4f1d-9101-b202967c1eae", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 2, "msg": "access"}
+2025-11-27 01:10:57 INFO: {"ts": 1764173457996, "level": "INFO", "requestId": "3580a676-aec3-45a4-805a-3cb9f10a1f39", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 2, "msg": "access"}
+2025-11-27 01:11:00 INFO: {"ts": 1764173460091, "level": "INFO", "requestId": "59edda87-368d-4b76-bf0e-3cd1e85f4d67", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 1, "msg": "access"}
+2025-11-27 01:11:02 INFO: {"ts": 1764173462185, "level": "INFO", "requestId": "143336b9-ae85-4bd9-a710-fcf3a3092c72", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 1, "msg": "access"}
+2025-11-27 01:11:04 INFO: {"ts": 1764173464204, "level": "INFO", "requestId": "be2e8f82-7725-4307-8e3b-91c894feb16a", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 1, "msg": "access"}
+2025-11-27 01:11:06 INFO: {"ts": 1764173466260, "level": "INFO", "requestId": "26178ace-d7ff-40fc-9166-33cf8bb7df8d", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 0, "msg": "access"}
+2025-11-27 01:11:08 INFO: {"ts": 1764173468355, "level": "INFO", "requestId": "61093276-3364-4319-963f-536ec068e6b7", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 3, "msg": "access"}
+2025-11-27 01:11:10 INFO: {"ts": 1764173470275, "level": "INFO", "requestId": "d49b257a-bf60-4d61-8a86-0c45e557da88", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 1, "msg": "access"}
+2025-11-27 01:11:12 INFO: {"ts": 1764173472229, "level": "INFO", "requestId": "750a351b-2bed-48b3-820d-4320a65e1b73", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 0, "msg": "access"}
+2025-11-27 01:11:14 INFO: {"ts": 1764173474382, "level": "INFO", "requestId": "a9a04e38-302e-439a-bd94-c21420efcd21", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 0, "msg": "access"}
+2025-11-27 01:11:16 INFO: {"ts": 1764173476327, "level": "INFO", "requestId": "337d8813-a44c-4ced-b0d8-8b7736e8c969", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 0, "msg": "access"}
+2025-11-27 01:11:19 INFO: {"ts": 1764173479181, "level": "INFO", "requestId": "ab9d7d23-b1e6-4f14-904b-16a2d8080dd8", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 2, "msg": "access"}
+2025-11-27 01:11:21 INFO: {"ts": 1764173481256, "level": "INFO", "requestId": "95d82b51-5194-48d6-8335-0baa10a581d8", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 0, "msg": "access"}
+2025-11-27 01:11:23 INFO: {"ts": 1764173483298, "level": "INFO", "requestId": "ceb08d23-a9b3-438d-933d-ada8cdd29e7b", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 0, "msg": "access"}
+2025-11-27 01:11:25 INFO: {"ts": 1764173485298, "level": "INFO", "requestId": "cbe6368a-f28c-42e9-b7a4-b557fb5fe7a4", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 1, "msg": "access"}
+2025-11-27 01:11:27 INFO: {"ts": 1764173487413, "level": "INFO", "requestId": "05a4fff2-9b87-4912-9519-3d5a7d351bf0", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 1, "msg": "access"}
+2025-11-27 01:11:29 INFO: {"ts": 1764173489418, "level": "INFO", "requestId": "75ea3920-26bf-4782-ac59-a3c0b005a6dd", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 1, "msg": "access"}
+2025-11-27 01:11:31 INFO: {"ts": 1764173491391, "level": "INFO", "requestId": "f43fd54c-3803-4b73-a488-c8b1810368c9", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 1, "msg": "access"}
+2025-11-27 01:11:33 INFO: {"ts": 1764173493460, "level": "INFO", "requestId": "7dbd0bb4-88bb-4295-b87c-0fe586bb28a6", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 0, "msg": "access"}
+2025-11-27 01:11:35 INFO: {"ts": 1764173495424, "level": "INFO", "requestId": "d851bf06-587b-4414-a718-b7fa54e944bb", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 1, "msg": "access"}
+2025-11-27 01:11:37 INFO: {"ts": 1764173497424, "level": "INFO", "requestId": "60a6d969-ab52-4c92-839f-a95a6a23b42b", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 1, "msg": "access"}
+2025-11-27 01:11:39 INFO: {"ts": 1764173499427, "level": "INFO", "requestId": "cfeb5846-ee19-4f65-83e3-c3de89e84643", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 1, "msg": "access"}
+2025-11-27 01:11:41 INFO: {"ts": 1764173501449, "level": "INFO", "requestId": "db04965d-81ac-49fc-a18e-dfa46596c7e8", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 1, "msg": "access"}
+2025-11-27 01:11:43 INFO: {"ts": 1764173503394, "level": "INFO", "requestId": "741d896e-11f1-4218-8db1-1abcfbdd94a9", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 0, "msg": "access"}
+2025-11-27 01:11:45 INFO: {"ts": 1764173505325, "level": "INFO", "requestId": "f7443f02-3154-4d29-85de-bfcb17843375", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 1, "msg": "access"}
+2025-11-27 01:11:47 INFO: {"ts": 1764173507162, "level": "INFO", "requestId": "0aaa18f8-9ae5-43ba-a1b4-bce4d1a6ffd7", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 0, "msg": "access"}
+2025-11-27 01:11:49 INFO: {"ts": 1764173509207, "level": "INFO", "requestId": "c62bd51a-9b86-4409-b4c3-832b3d6a26e8", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 0, "msg": "access"}
+2025-11-27 01:11:51 INFO: {"ts": 1764173511215, "level": "INFO", "requestId": "c87bb245-4b76-4781-a4d0-23d6e7977a6a", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 0, "msg": "access"}
+2025-11-27 01:11:53 INFO: {"ts": 1764173513807, "level": "INFO", "requestId": "a6e03333-2358-4e1c-8791-879b23d22dcc", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 0, "msg": "access"}
+2025-11-27 01:11:55 INFO: {"ts": 1764173515711, "level": "INFO", "requestId": "7be8522d-8d21-465e-a7ee-072dcd2cc59d", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 1, "msg": "access"}
+2025-11-27 01:11:57 INFO: {"ts": 1764173517799, "level": "INFO", "requestId": "db4042b6-4633-4ae8-8733-fa663bcfcbe3", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 1, "msg": "access"}
+2025-11-27 01:11:59 INFO: {"ts": 1764173519684, "level": "INFO", "requestId": "d1083ec1-2f87-4dab-b6e7-570406fd6757", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 0, "msg": "access"}
+2025-11-27 01:12:02 INFO: {"ts": 1764173522444, "level": "INFO", "requestId": "c5b85afb-0014-4cc6-9954-c1b09bebf848", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 1, "msg": "access"}
+2025-11-27 01:12:04 INFO: {"ts": 1764173524373, "level": "INFO", "requestId": "86b2475d-f904-4fa1-9caf-f87d7d1fe332", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 1, "msg": "access"}
+2025-11-27 01:12:06 INFO: {"ts": 1764173526269, "level": "INFO", "requestId": "0ab3d3ee-01e9-48e8-9254-c6af2d8602b7", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 1, "msg": "access"}
+2025-11-27 01:12:08 INFO: {"ts": 1764173528076, "level": "INFO", "requestId": "2bb1bbdf-4d83-4fbc-9768-c4c043a63a13", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 0, "msg": "access"}
+2025-11-27 01:12:09 INFO: {"ts": 1764173529934, "level": "INFO", "requestId": "7046f5fe-a40b-4976-a8c7-c3afbe0ee4e8", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 1, "msg": "access"}
+2025-11-27 01:12:11 INFO: {"ts": 1764173531832, "level": "INFO", "requestId": "a8b585ca-7a0b-40e3-8849-b3055a3d1e06", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 1, "msg": "access"}
+2025-11-27 01:12:14 INFO: {"ts": 1764173534019, "level": "INFO", "requestId": "de790ff3-580a-40e2-8897-960e3a3c9a9f", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 1, "msg": "access"}
+2025-11-27 01:12:15 INFO: {"ts": 1764173535542, "level": "INFO", "requestId": "da8f812c-131e-484d-bfb5-e0db8568fada", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 0, "msg": "access"}
+2025-11-27 01:12:17 INFO: {"ts": 1764173537575, "level": "INFO", "requestId": "e58d3740-17b3-4462-8967-c500a4445a5e", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 1, "msg": "access"}
+2025-11-27 01:12:20 INFO: {"ts": 1764173540966, "level": "INFO", "requestId": "7be63b72-8272-41fa-b5c4-42f783155066", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 1, "msg": "access"}
+2025-11-27 01:12:22 INFO: {"ts": 1764173542559, "level": "INFO", "requestId": "8a4fcd47-0e5d-4082-bf32-ce8def08974a", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 0, "msg": "access"}
+2025-11-27 01:12:25 INFO: {"ts": 1764173545206, "level": "INFO", "requestId": "7f2f515a-f8da-4e02-85d9-b79df4ac2134", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 0, "msg": "access"}
+2025-11-27 01:12:27 INFO: {"ts": 1764173547017, "level": "INFO", "requestId": "e45e1137-3ddf-4a30-a167-37b479cad83d", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 1, "msg": "access"}
+2025-11-27 01:12:28 INFO: {"ts": 1764173548876, "level": "INFO", "requestId": "3a7d6626-42b0-4268-8e2e-3e5409e7e4d9", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 1, "msg": "access"}
+2025-11-27 01:12:30 INFO: {"ts": 1764173550930, "level": "INFO", "requestId": "08a1ceea-5867-4a9d-8ab9-90882bce8551", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 0, "msg": "access"}
+2025-11-27 01:12:32 INFO: {"ts": 1764173552815, "level": "INFO", "requestId": "7be93078-56b1-4d3d-b394-c9ff191bca2a", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 0, "msg": "access"}
+2025-11-27 01:12:34 INFO: {"ts": 1764173554433, "level": "INFO", "requestId": "7f45550d-6490-4b22-b434-eb3fb2de43c0", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 0, "msg": "access"}
+2025-11-27 01:12:36 INFO: {"ts": 1764173556211, "level": "INFO", "requestId": "e0c476aa-9511-4581-94e2-84eee791600b", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 1, "msg": "access"}
+2025-11-27 01:12:37 INFO: {"ts": 1764173557966, "level": "INFO", "requestId": "77d3ff10-1380-4f6c-b234-d9cb2f278478", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 0, "msg": "access"}
+2025-11-27 01:12:39 INFO: {"ts": 1764173559769, "level": "INFO", "requestId": "e886f6d8-4ab7-4546-be67-11c7c1a19e71", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 0, "msg": "access"}
+2025-11-27 01:12:41 INFO: {"ts": 1764173561534, "level": "INFO", "requestId": "4ea50a50-2ae5-476a-9a30-5efcac100b6c", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 0, "msg": "access"}
+2025-11-27 01:12:43 INFO: {"ts": 1764173563474, "level": "INFO", "requestId": "53023d6e-907c-420a-9fb5-8dca9c44c103", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 0, "msg": "access"}
+2025-11-27 01:12:45 INFO: {"ts": 1764173565279, "level": "INFO", "requestId": "0b651c8a-bf48-47cb-b610-841f90164d3c", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 1, "msg": "access"}
+2025-11-27 01:12:47 INFO: {"ts": 1764173567088, "level": "INFO", "requestId": "ddcc6461-528f-4027-b850-3e799929a87a", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 0, "msg": "access"}
+2025-11-27 01:12:48 INFO: {"ts": 1764173568826, "level": "INFO", "requestId": "01cadbb8-1bcf-4843-9302-5663125657ea", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 0, "msg": "access"}
+2025-11-27 01:12:50 INFO: {"ts": 1764173570680, "level": "INFO", "requestId": "9377386f-3ef3-4737-aa61-811b22ff373e", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 0, "msg": "access"}
+2025-11-27 01:12:52 INFO: {"ts": 1764173572374, "level": "INFO", "requestId": "3754736a-da6b-48c0-98a4-0a25484a6807", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 0, "msg": "access"}
+2025-11-27 01:12:54 INFO: {"ts": 1764173574155, "level": "INFO", "requestId": "207bddda-4205-4232-8e2d-1ac5fc06b61d", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 0, "msg": "access"}
+2025-11-27 01:12:56 INFO: {"ts": 1764173576190, "level": "INFO", "requestId": "f4445793-2aa6-45cd-983c-5984eaf6a536", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 0, "msg": "access"}
+2025-11-27 01:12:58 INFO: {"ts": 1764173578811, "level": "INFO", "requestId": "820daaaf-d934-4f7e-b17f-b37b3e3705d8", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 1, "msg": "access"}
+2025-11-27 01:13:00 INFO: {"ts": 1764173580598, "level": "INFO", "requestId": "2986a7e9-0d48-4132-b49d-b1351380c0ad", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 0, "msg": "access"}
+2025-11-27 01:13:02 INFO: {"ts": 1764173582348, "level": "INFO", "requestId": "49681420-489c-4561-ada5-d23ccdf89a01", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 0, "msg": "access"}
+2025-11-27 01:13:04 INFO: {"ts": 1764173584113, "level": "INFO", "requestId": "04dfcd39-0f1f-4b95-9d78-92b378137c32", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 2, "msg": "access"}
+2025-11-27 01:13:05 INFO: {"ts": 1764173585892, "level": "INFO", "requestId": "8aaa9228-7c0e-4eff-a942-5eb4c7ff86de", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 0, "msg": "access"}
+2025-11-27 01:13:07 INFO: {"ts": 1764173587888, "level": "INFO", "requestId": "e763a0c3-a39e-403d-851b-493f8cdb132c", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 0, "msg": "access"}
+2025-11-27 01:13:09 INFO: {"ts": 1764173589833, "level": "INFO", "requestId": "fddd70fe-a2a8-4cd7-876c-33eb661697db", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 0, "msg": "access"}
+2025-11-27 01:13:11 INFO: {"ts": 1764173591743, "level": "INFO", "requestId": "9562dd64-2cee-4f05-9d5b-fb9f874f4da5", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 1, "msg": "access"}
+2025-11-27 01:13:13 INFO: {"ts": 1764173593714, "level": "INFO", "requestId": "0cd13fae-1646-4de6-b51d-d0ab28dba301", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 0, "msg": "access"}
+2025-11-27 01:13:15 INFO: {"ts": 1764173595681, "level": "INFO", "requestId": "353a20ee-5bbb-4113-8852-03db1d96ddbb", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 1, "msg": "access"}
+2025-11-27 01:13:17 INFO: {"ts": 1764173597798, "level": "INFO", "requestId": "c6012724-9c1e-4453-8429-304cb91df636", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 1, "msg": "access"}
+2025-11-27 01:13:19 INFO: {"ts": 1764173599536, "level": "INFO", "requestId": "7f12dee2-666a-4eb8-b5d9-bcda72a35749", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 0, "msg": "access"}
+2025-11-27 01:13:21 INFO: {"ts": 1764173601388, "level": "INFO", "requestId": "027c587c-04b5-4187-b620-fde0d13ad300", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 0, "msg": "access"}
+2025-11-27 01:13:23 INFO: {"ts": 1764173603203, "level": "INFO", "requestId": "bcf81cb0-1ef6-4516-b5b0-ce3e2289f29d", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 0, "msg": "access"}
+2025-11-27 01:13:25 INFO: {"ts": 1764173605117, "level": "INFO", "requestId": "8fd5714c-3551-4f30-a5f6-1f785d7c22a9", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 0, "msg": "access"}
+2025-11-27 01:13:26 INFO: {"ts": 1764173606910, "level": "INFO", "requestId": "4a679eb9-f5e2-44f3-a811-4ef2f0d16d45", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 1, "msg": "access"}
+2025-11-27 01:13:28 INFO: {"ts": 1764173608841, "level": "INFO", "requestId": "f758a00e-93fd-40c9-a618-d676b255e279", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 0, "msg": "access"}
+2025-11-27 01:13:31 INFO: {"ts": 1764173611154, "level": "INFO", "requestId": "93404325-2796-4bc2-b664-29281df637c7", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 0, "msg": "access"}
+2025-11-27 01:13:33 INFO: {"ts": 1764173613148, "level": "INFO", "requestId": "82f18e6b-2528-4cbe-ad1e-c5a735a636f6", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 0, "msg": "access"}
+2025-11-27 01:13:35 INFO: {"ts": 1764173615021, "level": "INFO", "requestId": "39783f72-2cdf-4919-9e84-bffd62c61182", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 1, "msg": "access"}
+2025-11-27 01:13:36 INFO: {"ts": 1764173616896, "level": "INFO", "requestId": "ee9afcaf-17e6-4ab4-9a31-51f4c2af0f8f", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 0, "msg": "access"}
+2025-11-27 01:13:38 INFO: {"ts": 1764173618764, "level": "INFO", "requestId": "5c1a77e3-78de-49d1-a86e-6a80bc696a09", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 0, "msg": "access"}
+2025-11-27 01:13:41 INFO: {"ts": 1764173621020, "level": "INFO", "requestId": "12fae4d9-4d4b-4cae-8b16-6fa0f2b2e6fa", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 4, "msg": "access"}
+2025-11-27 01:13:42 INFO: {"ts": 1764173622850, "level": "INFO", "requestId": "1588b3ff-a0a0-44fb-a307-8bcef25fe830", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 1, "msg": "access"}
+2025-11-27 01:13:44 INFO: {"ts": 1764173624780, "level": "INFO", "requestId": "6cf4eb3e-5758-4d27-aa45-443b0fe5d1b8", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 1, "msg": "access"}
+2025-11-27 01:13:47 INFO: {"ts": 1764173627385, "level": "INFO", "requestId": "108d4383-eaa6-4263-87d3-abb49a9aebf8", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 0, "msg": "access"}
+2025-11-27 01:14:13 INFO: {"ts": 1764173653473, "level": "INFO", "requestId": "be762a51-4270-44ef-af6d-db96a9d8b450", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 1, "msg": "access"}
+2025-11-27 01:14:28 INFO: {"ts": 1764173668543, "level": "INFO", "requestId": "b8416cbd-92bd-4911-a145-4b1dc3ac83cc", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 0, "msg": "access"}
+2025-11-27 02:08:35 INFO: {"ts": 1764176915886, "level": "INFO", "requestId": "047bc00b-b3fe-48d2-ad14-bf7e195827dc", "method": "GET", "path": "/api/v1/auth/me", "status": 401, "latency_ms": 20, "msg": "access"}
+2025-11-27 02:08:36 INFO: {"ts": 1764176916231, "level": "INFO", "requestId": "42415044-4c1e-4488-a56b-af9b60848e18", "method": "POST", "path": "/api/v1/auth/refresh", "status": 200, "latency_ms": 18, "msg": "access"}
+2025-11-27 02:08:36 INFO: {"ts": 1764176916520, "level": "INFO", "requestId": "7f1849bb-5741-41c2-b273-406abf5f6cf5", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 3, "msg": "access"}
+2025-11-27 03:27:48 INFO: {"ts": 1764181668556, "level": "INFO", "requestId": "cb1d5b16-a7da-4d4c-aaf7-a3d42eb87329", "method": "GET", "path": "/api/v1/auth/me", "status": 401, "latency_ms": 19, "msg": "access"}
+2025-11-27 03:27:48 INFO: {"ts": 1764181668858, "level": "INFO", "requestId": "820b7ac1-7ee3-443e-8c8c-ff96de22d3e4", "method": "POST", "path": "/api/v1/auth/refresh", "status": 200, "latency_ms": 13, "msg": "access"}
+2025-11-27 03:27:49 INFO: {"ts": 1764181669150, "level": "INFO", "requestId": "9ce1655f-1e40-47d1-a203-05d5f4071543", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 2, "msg": "access"}
+2025-11-27 07:08:41 INFO: {"ts": 1764194921089, "level": "INFO", "requestId": "e0df9b88-5eaf-4a29-a055-b8f1fbb6e8e1", "method": "GET", "path": "/dispatch.asp", "status": 404, "latency_ms": 8, "msg": "access"}
+2025-11-27 11:54:50 INFO: {"ts": 1764212090635, "level": "INFO", "requestId": "25f67b57-4799-42af-970f-59c386b26064", "method": "GET", "path": "/api/v1/auth/me", "status": 401, "latency_ms": 7, "msg": "access"}
+2025-11-27 11:54:50 INFO: {"ts": 1764212090922, "level": "INFO", "requestId": "7fc8420b-f0dd-462d-9643-b81fec56b824", "method": "POST", "path": "/api/v1/auth/refresh", "status": 200, "latency_ms": 9, "msg": "access"}
+2025-11-27 11:54:51 INFO: {"ts": 1764212091181, "level": "INFO", "requestId": "edb6ad59-d37a-415e-a214-a8b46b8b3594", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 1, "msg": "access"}
+WARNING:  Invalid HTTP request received.
+2025-11-27 11:56:08 INFO: {"ts": 1764212168952, "level": "INFO", "requestId": "43374443-efba-4f3e-9a73-2378d5640149", "method": "GET", "path": "/", "status": 404, "latency_ms": 0, "msg": "access"}
+2025-11-27 11:56:11 INFO: {"ts": 1764212171130, "level": "INFO", "requestId": "bfec279a-bfb5-4cae-8577-4ad4e9efd622", "method": "PRI", "path": "", "status": 404, "latency_ms": 0, "msg": "access"}
+WARNING:  Invalid HTTP request received.
+WARNING:  Invalid HTTP request received.
+2025-11-27 11:56:25 INFO: {"ts": 1764212185006, "level": "INFO", "requestId": "211f10a1-d090-42af-92ae-744e023ec2d1", "method": "GET", "path": "/robots.txt", "status": 404, "latency_ms": 0, "msg": "access"}
+2025-11-27 13:27:57 INFO: {"ts": 1764217677607, "level": "INFO", "requestId": "26f9e76c-b4ad-4055-8fbd-19b1a77a468f", "method": "GET", "path": "/", "status": 404, "latency_ms": 9, "msg": "access"}
+WARNING:  Invalid HTTP request received.
+2025-11-27 13:27:57 INFO: {"ts": 1764217677628, "level": "INFO", "requestId": "1d05a5c8-9e7e-4956-978e-ece5ed8bcc8d", "method": "GET", "path": "/index.htm", "status": 404, "latency_ms": 21, "msg": "access"}
+2025-11-27 13:30:13 INFO: {"ts": 1764217813639, "level": "INFO", "requestId": "83eead37-5e51-46a1-8a79-733115c988c8", "method": "GET", "path": "/api/v1/auth/me", "status": 401, "latency_ms": 8, "msg": "access"}
+2025-11-27 13:30:13 INFO: {"ts": 1764217813995, "level": "INFO", "requestId": "96ed659e-33fc-4bae-ba62-25313e62ae0c", "method": "POST", "path": "/api/v1/auth/refresh", "status": 200, "latency_ms": 14, "msg": "access"}
+2025-11-27 13:30:14 INFO: {"ts": 1764217814274, "level": "INFO", "requestId": "0ad0824f-38c6-4ed1-878f-46eefd386d72", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 2, "msg": "access"}
+2025-11-27 13:58:27 INFO: {"ts": 1764219507799, "level": "INFO", "requestId": "a17d49a9-c9a1-4ef6-a737-28a3615f12d7", "method": "POST", "path": "/api/v1/auth/logout", "status": 204, "latency_ms": 2, "msg": "access"}
+2025-11-27 13:58:28 INFO: {"ts": 1764219508520, "level": "INFO", "requestId": "a836d3dd-a6c0-449b-9b72-e60a18ac1a96", "method": "GET", "path": "/api/v1/auth/me", "status": 401, "latency_ms": 0, "msg": "access"}
+2025-11-27 13:58:28 INFO: {"ts": 1764219508874, "level": "INFO", "requestId": "f98b412b-dbd3-4f6c-a533-8eadda1bfb79", "method": "POST", "path": "/api/v1/auth/refresh", "status": 401, "latency_ms": 0, "msg": "access"}
+2025-11-27 13:58:34 INFO: {"ts": 1764219514106, "level": "INFO", "requestId": "5bb6952d-1a71-461f-b79a-f4665ebfa48f", "method": "GET", "path": "/api/v1/auth/me", "status": 401, "latency_ms": 0, "msg": "access"}
+2025-11-27 13:58:34 INFO: {"ts": 1764219514433, "level": "INFO", "requestId": "448a2dbe-dd34-4cd4-b227-f1f9d1c94c1f", "method": "POST", "path": "/api/v1/auth/refresh", "status": 401, "latency_ms": 0, "msg": "access"}
+2025-11-27 13:58:35 INFO: {"ts": 1764219515881, "level": "INFO", "requestId": "6133d520-665a-45fb-a5fd-f6f009fedb12", "method": "GET", "path": "/api/v1/auth/me", "status": 401, "latency_ms": 0, "msg": "access"}
+2025-11-27 13:58:36 INFO: {"ts": 1764219516193, "level": "INFO", "requestId": "27c23e26-c5ba-48da-8c33-21f014f83578", "method": "POST", "path": "/api/v1/auth/refresh", "status": 401, "latency_ms": 0, "msg": "access"}
+2025-11-27 13:58:37 INFO: {"ts": 1764219517451, "level": "INFO", "requestId": "41812896-44e4-4c65-8626-afdf8b6c8f2e", "method": "GET", "path": "/api/v1/auth/me", "status": 401, "latency_ms": 0, "msg": "access"}
+2025-11-27 13:58:37 INFO: {"ts": 1764219517747, "level": "INFO", "requestId": "19f2a3d1-7ee2-4f25-8a13-5b05529d31fd", "method": "POST", "path": "/api/v1/auth/refresh", "status": 401, "latency_ms": 0, "msg": "access"}
+2025-11-27 13:58:42 INFO: {"ts": 1764219522971, "level": "INFO", "requestId": "1019c544-4f2b-48c9-a10e-a2421f018fa1", "method": "GET", "path": "/api/v1/auth/me", "status": 401, "latency_ms": 0, "msg": "access"}
+2025-11-27 13:58:43 INFO: {"ts": 1764219523247, "level": "INFO", "requestId": "2f00905a-ba04-4281-bd44-37f8e7bb1ed7", "method": "POST", "path": "/api/v1/auth/refresh", "status": 401, "latency_ms": 0, "msg": "access"}
+2025-11-27 13:58:54 INFO: {"ts": 1764219534118, "level": "INFO", "requestId": "1913f8ce-f391-46af-b8a2-30fa71267b60", "method": "GET", "path": "/api/v1/auth/me", "status": 401, "latency_ms": 0, "msg": "access"}
+2025-11-27 13:58:54 INFO: {"ts": 1764219534409, "level": "INFO", "requestId": "c2e1e725-0d3c-4511-8e49-39bb425bdd73", "method": "POST", "path": "/api/v1/auth/refresh", "status": 401, "latency_ms": 0, "msg": "access"}
+2025-11-27 13:59:01 INFO: fetchOne named query: auth.userByUsername
+2025-11-27 13:59:01 INFO: fetch_one
+2025-11-27 13:59:02 INFO: rows_returned=1
+2025-11-27 13:59:02 INFO: {"ts": 1764219542119, "level": "INFO", "requestId": "e617b7a7-d7cf-4fe3-8068-b1f68bb9fad5", "method": "POST", "path": "/api/v1/auth/login", "status": 200, "latency_ms": 554, "msg": "access"}
+2025-11-27 13:59:02 INFO: {"ts": 1764219542468, "level": "INFO", "requestId": "7b88f226-4cdf-4f5c-b483-a7c98f402edc", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 0, "msg": "access"}
+2025-11-27 14:05:21 INFO: {"ts": 1764219921967, "level": "INFO", "requestId": "03ce2834-5e23-49cf-bbe8-c86539e78bfe", "method": "POST", "path": "/api/v1/auth/logout", "status": 204, "latency_ms": 0, "msg": "access"}
+2025-11-27 14:05:22 INFO: {"ts": 1764219922825, "level": "INFO", "requestId": "8808c98d-edfa-4756-9f59-92985189da72", "method": "GET", "path": "/api/v1/auth/me", "status": 401, "latency_ms": 1, "msg": "access"}
+2025-11-27 14:05:23 INFO: {"ts": 1764219923100, "level": "INFO", "requestId": "b8a285b9-c98f-4478-9ffb-eefab1b0ad00", "method": "POST", "path": "/api/v1/auth/refresh", "status": 401, "latency_ms": 0, "msg": "access"}
+2025-11-27 14:05:34 INFO: {"ts": 1764219934033, "level": "INFO", "requestId": "d22d6ad6-d4ab-4e0b-8014-2e57adb7addf", "method": "GET", "path": "/api/v1/auth/me", "status": 401, "latency_ms": 0, "msg": "access"}
+2025-11-27 14:05:34 INFO: {"ts": 1764219934651, "level": "INFO", "requestId": "6760a51f-8607-400c-9529-58fa525450c8", "method": "POST", "path": "/api/v1/auth/refresh", "status": 401, "latency_ms": 0, "msg": "access"}
+2025-11-27 14:05:49 INFO: {"ts": 1764219949674, "level": "INFO", "requestId": "92dacd52-482a-4e1b-bd70-0fd9b1fe88f6", "method": "GET", "path": "/api/v1/auth/me", "status": 401, "latency_ms": 0, "msg": "access"}
+2025-11-27 14:05:49 INFO: {"ts": 1764219949963, "level": "INFO", "requestId": "c5f74314-4b50-40a6-a28b-8125830e8a27", "method": "POST", "path": "/api/v1/auth/refresh", "status": 401, "latency_ms": 0, "msg": "access"}
+2025-11-27 14:06:20 INFO: {"ts": 1764219980320, "level": "INFO", "requestId": "b044e0e1-f639-43e8-af9f-6687491982a5", "method": "GET", "path": "/api/v1/auth/me", "status": 401, "latency_ms": 0, "msg": "access"}
+2025-11-27 14:06:20 INFO: {"ts": 1764219980617, "level": "INFO", "requestId": "bdf709de-1060-43ef-bf5a-6a40bda68474", "method": "POST", "path": "/api/v1/auth/refresh", "status": 401, "latency_ms": 0, "msg": "access"}
+2025-11-27 14:06:25 INFO: {"ts": 1764219985846, "level": "INFO", "requestId": "007f6aed-7c19-4703-95eb-50078e2c7698", "method": "GET", "path": "/api/v1/auth/me", "status": 401, "latency_ms": 0, "msg": "access"}
+2025-11-27 14:06:26 INFO: {"ts": 1764219986138, "level": "INFO", "requestId": "1bd860d8-6c13-49fb-bfa1-9d50b305522c", "method": "POST", "path": "/api/v1/auth/refresh", "status": 401, "latency_ms": 0, "msg": "access"}
+2025-11-27 14:06:45 INFO: {"ts": 1764220005599, "level": "INFO", "requestId": "652a60e3-cd7f-4db7-ac78-545dfbfb7958", "method": "GET", "path": "/api/v1/auth/me", "status": 401, "latency_ms": 0, "msg": "access"}
+2025-11-27 14:06:45 INFO: {"ts": 1764220005886, "level": "INFO", "requestId": "a6e3b217-0540-4a7e-ac4e-faa21b987bea", "method": "POST", "path": "/api/v1/auth/refresh", "status": 401, "latency_ms": 0, "msg": "access"}
+2025-11-27 14:06:46 INFO: {"ts": 1764220006780, "level": "INFO", "requestId": "5c51ca5b-7b9e-412a-9678-ba4531613bc5", "method": "GET", "path": "/api/v1/auth/me", "status": 401, "latency_ms": 0, "msg": "access"}
+2025-11-27 14:06:47 INFO: {"ts": 1764220007055, "level": "INFO", "requestId": "5db6dfbd-aab9-475a-931f-ba11501ee4d6", "method": "POST", "path": "/api/v1/auth/refresh", "status": 401, "latency_ms": 0, "msg": "access"}
+2025-11-27 14:06:49 INFO: fetchOne named query: auth.userByUsername
+2025-11-27 14:06:49 INFO: fetch_one
+2025-11-27 14:06:50 INFO: rows_returned=1
+2025-11-27 14:06:50 INFO: {"ts": 1764220010249, "level": "INFO", "requestId": "5ed72790-750f-4e79-9119-0a7885e8c38c", "method": "POST", "path": "/api/v1/auth/login", "status": 200, "latency_ms": 433, "msg": "access"}
+2025-11-27 14:06:50 INFO: {"ts": 1764220010595, "level": "INFO", "requestId": "7171b3af-0562-43df-94ff-f3b700118f5e", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 0, "msg": "access"}
+2025-11-27 14:13:36 INFO: fetchAll named query: dashboard.statusSummary
+2025-11-27 14:13:36 INFO: fetch_all
+2025-11-27 14:13:36 INFO: fetchAll named query: dashboard.list
+2025-11-27 14:13:36 INFO: fetch_all
+2025-11-27 14:13:37 INFO: rows_returned=3
+2025-11-27 14:13:37 INFO: {"ts": 1764220417091, "level": "INFO", "requestId": "fc2d123f-bce3-440c-bc57-0a176a8583fe", "method": "GET", "path": "/api/v1/dashboard/stats", "status": 200, "latency_ms": 373, "msg": "access"}
+2025-11-27 14:13:37 INFO: rows_returned=5
+2025-11-27 14:13:37 INFO: {"ts": 1764220417102, "level": "INFO", "requestId": "a0d22d54-c005-4ab3-b977-268418245373", "method": "GET", "path": "/api/v1/dashboard/list", "status": 200, "latency_ms": 379, "msg": "access"}
+2025-11-27 14:24:28 INFO: fetchAll named query: dashboard.statusSummary
+2025-11-27 14:24:28 INFO: fetch_all
+2025-11-27 14:24:28 INFO: fetchAll named query: dashboard.list
+2025-11-27 14:24:28 INFO: fetch_all
+2025-11-27 14:24:28 INFO: rows_returned=3
+2025-11-27 14:24:28 INFO: {"ts": 1764221068756, "level": "INFO", "requestId": "f3ae6d05-d868-44ae-8587-0bc739d936ab", "method": "GET", "path": "/api/v1/dashboard/stats", "status": 200, "latency_ms": 148, "msg": "access"}
+2025-11-27 14:24:28 INFO: rows_returned=5
+2025-11-27 14:24:28 INFO: {"ts": 1764221068771, "level": "INFO", "requestId": "7baf598b-e1b0-4bd6-ae54-6b4d58a3378f", "method": "GET", "path": "/api/v1/dashboard/list", "status": 200, "latency_ms": 161, "msg": "access"}
+2025-11-27 14:27:52 INFO: fetchAll named query: dashboard.statusSummary
+2025-11-27 14:27:52 INFO: fetch_all
+2025-11-27 14:27:52 INFO: fetchAll named query: dashboard.list
+2025-11-27 14:27:52 INFO: fetch_all
+2025-11-27 14:27:53 INFO: rows_returned=5
+2025-11-27 14:27:53 INFO: {"ts": 1764221273095, "level": "INFO", "requestId": "ccf12a69-fab4-4969-8f3a-c130d1457c11", "method": "GET", "path": "/api/v1/dashboard/list", "status": 200, "latency_ms": 313, "msg": "access"}
+2025-11-27 14:27:53 INFO: rows_returned=3
+2025-11-27 14:27:53 INFO: {"ts": 1764221273096, "level": "INFO", "requestId": "399b8a00-c953-4663-8742-8491b07f2e63", "method": "GET", "path": "/api/v1/dashboard/stats", "status": 200, "latency_ms": 316, "msg": "access"}
+2025-11-27 14:29:37 INFO: fetchAll named query: dashboard.statusSummary
+2025-11-27 14:29:37 INFO: fetch_all
+2025-11-27 14:29:37 INFO: fetchAll named query: dashboard.list
+2025-11-27 14:29:37 INFO: fetch_all
+2025-11-27 14:29:38 INFO: rows_returned=5
+2025-11-27 14:29:38 INFO: rows_returned=3
+2025-11-27 14:29:38 INFO: {"ts": 1764221378380, "level": "INFO", "requestId": "6dc8aefa-f4ca-4f75-b136-24b5ea98e4a7", "method": "GET", "path": "/api/v1/dashboard/list", "status": 200, "latency_ms": 518, "msg": "access"}
+2025-11-27 14:29:38 INFO: {"ts": 1764221378381, "level": "INFO", "requestId": "44f8c11c-4067-4357-b9ce-92891dc19c4d", "method": "GET", "path": "/api/v1/dashboard/stats", "status": 200, "latency_ms": 520, "msg": "access"}
+2025-11-27 14:30:12 INFO: {"ts": 1764221412530, "level": "INFO", "requestId": "b61ce2ad-8007-4b13-b330-8710652648b6", "method": "HEAD", "path": "/api/v1/dashboard/stats", "status": 405, "latency_ms": 0, "msg": "access"}
+2025-11-27 14:30:17 INFO: {"ts": 1764221417436, "level": "INFO", "requestId": "93560dff-63cb-4959-acad-3273d4f58bd0", "method": "GET", "path": "/api/v1/dashboard/stats", "status": 401, "latency_ms": 0, "msg": "access"}
+2025-11-27 14:38:33 INFO: fetchAll named query: dashboard.list
+2025-11-27 14:38:33 INFO: fetch_all
+2025-11-27 14:38:33 INFO: fetchAll named query: dashboard.statusSummary
+2025-11-27 14:38:33 INFO: fetch_all
+ERROR:    Exception in ASGI application
+Traceback (most recent call last):
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/aiomysql/connection.py", line 657, in _read_bytes
+    data = await self._reader.readexactly(num_bytes)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/asyncio/streams.py", line 752, in readexactly
+    await self._wait_for_data('readexactly')
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/asyncio/streams.py", line 545, in _wait_for_data
+    await self._waiter
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/asyncio/selector_events.py", line 1013, in _read_ready__data_received
+    data = self._sock.recv(self.max_size)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ConnectionResetError: [Errno 104] Connection reset by peer
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/uvicorn/protocols/http/h11_impl.py", line 403, in run_asgi
+    result = await app(  # type: ignore[func-returns-value]
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/uvicorn/middleware/proxy_headers.py", line 60, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/fastapi/applications.py", line 1054, in __call__
+    await super().__call__(scope, receive, send)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/applications.py", line 113, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/middleware/errors.py", line 186, in __call__
+    raise exc
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/middleware/errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/middleware/base.py", line 182, in __call__
+    with recv_stream, send_stream, collapse_excgroups():
+                                   ^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/contextlib.py", line 158, in __exit__
+    self.gen.throw(value)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/_utils.py", line 85, in collapse_excgroups
+    raise exc
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/middleware/base.py", line 184, in __call__
+    response = await self.dispatch_func(request, call_next)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/workspace/My/MyWebTemplate/backend/lib/Middleware.py", line 37, in dispatch
+    response = await callNext(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/middleware/base.py", line 159, in call_next
+    raise app_exc
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/middleware/base.py", line 144, in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/middleware/cors.py", line 85, in __call__
+    await self.app(scope, receive, send)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/routing.py", line 290, in handle
+    await self.app(scope, receive, send)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/routing.py", line 78, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/routing.py", line 75, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/fastapi/routing.py", line 302, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/fastapi/routing.py", line 213, in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/workspace/My/MyWebTemplate/backend/router/DashboardRouter.py", line 21, in listDataTemplates
+    result = await DashboardService.listDataTemplates(limit, offset)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/workspace/My/MyWebTemplate/backend/service/DashboardService.py", line 39, in listDataTemplates
+    rows = await db.fetchAllQuery("dashboard.list", {"limit": safeLimit, "offset": safeOffset}) or []
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/workspace/My/MyWebTemplate/backend/lib/Database.py", line 285, in fetchAllQuery
+    return await self.fetchAll(query, values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/workspace/My/MyWebTemplate/backend/lib/Database.py", line 249, in fetchAll
+    result = await self.database.fetch_all(query=query, values=values or {})
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/databases/core.py", line 174, in fetch_all
+    return await connection.fetch_all(query, values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/databases/core.py", line 290, in fetch_all
+    return await self._connection.fetch_all(built_query)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/databases/backends/mysql.py", line 118, in fetch_all
+    await cursor.execute(query_str, args)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/aiomysql/cursors.py", line 239, in execute
+    await self._query(query)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/aiomysql/cursors.py", line 457, in _query
+    await conn.query(q)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/aiomysql/connection.py", line 469, in query
+    await self._read_query_result(unbuffered=unbuffered)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/aiomysql/connection.py", line 683, in _read_query_result
+    await result.read()
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/aiomysql/connection.py", line 1164, in read
+    first_packet = await self.connection._read_packet()
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/aiomysql/connection.py", line 609, in _read_packet
+    packet_header = await self._read_bytes(4)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/aiomysql/connection.py", line 665, in _read_bytes
+    raise OperationalError(CR.CR_SERVER_LOST, msg) from e
+pymysql.err.OperationalError: (2013, 'Lost connection to MySQL server during query ([Errno 104] Connection reset by peer)')
+2025-11-27 14:38:33 INFO: rows_returned=3
+2025-11-27 14:38:33 INFO: {"ts": 1764221913854, "level": "INFO", "requestId": "341909bc-073e-4a9f-a169-4329b61a07b0", "method": "GET", "path": "/api/v1/dashboard/stats", "status": 200, "latency_ms": 128, "msg": "access"}
+2025-11-27 14:38:59 INFO: fetchAll named query: dashboard.statusSummary
+2025-11-27 14:38:59 INFO: fetch_all
+2025-11-27 14:38:59 INFO: fetchAll named query: dashboard.list
+2025-11-27 14:38:59 INFO: fetch_all
+2025-11-27 14:39:00 INFO: rows_returned=3
+2025-11-27 14:39:00 INFO: {"ts": 1764221940060, "level": "INFO", "requestId": "0c8806ee-f411-4408-9353-bd9912018fb4", "method": "GET", "path": "/api/v1/dashboard/stats", "status": 200, "latency_ms": 471, "msg": "access"}
+2025-11-27 14:39:00 INFO: rows_returned=5
+2025-11-27 14:39:00 INFO: {"ts": 1764221940067, "level": "INFO", "requestId": "93f2e776-d9c1-4382-99a7-fcce698d1f40", "method": "GET", "path": "/api/v1/dashboard/list", "status": 200, "latency_ms": 475, "msg": "access"}
+2025-11-27 14:40:49 INFO: fetchAll named query: dashboard.statusSummary
+2025-11-27 14:40:49 INFO: fetch_all
+2025-11-27 14:40:49 INFO: fetchAll named query: dashboard.list
+2025-11-27 14:40:49 INFO: fetch_all
+2025-11-27 14:40:49 INFO: rows_returned=5
+2025-11-27 14:40:49 INFO: {"ts": 1764222049864, "level": "INFO", "requestId": "98a79a4c-0d42-44fc-845a-7a104fcab3cc", "method": "GET", "path": "/api/v1/dashboard/list", "status": 200, "latency_ms": 259, "msg": "access"}
+2025-11-27 14:40:49 INFO: rows_returned=3
+2025-11-27 14:40:49 INFO: {"ts": 1764222049866, "level": "INFO", "requestId": "033ab047-fda8-47a8-91ba-d66476a720e7", "method": "GET", "path": "/api/v1/dashboard/stats", "status": 200, "latency_ms": 262, "msg": "access"}
+2025-11-27 14:41:58 INFO: fetchAll named query: dashboard.statusSummary
+2025-11-27 14:41:58 INFO: fetch_all
+2025-11-27 14:41:58 INFO: fetchAll named query: dashboard.list
+2025-11-27 14:41:58 INFO: fetch_all
+2025-11-27 14:41:59 INFO: rows_returned=5
+2025-11-27 14:41:59 INFO: rows_returned=3
+2025-11-27 14:41:59 INFO: {"ts": 1764222119074, "level": "INFO", "requestId": "c087f1f0-de23-4bb6-b7f6-4295e75d0b94", "method": "GET", "path": "/api/v1/dashboard/list", "status": 200, "latency_ms": 373, "msg": "access"}
+2025-11-27 14:41:59 INFO: {"ts": 1764222119075, "level": "INFO", "requestId": "b60f1a89-1d22-4f6c-a247-785b8ff90958", "method": "GET", "path": "/api/v1/dashboard/stats", "status": 200, "latency_ms": 375, "msg": "access"}
+2025-11-27 14:43:45 INFO: fetchAll named query: dashboard.statusSummary
+2025-11-27 14:43:45 INFO: fetch_all
+2025-11-27 14:43:45 INFO: fetchAll named query: dashboard.list
+2025-11-27 14:43:45 INFO: fetch_all
+2025-11-27 14:43:46 INFO: rows_returned=3
+2025-11-27 14:43:46 INFO: {"ts": 1764222226219, "level": "INFO", "requestId": "87150bdb-9e46-4e3a-862d-c94c30e18ceb", "method": "GET", "path": "/api/v1/dashboard/stats", "status": 200, "latency_ms": 410, "msg": "access"}
+2025-11-27 14:43:46 INFO: rows_returned=5
+2025-11-27 14:43:46 INFO: {"ts": 1764222226220, "level": "INFO", "requestId": "42a5420f-0586-4e95-a098-039f544e7851", "method": "GET", "path": "/api/v1/dashboard/list", "status": 200, "latency_ms": 410, "msg": "access"}
+2025-11-27 14:43:55 INFO: fetchAll named query: dashboard.statusSummary
+2025-11-27 14:43:55 INFO: fetch_all
+2025-11-27 14:43:55 INFO: fetchAll named query: dashboard.list
+2025-11-27 14:43:55 INFO: fetch_all
+2025-11-27 14:43:55 INFO: rows_returned=3
+2025-11-27 14:43:55 INFO: {"ts": 1764222235811, "level": "INFO", "requestId": "2478281d-6af3-4fdf-9a89-74174203ccbe", "method": "GET", "path": "/api/v1/dashboard/stats", "status": 200, "latency_ms": 301, "msg": "access"}
+2025-11-27 14:43:55 INFO: rows_returned=5
+2025-11-27 14:43:55 INFO: {"ts": 1764222235812, "level": "INFO", "requestId": "3f5ab310-8481-43d6-950f-7e39015ae28d", "method": "GET", "path": "/api/v1/dashboard/list", "status": 200, "latency_ms": 302, "msg": "access"}
+2025-11-27 14:44:30 INFO: fetchAll named query: dashboard.statusSummary
+2025-11-27 14:44:30 INFO: fetch_all
+2025-11-27 14:44:30 INFO: fetchAll named query: dashboard.list
+2025-11-27 14:44:30 INFO: fetch_all
+2025-11-27 14:44:30 INFO: rows_returned=5
+2025-11-27 14:44:30 INFO: {"ts": 1764222270908, "level": "INFO", "requestId": "9b2d4513-3033-43df-b0fc-6dc89e6c1599", "method": "GET", "path": "/api/v1/dashboard/list", "status": 200, "latency_ms": 128, "msg": "access"}
+2025-11-27 14:44:30 INFO: rows_returned=3
+2025-11-27 14:44:30 INFO: {"ts": 1764222270910, "level": "INFO", "requestId": "4e8b65c3-9bcd-4529-a44f-49dc9f812afe", "method": "GET", "path": "/api/v1/dashboard/stats", "status": 200, "latency_ms": 132, "msg": "access"}
+2025-11-27 14:44:32 INFO: fetchAll named query: dashboard.statusSummary
+2025-11-27 14:44:32 INFO: fetch_all
+2025-11-27 14:44:32 INFO: fetchAll named query: dashboard.list
+2025-11-27 14:44:32 INFO: fetch_all
+2025-11-27 14:44:32 INFO: rows_returned=3
+2025-11-27 14:44:32 INFO: {"ts": 1764222272816, "level": "INFO", "requestId": "1098b626-b1dc-4c96-ba70-c359e2c8c923", "method": "GET", "path": "/api/v1/dashboard/stats", "status": 200, "latency_ms": 145, "msg": "access"}
+2025-11-27 14:44:32 INFO: rows_returned=5
+2025-11-27 14:44:32 INFO: {"ts": 1764222272819, "level": "INFO", "requestId": "749419e3-42fa-45f0-a04a-920a14a32b74", "method": "GET", "path": "/api/v1/dashboard/list", "status": 200, "latency_ms": 145, "msg": "access"}
+2025-11-27 14:46:27 INFO: {"ts": 1764222387573, "level": "INFO", "requestId": "4935b95c-6e92-4d9d-a8e7-ccad0955f6d0", "method": "GET", "path": "/", "status": 404, "latency_ms": 0, "msg": "access"}
+2025-11-27 14:47:22 INFO: fetchAll named query: dashboard.statusSummary
+2025-11-27 14:47:22 INFO: fetch_all
+2025-11-27 14:47:22 INFO: fetchAll named query: dashboard.list
+2025-11-27 14:47:22 INFO: fetch_all
+2025-11-27 14:47:23 INFO: rows_returned=5
+2025-11-27 14:47:23 INFO: rows_returned=3
+2025-11-27 14:47:23 INFO: {"ts": 1764222443240, "level": "INFO", "requestId": "5e9b28e9-1c5a-4f45-9685-9ffd9b202975", "method": "GET", "path": "/api/v1/dashboard/list", "status": 200, "latency_ms": 440, "msg": "access"}
+2025-11-27 14:47:23 INFO: {"ts": 1764222443240, "level": "INFO", "requestId": "79f150c8-1423-4d8f-a901-5668c88303f5", "method": "GET", "path": "/api/v1/dashboard/stats", "status": 200, "latency_ms": 443, "msg": "access"}
+2025-11-27 14:48:20 INFO: fetchAll named query: dashboard.statusSummary
+2025-11-27 14:48:20 INFO: fetch_all
+2025-11-27 14:48:20 INFO: fetchAll named query: dashboard.list
+2025-11-27 14:48:20 INFO: fetch_all
+2025-11-27 14:48:21 INFO: rows_returned=5
+2025-11-27 14:48:21 INFO: rows_returned=3
+2025-11-27 14:48:21 INFO: {"ts": 1764222501217, "level": "INFO", "requestId": "04f7fdc6-f147-41d7-92ae-8a0b915a7eba", "method": "GET", "path": "/api/v1/dashboard/list", "status": 200, "latency_ms": 245, "msg": "access"}
+2025-11-27 14:48:21 INFO: {"ts": 1764222501217, "level": "INFO", "requestId": "314253b8-ffba-4321-9bc7-82e7b29918f5", "method": "GET", "path": "/api/v1/dashboard/stats", "status": 200, "latency_ms": 247, "msg": "access"}
+2025-11-27 14:48:41 INFO: fetchAll named query: dashboard.list
+2025-11-27 14:48:41 INFO: fetch_all
+2025-11-27 14:48:41 INFO: fetchAll named query: dashboard.statusSummary
+2025-11-27 14:48:41 INFO: fetch_all
+2025-11-27 14:48:41 INFO: rows_returned=5
+2025-11-27 14:48:41 INFO: rows_returned=3
+2025-11-27 14:48:41 INFO: {"ts": 1764222521439, "level": "INFO", "requestId": "4aa21d2b-15d4-45ea-a1de-2721cc5691c8", "method": "GET", "path": "/api/v1/dashboard/list", "status": 200, "latency_ms": 388, "msg": "access"}
+2025-11-27 14:48:41 INFO: {"ts": 1764222521439, "level": "INFO", "requestId": "36c6eafa-fdd2-441c-aefb-df45b8e9f0de", "method": "GET", "path": "/api/v1/dashboard/stats", "status": 200, "latency_ms": 387, "msg": "access"}
+2025-11-27 14:59:07 INFO: {"ts": 1764223147012, "level": "INFO", "requestId": "c9fe5c54-489b-47fb-88cd-df2fff562828", "method": "GET", "path": "/api/v1/auth/me", "status": 401, "latency_ms": 0, "msg": "access"}
+2025-11-27 14:59:28 INFO: {"ts": 1764223168680, "level": "INFO", "requestId": "c395b773-3a2a-4a3e-be79-6d1a2431f265", "method": "GET", "path": "/api/v1/auth/me", "status": 401, "latency_ms": 0, "msg": "access"}
+2025-11-27 15:04:59 INFO: fetchAll named query: dashboard.statusSummary
+2025-11-27 15:04:59 INFO: fetch_all
+2025-11-27 15:04:59 INFO: fetchAll named query: dashboard.list
+2025-11-27 15:04:59 INFO: fetch_all
+ERROR:    Exception in ASGI application
+Traceback (most recent call last):
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/aiomysql/connection.py", line 657, in _read_bytes
+    data = await self._reader.readexactly(num_bytes)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/asyncio/streams.py", line 752, in readexactly
+    await self._wait_for_data('readexactly')
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/asyncio/streams.py", line 545, in _wait_for_data
+    await self._waiter
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/asyncio/selector_events.py", line 1013, in _read_ready__data_received
+    data = self._sock.recv(self.max_size)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ConnectionResetError: [Errno 104] Connection reset by peer
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/uvicorn/protocols/http/h11_impl.py", line 403, in run_asgi
+    result = await app(  # type: ignore[func-returns-value]
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/uvicorn/middleware/proxy_headers.py", line 60, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/fastapi/applications.py", line 1054, in __call__
+    await super().__call__(scope, receive, send)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/applications.py", line 113, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/middleware/errors.py", line 186, in __call__
+    raise exc
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/middleware/errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/middleware/base.py", line 182, in __call__
+    with recv_stream, send_stream, collapse_excgroups():
+                                   ^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/contextlib.py", line 158, in __exit__
+    self.gen.throw(value)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/_utils.py", line 85, in collapse_excgroups
+    raise exc
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/middleware/base.py", line 184, in __call__
+    response = await self.dispatch_func(request, call_next)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/workspace/My/MyWebTemplate/backend/lib/Middleware.py", line 37, in dispatch
+    response = await callNext(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/middleware/base.py", line 159, in call_next
+    raise app_exc
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/middleware/base.py", line 144, in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/middleware/cors.py", line 85, in __call__
+    await self.app(scope, receive, send)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/routing.py", line 290, in handle
+    await self.app(scope, receive, send)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/routing.py", line 78, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/routing.py", line 75, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/fastapi/routing.py", line 302, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/fastapi/routing.py", line 213, in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/workspace/My/MyWebTemplate/backend/router/DashboardRouter.py", line 21, in listDataTemplates
+    result = await DashboardService.listDataTemplates(limit, offset)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/workspace/My/MyWebTemplate/backend/service/DashboardService.py", line 39, in listDataTemplates
+    rows = await db.fetchAllQuery("dashboard.list", {"limit": safeLimit, "offset": safeOffset}) or []
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/workspace/My/MyWebTemplate/backend/lib/Database.py", line 285, in fetchAllQuery
+    return await self.fetchAll(query, values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/workspace/My/MyWebTemplate/backend/lib/Database.py", line 249, in fetchAll
+    result = await self.database.fetch_all(query=query, values=values or {})
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/databases/core.py", line 174, in fetch_all
+    return await connection.fetch_all(query, values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/databases/core.py", line 290, in fetch_all
+    return await self._connection.fetch_all(built_query)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/databases/backends/mysql.py", line 118, in fetch_all
+    await cursor.execute(query_str, args)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/aiomysql/cursors.py", line 239, in execute
+    await self._query(query)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/aiomysql/cursors.py", line 457, in _query
+    await conn.query(q)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/aiomysql/connection.py", line 469, in query
+    await self._read_query_result(unbuffered=unbuffered)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/aiomysql/connection.py", line 683, in _read_query_result
+    await result.read()
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/aiomysql/connection.py", line 1164, in read
+    first_packet = await self.connection._read_packet()
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/aiomysql/connection.py", line 609, in _read_packet
+    packet_header = await self._read_bytes(4)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/aiomysql/connection.py", line 665, in _read_bytes
+    raise OperationalError(CR.CR_SERVER_LOST, msg) from e
+pymysql.err.OperationalError: (2013, 'Lost connection to MySQL server during query ([Errno 104] Connection reset by peer)')
+2025-11-27 15:05:00 INFO: rows_returned=3
+2025-11-27 15:05:00 INFO: {"ts": 1764223500162, "level": "INFO", "requestId": "372fdb0b-83ff-459f-b51f-584e33db1d01", "method": "GET", "path": "/api/v1/dashboard/stats", "status": 200, "latency_ms": 533, "msg": "access"}
+2025-11-27 15:35:08 INFO: {"ts": 1764225308231, "level": "INFO", "requestId": "f0b82f49-c1d7-4e58-b924-9ca70057465a", "method": "GET", "path": "/api/v1/auth/me", "status": 401, "latency_ms": 1, "msg": "access"}
+2025-11-27 15:35:08 INFO: {"ts": 1764225308982, "level": "INFO", "requestId": "ee58b910-ac8d-45d0-913a-c58f124fa769", "method": "GET", "path": "/api/v1/auth/me", "status": 401, "latency_ms": 0, "msg": "access"}
+2025-11-27 15:35:09 INFO: {"ts": 1764225309313, "level": "INFO", "requestId": "98e8b197-c587-44d7-a9de-acb9f00befbc", "method": "POST", "path": "/api/v1/auth/refresh", "status": 200, "latency_ms": 4, "msg": "access"}
+2025-11-27 15:35:09 INFO: {"ts": 1764225309592, "level": "INFO", "requestId": "48828495-3be2-4ec4-8136-2c2f55099e42", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 0, "msg": "access"}
+2025-11-27 15:35:10 INFO: fetchAll named query: dashboard.statusSummary
+2025-11-27 15:35:10 INFO: fetch_all
+2025-11-27 15:35:10 INFO: fetchAll named query: dashboard.list
+2025-11-27 15:35:10 INFO: fetch_all
+ERROR:    Exception in ASGI application
+Traceback (most recent call last):
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/aiomysql/connection.py", line 657, in _read_bytes
+    data = await self._reader.readexactly(num_bytes)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/asyncio/streams.py", line 752, in readexactly
+    await self._wait_for_data('readexactly')
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/asyncio/streams.py", line 545, in _wait_for_data
+    await self._waiter
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/asyncio/selector_events.py", line 1013, in _read_ready__data_received
+    data = self._sock.recv(self.max_size)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ConnectionResetError: [Errno 104] Connection reset by peer
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/uvicorn/protocols/http/h11_impl.py", line 403, in run_asgi
+    result = await app(  # type: ignore[func-returns-value]
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/uvicorn/middleware/proxy_headers.py", line 60, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/fastapi/applications.py", line 1054, in __call__
+    await super().__call__(scope, receive, send)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/applications.py", line 113, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/middleware/errors.py", line 186, in __call__
+    raise exc
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/middleware/errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/middleware/base.py", line 182, in __call__
+    with recv_stream, send_stream, collapse_excgroups():
+                                   ^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/contextlib.py", line 158, in __exit__
+    self.gen.throw(value)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/_utils.py", line 85, in collapse_excgroups
+    raise exc
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/middleware/base.py", line 184, in __call__
+    response = await self.dispatch_func(request, call_next)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/workspace/My/MyWebTemplate/backend/lib/Middleware.py", line 37, in dispatch
+    response = await callNext(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/middleware/base.py", line 159, in call_next
+    raise app_exc
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/middleware/base.py", line 144, in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/middleware/cors.py", line 85, in __call__
+    await self.app(scope, receive, send)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/routing.py", line 290, in handle
+    await self.app(scope, receive, send)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/routing.py", line 78, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/routing.py", line 75, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/fastapi/routing.py", line 302, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/fastapi/routing.py", line 213, in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/workspace/My/MyWebTemplate/backend/router/DashboardRouter.py", line 35, in dataTemplateStats
+    result = await DashboardService.dataTemplateStats()
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/workspace/My/MyWebTemplate/backend/service/DashboardService.py", line 52, in dataTemplateStats
+    rows: List[Dict[str, Any]] = await db.fetchAllQuery("dashboard.statusSummary", {}) or []
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/workspace/My/MyWebTemplate/backend/lib/Database.py", line 285, in fetchAllQuery
+    return await self.fetchAll(query, values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/workspace/My/MyWebTemplate/backend/lib/Database.py", line 249, in fetchAll
+    result = await self.database.fetch_all(query=query, values=values or {})
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/databases/core.py", line 174, in fetch_all
+    return await connection.fetch_all(query, values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/databases/core.py", line 290, in fetch_all
+    return await self._connection.fetch_all(built_query)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/databases/backends/mysql.py", line 118, in fetch_all
+    await cursor.execute(query_str, args)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/aiomysql/cursors.py", line 239, in execute
+    await self._query(query)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/aiomysql/cursors.py", line 457, in _query
+    await conn.query(q)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/aiomysql/connection.py", line 469, in query
+    await self._read_query_result(unbuffered=unbuffered)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/aiomysql/connection.py", line 683, in _read_query_result
+    await result.read()
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/aiomysql/connection.py", line 1164, in read
+    first_packet = await self.connection._read_packet()
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/aiomysql/connection.py", line 609, in _read_packet
+    packet_header = await self._read_bytes(4)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/aiomysql/connection.py", line 665, in _read_bytes
+    raise OperationalError(CR.CR_SERVER_LOST, msg) from e
+pymysql.err.OperationalError: (2013, 'Lost connection to MySQL server during query ([Errno 104] Connection reset by peer)')
+2025-11-27 15:35:10 INFO: rows_returned=5
+2025-11-27 15:35:10 INFO: {"ts": 1764225310414, "level": "INFO", "requestId": "5bc31380-2c89-4894-9c61-dfa446806b83", "method": "GET", "path": "/api/v1/dashboard/list", "status": 200, "latency_ms": 319, "msg": "access"}
+2025-11-27 15:37:31 INFO: fetchAll named query: dashboard.statusSummary
+2025-11-27 15:37:31 INFO: fetch_all
+2025-11-27 15:37:31 INFO: fetchAll named query: dashboard.list
+2025-11-27 15:37:31 INFO: fetch_all
+2025-11-27 15:37:32 INFO: rows_returned=3
+2025-11-27 15:37:32 INFO: {"ts": 1764225452831, "level": "INFO", "requestId": "a2a49b15-846a-49fd-8fb0-a2d4f60cc647", "method": "GET", "path": "/api/v1/dashboard/stats", "status": 200, "latency_ms": 397, "msg": "access"}
+2025-11-27 15:37:32 INFO: rows_returned=5
+2025-11-27 15:37:32 INFO: {"ts": 1764225452836, "level": "INFO", "requestId": "0f0ca0c4-1797-4c06-a3f5-8336289683f2", "method": "GET", "path": "/api/v1/dashboard/list", "status": 200, "latency_ms": 400, "msg": "access"}
+2025-11-27 15:37:33 INFO: fetchAll named query: dashboard.statusSummary
+2025-11-27 15:37:33 INFO: fetch_all
+2025-11-27 15:37:33 INFO: fetchAll named query: dashboard.list
+2025-11-27 15:37:33 INFO: fetch_all
+2025-11-27 15:37:33 INFO: rows_returned=5
+2025-11-27 15:37:33 INFO: rows_returned=3
+2025-11-27 15:37:33 INFO: {"ts": 1764225453629, "level": "INFO", "requestId": "ca48714c-fa31-4884-8e29-dbf67cf2bc3c", "method": "GET", "path": "/api/v1/dashboard/list", "status": 200, "latency_ms": 181, "msg": "access"}
+2025-11-27 15:37:33 INFO: {"ts": 1764225453630, "level": "INFO", "requestId": "147b9803-a57e-424e-818d-e466e15b4ff8", "method": "GET", "path": "/api/v1/dashboard/stats", "status": 200, "latency_ms": 189, "msg": "access"}
+2025-11-27 15:39:03 INFO: fetchAll named query: dashboard.statusSummary
+2025-11-27 15:39:03 INFO: fetch_all
+2025-11-27 15:39:03 INFO: fetchAll named query: dashboard.list
+2025-11-27 15:39:03 INFO: fetch_all
+2025-11-27 15:39:03 INFO: rows_returned=5
+2025-11-27 15:39:03 INFO: rows_returned=3
+2025-11-27 15:39:03 INFO: {"ts": 1764225543591, "level": "INFO", "requestId": "159877a2-eb09-408a-a2b6-207ae3e5c441", "method": "GET", "path": "/api/v1/dashboard/list", "status": 200, "latency_ms": 539, "msg": "access"}
+2025-11-27 15:39:03 INFO: {"ts": 1764225543591, "level": "INFO", "requestId": "e97e0bf4-b9a0-40bc-8101-bf0532a16a69", "method": "GET", "path": "/api/v1/dashboard/stats", "status": 200, "latency_ms": 541, "msg": "access"}
+2025-11-27 15:39:09 INFO: fetchAll named query: dashboard.statusSummary
+2025-11-27 15:39:09 INFO: fetch_all
+2025-11-27 15:39:09 INFO: fetchAll named query: dashboard.list
+2025-11-27 15:39:09 INFO: fetch_all
+2025-11-27 15:39:09 INFO: rows_returned=5
+2025-11-27 15:39:09 INFO: rows_returned=3
+2025-11-27 15:39:09 INFO: {"ts": 1764225549476, "level": "INFO", "requestId": "3e0c4fab-5abd-472b-9b09-ad46fb16a903", "method": "GET", "path": "/api/v1/dashboard/list", "status": 200, "latency_ms": 91, "msg": "access"}
+2025-11-27 15:39:09 INFO: {"ts": 1764225549476, "level": "INFO", "requestId": "9042c43c-6dec-44ad-9182-7c3a62caf209", "method": "GET", "path": "/api/v1/dashboard/stats", "status": 200, "latency_ms": 93, "msg": "access"}
+2025-11-27 15:45:37 INFO: {"ts": 1764225937647, "level": "INFO", "requestId": "f8ee15ae-cb51-4f73-98b0-3920ef676c1e", "method": "GET", "path": "/", "status": 404, "latency_ms": 0, "msg": "access"}
+2025-11-27 15:45:38 INFO: {"ts": 1764225938266, "level": "INFO", "requestId": "2f719f98-5790-46d1-b6b3-f29cd4b7977e", "method": "GET", "path": "/favicon.ico", "status": 404, "latency_ms": 0, "msg": "access"}
+WARNING:  Invalid HTTP request received.
+WARNING:  Invalid HTTP request received.
+2025-11-27 16:16:13 INFO: {"ts": 1764227773047, "level": "INFO", "requestId": "90579eae-8dd8-41c1-bca9-58c968afe8ff", "method": "GET", "path": "/", "status": 404, "latency_ms": 0, "msg": "access"}
+2025-11-27 16:16:18 INFO: {"ts": 1764227778199, "level": "INFO", "requestId": "79ac8b74-8498-42a0-be34-4c05daa59e39", "method": "GET", "path": "/favicon.ico", "status": 404, "latency_ms": 0, "msg": "access"}
+2025-11-27 16:16:18 INFO: {"ts": 1764227778415, "level": "INFO", "requestId": "01491125-2a55-41b7-af03-7bf2a0e8c67b", "method": "GET", "path": "/robots.txt", "status": 404, "latency_ms": 0, "msg": "access"}
+2025-11-27 16:16:18 INFO: {"ts": 1764227778644, "level": "INFO", "requestId": "1eee73ce-be91-4a48-a2db-9463c0f53e54", "method": "GET", "path": "/sitemap.xml", "status": 404, "latency_ms": 0, "msg": "access"}
+2025-11-27 16:16:18 INFO: {"ts": 1764227778873, "level": "INFO", "requestId": "84c984a7-ab34-4556-a5e0-18ef75d1c7fb", "method": "GET", "path": "/sse", "status": 404, "latency_ms": 0, "msg": "access"}
+2025-11-27 16:16:19 INFO: {"ts": 1764227779022, "level": "INFO", "requestId": "955aea0b-279a-4ec3-b89c-46af2bec0e2e", "method": "GET", "path": "/mcp", "status": 404, "latency_ms": 0, "msg": "access"}
+2025-11-27 16:16:19 INFO: {"ts": 1764227779166, "level": "INFO", "requestId": "e407a7c5-593a-4eca-8186-390eb9558a9e", "method": "GET", "path": "/mcp-sse", "status": 404, "latency_ms": 0, "msg": "access"}
+2025-11-27 16:16:21 INFO: {"ts": 1764227781195, "level": "INFO", "requestId": "bf668097-7f58-49ce-a256-743f0c2bb918", "method": "GET", "path": "/get_server_info", "status": 404, "latency_ms": 0, "msg": "access"}
+WARNING:  Invalid HTTP request received.
+WARNING:  Invalid HTTP request received.
+2025-11-27 16:20:02 INFO: {"ts": 1764228002410, "level": "INFO", "requestId": "fd80afdb-3e03-42e1-8998-d90f703609ab", "method": "GET", "path": "/", "status": 404, "latency_ms": 0, "msg": "access"}
+2025-11-27 16:20:06 INFO: {"ts": 1764228006471, "level": "INFO", "requestId": "4af1eb67-2bfb-4e0b-a1a8-31b91ef69af0", "method": "GET", "path": "/favicon.ico", "status": 404, "latency_ms": 0, "msg": "access"}
+2025-11-27 16:23:11 INFO: {"ts": 1764228191557, "level": "INFO", "requestId": "740c12fb-5ec7-4ee6-a1fe-8cbdcb19f6a7", "method": "GET", "path": "/", "status": 404, "latency_ms": 0, "msg": "access"}
+WARNING:  Invalid HTTP request received.
+2025-11-27 16:26:33 INFO: {"ts": 1764228393503, "level": "INFO", "requestId": "c9fc9a8f-473c-4f74-a4ef-8932e162ab46", "method": "GET", "path": "/", "status": 404, "latency_ms": 0, "msg": "access"}
+WARNING:  Invalid HTTP request received.
+WARNING:  Invalid HTTP request received.
+2025-11-27 16:42:38 INFO: {"ts": 1764229358070, "level": "INFO", "requestId": "83d3b0cf-56e0-4423-ad97-11955872f776", "method": "GET", "path": "/api/v1/auth/me", "status": 401, "latency_ms": 0, "msg": "access"}
+2025-11-27 16:42:38 INFO: {"ts": 1764229358855, "level": "INFO", "requestId": "3ef5d385-3a61-4b5d-a25b-aac0a8c0a8c7", "method": "GET", "path": "/api/v1/auth/me", "status": 401, "latency_ms": 0, "msg": "access"}
+2025-11-27 16:42:39 INFO: {"ts": 1764229359176, "level": "INFO", "requestId": "5ad9fdfe-1573-4236-a1fe-8a016e5cbe44", "method": "POST", "path": "/api/v1/auth/refresh", "status": 200, "latency_ms": 1, "msg": "access"}
+2025-11-27 16:42:39 INFO: {"ts": 1764229359444, "level": "INFO", "requestId": "75dd9fad-836b-4fdd-83bc-57e045fb9bc1", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 0, "msg": "access"}
+2025-11-27 16:42:40 INFO: fetchAll named query: dashboard.statusSummary
+2025-11-27 16:42:40 INFO: fetch_all
+2025-11-27 16:42:40 INFO: fetchAll named query: dashboard.list
+2025-11-27 16:42:40 INFO: fetch_all
+ERROR:    Exception in ASGI application
+Traceback (most recent call last):
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/aiomysql/connection.py", line 657, in _read_bytes
+    data = await self._reader.readexactly(num_bytes)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/asyncio/streams.py", line 752, in readexactly
+    await self._wait_for_data('readexactly')
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/asyncio/streams.py", line 545, in _wait_for_data
+    await self._waiter
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/asyncio/selector_events.py", line 1013, in _read_ready__data_received
+    data = self._sock.recv(self.max_size)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ConnectionResetError: [Errno 104] Connection reset by peer
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/uvicorn/protocols/http/h11_impl.py", line 403, in run_asgi
+    result = await app(  # type: ignore[func-returns-value]
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/uvicorn/middleware/proxy_headers.py", line 60, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/fastapi/applications.py", line 1054, in __call__
+    await super().__call__(scope, receive, send)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/applications.py", line 113, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/middleware/errors.py", line 186, in __call__
+    raise exc
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/middleware/errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/middleware/base.py", line 182, in __call__
+    with recv_stream, send_stream, collapse_excgroups():
+                                   ^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/contextlib.py", line 158, in __exit__
+    self.gen.throw(value)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/_utils.py", line 85, in collapse_excgroups
+    raise exc
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/middleware/base.py", line 184, in __call__
+    response = await self.dispatch_func(request, call_next)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/workspace/My/MyWebTemplate/backend/lib/Middleware.py", line 37, in dispatch
+    response = await callNext(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/middleware/base.py", line 159, in call_next
+    raise app_exc
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/middleware/base.py", line 144, in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/middleware/cors.py", line 85, in __call__
+    await self.app(scope, receive, send)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/routing.py", line 290, in handle
+    await self.app(scope, receive, send)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/routing.py", line 78, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/routing.py", line 75, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/fastapi/routing.py", line 302, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/fastapi/routing.py", line 213, in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/workspace/My/MyWebTemplate/backend/router/DashboardRouter.py", line 21, in listDataTemplates
+    result = await DashboardService.listDataTemplates(limit, offset)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/workspace/My/MyWebTemplate/backend/service/DashboardService.py", line 39, in listDataTemplates
+    rows = await db.fetchAllQuery("dashboard.list", {"limit": safeLimit, "offset": safeOffset}) or []
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/workspace/My/MyWebTemplate/backend/lib/Database.py", line 285, in fetchAllQuery
+    return await self.fetchAll(query, values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/workspace/My/MyWebTemplate/backend/lib/Database.py", line 249, in fetchAll
+    result = await self.database.fetch_all(query=query, values=values or {})
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/databases/core.py", line 174, in fetch_all
+    return await connection.fetch_all(query, values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/databases/core.py", line 290, in fetch_all
+    return await self._connection.fetch_all(built_query)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/databases/backends/mysql.py", line 118, in fetch_all
+    await cursor.execute(query_str, args)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/aiomysql/cursors.py", line 239, in execute
+    await self._query(query)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/aiomysql/cursors.py", line 457, in _query
+    await conn.query(q)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/aiomysql/connection.py", line 469, in query
+    await self._read_query_result(unbuffered=unbuffered)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/aiomysql/connection.py", line 683, in _read_query_result
+    await result.read()
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/aiomysql/connection.py", line 1164, in read
+    first_packet = await self.connection._read_packet()
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/aiomysql/connection.py", line 609, in _read_packet
+    packet_header = await self._read_bytes(4)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/aiomysql/connection.py", line 665, in _read_bytes
+    raise OperationalError(CR.CR_SERVER_LOST, msg) from e
+pymysql.err.OperationalError: (2013, 'Lost connection to MySQL server during query ([Errno 104] Connection reset by peer)')
+2025-11-27 16:42:40 INFO: rows_returned=3
+2025-11-27 16:42:40 INFO: {"ts": 1764229360876, "level": "INFO", "requestId": "ec26c13d-1ccd-40d7-8941-4a32aa89b8a5", "method": "GET", "path": "/api/v1/dashboard/stats", "status": 200, "latency_ms": 316, "msg": "access"}
+2025-11-27 16:42:59 INFO: fetchAll named query: dashboard.statusSummary
+2025-11-27 16:42:59 INFO: fetch_all
+2025-11-27 16:42:59 INFO: fetchAll named query: dashboard.list
+2025-11-27 16:42:59 INFO: fetch_all
+2025-11-27 16:43:00 INFO: rows_returned=3
+2025-11-27 16:43:00 INFO: {"ts": 1764229380140, "level": "INFO", "requestId": "58ec7c0d-d423-4356-995b-807bed2bf27a", "method": "GET", "path": "/api/v1/dashboard/stats", "status": 200, "latency_ms": 318, "msg": "access"}
+2025-11-27 16:43:00 INFO: rows_returned=5
+2025-11-27 16:43:00 INFO: {"ts": 1764229380149, "level": "INFO", "requestId": "a9297179-c64c-437d-985c-127c8bfa5d81", "method": "GET", "path": "/api/v1/dashboard/list", "status": 200, "latency_ms": 326, "msg": "access"}
+2025-11-27 16:46:46 INFO: fetchAll named query: dashboard.statusSummary
+2025-11-27 16:46:46 INFO: fetch_all
+2025-11-27 16:46:46 INFO: fetchAll named query: dashboard.list
+2025-11-27 16:46:46 INFO: fetch_all
+2025-11-27 16:46:46 INFO: rows_returned=5
+2025-11-27 16:46:46 INFO: rows_returned=3
+2025-11-27 16:46:46 INFO: {"ts": 1764229606782, "level": "INFO", "requestId": "85eb3ddd-c93e-43ea-a912-b076b9e09c00", "method": "GET", "path": "/api/v1/dashboard/list", "status": 200, "latency_ms": 393, "msg": "access"}
+2025-11-27 16:46:46 INFO: {"ts": 1764229606783, "level": "INFO", "requestId": "0bc3cd0c-fa35-4b1b-ba1f-5bdaa63eb37d", "method": "GET", "path": "/api/v1/dashboard/stats", "status": 200, "latency_ms": 395, "msg": "access"}
+2025-11-27 16:49:02 INFO: fetchAll named query: dashboard.statusSummary
+2025-11-27 16:49:02 INFO: fetch_all
+2025-11-27 16:49:02 INFO: fetchAll named query: dashboard.list
+2025-11-27 16:49:02 INFO: fetch_all
+2025-11-27 16:49:02 INFO: rows_returned=5
+2025-11-27 16:49:02 INFO: rows_returned=3
+2025-11-27 16:49:02 INFO: {"ts": 1764229742545, "level": "INFO", "requestId": "ed748559-9df2-4849-90b7-ea1fc37e2abf", "method": "GET", "path": "/api/v1/dashboard/list", "status": 200, "latency_ms": 246, "msg": "access"}
+2025-11-27 16:49:02 INFO: {"ts": 1764229742546, "level": "INFO", "requestId": "c6c99d71-167c-43cf-9f74-cae930f8f4a2", "method": "GET", "path": "/api/v1/dashboard/stats", "status": 200, "latency_ms": 249, "msg": "access"}
+2025-11-27 16:49:25 INFO: fetchAll named query: dashboard.statusSummary
+2025-11-27 16:49:25 INFO: fetch_all
+2025-11-27 16:49:25 INFO: fetchAll named query: dashboard.list
+2025-11-27 16:49:25 INFO: fetch_all
+2025-11-27 16:49:25 INFO: rows_returned=5
+2025-11-27 16:49:25 INFO: {"ts": 1764229765925, "level": "INFO", "requestId": "a628595b-62d2-43ac-a405-49a92a65086b", "method": "GET", "path": "/api/v1/dashboard/list", "status": 200, "latency_ms": 278, "msg": "access"}
+2025-11-27 16:49:25 INFO: rows_returned=3
+2025-11-27 16:49:25 INFO: {"ts": 1764229765927, "level": "INFO", "requestId": "be18e6a3-19a3-4931-ac91-1ef33e3de6cf", "method": "GET", "path": "/api/v1/dashboard/stats", "status": 200, "latency_ms": 282, "msg": "access"}
+INFO:     Shutting down
+INFO:     Waiting for application shutdown.
+2025-11-27 17:55:46 INFO: Disconnected from database mysql+aiomysql://sunkus711:********@218.153.129.202:9731/personal_db
+2025-11-27 17:55:46 INFO: Disconnected from database sqlite:////home/sunkus711/Project/workspace/My/MyWebTemplate/backend/./data/main.db
+INFO:     Application shutdown complete.
+INFO:     Finished server process [938005]
+INFO:     Stopping reloader process [921694]
+INFO:     Will watch for changes in these directories: ['/home/sunkus711/Project/workspace/My/MyWebTemplate/backend']
+INFO:     Uvicorn running on http://0.0.0.0:2000 (Press CTRL+C to quit)
+INFO:     Started reloader process [125730] using StatReload
+2025-12-02 17:59:55 INFO: config load start
+2025-12-02 17:59:55 INFO: config load done
+2025-12-02 17:59:55 INFO: router load start
+2025-12-02 17:59:55 INFO: router load done
+INFO:     Started server process [125733]
+INFO:     Waiting for application startup.
+2025-12-02 17:59:55 INFO: database connect start
+2025-12-02 17:59:56 INFO: Connected to database mysql+aiomysql://sunkus711:********@218.153.129.202:9731/personal_db
+2025-12-02 17:59:56 INFO: Connected to database mysql+aiomysql://sunkus711:Rmlduqrml1!@218.153.129.202:9731/personal_db
+2025-12-02 17:59:56 INFO: database connected: main_db
+2025-12-02 17:59:56 INFO: Connected to database sqlite:////home/sunkus711/Project/workspace/My/MyWebTemplate/backend/./data/main.db
+2025-12-02 17:59:56 INFO: Connected to database sqlite:////home/sunkus711/Project/workspace/My/MyWebTemplate/backend/./data/main.db
+2025-12-02 17:59:56 INFO: database connected: main_db2
+2025-12-02 17:59:56 INFO: database connect done
+2025-12-02 17:59:56 INFO: query load start
+2025-12-02 17:59:56 INFO: {"event": "query.load", "file": "/home/sunkus711/Project/workspace/My/MyWebTemplate/backend/query", "keys": ["auth.userByUsername", "dashboard.list", "dashboard.statusSummary"], "count": 3, "duration_ms": 0}
+2025-12-02 17:59:56 INFO: query load done
+2025-12-02 17:59:56 INFO: query watcher started
+INFO:     Application startup complete.
+2025-12-02 18:24:31 INFO: {"ts": 1764667471118, "level": "INFO", "requestId": "7e7b15a3-f044-4ec4-af8a-4551699fefbd", "method": "GET", "path": "/api/v1/auth/me", "status": 401, "latency_ms": 0, "msg": "access"}
+2025-12-02 18:24:31 INFO: {"ts": 1764667471976, "level": "INFO", "requestId": "d201ea10-46a6-45b1-854e-f3897828d281", "method": "GET", "path": "/api/v1/auth/me", "status": 401, "latency_ms": 0, "msg": "access"}
+2025-12-02 18:24:32 INFO: {"ts": 1764667472244, "level": "INFO", "requestId": "63ec6d17-3010-417b-a1d6-7fd4a79604ae", "method": "POST", "path": "/api/v1/auth/refresh", "status": 200, "latency_ms": 1, "msg": "access"}
+2025-12-02 18:24:32 INFO: {"ts": 1764667472516, "level": "INFO", "requestId": "4f547218-ee62-45c2-b5a0-b52e61f1f083", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 0, "msg": "access"}
+2025-12-02 18:24:34 INFO: fetchAll named query: dashboard.statusSummary
+2025-12-02 18:24:34 INFO: fetch_all
+2025-12-02 18:24:34 INFO: fetchAll named query: dashboard.list
+2025-12-02 18:24:34 INFO: fetch_all
+ERROR:    Exception in ASGI application
+Traceback (most recent call last):
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/aiomysql/connection.py", line 657, in _read_bytes
+    data = await self._reader.readexactly(num_bytes)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/asyncio/streams.py", line 752, in readexactly
+    await self._wait_for_data('readexactly')
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/asyncio/streams.py", line 545, in _wait_for_data
+    await self._waiter
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/asyncio/selector_events.py", line 1013, in _read_ready__data_received
+    data = self._sock.recv(self.max_size)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ConnectionResetError: [Errno 104] Connection reset by peer
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/uvicorn/protocols/http/h11_impl.py", line 403, in run_asgi
+    result = await app(  # type: ignore[func-returns-value]
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/uvicorn/middleware/proxy_headers.py", line 60, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/fastapi/applications.py", line 1054, in __call__
+    await super().__call__(scope, receive, send)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/applications.py", line 113, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/middleware/errors.py", line 186, in __call__
+    raise exc
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/middleware/errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/middleware/base.py", line 182, in __call__
+    with recv_stream, send_stream, collapse_excgroups():
+                                   ^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/contextlib.py", line 158, in __exit__
+    self.gen.throw(value)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/_utils.py", line 85, in collapse_excgroups
+    raise exc
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/middleware/base.py", line 184, in __call__
+    response = await self.dispatch_func(request, call_next)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/workspace/My/MyWebTemplate/backend/lib/Middleware.py", line 37, in dispatch
+    response = await callNext(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/middleware/base.py", line 159, in call_next
+    raise app_exc
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/middleware/base.py", line 144, in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/middleware/cors.py", line 85, in __call__
+    await self.app(scope, receive, send)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/routing.py", line 290, in handle
+    await self.app(scope, receive, send)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/routing.py", line 78, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/routing.py", line 75, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/fastapi/routing.py", line 302, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/fastapi/routing.py", line 213, in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/workspace/My/MyWebTemplate/backend/router/DashboardRouter.py", line 35, in dataTemplateStats
+    result = await DashboardService.dataTemplateStats()
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/workspace/My/MyWebTemplate/backend/service/DashboardService.py", line 52, in dataTemplateStats
+    rows: List[Dict[str, Any]] = await db.fetchAllQuery("dashboard.statusSummary", {}) or []
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/workspace/My/MyWebTemplate/backend/lib/Database.py", line 285, in fetchAllQuery
+    return await self.fetchAll(query, values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/workspace/My/MyWebTemplate/backend/lib/Database.py", line 249, in fetchAll
+    result = await self.database.fetch_all(query=query, values=values or {})
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/databases/core.py", line 174, in fetch_all
+    return await connection.fetch_all(query, values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/databases/core.py", line 290, in fetch_all
+    return await self._connection.fetch_all(built_query)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/databases/backends/mysql.py", line 118, in fetch_all
+    await cursor.execute(query_str, args)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/aiomysql/cursors.py", line 239, in execute
+    await self._query(query)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/aiomysql/cursors.py", line 457, in _query
+    await conn.query(q)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/aiomysql/connection.py", line 469, in query
+    await self._read_query_result(unbuffered=unbuffered)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/aiomysql/connection.py", line 683, in _read_query_result
+    await result.read()
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/aiomysql/connection.py", line 1164, in read
+    first_packet = await self.connection._read_packet()
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/aiomysql/connection.py", line 609, in _read_packet
+    packet_header = await self._read_bytes(4)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/aiomysql/connection.py", line 665, in _read_bytes
+    raise OperationalError(CR.CR_SERVER_LOST, msg) from e
+pymysql.err.OperationalError: (2013, 'Lost connection to MySQL server during query ([Errno 104] Connection reset by peer)')
+2025-12-02 18:24:35 INFO: rows_returned=5
+2025-12-02 18:24:35 INFO: {"ts": 1764667475268, "level": "INFO", "requestId": "39e39ca4-6b75-4c95-ac9c-40852f00e00b", "method": "GET", "path": "/api/v1/dashboard/list", "status": 200, "latency_ms": 306, "msg": "access"}
+2025-12-02 18:24:36 INFO: fetchAll named query: dashboard.list
+2025-12-02 18:24:36 INFO: fetch_all
+2025-12-02 18:24:36 INFO: fetchAll named query: dashboard.statusSummary
+2025-12-02 18:24:36 INFO: fetch_all
+2025-12-02 18:24:36 INFO: rows_returned=5
+2025-12-02 18:24:36 INFO: {"ts": 1764667476975, "level": "INFO", "requestId": "1c7807ce-6806-4942-b0e5-58b35993c018", "method": "GET", "path": "/api/v1/dashboard/list", "status": 200, "latency_ms": 832, "msg": "access"}
+2025-12-02 18:24:37 INFO: rows_returned=3
+2025-12-02 18:24:37 INFO: {"ts": 1764667477235, "level": "INFO", "requestId": "5c19f227-3329-4859-b201-10de13b41552", "method": "GET", "path": "/api/v1/dashboard/stats", "status": 200, "latency_ms": 1091, "msg": "access"}
+2025-12-02 18:26:01 INFO: {"ts": 1764667561321, "level": "INFO", "requestId": "e76e491e-081e-4571-93d4-ae53f3e3a0d4", "method": "GET", "path": "/api/v1/auth/me", "status": 401, "latency_ms": 0, "msg": "access"}
+2025-12-02 18:45:23 INFO: fetchAll named query: dashboard.statusSummary
+2025-12-02 18:45:23 INFO: fetch_all
+2025-12-02 18:45:23 INFO: fetchAll named query: dashboard.list
+2025-12-02 18:45:23 INFO: fetch_all
+ERROR:    Exception in ASGI application
+Traceback (most recent call last):
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/aiomysql/connection.py", line 657, in _read_bytes
+    data = await self._reader.readexactly(num_bytes)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/asyncio/streams.py", line 752, in readexactly
+    await self._wait_for_data('readexactly')
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/asyncio/streams.py", line 545, in _wait_for_data
+    await self._waiter
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/asyncio/selector_events.py", line 1013, in _read_ready__data_received
+    data = self._sock.recv(self.max_size)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ConnectionResetError: [Errno 104] Connection reset by peer
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/uvicorn/protocols/http/h11_impl.py", line 403, in run_asgi
+    result = await app(  # type: ignore[func-returns-value]
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/uvicorn/middleware/proxy_headers.py", line 60, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/fastapi/applications.py", line 1054, in __call__
+    await super().__call__(scope, receive, send)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/applications.py", line 113, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/middleware/errors.py", line 186, in __call__
+    raise exc
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/middleware/errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/middleware/base.py", line 182, in __call__
+    with recv_stream, send_stream, collapse_excgroups():
+                                   ^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/contextlib.py", line 158, in __exit__
+    self.gen.throw(value)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/_utils.py", line 85, in collapse_excgroups
+    raise exc
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/middleware/base.py", line 184, in __call__
+    response = await self.dispatch_func(request, call_next)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/workspace/My/MyWebTemplate/backend/lib/Middleware.py", line 37, in dispatch
+    response = await callNext(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/middleware/base.py", line 159, in call_next
+    raise app_exc
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/middleware/base.py", line 144, in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/middleware/cors.py", line 85, in __call__
+    await self.app(scope, receive, send)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/routing.py", line 290, in handle
+    await self.app(scope, receive, send)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/routing.py", line 78, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/routing.py", line 75, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/fastapi/routing.py", line 302, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/fastapi/routing.py", line 213, in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/workspace/My/MyWebTemplate/backend/router/DashboardRouter.py", line 21, in listDataTemplates
+    result = await DashboardService.listDataTemplates(limit, offset)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/workspace/My/MyWebTemplate/backend/service/DashboardService.py", line 39, in listDataTemplates
+    rows = await db.fetchAllQuery("dashboard.list", {"limit": safeLimit, "offset": safeOffset}) or []
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/workspace/My/MyWebTemplate/backend/lib/Database.py", line 285, in fetchAllQuery
+    return await self.fetchAll(query, values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/workspace/My/MyWebTemplate/backend/lib/Database.py", line 249, in fetchAll
+    result = await self.database.fetch_all(query=query, values=values or {})
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/databases/core.py", line 174, in fetch_all
+    return await connection.fetch_all(query, values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/databases/core.py", line 290, in fetch_all
+    return await self._connection.fetch_all(built_query)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/databases/backends/mysql.py", line 118, in fetch_all
+    await cursor.execute(query_str, args)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/aiomysql/cursors.py", line 239, in execute
+    await self._query(query)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/aiomysql/cursors.py", line 457, in _query
+    await conn.query(q)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/aiomysql/connection.py", line 469, in query
+    await self._read_query_result(unbuffered=unbuffered)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/aiomysql/connection.py", line 683, in _read_query_result
+    await result.read()
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/aiomysql/connection.py", line 1164, in read
+    first_packet = await self.connection._read_packet()
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/aiomysql/connection.py", line 609, in _read_packet
+    packet_header = await self._read_bytes(4)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/aiomysql/connection.py", line 665, in _read_bytes
+    raise OperationalError(CR.CR_SERVER_LOST, msg) from e
+pymysql.err.OperationalError: (2013, 'Lost connection to MySQL server during query ([Errno 104] Connection reset by peer)')
+2025-12-02 18:45:24 INFO: rows_returned=3
+2025-12-02 18:45:24 INFO: {"ts": 1764668724156, "level": "INFO", "requestId": "bd76395d-eb8c-4a9e-847e-f6ba56266602", "method": "GET", "path": "/api/v1/dashboard/stats", "status": 200, "latency_ms": 357, "msg": "access"}
+2025-12-02 18:45:25 INFO: fetchAll named query: dashboard.statusSummary
+2025-12-02 18:45:25 INFO: fetch_all
+2025-12-02 18:45:25 INFO: fetchAll named query: dashboard.list
+2025-12-02 18:45:25 INFO: fetch_all
+2025-12-02 18:45:25 INFO: rows_returned=3
+2025-12-02 18:45:25 INFO: {"ts": 1764668725397, "level": "INFO", "requestId": "39f6272d-80c4-4a50-a24b-9e97f9bbea91", "method": "GET", "path": "/api/v1/dashboard/stats", "status": 200, "latency_ms": 285, "msg": "access"}
+2025-12-02 18:45:25 INFO: rows_returned=5
+2025-12-02 18:45:25 INFO: {"ts": 1764668725403, "level": "INFO", "requestId": "e2c65176-efd8-4e2c-a816-382b3fd3877e", "method": "GET", "path": "/api/v1/dashboard/list", "status": 200, "latency_ms": 285, "msg": "access"}
+2025-12-02 18:45:31 INFO: fetchAll named query: dashboard.statusSummary
+2025-12-02 18:45:31 INFO: fetch_all
+2025-12-02 18:45:31 INFO: fetchAll named query: dashboard.list
+2025-12-02 18:45:31 INFO: fetch_all
+2025-12-02 18:45:32 INFO: rows_returned=5
+2025-12-02 18:45:32 INFO: {"ts": 1764668732063, "level": "INFO", "requestId": "d3ceb0fd-33fc-4fdb-953f-ffd6929784e6", "method": "GET", "path": "/api/v1/dashboard/list", "status": 200, "latency_ms": 376, "msg": "access"}
+2025-12-02 18:45:32 INFO: rows_returned=3
+2025-12-02 18:45:32 INFO: {"ts": 1764668732063, "level": "INFO", "requestId": "c12689a8-46f5-494c-8ad6-3719455ab430", "method": "GET", "path": "/api/v1/dashboard/stats", "status": 200, "latency_ms": 378, "msg": "access"}
+2025-12-02 18:54:49 INFO: fetchAll named query: dashboard.statusSummary
+2025-12-02 18:54:49 INFO: fetch_all
+2025-12-02 18:54:49 INFO: fetchAll named query: dashboard.list
+2025-12-02 18:54:49 INFO: fetch_all
+2025-12-02 18:54:49 INFO: rows_returned=3
+ERROR:    Exception in ASGI application
+Traceback (most recent call last):
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/aiomysql/connection.py", line 657, in _read_bytes
+    data = await self._reader.readexactly(num_bytes)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/asyncio/streams.py", line 752, in readexactly
+    await self._wait_for_data('readexactly')
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/asyncio/streams.py", line 545, in _wait_for_data
+    await self._waiter
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/asyncio/selector_events.py", line 1013, in _read_ready__data_received
+    data = self._sock.recv(self.max_size)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ConnectionResetError: [Errno 104] Connection reset by peer
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/uvicorn/protocols/http/h11_impl.py", line 403, in run_asgi
+    result = await app(  # type: ignore[func-returns-value]
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/uvicorn/middleware/proxy_headers.py", line 60, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/fastapi/applications.py", line 1054, in __call__
+    await super().__call__(scope, receive, send)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/applications.py", line 113, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/middleware/errors.py", line 186, in __call__
+    raise exc
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/middleware/errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/middleware/base.py", line 182, in __call__
+    with recv_stream, send_stream, collapse_excgroups():
+                                   ^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/contextlib.py", line 158, in __exit__
+    self.gen.throw(value)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/_utils.py", line 85, in collapse_excgroups
+    raise exc
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/middleware/base.py", line 184, in __call__
+    response = await self.dispatch_func(request, call_next)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/workspace/My/MyWebTemplate/backend/lib/Middleware.py", line 37, in dispatch
+    response = await callNext(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/middleware/base.py", line 159, in call_next
+    raise app_exc
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/middleware/base.py", line 144, in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/middleware/cors.py", line 85, in __call__
+    await self.app(scope, receive, send)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/routing.py", line 290, in handle
+    await self.app(scope, receive, send)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/routing.py", line 78, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/routing.py", line 75, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/fastapi/routing.py", line 302, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/fastapi/routing.py", line 213, in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/workspace/My/MyWebTemplate/backend/router/DashboardRouter.py", line 21, in listDataTemplates
+    result = await DashboardService.listDataTemplates(limit, offset)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/workspace/My/MyWebTemplate/backend/service/DashboardService.py", line 39, in listDataTemplates
+    rows = await db.fetchAllQuery("dashboard.list", {"limit": safeLimit, "offset": safeOffset}) or []
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/workspace/My/MyWebTemplate/backend/lib/Database.py", line 285, in fetchAllQuery
+    return await self.fetchAll(query, values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/workspace/My/MyWebTemplate/backend/lib/Database.py", line 249, in fetchAll
+    result = await self.database.fetch_all(query=query, values=values or {})
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/databases/core.py", line 174, in fetch_all
+    return await connection.fetch_all(query, values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/databases/core.py", line 290, in fetch_all
+    return await self._connection.fetch_all(built_query)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/databases/backends/mysql.py", line 118, in fetch_all
+    await cursor.execute(query_str, args)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/aiomysql/cursors.py", line 239, in execute
+    await self._query(query)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/aiomysql/cursors.py", line 457, in _query
+    await conn.query(q)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/aiomysql/connection.py", line 469, in query
+    await self._read_query_result(unbuffered=unbuffered)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/aiomysql/connection.py", line 683, in _read_query_result
+    await result.read()
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/aiomysql/connection.py", line 1164, in read
+    first_packet = await self.connection._read_packet()
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/aiomysql/connection.py", line 609, in _read_packet
+    packet_header = await self._read_bytes(4)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/aiomysql/connection.py", line 665, in _read_bytes
+    raise OperationalError(CR.CR_SERVER_LOST, msg) from e
+pymysql.err.OperationalError: (2013, 'Lost connection to MySQL server during query ([Errno 104] Connection reset by peer)')
+2025-12-02 18:54:49 INFO: {"ts": 1764669289839, "level": "INFO", "requestId": "65a65616-f6a4-47ef-becd-a58321c1780e", "method": "GET", "path": "/api/v1/dashboard/stats", "status": 200, "latency_ms": 505, "msg": "access"}
+2025-12-02 18:54:51 INFO: fetchAll named query: dashboard.statusSummary
+2025-12-02 18:54:51 INFO: fetch_all
+2025-12-02 18:54:51 INFO: fetchAll named query: dashboard.list
+2025-12-02 18:54:51 INFO: fetch_all
+2025-12-02 18:54:51 INFO: rows_returned=3
+2025-12-02 18:54:51 INFO: {"ts": 1764669291803, "level": "INFO", "requestId": "83021e59-2912-4818-af22-4928440bdd11", "method": "GET", "path": "/api/v1/dashboard/stats", "status": 200, "latency_ms": 317, "msg": "access"}
+2025-12-02 18:54:51 INFO: rows_returned=5
+2025-12-02 18:54:51 INFO: {"ts": 1764669291809, "level": "INFO", "requestId": "c1f61bb1-5fe9-4d19-97e5-e25a4aa6607d", "method": "GET", "path": "/api/v1/dashboard/list", "status": 200, "latency_ms": 318, "msg": "access"}
+2025-12-02 19:25:24 INFO: {"ts": 1764671124689, "level": "INFO", "requestId": "39c8add9-fbcb-41e0-965c-df5f90850434", "method": "GET", "path": "/api/v1/auth/me", "status": 401, "latency_ms": 2, "msg": "access"}
+2025-12-02 19:25:26 INFO: {"ts": 1764671126212, "level": "INFO", "requestId": "9d2be1db-0f37-449a-a497-febfd210653a", "method": "GET", "path": "/api/v1/auth/me", "status": 401, "latency_ms": 0, "msg": "access"}
+2025-12-02 19:25:26 INFO: {"ts": 1764671126494, "level": "INFO", "requestId": "f1aba13c-0345-4b50-91aa-2c7679eba9b0", "method": "POST", "path": "/api/v1/auth/refresh", "status": 200, "latency_ms": 5, "msg": "access"}
+2025-12-02 19:25:26 INFO: {"ts": 1764671126774, "level": "INFO", "requestId": "8a519834-0331-40c8-9124-25c41a3f71ce", "method": "GET", "path": "/api/v1/auth/me", "status": 200, "latency_ms": 1, "msg": "access"}
+2025-12-02 19:25:28 INFO: fetchAll named query: dashboard.statusSummary
+2025-12-02 19:25:28 INFO: fetch_all
+2025-12-02 19:25:28 INFO: fetchAll named query: dashboard.list
+2025-12-02 19:25:28 INFO: fetch_all
+2025-12-02 19:25:28 INFO: rows_returned=3
+ERROR:    Exception in ASGI application
+Traceback (most recent call last):
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/aiomysql/connection.py", line 657, in _read_bytes
+    data = await self._reader.readexactly(num_bytes)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/asyncio/streams.py", line 752, in readexactly
+    await self._wait_for_data('readexactly')
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/asyncio/streams.py", line 545, in _wait_for_data
+    await self._waiter
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/asyncio/selector_events.py", line 1013, in _read_ready__data_received
+    data = self._sock.recv(self.max_size)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ConnectionResetError: [Errno 104] Connection reset by peer
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/uvicorn/protocols/http/h11_impl.py", line 403, in run_asgi
+    result = await app(  # type: ignore[func-returns-value]
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/uvicorn/middleware/proxy_headers.py", line 60, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/fastapi/applications.py", line 1054, in __call__
+    await super().__call__(scope, receive, send)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/applications.py", line 113, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/middleware/errors.py", line 186, in __call__
+    raise exc
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/middleware/errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/middleware/base.py", line 182, in __call__
+    with recv_stream, send_stream, collapse_excgroups():
+                                   ^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/contextlib.py", line 158, in __exit__
+    self.gen.throw(value)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/_utils.py", line 85, in collapse_excgroups
+    raise exc
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/middleware/base.py", line 184, in __call__
+    response = await self.dispatch_func(request, call_next)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/workspace/My/MyWebTemplate/backend/lib/Middleware.py", line 37, in dispatch
+    response = await callNext(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/middleware/base.py", line 159, in call_next
+    raise app_exc
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/middleware/base.py", line 144, in coro
+    await self.app(scope, receive_or_disconnect, send_no_error)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/middleware/cors.py", line 85, in __call__
+    await self.app(scope, receive, send)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/middleware/exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/routing.py", line 290, in handle
+    await self.app(scope, receive, send)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/routing.py", line 78, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/starlette/routing.py", line 75, in app
+    response = await f(request)
+               ^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/fastapi/routing.py", line 302, in app
+    raw_response = await run_endpoint_function(
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/fastapi/routing.py", line 213, in run_endpoint_function
+    return await dependant.call(**values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/workspace/My/MyWebTemplate/backend/router/DashboardRouter.py", line 21, in listDataTemplates
+    result = await DashboardService.listDataTemplates(limit, offset)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/workspace/My/MyWebTemplate/backend/service/DashboardService.py", line 39, in listDataTemplates
+    rows = await db.fetchAllQuery("dashboard.list", {"limit": safeLimit, "offset": safeOffset}) or []
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/workspace/My/MyWebTemplate/backend/lib/Database.py", line 285, in fetchAllQuery
+    return await self.fetchAll(query, values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/workspace/My/MyWebTemplate/backend/lib/Database.py", line 249, in fetchAll
+    result = await self.database.fetch_all(query=query, values=values or {})
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/databases/core.py", line 174, in fetch_all
+    return await connection.fetch_all(query, values)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/databases/core.py", line 290, in fetch_all
+    return await self._connection.fetch_all(built_query)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/databases/backends/mysql.py", line 118, in fetch_all
+    await cursor.execute(query_str, args)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/aiomysql/cursors.py", line 239, in execute
+    await self._query(query)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/aiomysql/cursors.py", line 457, in _query
+    await conn.query(q)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/aiomysql/connection.py", line 469, in query
+    await self._read_query_result(unbuffered=unbuffered)
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/aiomysql/connection.py", line 683, in _read_query_result
+    await result.read()
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/aiomysql/connection.py", line 1164, in read
+    first_packet = await self.connection._read_packet()
+                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/aiomysql/connection.py", line 609, in _read_packet
+    packet_header = await self._read_bytes(4)
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/sunkus711/Project/Python3.12.10/lib/python3.12/site-packages/aiomysql/connection.py", line 665, in _read_bytes
+    raise OperationalError(CR.CR_SERVER_LOST, msg) from e
+pymysql.err.OperationalError: (2013, 'Lost connection to MySQL server during query ([Errno 104] Connection reset by peer)')
+2025-12-02 19:25:28 INFO: {"ts": 1764671128622, "level": "INFO", "requestId": "031d95ee-941d-462f-ad60-1b35a4b88835", "method": "GET", "path": "/api/v1/dashboard/stats", "status": 200, "latency_ms": 448, "msg": "access"}
+2025-12-02 19:25:30 INFO: fetchAll named query: dashboard.statusSummary
+2025-12-02 19:25:30 INFO: fetch_all
+2025-12-02 19:25:30 INFO: fetchAll named query: dashboard.list
+2025-12-02 19:25:30 INFO: fetch_all
+2025-12-02 19:25:30 INFO: rows_returned=3
+2025-12-02 19:25:30 INFO: {"ts": 1764671130550, "level": "INFO", "requestId": "98c9e710-8ea9-4815-b9d3-1a61e870e9c4", "method": "GET", "path": "/api/v1/dashboard/stats", "status": 200, "latency_ms": 225, "msg": "access"}
+2025-12-02 19:25:30 INFO: rows_returned=5
+2025-12-02 19:25:30 INFO: {"ts": 1764671130565, "level": "INFO", "requestId": "be37a56a-4a69-4361-9760-291fcd1ea281", "method": "GET", "path": "/api/v1/dashboard/list", "status": 200, "latency_ms": 235, "msg": "access"}
+2025-12-02 19:27:37 INFO: fetchAll named query: dashboard.statusSummary
+2025-12-02 19:27:37 INFO: fetch_all
+2025-12-02 19:27:37 INFO: fetchAll named query: dashboard.list
+2025-12-02 19:27:37 INFO: fetch_all
+2025-12-02 19:27:37 INFO: rows_returned=5
+2025-12-02 19:27:37 INFO: rows_returned=3
+2025-12-02 19:27:37 INFO: {"ts": 1764671257858, "level": "INFO", "requestId": "9b68e981-f854-4476-8d52-6233a125f68f", "method": "GET", "path": "/api/v1/dashboard/list", "status": 200, "latency_ms": 517, "msg": "access"}
+2025-12-02 19:27:37 INFO: {"ts": 1764671257858, "level": "INFO", "requestId": "37878dbf-93a8-4f27-a065-ac868453c4c2", "method": "GET", "path": "/api/v1/dashboard/stats", "status": 200, "latency_ms": 519, "msg": "access"}

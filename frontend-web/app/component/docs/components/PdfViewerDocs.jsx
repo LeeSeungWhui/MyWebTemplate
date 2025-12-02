@@ -11,7 +11,7 @@ const PdfViewerDocs = () => {
   return (
     <DocSection
       id="pdfviewer"
-      title="32. PDF 뷰어 (PdfViewer)"
+      title="33. PDF 뷰어 (PdfViewer)"
       description={
         <div className="space-y-2 text-sm text-gray-700">
           <p>로컬 파일 또는 외부 URL의 PDF를 미리봅니다. public/pdf-sample.pdf 예제가 포함되어 있습니다.</p>
