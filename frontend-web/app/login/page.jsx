@@ -27,8 +27,8 @@ const Page = async () => {
     return n
   }
   const nextHint = sanitize(rawNext)
-  const userJson = init && init.result && init.result.authenticated
-    ? { userId: init.result.userId, name: init.result.name }
+  const userJson = init && init.result && init.result.username
+    ? { userId: init.result.username, name: init.result.username }
     : null
   return (
     <>

@@ -1,7 +1,7 @@
 """
 파일명: backend/router/AuthRouter.py
 작성자: LSH
-갱신일: 2025-11-XX
+갱신일: 2025-12-03
 설명: 인증 API 라우터. Access/Refresh 쿠키 기반 토큰 흐름을 담당한다.
 """
 
@@ -90,17 +90,24 @@ async def login(request: Request):
 @router.post("/refresh")
 async def refresh(request: Request):
     refreshToken = request.cookies.get(AuthConfig.REFRESH_COOKIE_NAME)
+    loc = detectLocale(request)
     if not refreshToken:
         return JSONResponse(
             status_code=401,
-            content=errorResponse(message="refresh token missing", code="AUTH_401_INVALID"),
+            content=errorResponse(
+                message=i18nTranslate("auth.refresh_missing", "refresh token missing", loc),
+                code="AUTH_401_INVALID",
+            ),
             headers={"WWW-Authenticate": "Bearer"},
         )
     tokenPayload = await AuthService.refresh(refreshToken)
     if not tokenPayload:
         return JSONResponse(
             status_code=401,
-            content=errorResponse(message="invalid refresh token", code="AUTH_401_INVALID"),
+            content=errorResponse(
+                message=i18nTranslate("auth.refresh_invalid", "invalid refresh token", loc),
+                code="AUTH_401_INVALID",
+            ),
             headers={"WWW-Authenticate": "Bearer"},
         )
     accessMaxAge = AuthConfig.ACCESS_TOKEN_EXPIRE_MINUTES * 60
@@ -127,7 +134,9 @@ async def refresh(request: Request):
 
 
 @router.post("/logout", status_code=204)
-async def logout():
+async def logout(request: Request):
+    refreshToken = request.cookies.get(AuthConfig.REFRESH_COOKIE_NAME)
+    AuthService.revokeRefreshToken(refreshToken)
     res = Response(status_code=204)
     res.delete_cookie(AuthConfig.ACCESS_COOKIE_NAME, path="/")
     res.delete_cookie(AuthConfig.REFRESH_COOKIE_NAME, path="/")
@@ -135,5 +144,8 @@ async def logout():
 
 
 @router.get("/me")
-async def me(user=Depends(getCurrentUser)):
-    return await AuthService.me(user)
+async def me(request: Request, user=Depends(getCurrentUser)):
+    result = await AuthService.me(user)
+    res = JSONResponse(content=result, status_code=200)
+    res.headers["Cache-Control"] = "no-store"
+    return res

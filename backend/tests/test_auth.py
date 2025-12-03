@@ -115,3 +115,55 @@ def test_refresh_preserves_session_cookie_when_not_remember():
         refreshed_cookie = _find_cookie(res.headers, AuthConfig.REFRESH_COOKIE_NAME)
         assert refreshed_cookie
         assert "max-age" not in refreshed_cookie.lower()
+
+
+def test_refresh_token_reuse_is_rejected():
+    from server import app
+
+    with TestClient(app) as client:
+        res = client.post(
+            "/api/v1/auth/login",
+            json={"username": "demo@demo.demo", "password": "password123", "rememberMe": True},
+        )
+        assert res.status_code == 200
+        original_refresh = client.cookies.get("refresh_token")
+        assert original_refresh
+
+        # 첫 번째 refresh는 정상적으로 동작해야 한다.
+        res1 = client.post("/api/v1/auth/refresh")
+        assert res1.status_code == 200
+
+        # 이전 refresh 토큰을 다시 사용하면 401이 반환되어야 한다.
+        client.cookies.set("refresh_token", original_refresh)
+        res2 = client.post("/api/v1/auth/refresh")
+        assert res2.status_code == 401
+        assert res2.headers.get("WWW-Authenticate") == "Bearer"
+        body = res2.json()
+        assert body["status"] is False
+        assert body["code"] == "AUTH_401_INVALID"
+
+
+def test_refresh_after_logout_is_rejected(monkeypatch):
+    from server import app
+
+    with TestClient(app) as client:
+        res = client.post(
+            "/api/v1/auth/login",
+            json={"username": "demo@demo.demo", "password": "password123", "rememberMe": True},
+        )
+        assert res.status_code == 200
+        refresh_cookie = client.cookies.get("refresh_token")
+        assert refresh_cookie
+
+        # 서버와 클라이언트 양쪽에서 쿠키 삭제를 시뮬레ート하되, 테스트를 위해 토큰 값은 별도로 보존한다.
+        res = client.post("/api/v1/auth/logout")
+        assert res.status_code == 204
+
+        # 클라이언트 측에서 예전 refresh 토큰을 다시 보내는 상황을 재현
+        client.cookies.set("refresh_token", refresh_cookie)
+        res2 = client.post("/api/v1/auth/refresh")
+        assert res2.status_code == 401
+        assert res2.headers.get("WWW-Authenticate") == "Bearer"
+        body = res2.json()
+        assert body["status"] is False
+        assert body["code"] == "AUTH_401_INVALID"

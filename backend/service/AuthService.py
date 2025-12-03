@@ -5,18 +5,54 @@
 """
 
 import uuid
-from typing import Optional, Tuple
+from typing import Optional, Tuple, Dict, Any
 
 import base64
 import hashlib
 import hmac
+import json
+from datetime import datetime, timezone
+
 import bcrypt  # optional; used only if available
 
 from jose import JWTError, jwt
 
 from lib.Auth import AuthConfig, Token, createAccessToken, createRefreshToken
 from lib import Database as DB
+from lib.Logger import logger
+from lib.RequestContext import getRequestId
 from lib.Response import successResponse
+
+# 인메모리 리프레시 토큰 블랙리스트(재사용/로그아웃 차단용)
+revokedRefreshJtiStore: set[str] = set()
+
+
+def _nowMs() -> int:
+    return int(datetime.now(timezone.utc).timestamp() * 1000)
+
+
+def auditLog(event: str, username: Optional[str], success: bool, meta: Optional[Dict[str, Any]] = None) -> None:
+    """
+    설명: 로그인/리프레시/로그아웃 등 인증 이벤트 감사 로그를 남긴다.
+    갱신일: 2025-12-03
+    """
+    try:
+        payload: Dict[str, Any] = {
+            "ts": _nowMs(),
+            "event": event,
+            "username": username,
+            "success": bool(success),
+            "requestId": getRequestId(),
+        }
+        if meta and isinstance(meta, dict):
+            payload.update(meta)
+        logger.info(json.dumps(payload, ensure_ascii=False))
+    except Exception:
+        # 로깅 실패가 인증 흐름을 막지 않도록 방어
+        try:
+            logger.info("auth_audit_fallback %s %s %s %s", event, username, success, meta)
+        except Exception:
+            pass
 
 
 async def me(user):
@@ -25,10 +61,18 @@ async def me(user):
 
 async def login(payload: dict, rememberMe: bool = False) -> Optional[dict]:
     """로그인 요청을 처리하고 사용자/토큰 정보를 함께 반환."""
+    candidateUsername: Optional[str] = None
+    if isinstance(payload, dict):
+        rawUsername = payload.get("username")
+        if isinstance(rawUsername, str):
+            candidateUsername = rawUsername
+
     authUser, username = await authenticateUser(payload)
     if not authUser or not username:
+        auditLog("auth.login", candidateUsername, False, {"reason": "invalid_credentials"})
         return None
     tokenPayload = issueTokens(username, rememberMe)
+    auditLog("auth.login", username, True, {"remember": bool(rememberMe)})
     return {"user": authUser, "token": tokenPayload}
 
 
@@ -49,20 +93,54 @@ def csrf(_: Optional[dict] = None) -> dict:
 
 
 async def refresh(refreshToken: str) -> Optional[dict]:
-    """리프레시 토큰으로 새 액세스/리프레시 토큰을 발급한다."""
-    try:
-        secret = AuthConfig.SECRET_KEY
-        if not secret:
-            return None
-        payload = jwt.decode(refreshToken, secret, algorithms=[AuthConfig.ALGORITHM])
-        username = payload.get("sub")
-        tokenType = payload.get("typ")
-        remember = bool(payload.get("remember"))
-        if tokenType != "refresh" or not isinstance(username, str) or not username:
-            return None
-        return issueTokens(username, remember)
-    except JWTError:
+    """리프레시 토큰으로 새 액세스/리프레시 토큰을 발급한다(토큰 회전 + 재사용 차단)."""
+    payload = decodeRefreshTokenPayload(refreshToken)
+    if not payload:
+        auditLog("auth.refresh", None, False, {"reason": "invalid_refresh"})
         return None
+
+    username = payload.get("sub")
+    remember = bool(payload.get("remember"))
+    jti = payload.get("jti")
+
+    if not isinstance(username, str) or not username:
+        auditLog("auth.refresh", None, False, {"reason": "missing_sub"})
+        return None
+    if not isinstance(jti, str) or not jti:
+        auditLog("auth.refresh", username, False, {"reason": "missing_jti"})
+        return None
+    if jti in revokedRefreshJtiStore:
+        # 이미 사용됐거나 로그아웃된 리프레시 토큰 재사용 시도
+        auditLog("auth.refresh", username, False, {"reason": "reused_token"})
+        return None
+
+    # 현재 리프레시 토큰은 더 이상 사용하지 못하도록 블랙리스트에 추가
+    revokedRefreshJtiStore.add(jti)
+
+    tokenPayload = issueTokens(username, remember)
+    auditLog("auth.refresh", username, True, {"remember": bool(remember)})
+    return tokenPayload
+
+
+def revokeRefreshToken(refreshToken: Optional[str]) -> None:
+    """
+    설명: 로그아웃 시 리프레시 토큰을 블랙리스트에 추가해 재사용을 차단한다.
+    갱신일: 2025-12-03
+    """
+    if not refreshToken:
+        auditLog("auth.logout", None, True, {"reason": "no_refresh_cookie"})
+        return
+
+    payload = decodeRefreshTokenPayload(refreshToken)
+    if not payload:
+        auditLog("auth.logout", None, False, {"reason": "invalid_refresh"})
+        return
+
+    username = payload.get("sub") if isinstance(payload.get("sub"), str) else None
+    jti = payload.get("jti")
+    if isinstance(jti, str) and jti:
+        revokedRefreshJtiStore.add(jti)
+    auditLog("auth.logout", username, True, {})
 
 
 def verifyPassword(plain: str, stored: str) -> bool:
@@ -104,6 +182,24 @@ async def authenticateUser(payload: dict) -> Tuple[Optional[dict], Optional[str]
     if not verifyPassword(password, user.get("password_hash") or ""):
         return None, None
     return user, username
+
+
+def decodeRefreshTokenPayload(refreshToken: str) -> Optional[Dict[str, Any]]:
+    """
+    설명: 리프레시 토큰을 디코드해 페이로드를 반환한다. typ이 refresh가 아니면 None.
+    갱신일: 2025-12-03
+    """
+    try:
+        secret = AuthConfig.SECRET_KEY
+        if not secret:
+            return None
+        payload = jwt.decode(refreshToken, secret, algorithms=[AuthConfig.ALGORITHM])
+        tokenType = payload.get("typ")
+        if tokenType != "refresh":
+            return None
+        return payload
+    except JWTError:
+        return None
 
 
 def issueTokens(username: str, remember: bool = False) -> dict:
