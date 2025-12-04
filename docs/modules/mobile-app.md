@@ -6,8 +6,8 @@
 
 ## 기술 스택
 - Node: v22.19.0
-- React Native: 0.76+ / Expo: 52+
-- React: 18.x (Expo SDK 대응 버전 준수)
+- React Native: 0.81+ / Expo: 54+
+- React: 19.x (Expo SDK 대응 버전 준수)
 - 내비게이션: React Navigation 7
 - 스타일: NativeWind 4.x + tailwindcss 3.x
 - 데이터: SWR
