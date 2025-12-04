@@ -12,8 +12,8 @@ links: [CU-APP-001, CU-APP-002, CU-APP-003, CU-APP-004, CU-APP-007, CU-APP-008, 
 
 ### Scope
 - 포함
-  - OpenAPI 스키마(/openapi.json) 기반 클라이언트 구성(openapi-client-axios 기본)
-  - Bearer 토큰 주입(SecureStore) 및 만료/401 처리(전역 가드 연동)
+  - OpenAPI 스키마(/openapi.json) 기반 클라이언트 구성(openapi-client-axios 또는 동등 기능 라이브러리, 웹 CU-WEB-005 규약과 호환)
+  - Bearer 토큰 주입(SecureStore) 및 만료/401 처리(전역 가드 연동, CU-APP-004)
   - 표준 응답 정규화 `{status, message, result, count?, code?, requestId}`(백엔드/웹 공통 스키마) → 클라이언트 내부 표현으로 매핑
   - SWR 어댑터: 재검증/무효화 규약, 204/304/캐시 처리
   - Retry/Abort: GET 한정 지수 백오프(최대 2회), AbortController 중복 취소

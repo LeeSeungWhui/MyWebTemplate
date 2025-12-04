@@ -20,19 +20,35 @@ links: [CU-APP-001, CU-APP-003, CU-APP-004, CU-APP-005, CU-APP-007, CU-APP-008, 
   - 복잡 차트/리포트 빌더, 수정/편집 기능(차기)
 
 ### Interface
-- UI: Protected Stack 루트. 헤더(세션 표시), 카드/리스트/미니 통계 섹션. 스켈레톤 로딩/에러 상태.
-- API: GET /api/v1/dash/cards, GET /api/v1/dash/recent (스키마는 공통 규약 준수)
+- UI: Protected Stack 루트. 헤더(세션/사용자 표시), 카드/리스트/미니 통계 섹션. 스켈레톤 로딩/에러 상태.
+- API(웹 템플릿과 동일한 규약 사용, 필요 시 앱 전용 경로로 치환)
+  - `GET /api/v1/demo/stats` (상태별 카운트/합계 등 요약 지표)
+  - `GET /api/v1/demo/list` (최근 항목 리스트, 페이징/필터 포함)
+  - 공통 응답 스키마 준수 `{status,message,result,count?,code?,requestId}`
 
 ### Data & Rules
-- 주요 데이터 모델(JSON)
+- 주요 데이터 모델(JSON 예시)
 {
-  "cards": [ { "title": "string", "value": 0, "delta": 0 } ],
-  "recent": [ { "id": "string", "title": "string", "createdAt": "ISO8601" } ]
+  "stats": {
+    "byStatus": [
+      { "status": "active", "count": 10, "amount_sum": 123000 },
+      { "status": "pending", "count": 5, "amount_sum": 45000 }
+    ]
+  },
+  "recent": [
+    {
+      "id": "string",
+      "title": "string",
+      "status": "active|pending|canceled",
+      "amount": 12345,
+      "created_at": "ISO8601"
+    }
+  ]
 }
 - 비즈니스 규칙
-  - SWR 키: ['dash','cards'], ['dash','recent', page]
-  - 무효화: 로그인/로그아웃, 프로필 변경 시 cards/recent 무효화, 백그라운드 복구(008)
-  - 응답 규약: {status:true, result, count?, requestId} | 실패 {status:false, code, message, requestId}
+  - SWR 키: ['dash','stats'], ['dash','recent', page]
+  - 무효화: 로그인/로그아웃, 프로필 변경, 런타임 컨피그 변경 시 stats/recent 무효화, 포그라운드 복구(008) 시 재검증
+  - 응답 규약: `{status:true, result, count?, requestId}` | 실패 `{status:false, code, message, requestId}`
   - 401은 로그인 처리(004), 5xx/네트워크 공통 오류 UX(007)
 
 ### NFR & A11y
@@ -56,4 +72,3 @@ links: [CU-APP-001, CU-APP-003, CU-APP-004, CU-APP-005, CU-APP-007, CU-APP-008, 
 - T5: 상태/오류 UX(스켈레톤/빈상태/에러/토스트)
 - T6: 성능/접근성 체크(TTI, 스크롤 FPS, ARIA)
 - T7: 필터·리프레시/401/5xx/추가 로드 시나리오 문서화
-

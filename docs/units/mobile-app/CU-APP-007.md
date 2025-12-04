@@ -8,7 +8,7 @@ links: [CU-APP-001, CU-APP-002, CU-APP-003, CU-APP-004, CU-APP-005, CU-APP-006, 
 ---
 
 ### Purpose
-- 모바일 전역 오류 처리와 토스트/배너/다이얼로그 UX 규약을 일원화한다. {status:false, code, message, requestId} 및 네트워크/포그라운드/오프라인 이벤트를 안정적으로 사용자 경험에 매핑한다.
+- 모바일 전역 오류 처리와 토스트/배너/다이얼로그 UX 규약을 일원화한다. `{status:false, code, message, requestId}` 및 네트워크/포그라운드/오프라인 이벤트를 안정적으로 사용자 경험에 매핑한다.
 
 ### Scope
 - 포함
@@ -27,7 +27,7 @@ links: [CU-APP-001, CU-APP-002, CU-APP-003, CU-APP-004, CU-APP-005, CU-APP-006, 
   - Banner(화면 상단 고정, 오프라인/장기 상태 안내)
   - Dialog(치명/파괴적 작업 확인)
 - API: 
-  - API Client 실패 {ok:false, code, message, requestId, httpStatus}
+  - API Client 실패 `{status:false, code, message, requestId, httpStatus}` (웹/백엔드 공통 응답을 기반으로 정규화된 형태)
   - 네트워크: NET_TIMEOUT, NET_OFFLINE, NET_ABORTED, NET_DNS 등
   - 가드(004): AUTH_401_INVALID 수신 시 토큰 파기→전환
 
@@ -72,4 +72,3 @@ links: [CU-APP-001, CU-APP-002, CU-APP-003, CU-APP-004, CU-APP-005, CU-APP-006, 
 - T6: 로깅(requestId 추적, 마스킹 규칙) 구현
 - T7: 통합 시나리오(401 전환/오프라인/백오프/로깅) 테스트
 - T8: 문서화(코드 사전, UX 가이드, 금지 사항)
-

@@ -22,7 +22,7 @@ links: [CU-APP-001, CU-APP-004, CU-APP-005, CU-APP-007, CU-APP-008, CU-BE-004]
 
 ### Interface
 - UI: 배너/다이얼로그로 필수 업데이트 공지, 무음 업데이트는 UI 변경 없이 적용
-- API: /readyz 또는 별도 설정 API로 minAppVersion/원격 컨피그 제공(추후 합의)
+- API: `/readyz` 또는 별도 설정 API로 `minAppVersion`/원격 컨피그 제공(CU-BE-004와 연계, 추후 구체 스키마 합의)
 
 ### Data & Rules
 - 주요 데이터모델(JSON)
@@ -64,4 +64,3 @@ links: [CU-APP-001, CU-APP-004, CU-APP-005, CU-APP-007, CU-APP-008, CU-BE-004]
 - T6: 실패/롤백 처리 케이스 정의 및 사용자 메시지/가이드 구현
 - T7: QA 시나리오(채널 배포/롤백, 강제 업데이트, API Base 변경)
 - T8: 운영 가이드(릴리스 절차/롤백 요건/한계) 문서화
-

@@ -11,9 +11,9 @@ links: [CU-APP-001, CU-APP-002, CU-APP-004, CU-APP-005, CU-APP-007]
 - 공통 입력/피드백/네비게이션 컴포넌트를 Dataset(EasyObj/EasyList) 규약으로 일관되게 제공하고, 화면 제작 시 데이터 바인딩만으로 빠르게 조립 가능하게 한다.
 
 ### Scope
-- 포함(초기 세트)
-  - 입력: Button, IconButton, Input(Text/Password), TextArea, Select, RadioGroup, Checkbox, Switch, Slider
-  - 피드백: Toast, Alert, Banner, Modal, Loading(Spinner/Skeleton), InlineError
+- 포함(초기 세트, 웹 CU-WEB-003과 1:1에 가깝게 매핑)
+  - 입력: Button, IconButton, Input(Text/Password), TextArea, Select/Picker, RadioGroup, Checkbox, Switch, Slider, Date/Time(경량), Number
+  - 피드백: Toast, Alert, Banner, Modal/BottomSheet, Loading(Spinner/Skeleton), InlineError
   - 네비/레이아웃: AppBar, TabBar, BottomBar, Card, ListItem, Grid, Divider, SectionHeader
   - 유틸: SafeAreaContainer, KeyboardAvoider, EmptyState, PullToRefresh
 - 제외(차기)
@@ -61,4 +61,3 @@ links: [CU-APP-001, CU-APP-002, CU-APP-004, CU-APP-005, CU-APP-007]
 - T7: Docs 카탈로그(상태/사이즈 매트릭스)
 - T8: 성능 점검(Interaction <100ms, 60fps), 콘솔 클린업
 - T9: 바인딩 규약/에러 코드/사용 가이드 문서화
-

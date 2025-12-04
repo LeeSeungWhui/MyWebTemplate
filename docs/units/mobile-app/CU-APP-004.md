@@ -23,7 +23,7 @@ links: [CU-APP-001, CU-APP-002, CU-APP-005, CU-APP-007, CU-APP-008, CU-BE-001]
 
 ### Interface
 - UI: AuthStack(로그인/비밀번호 찾기), AppStack(대시보드/하위 화면), RootNavigator가 인증 상태에 따라 스택 전환
-- API: 전역 401/403 응답을 구독해 토큰 파기 및 AuthStack 전환(CU-APP-001/005)
+- API: 전역 401/403 응답을 구독해 토큰 파기 및 AuthStack 전환(CU-APP-001/005, CU-BE-001)
 
 ### Data & Rules
 - 주요 데이터모델(JSON)
@@ -60,4 +60,3 @@ links: [CU-APP-001, CU-APP-002, CU-APP-005, CU-APP-007, CU-APP-008, CU-BE-001]
 - T6: Android BackHandler 정책 및 예외 처리
 - T7: 중복 내비 방지 및 가드 창구 통합
 - T8: 시나리오 테스트(콜드 스타트, 401, 복귀, Back 버튼)
-

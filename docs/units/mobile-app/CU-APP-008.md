@@ -15,7 +15,7 @@ links: [CU-APP-001, CU-APP-002, CU-APP-003, CU-APP-004, CU-APP-005, CU-APP-006, 
   - 트리거: onAppForeground, onOnline, onPageFocus, onConfigChanged
   - 키 그룹: 세션/헤더/대시보드/주요 목록·상세
   - 동시성과 시간 예산: 동시 3요청, 시간 1500ms 예산, 초과시 잔여 건은 건너뛰기
-  - GET 백오프(최대 2회), 실패 상태 전파, 일시 정지(paused)
+  - GET 백오프(최대 2회, `Retry-After` 헤더 준수), 실패 상태 전파, 일시 정지(paused)
   - 오프라인 배너/미니 인디케이터, 깜빡임 최소화 교체 전략
   - OTA/런타임 컨피그 변경 시 무효화/재검증 연동(006)
 - 제외
@@ -66,4 +66,3 @@ links: [CU-APP-001, CU-APP-002, CU-APP-003, CU-APP-004, CU-APP-005, CU-APP-006, 
 - T6: 로깅/메트릭 수집 및 대시보드 연결
 - T7: 통합 테스트(복귀/온라인/401/예산 초과/paused→복구)
 - T8: 문서화(키 그룹/트리거별 동작/제한/가이드)
-
