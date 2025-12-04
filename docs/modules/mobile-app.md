@@ -32,10 +32,11 @@
 - 부족: 로그인 화면/보호 스택/API 클라이언트/오류 UX 미구성
 
 ## 인증/스토리지 규약
-- 인증 모드: Bearer 토큰(쿠키/CSRF 미사용)
-- 저장소: 토큰=Expo SecureStore(필수), 세션 캐시/환경=AsyncStorage
-- 401 처리: 토큰 파기→로그인 스택 전환(코드/requestId 포함)
-- (선택) 리프레시 토큰: 성공 시 갱신, 실패 시 즉시 로그아웃
+- 인증 모드: Bearer 토큰(웹과 동일한 JWT 클레임/코드 규약, CSRF 미사용)
+- 백엔드 엔드포인트: CU-BE-001과 동일한 `/api/v1/auth/login`, `/api/v1/auth/refresh`, `/api/v1/auth/me`를 사용한다.
+- 저장소: 액세스/리프레시 토큰=Expo SecureStore(필수), 세션 캐시/환경=AsyncStorage
+- 401 처리: `AUTH_401_INVALID` 수신 또는 `/api/v1/auth/me` 401 시 토큰 파기→로그인 스택 전환(코드/requestId 포함)
+- 리프레시 토큰: `/api/v1/auth/refresh` 성공 시 토큰 회전(신규 access/refresh 발급), 실패/블랙리스트 시 즉시 로그아웃
 
 ## 데이터 상태 규약
 - SWR 키 규약(예): ['auth','session'], ['header', ...], ['list', endpoint, params]
@@ -46,7 +47,7 @@
 - Base URL: EXPO_PUBLIC_API_BASE
 - 에뮬레이터: Android=10.0.2.2, iOS=localhost
 - HTTPS 기본; ATS/예외는 최소화(별도 문서)
-- 규약: Abort, 204(No Content) 처리, {status,false,code,requestId} 오류 정규화
+- 규약: Abort, 204(No Content) 처리, 공통 응답 스키마 `{status, message, result, count?, code?, requestId}` 기반 오류 정규화
 
 ## 내비 & 가드
 - 보호 스택: 미인증→로그인 스택, 인증 시 메인 스택
@@ -83,7 +84,7 @@
 - 공통 규칙(docs/common-rules.md) DoD 충족
 
 ## TODO
-- 로그인 화면 구현(검증/오류 UX) + /api/v1/auth/token 연동
+- 로그인 화면 구현(검증/오류 UX) + `/api/v1/auth/login`·`/api/v1/auth/refresh`·`/api/v1/auth/me` 연동
 - 보호 스택/가드 적용, 포그라운드 루틴
 - 대시보드 위젯 구성 + A11y 점검
 - OpenAPI JS 클라이언트 도입(openapi-client-axios), SWR 무효화 규약 정리
@@ -97,4 +98,3 @@
 
 ## 결정사항(고정)
 - API 클라이언트: openapi-client-axios 고정 채택
-

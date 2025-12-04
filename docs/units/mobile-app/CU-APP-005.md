@@ -14,7 +14,7 @@ links: [CU-APP-001, CU-APP-002, CU-APP-003, CU-APP-004, CU-APP-007, CU-APP-008, 
 - 포함
   - OpenAPI 스키마(/openapi.json) 기반 클라이언트 구성(openapi-client-axios 기본)
   - Bearer 토큰 주입(SecureStore) 및 만료/401 처리(전역 가드 연동)
-  - 표준 응답 정규화 {ok, data, count?, code?, requestId}
+  - 표준 응답 정규화 `{status, message, result, count?, code?, requestId}`(백엔드/웹 공통 스키마) → 클라이언트 내부 표현으로 매핑
   - SWR 어댑터: 재검증/무효화 규약, 204/304/캐시 처리
   - Retry/Abort: GET 한정 지수 백오프(최대 2회), AbortController 중복 취소
   - 환경/플랫폼 차이: EXPO_PUBLIC_API_BASE, Android 10.0.2.2 / iOS localhost
@@ -29,16 +29,17 @@ links: [CU-APP-001, CU-APP-002, CU-APP-003, CU-APP-004, CU-APP-007, CU-APP-008, 
 - 주요 데이터모델(JSON)
 {
   "response": {
-    "ok": true,
-    "data": {},
+    "status": true,
+    "message": "success",
+    "result": {},
     "count": 0,
     "requestId": "string",
     "code": "string?"
   }
 }
 - 비즈니스 규칙
-  - 성공 {ok:true, data:<result>, count?, requestId}, 실패 {ok:false, code, message, requestId, httpStatus}
-  - 204는 {ok:true, data:null}, 304는 캐시 유지 + 최신 requestId 반영
+  - 성공 `{status:true, result:<result>, count?, requestId}`, 실패 `{status:false, code, message, requestId, httpStatus}`
+  - 204는 `{status:true, result:null}`, 304는 캐시 유지 + 최신 requestId 반영
   - SWR 키 예시: ['auth','session'], ['header','current'], ['list', path, params]
   - 로그인/로그아웃/헤더 변경 시 관련 키 무효화, 복귀 시 재검증(CU-APP-008)
   - GET 실패만 지수 백오프 최대 2회, Retry-After 준수. 네트워크 코드 NET_* 매핑(CU-APP-007)
@@ -50,7 +51,7 @@ links: [CU-APP-001, CU-APP-002, CU-APP-003, CU-APP-004, CU-APP-007, CU-APP-008, 
 - i18n: 서버 메시지 직노출 금지, 코드→문구 매핑 사용
 
 ### Acceptance Criteria
-- AC-1: /api/v1/auth/token 호출이 클라이언트를 통해 성공/실패 모두 표준 응답으로 반환된다(CU-APP-001).
+- AC-1: `/api/v1/auth/login`·`/api/v1/auth/refresh`·`/api/v1/auth/me` 호출이 클라이언트를 통해 성공/실패 모두 표준 응답으로 반환된다(CU-APP-001, CU-BE-001).
 - AC-2: 보호 API 401 수신 시 토큰 파기→가드 전환(로그인)으로 이어진다(CU-APP-004).
 - AC-3: 5xx/네트워크 오류가 규약에 맞는 실패 응답이 되고 code·requestId가 표기된다(CU-APP-007).
 - AC-4: 204/304 처리와 SWR 캐시/무효화가 문서 규약대로 동작한다.
@@ -67,4 +68,3 @@ links: [CU-APP-001, CU-APP-002, CU-APP-003, CU-APP-004, CU-APP-007, CU-APP-008, 
 - T7: 로깅(requestId 추적, 마스킹 규칙) 구현
 - T8: 성공/401/5xx/네트워크/204/304/재시도 시나리오 테스트
 - T9: 사용 규약/에러 사전/환경 변수 문서화
-
