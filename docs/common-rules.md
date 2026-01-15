@@ -5,8 +5,7 @@
 ## 코딩 규칙
 - 네이밍
   - 공통: 클래스/컴포넌트 PascalCase, 상수 UPPER_SNAKE_CASE
-  - JavaScript/React: 변수/함수 camelCase
-  - Python: 변수/함수 snake_case
+  - 변수/함수: camelCase (JavaScript/React/Python 공통)
   - API 경로: lowercase(권장: kebab-case)
 - TypeScript 사용 금지(런타임 코드). 타입은 JSDoc/JSON Schema/런타임 검증으로 대체
   - 예외: 테스트/빌드/린트 설정 파일은 TS 허용
