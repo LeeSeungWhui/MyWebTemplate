@@ -15,7 +15,7 @@ links: [CU-BE-001]
   - `components.securitySchemes`에 쿠키 세션과 Bearer 토큰 인증을 OR 관계로 문서화.
   - `{status, message, result, count?, code?, requestId}` 래퍼 스키마.
   - 401 응답에 `WWW-Authenticate` 헤더 표기.
-  - 비멱등 엔드포인트에 `CSRFToken` 파라미터(`X-CSRF-Token`) 참조.
+  - (문서용) 비멱등 엔드포인트에 선택적 `CSRFToken` 파라미터(`X-CSRF-Token`) 참조(현재 서버에서 강제하지 않음).
   - 서버 목록, 태그 그룹, `operationId`, `openapi-client-axios` 기반 `x-codeSamples`.
 - 제외
   - TypeScript 바인딩 및 코드 생성기.
@@ -32,35 +32,31 @@ links: [CU-BE-001]
   - `openapi-client-axios` 예제를 담은 `x-codeSamples`
 
 ### Data & Rules
-- 로그인 응답은 `204`와 `Set-Cookie` 헤더로 문서화한다.
+- 로그인 응답은 `200 JSON + Set-Cookie`(Access/Refresh 쿠키)로 문서화한다.
 - 401 응답은 `WWW-Authenticate` 헤더와 `ErrorResponse` 스키마를 사용한다.
-- `CSRFToken` 파라미터는 비멱등 라우트에 등장한다.
+- `CSRFToken` 파라미터는 OpenAPI에 등장할 수 있으나, 현재 서버는 이를 필수로 강제하지 않는다.
 - Swagger UI 예제는 최소한으로 유지하고 자격 증명은 노출하지 않는다.
 
 ### NFR & A11y
 - OpenAPI 스키마 검증으로 문서와 API의 동기화를 보장한다.
 
-### CI(검증 & JS 클라이언트 스모크)
-- OpenAPI 검증: `scripts/openapi_validate.py`.
-- JS 스모크 테스트: `scripts/js_smoke.mjs`가 `/healthz` 호출.
-- 워크플로: Python tests → `openapi_validate.py` → 서버 기동 → `js_smoke.mjs`.
+### 검증(스모크)
+- OpenAPI 스키마 검증과 JS 스모크 스크립트는 템플릿 후속 작업으로 둔다(레포에 스크립트가 없으면 이 섹션은 “planned”로 간주).
 
 ### Defaults
 - JS 클라이언트는 기본으로 `openapi-client-axios`를 사용한다.
 
 ### Acceptance Criteria
-- **AC-1:** 로그인 API가 `204 + Set-Cookie` 응답을 문서화한다.
-- **AC-2:** 비멱등 라우트에 `CSRFToken` 파라미터가 필요하며 없으면 `403`을 반환한다.
+- **AC-1:** 로그인 API가 `200 + Set-Cookie` 응답을 문서화한다.
+- **AC-2:** OpenAPI에 `CSRFToken` 파라미터가 포함되더라도 현재 서버는 이를 강제하지 않는다(403을 요구하지 않음).
 - **AC-3:** JS 클라이언트 예제가 `openapi-client-axios`로 엔드포인트를 호출한다.
-- **AC-4:** `openapi_validate.py`가 CI에서 통과한다.
-- **AC-5:** `js_smoke.mjs`가 `openapi-client-axios`로 `/healthz`를 호출한다.
 
 ### Tasks
 - T1: 쿠키 및 Bearer 보안 스키마 정의.
 - T2: StandardResponse/ErrorResponse 스키마와 `WWW-Authenticate` 추가.
-- T3: `CSRFToken` 파라미터 정의 후 비멱등 라우트에 참조.
-- T4: 로그인 `204 + Set-Cookie` 응답 문서화.
+- T3: (선택) `CSRFToken` 파라미터 문서화(서버 강제 여부는 별도 유닛에서 결정).
+- T4: 로그인 `200 + Set-Cookie` 응답 문서화.
 - T5: `servers`, `x-tagGroups`, `operationId` 값 추가.
 - T6: `openapi-client-axios` 코드 샘플 추가.
-- T7: CI에 OpenAPI 검증과 JS 스모크 테스트 포함.
+- T7: (선택) 릴리스 체크리스트에 OpenAPI 검증과 JS 스모크 테스트 포함.
 - T8: Swagger UI 예제는 최소화하고 자격 증명은 숨긴다.

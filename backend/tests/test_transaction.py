@@ -17,7 +17,7 @@ def test_transaction_single_and_unique_rollback():
         assert r.json()["status"] is True
 
         r = client.post("/api/v1/transaction/test/unique-violation")
-        assert r.status_code == 200
+        assert r.status_code == 409
         j = r.json()
         assert j["status"] is False
         assert j["code"] == "TX_409_UNIQUE"

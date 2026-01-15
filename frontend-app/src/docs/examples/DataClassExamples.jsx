@@ -1,14 +1,19 @@
 import { View, Text, TouchableOpacity } from 'react-native';
-import * as Lib from '@/app/lib';
+import * as Lib from '../../lib';
 
 export const DataClassExamples = () => {
     const data = Lib.EasyObj({
+        count: 0,
         name: '홍길동',
         age: 20,
         address: {
             city: '서울',
             street: '강남대로'
-        }
+        },
+        items: [
+            { id: 1, count: 0 },
+            { id: 2, count: 0 }
+        ]
     });
 
     const list = Lib.EasyList([

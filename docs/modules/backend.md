@@ -32,7 +32,7 @@
 - CORS: config.ini [CORS]
 - 오류 응답: 일관 JSON
 - 로깅: 파일+콘솔(backend/logs/*.log)
-- 사용자 시드 스크립트: backend/scripts/users_seed.py
+- 데모 계정은 환경별 DB에 준비되어 있어야 한다(예: `demo@demo.demo/password123`).
 
 ## 코드 구조
 - router/: API 엔드포인트(APIRouter). prefix=/api/v1 고정, 모듈별 라우터 분리(예: AuthRouter, ObservabilityRouter).
@@ -78,6 +78,9 @@
 - 공통 규칙(common-rules.md) DoD 충족.
 
 ## 설정(config.ini)
+- `backend/config.ini`는 로컬 전용이며 git에 올리지 않는다.
+  - 시작은 `backend/config.example.ini`를 복사해서 `backend/config.ini`로 만들어 사용한다.
+
 ```
 [DATABASE]
 name = main_db
@@ -117,7 +120,7 @@ port = 2000
 - Query: query/ .sql — -- name: 블록, 로더 적재, dev 핫리로드(watchdog), 실패 시 마지막 정상본 유지
 - CORS/설정: dev는 allowlist, prod는 엄격 검증
 - 관측성: requestId/correlationId, JSON 로그, 로테이션
-- 테스트/CI: healthz/readyz, 응답 래퍼 강제, CSRF 403, 401 WWW-Authenticate, pytest
+- 테스트/스모크: healthz/readyz, 응답 래퍼 강제, 401 WWW-Authenticate, pytest
 - /healthz,/readyz는 보안 필터 예외
 
 ## Links
@@ -125,6 +128,6 @@ port = 2000
 - Children: docs/units/backend/
 
 ## 정책/명시
-- CSRF 헤더 이름은 [AUTH].csrf_header. 쿠키 모드 비멱등 요청에서 누락 시 403(AUTH_403_CSRF_REQUIRED).
+- CSRF 헤더는 현재 템플릿에서 강제하지 않는다(세션 미사용).
 - 버전 규칙: /api/v1 고정. 공개 경로(/healthz, /readyz, /docs, /openapi.json)는 루트 유지.
 - 응답 래퍼 규약은 docs/common-rules.md를 따른다.

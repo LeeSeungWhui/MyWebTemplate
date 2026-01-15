@@ -14,7 +14,7 @@ links: [CU-WEB-001, CU-WEB-004, CU-WEB-005, CU-WEB-006, CU-WEB-002, CU-BE-001]
 ### Scope
 - 포함
   - 공개/보호 경로 패턴 매핑 및 우선순위 규칙
-  - 쿠키 `sid` 존재 여부 기반 1차 판정(유효성은 서버 가드가 최종 처리)
+  - 쿠키 `refresh_token` 존재 여부 기반 1차 판정(유효성은 서버 가드가 최종 처리)
   - `next` 파라미터 경로 검증 및 안전한 리다이렉트
   - 정적/문서/프리페치/이미지 자산 bypass 목록
 - 제외
@@ -34,7 +34,7 @@ links: [CU-WEB-001, CU-WEB-004, CU-WEB-005, CU-WEB-006, CU-WEB-002, CU-BE-001]
 - 캐시/프리페치
   - 프리페치/프리로드 요청 헤더(예: `purpose=prefetch`)는 리다이렉트하지 않음
 - Bypass
-  - `/api/**`는 미들웨어에서 판정하지 않음(백엔드에서 인증·CSRF 처리)
+  - `/api/**`는 미들웨어에서 판정하지 않음(백엔드에서 인증/권한 처리)
   - 정적·문서 자산, 이미지 최적화 라우트, favicon 등은 그대로 통과
 - 보안
   - 오픈 리다이렉트 방지: `next`에 `://` 또는 도메인이 포함되면 무시하고 `/dashboard`로 대체
@@ -55,7 +55,7 @@ links: [CU-WEB-001, CU-WEB-004, CU-WEB-005, CU-WEB-006, CU-WEB-002, CU-BE-001]
 
 ### Tasks
 - T1 경로 매핑 정의: 공개/보호/바이패스 패턴 구성(우선순위 포함)
-- T2 판정 로직: `sid` 존재 여부 1차 판정, 서버 가드에 최종 검증 위임 규칙 명시
+- T2 판정 로직: `refresh_token` 존재 여부 1차 판정, 서버 가드에 최종 검증 위임 규칙 명시
 - T3 `next` 검증기: 경로만 허용, 무효는 `/` 처리 규칙
 - T4 바이패스 처리: `/api/**`, 정적/문서 자산, 프리페치/프리로드 헤더 우회 로직
 - T5 런타임 주의: 기본 nodejs 런타임 페이지와 함께 동작. 미들웨어 제약(파일 I/O 금지) 문서화
@@ -66,8 +66,8 @@ links: [CU-WEB-001, CU-WEB-004, CU-WEB-005, CU-WEB-006, CU-WEB-002, CU-BE-001]
 - 기술: JavaScript Only, Next 15(App Router)
 - 체인 정합: 미들웨어는 존재 판정만, 서버 가드는 검증/리다이렉트, 클라는 만료 대응
 - 백엔드 연동: `/api/v1/auth/*` 표준 응답/쿠키 정책(CU-BE-001)과 1:1 정합
-- 문서 정합: index.md / web.md / backend.md의 경로·쿠키·CSRF 규약과 일치
+- 문서 정합: index.md / web.md / backend.md의 경로·쿠키·인증 규약과 일치
 
 ### Implementation Notes
-- `frontend-web/middleware.js`는 보호 경로에서 `sid` 쿠키를 검사해 없으면 `/login`으로 302 리다이렉트한다.
+- `frontend-web/middleware.js`는 보호 경로에서 `refresh_token` 쿠키를 검사해 없으면 `/login`으로 302 리다이렉트한다.
 - 공개/보호 경로 패턴과 `next` 검증 로직은 향후 확장이 필요하다.

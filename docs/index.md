@@ -26,14 +26,14 @@
   - DB 커넥션 유틸(SQLAlchemy+databases), 쿼리 로더, 트랜잭션 데코레이터
   - 로그인 API(샘플 사용자/해시), 표준 응답, 로깅, `/healthz`
 - 공통
-  - Docker 로컬 실행, 기본 CI(lint/test/build), OpenAPI 스키마 제공
+  - 로컬 실행 스크립트(env.sh/run.sh), 로컬 lint/test/build, OpenAPI 스키마 제공
 
 ## 제외(차기)
 - 관리자 콘솔/권한관리 고도화, 결제/푸시, 멀티테넌시, 고급 CDN/캐시 전략
 
 ## 사용자 여정(템플릿 기준)
 
-- 개발자: `.env` 설정 → docker compose 또는 단일 실행 → 샘플 로그인 → 대시보드 확인 → 화면/API 추가 개발
+- 개발자: `source ./env.sh` → backend/frontend-web 실행 → 샘플 로그인 → 대시보드 확인 → 화면/API 추가 개발
 - 기획/디자이너: UI 가이드 기반 컴포넌트 선정 → 화면 검수(템플릿 Docs)
 - 운영: 헬스체크/로그/모니터링으로 품질 확인 및 롤백
 
@@ -43,7 +43,7 @@
 - App: React Native(Expo), OTA(EAS Update), 네이티브 최소화
 - Backend: FastAPI(Uvicorn), SQLAlchemy, OpenAPI 스키마(문서)
 - 공통 데이터/상태: EasyObj/EasyList + 바인딩 규약(value/onChange/model)
-- 배포/관측성: Docker, Nginx, gh-actions, `/healthz`, JSON 로그, Sentry/Prometheus
+- 배포/관측성: Nginx, `/healthz`, JSON 로그, Sentry/Prometheus
 
 ```text
 [Browser] ─▶ [Nginx]
@@ -70,12 +70,12 @@
 - Backend: `docs/modules/backend.md`
 - Mobile App: `docs/modules/mobile-app.md`
 - 공통 규칙: `docs/common-rules.md`
- - Ops: `docs/ops/server-enviroments.md`
+- Ops: `docs/ops/server-environments.md`
 
 ## 현재 구현 상태(요약)
 
-- Backend: FastAPI 앱/라우터 자동 로드, 로그인·헤더·트랜잭션 샘플, sqlite(`backend/data/main.db`), 사용자 테이블 시드 스크립트(`backend/scripts/users_seed.py`).
-- Web: Next.js `frontend-web` SSR 로그인(`/login`) + CSR 대안(`/loginCsr`), 보호 레이아웃, EasyObj/EasyList 바인딩 컴포넌트 묶음(Input/Textarea/EasyTable/useEasyUpload 등 최신 규약)과 컴포넌트 Docs 페이지 포함.
+- Backend: FastAPI 앱/라우터 자동 로드, 로그인(Access/Refresh 쿠키), 쿼리 로더/트랜잭션 샘플, sqlite(`backend/data/main.db`) 포함.
+- Web: Next.js `frontend-web` 단일 로그인(`/login`, SSR page + CSR view), 미들웨어 가드, 대시보드(`/dashboard`), EasyObj/EasyList 바인딩 컴포넌트 묶음과 컴포넌트 Docs 페이지 포함.
 - App: Expo 골격/네비게이션 + 기본 컴포넌트 + Dataset 구현.
 
 ## Acceptance Criteria(템플릿 완료)
@@ -88,9 +88,9 @@
 
 ## 로드맵(초안)
 
-- W1~2: 스캐폴딩(Next/Expo/FastAPI) + Docker 통합 + 로그인 API 골격
+- W1~2: 스캐폴딩(Next/Expo/FastAPI) + 로그인 API 골격
 - W3~4: Web/App 로그인→대시보드 구현, 보호 라우팅/상태 유지, 통합 API 유틸 정리
-- W5: 문서/헬스체크/CI 마감, 템플릿 검증 시나리오 확정, **Ops 문서(Dev/Stage/Prod) 최종화**
+- W5: 문서/헬스체크/테스트 마감, 템플릿 검증 시나리오 확정, **Ops 문서(Dev/Stage/Prod) 최종화**
 
 
 ---

@@ -12,7 +12,7 @@ import { DrawerExamples } from '../examples/DrawerExamples';
 const DrawerDocs = () => {
   const examples = DrawerExamples();
   return (
-    <DocSection id="drawers" title="24. 드로어 (Drawer)" description={
+    <DocSection id="drawers" title="29. 드로어 (Drawer)" description={
       <div>
         <p>화면 측면에서 슬라이드 인 되는 패널입니다. 외부 Collapse 탭과 리사이즈를 지원하며 숫자 크기(px) 설정이 가능합니다.</p>
         <ul className="list-disc pl-5 mt-2 text-sm text-gray-600">

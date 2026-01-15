@@ -19,7 +19,6 @@ links: [CU-WEB-001, CU-WEB-002, CU-WEB-005, CU-WEB-006, CU-WEB-008, CU-BE-001]
     - (선택) 클라 보조 가드: 세션 표시/만료 대응은 `apiJSON`으로 단발 패치하거나, 실시간/자동 재검증이 필요할 때만 `useSwr`(SWR 래퍼)
   - 리다이렉트 규칙: 미인증 보호 경로 접근 시 `/login`, 인증 상태로 `/login` 접근 시 `/`
   - `next` 파라미터: 유효 경로만 허용
-  - 비멱등 요청 CSRF 미포함 403 UX 대응(토스트/재시도)
 - 제외
   - 세부 RBAC, 멀티테넌시 권한 매핑(차기)
 
@@ -32,14 +31,14 @@ links: [CU-WEB-001, CU-WEB-002, CU-WEB-005, CU-WEB-006, CU-WEB-008, CU-BE-001]
   - 인증 → `/login`: `/`로 리다이렉트
   - `next`는 유효 경로일 때만 사용, 무효는 `/` 백
 - HTTP/캐시
-  - 세션 확인 응답은 `Cache-Control: no-store`(links: CU-BE-001 `/api/v1/auth/session`)
+  - 세션 확인(`/api/v1/auth/me`) 응답은 `Cache-Control: no-store`
   - 페이지 렌더 전략은 자유(SSR/ISR/CSR). 인증 판별은 미들웨어로 선제 처리
 - 오류 처리
   - 401(JSON `{status:false, code, requestId}`) 수신 시 세션 무효화 후 `/login` 이동(토스트 + requestId)
-  - 403(CSRF 등) 수신 시 토스트 + CSRF 재발급 UX 유도(links: CU-BE-001)
+  - 403 수신 시 권한/정책 오류로 토스트 안내(필요 시 requestId 노출)
 
 ### Data & Rules
-- 세션 보호: 쿠키 `sid` 존재/검증 1차(미들웨어/서버). 클라에선 `/api/v1/auth/session`으로 동기화
+- 세션 보호: 쿠키 `refresh_token` 존재 여부로 1차 판정(미들웨어). 클라 동기화는 `/api/v1/auth/me` 사용
 - `credentials: 'include'`가 아닌 요청은 보호 경로에서 금지(쿠키 플로우 일관성)
 - 오픈 리다이렉트 방어: `next`는 URL/프로토콜 제거 후 경로만 허용
 - 상태 동기화: 로그인/로그아웃 후 세션 패치(필요 시 `useSwr` 무효화 규약)
@@ -56,7 +55,7 @@ links: [CU-WEB-001, CU-WEB-002, CU-WEB-005, CU-WEB-006, CU-WEB-008, CU-BE-001]
 - AC-3: `next=/settings/profile`로 로그인 성공 시 해당 경로로 이동. 무효 `next`는 `/`로 백.
 - AC-4: 보호 페이지에서 API 401 수신 시 세션 무효화 후 `/login` 이동, 토스트에 `code/requestId` 노출.
 - AC-5: SSR/ISR/CSR 전환에도 동일하게 동작(리다이렉트/401 처리/세션 동기화 일관).
-- AC-6: `/api/v1/auth/session` 응답이 `no-store`여서 브라우저 캐시에 남지 않는다.
+- AC-6: `/api/v1/auth/me` 응답이 `no-store`여서 브라우저 캐시에 남지 않는다.
 
 ### Tasks
 - T1 경로 정책 정의: 공개/보호 목록 및 패턴 정의(정규/리스트)
@@ -76,6 +75,6 @@ links: [CU-WEB-001, CU-WEB-002, CU-WEB-005, CU-WEB-006, CU-WEB-008, CU-BE-001]
 ### Implementation Notes
 - `frontend-web/middleware.js`에서 기본 보호(Default protect)를 적용한다.
   - 공개 경로는 `frontend-web/app/common/config/publicRoutes.js`에서만 관리한다.
-  - 공개 경로가 아니고 `sid` 쿠키가 없으면 `/login`으로 302 리다이렉트한다.
+  - 공개 경로가 아니고 `refresh_token` 쿠키가 없으면 `/login`으로 302 리다이렉트한다.
   - 리다이렉트 시 httpOnly 쿠키 `nx`에 원 경로를 5분간 저장한다(오픈 리다이렉트 방지 sanitize 적용).
 - 서버 컴포넌트/레이아웃에서 인증 재검사는 하지 않는다. 미들웨어 통과를 전제한다.

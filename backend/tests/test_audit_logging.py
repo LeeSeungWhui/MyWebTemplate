@@ -16,12 +16,15 @@ def test_audit_login_and_logout_logs(caplog):
         # login success
         r = client.post(
             "/api/v1/auth/login",
-            json={"username": "demo", "password": "password123"},
+            json={"username": "demo@demo.demo", "password": "password123"},
         )
         assert r.status_code == 200
 
         # find login success audit log
-        seen_login = any("auth.login.success" in rec.message for rec in caplog.records)
+        seen_login = any(
+            ('"event": "auth.login"' in rec.message and '"success": true' in rec.message)
+            for rec in caplog.records
+        )
         assert seen_login
 
         r2 = client.post("/api/v1/auth/logout")

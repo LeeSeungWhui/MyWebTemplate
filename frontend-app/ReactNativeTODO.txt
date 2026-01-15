@@ -4,9 +4,9 @@
 ### 기본 UI 컴포넌트 🔥
 - [X] Button (variants: primary, secondary, outline, ghost)
 - [X] Input (기본 입력, 유효성 검사)
-- [ ] Select/Picker
-- [ ] Checkbox
-- [ ] RadioButton
+- [X] Select/Picker
+- [X] Checkbox
+- [X] RadioButton
 - [X] Icon (react-native-vector-icons 통합)
 - [ ] Loading Spinner
 - [ ] Alert/Toast
@@ -97,13 +97,15 @@
 
 !!!!!!!! 일단 영단어앱부터 !!!!!!!!
 기본 UI 컴포넌트
-    Button (만듬)
-    Input (만듬)
-    Select (포팅필요)
+    Button (완료)
+    Input (완료)
+    Select (완료)
     Modal (포팅필요)
     Toast (포팅필요)
-    Icon (만듬)
-레이아웃 컴포넌트
+    Icon (완료)
+    CheckButton (완료)
+    Radiobox (완료)
+    레이아웃 컴포넌트
     TabBar (새로 구현)
     Header (새로 구현)
     SearchBar (새로 구현)

@@ -28,8 +28,8 @@ function compilePattern(pat) {
     const base = esc.slice(0, -('\/:path\\*'.length))
     return new RegExp('^' + base + '(?:\/.*)?$')
   }
-  if (esc.endsWith('\/:path\+')) {
-    const base = esc.slice(0, -('\/:path\+'.length))
+  if (esc.endsWith('\/:path\\+')) {
+    const base = esc.slice(0, -('\/:path\\+'.length))
     return new RegExp('^' + base + '\/.+$')
   }
   return new RegExp('^' + esc + '$')
@@ -47,4 +47,3 @@ export function isPublicPath(pathname) {
   }
   return false
 }
-

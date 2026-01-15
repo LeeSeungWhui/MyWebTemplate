@@ -2,12 +2,20 @@
 파일명: backend/lib/Logger.py
 작성자: LSH
 갱신일: 2025-09-07
-설명: 콘솔/파일 로거 설정. 포맷은 시간/레벨/메시지.
+설명: 콘솔/파일 로거 설정. 포맷은 JSON 라인(ts/level/requestId/msg 등).
 """
 
+import json
 import logging
 import os
+from typing import Any
 from datetime import datetime
+
+# requestId는 Middleware에서 ContextVar로 주입된다.
+try:
+    from .RequestContext import getRequestId  # type: ignore
+except Exception:  # pragma: no cover - 모듈 컨텍스트 호환
+    from lib.RequestContext import getRequestId  # type: ignore
 
 # 로그 디렉토리 생성
 logDir = "logs"
@@ -21,21 +29,71 @@ logFilename = os.path.join(logDir, f"{datetime.now().strftime('%Y%m%d_%H%M%S')}.
 logger: logging.Logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
+# ---------------------------------------------------------------------------
+# JSON 라인 포맷터
+# ---------------------------------------------------------------------------
+
+
+class JsonLineFormatter(logging.Formatter):
+    """
+    설명: 로그를 JSON 한 줄로 출력한다.
+    - msg가 이미 JSON(dict) 문자열이면 병합해 구조 로그를 유지한다.
+    - requestId는 ContextVar(getRequestId)에서 보강한다.
+    갱신일: 2026-01-15
+    """
+
+    def format(self, record: logging.LogRecord) -> str:
+        payload: dict[str, Any] = {}
+        msg = record.getMessage()
+
+        if isinstance(msg, str):
+            raw = msg.strip()
+            if raw.startswith("{") and raw.endswith("}"):
+                try:
+                    parsed = json.loads(raw)
+                    if isinstance(parsed, dict):
+                        payload.update(parsed)
+                    else:
+                        payload["msg"] = msg
+                except Exception:
+                    payload["msg"] = msg
+            else:
+                payload["msg"] = msg
+        else:
+            payload["msg"] = str(msg)
+
+        payload.setdefault("ts", int(record.created * 1000))
+        payload.setdefault("level", record.levelname)
+        payload.setdefault("logger", record.name)
+
+        rid = None
+        try:
+            rid = getRequestId()
+        except Exception:
+            rid = None
+        if rid and "requestId" not in payload:
+            payload["requestId"] = rid
+
+        if record.exc_info:
+            try:
+                payload["exc"] = self.formatException(record.exc_info)
+            except Exception:
+                payload["exc"] = "exception"
+
+        return json.dumps(payload, ensure_ascii=False)
+
+
+jsonFormatter = JsonLineFormatter()
+
 # 파일 핸들러 설정 (UTF-8 인코딩)
 fileHandler = logging.FileHandler(logFilename, encoding="utf-8")
 fileHandler.setLevel(logging.INFO)
+fileHandler.setFormatter(jsonFormatter)
 
 # 콘솔 핸들러 설정
 consoleHandler = logging.StreamHandler()
 consoleHandler.setLevel(logging.INFO)
-
-# 포맷터 설정
-formatter = logging.Formatter(
-    "%(asctime)s %(levelname)s: %(message)s",
-    datefmt="%Y-%m-%d %H:%M:%S",  # 마이크로초 제거
-)
-fileHandler.setFormatter(formatter)
-consoleHandler.setFormatter(formatter)
+consoleHandler.setFormatter(jsonFormatter)
 
 # 핸들러 추가
 logger.addHandler(fileHandler)

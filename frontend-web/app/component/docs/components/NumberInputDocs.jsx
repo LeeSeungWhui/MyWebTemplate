@@ -17,7 +17,7 @@ const NumberInputDocs = () => {
   return (
     <DocSection
       id="number-inputs"
-      title="20. 숫자 입력 (Number)" description={
+      title="12. 숫자 입력 (Number)" description={
         <div>
           <p>스텝 버튼이 있는 숫자 입력입니다. EasyObj 바운드와 컨트롤드 모드를 지원합니다.</p>
           <ul className="list-disc pl-5 mt-2 text-sm text-gray-600">
@@ -66,4 +66,3 @@ const NumberInputDocs = () => {
 };
 
 export default NumberInputDocs;
-

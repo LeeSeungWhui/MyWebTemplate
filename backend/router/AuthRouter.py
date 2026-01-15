@@ -56,9 +56,15 @@ async def login(request: Request):
             headers={"WWW-Authenticate": "Bearer"},
         )
 
+    # 레이트리밋(선체크): 이미 초과된 상태면 인증 로직(쿼리/해시)을 타기 전에 차단한다.
+    limited = checkRateLimit(request, username=username, commit=False)
+    if limited is not None:
+        return limited
+
     authResult = await AuthService.login(payload, remember)
     if not authResult:
-        limited = checkRateLimit(request, username=username)
+        # 레이트리밋(실패 기록): 로그인 실패 시에만 카운트를 증가시킨다.
+        limited = checkRateLimit(request, username=username, commit=True)
         if limited is not None:
             return limited
         return JSONResponse(

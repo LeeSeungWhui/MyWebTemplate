@@ -15,7 +15,7 @@ const ConfirmDocs = () => {
   return (
     <DocSection
       id="confirms"
-      title="12. 확인 (Confirm)"
+      title="18. 확인 (Confirm)"
       description={
         <div>
           <p>전역 스토어(useGlobalUi)의 showConfirm로 확인 대화상자를 띄웁니다.</p>
@@ -78,4 +78,3 @@ const ConfirmDocs = () => {
 };
 
 export default ConfirmDocs;
-

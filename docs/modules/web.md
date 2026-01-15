@@ -5,13 +5,13 @@
 - 페이지 파일 설정(`dynamic`/`runtime`/`revalidate`) 또는 `'use client'` 게이팅으로 SSR/CSR 모드가 명확·일관 되게 동작
 
 ## 기술 스택
-- Node 22.19.0
+- Node 24.11.0
 - Next.js 15+ (App Router)
 - React 19
 - Tailwind CSS v4
 - 상태/데이터: Zustand (+선택적 SWR)
 - 테스트/문서: Docs 페이지, Vitest (Playwright 예정)
-- 언어: JavaScript Only (TypeScript 금지)
+- 언어: JavaScript Only (TypeScript 금지; 단, 빌드/테스트 설정은 예외)
 - 설정: `frontend-web/config.ini` + 환경별 오버레이(`config_dev.ini`, `config_prod.ini`)
 - BFF: `/api/bff/*` 라우트에서 Backend API를 프록시하며 쿠키를 재작성
 
@@ -49,7 +49,6 @@ mode_default = CSR
 
  [API]
  base = http://localhost:2000
-csrf_header = X-CSRF-Token
 credentials = include
 
 [UI]
@@ -79,15 +78,14 @@ theme = light
 - 인증 흐름 로컬 검증(로그인→보호 페이지)
 - 보호 경로 미인증 접근 시 미들웨어에서 `/login`으로 즉시 리다이렉트하고 httpOnly `nx`에 복귀 경로 저장
 - OpenAPI/Fetch 공통 헬퍼에서 401 수신 시 `/login?next=현재경로`로 이동(미들웨어가 `nx`로 정리)
-- CSRF 토큰 미스매치 요청은 403 + UX 가이드 노출
 - SSR/CSR 모드가 페이지 `MODE`를 존중하고 SSR 페이지는 SEO 메타 정상 출력
 - 공통 규칙(`docs/common-rules.md`) DoD 충족
 
 ## API 통신 계약(고정)
 - 접근: `app/lib/runtime/api.js` — `apiJSON`(기본) / `apiRequest`(Response 제어 필요 시)
 - BFF: 기본적으로 클라이언트와 서버 모두 상대 경로 호출은 `/api/bff/*` 경유(쿠키/도메인 재작성). 절대 URL을 넘기면 서버에서 백엔드 직통 + 헤더 포워딩 가능.
-- 쿠키/보안: `credentials: include`, 비멱등은 CSRF 자동 주입
-- 에러 규약: 401 수신 시 로그인 리다이렉트 처리(미들웨어가 `nx`로 복귀 정리), 403은 CSRF UX 유도
+- 쿠키/보안: `credentials: include` (현재 템플릿은 CSRF 토큰 헤더를 사용하지 않음)
+- 에러 규약: 401 수신 시 로그인 리다이렉트 처리(미들웨어가 `nx`로 복귀 정리), 403은 권한/정책 오류로 처리
 
 ## 데이터 전략(초안)
 - 목표: 페이지별 SSR/CSR 선택과 예측 가능한 성능 확보

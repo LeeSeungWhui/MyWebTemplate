@@ -162,15 +162,16 @@ export async function apiRequest(path, initOrBody = {}, modeOrOptions) {
     const targetUrl = absoluteUrl ? path : new URL(toBffPath(path), resolveFrontendOrigin())
     const doFetch = () => fetch(targetUrl, requestInit)
     let res = await doFetch()
-    if (res.status !== 401 || absoluteUrl) return res
-    try {
-      const refreshHeaders = await buildSSRHeaders({ 'Content-Type': 'application/json' })
-      const refreshRes = await fetch(toBffPath(REFRESH_PATH), {
-        method: 'POST',
-        credentials: 'include',
-        headers: refreshHeaders,
-        cache: 'no-store',
-      })
+	    if (res.status !== 401 || absoluteUrl) return res
+	    try {
+	      const refreshHeaders = await buildSSRHeaders({ 'Content-Type': 'application/json' })
+	      const refreshUrl = new URL(toBffPath(REFRESH_PATH), resolveFrontendOrigin())
+	      const refreshRes = await fetch(refreshUrl, {
+	        method: 'POST',
+	        credentials: 'include',
+	        headers: refreshHeaders,
+	        cache: 'no-store',
+	      })
       if (refreshRes.ok) {
         res = await doFetch()
       }

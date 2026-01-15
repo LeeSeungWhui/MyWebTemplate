@@ -15,7 +15,7 @@ const ToastDocs = () => {
   return (
     <DocSection
       id="toasts"
-      title="13. 토스트 (Toast)"
+      title="19. 토스트 (Toast)"
       description={
         <div>
           <p>전역 스토어(useGlobalUi)의 showToast로 간단한 알림 배너를 표시합니다.</p>
@@ -77,4 +77,3 @@ const ToastDocs = () => {
 };
 
 export default ToastDocs;
-

@@ -5,7 +5,7 @@
 - Web과 동일한 Dataset(EasyObj/EasyList), 응답 래퍼, SWR 철학을 공유한다.
 
 ## 기술 스택
-- Node: v22.19.0
+- Node: v24.11.0
 - React Native: 0.81+ / Expo: 54+
 - React: 19.x (Expo SDK 대응 버전 준수)
 - 내비게이션: React Navigation 7

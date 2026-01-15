@@ -12,6 +12,7 @@ export const RadioButtonExamples = () => {
         selectedSize: '',
         selectedTheme: '',
         selectedLanguage: '',
+        checked: false,
     });
 
     const [controlledValue, setControlledValue] = useState('');
@@ -46,7 +47,7 @@ export const RadioButtonExamples = () => {
                     </Lib.RadioButton>
                 </div>
             ),
-            description: "기본 라디오버튼",
+            description: "기본 라디오버튼 (선택 시 dataObj.checked 플래그 기록).",
             code: `<Lib.RadioButton
     name="size"
     value="small"

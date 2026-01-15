@@ -15,7 +15,7 @@ import { TableExamples } from '../examples/TableExamples';
 const TableDocs = () => {
   const examples = TableExamples();
   return (
-    <DocSection id="tables" title="27. 테이블 (Table)" description={
+    <DocSection id="tables" title="26. 테이블 (Table)" description={
       <div>
         <p>데이터 테이블과 카드 리스트를 렌더링합니다. 제어형 및 비제어 페이징을 지원하며 URL과 스토리지에 상태를 보존합니다.</p>
         <ul className="list-disc pl-5 mt-2 text-sm text-gray-600">
@@ -82,4 +82,3 @@ const TableDocs = () => {
 };
 
 export default TableDocs;
-

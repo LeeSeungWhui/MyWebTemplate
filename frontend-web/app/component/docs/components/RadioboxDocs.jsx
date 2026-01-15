@@ -18,7 +18,7 @@ const RadioboxDocs = () => {
     return (
         <DocSection
             id="radioboxes"
-            title="7. 라디오박스 (Radiobox)" description={
+            title="9. 라디오박스 (Radiobox)" description={
                 <div>
                     <p>Radiobox 컴포넌트는 dataObj와 dataKey를 통해 양방향 바인딩을 지원합니다.</p>
                     <p>같은 name을 가진 라디오박스 그룹에서 선택된 value가 dataObj에 저장됩니다.</p>

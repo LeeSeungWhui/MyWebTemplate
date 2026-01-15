@@ -15,6 +15,8 @@ except Exception:  # pragma: no cover - 단일 스크립트 실행 대응
     import router  # backend/ 디렉터리에서 직접 실행되는 경우 라우터 임포트
 
 from fastapi import FastAPI, Request
+from fastapi import HTTPException
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
@@ -266,5 +268,91 @@ async def globalExceptionHandler(request: Request, exc: Exception):
     """전역 예외를 JSON 응답으로 치환한다. (갱신: 2025-11-12)"""
     return JSONResponse(
         status_code=500,
-        content=errorResponse(message=str(exc), result={"path": request.url.path}),
+        content=errorResponse(
+            message=str(exc),
+            result={"path": request.url.path},
+            code="HTTP_500_INTERNAL",
+        ),
+    )
+
+
+def _sanitizeValidationErrors(errors: object) -> list[dict]:
+    """
+    설명: RequestValidationError의 errors()를 노출 가능한 형태로 정리한다.
+    주의: 입력값(input) 등 민감정보가 포함될 수 있어 최소 필드만 반환한다.
+    갱신일: 2026-01-15
+    """
+    if not isinstance(errors, list):
+        return []
+    safe: list[dict] = []
+    for item in errors:
+        if not isinstance(item, dict):
+            continue
+        safe.append(
+            {
+                "loc": item.get("loc"),
+                "msg": item.get("msg"),
+                "type": item.get("type"),
+            }
+        )
+    return safe
+
+
+@app.exception_handler(RequestValidationError)
+async def requestValidationExceptionHandler(request: Request, exc: RequestValidationError):
+    """요청 검증 오류를 표준 응답 스키마로 변환한다. (갱신: 2026-01-15)"""
+    return JSONResponse(
+        status_code=422,
+        content=errorResponse(
+            message="invalid request",
+            result={
+                "path": request.url.path,
+                "detail": _sanitizeValidationErrors(exc.errors()),
+            },
+            code="VALID_422_REQUEST",
+        ),
+    )
+
+
+@app.exception_handler(HTTPException)
+async def httpExceptionHandler(request: Request, exc: HTTPException):
+    """HTTPException을 표준 응답 스키마로 변환한다(401 헤더 포함). (갱신: 2026-01-15)"""
+    headers = dict(getattr(exc, "headers", None) or {})
+
+    # 401은 인증 방식에 맞춰 WWW-Authenticate 헤더를 유지/보강한다.
+    if int(getattr(exc, "status_code", 500) or 500) == 401:
+        headers.setdefault("WWW-Authenticate", "Bearer")
+
+    statusCode = int(getattr(exc, "status_code", 500) or 500)
+    detail = getattr(exc, "detail", None)
+    message = str(detail) if detail is not None else "error"
+
+    # detail이 dict일 경우(확장) message/code 힌트를 지원한다.
+    code = None
+    if isinstance(detail, dict):
+        message = (
+            detail.get("message")
+            or detail.get("detail")
+            or message
+        )
+        code = detail.get("code") or None
+
+    if not code:
+        if statusCode == 401:
+            code = "AUTH_401_UNAUTHORIZED"
+        elif statusCode == 403:
+            code = "AUTH_403_FORBIDDEN"
+        elif statusCode == 404:
+            code = "HTTP_404_NOT_FOUND"
+        else:
+            code = f"HTTP_{statusCode}"
+
+    return JSONResponse(
+        status_code=statusCode,
+        content=errorResponse(
+            message=message,
+            result={"path": request.url.path, "detail": detail},
+            code=code,
+        ),
+        headers=headers,
     )

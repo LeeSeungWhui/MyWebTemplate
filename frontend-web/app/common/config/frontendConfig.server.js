@@ -23,7 +23,7 @@ export async function loadFrontendConfig() {
   const { join } = await import('node:path')
 
   const cwd = process.cwd()
-  // 환경 변수 의존 제거. 운영/개발 선택은 CI/CD가 config.ini를 준비하도록 강제한다.
+  // 환경 변수 의존 제거. 운영/개발 선택은 배포 환경에서 config.ini 계열 파일로 결정한다.
   // 존재 순서: config.ini > config_prod.ini > config_dev.ini
   const candidates = [
     join(cwd, 'config.ini'),

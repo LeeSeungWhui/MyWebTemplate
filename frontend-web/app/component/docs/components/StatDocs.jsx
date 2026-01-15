@@ -15,7 +15,7 @@ import CodeBlock from '../shared/CodeBlock';
 const StatDocs = () => {
   const examples = StatExamples();
   return (
-    <DocSection id="stats" title="30. 지표 카드 (Stat)" description={<div>
+    <DocSection id="stats" title="22. 지표 카드 (Stat)" description={<div>
       <p>간단한 KPI/지표를 보여주는 카드. 아이콘은 aria-hidden, 값/증감에는 라벨 제공.</p>
       <ul className="list-disc pl-5 mt-2 text-sm text-gray-600">
         <li><code>label</code>: 지표 이름</li>

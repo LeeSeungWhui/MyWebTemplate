@@ -15,7 +15,7 @@ import { SkeletonExamples } from '../examples/SkeletonExamples';
 const SkeletonDocs = () => {
   const examples = SkeletonExamples();
   return (
-    <DocSection id="skeletons" title="25. 스켈레톤 (Skeleton)" description={
+    <DocSection id="skeletons" title="23. 스켈레톤 (Skeleton)" description={
       <div>
         <p>로딩 중 콘텐츠 구조를 힌트로 보여주는 플레이스홀더입니다.</p>
         <ul className="list-disc pl-5 mt-2 text-sm text-gray-600">
@@ -55,4 +55,3 @@ const SkeletonDocs = () => {
 };
 
 export default SkeletonDocs;
-

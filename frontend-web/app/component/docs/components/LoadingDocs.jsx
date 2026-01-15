@@ -15,7 +15,7 @@ const LoadingDocs = () => {
   return (
     <DocSection
       id="loading"
-      title="10. 로딩 (Loading)"
+      title="16. 로딩 (Loading)"
       description={
         <div>
           <p>전역 setLoading을 통해 전체 화면 로딩 오버레이를 표시합니다.</p>
@@ -40,4 +40,3 @@ const LoadingDocs = () => {
 };
 
 export default LoadingDocs;
-

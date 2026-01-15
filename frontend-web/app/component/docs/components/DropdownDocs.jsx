@@ -16,7 +16,7 @@ const DropdownDocs = () => {
   const examples = DropdownExamples();
 
   return (
-    <DocSection id="dropdowns" title="29. 드롭다운 (Dropdown)" description={<div>
+    <DocSection id="dropdowns" title="15. 드롭다운 (Dropdown)" description={<div>
       <p>EasyList(dataList) 기반. 선택 상태는 dataList.selected에 반영되므로 별도 useState가 필요 없습니다. 키보드(↑/↓/Enter/ESC)와 외부 클릭 닫힘 지원.</p>
       <ul className="list-disc pl-5 mt-2 text-sm text-gray-600">
         <li><code>dataList</code>: 항목 배열 또는 EasyList (label, value, selected, disabled)</li>
@@ -35,6 +35,7 @@ const DropdownDocs = () => {
         <li><code>menuClassName?</code>/<code>itemClassName?</code>/<code>activeClassName?</code>: 메뉴/항목/활성 항목 클래스</li>
         <li><code>selectedItemClassName?</code>: 선택 항목 텍스트 클래스</li>
         <li><code>showCheck?</code>: 선택 체크 표시 여부 (기본 true)</li>
+        <li><code>multiSelect?</code>: 다중 선택 모드 (선택해도 자동으로 닫히지 않음)</li>
         <li><code>side?</code>/<code>align?</code>: 메뉴 위치/정렬</li>
         <li><code>closeOnSelect?</code>: 선택 후 자동 닫힘 여부 (기본 true)</li>
         <li><code>disabled?</code>: 드롭다운 비활성화</li>

@@ -18,7 +18,7 @@ const CheckButtonDocs = () => {
     return (
         <DocSection
             id="checkbuttons"
-            title="6. 체크버튼 (CheckButton)" description={
+            title="8. 체크버튼 (CheckButton)" description={
                 <div>
                     <p>CheckButton 컴포넌트는 Checkbox와 동일한 방식으로 dataObj와 dataKey를 통해 양방향 바인딩을 지원합니다.</p>
                     <p>버튼 형태로 체크박스 기능을 제공합니다.</p>

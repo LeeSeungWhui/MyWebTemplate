@@ -15,7 +15,7 @@ import CodeBlock from '../shared/CodeBlock';
 const PaginationDocs = () => {
   const examples = PaginationExamples();
   return (
-    <DocSection id="pagination" title="28. 페이지네이션 (Pagination)" description={<div>
+    <DocSection id="pagination" title="27. 페이지네이션 (Pagination)" description={<div>
       <p>독립 컴포넌트로 제어형 페이지 이동을 제공하며, Table 내장 페이징으로도 사용할 수 있습니다.</p>
       <ul className="list-disc pl-5 mt-2 text-sm text-gray-600">
         <li><code>page</code>: 현재 페이지 번호 (1부터)</li>

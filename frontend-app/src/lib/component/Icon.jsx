@@ -1,3 +1,9 @@
+/**
+ * 파일명: lib/component/Icon.jsx
+ * 설명: 여러 벡터 아이콘 세트를 prefix 기반으로 렌더링하는 아이콘 컴포넌트
+ * 작성자: Codex
+ * 갱신일: 2025-02-19
+ */
 import { forwardRef } from 'react';
 import {
     AntDesign,        // ai
@@ -28,6 +34,9 @@ const iconSizeMap = {
     xl: 32
 };
 
+/**
+ * @description prefix:name 형태로 세트를 선택해 렌더링하는 아이콘 컴포넌트.
+ */
 const Icon = forwardRef(({
     icon,
     size = 'md',

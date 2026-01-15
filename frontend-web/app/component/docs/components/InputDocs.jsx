@@ -18,7 +18,7 @@ const InputDocs = () => {
     return (
         <DocSection
             id="inputs"
-            title="3. 입력 (Input)" description={
+            title="4. 입력 (Input)" description={
                 <div>
                     <p>Input 컴포넌트는 dataObj와 dataKey를 통해 양방향 바인딩을 지원합니다.</p>
                     <p>주요 기능:</p>

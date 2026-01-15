@@ -50,6 +50,7 @@ const Dropdown = ({
   itemClassName = '',
   activeClassName = 'bg-gray-100',
   closeOnSelect = true,
+  multiSelect = false,
   disabled = false,
 }) => {
   const [openState, setOpenState] = useState(defaultOpen);
@@ -58,6 +59,7 @@ const Dropdown = ({
   const data = useMemo(() => toArray(dataList), [dataList]);
   const [activeIdx, setActiveIdx] = useState(-1);
   const rootRef = useRef(null);
+  const effectiveCloseOnSelect = multiSelect ? false : closeOnSelect;
 
   useEffect(() => {
     if (!open) return;
@@ -68,8 +70,8 @@ const Dropdown = ({
       if (e.key === 'ArrowUp') { e.preventDefault(); setActiveIdx((i) => (i - 1 + data.length) % data.length); }
       if (e.key === 'Enter' && activeIdx >= 0) {
         const item = data[activeIdx];
-        onSelect?.(item);
-        if (closeOnSelect) setOpen(false);
+        // 키보드 Enter도 클릭과 동일하게 처리
+        handleItemActivate(item);
       }
     };
     const onClickOutside = (e) => {
@@ -81,13 +83,63 @@ const Dropdown = ({
   }, [open, data, activeIdx, closeOnSelect]);
 
   const pos = `${side === 'bottom' ? 'top-full mt-2' : side === 'top' ? 'bottom-full mb-2' : ''} ${align === 'start' ? 'left-0' : align === 'end' ? 'right-0' : 'left-1/2 -translate-x-1/2'}`.trim();
-  // derive selected each render (data contains proxies so selected reflects changes)
-  let selectedItem = null;
+
+  // 선택 상태 계산 (EasyList 프록시 지원)
+  const selectedItems = [];
   for (const it of data) {
     const sel = it?.get ? it.get('selected') : it?.selected;
-    if (sel) { selectedItem = it; break; }
+    if (sel) selectedItems.push(it);
   }
-  const selectedLabel = selectedItem ? (selectedItem?.get ? selectedItem.get(labelKey) : selectedItem?.[labelKey]) : null;
+  const selectedItem = selectedItems.length > 0 ? selectedItems[0] : null;
+  let selectedLabel = null;
+  if (!multiSelect) {
+    selectedLabel = selectedItem
+      ? (selectedItem?.get ? selectedItem.get(labelKey) : selectedItem?.[labelKey])
+      : null;
+  } else if (selectedItems.length === 1) {
+    const first = selectedItems[0];
+    selectedLabel = first?.get ? first.get(labelKey) : first?.[labelKey];
+  } else if (selectedItems.length > 1) {
+    selectedLabel = `${selectedItems.length}개 선택됨`;
+  }
+
+  const handleItemActivate = (item) => {
+    if (!item) return;
+    const value = item?.get ? item.get(valueKey) : item?.[valueKey];
+    if (dataList?.forAll) {
+      dataList.forAll((node) => {
+        const nodeValue = node?.get ? node.get(valueKey) : node?.[valueKey];
+        const isTarget = String(nodeValue) === String(value);
+        if (node?.set) {
+          if (multiSelect) {
+            node.set('selected', isTarget ? !node.get('selected') : !!node.get('selected'));
+          } else {
+            node.set('selected', isTarget);
+          }
+        } else if (node) {
+          if (multiSelect) {
+            node.selected = isTarget ? !node.selected : !!node.selected;
+          } else {
+            node.selected = isTarget;
+          }
+        }
+        return node;
+      });
+    } else if (Array.isArray(dataList)) {
+      dataList.forEach((node) => {
+        const nodeValue = node?.[valueKey];
+        const isTarget = String(nodeValue) === String(value);
+        if (!node) return;
+        if (multiSelect) {
+          node.selected = isTarget ? !node.selected : !!node.selected;
+        } else {
+          node.selected = isTarget;
+        }
+      });
+    }
+    onSelect?.(item);
+    if (effectiveCloseOnSelect) setOpen(false);
+  };
 
   // 버튼 스타일 계산 (Material-esque)
   const sizeCls = size === 'sm' ? 'min-w-[140px] px-2.5 py-1.5 text-sm'
@@ -112,7 +164,13 @@ const Dropdown = ({
         className={btnCls}
       >
         {(() => {
-          if (typeof trigger === 'function') return trigger({ selectedItem, selectedLabel });
+          if (typeof trigger === 'function') {
+            return trigger({
+              selectedItem,
+              selectedItems,
+              selectedLabel,
+            });
+          }
           // 우선순위: 선택 라벨 > 사용자 제공 트리거 노드 > placeholder
           return (selectedLabel ?? trigger ?? placeholder);
         })()}
@@ -142,11 +200,7 @@ const Dropdown = ({
                   onFocus={() => setActiveIdx(idx)}
                   onClick={() => {
                     if (disabledItem) return;
-                    // update selection model on dataList (single-select)
-                    if (dataList?.forAll) dataList.forAll((node) => { const v = node?.get ? node.get(valueKey) : node?.[valueKey]; if (node?.set) node.set('selected', String(v) === String(value)); else node.selected = String(v) === String(value); return node; });
-                    else if (Array.isArray(dataList)) dataList.forEach((node) => { const v = node?.[valueKey]; node.selected = String(v) === String(value); });
-                    onSelect?.(it);
-                    if (closeOnSelect) setOpen(false);
+                    handleItemActivate(it);
                   }}
                 >
                   {/* 체크 아이콘 (선택 시 표시) */}

@@ -34,11 +34,18 @@ class RateLimiter:
         """설명: monotonic 초 단위를 반환. 갱신일: 2025-11-12"""
         return time.monotonic()
 
-    def hit(self, key: str):
-        """설명: 주어진 키로 히트를 기록하고 제한 여부를 알려준다. 갱신일: 2025-11-12"""
+    def hit(self, key: str, *, commit: bool = True):
+        """
+        설명: 주어진 키로 속도 제한을 검사한다.
+        - commit=True: 검사 + 히트 기록(윈도우 내 카운트 증가)
+        - commit=False: 검사만 수행(카운트 증가 없음)
+        갱신일: 2026-01-15
+        """
         now = self._now()
         dq = self.store.get(key)
         if dq is None:
+            if not commit:
+                return True, 0
             dq = deque()
             self.store[key] = dq
         while dq and now - dq[0] > self.window:
@@ -46,25 +53,44 @@ class RateLimiter:
         if len(dq) >= self.limit:
             retryAfter = max(1, int(self.window - (now - dq[0])))
             return False, retryAfter
-        dq.append(now)
+        if commit:
+            dq.append(now)
         return True, 0
 
 
 globalRateLimiter = RateLimiter(limit=int(os.getenv("AUTH_RATE_LIMIT", "5")), windowSec=60)
 
+def _resolveClientIp(request: Request) -> str:
+    """
+    설명: 요청의 클라이언트 IP를 최대한 정확히 추정한다.
+    - 기본: request.client.host
+    - 프록시 뒤: TRUST_PROXY_HEADERS=true 일 때 X-Forwarded-For 첫 IP를 사용
+    갱신일: 2026-01-15
+    """
+    trustProxy = os.getenv("TRUST_PROXY_HEADERS", "false").lower() in ("1", "true", "yes")
+    if trustProxy:
+        xff = request.headers.get("X-Forwarded-For")
+        if isinstance(xff, str) and xff.strip():
+            first = xff.split(",")[0].strip()
+            if first:
+                return first
+    return getattr(request.client, "host", None) or "unknown"
 
-def checkRateLimit(request: Request, username: Optional[str] = None) -> Optional[JSONResponse]:
-    """설명: IP/사용자별 속도 제한을 검사한다. 갱신일: 2025-11-12"""
+
+def checkRateLimit(request: Request, username: Optional[str] = None, *, commit: bool = True) -> Optional[JSONResponse]:
+    """설명: IP/사용자별 속도 제한을 검사한다. 갱신일: 2026-01-15"""
     """
-    속도 제한 검사 유틸. 초과 시 JSONResponse(429)를 반환, 통과 시 None.
-    키: ip:{ip} 와 user:{username}(옵션) 조합.
+    속도 제한 검사 유틸.
+    - 초과 시 JSONResponse(429)를 반환, 통과 시 None.
+    - 키: ip:{ip} 와 user:{username}(옵션) 조합.
+    - commit=False로 호출하면 '현재 제한 상태인지'만 확인한다(카운트 증가 없음).
     """
-    ip = getattr(request.client, "host", "unknown")
+    ip = _resolveClientIp(request)
     keys = [f"ip:{ip}"]
     if username:
         keys.append(f"user:{username}")
     for k in keys:
-        ok, retryAfter = globalRateLimiter.hit(k)
+        ok, retryAfter = globalRateLimiter.hit(k, commit=commit)
         if not ok:
             return JSONResponse(
                 status_code=429,

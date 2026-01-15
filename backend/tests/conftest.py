@@ -4,6 +4,7 @@ import sqlite3
 import base64
 import secrets
 import hashlib
+import pytest
 
 """
 파일명: backend/tests/conftest.py
@@ -90,3 +91,15 @@ def pytest_sessionstart(session):
     db_path = _load_db_path()
     _ensure_user_table_and_demo(db_path)
     _ensure_tx_table(db_path)
+
+
+@pytest.fixture(autouse=True)
+def _reset_rate_limiter():
+    # Ensure tests don't depend on order (RateLimiter is in-memory global).
+    try:
+        from lib.RateLimit import globalRateLimiter
+
+        globalRateLimiter.store.clear()
+    except Exception:
+        pass
+    yield

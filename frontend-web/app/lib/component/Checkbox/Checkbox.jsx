@@ -38,7 +38,9 @@ const Checkbox = forwardRef(({
     useEffect(() => {
         if (isDataObjControlled) {
             const value = getBoundValue(dataObj, dataKeyName);
-            setInternalChecked([true, 'Y', 'y', '1', 1].includes(value));
+            const next = [true, 'Y', 'y', '1', 1].includes(value);
+            setInternalChecked(next);
+            setBoundValue(dataObj, 'checked', next);
         }
     }, [isDataObjControlled, dataObj, dataKeyName]);
 
@@ -52,6 +54,7 @@ const Checkbox = forwardRef(({
 
         if (isDataObjControlled) {
             setBoundValue(dataObj, dataKeyName, newChecked);
+            setBoundValue(dataObj, 'checked', newChecked);
         }
 
         const ctx = buildCtx({ dataKey: dataKeyName, dataObj, source: 'user', dirty: true, valid: null });

@@ -15,7 +15,7 @@ import { EmptyExamples } from '../examples/EmptyExamples';
 const EmptyDocs = () => {
   const examples = EmptyExamples();
   return (
-    <DocSection id="empties" title="26. 엠티 (Empty)" description={
+    <DocSection id="empties" title="24. 엠티 (Empty)" description={
       <div>
         <p>데이터가 없을 때 안내와 액션을 제공합니다.</p>
         <ul className="list-disc pl-5 mt-2 text-sm text-gray-600">
@@ -49,4 +49,3 @@ const EmptyDocs = () => {
 };
 
 export default EmptyDocs;
-

@@ -14,7 +14,7 @@ const CardDocs = () => {
   return (
     <DocSection
       id="cards"
-      title="18. 카드 (Card)"
+      title="25. 카드 (Card)"
       description={
         <div>
           <p>헤더, 본문, 푸터로 구성된 컴포넌트입니다.</p>
@@ -69,4 +69,3 @@ const CardDocs = () => {
 };
 
 export default CardDocs;
-

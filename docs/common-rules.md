@@ -3,8 +3,13 @@
 - 목적: 모든 Unit/모듈에 공통 적용되는 기본 규칙. Compact CST 문서의 DoD 판정 기준으로 사용한다.
 
 ## 코딩 규칙
-- 네이밍: 클래스 PascalCase, 상수 UPPER_SNAKE_CASE, 변수/함수/API 경로 camelCase
-- TypeScript 사용 금지. 타입은 JSDoc/JSON Schema/런타임 검증으로 대체
+- 네이밍
+  - 공통: 클래스/컴포넌트 PascalCase, 상수 UPPER_SNAKE_CASE
+  - JavaScript/React: 변수/함수 camelCase
+  - Python: 변수/함수 snake_case
+  - API 경로: lowercase(권장: kebab-case)
+- TypeScript 사용 금지(런타임 코드). 타입은 JSDoc/JSON Schema/런타임 검증으로 대체
+  - 예외: 테스트/빌드/린트 설정 파일은 TS 허용
 - 함수형 컴포넌트 우선(웹/앱)
 - 주석은 반드시 한글로 하며 의도/제약을 중심으로 간결하게 유지
 - 파일 헤더 주석 필수(파일명, 작성자, 갱신일, 설명)
@@ -24,7 +29,7 @@
 - CSRF/CORS: 쿠키 인증의 비멱등 API는 CSRF 방어. CORS는 환경별 allowlist(와일드카드 금지)
 - 입력 검증: 화이트리스트 기반. 파일 업로드는 MIME/용량 검사 및 백엔드 재검증
 - SQL 안전성: 반드시 파라미터 바인딩. 문자열 치환 금지. 쿼리 로깅 시 PII 마스킹
-- 시크릿: 레포 저장 금지. ENV/CI 시크릿 사용, 키 롤테이션 정책 유지
+- 시크릿: 레포 저장 금지. ENV/배포 환경 시크릿 사용, 키 롤테이션 정책 유지
 - 전송/보관: 운영 HTTPS 강제, 민감 데이터 저장 시 암호화
 
 ### 인증 가드 원칙(옵션1 단일화)
@@ -69,8 +74,8 @@
 - Bash/리눅스: 반드시 `source ./env.sh` (또는 `. ./env.sh`)로 같은 셸에 적용하고, 명령은 그 셸에서 바로 실행
   - CLI/자동화에서는 `bash -lc "source ./env.sh && <원하는 명령>"` 형태로 한 번에 실행   
 
-## CI/CD 게이트
-- 기본: Lint/Format/Typecheck/Unit Test/Build 모두 통과 시 머지
+## 로컬 품질 게이트
+- 기본: Lint/Format/(선택)Typecheck/Unit Test/Build를 로컬에서 통과한 뒤 머지/배포한다
 - 커버리지: Unit Test ≥ 70%, 핵심 유저 흐름 E2E ≥ 1
 - 보안/품질: 취약점/라이선스 스캔(가능 시), 빌드 아티팩트 보존
 
@@ -80,4 +85,4 @@
 - 성능 예산 충족(LCP/INP/CLS, API·DB P95 목표)
 - 보안 체크리스트 통과(CORS/CSRF/시크릿/입력 검증/SQL 바인딩)
 - 문서 업데이트(README, 설계/모듈/Unit, 변경 로그)
-- 코드 리뷰 승인 ≥ 1, CI/CD 파이프라인 그린
+- 코드 리뷰 승인 ≥ 1, 로컬 품질 게이트 통과

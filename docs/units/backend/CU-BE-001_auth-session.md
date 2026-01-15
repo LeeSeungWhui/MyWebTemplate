@@ -43,14 +43,14 @@ links: [CU-BE-004, CU-BE-005]
 - 샘플 사용자 스키마(예)
 ```
 {
-  "table": "T_USER",
-  "fields": ["ID_MEMBER", "NM_MEMBER", "PASSWORD_HASH"]
+  "table": "user_template",
+  "fields": ["id", "username", "password_hash", "name?", "email?", "role?"]
 }
 ```
 - 보안 규칙
   - Access/Refresh 쿠키: HttpOnly, Secure, SameSite=Lax (cross-domain 필요 시 `SameSite=None; Secure`)
   - rememberMe=false → Refresh를 세션 쿠키로 발급(브라우저 종료 시 삭제), true → max-age(예: 7~30일)
-  - 암호: bcrypt 해시 비교, 에러 메시지는 모模糊화(계정/비번 구분 노출 금지)
+  - 암호: PBKDF2(기본) 또는 bcrypt 해시 비교, 에러 메시지는 모模糊화(계정/비번 구분 노출 금지)
   - 레이트리밋: 로그인 엔드포인트 5 req/min (IP/계정 기준 중 하나 선택), 초과 시 429 + `code=AUTH_429_RATE_LIMIT` (+ `Retry-After` 헤더 권장)
   - 쿠키 이름: Access/Refresh 별도(`access_token`, `refresh_token` 등) 정의. HttpOnly/(prod)Secure/SameSite=Lax
   - CSRF: 세션 미사용이므로 비멱등 요청에 CSRF 헤더 요구 제거. Refresh는 HttpOnly 쿠키 검증으로 처리.
@@ -62,7 +62,7 @@ links: [CU-BE-004, CU-BE-005]
 
 ### NFR & A11y
 - 성능: 로그인 API P95 < 400ms (DB ping 포함)
-- 보안: OWASP Top 10 준수, 시크릿은 ENV/CI 주입, Refresh 회전/블랙리스트 권장
+- 보안: OWASP Top 10 준수, 시크릿은 ENV/배포 환경 주입, Refresh 회전/블랙리스트 권장
 - CORS(dev): origin=`http://localhost:3000` + credentials=true 고정(쿠키 전달용)
 
 ### Acceptance Criteria

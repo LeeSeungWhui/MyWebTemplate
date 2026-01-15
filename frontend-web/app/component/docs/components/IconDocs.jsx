@@ -61,7 +61,7 @@ const IconDocs = () => {
     return (
         <DocSection
             id="icons"
-            title="9. 아이콘 (Icon)" description={
+            title="3. 아이콘 (Icon)" description={
                 <div>
                     <p>Icon 컴포넌트는 다양한 아이콘 라이브러리를 통합하여 제공합니다.</p>
                     <p>각 아이콘 세트의 prefix를 사용하여 원하는 아이콘을 선택할 수 있습니다.</p>

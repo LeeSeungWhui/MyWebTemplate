@@ -18,7 +18,7 @@ const RadioButtonDocs = () => {
     return (
         <DocSection
             id="radiobuttons"
-            title="8. 라디오버튼 (RadioButton)" description={
+            title="10. 라디오버튼 (RadioButton)" description={
                 <div>
                     <p>RadioButton 컴포넌트는 Radiobox와 동일한 방식으로 dataObj와 dataKey를 통해 양방향 바인딩을 지원합니다.</p>
                     <p>버튼 형태로 라디오박스 기능을 제공합니다.</p>

@@ -192,6 +192,13 @@ class DatabaseManager:
             )
             raise ValueError("DB_400_PARAM_UNUSED")
 
+    def _validate_bind_parameters(self, query: str, values: Optional[Dict[str, Any]]):
+        """
+        설명: snake_case 별칭(테스트/레거시 호환).
+        갱신일: 2025-12-18
+        """
+        return self._validateBindParameters(query, values)
+
     async def connect(self):
         """설명: DB 연결을 시작하고 SQLite 튜닝을 적용. 갱신일: 2025-11-12"""
         await self.database.connect()

@@ -13,6 +13,7 @@ export const CheckButtonExamples = () => {
         redButton: false,
         greenButton: false,
         blueButton: false,
+        checked: false,
     });
 
     const [controlledCheck, setControlledCheck] = useState(false);
@@ -25,7 +26,7 @@ export const CheckButtonExamples = () => {
             >
                 기본 체크버튼
             </Lib.CheckButton>,
-            description: "기본 체크버튼",
+            description: "기본 체크버튼 (토글 시 dataObj.checked 플래그도 기록).",
             code: `<Lib.CheckButton
     dataObj={dataObj}
     dataKey="basicCheckButton"

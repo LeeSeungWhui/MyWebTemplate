@@ -8,13 +8,8 @@ import { useState } from 'react'
 import * as Lib from '@/app/lib'
 
 export const SelectExamples = () => {
-  const form = Lib.EasyObj({
-    profile: {
-      job: 'designer',
-    },
-  })
   const jobOptions = Lib.EasyList([
-    { id: '', label: '직무를 선택하세요', placeholder: true },
+    { id: '', label: '직무를 선택하세요', placeholder: true, selected: true },
     { id: 'designer', label: '디자이너' },
     { id: 'developer', label: '개발자' },
     { id: 'pm', label: '프로덕트 매니저' },
@@ -25,47 +20,47 @@ export const SelectExamples = () => {
   const [role, setRole] = useState('developer')
 
   const loadingOptions = Lib.EasyList([
-    { id: '', label: '불러오는 중', placeholder: true },
+    { id: '', label: '불러오는 중', placeholder: true, selected: true },
   ])
+
+  const getSelectedJobId = () => {
+    const selected = jobOptions.find((item) => item.selected)
+    return selected ? String(selected.id) : ''
+  }
 
   return [
     {
       component: (
         <div className="space-y-2">
           <Lib.Select
-            id="select-bound"
-            dataObj={form.profile}
-            dataKey="job"
+            id="select-easylist"
             dataList={jobOptions}
             valueKey="id"
             textKey="label"
             status="success"
-            statusMessage="EasyObj 값과 동기화되었습니다."
+            statusMessage="dataList의 selected 플래그와 동기화됩니다."
           />
           <dl className="text-xs text-gray-600">
-            <dt className="font-semibold">현재 form.profile.job</dt>
-            <dd>{String(form.profile.job)}</dd>
+            <dt className="font-semibold">현재 선택된 id</dt>
+            <dd>{getSelectedJobId()}</dd>
           </dl>
         </div>
       ),
       description:
-        'EasyObj 바운드 모드 — dataObj/dataKey로 EasyObj 값과 즉시 동기화',
-      code: `const form = Lib.EasyObj({ profile: { job: 'designer' } });
-const jobs = Lib.EasyList([
-  { id: '', label: '직무를 선택하세요', placeholder: true },
+        'EasyList 모드 — dataList 내부의 selected 플래그만으로 선택 상태를 관리',
+      code: `const jobs = Lib.EasyList([
+  { id: '', label: '직무를 선택하세요', placeholder: true, selected: true },
   { id: 'designer', label: '디자이너' },
   { id: 'developer', label: '개발자' },
   { id: 'pm', label: '프로덕트 매니저' },
 ]);
 
 <Lib.Select
-  dataObj={form.profile}
-  dataKey="job"
   dataList={jobs}
   valueKey="id"
   textKey="label"
   status="success"
-  statusMessage="EasyObj 값과 동기화되었습니다."
+  statusMessage="dataList의 selected 플래그와 동기화됩니다."
 />`,
     },
     {
@@ -85,7 +80,7 @@ const jobs = Lib.EasyList([
         </div>
       ),
       description:
-        '컨트롤드 모드 — value/onValueChange로 외부 상태와 동기화',
+        '컨트롤드 모드 — value/onValueChange로 외부 상태와 동기화하면서도 dataList.selected는 자동 갱신',
       code: `const [role, setRole] = useState('developer');
 
 <Lib.Select

@@ -40,7 +40,9 @@ const Radiobox = forwardRef(({
     useEffect(() => {
         if (isDataObjControlled) {
             const currentValue = getBoundValue(dataObj, dataKeyName);
-            setInternalChecked(currentValue === value);
+            const next = currentValue === value;
+            setInternalChecked(next);
+            setBoundValue(dataObj, 'checked', next);
         }
     }, [isDataObjControlled, dataObj, dataKeyName, value]);
 
@@ -54,6 +56,7 @@ const Radiobox = forwardRef(({
 
         if (isDataObjControlled && newChecked) {
             setBoundValue(dataObj, dataKeyName, value, { source: 'user' });
+            setBoundValue(dataObj, 'checked', true, { source: 'user' });
         }
 
         const ctx = buildCtx({ dataKey: dataKeyName, dataObj, source: 'user', dirty: true, valid: null });

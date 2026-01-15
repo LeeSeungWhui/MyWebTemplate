@@ -25,15 +25,16 @@ links: [CU-WEB-001, CU-WEB-002, CU-WEB-004, CU-WEB-005, CU-WEB-006]
 
 ### Interface
 - 공통 props(바인딩 + 접근성 중심)
-  - `dataObj?`: EasyObj 또는 EasyList 프록시 기반 모델
-  - `dataKey?`: EasyObj의 필드 경로 문자열(`foo.bar`), EasyList는 selection/sort/page 등 키로 사용
+  - `dataObj?`: EasyObj 또는 EasyList 프록시 기반 모델 (단, Select(Web)는 `dataObj/dataKey` 바인딩을 지원하지 않는다)
+  - `dataKey?`: EasyObj의 필드 경로 문자열(`foo.bar`), EasyList는 selection/sort/page 등 키로 사용 (Select(Web) 제외)
   - `value` / `defaultValue` / `onChange(nextValue, ctx)` / `onValueChange(nextValue, ctx)`
   - `status`: `idle | loading | error | success`
   - `disabled`, `readOnly`, `required`, `invalid`, `hint`, `errorMessage`, `aria-*`
 - 바운드 vs 컨트롤드 모드
-  - 바운드 모드: `dataObj + dataKey`가 렌더링을 주도. EasyObj 프록시의 직접 대입/삭제/중첩 변경을 감지하고 `fireValueHandlers`를 통해 `ctx`를 전달해야 한다.
+  - 바운드 모드: `dataObj + dataKey`가 렌더링을 주도(예: Input/Textarea/Checkbox 등). EasyObj 프록시의 직접 대입/삭제/중첩 변경을 감지하고 `fireValueHandlers`를 통해 `ctx`를 전달해야 한다.
   - 컨트롤드 모드: `value + onChange` 조합으로 모델과 분리된 상태에서 바운드와 동일한 UX를 제공한다.
   - 직접 대입(`obj.foo = v`, `obj['foo.bar'] = v`, `delete obj.foo`)은 프록시가 동일 파이프라인으로 처리되며, 레거시 `dataObj.get/set`는 선택적 헬퍼로 유지한다.
+  - Select(Web)는 바운드 모드 대신 `dataList.selected` 또는 `value/onValueChange` 계약을 사용한다(아래 Select 스펙 참고).
 - EasyList 경량 리스트 계약
   - Props: `items`, `columns`(최소), `emptyMessage`, `isLoading`, `errorCode`, `requestId`
   - 모델 바인딩: EasyList 프록시로 `selection`, `sort`, `page`, `pageSize`
@@ -54,11 +55,32 @@ links: [CU-WEB-001, CU-WEB-002, CU-WEB-004, CU-WEB-005, CU-WEB-006]
 - WCAG 2.2 AA 준수(명명, 대비, 키보드 탐색)
 
 ### Acceptance Criteria
-- AC-1: `dataObj + dataKey`로 바운드된 컴포넌트가 직접 대입/삭제/중첩 변경까지 반영하고 `onChange`/`onValueChange`에 동일 `ctx`를 전달한다.
+- AC-1: `dataObj + dataKey` 바운드를 지원하는 컴포넌트(Input/Textarea/Checkbox 등)가 직접 대입/삭제/중첩 변경까지 반영하고 `onChange`/`onValueChange`에 동일 `ctx`를 전달한다.
 - AC-2: 컨트롤드 모드가 모델과 분리된 상태에서도 바운드 모드와 동일한 UX를 제공한다.
 - AC-3: 로딩/에러/빈 상태 프리셋이 일관된 비주얼과 ARIA 속성으로 출력된다.
 - AC-4: 대시보드(CU-WEB-002)가 최소한의 글루 코드와 컴포넌트 조립만으로 SSR/CSR 환경에서 카드/리스트를 렌더링한다.
 - AC-5: Docs 페이지에서 컨트롤·A11y 체크, 다크 모드, 바인딩 시나리오가 제공된다.
+
+### 컴포넌트 스펙: Select (Web)
+- 목적: 경량 커스텀 Select 제공. `dataList.selected` 또는 `value/onValueChange`로만 제어한다(Select 자체는 `dataObj/dataKey` 바운드를 지원하지 않는다).
+- Props
+  - `dataList`: Array | EasyList(항목은 `{ [valueKey], [textKey], placeholder?, selected? }`)
+  - `valueKey?='value'`, `textKey?='text'`
+  - `value?`, `defaultValue?`, `placeholder?`
+  - `onValueChange?(nextValue)`, `onChange?(eventLike)`
+  - `status?`, `disabled?`, `statusMessage?`, `assistiveText?`, `id?`, `aria-describedby?`
+- 바인딩 규약
+  - Controlled 모드: `value`가 주어지면 해당 값을 단일 진실로 사용하고, 선택 시 `onValueChange`로만 외부 상태를 갱신한다.
+  - DataList 모드: `value`가 없으면 `dataList`에서 `selected=true`인 첫 항목을 현재 값으로 사용한다. 선택 변경 시 `dataList`의 `selected` 플래그를 단일 선택으로 동기화한다(EasyList는 `forAll`, 배열은 `forEach`).
+  - EasyObj 연동이 필요하면 `value={obj.get(key)}` + `onValueChange={(v) => obj.set(key, v)}` 형태로 어댑트한다.
+- A11y/역할
+  - Trigger: `button` + `aria-haspopup="listbox"` + `aria-expanded`
+  - List: `role="listbox"`, item: `role="option"` + `aria-selected`
+  - (TODO) roving focus/키보드 내비게이션은 후속 보강
+- AC (추가)
+  - AC-S1: Controlled 모드에서 선택 결과가 외부 상태와 동기화된다.
+  - AC-S2: DataList 모드에서 선택 변경 시 `selected=true`가 단일 항목으로 유지된다.
+  - AC-S3: Trigger/Listbox/Option 역할과 `aria-expanded/aria-selected`가 일관되게 반영된다.
 
 ### 컴포넌트 스펙: 리치 에디터(EasyEditor)
 - 목적: 문서/공지/가이드 등 리치 텍스트 입력을 EasyObj와 일관된 규약으로 제공한다.

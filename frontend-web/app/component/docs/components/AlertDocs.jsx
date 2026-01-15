@@ -15,7 +15,7 @@ const AlertDocs = () => {
   return (
     <DocSection
       id="alerts"
-      title="11. 알림 (Alert)"
+      title="17. 알림 (Alert)"
       description={
         <div>
           <p>전역 스토어(useGlobalUi)의 showAlert로 간단히 알림을 표시합니다.</p>
@@ -77,4 +77,3 @@ const AlertDocs = () => {
 };
 
 export default AlertDocs;
-

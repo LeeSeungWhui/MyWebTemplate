@@ -16,10 +16,10 @@ links: [CU-WEB-001, CU-WEB-002, CU-WEB-003, CU-WEB-004, CU-WEB-005, CU-WEB-006, 
   - 신규 캡슐화: `frontend-web`(JS-only, Tailwind v4, SWR 통일)
   - 라우팅 전환: react-router → App Router(공개/보호 분리, links: CU-WEB-004/008)
   - 컴포넌트 이관: 레거시 UI → CU-WEB-003 규약(EasyObj/EasyList 바인딩)
-  - 인증 흐름 정합: 204 로그인/세션 확인/로그아웃(CU-WEB-001, CU-BE-001)
+  - 인증 흐름 정합: 200 로그인(`/api/v1/auth/me` 확인)/로그아웃(CU-WEB-001, CU-BE-001)
   - API 연동: OpenAPI JS 클라 규약(CU-WEB-005)
     - SSR/CSR: 페이지 설정 + MODE 규약(CU-WEB-006)
-  - Docs/테스트/CI 이행
+  - Docs/테스트 이행
 - 제외
   - 서드파티 리치 컴포넌트 교체, 멀티테넌시/복잡 권한(차기)
 
@@ -31,7 +31,7 @@ links: [CU-WEB-001, CU-WEB-002, CU-WEB-003, CU-WEB-004, CU-WEB-005, CU-WEB-006, 
   - `/docs/*` → Docs 라우팅(전환 정책 별도)
 - 빌드/실행
    - 레거시 `frontend-web-old` 동결(FREEZE), 신규 `frontend-web` 도입
-   - ENV: `NEXT_PUBLIC_API_BASE`, `NEXT_REVALIDATE_SECONDS`
+   - 설정: `frontend-web/config.ini`의 `[APP].backendHost`(또는 `[API].base`)로 백엔드 호스트를 지정한다.
 
 ### Data & Rules
 - 상태/데이터: SWR 표준 사용(기존 TanStack은 제거/병행 불가). SWR 키 규약은 CU-WEB-005 준수
@@ -59,29 +59,29 @@ links: [CU-WEB-001, CU-WEB-002, CU-WEB-003, CU-WEB-004, CU-WEB-005, CU-WEB-006, 
 - T2 스캐폴드: `frontend-web` 생성(Next 15, JS-only, Tailwind v4, ESLint/Prettier)
 - T3 라우팅 전환: App Router 도입, 공개/보호 분리, 미들웨어 가드 배치(CU-WEB-008)
 - T4 컴포넌트 이관 v1: 버튼/입력/피드백/리스트 핵심 도입(CU-WEB-003 준수)
-- T5 인증 연결: 204 로그인/세션/로그아웃(쿠키·CSRF 규칙), 실패 UX 정합(CU-WEB-001)
+- T5 인증 연결: 200 로그인(`/api/v1/auth/me` 확인)/로그아웃(쿠키 규칙), 실패 UX 정합(CU-WEB-001)
 - T6 대시보드 구성: 레이아웃/카드/리스트/스탯 SSR 기본으로 이식(CU-WEB-002)
 - T7 API 클라 연결: OpenAPI JS 클라, SWR 캐시·무효화 정합(CU-WEB-005)
-- T8 런타임: `NEXT_REVALIDATE_SECONDS` 적용, 페이지 MODE 규약(CU-WEB-006)
+- T8 런타임: 페이지 설정(`revalidate/dynamic/runtime`) + MODE 규약(CU-WEB-006)
 - T9 Docs: 컴포넌트/페이지 상태 시나리오 구축(A11y/다크/에러/로딩)
-- T10 테스트/E2E: 로그인 204·리다이렉트·세션 복원·SWR 후속 패칭·401/403 처리 확인
+- T10 테스트/E2E: 로그인 200·리다이렉트·세션 복원·SWR 후속 패칭·401 처리 확인
 - T11 기록/문서: 라우트 매핑, 변경 목록, ENV 사용법, 운영 체크리스트 업데이트
 - T12 컷오버: 트래픽 레벨 전환(롤아웃·롤백 계획, 모니터링/알림 설정)
 - T13 클린업: 레거시 페이지 제거, 공통 유틸/스타일 정리, 중복 자산/ENV 삭제
 
 ### Cutover Plan
 - 병행 구동: `frontend-web-old`와 `frontend-web` 동시 운영 후 트래픽 점진 전환
-- 장애 시 즉시 레거시로 롤백. 쿠키 도메인/속성은 공통 정책 유지(sid 호환, Secure/Lax)
+- 장애 시 즉시 레거시로 롤백. 쿠키 도메인/속성은 공통 정책 유지(access_token/refresh_token 호환, Secure/Lax)
 - 모니터링: 401/403/5xx, CSR 캐시 미스, 전환 지표 관찰
 
 ### Risks & Mitigations
-- 인증 불일치(쿠키/CSRF): 가드/클라이언트 규약 강화(CU-WEB-004/005/008)
+- 인증 불일치(쿠키/프록시): 가드/클라이언트 규약 강화(CU-WEB-004/005/008)
 - 바인딩 규약 미준수: CU-WEB-003 체크리스트로 리뷰 게이트
 - 성능 리스크: SSR 스켈레톤, 지연 로드, 번들 분석/분리
 - ENV 과다: 최소 3개만 사용(로컬/Dev/Prod), 병합 전략 문서화
 
 ### Notes
-- 기술: JavaScript Only (TypeScript 금지)
+- 기술: JavaScript Only (TypeScript 금지; 단, 테스트/빌드 설정은 예외)
 - 런타임: 기본 nodejs(쿠키/세션), 일부 경로 edge 선택 가능
 - 명칭: `frontend-web` 일관(index.md/web.md 반영), 레거시는 `frontend-web-old`(최종까지 read-only)
 

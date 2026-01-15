@@ -13,18 +13,38 @@ const JobsFixture = [
 ]
 
 describe('Select & Combobox binding contracts', () => {
-  test('Select keeps EasyObj bound value in sync', async () => {
+  test('Select ignores dataObj/dataKey and does not forward them to DOM', () => {
+    const form = { profile: { job: 'developer' } }
+    const jobs = JobsFixture
+    render(
+      <Select
+        dataObj={form.profile}
+        dataKey="job"
+        dataList={jobs}
+        valueKey="id"
+        textKey="label"
+      />,
+    )
+
+    const trigger = screen.getByRole('button')
+    expect(trigger).not.toHaveAttribute('dataobj')
+    expect(trigger).not.toHaveAttribute('datakey')
+  })
+
+  test('Select synchronises with EasyList selected flags (single select)', async () => {
     let bound = null
     const Harness = ({ onReady }) => {
-      const form = EasyObj({ profile: { job: 'developer' } })
-      const jobs = EasyList(JobsFixture)
+      const jobs = EasyList(
+        JobsFixture.map((item) => ({
+          ...item,
+          selected: item.id === 'developer',
+        })),
+      )
       useEffect(() => {
-        onReady?.({ form, jobs })
-      }, [form, jobs, onReady])
+        onReady?.({ jobs })
+      }, [jobs, onReady])
       return (
         <Select
-          dataObj={form.profile}
-          dataKey="job"
           dataList={jobs}
           valueKey="id"
           textKey="label"
@@ -34,19 +54,21 @@ describe('Select & Combobox binding contracts', () => {
     }
 
     render(<Harness onReady={(exposed) => { bound = exposed }} />)
-
     await waitFor(() => expect(bound).not.toBeNull())
 
-    const select = screen.getByRole('combobox')
-    expect(select).toHaveValue('developer')
+    const trigger = screen.getByRole('button', { name: '개발자' })
+    fireEvent.click(trigger)
 
-    await act(async () => {
-      bound.form.profile.set('job', 'pm')
+    const optionPm = screen.getByRole('option', { name: '프로덕트 매니저' })
+    fireEvent.click(optionPm)
+
+    await waitFor(() => expect(trigger).toHaveTextContent('프로덕트 매니저'))
+
+    const selectedIds = []
+    bound.jobs.forAll((item) => {
+      if (item.selected) selectedIds.push(item.id)
     })
-    await waitFor(() => expect(select).toHaveValue('pm'))
-
-    fireEvent.change(select, { target: { value: 'designer' } })
-    expect(bound.form.profile.job).toBe('designer')
+    expect(selectedIds).toEqual(['pm'])
   })
 
   test('Select controlled mode uses value/onValueChange contract', () => {
@@ -69,8 +91,12 @@ describe('Select & Combobox binding contracts', () => {
     }
     render(<Controlled />)
 
-    const select = screen.getByRole('combobox')
-    fireEvent.change(select, { target: { value: 'pm' } })
+    const trigger = screen.getByRole('button', { name: '개발자' })
+    fireEvent.click(trigger)
+
+    const optionPm = screen.getByRole('option', { name: '프로덕트 매니저' })
+    fireEvent.click(optionPm)
+
     expect(screen.getByTestId('role-output')).toHaveTextContent('pm')
   })
 

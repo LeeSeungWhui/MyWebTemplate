@@ -19,7 +19,7 @@ const DateTimeDocs = () => {
   return (
     <DocSection
       id="datetime-inputs"
-      title="21. 날짜/시간 (Date/Time)"
+      title="13. 날짜/시간 (Date/Time)"
       description={
         <div>
           <p>브라우저 기본 Date와 Time 입력을 래핑한 컴포넌트입니다. EasyObj 바운드와 컨트롤드 모드를 지원합니다.</p>
@@ -70,4 +70,3 @@ const DateTimeDocs = () => {
 };
 
 export default DateTimeDocs;
-

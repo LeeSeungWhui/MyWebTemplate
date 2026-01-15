@@ -12,6 +12,7 @@ export const RadioboxExamples = () => {
         selectedJob: '',
         paymentMethod: '',
         customColorRadio: '',
+        checked: false,
     });
 
     const [controlledValue, setControlledValue] = useState('');
@@ -36,7 +37,7 @@ export const RadioboxExamples = () => {
                     />
                 </div>
             ),
-            description: "기본 라디오박스",
+            description: "기본 라디오박스 (선택 시 dataObj.checked 플래그 기록).",
             code: `<Lib.Radiobox
     name="job"
     label="개발자"

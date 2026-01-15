@@ -8,7 +8,7 @@
 from __future__ import annotations
 
 import os
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 from fastapi import FastAPI
 from fastapi.openapi.utils import get_openapi
@@ -21,17 +21,54 @@ def attachOpenAPI(app: FastAPI, config) -> None:
     설명: 주어진 app에 custom openapi 함수 부착. config는 [AUTH]/기타 값을 제공.
     """
 
+    def _cfg_get(section: Optional[object], key: str, fallback: Optional[str] = None) -> Optional[str]:
+        """
+        configparser.SectionProxy / dict 모두에서 안전하게 값을 읽는다.
+        """
+        if section is None:
+            return fallback
+        getter = getattr(section, "get", None)
+        if not callable(getter):
+            return fallback
+        try:
+            # configparser.SectionProxy는 fallback 키워드를 지원한다.
+            return getter(key, fallback=fallback)  # type: ignore[misc]
+        except TypeError:
+            # dict.get은 fallback 키워드를 지원하지 않는다.
+            try:
+                return getter(key, fallback)  # type: ignore[misc]
+            except Exception:
+                return fallback
+        except Exception:
+            return fallback
+
     def _patchOpenapi(schema: Dict[str, Any]) -> Dict[str, Any]:
         try:
+            authSection = None
+            try:
+                authSection = config["AUTH"]
+            except Exception:
+                authSection = None
+
+            accessCookie = (
+                _cfg_get(authSection, "access_cookie")
+                or _cfg_get(authSection, "session_cookie")
+                or "access_token"
+            )
+            refreshCookie = _cfg_get(authSection, "refresh_cookie") or "refresh_token"
+
             components = schema.setdefault("components", {})
             securitySchemes = components.setdefault("securitySchemes", {})
-            sessionCookie = config["AUTH"].get("session_cookie", "sid")
             securitySchemes.update(
                 {
                     "cookieAuth": {
                         "type": "apiKey",
                         "in": "cookie",
-                        "name": sessionCookie,
+                        "name": accessCookie,
+                        "description": (
+                            "Browser clients may send this HttpOnly cookie to the Web BFF, "
+                            "which forwards it as `Authorization: Bearer <token>` to the backend."
+                        ),
                     },
                     "bearerAuth": {"type": "http", "scheme": "bearer", "bearerFormat": "JWT"},
                 }
@@ -52,10 +89,49 @@ def attachOpenAPI(app: FastAPI, config) -> None:
                     "required": ["status", "message", "result", "requestId"],
                 }
             if "ErrorResponse" not in schemas:
-                schemas["ErrorResponse"] = schemas["StandardResponse"]
+                schemas["ErrorResponse"] = dict(schemas["StandardResponse"])
+
+            if "AuthTokenResult" not in schemas:
+                schemas["AuthTokenResult"] = {
+                    "type": "object",
+                    "properties": {
+                        "access_token": {"type": "string"},
+                        "token_type": {"type": "string", "example": "bearer"},
+                        "expires_in": {"type": "integer", "example": 3600},
+                        "refresh_expires_in": {"type": "integer", "example": 604800},
+                    },
+                    "required": ["access_token", "token_type", "expires_in", "refresh_expires_in"],
+                }
+            if "AuthTokenResponse" not in schemas:
+                schemas["AuthTokenResponse"] = {
+                    "allOf": [
+                        {"$ref": "#/components/schemas/StandardResponse"},
+                        {
+                            "type": "object",
+                            "properties": {"result": {"$ref": "#/components/schemas/AuthTokenResult"}},
+                        },
+                    ]
+                }
+
+            if "AuthMeResult" not in schemas:
+                schemas["AuthMeResult"] = {
+                    "type": "object",
+                    "properties": {"username": {"type": "string"}},
+                    "required": ["username"],
+                }
+            if "AuthMeResponse" not in schemas:
+                schemas["AuthMeResponse"] = {
+                    "allOf": [
+                        {"$ref": "#/components/schemas/StandardResponse"},
+                        {
+                            "type": "object",
+                            "properties": {"result": {"$ref": "#/components/schemas/AuthMeResult"}},
+                        },
+                    ]
+                }
 
             params = components.setdefault("parameters", {})
-            csrfHeaderName = config["AUTH"].get("csrf_header", "X-CSRF-Token")
+            csrfHeaderName = _cfg_get(authSection, "csrf_header", "X-CSRF-Token")
             params["CSRFToken"] = {
                 "name": csrfHeaderName,
                 "in": "header",
@@ -97,32 +173,78 @@ def attachOpenAPI(app: FastAPI, config) -> None:
                 schema["x-tagGroups"] = [{"name": "default", "tags": tags}]
 
             paths = schema.get("paths", {})
-            sess = paths.get("/api/v1/auth/session", {}).get("get")
-            if isinstance(sess, dict):
-                sess["security"] = [{"cookieAuth": []}, {"bearerAuth": []}]
+            # 실제 구현은 /api/v1/auth/me 를 사용한다.
+            me = paths.get("/api/v1/auth/me", {}).get("get")
+            if isinstance(me, dict):
+                # backend는 Bearer 토큰을 신뢰한다(Auth.getCurrentUser).
+                me["security"] = [{"bearerAuth": []}, {"OAuth2PasswordBearer": []}]
+                responses = me.setdefault("responses", {})
+                res200 = responses.setdefault("200", {"description": "OK"})
+                res200["description"] = res200.get("description") or "OK"
+                res200.setdefault("content", {}).setdefault("application/json", {})["schema"] = {
+                    "$ref": "#/components/schemas/AuthMeResponse"
+                }
+
             login = paths.get("/api/v1/auth/login", {}).get("post")
             if isinstance(login, dict):
                 responses = login.setdefault("responses", {})
-                res204 = responses.setdefault("204", {"description": "No Content"})
-                headers = res204.setdefault("headers", {})
-                headers["Set-Cookie"] = {
-                    "description": "Session cookie is set on success.",
+                # NOTE: 실제 구현은 200 JSON(successResponse) + Set-Cookie 이다(AuthRouter.login).
+                responses.pop("204", None)
+
+                res200 = responses.setdefault("200", {"description": "OK"})
+                res200["description"] = "OK (sets access/refresh cookies on success)"
+                res200.setdefault("headers", {})["Set-Cookie"] = {
+                    "description": f"Sets `{accessCookie}` and `{refreshCookie}` cookies on success.",
                     "schema": {"type": "string"},
                 }
-                login.setdefault("x-codeSamples", []).append(
-                    {
-                        "lang": "JavaScript",
-                        "label": "openapi-client-axios",
-                        "source": (
-                            "// Example using openapi-client-axios\n"
-                            "// const client = ...;\n"
-                            "// await client.POST('/api/v1/auth/login', { body: { username: 'demo', password: 'password123' } });"
-                        ),
-                    }
+                res200.setdefault("content", {}).setdefault("application/json", {})["schema"] = {
+                    "$ref": "#/components/schemas/AuthTokenResponse"
+                }
+
+                samples = login.setdefault("x-codeSamples", [])
+                hasSample = any(
+                    isinstance(sample, dict)
+                    and sample.get("lang") == "JavaScript"
+                    and sample.get("label") == "openapi-client-axios"
+                    for sample in samples
                 )
+                if not hasSample:
+                    samples.append(
+                        {
+                            "lang": "JavaScript",
+                            "label": "openapi-client-axios",
+                            "source": (
+                                "// Example using openapi-client-axios\n"
+                                "// const client = ...;\n"
+                                "// await client.POST('/api/v1/auth/login', {\n"
+                                "//   body: { username: 'demo@demo.demo', password: 'password123', rememberMe: false },\n"
+                                "// });\n"
+                                "// The backend responds 200 JSON and also sets HttpOnly cookies."
+                            ),
+                        }
+                    )
+
+            refresh = paths.get("/api/v1/auth/refresh", {}).get("post")
+            if isinstance(refresh, dict):
+                # Refresh는 refresh cookie로 새 토큰 발급 + Set-Cookie 를 반환한다.
+                responses = refresh.setdefault("responses", {})
+                res200 = responses.setdefault("200", {"description": "OK"})
+                res200["description"] = "OK (rotates access/refresh cookies on success)"
+                res200.setdefault("headers", {})["Set-Cookie"] = {
+                    "description": f"Rotates `{accessCookie}` and `{refreshCookie}` cookies on success.",
+                    "schema": {"type": "string"},
+                }
+                res200.setdefault("content", {}).setdefault("application/json", {})["schema"] = {
+                    "$ref": "#/components/schemas/AuthTokenResponse"
+                }
+
             logout = paths.get("/api/v1/auth/logout", {}).get("post")
             if isinstance(logout, dict):
                 logout.setdefault("parameters", []).append({"$ref": "#/components/parameters/CSRFToken"})
+                # 실제 구현은 204(No Content).
+                responses = logout.setdefault("responses", {})
+                responses.setdefault("204", {"description": "No Content"})
+                responses.pop("200", None)
 
             # 비멱등 메서드 전체에 CSRF 파라미터를 공통으로 추가
             csrfRef = {"$ref": "#/components/parameters/CSRFToken"}

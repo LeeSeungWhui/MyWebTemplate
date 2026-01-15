@@ -1,7 +1,7 @@
 /**
  * 파일명: CheckButton.jsx
- * 작성자: LSH
- * 갱신일: 2025-09-13
+ * 작성자: LSH (원본), Codex(checked 플래그 추가)
+ * 갱신일: 2025-02-19
  * 설명: CheckButton UI 컴포넌트 구현
  */
 import React, { useState, useEffect } from 'react';
@@ -23,7 +23,6 @@ const CheckButton = React.forwardRef(({
     const isControlled = propChecked !== undefined;
     const isDataObjControlled = dataObj && (dataKey || name);
 
-    // name이나 dataKey가 없을 경우 children을 name으로 사용
     const inputName = name || dataKey || (typeof children === 'string' ? children : undefined);
     const dataKeyName = dataKey || name || (typeof children === 'string' ? children : undefined);
 
@@ -37,13 +36,15 @@ const CheckButton = React.forwardRef(({
     useEffect(() => {
         if (isDataObjControlled) {
             const value = getBoundValue(dataObj, dataKeyName);
-            setInternalChecked([true, 'Y', 'y', '1', 1].includes(value));
+            const next = [true, 'Y', 'y', '1', 1].includes(value);
+            setInternalChecked(next);
+            setBoundValue(dataObj, 'checked', next);
         }
     }, [isDataObjControlled, dataObj, dataKeyName]);
 
     const handleChange = (e) => {
         e.stopPropagation();
-        const newChecked = !getCheckedState(); // 버튼은 toggle 방식
+        const newChecked = !getCheckedState(); // 토글
 
         if (!isControlled) {
             setInternalChecked(newChecked);
@@ -51,6 +52,7 @@ const CheckButton = React.forwardRef(({
 
         if (isDataObjControlled) {
             setBoundValue(dataObj, dataKeyName, newChecked, { source: 'user' });
+            setBoundValue(dataObj, 'checked', newChecked, { source: 'user' });
         }
 
         const ctx = buildCtx({ dataKey: dataKeyName, dataObj, source: 'user', dirty: true, valid: null });
@@ -71,19 +73,14 @@ const CheckButton = React.forwardRef(({
     };
 
     const checked = getCheckedState();
-
-    // CSS 색상값인지 확인 (HEX, RGB, RGBA, HSL, HSLA)
     const isCssColor = /^(#|rgb[a]?\(|hsl[a]?\()/.test(color);
 
     const baseStyle = "inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md transition-all duration-200 border";
     const disabledStyle = disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer";
-
-    // 커스텀 색상일 경우 CSS 변수만 style로 처리
     const buttonStyle = isCssColor ? {
         '--btn-color': color,
     } : {};
 
-    // 커스텀 색상 또는 기본 색상 스타일
     const colorStyle = isCssColor
         ? `${checked
             ? "bg-[var(--btn-color)] border-[var(--btn-color)] text-white hover:opacity-90"
@@ -118,4 +115,4 @@ const CheckButton = React.forwardRef(({
 
 CheckButton.displayName = 'CheckButton';
 
-export default CheckButton; 
+export default CheckButton;

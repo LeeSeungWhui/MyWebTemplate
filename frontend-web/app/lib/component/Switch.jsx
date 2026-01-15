@@ -35,7 +35,9 @@ const Switch = forwardRef(({
 
   useEffect(() => {
     if (isDataObj) {
-      setInternalChecked(truthy(getBoundValue(dataObj, dataKey)));
+      const next = truthy(getBoundValue(dataObj, dataKey));
+      setInternalChecked(next);
+      setBoundValue(dataObj, 'checked', next);
     }
   }, [isDataObj, dataObj, dataKey]);
 
@@ -50,7 +52,10 @@ const Switch = forwardRef(({
     const newChecked = e.target.checked;
 
     if (!isControlled) setInternalChecked(newChecked);
-    if (isDataObj) setBoundValue(dataObj, dataKey, newChecked);
+    if (isDataObj) {
+      setBoundValue(dataObj, dataKey, newChecked);
+      setBoundValue(dataObj, 'checked', newChecked);
+    }
 
     const ctx = buildCtx({ dataKey, dataObj, source: 'user', dirty: true, valid: null });
     fireValueHandlers({ onChange, onValueChange, value: newChecked, ctx, event: e });

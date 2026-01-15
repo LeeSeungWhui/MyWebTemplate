@@ -1,5 +1,5 @@
 import { View, Text, Linking, TouchableOpacity } from 'react-native';
-import * as Lib from '@/app/lib';
+import * as Lib from '../../lib';
 
 const iconSetUrls = {
     ai: 'https://oblador.github.io/react-native-vector-icons/#antdesign',
@@ -20,14 +20,14 @@ export const IconExamples = () => {
                 <View className="flex-row flex-wrap gap-4">
                     <Lib.Icon icon="md:favorite" size="lg" color="#EF4444" />
                     <Lib.Icon icon="io:heart" size="lg" color="#3B82F6" />
-                    <Lib.Icon icon="ai:star-filled" size="lg" color="#F59E0B" />
+                    <Lib.Icon icon="ai:star" size="lg" color="#F59E0B" />
                     <Lib.Icon icon="fi:check-circle" size="lg" color="#10B981" />
                 </View>
             ),
             description: "다양한 아이콘 세트를 지원합니다.",
             code: `<Icon icon="md:favorite" size="lg" color="#EF4444" />
 <Icon icon="io:heart" size="lg" color="#3B82F6" />
-<Icon icon="ai:star-filled" size="lg" color="#F59E0B" />
+<Icon icon="ai:star" size="lg" color="#F59E0B" />
 <Icon icon="fi:check-circle" size="lg" color="#10B981" />`
         },
         {

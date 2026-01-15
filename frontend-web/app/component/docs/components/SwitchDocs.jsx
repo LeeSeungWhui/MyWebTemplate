@@ -17,7 +17,7 @@ const SwitchDocs = () => {
   return (
     <DocSection
       id="switches"
-      title="16. 스위치 (Switch)" description={
+      title="11. 스위치 (Switch)" description={
         <div>
           <p>접근성을 준수하기 위해 role="switch"와 aria-checked를 사용합니다. dataObj와 dataKey 또는 제어 모드를 지원합니다.</p>
           <ul className="list-disc pl-5 mt-2 text-sm text-gray-600">
