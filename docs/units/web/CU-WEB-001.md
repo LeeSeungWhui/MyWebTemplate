@@ -64,7 +64,7 @@ links: [CU-BE-001, CU-WEB-004, CU-WEB-005, CU-WEB-008]
 - T6: Access 만료/401 인터셉트 → refresh→재시도 흐름 구현
 - T7: SWR 캐시 무효화 규칙: 로그인/로그아웃/refresh 시 세션 상태 갱신
 - T8: Docs 페이지: 에러/로딩/비밀번호표시/다크모드 시나리오 수록
-- T9: 테스트(Playwright/Vitest): 폼 유효성/2xx 처리/401 메시지/`next` 검증/가드 리다이렉트/refresh 흐름
+- T9: 테스트(Vitest): 폼 유효성/2xx 처리/401 메시지/`next` 검증/가드 리다이렉트/refresh 흐름
 
 ### Notes
 - ENV: 별도 전역 ENV 스위치 없음. API Base는 config.ini(`[API].base`)에서 로드(getBackendHost)하며, 프런트는 `/api/bff/*`를 통해 호출된다.
