@@ -74,7 +74,7 @@
 ## NFR / 품질 지표
 - 콜드 스타트→TTI < 3s(중저가 단말), 스크롤 60fps
 - API P95 < 400ms(백엔드 기준), 치명 콘솔 에러 0
-- E2E 최소: 로그인/리다이렉트/세션 복원/오류 토스트 통과
+- 스모크: 로그인/리다이렉트/세션 복원/오류 토스트 확인
 
 ## Acceptance Criteria (Template Complete)
 - iOS/Android(또는 Expo Go)에서 앱 계정 로그인→메인 정보 확인 가능

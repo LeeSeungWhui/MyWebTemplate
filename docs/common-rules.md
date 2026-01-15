@@ -76,11 +76,11 @@
 
 ## 로컬 품질 게이트
 - 기본: Lint/Format/(선택)Typecheck/Unit Test/Build를 로컬에서 통과한 뒤 머지/배포한다
-- 커버리지: Unit Test ≥ 70%, 핵심 유저 흐름 E2E ≥ 1
+- 커버리지: Unit Test ≥ 70%
 - 보안/품질: 취약점/라이선스 스캔(가능 시), 빌드 아티팩트 보존
 
 ## DoD(Definition of Done)
-- Lint/Format 통과, 테스트 커버리지 ≥ 70%, 최소 1개 E2E
+- Lint/Format 통과, 테스트 커버리지 ≥ 70%
 - 접근성 체크(Axe/Lighthouse A11y ≥ 90, 키보드 전수 OK)
 - 성능 예산 충족(LCP/INP/CLS, API·DB P95 목표)
 - 보안 체크리스트 통과(CORS/CSRF/시크릿/입력 검증/SQL 바인딩)
