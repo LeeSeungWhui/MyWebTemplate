@@ -142,6 +142,10 @@ backend/config.ini
 backend/logs/
 logs/
 
+# Playwright (E2E artifacts)
+playwright-report/
+test-results/
+
 # Spyder project settings
 .spyderproject
 .spyproject

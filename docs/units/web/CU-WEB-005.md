@@ -37,7 +37,8 @@ links: [CU-BE-001, CU-BE-005, CU-WEB-001, CU-WEB-004, CU-WEB-006]
   - 성공: 응답 스키마 준수 + 요청ID 로깅
   - 실패:
     - 401 → /login 리다이렉트 + code/requestId 표시
-    - 4xx/5xx → 호출자가 `{status:false, code, requestId}`를 사용자 메시지로 매핑
+    - 4xx/5xx → `apiJSON`은 `ApiError`를 throw하고(호출자가 catch), `{code, requestId}`로 사용자 메시지를 매핑한다
+      - `ApiError`: `{ statusCode, code, requestId, path, body }`
 
 ### Data & Rules
 - SWR 키: 'session' (권장), 또는 ['auth','me'] 같은 배열 키(선택)

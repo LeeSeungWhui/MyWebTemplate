@@ -123,6 +123,28 @@ async function parseJsonResponseBody(response) {
   return normalizeNestedJsonFields(parsed)
 }
 
+function isPlainObject(value) {
+  if (!value || typeof value !== 'object') return false
+  if (Array.isArray(value)) return false
+  return true
+}
+
+function createApiError(path, response, body) {
+  const statusCode = response?.status
+  const message =
+    (isPlainObject(body) && typeof body.message === 'string' && body.message) ||
+    `API request failed (${statusCode || 'unknown'})`
+
+  const err = new Error(message)
+  err.name = 'ApiError'
+  err.statusCode = statusCode
+  err.code = isPlainObject(body) ? body.code : undefined
+  err.requestId = isPlainObject(body) ? body.requestId : undefined
+  err.body = body
+  err.path = typeof path === 'string' ? path : String(path || '')
+  return err
+}
+
 export async function apiRequest(path, initOrBody = {}, modeOrOptions) {
   const { init, csrfMode } = normalizeArgs(path, initOrBody, modeOrOptions)
   const method = (init.method || 'GET').toUpperCase()
@@ -225,7 +247,14 @@ export async function apiRequest(path, initOrBody = {}, modeOrOptions) {
 
 export const apiJSON = async (path, initOrBody = {}, modeOrOptions) => {
   const res = await apiRequest(path, initOrBody, modeOrOptions)
-  return parseJsonResponseBody(res)
+  const body = await parseJsonResponseBody(res)
+  if (!res?.ok) {
+    throw createApiError(path, res, body)
+  }
+  if (isPlainObject(body) && body.status === false) {
+    throw createApiError(path, res, body)
+  }
+  return body
 }
 
 export const apiGet = (path, init = {}) => apiJSON(path, { ...init, method: 'GET' })

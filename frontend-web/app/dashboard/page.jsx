@@ -12,11 +12,20 @@ import { apiJSON } from "@/app/lib/runtime/api";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
+const toErrorState = (err, key) => {
+  if (!err) return { key };
+  return {
+    key,
+    code: err.code,
+    requestId: err.requestId,
+  };
+};
+
 const fetchInitial = async () => {
   const endpoints = PAGE_MODE.endPoints || {};
   if (!endpoints.stats || !endpoints.list) {
     console.error("대시보드 엔드포인트가 설정되지 않았습니다.");
-    return { statList: [], dataList: [], error: "ENDPOINT_MISSING" };
+    return { statList: [], dataList: [], error: toErrorState(null, "ENDPOINT_MISSING") };
   }
   try {
     const [stats, list] = await Promise.all([
@@ -30,12 +39,14 @@ const fetchInitial = async () => {
     };
   } catch (error) {
     console.error("대시보드 초기 데이터 조회 실패", error);
-    return { statList: [], dataList: [], error: "INIT_FETCH_FAILED" };
+    return { statList: [], dataList: [], error: toErrorState(error, "INIT_FETCH_FAILED") };
   }
 };
 
 const DashboardPage = async () => {
-  const initialData = PAGE_MODE.MODE === "SSR" ? await fetchInitial() : { statList: [], dataList: [], error: null };
+  const initialData = PAGE_MODE.MODE === "SSR"
+    ? await fetchInitial()
+    : { statList: [], dataList: [], error: null };
   return (
     <DashboardView
       statList={initialData.statList}

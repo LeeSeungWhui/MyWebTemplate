@@ -10,7 +10,7 @@
 - React 19
 - Tailwind CSS v4
 - 상태/데이터: Zustand (+선택적 SWR)
-- 테스트/문서: Docs 페이지, Vitest (Playwright 예정)
+- 테스트/문서: Docs 페이지, Vitest, Playwright(로컬 E2E)
 - 언어: JavaScript Only (TypeScript 금지; 단, 빌드/테스트 설정은 예외)
 - 설정: `frontend-web/config.ini` + 환경별 오버레이(`config_dev.ini`, `config_prod.ini`)
 - BFF: `/api/bff/*` 라우트에서 Backend API를 프록시하며 쿠키를 재작성

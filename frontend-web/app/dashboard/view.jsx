@@ -12,6 +12,7 @@ import Button from "@/app/lib/component/Button";
 import Card from "@/app/lib/component/Card";
 import EasyChart from "@/app/lib/component/EasyChart";
 import EasyTable from "@/app/lib/component/EasyTable";
+import Skeleton from "@/app/lib/component/Skeleton";
 import Stat from "@/app/lib/component/Stat";
 import { apiJSON } from "@/app/lib/runtime/api";
 import { PAGE_MODE } from "./initData";
@@ -40,19 +41,41 @@ const formatCurrency = (value) => {
   return num.toLocaleString("ko-KR");
 };
 
+const normalizeErrorState = (value) => {
+  if (!value) return null;
+  if (typeof value === "string") return { key: value };
+  if (typeof value === "object") {
+    return {
+      key: value.key || "FETCH_FAILED",
+      code: value.code,
+      requestId: value.requestId,
+    };
+  }
+  return { key: "FETCH_FAILED" };
+};
+
+const toErrorState = (err, key) => {
+  if (!err) return { key };
+  return {
+    key,
+    code: err.code,
+    requestId: err.requestId,
+  };
+};
+
 const DashboardView = ({ statList, dataList, initialError }) => {
   const statsList = useEasyList(statList || []);
   const tableList = useEasyList(dataList || []);
   const [isLoading, setIsLoading] = useState(
     !statList?.length || !dataList?.length
   );
-  const [error, setError] = useState(initialError);
+  const [error, setError] = useState(() => normalizeErrorState(initialError));
   const endpoints = PAGE_MODE.endPoints || {};
   const hasEndpoint = Boolean(endpoints.stats && endpoints.list);
 
   const fetchDashboard = async () => {
     if (!hasEndpoint) {
-      setError("ENDPOINT_MISSING");
+      setError(toErrorState(null, "ENDPOINT_MISSING"));
       return;
     }
     setIsLoading(true);
@@ -66,7 +89,7 @@ const DashboardView = ({ statList, dataList, initialError }) => {
       tableList.copy(listRes?.result?.items || []);
     } catch (err) {
       console.error("대시보드 데이터 조회 실패", err);
-      setError("FETCH_FAILED");
+      setError(toErrorState(err, "FETCH_FAILED"));
     } finally {
       setIsLoading(false);
     }
@@ -133,9 +156,9 @@ const DashboardView = ({ statList, dataList, initialError }) => {
 
   const legendFontSize = 12;
   const errorText =
-    error === "ENDPOINT_MISSING"
+    error?.key === "ENDPOINT_MISSING"
       ? "엔드포인트가 설정되지 않았어."
-      : error === "FETCH_FAILED"
+      : error?.key === "INIT_FETCH_FAILED" || error?.key === "FETCH_FAILED"
       ? "대시보드 데이터를 불러오지 못했어."
       : null;
 
@@ -147,21 +170,37 @@ const DashboardView = ({ statList, dataList, initialError }) => {
             className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
             role="alert"
           >
-            {errorText}
+            <div>{errorText}</div>
+            {error?.requestId ? (
+              <div className="mt-1 text-xs text-red-700/80">
+                requestId: {error.requestId}
+              </div>
+            ) : null}
           </div>
         </section>
       ) : null}
 
       <section aria-label="지표 요약" className="grid gap-3 md:grid-cols-3">
-        {statCards.map((item) => (
-          <Stat key={item.label} {...item} className="p-1" />
-        ))}
+        {isLoading
+          ? Array.from({ length: 3 }).map((_, idx) => (
+              <div
+                key={`stat-skeleton-${idx}`}
+                className="border rounded-lg p-4 bg-white shadow-sm"
+              >
+                <Skeleton variant="text" lines={2} />
+                <Skeleton className="mt-4 h-7 w-2/3" />
+              </div>
+            ))
+          : statCards.map((item) => (
+              <Stat key={item.label} {...item} className="p-1" />
+            ))}
       </section>
 
       <section aria-label="차트 영역" className="grid gap-3 md:grid-cols-2">
         <EasyChart
           title="가입/활성 추이"
           dataList={lineData}
+          loading={isLoading}
           seriesList={[
             {
               seriesId: "count",
@@ -186,6 +225,7 @@ const DashboardView = ({ statList, dataList, initialError }) => {
         <EasyChart
           title="상태 분포"
           dataList={donutData}
+          loading={isLoading}
           seriesList={[
             {
               seriesId: "value",
@@ -214,6 +254,7 @@ const DashboardView = ({ statList, dataList, initialError }) => {
         >
           <EasyTable
             data={tableData}
+            loading={isLoading}
             columns={[
               { key: "title", header: "제목" },
               { key: "status", header: "상태" },
