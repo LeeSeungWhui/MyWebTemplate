@@ -28,7 +28,7 @@ from watchdog.observers import Observer
 
 dbManagers: Dict[str, "DatabaseManager"] = {}
 # 기본 DB 이름(템플릿 기본값은 main_db)
-_primaryDbName: Optional[str] = None
+primaryDbName: Optional[str] = None
 # 일부 서드파티 패키지는 PEP 561 타입 스텁이 없어 Pylance가 Unknown으로 인식한다.
 sqlObserver: Optional[Any] = None
 
@@ -41,28 +41,28 @@ debounceTimer: Optional[threading.Timer] = None
 lastChangedFile: Optional[str] = None
 
 # 요청 단위 SQL 카운터(ContextVar)
-_sqlCountVar: contextvars.ContextVar[int] = contextvars.ContextVar("sql_count", default=0)
+sqlCountVar: contextvars.ContextVar[int] = contextvars.ContextVar("sql_count", default=0)
 
 
 def getSqlCount() -> int:
     """설명: 현재 요청 컨텍스트의 SQL 실행 누계를 반환. 갱신일: 2025-11-12"""
     try:
-        return int(_sqlCountVar.get())
+        return int(sqlCountVar.get())
     except Exception:
         return 0
 
 
 def setPrimaryDbName(name: str) -> None:
     """설명: 기본 DB 이름을 설정한다. 갱신일: 2025-11-12"""
-    global _primaryDbName
-    _primaryDbName = (name or "").strip() or None
+    global primaryDbName
+    primaryDbName = (name or "").strip() or None
 
 
 def getPrimaryDbName() -> str:
     """설명: 우선순위(설정→ENV→보유목록)로 기본 DB 이름을 반환. 갱신일: 2025-11-12"""
     # 우선순위: 명시적 설정 → 환경변수 → 템플릿 기본값 → 등록된 첫 DB
-    if _primaryDbName:
-        return _primaryDbName
+    if primaryDbName:
+        return primaryDbName
     env = os.getenv("DB_PRIMARY")
     if env:
         return env
@@ -83,27 +83,27 @@ def getManager(name: Optional[str] = None) -> Optional["DatabaseManager"]:
     return dbManagers.get(key)
 
 
-def _incSqlCount(n: int = 1) -> None:
+def incSqlCount(n: int = 1) -> None:
     """설명: 현재 컨텍스트 SQL 카운터를 증가. 갱신일: 2025-11-12"""
     try:
-        cur = int(_sqlCountVar.get())
-        _sqlCountVar.set(cur + int(n))
+        cur = int(sqlCountVar.get())
+        sqlCountVar.set(cur + int(n))
     except Exception:
         pass
 
 
 class QueryManager:
-    _instance: Optional["QueryManager"] = None
+    instance: Optional["QueryManager"] = None
 
     @staticmethod
     def getInstance():
         """설명: 싱글톤 QueryManager를 반환한다. 갱신일: 2025-11-12"""
-        if QueryManager._instance is None:
-            QueryManager._instance = QueryManager()
-        return QueryManager._instance
+        if QueryManager.instance is None:
+            QueryManager.instance = QueryManager()
+        return QueryManager.instance
 
     def __init__(self):
-        if QueryManager._instance is None:
+        if QueryManager.instance is None:
             self.queries: Dict[str, str] = {}
             self.nameToFile: Dict[str, str] = {}
             self.fileToNames: Dict[str, Set[str]] = {}
@@ -134,21 +134,21 @@ class DatabaseManager:
         self.metadata = MetaData()
         self.queryManager = QueryManager.getInstance()
 
-    def _maskParams(self, values: Optional[Dict[str, Any]]) -> Dict[str, str]:
+    def maskParams(self, values: Optional[Dict[str, Any]]) -> Dict[str, str]:
         """설명: 로그에 사용할 파라미터 키만 노출. 갱신일: 2025-11-12"""
         if not values:
             return {}
         return {k: "***" for k in values.keys()}
 
-    def _extractPlaceholders(self, query: str) -> Set[str]:
+    def extractPlaceholders(self, query: str) -> Set[str]:
         """설명: 쿼리에서 :name 형 플레이스홀더 목록을 추출. 갱신일: 2025-11-12"""
         # 예시: :id, :user_name 등 명명 파라미터
         return set(re.findall(r":([a-zA-Z_][a-zA-Z0-9_]*)", query or ""))
 
-    def _validateBindParameters(self, query: str, values: Optional[Dict[str, Any]]):
+    def validateBindParameters(self, query: str, values: Optional[Dict[str, Any]]):
         """설명: 제공된 파라미터와 플레이스홀더 일치 여부를 검사. 갱신일: 2025-11-12"""
         values = values or {}
-        placeholders = self._extractPlaceholders(query)
+        placeholders = self.extractPlaceholders(query)
         provided = set(values.keys())
 
         if provided and not placeholders:
@@ -192,13 +192,6 @@ class DatabaseManager:
             )
             raise ValueError("DB_400_PARAM_UNUSED")
 
-    def _validate_bind_parameters(self, query: str, values: Optional[Dict[str, Any]]):
-        """
-        설명: snake_case 별칭(테스트/레거시 호환).
-        갱신일: 2025-12-18
-        """
-        return self._validateBindParameters(query, values)
-
     async def connect(self):
         """설명: DB 연결을 시작하고 SQLite 튜닝을 적용. 갱신일: 2025-11-12"""
         await self.database.connect()
@@ -218,50 +211,50 @@ class DatabaseManager:
 
     async def execute(self, query: str, values: Optional[Dict[str, Any]] = None) -> Any:
         """설명: 쓰기 쿼리를 실행하고 영향 행을 반환. 갱신일: 2025-11-12"""
-        self._validateBindParameters(query, values)
+        self.validateBindParameters(query, values)
         logger.info("executing query")
         logger.debug(
-            f"sql={query}; params={self._maskParams(values or {})}"
+            f"sql={query}; params={self.maskParams(values or {})}"
         )
         result = await self.database.execute(query=query, values=values or {})
         logger.info(f"rows_affected={result}")
-        _incSqlCount()
+        incSqlCount()
         return result
 
     async def fetchOne(self, query: str, values: Optional[Dict[str, Any]] = None) -> Optional[Dict[str, Any]]:
         """설명: 단일 행을 조회해 dict로 반환. 갱신일: 2025-11-12"""
-        self._validateBindParameters(query, values)
-        logger.info("fetch_one")
+        self.validateBindParameters(query, values)
+        logger.info("fetchOne")
         logger.debug(
-            f"sql={query}; params={self._maskParams(values or {})}"
+            f"sql={query}; params={self.maskParams(values or {})}"
         )
         result = await self.database.fetch_one(query=query, values=values or {})
         if result is not None:
             data: Dict[str, Any] = dict(result)
             logger.info("rows_returned=1")
-            _incSqlCount()
+            incSqlCount()
             return data
         else:
             logger.info("rows_returned=0")
-            _incSqlCount()
+            incSqlCount()
             return None
 
     async def fetchAll(self, query: str, values: Optional[Dict[str, Any]] = None) -> Optional[List[Dict[str, Any]]]:
         """설명: 여러 행을 리스트로 반환. 갱신일: 2025-11-12"""
-        self._validateBindParameters(query, values)
-        logger.info("fetch_all")
+        self.validateBindParameters(query, values)
+        logger.info("fetchAll")
         logger.debug(
-            f"sql={query}; params={self._maskParams(values or {})}"
+            f"sql={query}; params={self.maskParams(values or {})}"
         )
         result = await self.database.fetch_all(query=query, values=values or {})
         if result is not None:
             data: List[Dict[str, Any]] = [{column: row[column] for column in row.keys()} for row in result]  # type: ignore[index]
             logger.info(f"rows_returned={len(data)}")
-            _incSqlCount()
+            incSqlCount()
             return data
         else:
             logger.info("rows_returned=0")
-            _incSqlCount()
+            incSqlCount()
             return None
 
     async def executeQuery(self, queryName: str, values: Optional[Dict[str, Any]] = None) -> Any:

@@ -13,7 +13,7 @@ from lib import Database as DB
 from lib.Transaction import transaction
 
 
-async def ensure_tables(dbName: str = "main_db") -> None:
+async def ensureTables(dbName: str = "main_db") -> None:
     db = DB.getManager(dbName)
     if not db:
         raise RuntimeError(f"database not found: {dbName}")
@@ -28,8 +28,8 @@ async def ensure_tables(dbName: str = "main_db") -> None:
 
 
 @transaction("main_db")
-async def test_single() -> dict:
-    await ensure_tables("main_db")
+async def testSingle() -> dict:
+    await ensureTables("main_db")
     db = DB.getManager("main_db")
     assert db is not None
     value = f"tx-{uuid.uuid4().hex[:8]}"
@@ -41,8 +41,8 @@ async def test_single() -> dict:
 
 
 @transaction("main_db")
-async def test_unique_violation() -> None:
-    await ensure_tables("main_db")
+async def testUniqueViolation() -> None:
+    await ensureTables("main_db")
     db = DB.getManager("main_db")
     assert db is not None
     # Intentionally trigger UNIQUE constraint error. The decorator must roll back the whole tx.

@@ -190,10 +190,10 @@ def decodeRefreshTokenPayload(refreshToken: str) -> Optional[Dict[str, Any]]:
     갱신일: 2025-12-03
     """
     try:
-        secret = AuthConfig.SECRET_KEY
+        secret = AuthConfig.secretKey
         if not secret:
             return None
-        payload = jwt.decode(refreshToken, secret, algorithms=[AuthConfig.ALGORITHM])
+        payload = jwt.decode(refreshToken, secret, algorithms=[AuthConfig.algorithm])
         tokenType = payload.get("typ")
         if tokenType != "refresh":
             return None

@@ -11,7 +11,7 @@ from typing import Dict, List, Tuple, Set, Optional
 from lib.Logger import logger
 
 
-NAME_MARK = "-- name:"
+nameMark = "-- name:"
 
 
 def parseSqlFile(filePath: str) -> List[Tuple[str, str]]:
@@ -29,7 +29,7 @@ def parseSqlFile(filePath: str) -> List[Tuple[str, str]]:
     with open(filePath, "r", encoding="utf-8") as f:
         for raw in f:
             line = raw.rstrip("\n")
-            if NAME_MARK in line:
+            if nameMark in line:
                 # 이전 버퍼를 먼저 기록
                 if currentName is not None:
                     sql = ("\n".join(currentBuf)).strip()
@@ -37,7 +37,7 @@ def parseSqlFile(filePath: str) -> List[Tuple[str, str]]:
                         entries.append((currentName, sql))
                     currentBuf = []
                 # 마커 뒤에서 이름 문자열 추출
-                name = line.split(NAME_MARK, 1)[1].strip()
+                name = line.split(nameMark, 1)[1].strip()
                 if not name:
                     raise ValueError(f"empty query name in file: {filePath}")
                 # 동일 파일 내 중복 여부 확인

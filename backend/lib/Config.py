@@ -19,18 +19,18 @@ except Exception:  # pragma: no cover
     logger = None  # type: ignore
 
 
-_CONFIG: Optional[ConfigParser] = None
-_CONFIG_PATH: Optional[str] = None
+configCache: Optional[ConfigParser] = None
+configCachePath: Optional[str] = None
 
 
-def _backendDir() -> str:
+def backendDir() -> str:
     return os.path.dirname(os.path.dirname(__file__))
 
 
-def _resolvePath(filename: str) -> str:
+def resolvePath(filename: str) -> str:
     if os.path.isabs(filename):
         return filename
-    return os.path.join(_backendDir(), filename)
+    return os.path.join(backendDir(), filename)
 
 
 def get(section: str, key: str, default: Optional[str] = None) -> str:
@@ -55,8 +55,8 @@ def loadConfig(filename: str) -> ConfigParser:
 
     config = ConfigParser()
     # backend/lib → backend 로 맞춤
-    cfgPath = _resolvePath(filename)
-    with open(cfgPath, "r", encoding="utf-8") as f:
+    configPath = resolvePath(filename)
+    with open(configPath, "r", encoding="utf-8") as f:
         config.read_file(f)
 
     if logger:
@@ -69,17 +69,17 @@ def loadConfig(filename: str) -> ConfigParser:
 
 def getConfig(path: Optional[str] = None, forceReload: bool = False) -> ConfigParser:
     """설명: 설정 캐시를 반환하고 필요 시 재로딩한다. 갱신일: 2025-11-12"""
-    global _CONFIG, _CONFIG_PATH
+    global configCache, configCachePath
 
     # 환경변수 우선
     if path is None:
-        path = os.getenv("BACKEND_CONFIG", _CONFIG_PATH or "config.ini")
+        path = os.getenv("BACKEND_CONFIG", configCachePath or "config.ini")
 
-    resolved = _resolvePath(path)
-    if forceReload or _CONFIG is None or _CONFIG_PATH != resolved:
-        _CONFIG = loadConfig(path)
-        _CONFIG_PATH = resolved
-    return _CONFIG
+    resolved = resolvePath(path)
+    if forceReload or configCache is None or configCachePath != resolved:
+        configCache = loadConfig(path)
+        configCachePath = resolved
+    return configCache
 
 
 def reloadConfig() -> ConfigParser:

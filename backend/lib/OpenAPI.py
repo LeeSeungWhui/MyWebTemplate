@@ -21,7 +21,7 @@ def attachOpenAPI(app: FastAPI, config) -> None:
     설명: 주어진 app에 custom openapi 함수 부착. config는 [AUTH]/기타 값을 제공.
     """
 
-    def _cfg_get(section: Optional[object], key: str, fallback: Optional[str] = None) -> Optional[str]:
+    def readConfigValue(section: Optional[object], key: str, fallback: Optional[str] = None) -> Optional[str]:
         """
         configparser.SectionProxy / dict 모두에서 안전하게 값을 읽는다.
         """
@@ -42,7 +42,7 @@ def attachOpenAPI(app: FastAPI, config) -> None:
         except Exception:
             return fallback
 
-    def _patchOpenapi(schema: Dict[str, Any]) -> Dict[str, Any]:
+    def patchOpenapi(schema: Dict[str, Any]) -> Dict[str, Any]:
         try:
             authSection = None
             try:
@@ -51,11 +51,11 @@ def attachOpenAPI(app: FastAPI, config) -> None:
                 authSection = None
 
             accessCookie = (
-                _cfg_get(authSection, "access_cookie")
-                or _cfg_get(authSection, "session_cookie")
+                readConfigValue(authSection, "access_cookie")
+                or readConfigValue(authSection, "session_cookie")
                 or "access_token"
             )
-            refreshCookie = _cfg_get(authSection, "refresh_cookie") or "refresh_token"
+            refreshCookie = readConfigValue(authSection, "refresh_cookie") or "refresh_token"
 
             components = schema.setdefault("components", {})
             securitySchemes = components.setdefault("securitySchemes", {})
@@ -131,7 +131,7 @@ def attachOpenAPI(app: FastAPI, config) -> None:
                 }
 
             params = components.setdefault("parameters", {})
-            csrfHeaderName = _cfg_get(authSection, "csrf_header", "X-CSRF-Token")
+            csrfHeaderName = readConfigValue(authSection, "csrf_header", "X-CSRF-Token")
             params["CSRFToken"] = {
                 "name": csrfHeaderName,
                 "in": "header",
@@ -141,7 +141,7 @@ def attachOpenAPI(app: FastAPI, config) -> None:
             }
 
             # 설정값에서 서버 URL 목록을 구성
-            def _resolveServers():
+            def resolveServers():
                 urls = []
                 try:
                     serverSection = config["SERVER"]
@@ -166,7 +166,7 @@ def attachOpenAPI(app: FastAPI, config) -> None:
                     urls = ["http://localhost:2000"]
                 return [{"url": u} for u in urls]
 
-            schema["servers"] = _resolveServers()
+            schema["servers"] = resolveServers()
 
             tags = sorted({tag for tag in (t.get("name") for t in schema.get("tags", [])) if tag})
             if tags:
@@ -249,7 +249,7 @@ def attachOpenAPI(app: FastAPI, config) -> None:
             # 비멱등 메서드 전체에 CSRF 파라미터를 공통으로 추가
             csrfRef = {"$ref": "#/components/parameters/CSRFToken"}
             unsafeMethods = ("post", "put", "patch", "delete")
-            for _pathKey, ops in paths.items():
+            for ops in paths.values():
                 if not isinstance(ops, dict):
                     continue
                 for methodName in unsafeMethods:
@@ -272,7 +272,7 @@ def attachOpenAPI(app: FastAPI, config) -> None:
             description="API for Web/App backend.",
             routes=app.routes,
         )
-        app.openapi_schema = _patchOpenapi(openapiSchema)
+        app.openapi_schema = patchOpenapi(openapiSchema)
         return app.openapi_schema
 
     app.openapi = customOpenapi  # type: ignore

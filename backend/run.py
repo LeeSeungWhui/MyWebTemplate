@@ -9,20 +9,20 @@ from configparser import ConfigParser
 import uvicorn
 
 
-def load_config():
+def loadConfig():
     config = ConfigParser()
-    with open("config.ini", "r", encoding="utf-8") as config_file:
-        config.read_file(config_file)
+    with open("config.ini", "r", encoding="utf-8") as configFile:
+        config.read_file(configFile)
     return config
 
 
 if __name__ == "__main__":
-    config = load_config()
-    server_config = config["SERVER"]
+    config = loadConfig()
+    serverConfig = config["SERVER"]
 
     uvicorn.run(
         "server:app",
         host="0.0.0.0",
-        port=server_config.getint("port", 8000),
+        port=serverConfig.getint("port", 8000),
         reload=True,
     )

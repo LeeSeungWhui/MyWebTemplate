@@ -17,15 +17,15 @@ router = APIRouter(prefix="/api/v1/transaction", tags=["transaction"])
 
 
 @router.post("/test/single")
-async def test_single():
-    result = await TransactionService.test_single()
+async def testSingle():
+    result = await TransactionService.testSingle()
     return JSONResponse(status_code=200, content=successResponse(result=result))
 
 
 @router.post("/test/unique-violation")
-async def test_unique_violation():
+async def testUniqueViolation():
     try:
-        await TransactionService.test_unique_violation()
+        await TransactionService.testUniqueViolation()
         return JSONResponse(status_code=200, content=successResponse(result={"ok": True}))
     except Exception:
         return JSONResponse(

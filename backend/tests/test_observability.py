@@ -5,64 +5,64 @@ from fastapi.testclient import TestClient
 
 
 # Ensure we can import backend modules in both test and runtime
-BASE_DIR = os.path.dirname(os.path.dirname(__file__))
-if BASE_DIR not in sys.path:
-    sys.path.insert(0, BASE_DIR)
+baseDir = os.path.dirname(os.path.dirname(__file__))
+if baseDir not in sys.path:
+    sys.path.insert(0, baseDir)
 
 
-def test_healthz_ok():
+def testHealthzOk():
     from server import app
 
     with TestClient(app) as client:
-        r = client.get("/healthz")
-        assert r.status_code == 200
-        assert r.headers.get("Cache-Control") == "no-store"
-        assert r.headers.get("X-Request-Id")
+        response = client.get("/healthz")
+        assert response.status_code == 200
+        assert response.headers.get("Cache-Control") == "no-store"
+        assert response.headers.get("X-Request-Id")
 
-        data = r.json()
+        data = response.json()
         assert data["status"] is True
         assert data["result"]["ok"] is True
         assert data["requestId"]
 
 
-def test_readyz_ok():
+def testReadyzOk():
     from server import app
 
     with TestClient(app) as client:
-        r = client.get("/readyz")
-        assert r.status_code == 200
-        data = r.json()
+        response = client.get("/readyz")
+        assert response.status_code == 200
+        data = response.json()
         assert data["status"] is True
         # db may not exist in tests, but default sqlite is configured; allow either
         assert "ok" in data["result"]
 
 
-def test_request_id_propagation():
+def testRequestIdPropagation():
     from server import app
 
     with TestClient(app) as client:
-        rid = "test-rid-123"
-        r = client.get("/healthz", headers={"X-Request-Id": rid})
-        assert r.status_code == 200
-        assert r.headers.get("X-Request-Id") == rid
-        assert r.json()["requestId"] == rid
+        requestId = "test-rid-123"
+        response = client.get("/healthz", headers={"X-Request-Id": requestId})
+        assert response.status_code == 200
+        assert response.headers.get("X-Request-Id") == requestId
+        assert response.json()["requestId"] == requestId
 
 
-def test_readyz_maintenance(monkeypatch):
+def testReadyzMaintenance(monkeypatch):
     from server import app
     monkeypatch.setenv("MAINTENANCE_MODE", "true")
 
     with TestClient(app) as client:
-        r = client.get("/readyz")
-        assert r.status_code == 503
-        data = r.json()
+        response = client.get("/readyz")
+        assert response.status_code == 503
+        data = response.json()
         # maintenance mode should return error envelope
         assert data["status"] is False
         assert data["code"] == "OBS_503_NOT_READY"
         assert data["result"]["ok"] is False
 
 
-def test_readyz_fail_503(monkeypatch):
+def testReadyzFail503(monkeypatch):
     # Force DB ping failure by replacing dbManagers with a stub that raises
     from lib import Database as DB
 
@@ -77,15 +77,15 @@ def test_readyz_fail_503(monkeypatch):
 
     from server import app
     with TestClient(app) as client:
-        r = client.get("/readyz")
-        assert r.status_code == 503
-        j = r.json()
+        response = client.get("/readyz")
+        assert response.status_code == 503
+        j = response.json()
         assert j["status"] is False
         assert j["result"]["ok"] is False
         assert j["result"]["db"] == "down"
 
 
-def test_readyz_timeout(monkeypatch):
+def testReadyzTimeout(monkeypatch):
     # Simulate slow DB to trigger timeout
     from lib import Database as DB
 
@@ -102,22 +102,22 @@ def test_readyz_timeout(monkeypatch):
 
     from server import app
     with TestClient(app) as client:
-        r = client.get("/readyz")
-        assert r.status_code == 503
-        assert r.json()["result"]["db"] == "down"
+        response = client.get("/readyz")
+        assert response.status_code == 503
+        assert response.json()["result"]["db"] == "down"
 
 
-def test_oracle_ping_sql(monkeypatch):
+def testOraclePingSql(monkeypatch):
     # Verify oracle ping uses SELECT 1 FROM DUAL by having stub capture SQL
     from lib import Database as DB
 
     class OracleMgr:
         def __init__(self):
             self.databaseUrl = "oracle+cx_oracle://"
-            self.last_sql = None
+            self.lastSql = None
 
         async def fetchOne(self, sql):
-            self.last_sql = sql
+            self.lastSql = sql
             return None
 
     mgr = OracleMgr()
@@ -125,18 +125,18 @@ def test_oracle_ping_sql(monkeypatch):
 
     from server import app
     with TestClient(app) as client:
-        r = client.get("/readyz")
-        assert r.status_code in (200, 503)
+        response = client.get("/readyz")
+        assert response.status_code in (200, 503)
         # ensure dialect-specific SQL selected
-        assert mgr.last_sql == "SELECT 1 FROM DUAL"
+        assert mgr.lastSql == "SELECT 1 FROM DUAL"
 
 
-def test_logging_shape(caplog):
+def testLoggingShape(caplog):
     from server import app
     with TestClient(app) as client:
         caplog.clear()
-        r = client.get("/healthz")
-        assert r.status_code == 200
+        response = client.get("/healthz")
+        assert response.status_code == 200
         # find at least one log containing JSON fields we emit
         seen = False
         for rec in caplog.records:

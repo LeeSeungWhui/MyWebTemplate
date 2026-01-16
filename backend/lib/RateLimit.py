@@ -30,7 +30,7 @@ class RateLimiter:
         self.window = int(windowSec)
         self.store = {}
 
-    def _now(self):
+    def now(self):
         """설명: monotonic 초 단위를 반환. 갱신일: 2025-11-12"""
         return time.monotonic()
 
@@ -41,26 +41,26 @@ class RateLimiter:
         - commit=False: 검사만 수행(카운트 증가 없음)
         갱신일: 2026-01-15
         """
-        now = self._now()
-        dq = self.store.get(key)
-        if dq is None:
+        now = self.now()
+        timestamps = self.store.get(key)
+        if timestamps is None:
             if not commit:
                 return True, 0
-            dq = deque()
-            self.store[key] = dq
-        while dq and now - dq[0] > self.window:
-            dq.popleft()
-        if len(dq) >= self.limit:
-            retryAfter = max(1, int(self.window - (now - dq[0])))
+            timestamps = deque()
+            self.store[key] = timestamps
+        while timestamps and now - timestamps[0] > self.window:
+            timestamps.popleft()
+        if len(timestamps) >= self.limit:
+            retryAfter = max(1, int(self.window - (now - timestamps[0])))
             return False, retryAfter
         if commit:
-            dq.append(now)
+            timestamps.append(now)
         return True, 0
 
 
 globalRateLimiter = RateLimiter(limit=int(os.getenv("AUTH_RATE_LIMIT", "5")), windowSec=60)
 
-def _resolveClientIp(request: Request) -> str:
+def resolveClientIp(request: Request) -> str:
     """
     설명: 요청의 클라이언트 IP를 최대한 정확히 추정한다.
     - 기본: request.client.host
@@ -85,12 +85,12 @@ def checkRateLimit(request: Request, username: Optional[str] = None, *, commit: 
     - 키: ip:{ip} 와 user:{username}(옵션) 조합.
     - commit=False로 호출하면 '현재 제한 상태인지'만 확인한다(카운트 증가 없음).
     """
-    ip = _resolveClientIp(request)
+    ip = resolveClientIp(request)
     keys = [f"ip:{ip}"]
     if username:
         keys.append(f"user:{username}")
-    for k in keys:
-        ok, retryAfter = globalRateLimiter.hit(k, commit=commit)
+    for key in keys:
+        ok, retryAfter = globalRateLimiter.hit(key, commit=commit)
         if not ok:
             return JSONResponse(
                 status_code=429,

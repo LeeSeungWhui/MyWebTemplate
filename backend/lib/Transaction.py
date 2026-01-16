@@ -88,7 +88,7 @@ def transaction(
                         break
                     if attempt > retries:
                         break
-                    await _sleepBackoff(attempt)
+                    await sleepBackoff(attempt)
                 finally:
                     if stack is not None:
                         try:
@@ -108,7 +108,7 @@ def transaction(
     return decorator
 
 
-async def _sleepBackoff(attempt: int) -> None:
+async def sleepBackoff(attempt: int) -> None:
     """설명: 재시도 간 백오프(최대 0.5초)를 수행. 갱신일: 2025-11-12"""
     try:
         import anyio
@@ -118,7 +118,7 @@ async def _sleepBackoff(attempt: int) -> None:
         return
 
 
-class _Savepoint:
+class Savepoint:
     """설명: SAVEPOINT 관리용 컨텍스트. 갱신일: 2025-11-12"""
 
     def __init__(self, dbName: str, name: str):
@@ -147,9 +147,9 @@ class _Savepoint:
             return False
 
 
-def savepoint(dbName: str, name: str) -> _Savepoint:
+def savepoint(dbName: str, name: str) -> Savepoint:
     """설명: 부분 롤백용 SAVEPOINT 컨텍스트를 생성. 갱신일: 2025-11-12"""
-    return _Savepoint(dbName, name)
+    return Savepoint(dbName, name)
 
 
 def transactionDefault():

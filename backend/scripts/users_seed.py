@@ -14,11 +14,11 @@ import sqlite3
 from typing import Optional
 
 
-def connect(db_path: str) -> sqlite3.Connection:
-    return sqlite3.connect(db_path)
+def connect(dbPath: str) -> sqlite3.Connection:
+    return sqlite3.connect(dbPath)
 
 
-def _hash_password_pbkdf2(plain: str, iterations: int = 260000) -> str:
+def hashPasswordPbkdf2(plain: str, iterations: int = 260000) -> str:
     salt = secrets.token_bytes(16)
     dk = hashlib.pbkdf2_hmac("sha256", plain.encode("utf-8"), salt, iterations)
     return (
@@ -28,7 +28,7 @@ def _hash_password_pbkdf2(plain: str, iterations: int = 260000) -> str:
     )
 
 
-def ensure_table(con: sqlite3.Connection) -> None:
+def ensureTable(con: sqlite3.Connection) -> None:
     con.execute(
         """
         CREATE TABLE IF NOT EXISTS user_template (
@@ -44,7 +44,7 @@ def ensure_table(con: sqlite3.Connection) -> None:
     con.commit()
 
 
-def seed_demo(
+def seedDemo(
     con: sqlite3.Connection,
     *,
     username: str = "demo@demo.demo",
@@ -53,14 +53,13 @@ def seed_demo(
     email: Optional[str] = "demo@demo.demo",
     role: str = "user",
 ) -> None:
-    ensure_table(con)
-    cur = con.execute("SELECT 1 FROM user_template WHERE username = ?", (username,))
-    if cur.fetchone():
+    ensureTable(con)
+    cursor = con.execute("SELECT 1 FROM user_template WHERE username = ?", (username,))
+    if cursor.fetchone():
         return
-    pwd_hash = _hash_password_pbkdf2(password)
+    passwordHash = hashPasswordPbkdf2(password)
     con.execute(
         "INSERT INTO user_template (username, password_hash, name, email, role) VALUES (?,?,?,?,?)",
-        (username, pwd_hash, name, email, role),
+        (username, passwordHash, name, email, role),
     )
     con.commit()
-

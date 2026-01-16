@@ -198,16 +198,16 @@ async def onStartup():
 # ---------------------------------------------------------------------------
 
 # 설정은 한 번만 로드해 재사용
-cfg = getConfig()
+config = getConfig()
 
 # DB 헬퍼가 기본 DB 이름을 알 수 있도록 전달(실패 시 무시)
 try:
-    DB.setPrimaryDbName(cfg["DATABASE"].get("name", "main_db"))
+    DB.setPrimaryDbName(config["DATABASE"].get("name", "main_db"))
 except Exception:
     pass
 
 # CORS 설정
-corsConfig = cfg["CORS"]
+corsConfig = config["CORS"]
 originsRaw = corsConfig.get("allow_origins", "").strip()
 originRegexRaw = corsConfig.get("allow_origin_regex", "").strip()
 try:
@@ -249,7 +249,7 @@ logger.info("router load start")
 # 설정값에 따라 데모 라우터를 비활성화할 수 있음
 disableDemoRoutes = False
 try:
-    disableDemoRoutes = cfg["SERVER"].getboolean("disable_demo_routes", False)
+    disableDemoRoutes = config["SERVER"].getboolean("disable_demo_routes", False)
 except Exception:
     disableDemoRoutes = False
 
@@ -276,7 +276,7 @@ async def globalExceptionHandler(request: Request, exc: Exception):
     )
 
 
-def _sanitizeValidationErrors(errors: object) -> list[dict]:
+def sanitizeValidationErrors(errors: object) -> list[dict]:
     """
     설명: RequestValidationError의 errors()를 노출 가능한 형태로 정리한다.
     주의: 입력값(input) 등 민감정보가 포함될 수 있어 최소 필드만 반환한다.
@@ -307,7 +307,7 @@ async def requestValidationExceptionHandler(request: Request, exc: RequestValida
             message="invalid request",
             result={
                 "path": request.url.path,
-                "detail": _sanitizeValidationErrors(exc.errors()),
+                "detail": sanitizeValidationErrors(exc.errors()),
             },
             code="VALID_422_REQUEST",
         ),

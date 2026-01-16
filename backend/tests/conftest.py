@@ -15,33 +15,37 @@ import pytest
 from configparser import ConfigParser
 
 # Ensure backend/ is importable
-BASE_DIR = os.path.dirname(os.path.dirname(__file__))
-TEST_CONFIG_PATH = os.path.join(BASE_DIR, "config.test.ini")
-os.environ["BACKEND_CONFIG"] = TEST_CONFIG_PATH
-if BASE_DIR not in sys.path:
-    sys.path.insert(0, BASE_DIR)
+baseDir = os.path.dirname(os.path.dirname(__file__))
+testConfigPath = os.path.join(baseDir, "config.test.ini")
+os.environ["BACKEND_CONFIG"] = testConfigPath
+if baseDir not in sys.path:
+    sys.path.insert(0, baseDir)
 
 
-def _load_db_path() -> str:
+def loadDbPath() -> str:
     # 테스트 전용 config(test)에서 DB 경로를 읽는다.
-    cfg = ConfigParser()
-    cfg.read(TEST_CONFIG_PATH, encoding='utf-8')
-    section = 'DATABASE'
-    db_rel = cfg[section].get('database', './data/test.db') if section in cfg else './data/test.db'
-    if not os.path.isabs(db_rel):
-        return os.path.normpath(os.path.join(BASE_DIR, db_rel))
-    return db_rel
+    config = ConfigParser()
+    config.read(testConfigPath, encoding="utf-8")
+    section = "DATABASE"
+    dbPathRel = (
+        config[section].get("database", "./data/test.db")
+        if section in config
+        else "./data/test.db"
+    )
+    if not os.path.isabs(dbPathRel):
+        return os.path.normpath(os.path.join(baseDir, dbPathRel))
+    return dbPathRel
 
 
-def _hash_password_pbkdf2(plain: str, iterations: int = 260000) -> str:
+def hashPasswordPbkdf2(plain: str, iterations: int = 260000) -> str:
     salt = secrets.token_bytes(16)
     dk = hashlib.pbkdf2_hmac("sha256", plain.encode("utf-8"), salt, iterations)
     return f"pbkdf2${iterations}${base64.b64encode(salt).decode()}${base64.b64encode(dk).decode()}"
 
 
-def _ensure_user_table_and_demo(db_path: str) -> None:
-    os.makedirs(os.path.dirname(db_path), exist_ok=True)
-    con = sqlite3.connect(db_path)
+def ensureUserTableAndDemo(dbPath: str) -> None:
+    os.makedirs(os.path.dirname(dbPath), exist_ok=True)
+    con = sqlite3.connect(dbPath)
     try:
         con.execute(
             """
@@ -59,19 +63,19 @@ def _ensure_user_table_and_demo(db_path: str) -> None:
         cur = con.execute("SELECT 1 FROM user_template WHERE username = ?", ("demo@demo.demo",))
         if cur.fetchone():
             return
-        pwd_hash = _hash_password_pbkdf2("password123")
+        passwordHash = hashPasswordPbkdf2("password123")
         con.execute(
             "INSERT INTO user_template (username, password_hash, name, email, role) VALUES (?,?,?,?,?)",
-            ("demo@demo.demo", pwd_hash, "Demo User", "demo@demo.demo", "user"),
+            ("demo@demo.demo", passwordHash, "Demo User", "demo@demo.demo", "user"),
         )
         con.commit()
     finally:
         con.close()
 
 
-def _ensure_tx_table(db_path: str) -> None:
-    os.makedirs(os.path.dirname(db_path), exist_ok=True)
-    con = sqlite3.connect(db_path)
+def ensureTxTable(dbPath: str) -> None:
+    os.makedirs(os.path.dirname(dbPath), exist_ok=True)
+    con = sqlite3.connect(dbPath)
     try:
         con.execute(
             """
@@ -88,13 +92,13 @@ def _ensure_tx_table(db_path: str) -> None:
 
 def pytest_sessionstart(session):
     # Seed required tables/data for tests without touching runtime code.
-    db_path = _load_db_path()
-    _ensure_user_table_and_demo(db_path)
-    _ensure_tx_table(db_path)
+    dbPath = loadDbPath()
+    ensureUserTableAndDemo(dbPath)
+    ensureTxTable(dbPath)
 
 
 @pytest.fixture(autouse=True)
-def _reset_rate_limiter():
+def resetRateLimiter():
     # Ensure tests don't depend on order (RateLimiter is in-memory global).
     try:
         from lib.RateLimit import globalRateLimiter

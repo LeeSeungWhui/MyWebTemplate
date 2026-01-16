@@ -47,9 +47,9 @@ async def login(request: Request):
     loc = detectLocale(request)
     username = payload.get("username")
     password = payload.get("password")
-    is_short_username = not isinstance(username, str) or len(username) < 3
-    is_short_password = not isinstance(password, str) or len(password) < 8
-    if is_short_username or is_short_password:
+    isShortUsername = not isinstance(username, str) or len(username) < 3
+    isShortPassword = not isinstance(password, str) or len(password) < 8
+    if isShortUsername or isShortPassword:
         return JSONResponse(
             status_code=422,
             content=errorResponse(message=i18nTranslate("error.invalid_input", "invalid input", loc), code="AUTH_422_INVALID_INPUT"),
@@ -74,28 +74,28 @@ async def login(request: Request):
         )
 
     tokenPayload = authResult["token"]
-    accessMaxAge = AuthConfig.ACCESS_TOKEN_EXPIRE_MINUTES * 60
+    accessMaxAge = AuthConfig.accessTokenExpireMinutes * 60
     refreshMaxAge = (
-        AuthConfig.REFRESH_TOKEN_EXPIRE_MINUTES * 60
+        AuthConfig.refreshTokenExpireMinutes * 60
         if tokenPayload.get("remember")
         else None
     )
 
-    res = JSONResponse(status_code=200, content=successResponse(result={
+    response = JSONResponse(status_code=200, content=successResponse(result={
         "access_token": tokenPayload["access_token"],
         "token_type": tokenPayload["token_type"],
         "expires_in": tokenPayload["expires_in"],
         "refresh_expires_in": tokenPayload["refresh_expires_in"],
     }))
-    res.headers["Cache-Control"] = "no-store"
-    res.set_cookie(**cookieOptions(AuthConfig.ACCESS_COOKIE_NAME, tokenPayload["access_token"], maxAge=accessMaxAge))
-    res.set_cookie(**cookieOptions(AuthConfig.REFRESH_COOKIE_NAME, tokenPayload["refresh_token"], maxAge=refreshMaxAge))
-    return res
+    response.headers["Cache-Control"] = "no-store"
+    response.set_cookie(**cookieOptions(AuthConfig.accessCookieName, tokenPayload["access_token"], maxAge=accessMaxAge))
+    response.set_cookie(**cookieOptions(AuthConfig.refreshCookieName, tokenPayload["refresh_token"], maxAge=refreshMaxAge))
+    return response
 
 
 @router.post("/refresh")
 async def refresh(request: Request):
-    refreshToken = request.cookies.get(AuthConfig.REFRESH_COOKIE_NAME)
+    refreshToken = request.cookies.get(AuthConfig.refreshCookieName)
     loc = detectLocale(request)
     if not refreshToken:
         return JSONResponse(
@@ -116,13 +116,13 @@ async def refresh(request: Request):
             ),
             headers={"WWW-Authenticate": "Bearer"},
         )
-    accessMaxAge = AuthConfig.ACCESS_TOKEN_EXPIRE_MINUTES * 60
+    accessMaxAge = AuthConfig.accessTokenExpireMinutes * 60
     refreshMaxAge = (
-        AuthConfig.REFRESH_TOKEN_EXPIRE_MINUTES * 60
+        AuthConfig.refreshTokenExpireMinutes * 60
         if tokenPayload.get("remember")
         else None
     )
-    res = JSONResponse(
+    response = JSONResponse(
         status_code=200,
         content=successResponse(
             result={
@@ -133,25 +133,25 @@ async def refresh(request: Request):
             }
         ),
     )
-    res.headers["Cache-Control"] = "no-store"
-    res.set_cookie(**cookieOptions(AuthConfig.ACCESS_COOKIE_NAME, tokenPayload["access_token"], maxAge=accessMaxAge))
-    res.set_cookie(**cookieOptions(AuthConfig.REFRESH_COOKIE_NAME, tokenPayload["refresh_token"], maxAge=refreshMaxAge))
-    return res
+    response.headers["Cache-Control"] = "no-store"
+    response.set_cookie(**cookieOptions(AuthConfig.accessCookieName, tokenPayload["access_token"], maxAge=accessMaxAge))
+    response.set_cookie(**cookieOptions(AuthConfig.refreshCookieName, tokenPayload["refresh_token"], maxAge=refreshMaxAge))
+    return response
 
 
 @router.post("/logout", status_code=204)
 async def logout(request: Request):
-    refreshToken = request.cookies.get(AuthConfig.REFRESH_COOKIE_NAME)
+    refreshToken = request.cookies.get(AuthConfig.refreshCookieName)
     AuthService.revokeRefreshToken(refreshToken)
-    res = Response(status_code=204)
-    res.delete_cookie(AuthConfig.ACCESS_COOKIE_NAME, path="/")
-    res.delete_cookie(AuthConfig.REFRESH_COOKIE_NAME, path="/")
-    return res
+    response = Response(status_code=204)
+    response.delete_cookie(AuthConfig.accessCookieName, path="/")
+    response.delete_cookie(AuthConfig.refreshCookieName, path="/")
+    return response
 
 
 @router.get("/me")
 async def me(request: Request, user=Depends(getCurrentUser)):
     result = await AuthService.me(user)
-    res = JSONResponse(content=result, status_code=200)
-    res.headers["Cache-Control"] = "no-store"
-    return res
+    response = JSONResponse(content=result, status_code=200)
+    response.headers["Cache-Control"] = "no-store"
+    return response

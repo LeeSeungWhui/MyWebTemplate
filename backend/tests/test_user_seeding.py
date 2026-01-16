@@ -4,33 +4,33 @@ import tempfile
 import importlib.util
 
 
-BASE_DIR = os.path.dirname(os.path.dirname(__file__))
-if BASE_DIR not in sys.path:
-    sys.path.insert(0, BASE_DIR)
+baseDir = os.path.dirname(os.path.dirname(__file__))
+if baseDir not in sys.path:
+    sys.path.insert(0, baseDir)
 
 
-def _load_seed_module():
-    path = os.path.join(BASE_DIR, 'scripts', 'users_seed.py')
-    spec = importlib.util.spec_from_file_location('users_seed', path)
+def loadSeedModule():
+    path = os.path.join(baseDir, "scripts", "users_seed.py")
+    spec = importlib.util.spec_from_file_location("users_seed", path)
     mod = importlib.util.module_from_spec(spec)
     assert spec and spec.loader
     spec.loader.exec_module(mod)  # type: ignore
     return mod
 
 
-def test_user_seed_init_and_demo():
-    mod = _load_seed_module()
+def testUserSeedInitAndDemo():
+    mod = loadSeedModule()
     with tempfile.TemporaryDirectory() as td:
-        db_path = os.path.join(td, 'users.db')
-        con = mod.connect(db_path)
+        dbPath = os.path.join(td, "users.db")
+        con = mod.connect(dbPath)
         try:
-            mod.ensure_table(con)
+            mod.ensureTable(con)
             # initially empty
-            cnt = con.execute('SELECT COUNT(*) FROM user_template').fetchone()[0]
+            cnt = con.execute("SELECT COUNT(*) FROM user_template").fetchone()[0]
             assert cnt == 0
             # seed demo
-            mod.seed_demo(con)
-            cnt2 = con.execute('SELECT COUNT(*) FROM user_template').fetchone()[0]
+            mod.seedDemo(con)
+            cnt2 = con.execute("SELECT COUNT(*) FROM user_template").fetchone()[0]
             assert cnt2 == 1
         finally:
             con.close()

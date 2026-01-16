@@ -3,31 +3,31 @@ import sys
 from fastapi.testclient import TestClient
 
 
-BASE_DIR = os.path.dirname(os.path.dirname(__file__))
-if BASE_DIR not in sys.path:
-    sys.path.insert(0, BASE_DIR)
+baseDir = os.path.dirname(os.path.dirname(__file__))
+if baseDir not in sys.path:
+    sys.path.insert(0, baseDir)
 
 
-def test_savepoint_partial_rollback():
+def testSavepointPartialRollback():
     from server import app
     from lib import Database as DB
     from lib.Transaction import transaction, savepoint
-    from service.TransactionService import ensure_tables
+    from service.TransactionService import ensureTables
 
     with TestClient(app):
         import anyio
 
-        @transaction('main_db')
-        async def do_ops():
-            await ensure_tables()
-            db = DB.dbManagers['main_db']
+        @transaction("main_db")
+        async def doOps():
+            await ensureTables()
+            db = DB.dbManagers["main_db"]
             # clear table for deterministic test
             await db.execute("DELETE FROM test_transaction")
             # insert keep1
             await db.execute("INSERT INTO test_transaction (value) VALUES (:val)", {"val": "keep1"})
             # duplicate in savepoint; on error should rollback only inner block
             try:
-                async with savepoint('main_db', 'sp1'):
+                async with savepoint("main_db", "sp1"):
                     await db.execute("INSERT INTO test_transaction (value) VALUES (:val)", {"val": "dup"})
                     # second insert violates UNIQUE
                     await db.execute("INSERT INTO test_transaction (value) VALUES (:val)", {"val": "dup"})
@@ -37,16 +37,15 @@ def test_savepoint_partial_rollback():
             # insert keep2 outside savepoint
             await db.execute("INSERT INTO test_transaction (value) VALUES (:val)", {"val": "keep2"})
 
-        anyio.run(do_ops)
+        anyio.run(doOps)
 
-        async def counts():
-            db = DB.dbManagers['main_db']
-            r = await db.fetchAll("SELECT value, COUNT(*) as cnt FROM test_transaction GROUP BY value")
-            return {row['value']: row['cnt'] for row in (r or [])}
+        async def fetchCounts():
+            db = DB.dbManagers["main_db"]
+            rows = await db.fetchAll("SELECT value, COUNT(*) as cnt FROM test_transaction GROUP BY value")
+            return {row["value"]: row["cnt"] for row in (rows or [])}
 
-        c = anyio.run(counts)
-        assert c.get('keep1') == 1
-        assert c.get('keep2') == 1
+        countsByValue = anyio.run(fetchCounts)
+        assert countsByValue.get("keep1") == 1
+        assert countsByValue.get("keep2") == 1
         # dup should not remain due to savepoint rollback; or at most 1 if unique has been inserted before error
-        assert c.get('dup') in (None, 1)
-
+        assert countsByValue.get("dup") in (None, 1)

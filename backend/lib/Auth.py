@@ -28,13 +28,13 @@ class TokenData(BaseModel):
 
 class AuthConfig:
     # Pylance 정적 타입 경고 방지를 위해 Optional[str]로 선언
-    SECRET_KEY: Optional[str] = None
-    ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
-    REFRESH_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7
-    ACCESS_COOKIE_NAME: str = "access_token"
-    REFRESH_COOKIE_NAME: str = "refresh_token"
-    TOKEN_ENABLE: bool = True
+    secretKey: Optional[str] = None
+    algorithm: str = "HS256"
+    accessTokenExpireMinutes: int = 60
+    refreshTokenExpireMinutes: int = 60 * 24 * 7
+    accessCookieName: str = "access_token"
+    refreshCookieName: str = "refresh_token"
+    tokenEnable: bool = True
 
     @classmethod
     def initConfig(
@@ -46,12 +46,12 @@ class AuthConfig:
         accessCookie: str = "access_token",
         refreshCookie: str = "refresh_token",
     ):
-        cls.SECRET_KEY = secretKey
-        cls.ACCESS_TOKEN_EXPIRE_MINUTES = accessExpireMinutes
-        cls.REFRESH_TOKEN_EXPIRE_MINUTES = refreshExpireMinutes
-        cls.ACCESS_COOKIE_NAME = accessCookie
-        cls.REFRESH_COOKIE_NAME = refreshCookie
-        cls.TOKEN_ENABLE = tokenEnable
+        cls.secretKey = secretKey
+        cls.accessTokenExpireMinutes = accessExpireMinutes
+        cls.refreshTokenExpireMinutes = refreshExpireMinutes
+        cls.accessCookieName = accessCookie
+        cls.refreshCookieName = refreshCookie
+        cls.tokenEnable = tokenEnable
 
 
 oauth2Scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/token", auto_error=False)
@@ -64,7 +64,7 @@ def createAccessToken(
     설명: 페이로드에 만료(exp)를 추가해 JWT 액세스/리프레시 토큰 생성.
     갱신일: 2025-11-XX
     """
-    if not AuthConfig.SECRET_KEY:
+    if not AuthConfig.secretKey:
         raise Exception("SECRET_KEY가 설정되지 않았습니다.")
 
     toEncode = data.copy()
@@ -72,7 +72,7 @@ def createAccessToken(
     expireMinutes = (
         expireMinutes
         if expireMinutes is not None
-        else AuthConfig.ACCESS_TOKEN_EXPIRE_MINUTES
+        else AuthConfig.accessTokenExpireMinutes
     )
     expire = now + timedelta(minutes=expireMinutes)
     # 표준 클레임: exp, iat, jti, typ
@@ -86,7 +86,7 @@ def createAccessToken(
     )
 
     encodedJwt = jwt.encode(
-        toEncode, AuthConfig.SECRET_KEY, algorithm=AuthConfig.ALGORITHM
+        toEncode, AuthConfig.secretKey, algorithm=AuthConfig.algorithm
     )
 
     return Token(
@@ -99,7 +99,7 @@ def createRefreshToken(data: dict) -> Token:
     return createAccessToken(
         data,
         tokenType="refresh",
-        expireMinutes=AuthConfig.REFRESH_TOKEN_EXPIRE_MINUTES,
+        expireMinutes=AuthConfig.refreshTokenExpireMinutes,
     )
 
 
@@ -117,7 +117,7 @@ async def getCurrentUser(
     )
 
     # 토큰 인증이 비활성화되어 있으면 더미 유저 반환
-    if not AuthConfig.TOKEN_ENABLE:
+    if not AuthConfig.tokenEnable:
         return TokenData(username="anonymous")
 
     if not token:
@@ -125,11 +125,11 @@ async def getCurrentUser(
 
     try:
         # SECRET_KEY가 None일 수 있다는 Pylance 경고를 없애기 위해 런타임 가드를 추가한다.
-        secret = AuthConfig.SECRET_KEY
+        secret = AuthConfig.secretKey
         if not secret:
-            logger.error("AuthConfig.SECRET_KEY not configured")
+            logger.error("AuthConfig.secretKey not configured")
             raise HTTPException(status_code=500, detail="server misconfigured")
-        payload = jwt.decode(token, secret, algorithms=[AuthConfig.ALGORITHM])
+        payload = jwt.decode(token, secret, algorithms=[AuthConfig.algorithm])
         # payload.get는 Optional[Any]를 반환하므로 런타임 타입 검사로 보수적으로 확인한다.
         username = payload.get("sub")
         tokenType = payload.get("typ")
