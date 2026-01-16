@@ -95,12 +95,12 @@ def attachOpenAPI(app: FastAPI, config) -> None:
                 schemas["AuthTokenResult"] = {
                     "type": "object",
                     "properties": {
-                        "access_token": {"type": "string"},
-                        "token_type": {"type": "string", "example": "bearer"},
-                        "expires_in": {"type": "integer", "example": 3600},
-                        "refresh_expires_in": {"type": "integer", "example": 604800},
+                        "accessToken": {"type": "string"},
+                        "tokenType": {"type": "string", "example": "bearer"},
+                        "expiresIn": {"type": "integer", "example": 3600},
+                        "refreshExpiresIn": {"type": "integer", "example": 604800},
                     },
-                    "required": ["access_token", "token_type", "expires_in", "refresh_expires_in"],
+                    "required": ["accessToken", "tokenType", "expiresIn", "refreshExpiresIn"],
                 }
             if "AuthTokenResponse" not in schemas:
                 schemas["AuthTokenResponse"] = {

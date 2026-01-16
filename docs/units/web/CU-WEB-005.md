@@ -30,7 +30,7 @@ links: [CU-BE-001, CU-BE-005, CU-WEB-001, CU-WEB-004, CU-WEB-006]
 - 요청 규약
   - 모든 요청은 credentials:'include' 고정(쿠키 세션)
   - 세션 조회(/api/v1/auth/me)는 Cache-Control: no-store
-  - 로그인(/api/v1/auth/login) 200 JSON 처리(Access/Refresh 쿠키 + body.result.access_token)
+  - 로그인(/api/v1/auth/login) 200 JSON 처리(Access/Refresh 쿠키 + body.result.accessToken)
   - 401 수신 시 전역 인터셉터에서 `/login?next=현재경로`로 이동(루프 방지: `/login`에서는 미동작)
   - CSR 호출은 `/api/bff/*` 프록시를 통해 Backend API로 전달되고, `Set-Cookie`는 프론트 도메인으로 재작성된다
 - 응답/오류 규약

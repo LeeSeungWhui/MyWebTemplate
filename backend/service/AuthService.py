@@ -211,10 +211,10 @@ def issueTokens(username: str, remember: bool = False) -> dict:
         {"sub": username, "remember": remember}
     )
     return {
-        "access_token": accessToken.accessToken,
-        "refresh_token": refreshToken.accessToken,
-        "token_type": accessToken.tokenType,
-        "expires_in": accessToken.expiresIn,
-        "refresh_expires_in": refreshToken.expiresIn,
+        "accessToken": accessToken.accessToken,
+        "refreshToken": refreshToken.accessToken,
+        "tokenType": accessToken.tokenType,
+        "expiresIn": accessToken.expiresIn,
+        "refreshExpiresIn": refreshToken.expiresIn,
         "remember": remember,
     }

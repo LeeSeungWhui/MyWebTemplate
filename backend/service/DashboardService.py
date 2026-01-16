@@ -8,6 +8,7 @@
 from typing import Dict, Any, List, Optional
 
 from lib import Database as DB
+from lib.Casing import convertKeysToCamelCase
 
 
 def clampLimit(limit: Optional[int]) -> int:
@@ -37,11 +38,12 @@ async def listDataTemplates(limit: Optional[int], offset: Optional[int]) -> Dict
     safeLimit = clampLimit(limit)
     safeOffset = clampOffset(offset)
     rows = await db.fetchAllQuery("dashboard.list", {"limit": safeLimit, "offset": safeOffset}) or []
+    items = [convertKeysToCamelCase(row) for row in rows]
     return {
-        "items": rows,
+        "items": items,
         "limit": safeLimit,
         "offset": safeOffset,
-        "count": len(rows),
+        "count": len(items),
     }
 
 
@@ -52,8 +54,9 @@ async def dataTemplateStats() -> Dict[str, Any]:
     rows: List[Dict[str, Any]] = await db.fetchAllQuery("dashboard.statusSummary", {}) or []
     totalCount = sum(r.get("count", 0) or 0 for r in rows)
     totalAmount = float(sum(r.get("amount_sum", 0) or 0 for r in rows))
+    byStatus = [convertKeysToCamelCase(row) for row in rows]
     return {
         "totalCount": totalCount,
         "totalAmount": totalAmount,
-        "byStatus": rows,
+        "byStatus": byStatus,
     }

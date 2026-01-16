@@ -31,8 +31,8 @@ links: [CU-APP-001, CU-APP-003, CU-APP-004, CU-APP-005, CU-APP-007, CU-APP-008, 
 {
   "stats": {
     "byStatus": [
-      { "status": "active", "count": 10, "amount_sum": 123000 },
-      { "status": "pending", "count": 5, "amount_sum": 45000 }
+      { "status": "active", "count": 10, "amountSum": 123000 },
+      { "status": "pending", "count": 5, "amountSum": 45000 }
     ]
   },
   "recent": [
@@ -41,7 +41,7 @@ links: [CU-APP-001, CU-APP-003, CU-APP-004, CU-APP-005, CU-APP-007, CU-APP-008, 
       "title": "string",
       "status": "active|pending|canceled",
       "amount": 12345,
-      "created_at": "ISO8601"
+      "createdAt": "ISO8601"
     }
   ]
 }

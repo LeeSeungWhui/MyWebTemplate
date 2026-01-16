@@ -31,7 +31,7 @@ links: [CU-BE-001, CU-BE-003]
   - GET `/readyz` → `{ status: true, result: { ok: true, db: "up" } }`
   - GET `/healthz`
     - Headers: `Cache-Control: no-store`
-    - Resp(200): `{ status:true, result:{ ok:true, version, git_sha, started_at, uptime_s }, requestId }`
+    - Resp(200): `{ status:true, result:{ ok:true, version, gitSha, startedAt, uptimeSeconds }, requestId }`
   - GET `/readyz`
     - Headers: `Cache-Control: no-store`
     - Checks: DB(드라이버별 ping), (옵션) cache/queue/external

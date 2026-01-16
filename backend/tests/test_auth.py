@@ -29,7 +29,7 @@ def testLoginRefreshMeLogoutFlow():
         assert response.status_code == 200
         j = response.json()
         assert j["status"] is True
-        assert j["result"]["access_token"]
+        assert j["result"]["accessToken"]
         assert client.cookies.get("access_token")
         assert client.cookies.get("refresh_token")
 

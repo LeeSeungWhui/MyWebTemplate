@@ -104,7 +104,7 @@ const DashboardView = ({ statList, dataList, initialError }) => {
     const byStatus = statsList.toJSON();
     const totalCount = byStatus.reduce((acc, row) => acc + (row.count ?? 0), 0);
     const totalAmount = byStatus.reduce(
-      (acc, row) => acc + Number(row.amount_sum ?? 0),
+      (acc, row) => acc + Number(row.amountSum ?? 0),
       0
     );
     const activeCount =
@@ -143,7 +143,7 @@ const DashboardView = ({ statList, dataList, initialError }) => {
     const items = tableList.toJSON();
     const byMonth = new Map();
     items.forEach((item) => {
-      const key = monthKey(item.created_at);
+      const key = monthKey(item.createdAt);
       const bucket = byMonth.get(key) || { label: key, count: 0, amount: 0 };
       bucket.count += 1;
       bucket.amount += Number(item.amount || 0);
@@ -259,7 +259,7 @@ const DashboardView = ({ statList, dataList, initialError }) => {
               { key: "title", header: "제목" },
               { key: "status", header: "상태" },
               { key: "amount", header: "금액" },
-              { key: "created_at", header: "생성일" },
+              { key: "createdAt", header: "생성일" },
             ]}
             pageSize={4}
             empty={error ? "데이터를 불러오지 못했어." : "업무가 없습니다."}

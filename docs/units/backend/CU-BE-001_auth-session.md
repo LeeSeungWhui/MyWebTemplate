@@ -24,10 +24,10 @@ links: [CU-BE-004, CU-BE-005]
 - API
   - POST `/api/v1/auth/login`
     - req: `{ username: string, password: string, rememberMe?: boolean }`
-    - res: 200 JSON `{ access_token, token_type, expires_in }` + Set-Cookie: Access(짧음), Refresh(rememberMe에 따라 session/장기)
+    - res: 200 JSON `{ accessToken, tokenType, expiresIn, refreshExpiresIn }` + Set-Cookie: Access(짧음), Refresh(rememberMe에 따라 session/장기)
   - POST `/api/v1/auth/refresh`
     - req: Refresh 쿠키
-    - res: 200 JSON `{ access_token, token_type, expires_in }` + Access/Refresh 쿠키 회전
+    - res: 200 JSON `{ accessToken, tokenType, expiresIn, refreshExpiresIn }` + Access/Refresh 쿠키 회전
   - POST `/api/v1/auth/logout`
     - res: 204 No Content (Refresh 쿠키 만료, 선택적 블랙리스트)
   - GET `/api/v1/auth/me`
@@ -66,7 +66,7 @@ links: [CU-BE-004, CU-BE-005]
 - CORS(dev): origin=`http://localhost:3000` + credentials=true 고정(쿠키 전달용)
 
 ### Acceptance Criteria
-- AC-1: 로그인 성공 시 Access/Refresh 쿠키가 설정되고 본문에 `{access_token,...}`가 반환된다.
+- AC-1: 로그인 성공 시 Access/Refresh 쿠키가 설정되고 본문에 `{accessToken,...}`가 반환된다.
 - AC-2: 401/403/422 등 오류 시 `{status:false, code, requestId}`+적절한 `WWW-Authenticate` 헤더를 포함한다.
 - AC-3: `/api/v1/auth/refresh`는 유효한 Refresh 쿠키로 Access/Refresh를 회전해 재발급한다. 만료/블랙리스트 시 401 반환.
 - AC-4: 로그아웃 시 Refresh 쿠키가 만료되고 이후 `/refresh`가 401을 반환한다.

@@ -82,14 +82,14 @@ async def login(request: Request):
     )
 
     response = JSONResponse(status_code=200, content=successResponse(result={
-        "access_token": tokenPayload["access_token"],
-        "token_type": tokenPayload["token_type"],
-        "expires_in": tokenPayload["expires_in"],
-        "refresh_expires_in": tokenPayload["refresh_expires_in"],
+        "accessToken": tokenPayload["accessToken"],
+        "tokenType": tokenPayload["tokenType"],
+        "expiresIn": tokenPayload["expiresIn"],
+        "refreshExpiresIn": tokenPayload["refreshExpiresIn"],
     }))
     response.headers["Cache-Control"] = "no-store"
-    response.set_cookie(**cookieOptions(AuthConfig.accessCookieName, tokenPayload["access_token"], maxAge=accessMaxAge))
-    response.set_cookie(**cookieOptions(AuthConfig.refreshCookieName, tokenPayload["refresh_token"], maxAge=refreshMaxAge))
+    response.set_cookie(**cookieOptions(AuthConfig.accessCookieName, tokenPayload["accessToken"], maxAge=accessMaxAge))
+    response.set_cookie(**cookieOptions(AuthConfig.refreshCookieName, tokenPayload["refreshToken"], maxAge=refreshMaxAge))
     return response
 
 
@@ -126,16 +126,16 @@ async def refresh(request: Request):
         status_code=200,
         content=successResponse(
             result={
-                "access_token": tokenPayload["access_token"],
-                "token_type": tokenPayload["token_type"],
-                "expires_in": tokenPayload["expires_in"],
-                "refresh_expires_in": tokenPayload["refresh_expires_in"],
+                "accessToken": tokenPayload["accessToken"],
+                "tokenType": tokenPayload["tokenType"],
+                "expiresIn": tokenPayload["expiresIn"],
+                "refreshExpiresIn": tokenPayload["refreshExpiresIn"],
             }
         ),
     )
     response.headers["Cache-Control"] = "no-store"
-    response.set_cookie(**cookieOptions(AuthConfig.accessCookieName, tokenPayload["access_token"], maxAge=accessMaxAge))
-    response.set_cookie(**cookieOptions(AuthConfig.refreshCookieName, tokenPayload["refresh_token"], maxAge=refreshMaxAge))
+    response.set_cookie(**cookieOptions(AuthConfig.accessCookieName, tokenPayload["accessToken"], maxAge=accessMaxAge))
+    response.set_cookie(**cookieOptions(AuthConfig.refreshCookieName, tokenPayload["refreshToken"], maxAge=refreshMaxAge))
     return response
 
 

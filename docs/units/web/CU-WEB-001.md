@@ -14,7 +14,7 @@ links: [CU-BE-001, CU-WEB-004, CU-WEB-005, CU-WEB-008]
 ### Scope
 - 포함
   - 로그인 폼(아이디/비밀번호/rememberMe), 기본 유효성/에러 UX, 비밀번호 표시 토글
-  - API 연동: `POST /api/v1/auth/login` → Access/Refresh 쿠키 + `{access_token,...}`, `POST /api/v1/auth/refresh` → Access/Refresh 회전, `POST /api/v1/auth/logout`
+  - API 연동: `POST /api/v1/auth/login` → Access/Refresh 쿠키 + `{accessToken,...}`, `POST /api/v1/auth/refresh` → Access/Refresh 회전, `POST /api/v1/auth/logout`
   - 토큰 플로우: `credentials:'include'` 고정, Authorization 헤더는 BFF가 Access 쿠키에서 주입
 - 리다이렉트: `next=/protected` 지원(유효 경로만 허용, 없으면 `/dashboard`로 이동)
   - A11y: 레이블/에러 ARIA 연결, 오류/토스트 관리

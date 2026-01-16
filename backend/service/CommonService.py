@@ -20,8 +20,8 @@ def versionInfo() -> Dict[str, str]:
     gitSha = os.getenv("GIT_SHA", "unknown")
     return {
         "version": version,
-        "git_sha": gitSha,
-        "started_at": startedAt.isoformat(),
+        "gitSha": gitSha,
+        "startedAt": startedAt.isoformat(),
     }
 
 
@@ -31,7 +31,7 @@ async def healthz(_: Dict | None = None) -> Dict[str, str | int | bool]:
     return {
         "ok": True,
         **versionInfo(),
-        "uptime_s": uptimeSeconds,
+        "uptimeSeconds": uptimeSeconds,
     }
 
 
@@ -93,10 +93,10 @@ async def readyz(_: Dict | None = None) -> Tuple[Dict[str, Any], bool]:
             ok = False
 
         checks["db"] = dbStatus
-        checks["db_timeout_ms"] = int(os.getenv("READYZ_TIMEOUT_MS", "300"))
-        checks["db_targets"] = dbTargets
+        checks["dbTimeoutMs"] = int(os.getenv("READYZ_TIMEOUT_MS", "300"))
+        checks["dbTargets"] = dbTargets
         if dbLatencies:
-            checks["db_latency_ms"] = max(dbLatencies)
+            checks["dbLatencyMs"] = max(dbLatencies)
 
     payload: Dict[str, Any] = {"ok": ok, **checks}
     return payload, ok

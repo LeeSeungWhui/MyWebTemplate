@@ -26,13 +26,13 @@ links: [CU-APP-004, CU-APP-005, CU-APP-007, CU-APP-008, CU-BE-001]
 - API
   - `POST /api/v1/auth/login`
     - req: `{ username: string, password: string, rememberMe?: boolean }`
-    - res: 200 `{ status:true, result:{ access_token, refresh_token, token_type, expires_in, refresh_expires_in, remember }, requestId }`
+    - res: 200 `{ status:true, result:{ accessToken, refreshToken, tokenType, expiresIn, refreshExpiresIn, remember }, requestId }`
     - 401/422: `{ status:false, code, message, requestId }` (`AUTH_401_INVALID`, `AUTH_422_INVALID_INPUT` 등, `WWW-Authenticate: Bearer`)
   - `POST /api/v1/auth/refresh`
     - req: 저장된 리프레시 토큰(구현 시 헤더/쿠키/바디 중 택1) 기반 요청
     - res: 200 로그인과 동일한 토큰 페이로드, 401 시 `{ status:false, code:"AUTH_401_INVALID", message, requestId }`
   - `GET /api/v1/auth/me`
-    - req: `Authorization: Bearer <access_token>`
+    - req: `Authorization: Bearer <accessToken>`
     - res: 200 `{ status:true, result:{ username }, requestId }`, 401 시 `{ status:false, code:"AUTH_401_INVALID", ... }`
 
 ### Data & Rules
