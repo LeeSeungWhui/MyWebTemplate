@@ -17,48 +17,39 @@ function sanitizeNext(next) {
   return next
 }
 
-function collectSetCookies(res) {
-  if (!res) return []
-  if (typeof res.headers.getSetCookie === 'function') {
-    return res.headers.getSetCookie()
-  }
-  const single = res.headers.get('set-cookie')
-  return single ? [single] : []
-}
-
-async function probeAuth(req) {
-  const cookieHeader = req.headers.get('cookie') || ''
-  if (!cookieHeader) return { ok: false, cookies: [] }
-
-  const origin = req.nextUrl.origin
-  const probeUrl = new URL('/api/bff/api/v1/auth/me', origin)
-  const refreshUrl = new URL('/api/bff/api/v1/auth/refresh', origin)
-  const fetchOpts = {
-    headers: { cookie: cookieHeader },
-    cache: 'no-store',
-  }
-
+function decodeBase64Url(input) {
+  if (!input || typeof input !== 'string') return null
   try {
-    const meRes = await fetch(probeUrl, fetchOpts)
-    if (meRes.ok) {
-      return { ok: true, cookies: collectSetCookies(meRes) }
-    }
-    if (meRes.status === 401) {
-      const refreshRes = await fetch(refreshUrl, { ...fetchOpts, method: 'POST' })
-      if (refreshRes.ok) {
-        return { ok: true, cookies: collectSetCookies(refreshRes) }
-      }
-    }
-  } catch (err) {
-    // 실패 시 인증 불가로 처리하고 다음 단계에서 로그인으로 유도
+    const base64 = input.replace(/-/g, '+').replace(/_/g, '/')
+    const padded = base64 + '==='.slice((base64.length + 3) % 4)
+    const binary = atob(padded)
+    const bytes = Uint8Array.from(binary, (c) => c.charCodeAt(0))
+    return new TextDecoder().decode(bytes)
+  } catch {
+    return null
   }
-  return { ok: false, cookies: [] }
 }
 
-function applyCookies(res, cookies = []) {
-  cookies.forEach((cookie) => {
-    res.headers.append('set-cookie', cookie)
-  })
+function getJwtExpSeconds(token) {
+  if (!token || typeof token !== 'string') return null
+  const parts = token.split('.')
+  if (parts.length < 2) return null
+  const payloadText = decodeBase64Url(parts[1])
+  if (!payloadText) return null
+  try {
+    const payload = JSON.parse(payloadText)
+    const exp = payload?.exp
+    return typeof exp === 'number' ? exp : null
+  } catch {
+    return null
+  }
+}
+
+function isJwtNotExpired(token, leewaySeconds = 30) {
+  const exp = getJwtExpSeconds(token)
+  if (!exp) return false
+  const now = Math.floor(Date.now() / 1000)
+  return exp > now + Math.max(0, Number(leewaySeconds) || 0)
 }
 
 export async function middleware(req) {
@@ -66,16 +57,16 @@ export async function middleware(req) {
   const path = url.pathname
   // refresh_token이 있어야 인증 상태로 간주한다(access_token 단독/없는 경우는 재인증 유도)
   const hasAuthCookie = Boolean(req.cookies.get('refresh_token'))
+  const accessToken = req.cookies.get('access_token')?.value || null
+  const hasValidAccessToken = accessToken ? isJwtNotExpired(accessToken, 30) : false
   const purpose = (req.headers.get('purpose') || req.headers.get('sec-purpose') || '').toLowerCase()
   if (purpose.includes('prefetch')) return NextResponse.next()
 
   // If already authenticated and visiting /login or root, bounce to home
   if (path.startsWith('/login')) {
-    // If authed, clear any leftover next-hint cookie and redirect home
-    if (hasAuthCookie) {
-      const authResult = await probeAuth(req)
+    // access_token이 유효한 경우에만 /login에서 대시보드로 보낸다(스테일 refresh_token 루프 방지)
+    if (hasValidAccessToken) {
       const res = NextResponse.redirect(new URL('/dashboard', req.url))
-      applyCookies(res, authResult.cookies)
       res.cookies.set('nx', '', { path: '/', maxAge: 0 })
       return res
     }
@@ -107,24 +98,13 @@ export async function middleware(req) {
     return res
   }
 
-  const authResult = await probeAuth(req)
-  if (!authResult.ok) {
-    const res = NextResponse.redirect(new URL('/login', req.url))
-    const nextValue = sanitizeNext(path + (url.search || ''))
-    res.cookies.set('nx', nextValue, { path: '/', httpOnly: true, sameSite: 'lax', maxAge: 300 })
-    res.cookies.set('access_token', '', { path: '/', maxAge: 0 })
-    res.cookies.set('refresh_token', '', { path: '/', maxAge: 0 })
-    return res
-  }
   // 인증 상태로 / 접근 시 대시보드로 보낸다.
   if (path === '/') {
     const res = NextResponse.redirect(new URL('/dashboard', req.url))
-    applyCookies(res, authResult.cookies)
     res.cookies.set('nx', '', { path: '/', maxAge: 0 })
     return res
   }
   const res = NextResponse.next()
-  applyCookies(res, authResult.cookies)
   if (req.cookies.get('nx')) {
     res.cookies.set('nx', '', { path: '/', maxAge: 0 })
   }

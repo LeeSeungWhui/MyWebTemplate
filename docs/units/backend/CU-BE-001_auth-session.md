@@ -28,6 +28,7 @@ links: [CU-BE-004, CU-BE-005]
   - POST `/api/v1/auth/refresh`
     - req: Refresh 쿠키
     - res: 200 JSON `{ accessToken, tokenType, expiresIn, refreshExpiresIn }` + Access/Refresh 쿠키 회전
+    - res: 401 시 Access/Refresh 쿠키를 삭제해 무한 루프를 방지한다.
   - POST `/api/v1/auth/logout`
     - res: 204 No Content (Refresh 쿠키 만료, 선택적 블랙리스트)
   - GET `/api/v1/auth/me`
@@ -59,6 +60,7 @@ links: [CU-BE-004, CU-BE-005]
   - JWT 클레임: `sub=<userId>`, `exp=now+[AUTH].token_expire`, `iat`, `jti`(재사용·블랙리스트 대비)
   - 서명 알고리즘: 기본 HS256 (키 회전 계획은 TODO에 포함)
   - 리프레시 회전: `/refresh` 성공 시 새 Refresh를 재발급, 이전 토큰은 블랙리스트 처리 권장
+  - refresh 경합 완화(grace): 회전 직후 짧은 시간 동안 직전 refresh 토큰 재사용을 허용하고 동일 결과를 반환한다(기본 10초, `[AUTH].refresh_grace_ms` 또는 `[AUTH].refresh_grace_seconds`). grace 이후 재사용은 401.
 
 ### NFR & A11y
 - 성능: 로그인 API P95 < 400ms (DB ping 포함)

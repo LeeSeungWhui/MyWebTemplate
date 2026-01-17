@@ -12,10 +12,6 @@ links: [CU-BE-001, CU-BE-003]
 
 ### Scope
 - 포함
-  - `GET /healthz` (라이브니스)
-  - `GET /readyz` (레디니스: DB ping 및 의존성 점검 포함)
-  - 요청/응답 JSON 로그(시간/레벨/traceId/path/method/status/duration)
-  - `X-Request-Id` 수용/전파
   - `GET /healthz` (라이브니스, 200 고정, no-store)
   - `GET /readyz` (레디니스: DB ping 및 의존성 점검 포함, OK=200 / FAIL=503, no-store)
   - 요청/응답 JSON 로그(시간/레벨/requestId/path/method/status/latency_ms)
@@ -27,8 +23,6 @@ links: [CU-BE-001, CU-BE-003]
 
 ### Interface
 - API
-  - GET `/healthz` → `{ status: true, result: { ok: true } }`
-  - GET `/readyz` → `{ status: true, result: { ok: true, db: "up" } }`
   - GET `/healthz`
     - Headers: `Cache-Control: no-store`
     - Resp(200): `{ status:true, result:{ ok:true, version, gitSha, startedAt, uptimeSeconds }, requestId }`
@@ -51,7 +45,6 @@ links: [CU-BE-001, CU-BE-003]
 
 ### NFR & A11y
 - /healthz 응답 P95 < 50ms, /readyz P95 < 100ms
-- 구조- /healthz P95 < 50ms, /readyz P95 < 100ms (체크 타임아웃 포함)
 - 구조적 JSON 로그(최소: ts, level, requestId, method, path, status, latency_ms, msg), PII/시크릿 로그 금지
 - 헬스 엔드포인트 access log는 DEBUG 레벨로 다운(노이즈 억제)
 
@@ -63,9 +56,6 @@ links: [CU-BE-001, CU-BE-003]
 - AC-5: `MAINTENANCE_MODE=true` 설정 시 `/readyz`는 503을 반환한다.
 
 ### Tasks
-- T1: `/healthz` 라우트 구현 및 DB ping 옵션 추가
-- T2: 요청 ID 미들웨어/로깅 포맷 보강
-- T3: Swagger 태그/응답 예시 추가, 헬스체크 제외 규칙(옵션) 검토
 - T1: `/healthz` 구현(버전/sha/업타임, no-store), `/readyz` 구현(플러그형 체크)
 - T2: 요청 ID 미들웨어(헤더 수용→contextvar→로그/응답 반영), 로그 포맷 JSON 통일
 - T3: 드라이버별 ping 분기(sqlite/pg/mysql/oracle) + 체크 타임아웃/경과시간 로깅

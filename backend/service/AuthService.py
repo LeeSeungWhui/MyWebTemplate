@@ -25,6 +25,31 @@ from lib.Response import successResponse
 
 # 인메모리 리프레시 토큰 블랙리스트(재사용/로그아웃 차단용)
 revokedRefreshJtiStore: set[str] = set()
+# refresh 토큰 회전 직후, 같은 refresh 토큰이 다시 들어오는 케이스(다중 탭/네트워크 재시도)를 흡수하기 위한 유예 캐시
+# key: 이전 refresh jti, value: {"expiresAtMs": int, "tokenPayload": dict}
+refreshGraceStore: Dict[str, Dict[str, Any]] = {}
+
+
+def cleanupRefreshGraceStore(nowMs: int) -> None:
+    """
+    설명: refresh grace 캐시에서 만료된 항목을 제거한다.
+    갱신일: 2026-01-17
+    """
+    try:
+        expired = [
+            jti
+            for jti, entry in list(refreshGraceStore.items())
+            if int(entry.get("expiresAtMs", 0) or 0) <= nowMs
+        ]
+        for jti in expired:
+            refreshGraceStore.pop(jti, None)
+        # 과도한 메모리 사용 방지(템플릿 기본값)
+        if len(refreshGraceStore) > 5000:
+            # 임의로 오래된 순서 보장이 없으므로, 일부를 삭제해 폭주만 막는다.
+            for jti in list(refreshGraceStore.keys())[:1000]:
+                refreshGraceStore.pop(jti, None)
+    except Exception:
+        return
 
 
 def _nowMs() -> int:
@@ -94,6 +119,8 @@ def csrf(_: Optional[dict] = None) -> dict:
 
 async def refresh(refreshToken: str) -> Optional[dict]:
     """리프레시 토큰으로 새 액세스/리프레시 토큰을 발급한다(토큰 회전 + 재사용 차단)."""
+    nowMs = _nowMs()
+    cleanupRefreshGraceStore(nowMs)
     payload = decodeRefreshTokenPayload(refreshToken)
     if not payload:
         auditLog("auth.refresh", None, False, {"reason": "invalid_refresh"})
@@ -111,6 +138,12 @@ async def refresh(refreshToken: str) -> Optional[dict]:
         return None
     if jti in revokedRefreshJtiStore:
         # 이미 사용됐거나 로그아웃된 리프레시 토큰 재사용 시도
+        cached = refreshGraceStore.get(jti)
+        expiresAtMs = int(cached.get("expiresAtMs", 0) or 0) if isinstance(cached, dict) else 0
+        tokenPayload = cached.get("tokenPayload") if isinstance(cached, dict) else None
+        if expiresAtMs and nowMs < expiresAtMs and isinstance(tokenPayload, dict):
+            auditLog("auth.refresh", username, True, {"grace": True, "reason": "grace_reuse"})
+            return tokenPayload
         auditLog("auth.refresh", username, False, {"reason": "reused_token"})
         return None
 
@@ -118,6 +151,13 @@ async def refresh(refreshToken: str) -> Optional[dict]:
     revokedRefreshJtiStore.add(jti)
 
     tokenPayload = issueTokens(username, remember)
+    # 다중 탭/네트워크 재시도 경합을 위해 짧은 유예 시간 동안 동일 토큰 페이로드를 재응답할 수 있게 캐시한다.
+    graceMs = max(0, int(getattr(AuthConfig, "refreshGraceMs", 0) or 0))
+    if graceMs > 0:
+        refreshGraceStore[jti] = {
+            "expiresAtMs": nowMs + graceMs,
+            "tokenPayload": tokenPayload,
+        }
     auditLog("auth.refresh", username, True, {"remember": bool(remember)})
     return tokenPayload
 

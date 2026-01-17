@@ -9,7 +9,6 @@ import { parseJsonPayload, normalizeNestedJsonFields } from '@/app/lib/runtime/j
 
 const BFF_PREFIX = '/api/bff'
 const EMPTY_BODY_STATUS = new Set([204, 205, 304])
-const REFRESH_PATH = '/api/v1/auth/refresh'
 const LOGIN_PATH = '/login'
 
 function isServer() {
@@ -183,24 +182,7 @@ export async function apiRequest(path, initOrBody = {}, modeOrOptions) {
     }
     const targetUrl = absoluteUrl ? path : new URL(toBffPath(path), resolveFrontendOrigin())
     const doFetch = () => fetch(targetUrl, requestInit)
-    let res = await doFetch()
-	    if (res.status !== 401 || absoluteUrl) return res
-	    try {
-	      const refreshHeaders = await buildSSRHeaders({ 'Content-Type': 'application/json' })
-	      const refreshUrl = new URL(toBffPath(REFRESH_PATH), resolveFrontendOrigin())
-	      const refreshRes = await fetch(refreshUrl, {
-	        method: 'POST',
-	        credentials: 'include',
-	        headers: refreshHeaders,
-	        cache: 'no-store',
-	      })
-      if (refreshRes.ok) {
-        res = await doFetch()
-      }
-    } catch (_) {
-      // refresh 실패 시 그대로 반환
-    }
-    return res
+    return doFetch()
   }
 
   // Client: delegate to CSR helpers with refresh-once logic
@@ -223,20 +205,6 @@ export async function apiRequest(path, initOrBody = {}, modeOrOptions) {
 
   const res = await doFetch()
   if (res.status !== 401) return res
-
-  // attempt single refresh then retry
-  try {
-    const refreshRes = await fetch(toBffPath(REFRESH_PATH), {
-      method: 'POST',
-      credentials: 'include',
-    })
-    if (!refreshRes.ok) throw new Error('refresh failed')
-    // refresh may set new cookies; retry original request
-    const retry = await doFetch()
-    if (retry.status !== 401) return retry
-  } catch (_) {
-    // ignore, fallback to redirect
-  }
 
   const { pathname, search } = window.location
   if (!pathname.startsWith(LOGIN_PATH)) {

@@ -174,11 +174,20 @@ async def onStartup():
     # 인증 설정 로딩
     config = getConfig()
     authConfig = config["AUTH"]
+    # Refresh 토큰 회전 직후 경합(동시 탭/네트워크 재시도)을 완화하기 위한 유예 시간(ms)
+    try:
+        refreshGraceMs = authConfig.getint("refresh_grace_ms", 10_000)
+    except Exception:
+        try:
+            refreshGraceMs = authConfig.getint("refresh_grace_seconds", 10) * 1000
+        except Exception:
+            refreshGraceMs = 10_000
     AuthConfig.initConfig(
         secretKey=authConfig["secret_key"],
         accessExpireMinutes=authConfig.getint("token_expire", 3600) // 60,
         refreshExpireMinutes=authConfig.getint("refresh_expire", 3600 * 24 * 7)
         // 60,
+        refreshGraceMs=refreshGraceMs,
         tokenEnable=authConfig.getboolean("token_enable", True),
         accessCookie=authConfig.get("access_cookie", "access_token"),
         refreshCookie=authConfig.get("refresh_cookie", "refresh_token"),
@@ -266,10 +275,15 @@ logger.info("router load done")
 @app.exception_handler(Exception)
 async def globalExceptionHandler(request: Request, exc: Exception):
     """전역 예외를 JSON 응답으로 치환한다. (갱신: 2025-11-12)"""
+    try:
+        # 내부 예외 메시지는 응답에 노출하지 않고, 로그로만 남긴다.
+        logger.exception(f"unhandled_exception path={request.url.path}")
+    except Exception:
+        pass
     return JSONResponse(
         status_code=500,
         content=errorResponse(
-            message=str(exc),
+            message="internal server error",
             result={"path": request.url.path},
             code="HTTP_500_INTERNAL",
         ),

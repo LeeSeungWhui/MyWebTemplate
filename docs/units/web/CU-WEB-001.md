@@ -23,14 +23,14 @@ links: [CU-BE-001, CU-WEB-004, CU-WEB-005, CU-WEB-008]
 
 ### Interface
 - 라우팅(UI)
-  - `GET /login`(공개): 로그인 UI. 인증이면 `/`로 302(미들웨어 처리, links: CU-WEB-008)
+  - `GET /login`(공개): 로그인 UI. 인증이면 `/dashboard`로 307(미들웨어 처리, links: CU-WEB-008)
   - (보조) 로그아웃 버튼 → `POST /api/v1/auth/logout` 호출 후 `/login` 이동
 - API(백엔드 연동 규약 요약)
   - `POST /api/v1/auth/login` → 200 JSON + Access/Refresh HttpOnly 쿠키
   - `POST /api/v1/auth/refresh` → 200 JSON + Access/Refresh 회전
   - `POST /api/v1/auth/logout` → 204 (Refresh 쿠키 만료)
 - 데이터 경계
-  - 서버 가드: SSR/미들웨어에서 Access 쿠키→Authorization 헤더로 백엔드 호출. 401 시 `/auth/refresh` 1회 시도 후 실패면 `/login`.
+  - 서버/BFF 가드: `/api/bff/*`가 Access 쿠키→Authorization 헤더로 백엔드 호출. 401이면 `/api/v1/auth/refresh`를 1회 시도 후 재시도, 실패면 401을 그대로 반환한다.
   - 클라 데이터: SWR로 `/api/v1/auth/me` 또는 `/auth/refresh` 캐시(로그인/로그아웃 시 무효화)
 
 ### Data & Rules
@@ -58,7 +58,7 @@ links: [CU-BE-001, CU-WEB-004, CU-WEB-005, CU-WEB-008]
 ### Tasks
 - T1: `/login` 페이지 마크업(입력 2 + 체크박스 1 + 제출) 및 상태(loading/disabled) 구현
 - T2: API 래퍼(JS-only) 연결: `credentials:'include'`, 2xx 처리 및 에러 파싱, Access/Refresh 쿠키 사용
-- T3: 서버 가드(CU-WEB-008): 인증 시 `/login` 접근 302 `/`, 미인증 보호경로 접근 302 `/login` (401→refresh 재시도 포함)
+- T3: 서버 가드(CU-WEB-008): 인증 시 `/login` 접근 307 `/dashboard`, 미인증 보호경로 접근 307 `/login` (401→refresh 재시도 포함)
 - T4: `next` 파라미터 처리(유효경로 검증 + 기본 리다이렉트 `/dashboard`)
 - T5: 에러 코드 맵핑 및 사용자 메시지 표준(예: `AUTH_401_INVALID`, `AUTH_429_RATE_LIMIT`)
 - T6: Access 만료/401 인터셉트 → refresh→재시도 흐름 구현

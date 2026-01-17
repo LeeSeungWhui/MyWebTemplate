@@ -98,7 +98,7 @@ async def refresh(request: Request):
     refreshToken = request.cookies.get(AuthConfig.refreshCookieName)
     loc = detectLocale(request)
     if not refreshToken:
-        return JSONResponse(
+        response = JSONResponse(
             status_code=401,
             content=errorResponse(
                 message=i18nTranslate("auth.refresh_missing", "refresh token missing", loc),
@@ -106,9 +106,14 @@ async def refresh(request: Request):
             ),
             headers={"WWW-Authenticate": "Bearer"},
         )
+        # 브라우저 쿠키가 꼬인 상태(스테일 refresh 등)에서 무한 루프를 방지하기 위해 쿠키를 정리한다.
+        response.delete_cookie(AuthConfig.accessCookieName, path="/")
+        response.delete_cookie(AuthConfig.refreshCookieName, path="/")
+        response.headers["Cache-Control"] = "no-store"
+        return response
     tokenPayload = await AuthService.refresh(refreshToken)
     if not tokenPayload:
-        return JSONResponse(
+        response = JSONResponse(
             status_code=401,
             content=errorResponse(
                 message=i18nTranslate("auth.refresh_invalid", "invalid refresh token", loc),
@@ -116,6 +121,10 @@ async def refresh(request: Request):
             ),
             headers={"WWW-Authenticate": "Bearer"},
         )
+        response.delete_cookie(AuthConfig.accessCookieName, path="/")
+        response.delete_cookie(AuthConfig.refreshCookieName, path="/")
+        response.headers["Cache-Control"] = "no-store"
+        return response
     accessMaxAge = AuthConfig.accessTokenExpireMinutes * 60
     refreshMaxAge = (
         AuthConfig.refreshTokenExpireMinutes * 60

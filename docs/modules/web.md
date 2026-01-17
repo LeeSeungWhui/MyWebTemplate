@@ -1,4 +1,4 @@
-﻿# Web (Next.js)
+# Web (Next.js)
 
 ## 목적
 - 보호 경로와 공개 경로를 모두 커버하는 Next.js(App Router) 템플릿 제공
@@ -44,21 +44,22 @@
 
 예시 (config.ini):
 ```
-[WEB]
-mode_default = CSR
+[APP]
+backendHost = http://localhost:2000
+frontendHost = http://localhost:3000
+runtime = DEV
+# (optional) 개발 서버 포트: run.sh가 우선 사용
+port = 3000
 
- [API]
- base = http://localhost:2000
-credentials = include
-
-[UI]
-lang = ko
-theme = light
+# (optional) 대체/레거시 키(우선순위는 getBackendHost 참고)
+[API]
+base = http://localhost:2000
 ```
 
 주의
 - 공개/보호 경로는 config.ini로 관리하지 않는다. 공개 경로 Allowlist는 `frontend-web/app/common/config/publicRoutes.js`에서만 관리하며, 그 외는 기본 보호(Default protect).
-- API Base는 config에서만 로드된다. 서버는 `app/common/config/getBackendHost.server.js`, 클라는 `getBackendHost.client.js`가 `[API].base`(또는 `[APP].backendHost` 등 대체 키)를 읽어 사용한다. 미설정 시 기본값은 `http://localhost:2000`.
+- API Base는 config에서만 로드된다. 서버는 `app/common/config/getBackendHost.server.js`, 클라는 `getBackendHost.client.js`가 `[API].base` → `[APP].backendHost` → `[APP].api_base_url` → `[APP].serverHost` 순으로 읽어 사용한다. 미설정 시 기본값은 `http://localhost:2000`.
+- `frontend-web/run.sh` 개발 포트는 `config.ini`에서 우선순위로 읽는다: `[WEB].port`(레거시) → `[APP].port` → `[APP].frontendHost`의 포트 → 기본 `3000`.
 - 서버만 파일 접근 가능. 클라이언트에서는 `SharedStore.config`를 통해 접근
 
 ## 결정(고정)
@@ -67,7 +68,7 @@ theme = light
 - 미들웨어 단일 가드(Default Protect): 모든 페이지에 적용하되 Next 내부/정적/파비콘/파일 확장자는 제외
   - config.matcher: `/((?!api|_next/static|_next/image|favicon.ico|.*\.).*)`
   - 공개 경로 Allowlist: `frontend-web/app/common/config/publicRoutes.js`에서만 관리
-- 인증/토큰: BFF(`app/api/bff`)가 HttpOnly Access/Refresh 쿠키를 받아 Authorization 헤더로 백엔드에 전달. 401 → `/api/v1/auth/refresh` 한 번 호출 후 재시도, 실패 시 `/login?next=...` 리다이렉트.
+- 인증/토큰(C+): BFF(`app/api/bff`)가 HttpOnly Access/Refresh 쿠키를 받아 Authorization 헤더로 백엔드에 전달. 401이면 `/api/v1/auth/refresh`를 1회 호출 후 재시도(singleflight). 그래도 401이면 응답을 그대로 반환하고, 클라이언트 `apiRequest`가 `/login?next=...`로 이동한다.
 - BFF 프록시: `frontend-web/app/api/bff/[...path]/route.js`가 Backend API를 호출하고 `Set-Cookie`를 프론트 도메인으로 재작성
 - 통신 계층: `app/lib/runtime/api.js`의 `apiJSON`/`apiRequest`를 단일 진실로 사용(SSR/CSR 공통)
   - CSR에서 스트리밍/자동 재검증이 필요하면 `app/lib/hooks/useSwr.jsx`(SWR 래퍼) 선택적 사용

@@ -12,7 +12,7 @@
 ## 🏗 구조
 project-root/
 ├── backend/ # FastAPI로 만든 백엔드
-├── frontend-web/ # React 웹
+├── frontend-web/ # Next.js 웹(App Router)
 ├── frontend-app/ # React Native 앱
 └── docs/ # 문서들
 
@@ -36,7 +36,7 @@ project-root/
 - 최적화 해놨음
 
 ## 🛠 뭘로 만들었어?
-- **웹**: React + Tailwind + Vite
+- **웹**: Next.js(App Router) + React + Tailwind
 - **앱**: React Native + NativeWind
 - **백엔드**: FastAPI + SQLAlchemy
 - **DB**: SQLite 기본 (MySQL, PostgreSQL, Oracle도 가능)

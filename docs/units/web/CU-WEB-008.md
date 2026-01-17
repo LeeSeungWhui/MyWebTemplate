@@ -8,7 +8,7 @@ links: [CU-WEB-001, CU-WEB-004, CU-WEB-005, CU-WEB-006, CU-WEB-002, CU-BE-001]
 ---
 
 ### Purpose
-- 미들웨어 단계에서 보호 경로 접근을 선제 차단하고, 로그인 상태에 따라 무깜빡임 302 리다이렉트를 보장한다.
+- 미들웨어 단계에서 보호 경로 접근을 선제 차단하고, 로그인 상태에 따라 무깜빡임 307 리다이렉트를 보장한다(Next 기본).
 - 서버/클라이언트 가드와 중복되지 않도록 책임을 분담한다.
 
 ### Scope
@@ -25,8 +25,8 @@ links: [CU-WEB-001, CU-WEB-004, CU-WEB-005, CU-WEB-006, CU-WEB-002, CU-BE-001]
 - 공개 경로: `frontend-web/app/common/config/publicRoutes.js`에서만 관리(Allowlist)
 - 보호 경로: Allowlist 외 전부(Default Protect). 정적/내부/파비콘/파일확장자는 제외
 - 리다이렉트 정책
-  - 미인증 → 보호 경로: 즉시 `/login` 302 + httpOnly 쿠키 `nx`에 원경로 저장(5분)
-  - 인증 → `/login`: `/dashboard` 302 + 잔여 `nx` 삭제
+  - 미인증 → 보호 경로: 즉시 `/login` 307 + httpOnly 쿠키 `nx`에 원경로 저장(5분)
+  - 인증 → `/login`: `/dashboard` 307 + 잔여 `nx` 삭제
   - 로그인 URL에 `?next`가 붙어오면 sanitize 후 `nx`로 변환하고 깨끗한 `/login`으로 정리
 
 ### Data & Rules
@@ -46,8 +46,8 @@ links: [CU-WEB-001, CU-WEB-004, CU-WEB-005, CU-WEB-006, CU-WEB-002, CU-BE-001]
 - 접근성: 로그인 후 리다이렉트 시 포커스 이동/알림 UX는 페이지 레벨에서 보조 문서화
 
 ### Acceptance Criteria
-- AC-1: 미인증 사용자가 보호 경로 접근 시 미들웨어에서 `/login`으로 즉시 302, `nx` 쿠키에 복귀 경로가 저장된다.
-- AC-2: 인증 사용자가 `/login` 접근 시 `/dashboard`로 302, 남아있던 `nx`가 삭제된다.
+- AC-1: 미인증 사용자가 보호 경로 접근 시 미들웨어에서 `/login`으로 즉시 307, `nx` 쿠키에 복귀 경로가 저장된다.
+- AC-2: 인증 사용자가 `/login` 접근 시 `/dashboard`로 307, 남아있던 `nx`가 삭제된다.
 - AC-3: `/login?next=...`로 접근 시 `next`는 sanitize되어 `nx`로 변환되고, 주소창은 `/login`으로 정리된다.
 - AC-4: `/api/**`, 정적 자산, `/_next/*` 요청은 미들웨어가 변경하지 않는다.
 - AC-5: 프리페치 요청은 리다이렉트하지 않고 통과(내비 UX 영향 없음).
@@ -59,7 +59,7 @@ links: [CU-WEB-001, CU-WEB-004, CU-WEB-005, CU-WEB-006, CU-WEB-002, CU-BE-001]
 - T3 `next` 검증기: 경로만 허용, 무효는 `/` 처리 규칙
 - T4 바이패스 처리: `/api/**`, 정적/문서 자산, 프리페치/프리로드 헤더 우회 로직
 - T5 런타임 주의: 기본 nodejs 런타임 페이지와 함께 동작. 미들웨어 제약(파일 I/O 금지) 문서화
-- T6 통합 테스트: 비인증→보호→/login 302, 인증→/login→/ 302, `next` 유효/무효, API/정적 bypass, 프리페치 미리다이렉트
+- T6 통합 테스트: 비인증→보호→/login 307, 인증→/login→/dashboard 307, `next` 유효/무효, API/정적 bypass, 프리페치 미리다이렉트
 - T7 문서 & 릴리즈 노트: 가드 체인(미들웨어→서버→클라)의 책임과 한계 명시
 
 ### Notes
@@ -69,5 +69,5 @@ links: [CU-WEB-001, CU-WEB-004, CU-WEB-005, CU-WEB-006, CU-WEB-002, CU-BE-001]
 - 문서 정합: index.md / web.md / backend.md의 경로·쿠키·인증 규약과 일치
 
 ### Implementation Notes
-- `frontend-web/middleware.js`는 보호 경로에서 `refresh_token` 쿠키를 검사해 없으면 `/login`으로 302 리다이렉트한다.
+- `frontend-web/middleware.js`는 보호 경로에서 `refresh_token` 쿠키를 검사해 없으면 `/login`으로 307 리다이렉트한다.
 - 공개/보호 경로 패턴과 `next` 검증 로직은 향후 확장이 필요하다.

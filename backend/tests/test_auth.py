@@ -117,10 +117,17 @@ def testRefreshPreservesSessionCookieWhenNotRemember():
         assert "max-age" not in refreshedCookieHeader.lower()
 
 
-def testRefreshTokenReuseIsRejected():
+def testRefreshTokenReuseGraceWindow(monkeypatch):
     from server import app
+    from lib.Auth import AuthConfig
+    from service import AuthService
+
+    now = {"ms": 1_700_000_000_000}
+    monkeypatch.setattr(AuthService, "_nowMs", lambda: now["ms"])
 
     with TestClient(app) as client:
+        # startup에서 AuthConfig.initConfig가 실행되므로, 유예 시간은 클라이언트 컨텍스트 진입 후에 덮어쓴다.
+        monkeypatch.setattr(AuthConfig, "refreshGraceMs", 500)
         response = client.post(
             "/api/v1/auth/login",
             json={"username": "demo@demo.demo", "password": "password123", "rememberMe": True},
@@ -129,16 +136,26 @@ def testRefreshTokenReuseIsRejected():
         originalRefresh = client.cookies.get("refresh_token")
         assert originalRefresh
 
-        # 첫 번째 refresh는 정상적으로 동작해야 한다.
-        refreshResponse = client.post("/api/v1/auth/refresh")
-        assert refreshResponse.status_code == 200
+        # 첫 번째 refresh는 정상 동작해야 한다.
+        refreshResponse1 = client.post("/api/v1/auth/refresh")
+        assert refreshResponse1.status_code == 200
+        accessAfterRefresh1 = client.cookies.get("access_token")
+        assert accessAfterRefresh1
 
-        # 이전 refresh 토큰을 다시 사용하면 401이 반환되어야 한다.
+        # 유예 시간 내: 이전 refresh 토큰 재전송은 동일 토큰 페이로드로 재응답한다.
         client.cookies.set("refresh_token", originalRefresh)
-        response2 = client.post("/api/v1/auth/refresh")
-        assert response2.status_code == 401
-        assert response2.headers.get("WWW-Authenticate") == "Bearer"
-        body = response2.json()
+        now["ms"] += 100
+        refreshResponse2 = client.post("/api/v1/auth/refresh")
+        assert refreshResponse2.status_code == 200
+        assert client.cookies.get("access_token") == accessAfterRefresh1
+
+        # 유예 시간 이후: 이전 refresh 토큰 재전송은 401이어야 한다.
+        client.cookies.set("refresh_token", originalRefresh)
+        now["ms"] += 1000
+        response3 = client.post("/api/v1/auth/refresh")
+        assert response3.status_code == 401
+        assert response3.headers.get("WWW-Authenticate") == "Bearer"
+        body = response3.json()
         assert body["status"] is False
         assert body["code"] == "AUTH_401_INVALID"
 

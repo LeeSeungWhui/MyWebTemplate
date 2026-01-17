@@ -1,4 +1,4 @@
-﻿---
+---
 id: CU-WEB-003
 name: UI Component Pack (EasyObj/EasyList Binding)
 module: web

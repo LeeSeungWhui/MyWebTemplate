@@ -17,7 +17,7 @@ links: [CU-WEB-001, CU-WEB-002, CU-WEB-005, CU-WEB-006, CU-WEB-008, CU-BE-001]
   - 가드 계층(단일화):
     - 미들웨어 가드만 사용(경로 진입 즉시 판정; links: CU-WEB-008)
     - (선택) 클라 보조 가드: 세션 표시/만료 대응은 `apiJSON`으로 단발 패치하거나, 실시간/자동 재검증이 필요할 때만 `useSwr`(SWR 래퍼)
-  - 리다이렉트 규칙: 미인증 보호 경로 접근 시 `/login`, 인증 상태로 `/login` 접근 시 `/`
+  - 리다이렉트 규칙: 미인증 보호 경로 접근 시 `/login`, 인증 상태로 `/login` 접근 시 `/dashboard`
   - `next` 파라미터: 유효 경로만 허용
 - 제외
   - 세부 RBAC, 멀티테넌시 권한 매핑(차기)
@@ -28,8 +28,8 @@ links: [CU-WEB-001, CU-WEB-002, CU-WEB-005, CU-WEB-006, CU-WEB-008, CU-BE-001]
   - 보호: `/`, `/dashboard`, `/settings`, `/app/**`
 - 리다이렉트 정책
   - 미인증 → 보호 경로: 즉시 `/login`으로 리다이렉트(미들웨어, 깜빡임 없음)
-  - 인증 → `/login`: `/`로 리다이렉트
-  - `next`는 유효 경로일 때만 사용, 무효는 `/` 백
+  - 인증 → `/login`: `/dashboard`로 리다이렉트
+  - `next`는 유효 경로일 때만 사용, 무효는 `/dashboard` 백
 - HTTP/캐시
   - 세션 확인(`/api/v1/auth/me`) 응답은 `Cache-Control: no-store`
   - 페이지 렌더 전략은 자유(SSR/ISR/CSR). 인증 판별은 미들웨어로 선제 처리
@@ -51,18 +51,18 @@ links: [CU-WEB-001, CU-WEB-002, CU-WEB-005, CU-WEB-006, CU-WEB-008, CU-BE-001]
 
 ### Acceptance Criteria
 - AC-1: 미인증 사용자가 `/dashboard` 진입 시 미들웨어/서버 레벨에서 즉시 `/login`으로 전환(클라 깜빡임 없음).
-- AC-2: 인증 사용자가 `/login` 접근 시 `/`로 전환.
-- AC-3: `next=/settings/profile`로 로그인 성공 시 해당 경로로 이동. 무효 `next`는 `/`로 백.
+- AC-2: 인증 사용자가 `/login` 접근 시 `/dashboard`로 전환.
+- AC-3: `next=/settings/profile`로 로그인 성공 시 해당 경로로 이동. 무효 `next`는 `/dashboard`로 백.
 - AC-4: 보호 페이지에서 API 401 수신 시 세션 무효화 후 `/login` 이동, 토스트에 `code/requestId` 노출.
 - AC-5: SSR/ISR/CSR 전환에도 동일하게 동작(리다이렉트/401 처리/세션 동기화 일관).
 - AC-6: `/api/v1/auth/me` 응답이 `no-store`여서 브라우저 캐시에 남지 않는다.
 
 ### Tasks
 - T1 경로 정책 정의: 공개/보호 목록 및 패턴 정의(정규/리스트)
-- T2 미들웨어 가드: 보호 경로 미인증→`/login`, `/login` 인증→`/` (links: CU-WEB-008)
+- T2 미들웨어 가드: 보호 경로 미인증→`/login`, `/login` 인증→`/dashboard` (links: CU-WEB-008)
 - T3 (삭제) 서버 가드: 보호 페이지 RSC 판정은 사용하지 않음(미들웨어 단일화)
 - T4 클라 가드: 세션 동기화(만료/401 자동 핸들). 필요 시 `useSwr` 규약 적용, 메시지 매핑(`AUTH_*`, `VALID_422_*`)
-- T5 `next` 파라미터 검증: 유효 경로만 허용, 기본 `/`, 문서화
+- T5 `next` 파라미터 검증: 유효 경로만 허용, 기본 `/dashboard`, 문서화
 - T6 캐시/전략: 보호 페이지 `no-store`/SSR 기본, ISR/CSR 전환 규칙(CU-WEB-006)
 - T7 테스트: 인증/비인증 보호경로 접근, `/login` 접근, `next` 유효/무효, 401 처리 후 캐시 무효
 - T8 문서/스토리: 가드 상태별 UX 및 에러 코드 매핑 가이드
@@ -75,6 +75,6 @@ links: [CU-WEB-001, CU-WEB-002, CU-WEB-005, CU-WEB-006, CU-WEB-008, CU-BE-001]
 ### Implementation Notes
 - `frontend-web/middleware.js`에서 기본 보호(Default protect)를 적용한다.
   - 공개 경로는 `frontend-web/app/common/config/publicRoutes.js`에서만 관리한다.
-  - 공개 경로가 아니고 `refresh_token` 쿠키가 없으면 `/login`으로 302 리다이렉트한다.
+  - 공개 경로가 아니고 `refresh_token` 쿠키가 없으면 `/login`으로 307 리다이렉트한다.
   - 리다이렉트 시 httpOnly 쿠키 `nx`에 원 경로를 5분간 저장한다(오픈 리다이렉트 방지 sanitize 적용).
 - 서버 컴포넌트/레이아웃에서 인증 재검사는 하지 않는다. 미들웨어 통과를 전제한다.

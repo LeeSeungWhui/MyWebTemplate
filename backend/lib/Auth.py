@@ -32,6 +32,8 @@ class AuthConfig:
     algorithm: str = "HS256"
     accessTokenExpireMinutes: int = 60
     refreshTokenExpireMinutes: int = 60 * 24 * 7
+    # refresh 토큰 회전 직후, 동일 refresh 토큰 재시도(탭 경합/네트워크 재시도)를 허용하는 유예 시간(ms)
+    refreshGraceMs: int = 10_000
     accessCookieName: str = "access_token"
     refreshCookieName: str = "refresh_token"
     tokenEnable: bool = True
@@ -42,6 +44,7 @@ class AuthConfig:
         secretKey: str,
         accessExpireMinutes: int = 60,
         refreshExpireMinutes: int = 60 * 24 * 7,
+        refreshGraceMs: int = 10_000,
         tokenEnable: bool = True,
         accessCookie: str = "access_token",
         refreshCookie: str = "refresh_token",
@@ -49,6 +52,7 @@ class AuthConfig:
         cls.secretKey = secretKey
         cls.accessTokenExpireMinutes = accessExpireMinutes
         cls.refreshTokenExpireMinutes = refreshExpireMinutes
+        cls.refreshGraceMs = int(refreshGraceMs or 0)
         cls.accessCookieName = accessCookie
         cls.refreshCookieName = refreshCookie
         cls.tokenEnable = tokenEnable
