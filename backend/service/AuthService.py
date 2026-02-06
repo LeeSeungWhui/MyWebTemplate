@@ -1,6 +1,7 @@
 """
-파일: backend/service/AuthService.py
-작성: LSH
+파일명: backend/service/AuthService.py
+작성자: LSH
+갱신일: 2026-01-18
 설명: 인증 도메인 서비스. 비즈니스 로직만 포함한다(HTTP/세션은 라우터 책임).
 """
 
@@ -13,7 +14,10 @@ import hmac
 import json
 from datetime import datetime, timezone
 
-import bcrypt  # optional; used only if available
+try:
+    import bcrypt  # optional; used only if available
+except Exception:
+    bcrypt = None
 
 from jose import JWTError, jwt
 
@@ -24,7 +28,8 @@ from lib.RequestContext import getRequestId
 from lib.Response import successResponse
 
 # 인메모리 리프레시 토큰 블랙리스트(재사용/로그아웃 차단용)
-revokedRefreshJtiStore: set[str] = set()
+# key: refresh jti, value: expiresAtMs (refresh exp 기반 TTL)
+revokedRefreshJtiStore: Dict[str, int] = {}
 # refresh 토큰 회전 직후, 같은 refresh 토큰이 다시 들어오는 케이스(다중 탭/네트워크 재시도)를 흡수하기 위한 유예 캐시
 # key: 이전 refresh jti, value: {"expiresAtMs": int, "tokenPayload": dict}
 refreshGraceStore: Dict[str, Dict[str, Any]] = {}
@@ -37,9 +42,7 @@ def cleanupRefreshGraceStore(nowMs: int) -> None:
     """
     try:
         expired = [
-            jti
-            for jti, entry in list(refreshGraceStore.items())
-            if int(entry.get("expiresAtMs", 0) or 0) <= nowMs
+            jti for jti, entry in list(refreshGraceStore.items()) if int(entry.get("expiresAtMs", 0) or 0) <= nowMs
         ]
         for jti in expired:
             refreshGraceStore.pop(jti, None)
@@ -48,6 +51,25 @@ def cleanupRefreshGraceStore(nowMs: int) -> None:
             # 임의로 오래된 순서 보장이 없으므로, 일부를 삭제해 폭주만 막는다.
             for jti in list(refreshGraceStore.keys())[:1000]:
                 refreshGraceStore.pop(jti, None)
+    except Exception:
+        return
+
+
+def cleanupRevokedRefreshJtiStore(nowMs: int) -> None:
+    """
+    설명: revoked refresh jti store에서 만료된 항목을 제거한다(TTL).
+    갱신일: 2026-01-18
+    """
+    try:
+        expired = [
+            jti for jti, expiresAtMs in list(revokedRefreshJtiStore.items()) if int(expiresAtMs or 0) <= nowMs
+        ]
+        for jti in expired:
+            revokedRefreshJtiStore.pop(jti, None)
+        # 과도한 메모리 사용 방지(템플릿 기본값)
+        if len(revokedRefreshJtiStore) > 200_000:
+            for jti in list(revokedRefreshJtiStore.keys())[:50_000]:
+                revokedRefreshJtiStore.pop(jti, None)
     except Exception:
         return
 
@@ -78,6 +100,24 @@ def auditLog(event: str, username: Optional[str], success: bool, meta: Optional[
             logger.info("auth_audit_fallback %s %s %s %s", event, username, success, meta)
         except Exception:
             pass
+
+
+def _extractExpMs(payload: Dict[str, Any], nowMs: int) -> int:
+    """
+    설명: JWT payload의 exp를 ms로 변환한다. 없으면 refreshExpire 설정으로 추정한다.
+    갱신일: 2026-01-18
+    """
+    try:
+        exp = payload.get("exp")
+        if isinstance(exp, (int, float)):
+            return int(exp * 1000)
+    except Exception:
+        pass
+    try:
+        minutes = int(getattr(AuthConfig, "refreshTokenExpireMinutes", 0) or 0)
+    except Exception:
+        minutes = 0
+    return nowMs + max(0, minutes) * 60 * 1000
 
 
 async def me(user):
@@ -121,6 +161,7 @@ async def refresh(refreshToken: str) -> Optional[dict]:
     """리프레시 토큰으로 새 액세스/리프레시 토큰을 발급한다(토큰 회전 + 재사용 차단)."""
     nowMs = _nowMs()
     cleanupRefreshGraceStore(nowMs)
+    cleanupRevokedRefreshJtiStore(nowMs)
     payload = decodeRefreshTokenPayload(refreshToken)
     if not payload:
         auditLog("auth.refresh", None, False, {"reason": "invalid_refresh"})
@@ -136,7 +177,8 @@ async def refresh(refreshToken: str) -> Optional[dict]:
     if not isinstance(jti, str) or not jti:
         auditLog("auth.refresh", username, False, {"reason": "missing_jti"})
         return None
-    if jti in revokedRefreshJtiStore:
+    revokedExpiresAtMs = int(revokedRefreshJtiStore.get(jti, 0) or 0)
+    if revokedExpiresAtMs and nowMs < revokedExpiresAtMs:
         # 이미 사용됐거나 로그아웃된 리프레시 토큰 재사용 시도
         cached = refreshGraceStore.get(jti)
         expiresAtMs = int(cached.get("expiresAtMs", 0) or 0) if isinstance(cached, dict) else 0
@@ -146,9 +188,12 @@ async def refresh(refreshToken: str) -> Optional[dict]:
             return tokenPayload
         auditLog("auth.refresh", username, False, {"reason": "reused_token"})
         return None
+    # TTL이 지난 항목이면 제거한다(만료된 refresh 토큰은 어차피 decode 단계에서 걸린다).
+    if revokedExpiresAtMs:
+        revokedRefreshJtiStore.pop(jti, None)
 
     # 현재 리프레시 토큰은 더 이상 사용하지 못하도록 블랙리스트에 추가
-    revokedRefreshJtiStore.add(jti)
+    revokedRefreshJtiStore[jti] = _extractExpMs(payload, nowMs)
 
     tokenPayload = issueTokens(username, remember)
     # 다중 탭/네트워크 재시도 경합을 위해 짧은 유예 시간 동안 동일 토큰 페이로드를 재응답할 수 있게 캐시한다.
@@ -171,6 +216,10 @@ def revokeRefreshToken(refreshToken: Optional[str]) -> None:
         auditLog("auth.logout", None, True, {"reason": "no_refresh_cookie"})
         return
 
+    nowMs = _nowMs()
+    cleanupRefreshGraceStore(nowMs)
+    cleanupRevokedRefreshJtiStore(nowMs)
+
     payload = decodeRefreshTokenPayload(refreshToken)
     if not payload:
         auditLog("auth.logout", None, False, {"reason": "invalid_refresh"})
@@ -179,7 +228,7 @@ def revokeRefreshToken(refreshToken: Optional[str]) -> None:
     username = payload.get("sub") if isinstance(payload.get("sub"), str) else None
     jti = payload.get("jti")
     if isinstance(jti, str) and jti:
-        revokedRefreshJtiStore.add(jti)
+        revokedRefreshJtiStore[jti] = _extractExpMs(payload, nowMs)
     auditLog("auth.logout", username, True, {})
 
 
@@ -244,12 +293,8 @@ def decodeRefreshTokenPayload(refreshToken: str) -> Optional[Dict[str, Any]]:
 
 def issueTokens(username: str, remember: bool = False) -> dict:
     """주어진 사용자명으로 액세스/리프레시 토큰 페이로드를 생성."""
-    accessToken: Token = createAccessToken(
-        {"sub": username, "remember": remember}, tokenType="access"
-    )
-    refreshToken: Token = createRefreshToken(
-        {"sub": username, "remember": remember}
-    )
+    accessToken: Token = createAccessToken({"sub": username, "remember": remember}, tokenType="access")
+    refreshToken: Token = createRefreshToken({"sub": username, "remember": remember})
     return {
         "accessToken": accessToken.accessToken,
         "refreshToken": refreshToken.accessToken,

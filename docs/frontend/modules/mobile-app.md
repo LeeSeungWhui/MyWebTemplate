@@ -94,7 +94,7 @@
 
 ## Links
 - Parent: docs/index.md
-- Children: docs/units/mobile-app/
+- Children: docs/frontend/units/
 
 ## 결정사항(고정)
 - API 클라이언트: openapi-client-axios 고정 채택

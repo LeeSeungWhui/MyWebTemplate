@@ -66,9 +66,9 @@
 
 ## Modules
 
-- Web: `docs/modules/web.md`
-- Backend: `docs/modules/backend.md`
-- Mobile App: `docs/modules/mobile-app.md`
+- Web: `docs/frontend/modules/web.md`
+- Mobile App: `docs/frontend/modules/mobile-app.md`
+- Backend: `docs/backend/modules/backend.md`
 - 공통 규칙: `docs/common-rules.md`
 - Ops: `docs/ops/server-environments.md`
 

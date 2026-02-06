@@ -1,7 +1,7 @@
 """
-파일: backend/lib/Database.py
-작성: LSH
-갱신: 2025-09-07
+파일명: backend/lib/Database.py
+작성자: LSH
+갱신일: 2026-01-18
 설명: DB 매니저/쿼리 로더/디렉터리 감시. 파라미터 바인딩 강제·PII 마스킹 로깅.
 """
 
@@ -19,8 +19,20 @@ from databases import Database
 from lib.Logger import logger
 from lib.SqlLoader import parseSqlFile, scanSqlQueries
 from sqlalchemy import MetaData
-from watchdog.events import FileSystemEvent, FileSystemEventHandler
-from watchdog.observers import Observer
+
+try:
+    from watchdog.events import FileSystemEvent, FileSystemEventHandler
+    from watchdog.observers import Observer
+
+    watchdogAvailable: bool = True
+except Exception:
+    FileSystemEvent = Any  # type: ignore[assignment]
+
+    class FileSystemEventHandler:  # type: ignore[no-redef]
+        pass
+
+    Observer = None  # type: ignore[assignment]
+    watchdogAvailable = False
 
 # =========================
 # 모듈 전역 상태
@@ -213,9 +225,7 @@ class DatabaseManager:
         """설명: 쓰기 쿼리를 실행하고 영향 행을 반환. 갱신일: 2025-11-12"""
         self.validateBindParameters(query, values)
         logger.info("executing query")
-        logger.debug(
-            f"sql={query}; params={self.maskParams(values or {})}"
-        )
+        logger.debug(f"sql={query}; params={self.maskParams(values or {})}")
         result = await self.database.execute(query=query, values=values or {})
         logger.info(f"rows_affected={result}")
         incSqlCount()
@@ -225,9 +235,7 @@ class DatabaseManager:
         """설명: 단일 행을 조회해 dict로 반환. 갱신일: 2025-11-12"""
         self.validateBindParameters(query, values)
         logger.info("fetchOne")
-        logger.debug(
-            f"sql={query}; params={self.maskParams(values or {})}"
-        )
+        logger.debug(f"sql={query}; params={self.maskParams(values or {})}")
         result = await self.database.fetch_one(query=query, values=values or {})
         if result is not None:
             data: Dict[str, Any] = dict(result)
@@ -243,9 +251,7 @@ class DatabaseManager:
         """설명: 여러 행을 리스트로 반환. 갱신일: 2025-11-12"""
         self.validateBindParameters(query, values)
         logger.info("fetchAll")
-        logger.debug(
-            f"sql={query}; params={self.maskParams(values or {})}"
-        )
+        logger.debug(f"sql={query}; params={self.maskParams(values or {})}")
         result = await self.database.fetch_all(query=query, values=values or {})
         if result is not None:
             data: List[Dict[str, Any]] = [{column: row[column] for column in row.keys()} for row in result]  # type: ignore[index]
@@ -275,7 +281,9 @@ class DatabaseManager:
         logger.info(f"fetchOne named query: {queryName}")
         return await self.fetchOne(query, values)
 
-    async def fetchAllQuery(self, queryName: str, values: Optional[Dict[str, Any]] = None) -> Optional[List[Dict[str, Any]]]:
+    async def fetchAllQuery(
+        self, queryName: str, values: Optional[Dict[str, Any]] = None
+    ) -> Optional[List[Dict[str, Any]]]:
         """설명: 등록 쿼리 중 여러 행을 가져온다. 갱신일: 2025-11-12"""
         query = self.queryManager.getQuery(queryName)
         if not query:
@@ -319,9 +327,7 @@ def loadQueries() -> int:
         )
         logger.info(msg)
     except Exception:
-        logger.info(
-            f"queries_loaded dir={queryDir} count={len(queries)} duration_ms={durationMs}"
-        )
+        logger.info(f"queries_loaded dir={queryDir} count={len(queries)} duration_ms={durationMs}")
     return len(queries)
 
 
@@ -400,6 +406,9 @@ def doReload() -> bool:
 def startWatchingQueryFolder() -> Optional[Any]:
     """설명: watchdog으로 쿼리 폴더 변화를 감시. 갱신일: 2025-11-12"""
     if not queryWatch:
+        return None
+    if not watchdogAvailable:
+        logger.info("watchdog 미설치: 쿼리 폴더 감시 비활성화")
         return None
     observer = Observer()
     handler = QueryFolderEventHandler(scheduleReload)

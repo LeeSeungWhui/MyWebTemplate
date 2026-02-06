@@ -58,6 +58,20 @@ describe('middleware', () => {
     expect(decodeURIComponent(nxValueRaw)).toBe('/dashboard?foo=bar')
   })
 
+  it('보호 경로 + refresh_token만 있으면 /api/session/bootstrap으로 선회하고 nx를 저장한다', async () => {
+    const req = buildReq({
+      url: 'http://localhost:3000/dashboard?foo=bar',
+      cookies: { refresh_token: 'rt' },
+    })
+    const res = await middleware(req)
+    expect(res.headers.get('location')).toBe('http://localhost:3000/api/session/bootstrap')
+
+    const setCookies = getSetCookies(res)
+    const nxValueRaw = findCookieValue(setCookies, 'nx')
+    expect(nxValueRaw).toBeTruthy()
+    expect(decodeURIComponent(nxValueRaw)).toBe('/dashboard?foo=bar')
+  })
+
   it('프리페치 요청은 리다이렉트하지 않는다', async () => {
     const req = buildReq({
       url: 'http://localhost:3000/dashboard',
@@ -77,6 +91,21 @@ describe('middleware', () => {
     expect(decodeURIComponent(nxValueRaw)).toBe('/dashboard')
   })
 
+  it('/login?next&reason이면 nx/auth_reason 쿠키로 정리하고 주소창은 /login으로 유지한다', async () => {
+    const req = buildReq({
+      url: 'http://localhost:3000/login?next=/settings/profile&reason=abcDEF_-123',
+    })
+    const res = await middleware(req)
+    expect(res.headers.get('location')).toBe('http://localhost:3000/login')
+
+    const setCookies = getSetCookies(res)
+    const nxValueRaw = findCookieValue(setCookies, 'nx')
+    expect(decodeURIComponent(nxValueRaw)).toBe('/settings/profile')
+
+    const reasonValue = findCookieValue(setCookies, 'auth_reason')
+    expect(reasonValue).toBe('abcDEF_-123')
+  })
+
   it('유효한 access_token이면 /login에서 /dashboard로 보낸다(nx도 정리)', async () => {
     const futureExp = Math.floor(Date.now() / 1000) + 60 * 10
     const req = buildReq({
@@ -93,6 +122,28 @@ describe('middleware', () => {
     const setCookies = getSetCookies(res)
     const nxValueRaw = findCookieValue(setCookies, 'nx')
     expect(nxValueRaw).toBe('')
+  })
+
+  it('/login에서 auth_reason이 있으면 페이지 표시 후 1회성으로 정리한다', async () => {
+    const req = buildReq({
+      url: 'http://localhost:3000/login',
+      cookies: { auth_reason: 'abcDEF_-123' },
+    })
+    const res = await middleware(req)
+    expect(res.headers.get('location')).toBeNull()
+
+    const setCookies = getSetCookies(res)
+    const reasonValue = findCookieValue(setCookies, 'auth_reason')
+    expect(reasonValue).toBe('')
+  })
+
+  it('refresh_token만 있으면 /login에서 access 재발급 엔드포인트로 보낸다', async () => {
+    const req = buildReq({
+      url: 'http://localhost:3000/login',
+      cookies: { refresh_token: 'rt' },
+    })
+    const res = await middleware(req)
+    expect(res.headers.get('location')).toBe('http://localhost:3000/api/session/bootstrap')
   })
 
   it('공개 경로는 통과하고, 인증 상태에서 남은 nx는 정리한다', async () => {
@@ -121,4 +172,3 @@ describe('middleware', () => {
     }
   })
 })
-

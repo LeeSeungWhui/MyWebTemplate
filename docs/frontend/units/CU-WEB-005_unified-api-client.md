@@ -2,7 +2,7 @@
 id: CU-WEB-005
 name: Unified API Client (apiJSON/apiRequest)
 module: web
-status: in-progress
+status: implemented
 priority: P1
 links: [CU-BE-001, CU-BE-005, CU-WEB-001, CU-WEB-004, CU-WEB-006]
 ---
@@ -10,11 +10,12 @@ links: [CU-BE-001, CU-BE-005, CU-WEB-001, CU-WEB-004, CU-WEB-006]
 ### Purpose
 - SSR/CSR 공통 통신 계층(`apiJSON`/`apiRequest`)으로 쿠키/401/프록시 규약을 일원화한다.
 - 어디서 호출하든 응답 스키마/리다이렉트/에러 처리 정책이 일관되게 동작한다.
-- 401(세션 만료) 글로벌 처리: `/login?next=현재경로`로 이동 → 미들웨어가 `nx` 쿠키로 정리.
+- 401(세션 만료) 글로벌 처리: `/login?next=현재경로&reason=...`로 이동 → 미들웨어가 `nx`/`auth_reason` 쿠키로 정리.
 
 ### Scope
 - 포함
   - Runtime 유틸: `app/lib/runtime/api.js` — `apiRequest`(Response) / `apiJSON`(JSON)
+  - OpenAPI(operationId) 유틸: `app/lib/runtime/openapiClient.js` — `openapiRequest`(Response) / `openapiJSON`(JSON)
   - BFF 프록시: `/api/bff/*` 경유(쿠키/도메인 재작성)
   - 응답 스키마: {status,message,result,count?,code?,requestId} 강제
   - 오류 정책: 401(리프레시 1회→재시도→실패 시 로그인 리다이렉트), 그 외 상태코드는 호출자가 처리
@@ -25,18 +26,21 @@ links: [CU-BE-001, CU-BE-005, CU-WEB-001, CU-WEB-004, CU-WEB-006]
 ### Interface
 - Export
   - Runtime: `apiRequest`, `apiJSON`, `apiGet/post/put/patch/delete`
+  - OpenAPI: `openapiRequest`, `openapiJSON` (operationId 기반, 내부적으로 `apiRequest/apiJSON`에 위임)
   - Hook(optional): `useSwr(key, path, options)`
 - ENV: 전역 ENV 스위치 사용 안 함. Backend Host는 config.ini의 `[API].base` → `[APP].backendHost` 우선순위로 로드(getBackendHost)한다.
 - 요청 규약
   - 모든 요청은 credentials:'include' 고정(쿠키 세션)
   - 세션 조회(/api/v1/auth/me)는 Cache-Control: no-store
   - 로그인(/api/v1/auth/login) 200 JSON 처리(Access/Refresh 쿠키 + body.result.accessToken)
-  - 401 수신 시 전역 인터셉터에서 `/login?next=현재경로`로 이동(루프 방지: `/login`에서는 미동작)
+  - 401 수신 시 전역 인터셉터에서 `/login?next=현재경로&reason=...`로 이동(루프 방지: `/login`에서는 미동작)
+    - `reason`: base64url(JSON `{ code, requestId, message? }`)
+    - 미들웨어가 `reason`을 httpOnly 쿠키 `auth_reason`로 정리하고 주소창은 `/login`으로 깨끗하게 유지한다(CU-WEB-008)
   - CSR 호출은 `/api/bff/*` 프록시를 통해 Backend API로 전달되고, `Set-Cookie`는 프론트 도메인으로 재작성된다
 - 응답/오류 규약
   - 성공: 응답 스키마 준수 + 요청ID 로깅
   - 실패:
-    - 401 → /login 리다이렉트 + code/requestId 표시
+    - 401 → /login 리다이렉트 + 토스트에 code/requestId 표시(`auth_reason` 쿠키로 전달)
     - 4xx/5xx → `apiJSON`은 `ApiError`를 throw하고(호출자가 catch), `{code, requestId}`로 사용자 메시지를 매핑한다
       - `ApiError`: `{ statusCode, code, requestId, path, body }`
 
@@ -54,7 +58,7 @@ links: [CU-BE-001, CU-BE-005, CU-WEB-001, CU-WEB-004, CU-WEB-006]
 ### Acceptance Criteria
 - AC-1: 모든 요청에서 credentials:'include'가 적용된다.
 - AC-2: 로그인 200 JSON이 정상 처리되고, 이후 `/api/v1/auth/me` 응답에서 username이 반환된다.
-- AC-3: 401 수신 시 refresh 1회→재시도 후 실패하면 `/login?next=...`로 전역 리다이렉트된다.
+- AC-3: 401 수신 시 refresh 1회→재시도 후 실패하면 `/login?next=...&reason=...`로 전역 리다이렉트된다(주소창은 미들웨어가 `/login`으로 정리).
 - AC-4: (선택) `useSwr` 사용 시 재검증/무효화 규약이 정상 동작한다.
 - AC-5: SSR/CSR 경로 모두에서 에러/리다이렉트 정책이 일관 동작한다.
 - AC-6: 로컬 스모크에서 `/healthz` 또는 `/api/v1/auth/me` 호출이 통과한다.
@@ -79,3 +83,4 @@ links: [CU-BE-001, CU-BE-005, CU-WEB-001, CU-WEB-004, CU-WEB-006]
 ### Implementation Notes
 - `app/lib/runtime/api.js`에 SSR/CSR 통합 유틸이 구현되어 있다(`apiRequest`/`apiJSON`).
 - 클라이언트에서 `/api/bff` 경유, 서버에서 쿠키/언어 포워딩 + no-store.
+- `app/lib/runtime/openapiClient.js`는 OpenAPI `/openapi.json`을 1회 로드해 operationId→요청 구성을 만들고, 실제 요청/에러 처리는 `apiRequest/apiJSON`에 위임한다.

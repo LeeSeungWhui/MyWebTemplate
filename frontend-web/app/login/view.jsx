@@ -2,11 +2,11 @@
 /**
  * 파일명: app/login/view.jsx
  * 작성자: Codex
- * 갱신일: 2025-12-02
+ * 갱신일: 2026-01-18
  * 설명: 로그인 페이지 클라이언트 뷰
  */
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import EasyObj from "@/app/lib/dataset/EasyObj";
 import Button from "@/app/lib/component/Button";
 import Input from "@/app/lib/component/Input";
@@ -15,6 +15,7 @@ import { apiRequest } from "@/app/lib/runtime/api";
 import useSwr from "@/app/lib/hooks/useSwr";
 import { SESSION_PATH, createLoginFormModel } from "./initData";
 import Link from "next/link";
+import { useGlobalUi } from "@/app/common/store/SharedStore";
 
 const MIN_USERNAME_LENGTH = 3;
 const MIN_PASSWORD_LENGTH = 8;
@@ -27,13 +28,14 @@ const sanitizeRedirect = (candidate) => {
   return candidate;
 };
 
-const Client = ({ mode, init, nextHint }) => {
+const Client = ({ mode, init, nextHint, authReason }) => {
   const loginObj = EasyObj(useMemo(() => createLoginFormModel(), []));
   const [pending, setPending] = useState(false);
   const [formError, setFormError] = useState("");
   const emailRef = useRef(null);
   const passwordRef = useRef(null);
   const errorSummaryRef = useRef(null);
+  const { showToast } = useGlobalUi();
   const { data: sessionData, mutate } = useSwr("session", SESSION_PATH, {
     swr: { fallbackData: init, revalidateOnFocus: true },
   });
@@ -42,6 +44,18 @@ const Client = ({ mode, init, nextHint }) => {
     sessionData.result &&
     sessionData.result.username
   );
+
+  useEffect(() => {
+    if (!authReason) return;
+    const message = authReason?.message
+      ? String(authReason.message)
+      : "세션이 만료됐어. 다시 로그인해.";
+    const metaParts = [];
+    if (authReason?.code) metaParts.push(`code: ${authReason.code}`);
+    if (authReason?.requestId) metaParts.push(`requestId: ${authReason.requestId}`);
+    const metaText = metaParts.length ? ` (${metaParts.join(", ")})` : "";
+    showToast(`${message}${metaText}`, { type: "error", duration: 5000 });
+  }, [authReason, showToast]);
 
   const resetErrors = () => {
     loginObj.errors.email = "";

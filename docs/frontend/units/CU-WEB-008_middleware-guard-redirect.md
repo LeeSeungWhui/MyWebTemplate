@@ -26,11 +26,15 @@ links: [CU-WEB-001, CU-WEB-004, CU-WEB-005, CU-WEB-006, CU-WEB-002, CU-BE-001]
 - 보호 경로: Allowlist 외 전부(Default Protect). 정적/내부/파비콘/파일확장자는 제외
 - 리다이렉트 정책
   - 미인증 → 보호 경로: 즉시 `/login` 307 + httpOnly 쿠키 `nx`에 원경로 저장(5분)
-  - 인증 → `/login`: `/dashboard` 307 + 잔여 `nx` 삭제
-  - 로그인 URL에 `?next`가 붙어오면 sanitize 후 `nx`로 변환하고 깨끗한 `/login`으로 정리
+  - 인증(= `refresh_token` 존재) + `access_token` 없음/만료 + 보호 경로: `/api/session/bootstrap` 307 + `nx`에 원경로 저장 → access 재발급 후 원래 경로로 복귀
+  - 인증 → `/login`
+    - `access_token` 유효: `/dashboard` 307 + 잔여 `nx` 삭제
+    - `access_token` 없음/만료 + `refresh_token` 존재: `/api/session/bootstrap`으로 보내 access 재발급 후 `nx`(없으면 `/dashboard`)로 이동
+  - 로그인 URL에 `?next`/`?reason`이 붙어오면 sanitize 후 `nx`/`auth_reason` 쿠키로 변환하고 깨끗한 `/login`으로 정리
 
 ### Data & Rules
 - 판정 근거: HttpOnly `refresh_token` 존재 여부를 1차 사용(서명/유효성 검증은 서버 가드 담당, CU-WEB-004 / CU-BE-001)
+  - 예외(UX): `access_token`의 `exp`만 파싱해 만료 여부를 대략 판정하고, 만료/없음이면 `/api/session/bootstrap`으로 선회해 SSR 401을 줄인다(서명 검증은 하지 않음).
 - 캐시/프리페치
   - 프리페치/프리로드 요청 헤더(예: `purpose=prefetch`)는 리다이렉트하지 않음
 - Bypass
@@ -47,8 +51,10 @@ links: [CU-WEB-001, CU-WEB-004, CU-WEB-005, CU-WEB-006, CU-WEB-002, CU-BE-001]
 
 ### Acceptance Criteria
 - AC-1: 미인증 사용자가 보호 경로 접근 시 미들웨어에서 `/login`으로 즉시 307, `nx` 쿠키에 복귀 경로가 저장된다.
-- AC-2: 인증 사용자가 `/login` 접근 시 `/dashboard`로 307, 남아있던 `nx`가 삭제된다.
+- AC-2: `refresh_token`이 있는 사용자가 `/login` 접근 시 access 재발급 후 `nx`(없으면 `/dashboard`)로 이동한다. (`access_token` 유효면 즉시, 없/만료면 `/api/session/bootstrap` 경유)
+- AC-2b: `refresh_token`이 있고 `access_token`이 없거나 만료된 사용자가 보호 경로 접근 시 `/api/session/bootstrap` 경유로 자동 복구한다.
 - AC-3: `/login?next=...`로 접근 시 `next`는 sanitize되어 `nx`로 변환되고, 주소창은 `/login`으로 정리된다.
+- AC-3b: `/login?...&reason=...`로 접근 시 `reason`은 `auth_reason`(httpOnly, short TTL)로 변환되고, 로그인 화면에서 토스트로 1회 노출된다.
 - AC-4: `/api/**`, 정적 자산, `/_next/*` 요청은 미들웨어가 변경하지 않는다.
 - AC-5: 프리페치 요청은 리다이렉트하지 않고 통과(내비 UX 영향 없음).
 - AC-6: 보호 페이지가 ISR/CSR로 전환되어도 가드 체인이 동일하게 동작(CU-WEB-006 정합).

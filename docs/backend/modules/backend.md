@@ -4,9 +4,9 @@
 - 인증/세션, 공통 응답 래퍼, 트랜잭션 유틸리티를 갖춘 프로덕션 준비형 백엔드 템플릿 제공.
 
 ## 기술 스택
-- Python 3.12, FastAPI 0.115.x (Pydantic v2), Starlette 0.45.x
-- Uvicorn 0.34.x (reload in dev)
-- SQLAlchemy 2.0 async(Core 우선)
+- Python 3.12, FastAPI 0.128.x (Pydantic v2), Starlette 0.50.x
+- Uvicorn 0.40.x (reload in dev)
+- SQLAlchemy 2.0.45 async(Core 우선)
 - Drivers: aiosqlite / aiomysql|asyncmy / asyncpg / python-oracledb
 - Docs/Client: OpenAPI(Swagger UI/Redoc), JS 클라이언트(openapi-client-axios)
 
@@ -125,7 +125,7 @@ port = 2000
 
 ## Links
 - Parent: docs/index.md
-- Children: docs/units/backend/
+- Children: docs/backend/units/
 
 ## 정책/명시
 - CSRF 헤더는 현재 템플릿에서 강제하지 않는다(세션 미사용).

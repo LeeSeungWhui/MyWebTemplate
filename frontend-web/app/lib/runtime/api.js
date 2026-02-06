@@ -1,9 +1,16 @@
 import { parseJsonPayload, normalizeNestedJsonFields } from '@/app/lib/runtime/jsonPayload'
+import {
+  AUTH_REASON_MAXLEN,
+  AUTH_REASON_QUERY_PARAM,
+  NEXT_QUERY_PARAM,
+  base64UrlEncodeUtf8,
+  extractUnauthorizedReason,
+} from '@/app/lib/runtime/authRedirect'
 
 /**
  * 파일명: api.js
  * 작성자: Codex
- * 갱신일: 2025-11-05
+ * 갱신일: 2026-01-18
  * 설명: SSR/CSR 공통 API 호출 유틸 (isomorphic)
  */
 
@@ -13,6 +20,14 @@ const LOGIN_PATH = '/login'
 
 function isServer() {
   return typeof window === 'undefined'
+}
+
+function isTestEnv() {
+  try {
+    return !!(process?.env?.VITEST || process?.env?.NODE_ENV === 'test')
+  } catch {
+    return false
+  }
 }
 
 function isAbsoluteUrl(input) {
@@ -29,6 +44,17 @@ function isBodyLike(v) {
   return (
     typeof v === 'string' ||
     (typeof FormData !== 'undefined' && v instanceof FormData) ||
+    (typeof Blob !== 'undefined' && v instanceof Blob) ||
+    (typeof ArrayBuffer !== 'undefined' && v instanceof ArrayBuffer)
+  )
+}
+
+function isFormBody(v) {
+  return typeof FormData !== 'undefined' && v instanceof FormData
+}
+
+function isBinaryBody(v) {
+  return (
     (typeof Blob !== 'undefined' && v instanceof Blob) ||
     (typeof ArrayBuffer !== 'undefined' && v instanceof ArrayBuffer)
   )
@@ -71,8 +97,10 @@ function normalizeArgs(path, a2, a3) {
   }
 
   let init = {}
+  let options = {}
   const applyMode = (m) => {
     if (!m) return
+    if (m === 'authless') options.authless = true
   }
 
   if (typeof a2 === 'string') applyMode(a2)
@@ -84,10 +112,26 @@ function normalizeArgs(path, a2, a3) {
   if (typeof a3 === 'string') applyMode(a3)
   else if (a3 && typeof a3 === 'object') {
     const { authless, ...rest } = a3
+    if (typeof authless === 'boolean') options.authless = authless
     if (Object.keys(rest).length) init = { ...init, ...rest }
   }
 
-  return { path, init }
+  if (typeof init.authless === 'boolean') {
+    options.authless = init.authless
+    delete init.authless
+  }
+
+  return { path, init, options }
+}
+
+function hasHeader(headers, name) {
+  if (!headers) return false
+  const target = String(name || '').toLowerCase()
+  if (!target) return false
+  if (headers instanceof Headers) {
+    return headers.has(target)
+  }
+  return Object.keys(headers).some((k) => String(k).toLowerCase() === target)
 }
 
 /**
@@ -145,10 +189,12 @@ function createApiError(path, response, body) {
 }
 
 export async function apiRequest(path, initOrBody = {}, modeOrOptions) {
-  const { init, csrfMode } = normalizeArgs(path, initOrBody, modeOrOptions)
+  const { init, options } = normalizeArgs(path, initOrBody, modeOrOptions)
   const method = (init.method || 'GET').toUpperCase()
   const headersIn = init.headers || {}
   const absoluteUrl = isAbsoluteUrl(path)
+  const authless = !!options?.authless
+  const bodyIn = init.body
   const resolveFrontendOrigin = () => {
     const envOrigin =
       process.env.APP_FRONTEND_ORIGIN ||
@@ -164,11 +210,12 @@ export async function apiRequest(path, initOrBody = {}, modeOrOptions) {
 
   if (isServer()) {
     const { buildSSRHeaders } = await import('@/app/lib/runtime/ssr')
-    const baseHeaders = (
-      method === 'GET' || method === 'HEAD'
-        ? { ...headersIn }
-        : { 'Content-Type': 'application/json', ...headersIn }
-    )
+    const baseHeaders = { ...headersIn }
+    if (method !== 'GET' && method !== 'HEAD' && !hasHeader(baseHeaders, 'content-type')) {
+      if (!(isFormBody(bodyIn) || isBinaryBody(bodyIn))) {
+        baseHeaders['Content-Type'] = 'application/json'
+      }
+    }
     const headers = await buildSSRHeaders(baseHeaders)
     const body = serializeBody(init.body)
     const requestInit = {
@@ -187,9 +234,13 @@ export async function apiRequest(path, initOrBody = {}, modeOrOptions) {
 
   // Client: delegate to CSR helpers with refresh-once logic
   const targetUrl = absoluteUrl ? path : toBffPath(path)
-  const headers = method === 'GET' || method === 'HEAD'
-    ? { 'Accept-Language': navigator.language || 'en', ...headersIn }
-    : { 'Content-Type': 'application/json', ...headersIn }
+  const headers = { ...headersIn }
+  if (!hasHeader(headers, 'accept-language')) headers['Accept-Language'] = navigator.language || 'en'
+  if (method !== 'GET' && method !== 'HEAD' && !hasHeader(headers, 'content-type')) {
+    if (!(isFormBody(bodyIn) || isBinaryBody(bodyIn))) {
+      headers['Content-Type'] = 'application/json'
+    }
+  }
 
   const doFetch = async () => {
     const reqInit = {
@@ -207,10 +258,28 @@ export async function apiRequest(path, initOrBody = {}, modeOrOptions) {
   if (res.status !== 401) return res
 
   const { pathname, search } = window.location
-  if (!pathname.startsWith(LOGIN_PATH)) {
-    window.location.assign(`${LOGIN_PATH}?next=${encodeURIComponent(pathname + (search || ''))}`)
+  const isOnLogin = pathname.startsWith(LOGIN_PATH)
+  const nextPath = pathname + (search || '')
+  const reason = await extractUnauthorizedReason(res)
+  const reasonEncoded = reason ? base64UrlEncodeUtf8(JSON.stringify(reason)) : null
+  const reasonQuery = reasonEncoded && reasonEncoded.length <= AUTH_REASON_MAXLEN
+    ? `&${AUTH_REASON_QUERY_PARAM}=${encodeURIComponent(reasonEncoded)}`
+    : ''
+  const redirectTo = `${LOGIN_PATH}?${NEXT_QUERY_PARAM}=${encodeURIComponent(nextPath)}${reasonQuery}`
+  if (!authless && !isOnLogin) {
+    if (!isTestEnv()) {
+      try {
+        window.location.assign(redirectTo)
+      } catch {
+        // navigation 실패는 무시(테스트/특수 환경)
+      }
+    }
+    const err = new Error('UNAUTHORIZED')
+    err.name = 'UnauthorizedError'
+    err.redirectTo = redirectTo
+    throw err
   }
-  throw new Error('UNAUTHORIZED')
+  return res
 }
 
 export const apiJSON = async (path, initOrBody = {}, modeOrOptions) => {

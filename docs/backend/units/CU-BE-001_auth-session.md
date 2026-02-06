@@ -59,8 +59,9 @@ links: [CU-BE-004, CU-BE-005]
   - 토큰 만료: Access는 짧게(`[AUTH].access_expire`), Refresh는 길게(`[AUTH].refresh_expire` 또는 rememberMe 설정)
   - JWT 클레임: `sub=<userId>`, `exp=now+[AUTH].token_expire`, `iat`, `jti`(재사용·블랙리스트 대비)
   - 서명 알고리즘: 기본 HS256 (키 회전 계획은 TODO에 포함)
-  - 리프레시 회전: `/refresh` 성공 시 새 Refresh를 재발급, 이전 토큰은 블랙리스트 처리 권장
+- 리프레시 회전: `/refresh` 성공 시 새 Refresh를 재발급, 이전 토큰은 블랙리스트 처리 권장
   - refresh 경합 완화(grace): 회전 직후 짧은 시간 동안 직전 refresh 토큰 재사용을 허용하고 동일 결과를 반환한다(기본 10초, `[AUTH].refresh_grace_ms` 또는 `[AUTH].refresh_grace_seconds`). grace 이후 재사용은 401.
+  - 블랙리스트 운영: 템플릿 기본은 인메모리(TTL: refresh `exp` 기반)로 관리하며, refresh/logout 시 만료 항목을 정리한다. 프로세스 재시작 시 초기화된다(운영에서 영속화가 필요하면 별도 유닛으로 승격).
 
 ### NFR & A11y
 - 성능: 로그인 API P95 < 400ms (DB ping 포함)

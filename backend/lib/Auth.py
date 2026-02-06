@@ -1,11 +1,11 @@
 """
 파일명: backend/lib/Auth.py
 작성자: LSH
-갱신일: 2025-09-07
+갱신일: 2026-01-18
 설명: JWT 발급/검증과 인증 공통 설정.
 """
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import uuid
 from typing import Optional
 
@@ -61,9 +61,7 @@ class AuthConfig:
 oauth2Scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/token", auto_error=False)
 
 
-def createAccessToken(
-    data: dict, *, tokenType: str = "access", expireMinutes: Optional[int] = None
-) -> Token:
+def createAccessToken(data: dict, *, tokenType: str = "access", expireMinutes: Optional[int] = None) -> Token:
     """
     설명: 페이로드에 만료(exp)를 추가해 JWT 액세스/리프레시 토큰 생성.
     갱신일: 2025-11-XX
@@ -72,12 +70,8 @@ def createAccessToken(
         raise Exception("SECRET_KEY가 설정되지 않았습니다.")
 
     toEncode = data.copy()
-    now = datetime.utcnow()
-    expireMinutes = (
-        expireMinutes
-        if expireMinutes is not None
-        else AuthConfig.accessTokenExpireMinutes
-    )
+    now = datetime.now(timezone.utc)
+    expireMinutes = expireMinutes if expireMinutes is not None else AuthConfig.accessTokenExpireMinutes
     expire = now + timedelta(minutes=expireMinutes)
     # 표준 클레임: exp, iat, jti, typ
     toEncode.update(
@@ -89,13 +83,9 @@ def createAccessToken(
         }
     )
 
-    encodedJwt = jwt.encode(
-        toEncode, AuthConfig.secretKey, algorithm=AuthConfig.algorithm
-    )
+    encodedJwt = jwt.encode(toEncode, AuthConfig.secretKey, algorithm=AuthConfig.algorithm)
 
-    return Token(
-        accessToken=encodedJwt, expiresIn=expireMinutes * 60
-    )
+    return Token(accessToken=encodedJwt, expiresIn=expireMinutes * 60)
 
 
 def createRefreshToken(data: dict) -> Token:
@@ -107,9 +97,7 @@ def createRefreshToken(data: dict) -> Token:
     )
 
 
-async def getCurrentUser(
-    request: Request, token: Optional[str] = Depends(oauth2Scheme)
-):
+async def getCurrentUser(request: Request, token: Optional[str] = Depends(oauth2Scheme)):
     """
     설명: Bearer 토큰을 검증하고 인증된 사용자 식별자를 반환.
     갱신일: 2025-11-XX

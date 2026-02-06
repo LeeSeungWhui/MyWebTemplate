@@ -30,8 +30,8 @@
 - CU-WEB-001: in-progress — `/login` SSR/CSR, 토큰+쿠키(Access/Refresh) 플로우로 전환 예정, A11y/UX 보완 필요
 - CU-WEB-002: planned — 대시보드 위젯 목업 구성
 - CU-WEB-003: in-progress — Input/Textarea/EasyTable/useEasyUpload 등 핵심 바인딩 컴포넌트/업로드 훅 반영, Docs 페이지 포함. EasyEditor/고급 그리드 남음
-- CU-WEB-004: in-progress — 미들웨어/서버 가드 부분 구현, 파라미터·401 처리 보완 필요
-- CU-WEB-005: in-progress — OpenAPI 클라이언트 공통구성 미완
+- CU-WEB-004: implemented — 보호 경로 가드, `/api/session/bootstrap` 자동 복구, 401→/login(reason) 규약 반영
+- CU-WEB-005: implemented — `apiJSON/apiRequest` 단일 진실 + OpenAPI(operationId) 유틸(`openapiClient.js`) 구성 완료
 - CU-WEB-006: in-progress — 페이지 MODE 규약 초안 작성, ENV 배선 진행
 - CU-WEB-007: completed — `frontend-web` Vite → Next 마이그레이션 반영 완료
 - CU-WEB-008: in-progress — `middleware.js` 리다이렉트 규칙 존재, 예외 경로 커버리지 보완 필요

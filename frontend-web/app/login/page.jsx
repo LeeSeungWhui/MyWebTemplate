@@ -1,7 +1,7 @@
 /**
  * 파일명: page.jsx
  * 작성자: LSH
- * 갱신일: 2025-09-13
+ * 갱신일: 2026-01-18
  * 설명: 로그인 페이지 컴포넌트
  */
 export const dynamic = 'force-dynamic'
@@ -13,27 +13,23 @@ import { apiJSON } from '@/app/lib/runtime/api'
 import { SESSION_PATH } from './initData'
 import SharedHydrator from '@/app/common/store/SharedHydrator'
 import { cookies } from 'next/headers'
+import { AUTH_REASON_COOKIE, NX_COOKIE, parseAuthReason, safeDecodeURIComponent, sanitizeInternalPath } from '@/app/lib/runtime/authRedirect'
 
 const Page = async () => {
   const init = await apiJSON(SESSION_PATH, { method: 'GET' }).catch(() => null)
   // Read next-hint from httpOnly cookie set by middleware (hidden from URL)
   const cookieStore = await cookies()
-  const rawNext = cookieStore.get('nx')?.value || null
-  const sanitize = (n) => {
-    if (!n || typeof n !== 'string') return null
-    if (!n.startsWith('/')) return null
-    if (n.startsWith('//')) return null
-    if (/^https?:/i.test(n)) return null
-    return n
-  }
-  const nextHint = sanitize(rawNext)
+  const rawNext = cookieStore.get(NX_COOKIE)?.value || null
+  const rawAuthReason = cookieStore.get(AUTH_REASON_COOKIE)?.value || null
+  const nextHint = sanitizeInternalPath(safeDecodeURIComponent(rawNext), null)
+  const authReason = parseAuthReason(rawAuthReason)
   const userJson = init && init.result && init.result.username
     ? { userId: init.result.username, name: init.result.username }
     : null
   return (
     <>
       <SharedHydrator userJson={userJson} />
-      <Client mode="SSR" init={init} nextHint={nextHint} />
+      <Client mode="SSR" init={init} nextHint={nextHint} authReason={authReason} />
     </>
   )
 }
