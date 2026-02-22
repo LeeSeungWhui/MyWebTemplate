@@ -19,6 +19,7 @@ from lib.Logger import logger
 from .Database import getSqlCount, resetSqlCount
 from .Config import getConfig
 from .RequestContext import resetRequestId, setRequestId
+from .UserAccessLog import writeUserAccessLog
 
 
 def parsePositiveInt(rawValue: object) -> int | None:
@@ -77,6 +78,51 @@ def getSqlWarnThreshold() -> int:
     return 30
 
 
+def resolveClientIp(request: Request) -> str | None:
+    """
+    설명: 요청 헤더/소켓 정보를 기반으로 클라이언트 IP를 추정한다.
+    우선순위: X-Forwarded-For(첫 IP) > X-Real-IP > request.client.host
+    갱신일: 2026-02-22
+    """
+    try:
+        forwardedFor = request.headers.get("X-Forwarded-For")
+        if isinstance(forwardedFor, str) and forwardedFor.strip():
+            first = forwardedFor.split(",")[0].strip()
+            if first:
+                return first
+    except Exception:
+        pass
+
+    try:
+        realIp = request.headers.get("X-Real-IP")
+        if isinstance(realIp, str) and realIp.strip():
+            return realIp.strip()
+    except Exception:
+        pass
+
+    try:
+        clientHost = request.client.host if request.client else None
+        if isinstance(clientHost, str) and clientHost.strip():
+            return clientHost
+    except Exception:
+        pass
+    return None
+
+
+def resolveAuthUsername(request: Request) -> str | None:
+    """
+    설명: 인증 의존성에서 주입한 request.state.authUsername 값을 조회한다.
+    갱신일: 2026-02-22
+    """
+    try:
+        raw = getattr(request.state, "authUsername", None)
+    except Exception:
+        raw = None
+    if isinstance(raw, str) and raw.strip():
+        return raw
+    return None
+
+
 class RequestLogMiddleware(BaseHTTPMiddleware):
     """
     설명: X-Request-Id 생성/전파 및 구조적 JSON 접근 로그 기록.
@@ -105,6 +151,8 @@ class RequestLogMiddleware(BaseHTTPMiddleware):
             elapsedMs = int((time.perf_counter() - started) * 1000)
             sqlCount = getSqlCount()
             level = "INFO"
+            username = resolveAuthUsername(request)
+            clientIp = resolveClientIp(request)
             logObj = {
                 "ts": int(time.time() * 1000),
                 "level": level,
@@ -114,8 +162,13 @@ class RequestLogMiddleware(BaseHTTPMiddleware):
                 "status": response.status_code,
                 "latency_ms": elapsedMs,
                 "sql_count": sqlCount,
+                "is_authenticated": bool(username),
                 "msg": "access",
             }
+            if username:
+                logObj["username"] = username
+            if clientIp:
+                logObj["client_ip"] = clientIp
             # 구조적 로그를 위해 JSON 문자열로 기록
             msg = json.dumps(logObj, ensure_ascii=False)
             logger.info(msg)
@@ -133,6 +186,21 @@ class RequestLogMiddleware(BaseHTTPMiddleware):
                     "msg": "sql_count_high",
                 }
                 logger.warning(json.dumps(warnObj, ensure_ascii=False))
+            if username:
+                try:
+                    await writeUserAccessLog(
+                        username=username,
+                        requestId=reqId,
+                        method=request.method,
+                        path=request.url.path,
+                        statusCode=int(response.status_code),
+                        latencyMs=elapsedMs,
+                        sqlCount=sqlCount,
+                        clientIp=clientIp,
+                    )
+                except Exception:
+                    # 사용자 로그 적재 실패가 API 응답을 깨지 않도록 방어
+                    pass
             return response
         finally:
             resetRequestId(token)

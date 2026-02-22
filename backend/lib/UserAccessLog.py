@@ -1,0 +1,403 @@
+"""
+파일명: backend/lib/UserAccessLog.py
+작성자: Codex
+갱신일: 2026-02-22
+설명: 인증 사용자 접근 로그를 DB 테이블(T_USER_LOG)에 적재한다.
+"""
+
+from __future__ import annotations
+
+import asyncio
+import ipaddress
+import json
+import os
+import time
+import uuid
+from typing import Optional
+
+import httpx
+
+from lib import Database as DB
+from lib.Logger import logger
+
+try:
+    from .Config import getConfig  # type: ignore
+except Exception:
+    from lib.Config import getConfig  # type: ignore
+
+
+createUserLogTableSql = """
+CREATE TABLE IF NOT EXISTS T_USER_LOG (
+      LOG_ID VARCHAR(64) PRIMARY KEY
+    , USER_ID VARCHAR(190) NOT NULL
+    , REQ_ID VARCHAR(120)
+    , REQ_MTHD VARCHAR(16) NOT NULL
+    , REQ_PATH VARCHAR(255) NOT NULL
+    , RES_CD INTEGER NOT NULL
+    , LATENCY_MS INTEGER NOT NULL
+    , SQL_CNT INTEGER NOT NULL DEFAULT 0
+    , CLIENT_IP VARCHAR(64)
+    , IP_LOC_TXT VARCHAR(255)
+    , IP_LOC_SRC VARCHAR(32)
+    , REG_DT TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+)
+"""
+
+insertUserLogSql = """
+INSERT INTO T_USER_LOG (
+      LOG_ID
+    , USER_ID
+    , REQ_ID
+    , REQ_MTHD
+    , REQ_PATH
+    , RES_CD
+    , LATENCY_MS
+    , SQL_CNT
+    , CLIENT_IP
+    , IP_LOC_TXT
+    , IP_LOC_SRC
+) VALUES (
+      :logId
+    , :userId
+    , :reqId
+    , :reqMthd
+    , :reqPath
+    , :resCd
+    , :latencyMs
+    , :sqlCnt
+    , :clientIp
+    , :ipLocTxt
+    , :ipLocSrc
+)
+"""
+
+tableReadyMap: dict[str, bool] = {}
+tableEnsureLock = asyncio.Lock()
+ipGeoCache: dict[str, dict[str, object]] = {}
+ipGeoCacheLock = asyncio.Lock()
+
+geoColumnAddSqlList = [
+    "ALTER TABLE T_USER_LOG ADD COLUMN IP_LOC_TXT VARCHAR(255)",
+    "ALTER TABLE T_USER_LOG ADD COLUMN IP_LOC_SRC VARCHAR(32)",
+]
+
+
+def parseBool(rawValue: object, defaultValue: bool = False) -> bool:
+    if rawValue is None:
+        return defaultValue
+    try:
+        return str(rawValue).strip().lower() in {"1", "true", "yes", "on"}
+    except Exception:
+        return defaultValue
+
+
+def parsePositiveInt(rawValue: object, defaultValue: int) -> int:
+    try:
+        value = int(str(rawValue).strip())
+        if value <= 0:
+            return defaultValue
+        return value
+    except Exception:
+        return defaultValue
+
+
+def getIpGeoEnabled() -> bool:
+    """
+    설명: IP 위치 추정 기능 활성화 여부를 반환한다.
+    우선순위: 환경변수(IP_GEO_ENABLED) > config(OBSERVABILITY.ip_geo_enabled)
+    갱신일: 2026-02-22
+    """
+    envValue = os.getenv("IP_GEO_ENABLED")
+    if envValue is not None:
+        return parseBool(envValue, False)
+    try:
+        config = getConfig()
+        if "OBSERVABILITY" in config:
+            return parseBool(config["OBSERVABILITY"].get("ip_geo_enabled"), False)
+    except Exception:
+        pass
+    return False
+
+
+def getIpGeoTimeoutMs() -> int:
+    """
+    설명: 외부 IP 위치 조회 타임아웃(ms)을 반환한다.
+    우선순위: 환경변수(IP_GEO_TIMEOUT_MS) > config(OBSERVABILITY.ip_geo_timeout_ms)
+    갱신일: 2026-02-22
+    """
+    envValue = os.getenv("IP_GEO_TIMEOUT_MS")
+    if envValue is not None:
+        return parsePositiveInt(envValue, 700)
+    try:
+        config = getConfig()
+        if "OBSERVABILITY" in config:
+            return parsePositiveInt(config["OBSERVABILITY"].get("ip_geo_timeout_ms"), 700)
+    except Exception:
+        pass
+    return 700
+
+
+def getIpGeoCacheTtlSec() -> int:
+    """
+    설명: IP 위치 조회 캐시 TTL(초)을 반환한다.
+    우선순위: 환경변수(IP_GEO_CACHE_TTL_SEC) > config(OBSERVABILITY.ip_geo_cache_ttl_sec)
+    갱신일: 2026-02-22
+    """
+    envValue = os.getenv("IP_GEO_CACHE_TTL_SEC")
+    if envValue is not None:
+        return parsePositiveInt(envValue, 3600)
+    try:
+        config = getConfig()
+        if "OBSERVABILITY" in config:
+            return parsePositiveInt(config["OBSERVABILITY"].get("ip_geo_cache_ttl_sec"), 3600)
+    except Exception:
+        pass
+    return 3600
+
+
+def isDuplicateColumnError(message: str) -> bool:
+    raw = (message or "").lower()
+    return (
+        "duplicate column name" in raw
+        or "duplicate column" in raw
+        or "already exists" in raw
+    )
+
+
+async def ensureUserLogColumns(dbName: str, dbManager) -> None:
+    """
+    설명: T_USER_LOG 확장 컬럼(IP_LOC_TXT, IP_LOC_SRC) 존재를 보장한다.
+    갱신일: 2026-02-22
+    """
+    for alterSql in geoColumnAddSqlList:
+        try:
+            await dbManager.execute(alterSql)
+        except Exception as e:
+            if isDuplicateColumnError(str(e)):
+                continue
+            logger.warning(
+                json.dumps(
+                    {
+                        "event": "db.user_log.alter.failed",
+                        "dbName": dbName,
+                        "sql": alterSql,
+                        "error": str(e),
+                    },
+                    ensure_ascii=False,
+                )
+            )
+
+
+def normalizeIp(clientIp: Optional[str]) -> Optional[str]:
+    rawIp = (clientIp or "").strip()
+    if not rawIp:
+        return None
+    # IPv6 bracket 제거([::1] 형태 대비)
+    if rawIp.startswith("[") and rawIp.endswith("]"):
+        rawIp = rawIp[1:-1]
+    return rawIp or None
+
+
+def classifyIpLocal(ipValue: str) -> tuple[str, str]:
+    """
+    설명: 사설/루프백/예약 IP 여부를 분류한다.
+    반환: (위치텍스트, 소스)
+    갱신일: 2026-02-22
+    """
+    try:
+        addr = ipaddress.ip_address(ipValue)
+    except Exception:
+        return ("IP_INVALID", "IP_PARSE")
+    if addr.is_loopback:
+        return ("LOOPBACK", "IP_LOCAL")
+    if addr.is_private:
+        return ("PRIVATE_NET", "IP_LOCAL")
+    if addr.is_link_local:
+        return ("LINK_LOCAL", "IP_LOCAL")
+    if addr.is_reserved:
+        return ("RESERVED", "IP_LOCAL")
+    if addr.is_multicast:
+        return ("MULTICAST", "IP_LOCAL")
+    if addr.is_unspecified:
+        return ("UNSPECIFIED", "IP_LOCAL")
+    return ("PUBLIC_IP", "IP_LOCAL")
+
+
+def buildLocationText(geoJson: dict) -> str:
+    countryCode = str(geoJson.get("country_code") or "").strip()
+    countryName = str(geoJson.get("country") or "").strip()
+    regionName = str(geoJson.get("region") or "").strip()
+    cityName = str(geoJson.get("city") or "").strip()
+    parts = []
+    if countryCode:
+        parts.append(countryCode)
+    elif countryName:
+        parts.append(countryName)
+    if regionName:
+        parts.append(regionName)
+    if cityName:
+        parts.append(cityName)
+    if parts:
+        return " / ".join(parts)
+    return "PUBLIC_IP"
+
+
+async def getIpGeoFromRemote(ipValue: str) -> Optional[dict]:
+    """
+    설명: 외부 API(ipwho.is)로 공인 IP의 대략 위치를 조회한다.
+    갱신일: 2026-02-22
+    """
+    timeoutMs = getIpGeoTimeoutMs()
+    timeoutSec = max(0.1, timeoutMs / 1000.0)
+    url = f"https://ipwho.is/{ipValue}"
+    async with httpx.AsyncClient(timeout=timeoutSec) as client:
+        response = await client.get(url, headers={"Accept": "application/json"})
+        if response.status_code != 200:
+            return None
+        data = response.json()
+        if not isinstance(data, dict):
+            return None
+        if data.get("success") is False:
+            return None
+        return data
+
+
+async def resolveIpLocation(clientIp: Optional[str]) -> tuple[Optional[str], Optional[str]]:
+    """
+    설명: IP 기반 대략 위치 텍스트와 추정 소스를 반환한다.
+    반환: (ipLocTxt, ipLocSrc)
+    갱신일: 2026-02-22
+    """
+    ipValue = normalizeIp(clientIp)
+    if not ipValue:
+        return (None, None)
+
+    localLocTxt, localSource = classifyIpLocal(ipValue)
+    if localLocTxt != "PUBLIC_IP":
+        return (localLocTxt, localSource)
+    if not getIpGeoEnabled():
+        return ("PUBLIC_IP", "IP_PUBLIC")
+
+    nowMs = int(time.time() * 1000)
+    async with ipGeoCacheLock:
+        cached = ipGeoCache.get(ipValue)
+        if cached:
+            expiresAt = int(cached.get("expiresAtMs", 0) or 0)
+            if expiresAt > nowMs:
+                return (
+                    str(cached.get("ipLocTxt") or "PUBLIC_IP"),
+                    str(cached.get("ipLocSrc") or "IP_GEO_CACHE"),
+                )
+            ipGeoCache.pop(ipValue, None)
+
+    try:
+        geoJson = await getIpGeoFromRemote(ipValue)
+        if not geoJson:
+            return ("PUBLIC_IP", "IP_GEO_MISS")
+        ipLocTxt = buildLocationText(geoJson)
+        ipLocSrc = "IP_GEO_REMOTE"
+        ttlSec = getIpGeoCacheTtlSec()
+        async with ipGeoCacheLock:
+            ipGeoCache[ipValue] = {
+                "ipLocTxt": ipLocTxt,
+                "ipLocSrc": ipLocSrc,
+                "expiresAtMs": nowMs + (ttlSec * 1000),
+            }
+        return (ipLocTxt, ipLocSrc)
+    except Exception:
+        return ("PUBLIC_IP", "IP_GEO_FAIL")
+
+
+async def ensureUserLogTable(dbName: Optional[str] = None) -> bool:
+    """
+    설명: 사용자 로그 테이블(T_USER_LOG) 존재를 보장한다.
+    갱신일: 2026-02-22
+    """
+    targetDbName = (dbName or "").strip() or DB.getPrimaryDbName()
+    if tableReadyMap.get(targetDbName):
+        return True
+    async with tableEnsureLock:
+        if tableReadyMap.get(targetDbName):
+            return True
+        db = DB.getManager(targetDbName)
+        if not db:
+            return False
+        try:
+            await db.execute(createUserLogTableSql)
+            await ensureUserLogColumns(targetDbName, db)
+            tableReadyMap[targetDbName] = True
+            return True
+        except Exception as e:
+            logger.warning(
+                json.dumps(
+                    {
+                        "event": "db.user_log.ensure.failed",
+                        "dbName": targetDbName,
+                        "error": str(e),
+                    },
+                    ensure_ascii=False,
+                )
+            )
+            return False
+
+
+async def writeUserAccessLog(
+    *,
+    username: Optional[str],
+    requestId: Optional[str],
+    method: Optional[str],
+    path: Optional[str],
+    statusCode: int,
+    latencyMs: int,
+    sqlCount: int,
+    clientIp: Optional[str],
+    dbName: Optional[str] = None,
+) -> None:
+    """
+    설명: 인증 사용자 접근 로그를 T_USER_LOG에 저장한다.
+    갱신일: 2026-02-22
+    """
+    userId = (username or "").strip()
+    if not userId:
+        return
+
+    targetDbName = (dbName or "").strip() or DB.getPrimaryDbName()
+    tableReady = await ensureUserLogTable(targetDbName)
+    if not tableReady:
+        return
+
+    db = DB.getManager(targetDbName)
+    if not db:
+        return
+
+    bindValues = {
+        "logId": uuid.uuid4().hex,
+        "userId": userId,
+        "reqId": (requestId or "").strip() or None,
+        "reqMthd": (method or "").strip() or "UNKNOWN",
+        "reqPath": (path or "").strip() or "/",
+        "resCd": int(statusCode),
+        "latencyMs": max(0, int(latencyMs)),
+        "sqlCnt": max(0, int(sqlCount)),
+        "clientIp": (clientIp or "").strip() or None,
+        "ipLocTxt": None,
+        "ipLocSrc": None,
+    }
+    ipLocTxt, ipLocSrc = await resolveIpLocation(bindValues["clientIp"])
+    bindValues["ipLocTxt"] = ipLocTxt
+    bindValues["ipLocSrc"] = ipLocSrc
+    try:
+        await db.execute(insertUserLogSql, bindValues)
+    except Exception as e:
+        logger.warning(
+            json.dumps(
+                {
+                    "event": "db.user_log.insert.failed",
+                    "dbName": targetDbName,
+                    "requestId": requestId,
+                    "username": userId,
+                    "error": str(e),
+                },
+                ensure_ascii=False,
+            )
+        )

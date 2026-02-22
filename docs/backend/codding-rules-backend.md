@@ -148,6 +148,36 @@ def issueTokens(username: str, remember: bool = False) -> dict:
 - 바인드 파라미터는 `:name` 형식만 사용한다.
 - 파라미터 누락/여분은 실패로 처리한다(템플릿 DB 레이어가 강제).
 - 로그에는 파라미터 값을 남기지 않는다(키만 마스킹).
+- 쿼리문은 대문자 작성 원칙으로 통일한다.
+  - 대상: 키워드, 함수명, 테이블명, 컬럼명, 별칭
+  - 예: `SELECT`, `COALESCE`, `T_USER`, `USER_ID`, `AS USER_NM`
+  - 예외: 바인드 파라미터명(`:userId`)과, 외부 응답 스키마 호환이 필요한 별칭은 소문자 허용
+- `SELECT` 컬럼 목록은 leading comma 형식을 사용한다.
+  - 첫 컬럼: `SELECT <column>`
+  - 이후 컬럼: `     , <column>`
+- 절(Clause)은 줄을 분리해서 작성한다.
+  - `  FROM ...`
+  - ` WHERE ...`
+  - ` GROUP BY ...`
+  - ` ORDER BY ...`
+  - ` LIMIT ...`
+  - `OFFSET ...`
+- DB 오브젝트 네이밍은 대문자 기준으로 작성한다.
+  - 테이블: `T_` prefix (예: `T_USER`, `T_LOG`)
+  - 뷰: `V_` prefix (예: `V_USER_STAT`)
+  - 컬럼: 대문자 + 축약형(예: `USER_ID`, `USER_NM`, `UPDATE_DT`)
+- 테이블/컬럼명은 의미를 유지하는 범위에서 최대한 짧게 작성한다.
+- FK 제약은 사용하지 않는다(관계/무결성은 서비스 로직과 인덱스로 관리).
+- 기존 레거시 테이블(lowercase 등)은 운영 안정성을 우선해 유지하고, 신규/개편 스키마부터 위 규칙을 적용한다.
+- 예시:
+
+```sql
+SELECT STAT_CD
+     , COUNT(*) AS CNT
+     , COALESCE(SUM(AMT), 0) AS AMT_SUM
+  FROM T_DATA
+ GROUP BY STAT_CD;
+```
 
 ---
 

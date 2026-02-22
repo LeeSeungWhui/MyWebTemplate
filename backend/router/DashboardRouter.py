@@ -2,7 +2,7 @@
 파일명: backend/router/DashboardRouter.py
 작성자: Codex
 갱신일: 2025-11-XX
-설명: 대시보드용 data_template 목록/집계 API. 토큰 인증 후 서비스 계층을 통해 조회한다.
+설명: 대시보드용 T_DATA 목록/집계 API. 토큰 인증 후 서비스 계층을 통해 조회한다.
 """
 
 from fastapi import APIRouter, Depends

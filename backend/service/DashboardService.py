@@ -2,7 +2,7 @@
 파일명: backend/service/DashboardService.py
 작성자: Codex
 갱신일: 2025-11-XX
-설명: 대시보드용 data_template 조회/집계 서비스 로직.
+설명: 대시보드용 T_DATA 조회/집계 서비스 로직.
 """
 
 from typing import Dict, Any, List, Optional

@@ -28,9 +28,9 @@ const STATUS_LABELS = {
 };
 
 const monthKey = (iso) => {
-  if (!iso) return "알수없음";
+  if (!iso) return "알 수 없음";
   const date = new Date(iso);
-  if (Number.isNaN(date.getTime())) return "알수없음";
+  if (Number.isNaN(date.getTime())) return "알 수 없음";
   const month = date.getMonth() + 1;
   return `${month}월`;
 };
@@ -134,7 +134,7 @@ const DashboardView = ({ statList, dataList, initialError }) => {
   const donutData = useMemo(() => {
     const byStatus = statsList.toJSON();
     return byStatus.map((row) => ({
-      label: STATUS_LABELS[row.status] || row.status || "알수없음",
+      label: STATUS_LABELS[row.status] || row.status || "알 수 없음",
       value: row.count ?? 0,
     }));
   }, [statsList]);
@@ -157,9 +157,9 @@ const DashboardView = ({ statList, dataList, initialError }) => {
   const legendFontSize = 12;
   const errorText =
     error?.key === "ENDPOINT_MISSING"
-      ? "엔드포인트가 설정되지 않았어."
+      ? "엔드포인트가 설정되지 않았습니다."
       : error?.key === "INIT_FETCH_FAILED" || error?.key === "FETCH_FAILED"
-      ? "대시보드 데이터를 불러오지 못했어."
+      ? "대시보드 데이터를 불러오지 못했습니다."
       : null;
 
   return (
@@ -262,7 +262,7 @@ const DashboardView = ({ statList, dataList, initialError }) => {
               { key: "createdAt", header: "생성일" },
             ]}
             pageSize={4}
-            empty={error ? "데이터를 불러오지 못했어." : "업무가 없습니다."}
+            empty={error ? "데이터를 불러오지 못했습니다." : "업무가 없습니다."}
           />
         </Card>
       </section>

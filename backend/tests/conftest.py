@@ -49,23 +49,42 @@ def ensureUserTableAndDemo(dbPath: str) -> None:
     try:
         con.execute(
             """
-            CREATE TABLE IF NOT EXISTS user_template (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                username TEXT UNIQUE NOT NULL,
-                password_hash TEXT NOT NULL,
-                name TEXT,
-                email TEXT,
-                role TEXT
+            CREATE TABLE IF NOT EXISTS T_USER (
+                USER_NO INTEGER PRIMARY KEY AUTOINCREMENT,
+                USER_ID TEXT UNIQUE NOT NULL,
+                USER_PW TEXT NOT NULL,
+                USER_NM TEXT,
+                USER_EML TEXT,
+                ROLE_CD TEXT
             )
             """
         )
+        userColumnMap = [
+            ("id", "USER_NO"),
+            ("username", "USER_ID"),
+            ("password_hash", "USER_PW"),
+            ("name", "USER_NM"),
+            ("email", "USER_EML"),
+            ("role", "ROLE_CD"),
+        ]
+        columns = {
+            str(row[1]).upper()
+            for row in con.execute("PRAGMA table_info(T_USER)").fetchall()
+            if len(row) > 1
+        }
+        for legacyColumnName, targetColumnName in userColumnMap:
+            if targetColumnName in columns or legacyColumnName.upper() not in columns:
+                continue
+            con.execute(f"ALTER TABLE T_USER RENAME COLUMN {legacyColumnName} TO {targetColumnName}")
+            columns.discard(legacyColumnName.upper())
+            columns.add(targetColumnName)
         con.commit()
-        cur = con.execute("SELECT 1 FROM user_template WHERE username = ?", ("demo@demo.demo",))
+        cur = con.execute("SELECT 1 FROM T_USER WHERE USER_ID = ?", ("demo@demo.demo",))
         if cur.fetchone():
             return
         passwordHash = hashPasswordPbkdf2("password123")
         con.execute(
-            "INSERT INTO user_template (username, password_hash, name, email, role) VALUES (?,?,?,?,?)",
+            "INSERT INTO T_USER (USER_ID, USER_PW, USER_NM, USER_EML, ROLE_CD) VALUES (?,?,?,?,?)",
             ("demo@demo.demo", passwordHash, "Demo User", "demo@demo.demo", "user"),
         )
         con.commit()

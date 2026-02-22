@@ -44,8 +44,8 @@ links: [CU-BE-004, CU-BE-005]
 - 샘플 사용자 스키마(예)
 ```
 {
-  "table": "user_template",
-  "fields": ["id", "username", "password_hash", "name?", "email?", "role?"]
+  "table": "T_USER",
+  "fields": ["USER_NO", "USER_ID", "USER_PW", "USER_NM?", "USER_EML?", "ROLE_CD?"]
 }
 ```
 - 보안 규칙

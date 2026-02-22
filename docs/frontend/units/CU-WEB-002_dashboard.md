@@ -15,7 +15,7 @@ links: [CU-WEB-001, CU-WEB-003, CU-WEB-004, CU-WEB-005, CU-WEB-006, CU-BE-002]
 - 포함
   - 레이아웃: Header/Sidebar/Footer 공용 컴포넌트(`app/common/layout/*`) 활용. Sidebar는 햄버거로 접힘/펼침, Header 메뉴/서브메뉴 지원.
   - 메인 본문: 카드형 차트 3~4개(EasyChart, Recharts 기반) + 하단 EasyTable 섹션
-  - 데이터: 로그인 세션(CU-BE-001), `data_template` 테이블(id, title, description, status, amount, tags(JSON), created_at) 기반 리스트/차트 더미 또는 API
+  - 데이터: 로그인 세션(CU-BE-001), `T_DATA` 테이블(`DATA_NO`, `DATA_NM`, `DATA_DESC`, `STAT_CD`, `AMT`, `TAG_JSON`, `REG_DT`) 기반 리스트/차트 더미 또는 API
   - 상태: 로딩/빈상태/에러 상태 스켈레톤 및 메시지
   - 렌더링 전략: 기본 SSR(nodejs). 페이지 파일 설정(`dynamic/runtime/revalidate`) 또는 `'use client'` 게이팅으로 전환(links: CU-WEB-006)
   - A11y: 정보 구조/ARIA 가이드(라이브리 최소)

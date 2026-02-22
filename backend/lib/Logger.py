@@ -27,7 +27,15 @@ logFilename = os.path.join(logDir, f"{datetime.now().strftime('%Y%m%d_%H%M%S')}.
 
 # 로거 설정
 logger: logging.Logger = logging.getLogger()
-logger.setLevel(logging.INFO)
+
+
+def resolveLogLevel() -> int:
+    raw = str(os.getenv("LOG_LEVEL", "INFO")).strip().upper()
+    return getattr(logging, raw, logging.INFO)
+
+
+logLevel = resolveLogLevel()
+logger.setLevel(logLevel)
 
 # ---------------------------------------------------------------------------
 # JSON 라인 포맷터
@@ -87,12 +95,12 @@ jsonFormatter = JsonLineFormatter()
 
 # 파일 핸들러 설정 (UTF-8 인코딩)
 fileHandler = logging.FileHandler(logFilename, encoding="utf-8")
-fileHandler.setLevel(logging.INFO)
+fileHandler.setLevel(logLevel)
 fileHandler.setFormatter(jsonFormatter)
 
 # 콘솔 핸들러 설정
 consoleHandler = logging.StreamHandler()
-consoleHandler.setLevel(logging.INFO)
+consoleHandler.setLevel(logLevel)
 consoleHandler.setFormatter(jsonFormatter)
 
 # 핸들러 추가

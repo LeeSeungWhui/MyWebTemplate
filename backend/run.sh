@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # 파일명: backend/run.sh
 # 작성자: Codex
-# 설명: FastAPI 백엔드를 백그라운드로 실행/중지/상태 확인/재시작하는 스크립트
+# 설명: FastAPI 백엔드 prod/dev 실행/중지/상태 확인/재시작 스크립트
 
 set -euo pipefail
 
@@ -9,8 +9,13 @@ SCRIPT_DIR="$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)"
 LOG_DIR="$SCRIPT_DIR/logs"
 mkdir -p "$LOG_DIR"
 
-PID_FILE="$LOG_DIR/backend.pid"
 CONFIG_FILE="$SCRIPT_DIR/config.ini"
+PID_FILE_PROD="$LOG_DIR/backend.pid"
+PID_FILE_DEV="$LOG_DIR/backend-dev.pid"
+OUT_FILE_PROD="$LOG_DIR/backend.out"
+ERR_FILE_PROD="$LOG_DIR/backend.err"
+OUT_FILE_DEV="$LOG_DIR/backend-dev.out"
+ERR_FILE_DEV="$LOG_DIR/backend-dev.err"
 
 parse_port() {
   if [[ -f "$CONFIG_FILE" ]]; then
@@ -25,58 +30,89 @@ parse_port() {
   fi
 }
 
-SERVER_PORT="$(parse_port)"
-SERVER_PORT="${SERVER_PORT:-2000}"
+SERVER_PORT_PROD="$(parse_port)"
+SERVER_PORT_PROD="${SERVER_PORT_PROD:-2000}"
+SERVER_PORT_DEV="${BACKEND_DEV_PORT:-2100}"
 
-start() {
-  if [[ -f "$PID_FILE" ]] && kill -0 "$(cat "$PID_FILE")" 2>/dev/null; then
-    echo "백엔드가 이미 실행 중 (PID $(cat "$PID_FILE"))"
+start_mode() {
+  local mode="${1:-prod}"
+  local pid_file="$PID_FILE_PROD"
+  local out_file="$OUT_FILE_PROD"
+  local err_file="$ERR_FILE_PROD"
+  local port="$SERVER_PORT_PROD"
+  local extra_args=()
+
+  if [[ "$mode" == "dev" ]]; then
+    pid_file="$PID_FILE_DEV"
+    out_file="$OUT_FILE_DEV"
+    err_file="$ERR_FILE_DEV"
+    port="$SERVER_PORT_DEV"
+    extra_args+=(--reload)
+  fi
+
+  if [[ -f "$pid_file" ]] && kill -0 "$(cat "$pid_file")" 2>/dev/null; then
+    echo "백엔드($mode) 이미 실행 중 (PID $(cat "$pid_file"))"
     return
   fi
-  echo "백엔드 시작..."
+  echo "백엔드($mode) 시작... (port=$port)"
   (
     cd "$SCRIPT_DIR"
-    uvicorn server:app --host 0.0.0.0 --port "$SERVER_PORT" --reload \
-      >>"$LOG_DIR/backend.out" 2>>"$LOG_DIR/backend.err" &
-    echo $! >"$PID_FILE"
+    uvicorn server:app --host 0.0.0.0 --port "$port" "${extra_args[@]}" \
+      >>"$out_file" 2>>"$err_file" &
+    echo $! >"$pid_file"
   )
-  echo "백엔드 시작됨 (PID $(cat "$PID_FILE"))"
+  echo "백엔드($mode) 시작됨 (PID $(cat "$pid_file"))"
 }
 
-stop() {
-  if [[ -f "$PID_FILE" ]]; then
+stop_mode() {
+  local mode="${1:-prod}"
+  local pid_file="$PID_FILE_PROD"
+  if [[ "$mode" == "dev" ]]; then
+    pid_file="$PID_FILE_DEV"
+  fi
+  if [[ -f "$pid_file" ]]; then
     local pid
-    pid=$(cat "$PID_FILE")
+    pid=$(cat "$pid_file")
     if kill -0 "$pid" 2>/dev/null; then
-      echo "백엔드 종료 (PID $pid)"
+      echo "백엔드($mode) 종료 (PID $pid)"
       kill "$pid"
     fi
-    rm -f "$PID_FILE"
+    rm -f "$pid_file"
   else
-    echo "백엔드 실행 기록 없음"
+    echo "백엔드($mode) 실행 기록 없음"
   fi
 }
 
-status() {
-  if [[ -f "$PID_FILE" ]] && kill -0 "$(cat "$PID_FILE")" 2>/dev/null; then
-    echo "백엔드 실행 중 (PID $(cat "$PID_FILE"))"
+status_mode() {
+  local mode="${1:-prod}"
+  local pid_file="$PID_FILE_PROD"
+  if [[ "$mode" == "dev" ]]; then
+    pid_file="$PID_FILE_DEV"
+  fi
+  if [[ -f "$pid_file" ]] && kill -0 "$(cat "$pid_file")" 2>/dev/null; then
+    echo "백엔드($mode) 실행 중 (PID $(cat "$pid_file"))"
   else
-    echo "백엔드 정지"
+    echo "백엔드($mode) 정지"
   fi
 }
 
-restart() {
-  stop
-  start
+restart_mode() {
+  local mode="${1:-prod}"
+  stop_mode "$mode"
+  start_mode "$mode"
 }
 
 case "${1:-}" in
-  start) start ;;
-  stop) stop ;;
-  status) status ;;
-  restart) restart ;;
+  start) start_mode prod ;;
+  stop) stop_mode prod ;;
+  status) status_mode prod ;;
+  restart) restart_mode prod ;;
+  start-dev) start_mode dev ;;
+  stop-dev) stop_mode dev ;;
+  status-dev) status_mode dev ;;
+  restart-dev) restart_mode dev ;;
   *)
-    echo "사용법: $0 {start|stop|status|restart}"
+    echo "사용법: $0 {start|stop|status|restart|start-dev|stop-dev|status-dev|restart-dev}"
     exit 1
     ;;
 esac

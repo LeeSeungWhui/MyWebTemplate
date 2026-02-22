@@ -48,7 +48,21 @@
       "${workspaceFolder}/../../../Python3.12.10/bin/python3"
     ],
     "prettier.disableLanguages": ["python"],
-    "chatgpt.openOnStartup": true
+    "chatgpt.openOnStartup": true,
+    "sqltools.connections": [
+      {
+        "ssh": "Disabled",
+        "previewLimit": 50,
+        "server": "localhost",
+        "port": 5432,
+        "driver": "PostgreSQL",
+        "name": "hwiserver",
+        "group": "hwiserver",
+        "database": "mywebtemplate",
+        "username": "sunkus711",
+        "password": "Rmlduqrml1!"
+      }
+    ]
   },
   "extensions": {
     "recommendations": [

@@ -1,20 +1,19 @@
 -- name: dashboard.list
-SELECT
-  id,
-  title,
-  description,
-  status,
-  amount,
-  tags,
-  created_at
-FROM data_template
-ORDER BY created_at DESC
-LIMIT :limit OFFSET :offset;
+SELECT DATA_NO AS id
+     , DATA_NM AS title
+     , DATA_DESC AS description
+     , STAT_CD AS status
+     , AMT AS amount
+     , TAG_JSON AS tags
+     , REG_DT AS created_at
+  FROM T_DATA
+ ORDER BY REG_DT DESC
+ LIMIT :limit
+OFFSET :offset;
 
 -- name: dashboard.statusSummary
-SELECT
-  status,
-  COUNT(*) AS count,
-  COALESCE(SUM(amount), 0) AS amount_sum
-FROM data_template
-GROUP BY status;
+SELECT STAT_CD AS status
+     , COUNT(*) AS count
+     , COALESCE(SUM(AMT), 0) AS amount_sum
+  FROM T_DATA
+ GROUP BY STAT_CD;

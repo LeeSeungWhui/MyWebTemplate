@@ -49,7 +49,7 @@ const Client = ({ mode, init, nextHint, authReason }) => {
     if (!authReason) return;
     const message = authReason?.message
       ? String(authReason.message)
-      : "세션이 만료됐어. 다시 로그인해.";
+      : "세션이 만료되었습니다. 다시 로그인해 주세요.";
     const metaParts = [];
     if (authReason?.code) metaParts.push(`code: ${authReason.code}`);
     if (authReason?.requestId) metaParts.push(`requestId: ${authReason.requestId}`);
@@ -75,13 +75,13 @@ const Client = ({ mode, init, nextHint, authReason }) => {
     if (code === "AUTH_429_RATE_LIMIT") {
       const retry = response?.headers?.get?.("Retry-After");
       if (retry) {
-        return { message: `로그인 시도가 너무 많아. ${retry}초 뒤에 다시 해.` };
+        return { message: `로그인 시도가 너무 많습니다. ${retry}초 후 다시 시도해 주세요.` };
       }
-      return { message: "로그인 시도가 너무 많아. 잠깐 쉬었다가 해." };
+      return { message: "로그인 시도가 너무 많습니다. 잠시 후 다시 시도해 주세요." };
     }
     if (code === "AUTH_401_INVALID") {
       return {
-        message: "이메일 또는 비밀번호가 올바르지 않아.",
+        message: "이메일 또는 비밀번호가 올바르지 않습니다.",
         field: "password",
       };
     }
@@ -89,12 +89,12 @@ const Client = ({ mode, init, nextHint, authReason }) => {
       response?.status === 401 &&
       response?.headers?.get?.("WWW-Authenticate")
     ) {
-      return { message: "세션이 만료됐어. 다시 로그인해." };
+      return { message: "세션이 만료되었습니다. 다시 로그인해 주세요." };
     }
     if (body?.message) {
       return { message: body.message };
     }
-    return { message: "로그인에 실패했어." };
+    return { message: "로그인에 실패했습니다." };
   };
 
   const validateForm = () => {
@@ -121,12 +121,12 @@ const Client = ({ mode, init, nextHint, authReason }) => {
       loginObj.errors.password = "비밀번호를 입력해주세요";
       issues.push({ ref: passwordRef, summary: loginObj.errors.password });
     } else if (password.length < MIN_PASSWORD_LENGTH) {
-      loginObj.errors.password = "비밀번호는 최소 8자 이상이야";
+      loginObj.errors.password = "비밀번호는 최소 8자 이상이어야 합니다";
       issues.push({ ref: passwordRef, summary: loginObj.errors.password });
     }
 
     if (issues.length) {
-      setFormError(issues[0].summary || "입력값을 확인해줘.");
+      setFormError(issues[0].summary || "입력값을 확인해 주세요.");
       focusOnError(issues[0].ref);
       return false;
     }
@@ -203,7 +203,7 @@ const Client = ({ mode, init, nextHint, authReason }) => {
             샘플 로그인 화면
           </p>
           <ul className="text-sm text-blue-50 space-y-1 text-left w-full max-w-xs list-disc list-inside">
-            <li>로그인시 샘플 대쉬보드 페이지</li>
+            <li>로그인 시 샘플 대시보드 페이지로 이동</li>
             <li>/component에서 컴포넌트 목록 조회</li>
             <li>demo@demo.demo / password123</li>
           </ul>

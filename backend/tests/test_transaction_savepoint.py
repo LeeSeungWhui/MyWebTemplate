@@ -56,7 +56,7 @@ def testSavepointNameValidation():
     from lib.Transaction import savepoint, TransactionError
 
     with pytest.raises(TransactionError):
-        savepoint("main_db", "sp1; DROP TABLE user_template;")
+        savepoint("main_db", "sp1; DROP TABLE T_USER;")
 
     with pytest.raises(TransactionError):
         savepoint("main_db", "1bad")

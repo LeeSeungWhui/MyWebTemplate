@@ -62,6 +62,17 @@ class AuthConfig:
 oauth2Scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login", auto_error=False)
 
 
+def bindAuthUsernameToRequestState(request: Request, username: Optional[str]) -> None:
+    """
+    설명: 인증된 사용자 식별자를 request.state에 바인딩한다(미들웨어 접근 로그용).
+    갱신일: 2026-02-22
+    """
+    try:
+        setattr(request.state, "authUsername", username)
+    except Exception:
+        pass
+
+
 def createAccessToken(data: dict, *, tokenType: str = "access", expireMinutes: Optional[int] = None) -> Token:
     """
     설명: 페이로드에 만료(exp)를 추가해 JWT 액세스/리프레시 토큰 생성.
@@ -111,7 +122,9 @@ async def getCurrentUser(request: Request, token: Optional[str] = Depends(oauth2
 
     # 토큰 인증이 비활성화되어 있으면 더미 유저 반환
     if not AuthConfig.tokenEnable:
-        return TokenData(username="anonymous")
+        tokenData = TokenData(username="anonymous")
+        bindAuthUsernameToRequestState(request, tokenData.username)
+        return tokenData
 
     if not token:
         raise credentialsException
@@ -135,4 +148,5 @@ async def getCurrentUser(request: Request, token: Optional[str] = Depends(oauth2
         logger.error(f"JWT 검증 실패: {str(e)}")
         raise credentialsException
 
+    bindAuthUsernameToRequestState(request, tokenData.username)
     return tokenData

@@ -1,6 +1,7 @@
 import asyncio
 import os
 import sys
+import sqlite3
 from configparser import ConfigParser
 from fastapi.testclient import TestClient
 
@@ -9,6 +10,16 @@ from fastapi.testclient import TestClient
 baseDir = os.path.dirname(os.path.dirname(__file__))
 if baseDir not in sys.path:
     sys.path.insert(0, baseDir)
+
+
+def resolveTestDbPath() -> str:
+    configPath = os.path.join(baseDir, "config.test.ini")
+    config = ConfigParser()
+    config.read(configPath, encoding="utf-8")
+    dbPathRel = config["DATABASE"].get("database", "./data/test.db")
+    if os.path.isabs(dbPathRel):
+        return dbPathRel
+    return os.path.normpath(os.path.join(baseDir, dbPathRel))
 
 
 def testHealthzOk():
@@ -47,6 +58,120 @@ def testRequestIdPropagation():
         assert response.status_code == 200
         assert response.headers.get("X-Request-Id") == requestId
         assert response.json()["requestId"] == requestId
+
+
+def testAccessLogIncludesAuthenticatedUsername(caplog):
+    from server import app
+
+    with TestClient(app) as client:
+        loginResponse = client.post(
+            "/api/v1/auth/login",
+            json={"username": "demo@demo.demo", "password": "password123"},
+        )
+        assert loginResponse.status_code == 200
+
+        token = client.cookies.get("access_token")
+        assert token
+        caplog.clear()
+
+        response = client.get("/api/v1/auth/me", headers={"Authorization": f"Bearer {token}"})
+        assert response.status_code == 200
+
+        seen = False
+        for rec in caplog.records:
+            msg = rec.message
+            if (
+                '"msg": "access"' in msg
+                and '"path": "/api/v1/auth/me"' in msg
+                and '"is_authenticated": true' in msg
+                and '"username": "demo@demo.demo"' in msg
+            ):
+                seen = True
+                break
+        assert seen
+
+
+def testUserAccessLogPersistsToDb():
+    from server import app
+
+    with TestClient(app) as client:
+        loginResponse = client.post(
+            "/api/v1/auth/login",
+            json={"username": "demo@demo.demo", "password": "password123"},
+        )
+        assert loginResponse.status_code == 200
+        accessToken = client.cookies.get("access_token")
+        assert accessToken
+
+        meResponse = client.get("/api/v1/auth/me", headers={"Authorization": f"Bearer {accessToken}"})
+        assert meResponse.status_code == 200
+
+    dbPath = resolveTestDbPath()
+    con = sqlite3.connect(dbPath)
+    try:
+        row = con.execute(
+            """
+            SELECT USER_ID, REQ_PATH, RES_CD
+              FROM T_USER_LOG
+             WHERE USER_ID = ?
+               AND REQ_PATH = ?
+             ORDER BY REG_DT DESC
+             LIMIT 1
+            """,
+            ("demo@demo.demo", "/api/v1/auth/me"),
+        ).fetchone()
+    finally:
+        con.close()
+
+    assert row is not None
+    assert row[0] == "demo@demo.demo"
+    assert row[1] == "/api/v1/auth/me"
+    assert int(row[2]) == 200
+
+
+def testUserAccessLogStoresIpLocationForPrivateRange():
+    from server import app
+
+    with TestClient(app) as client:
+        loginResponse = client.post(
+            "/api/v1/auth/login",
+            json={"username": "demo@demo.demo", "password": "password123"},
+        )
+        assert loginResponse.status_code == 200
+        accessToken = client.cookies.get("access_token")
+        assert accessToken
+
+        meResponse = client.get(
+            "/api/v1/auth/me",
+            headers={
+                "Authorization": f"Bearer {accessToken}",
+                "X-Forwarded-For": "10.23.45.67",
+            },
+        )
+        assert meResponse.status_code == 200
+
+    dbPath = resolveTestDbPath()
+    con = sqlite3.connect(dbPath)
+    try:
+        row = con.execute(
+            """
+            SELECT CLIENT_IP, IP_LOC_TXT, IP_LOC_SRC
+              FROM T_USER_LOG
+             WHERE USER_ID = ?
+               AND REQ_PATH = ?
+               AND CLIENT_IP = ?
+             ORDER BY REG_DT DESC
+             LIMIT 1
+            """,
+            ("demo@demo.demo", "/api/v1/auth/me", "10.23.45.67"),
+        ).fetchone()
+    finally:
+        con.close()
+
+    assert row is not None
+    assert row[0] == "10.23.45.67"
+    assert row[1] == "PRIVATE_NET"
+    assert row[2] == "IP_LOCAL"
 
 
 def testReadyzMaintenance(monkeypatch):

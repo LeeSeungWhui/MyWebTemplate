@@ -26,11 +26,11 @@ def testUserSeedInitAndDemo():
         try:
             mod.ensureTable(con)
             # initially empty
-            cnt = con.execute("SELECT COUNT(*) FROM user_template").fetchone()[0]
+            cnt = con.execute("SELECT COUNT(*) FROM T_USER").fetchone()[0]
             assert cnt == 0
             # seed demo
             mod.seedDemo(con)
-            cnt2 = con.execute("SELECT COUNT(*) FROM user_template").fetchone()[0]
+            cnt2 = con.execute("SELECT COUNT(*) FROM T_USER").fetchone()[0]
             assert cnt2 == 1
         finally:
             con.close()

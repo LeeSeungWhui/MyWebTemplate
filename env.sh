@@ -1,5 +1,11 @@
 #!/usr/bin/env bash
 
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+  echo "[env.sh] 이 스크립트는 현재 셸에 적용해야 한다."
+  echo "[env.sh] 이렇게 실행: source ./env.sh"
+  exit 1
+fi
+
 SCRIPT_SOURCE="${BASH_SOURCE[0]:-$0}"
 SCRIPT_DIR="$(cd "$(dirname "$SCRIPT_SOURCE")" && pwd -L)"
 SCRIPT_DIR_PHYSICAL="$(cd "$(dirname "$SCRIPT_SOURCE")" && pwd -P)"
@@ -58,6 +64,27 @@ fi
 if PY_HOME_PICKED="$(pick_tool_home "Python3.12.10")"; then
   export PY_HOME="$PY_HOME_PICKED"
   export PATH="$PY_HOME/bin:$PATH"
+fi
+
+# python/pip 호환 커맨드 보강
+# - python 바이너리가 없고 python3만 있을 때 python 함수 제공
+# - pip 바이너리가 없고 pip3만 있을 때 pip 함수 제공
+if ! command -v python >/dev/null 2>&1 && command -v python3 >/dev/null 2>&1; then
+  python() {
+    command python3 "$@"
+  }
+fi
+
+if ! command -v pip >/dev/null 2>&1; then
+  if command -v python3 >/dev/null 2>&1; then
+    pip() {
+      command python3 -m pip "$@"
+    }
+  elif command -v pip3 >/dev/null 2>&1; then
+    pip() {
+      command pip3 "$@"
+    }
+  fi
 fi
 
 # 필요하면 venv 자동 활성화

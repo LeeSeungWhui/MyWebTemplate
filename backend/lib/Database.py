@@ -190,7 +190,81 @@ class DatabaseManager:
     def extractPlaceholders(self, query: str) -> Set[str]:
         """설명: 쿼리에서 :name 형 플레이스홀더 목록을 추출. 갱신일: 2025-11-12"""
         # 예시: :id, :user_name 등 명명 파라미터
-        return set(re.findall(r":([a-zA-Z_][a-zA-Z0-9_]*)", query or ""))
+        # PostgreSQL 캐스트(::jsonb)와 구분하기 위해 단일 ':'만 파라미터로 본다.
+        return set(re.findall(r"(?<!:):([a-zA-Z_][a-zA-Z0-9_]*)", query or ""))
+
+    def normalizeQueryForLog(self, query: str) -> str:
+        """설명: SQL 원문의 빈 줄/불필요 공백을 정리해 사람이 읽기 좋게 만든다. 갱신일: 2026-02-22"""
+        rawLines = str(query or "").splitlines()
+        lines: List[str] = []
+        for rawLine in rawLines:
+            line = re.sub(r"\s+", " ", rawLine).strip()
+            if not line:
+                continue
+            lines.append(line)
+        return "\n".join(lines).rstrip(";")
+
+    def truncateLogText(self, text: str, maxLength: int = 1200) -> str:
+        """설명: 과도하게 긴 SQL 로그를 잘라 단일 라인 로그 폭주를 방지한다. 갱신일: 2026-02-22"""
+        if len(text) <= maxLength:
+            return text
+        return f"{text[:maxLength]} …(truncated)"
+
+    def shouldRevealSqlLiteralValues(self) -> bool:
+        """
+        설명: SQL 로그에 실제 리터럴 값을 노출할지 여부를 판단한다.
+        환경변수 SQL_LOG_LITERAL_VALUES=true|1|yes|on 일 때만 노출한다.
+        갱신일: 2026-02-22
+        """
+        raw = str(os.getenv("SQL_LOG_LITERAL_VALUES", "")).strip().lower()
+        return raw in {"1", "true", "yes", "on"}
+
+    def toSqlLiteralForLog(self, value: Any, revealLiteral: bool) -> str:
+        """설명: 로그 출력용 SQL 리터럴 문자열로 변환한다. 갱신일: 2026-02-22"""
+        if value is None:
+            return "NULL"
+        if not revealLiteral:
+            if isinstance(value, (int, float)) and not isinstance(value, bool):
+                return "?"
+            if isinstance(value, bool):
+                return "?"
+            return "'***'"
+        if isinstance(value, bool):
+            return "TRUE" if value else "FALSE"
+        if isinstance(value, (int, float)) and not isinstance(value, bool):
+            return str(value)
+        if isinstance(value, (dict, list)):
+            text = json.dumps(value, ensure_ascii=False).replace("'", "''")
+            return f"'{text}'"
+        if isinstance(value, (bytes, bytearray, memoryview)):
+            return "'<binary>'"
+        text = str(value).replace("'", "''")
+        return f"'{text}'"
+
+    def renderQueryForLog(self, normalizedQuery: str, values: Optional[Dict[str, Any]], revealLiteral: bool) -> str:
+        """설명: :name 플레이스홀더를 로그용 리터럴로 치환한 SQL을 생성한다. 갱신일: 2026-02-22"""
+        params = values or {}
+        pattern = re.compile(r"(?<!:):([a-zA-Z_][a-zA-Z0-9_]*)")
+
+        def replace(match: re.Match[str]) -> str:
+            key = match.group(1)
+            if key not in params:
+                return match.group(0)
+            return self.toSqlLiteralForLog(params.get(key), revealLiteral)
+
+        return pattern.sub(replace, normalizedQuery)
+
+    def logQuery(self, op: str, query: str, values: Optional[Dict[str, Any]] = None, queryName: Optional[str] = None) -> None:
+        """설명: SQL 로그를 읽기 쉬운 최소 필드(queryName/sqlRendered)로 남긴다. 갱신일: 2026-02-22"""
+        normalized = self.normalizeQueryForLog(query)
+        revealLiteral = self.shouldRevealSqlLiteralValues()
+        rendered = self.renderQueryForLog(normalized, values, revealLiteral)
+        payload: Dict[str, Any] = {
+            "event": "db.query",
+            "sqlRendered": self.truncateLogText(rendered),
+        }
+        payload["queryName"] = queryName or op
+        logger.info(json.dumps(payload, ensure_ascii=False))
 
     def validateBindParameters(self, query: str, values: Optional[Dict[str, Any]]):
         """설명: 제공된 파라미터와 플레이스홀더 일치 여부를 검사. 갱신일: 2025-11-12"""
@@ -256,21 +330,21 @@ class DatabaseManager:
         """설명: 데이터베이스 연결을 종료한다. 갱신일: 2025-11-12"""
         await self.database.disconnect()
 
-    async def execute(self, query: str, values: Optional[Dict[str, Any]] = None) -> Any:
+    async def execute(self, query: str, values: Optional[Dict[str, Any]] = None, queryName: Optional[str] = None) -> Any:
         """설명: 쓰기 쿼리를 실행하고 영향 행을 반환. 갱신일: 2025-11-12"""
         self.validateBindParameters(query, values)
-        logger.info("executing query")
-        logger.debug(f"sql={query}; params={self.maskParams(values or {})}")
+        self.logQuery("execute", query, values, queryName)
         result = await self.database.execute(query=query, values=values or {})
         logger.info(f"rows_affected={result}")
         incSqlCount()
         return result
 
-    async def fetchOne(self, query: str, values: Optional[Dict[str, Any]] = None) -> Optional[Dict[str, Any]]:
+    async def fetchOne(
+        self, query: str, values: Optional[Dict[str, Any]] = None, queryName: Optional[str] = None
+    ) -> Optional[Dict[str, Any]]:
         """설명: 단일 행을 조회해 dict로 반환. 갱신일: 2025-11-12"""
         self.validateBindParameters(query, values)
-        logger.info("fetchOne")
-        logger.debug(f"sql={query}; params={self.maskParams(values or {})}")
+        self.logQuery("fetchOne", query, values, queryName)
         result = await self.database.fetch_one(query=query, values=values or {})
         if result is not None:
             data: Dict[str, Any] = dict(result)
@@ -282,11 +356,12 @@ class DatabaseManager:
             incSqlCount()
             return None
 
-    async def fetchAll(self, query: str, values: Optional[Dict[str, Any]] = None) -> Optional[List[Dict[str, Any]]]:
+    async def fetchAll(
+        self, query: str, values: Optional[Dict[str, Any]] = None, queryName: Optional[str] = None
+    ) -> Optional[List[Dict[str, Any]]]:
         """설명: 여러 행을 리스트로 반환. 갱신일: 2025-11-12"""
         self.validateBindParameters(query, values)
-        logger.info("fetchAll")
-        logger.debug(f"sql={query}; params={self.maskParams(values or {})}")
+        self.logQuery("fetchAll", query, values, queryName)
         result = await self.database.fetch_all(query=query, values=values or {})
         if result is not None:
             data: List[Dict[str, Any]] = [{column: row[column] for column in row.keys()} for row in result]  # type: ignore[index]
@@ -304,8 +379,7 @@ class DatabaseManager:
         if not query:
             logger.info(f"cannot find query name : {queryName}")
             raise ValueError()
-        logger.info(f"execute named query: {queryName}")
-        return await self.execute(query, values)
+        return await self.execute(query, values, queryName=queryName)
 
     async def fetchOneQuery(self, queryName: str, values: Optional[Dict[str, Any]] = None) -> Optional[Dict[str, Any]]:
         """설명: 등록 쿼리 중 단일 행을 가져온다. 갱신일: 2025-11-12"""
@@ -313,8 +387,7 @@ class DatabaseManager:
         if not query:
             logger.info(f"cannot find query name : {queryName}")
             raise ValueError()
-        logger.info(f"fetchOne named query: {queryName}")
-        return await self.fetchOne(query, values)
+        return await self.fetchOne(query, values, queryName=queryName)
 
     async def fetchAllQuery(
         self, queryName: str, values: Optional[Dict[str, Any]] = None
@@ -324,8 +397,7 @@ class DatabaseManager:
         if not query:
             logger.info(f"cannot find query name : {queryName}")
             raise ValueError()
-        logger.info(f"fetchAll named query: {queryName}")
-        return await self.fetchAll(query, values)
+        return await self.fetchAll(query, values, queryName=queryName)
 
 
 # =========================

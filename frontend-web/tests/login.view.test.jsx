@@ -91,7 +91,7 @@ test("백엔드 인증 오류를 비밀번호 필드와 에러 요약으로 노�
   });
   expect(screen.getByRole("alert").textContent).toContain("이메일 또는 비밀번호");
   expect(
-    screen.getAllByText(/이메일 또는 비밀번호가 올바르지 않아/i).length
+    screen.getAllByText(/이메일 또는 비밀번호가 올바르지 않습니다/i).length
   ).toBeGreaterThan(0);
   await waitFor(() => {
     expect(document.activeElement?.id).toBe("login-password");
