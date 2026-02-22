@@ -1,12 +1,7 @@
-# 코딩 스타일 가이드 (Frontend, 정규화 버전)
+# 코딩 스타일 가이드 (정규화 버전)
 
-이 문서는 이 프로젝트의 프론트엔드(`frontend-web`)에서  
+이 문서는 앞으로 이 프로젝트(및 비슷한 구조의 프론트엔드)에서  
 코드 짤 때 항상 지켜야 하는 **공통 코딩 규칙의 기준선**이다.
-
-- 관련 문서
-  - 프론트엔드: `docs/frontend/codding-rules-frontend.md`
-  - 백엔드: `docs/backend/codding-rules-backend.md`
-  - 공통: `docs/common-rules.md`
 
 - 기능 구현 1차 → 이 문서를 염두에 두고 작성
 - 기능 완료 후 2차 → 이 문서를 기준으로 정리/리팩터링
@@ -71,6 +66,23 @@
   - 이름만 봐도 역할이 바로 보이고
   - 실제로 **3군데 이상**에서 재사용되는 경우.
 
+### 1.3 `layout.jsx` 사용 규칙 (필요할 때만)
+
+- 기본은 `initData / page / view` 3개로 끝낸다.
+- `layout.jsx`는 “공통 UI를 묶는 용도”로만 쓴다.
+  - 예: Header/Footer/컨테이너/Provider, 공통 접근성 구조(landmark) 등
+  - **페이지마다 무조건 만들지 않는다.**
+- 하위 페이지에서 레이아웃이 확실히 달라지는 경우에만, 그 하위 경로에 `layout.jsx`를 추가한다.
+  - 예: 헤더가 없는 풀스크린 편집 화면, 특정 플로우 전용 네비/스텝퍼가 필요한 경우
+- 같은 레이아웃을 공유해야 하는 페이지가 많아지면, 하위 경로에 `layout.jsx`를 두어 상속 구조로 관리한다.
+- `AppLayout` 같은 wrapper 컴포넌트로 매 페이지를 감싸는 패턴은 지양한다.
+  - 공통 Header는 `layout.jsx`에서 한 번만 렌더링하고, 개별 `page.jsx`/`view.jsx`는 화면 로직에 집중한다.
+- `layout.jsx`는 가능한 서버 컴포넌트로 유지한다.
+  - 클라이언트 상태/이벤트가 필요하면 `ClientLayout.jsx`로 분리해서 `layout.jsx`에서 감싸는 방식으로 처리한다.
+  - 경로 기반 분기(예: `/component`에서 Header 숨김)는 `ClientLayout.jsx`에서 처리한다.
+  - `ClientLayout.jsx`는 전역 1개만 두고, 하위 레이아웃 변경은 `layout.jsx`로 처리한다.
+  - 라우트 그룹은 사용하지 않는다. 경로 기준 분기는 `ClientLayout.jsx`에서 처리한다.
+
 ---
 
 ## 2. 상태 관리와 전역 스토어
@@ -103,6 +115,53 @@
 - 컴포넌트에서는 스토어가 제공하는 **전용 훅**만 사용한다.
   - 예: `useGlobalUi`, `useUser`, `useSharedData` 등.
 - 스토어 구현 내부에 직접 접근하거나, 마음대로 필드를 추가·삭제하지 않는다.
+
+### 2.4 세션/로그인 정책 (필수)
+
+- 인증 토큰은 프론트 JS에서 직접 만지지 않는다.
+  - `sid`는 httpOnly 쿠키이며, 클라이언트 코드에서 읽을 수 없다.
+- “세션의 단일 소스”는 `GET /api/bff/api/v1/auth/session` 응답이다.
+  - 헤더/페이지에서 로그인 상태가 필요하면 이 값을 기준으로 처리한다.
+- 로그인 성공 직후에는 `POST /api/bff/api/v1/auth/login` 응답으로도 스토어(user/userJson)를 먼저 채울 수 있다.
+  - 단, 최종 판단은 헤더/페이지의 세션 확인 결과로 수렴한다(스토어는 캐시).
+- `useSharedStore().user/userJson`은 “UX를 위한 캐시(optimistic)”다.
+  - 세션 확인이 끝나기 전이라도 캐시가 있으면 먼저 표시할 수 있다.
+  - 단, 실제 권한 판단/보호 라우팅은 반드시 세션 확인(또는 401 처리)로 수렴해야 한다.
+- API 401 처리 원칙:
+  - `apiRequest`가 401을 받으면 `/login?next=...`로 이동시킨다(미들웨어가 `nx` 쿠키로 정리).
+- 로그인 불필요(public) API 호출 규칙:
+  - 로그인 없이도 호출 가능한 API는 호출부에서 `authless` 옵션을 명시한다.
+    - 권장: `apiJSON('/notice/list', { method: 'GET' }, { authless: true })`
+    - 축약: `apiJSON('/notice/list', { method: 'GET' }, 'authless')`
+  - `authless`의 의미는 “CSR에서 401 수신 시 자동 `/login` 리다이렉트 생략”이다.
+    - BFF 프록시/리프레시를 건너뛰는 서버 신호가 아니다.
+  - `csrf: 'skip'`은 현재 인증 우회 신호로 사용하지 않는다.
+    - 새 코드에서는 `csrf: 'skip'` 패턴을 추가하지 않는다.
+
+### 2.5 API 통신 규칙 (필수)
+
+- 백엔드와 통신(SSR/CSR)은 **lib에 이미 구현된 유틸만 사용**한다.
+  - JSON API: `apiJSON` (권장: `apiGet/apiPost/...`)
+  - 특수 케이스(다운로드/stream 등): `apiRequest`
+  - 파일 업로드(multipart/form-data): `useEasyUpload`
+    - 업로드 유틸은 인증 우회용 헤더(`X-CVFIT-AUTHLESS`)를 자동 주입하지 않는다.
+- 금지(발견 시 리팩터링 대상):
+  - 페이지/컴포넌트에서 `fetch()` 직접 호출
+  - `res.json()` / `JSON.parse()`로 응답을 직접 파싱
+    - 백엔드 응답은 “깨진 JSON/중첩 JSON 문자열”이 섞일 수 있으니, `apiJSON` 내부 보정 로직을 우회하지 않는다.
+- 예시(권장)
+
+  ```js
+  import { apiJSON } from '@/app/lib/runtime/api';
+
+  const payload = await apiJSON('/resume/upload', { method: 'POST', body: input });
+  ```
+
+  ```js
+  import useEasyUpload from '@/app/lib/hooks/useEasyUpload';
+
+  const payload = await useEasyUpload(file, { fileUploadUrl: '/resume/upload' });
+  ```
 
 ---
 
@@ -183,13 +242,6 @@
 
 ## 5. 네이밍 규칙
 
-### 5.0 네이밍 합의 (전체)
-
-- 변수/함수/메서드는 기본적으로 `camelCase`를 사용한다. (Python 포함)
-- 언더스코어(`_`) 네이밍은 지양한다. 기존 라이브러리 시그니처나 외부 스펙 준수 시에만 예외적으로 허용한다.
-- 클래스/컴포넌트 이름은 항상 대문자로 시작하는 PascalCase를 사용한다.
-- 약칭/축약은 의미가 모호하면 쓰지 않는다. (예: `cfg` 대신 `config`, `svc` 대신 `service`)
-
 ### 5.1 변수/상태 이름
 
 - 루프 인덱스(i, index) 말고는 **한 글자 변수 금지**.
@@ -220,6 +272,10 @@
 
 - 큰 설정 객체나 스펙 의미가 있는 데이터는 별도 모듈로 분리한다.
   - 예: `fieldSpecs.mjs`, `formConfig.mjs` 등.
+- 분리된 파일이 “한 세트”인 경우, 같은 폴더에 묶어서 한눈에 알아보게 만든다.
+  - 예: `app/component/CVIcon/CVIcon.jsx` + `app/component/CVIcon/figmaIconMap.js`
+  - 외부 import 경로는 한 군데(엔트리)로 유지한다.
+    - 예: `app/component/CVIcon.jsx`에서 `./CVIcon/CVIcon`로 위임(re-export)
 - 설정 파일은 “반복되는 패턴을 줄이는 용도”까지만 사용한다.
   - 중요한 화면 흐름(섹션 순서, 헤더 구조, 버튼 역할 등)은  
     그대로 JSX 코드에 남겨둔다.
@@ -281,8 +337,7 @@
 
 ### 8.1 파일 헤더
 
-- 모든 페이지 템플릿 파일 및 주요 컴포넌트 파일 상단에는 헤더 주석을 단다.
-- 작성자는 반드시 LSH로 표기.
+- 모든 페이지 템플릿 파일 및 주요 컴포넌트 파일 상단에는 헤더 주석을 단다.(작성자 반드시 LSH로)
 
   ```jsx
   /**
@@ -321,6 +376,19 @@
 - 우선 Tailwind 유틸 클래스와 프로젝트 공통 유틸 클래스를 사용한다.
 - 반복되는 스타일만 CSS 모듈/공용 클래스 형태로 추출한다.
 - 인라인 스타일은 특별한 이유가 있을 때만 사용한다.
+
+### 9.1 반응형/해상도 규칙 (공통)
+
+- 기본 원칙은 **유동 레이아웃(반응형) 우선**이다.
+  - 모바일/태블릿/일반 데스크톱은 자연스럽게 줄어들고 늘어나는 구조를 먼저 만든다.
+- 전역(`app/layout.jsx`, `globals.css`)에 `min-width: 1920px` 같은 고정 폭은 넣지 않는다.
+  - 예외: 제품 자체가 “데스크톱 전용 내부툴”로 확정된 경우에만 별도 합의 후 적용.
+- 데스크톱 기준 그리드는 `cv-container`(`max-width: 1436px`)를 기본으로 사용한다.
+- Figma의 픽셀 고정 치수(예: `520`, `498`, `710`, `347`)가 반드시 필요한 경우:
+  - 해당 페이지/섹션에서만 `min-[1468px]:...` 형태로 적용한다.
+  - 즉, **1468px 이상에서만 고정 픽셀 매칭**, 그 미만은 반응형 값을 유지한다.
+- 새 페이지 구현 시, 반응형 클래스 작성 순서는 아래를 기본으로 한다.
+  - 기본(모바일) → `md`/`lg` 보정 → `min-[1468px]`에서 Figma 고정치 적용
 
 ---
 

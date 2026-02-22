@@ -2,338 +2,320 @@
  * 파일명: Select.jsx
  * 작성자: LSH
  * 갱신일: 2025-11-05
- * 설명: EasyList selected 플래그 기반 커스텀 Select 컴포넌트
+ * 설명: EasyObj/EasyList 바운드 및 컨트롤드 모드를 모두 지원하는 Select 컴포넌트
  */
-import {
-  forwardRef,
-  useCallback,
-  useEffect,
-  useId,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
-import Icon from "./Icon";
+import { forwardRef, useCallback, useEffect, useId, useMemo, useState } from 'react'
+import { getBoundValue, setBoundValue, buildCtx, fireValueHandlers } from '../binding'
 
 const STATUS_PRESETS = {
   default: {
-    select: "border border-gray-300 focus:ring-blue-500 focus:border-blue-500",
-    message: "text-gray-600",
-    ariaLive: "polite",
+    select: 'border border-gray-300 focus:ring-blue-500 focus:border-blue-500',
+    message: 'text-gray-600',
+    ariaLive: 'polite',
   },
   success: {
     select:
-      "border border-green-400 focus:ring-green-500 focus:border-green-500",
-    message: "text-green-600",
-    defaultMessage: "선택이 저장되었습니다.",
-    ariaLive: "polite",
+      'border border-green-400 focus:ring-green-500 focus:border-green-500',
+    message: 'text-green-600',
+    defaultMessage: '선택이 저장되었습니다.',
+    ariaLive: 'polite',
   },
   warning: {
     select:
-      "border border-yellow-400 focus:ring-yellow-500 focus:border-yellow-500",
-    message: "text-yellow-700",
-    defaultMessage: "추가 확인이 필요합니다.",
-    ariaLive: "polite",
+      'border border-yellow-400 focus:ring-yellow-500 focus:border-yellow-500',
+    message: 'text-yellow-700',
+    defaultMessage: '추가 확인이 필요합니다.',
+    ariaLive: 'polite',
   },
   error: {
-    select: "border border-red-400 focus:ring-red-500 focus:border-red-500",
-    message: "text-red-600",
-    defaultMessage: "유효하지 않은 값입니다.",
-    ariaLive: "assertive",
+    select: 'border border-red-400 focus:ring-red-500 focus:border-red-500',
+    message: 'text-red-600',
+    defaultMessage: '유효하지 않은 값입니다.',
+    ariaLive: 'assertive',
   },
   info: {
-    select: "border border-blue-300 focus:ring-blue-400 focus:border-blue-400",
-    message: "text-blue-600",
-    ariaLive: "polite",
+    select: 'border border-blue-300 focus:ring-blue-400 focus:border-blue-400',
+    message: 'text-blue-600',
+    ariaLive: 'polite',
   },
   loading: {
     select:
-      "border border-blue-300 focus:ring-blue-500 focus:border-blue-500 pr-9",
-    message: "text-blue-600",
-    defaultMessage: "불러오는 중…",
-    ariaLive: "polite",
+      'border border-blue-300 focus:ring-blue-500 focus:border-blue-500 pr-9',
+    message: 'text-blue-600',
+    defaultMessage: '불러오는 중…',
+    ariaLive: 'polite',
   },
   empty: {
     select:
-      "border border-gray-300 bg-white text-gray-500 focus:ring-blue-400 focus:border-blue-400",
-    message: "text-gray-500",
-    defaultMessage: "표시할 항목이 없습니다.",
-    ariaLive: "assertive",
+      'border border-gray-300 bg-white text-gray-500 focus:ring-blue-400 focus:border-blue-400',
+    message: 'text-gray-500',
+    defaultMessage: '표시할 항목이 없습니다.',
+    ariaLive: 'assertive',
   },
   disabled: {
     select:
-      "bg-gray-100 text-gray-500 border border-gray-300 cursor-not-allowed",
-    message: "text-gray-500",
-    ariaLive: "polite",
+      'bg-gray-100 text-gray-500 border border-gray-300 cursor-not-allowed',
+    message: 'text-gray-500',
+    ariaLive: 'polite',
   },
-};
+}
 
 const normalizeOptions = (dataList = [], valueKey, textKey) => {
-  if (
-    !Array.isArray(dataList) &&
-    typeof dataList?.[Symbol.iterator] !== "function"
-  ) {
-    return [];
+  if (!Array.isArray(dataList) && typeof dataList?.[Symbol.iterator] !== 'function') {
+    return []
   }
   return Array.from(dataList).map((item, index) => ({
-    key: Object.prototype.hasOwnProperty.call(item, valueKey)
-      ? item[valueKey]
-      : index,
-    value: String(item?.[valueKey] ?? ""),
-    label: String(item?.[textKey] ?? ""),
+    key: Object.prototype.hasOwnProperty.call(item, valueKey) ? item[valueKey] : index,
+    value: String(item?.[valueKey] ?? ''),
+    label: String(item?.[textKey] ?? ''),
     placeholder: !!item?.placeholder,
     selected: !!item?.selected,
     raw: item,
-  }));
-};
+  }))
+}
+
+function useEasySubscription(model, handler) {
+  useEffect(() => {
+    if (!model || typeof model.subscribe !== 'function') return undefined
+    const unsubscribe = model.subscribe(handler)
+    return () => unsubscribe?.()
+  }, [model, handler])
+}
 
 const Select = forwardRef((props, ref) => {
   const {
-    // NOTE: Select(Web)는 dataObj/dataKey 바운드를 지원하지 않는다(스펙: CU-WEB-003).
-    // 실수로 전달돼도 DOM으로 새지 않도록 소모만 한다.
-    dataObj,
-    dataKey,
     dataList = [],
-    valueKey = "value",
-    textKey = "text",
+    valueKey = 'value',
+    textKey = 'text',
+    dataObj = null,
+    dataKey = null,
     value: valueProp,
-    defaultValue = "",
+    defaultValue = '',
     placeholder,
     status: statusProp,
     statusMessage,
     assistiveText,
     disabled = false,
-    className = "",
+    className = '',
     id,
-    onValueChange,
     onChange,
-    "aria-describedby": ariaDescribedByProp,
+    onValueChange,
+    error,
+    'aria-describedby': ariaDescribedByProp,
     ...rest
-  } = props;
+  } = props
 
-  const reactId = useId();
-  const containerRef = useRef(null);
-  const [isOpen, setIsOpen] = useState(false);
-  const warnedUnsupportedBindingRef = useRef(false);
+  const isControlled = valueProp !== undefined
+  const reactId = useId()
+  const selectId = id || `select-${reactId}`
 
   const normalizedOptions = useMemo(
     () => normalizeOptions(dataList, valueKey, textKey),
-    [dataList, valueKey, textKey]
-  );
+    [dataList, valueKey, textKey],
+  )
   const placeholderOption = useMemo(
     () => normalizedOptions.find((opt) => opt.placeholder),
-    [normalizedOptions]
-  );
+    [normalizedOptions],
+  )
 
   const deriveValueFromSources = useCallback(() => {
-    if (valueProp !== undefined && valueProp !== null) {
-      return String(valueProp);
+    if (isControlled) return String(valueProp ?? '')
+    const hasBoundSrc = dataObj && dataKey
+    if (hasBoundSrc) {
+      const bound = getBoundValue(dataObj, dataKey)
+      if (bound !== undefined && bound !== null) return String(bound)
     }
     const selectedFromList =
       normalizedOptions.find((opt) => opt.raw?.selected) ||
-      normalizedOptions.find((opt) => opt.selected);
-    if (selectedFromList) return selectedFromList.value;
-    if (defaultValue !== undefined && defaultValue !== null)
-      return String(defaultValue);
-    if (placeholderOption) return placeholderOption.value;
-    return "";
-  }, [valueProp, normalizedOptions, defaultValue, placeholderOption]);
+      normalizedOptions.find((opt) => opt.selected)
+    if (selectedFromList) return selectedFromList.value
+    if (defaultValue !== undefined && defaultValue !== null) return String(defaultValue)
+    if (placeholderOption) return placeholderOption.value
+    return ''
+  }, [isControlled, valueProp, dataObj, dataKey, normalizedOptions, defaultValue, placeholderOption])
 
-  const [innerValue, setInnerValue] = useState(() => deriveValueFromSources());
-  const currentValue =
-    valueProp !== undefined && valueProp !== null
-      ? String(valueProp)
-      : innerValue;
+  const [innerValue, setInnerValue] = useState(() => deriveValueFromSources())
+  const currentValue = isControlled ? String(valueProp ?? '') : innerValue
 
   // Sync EasyList selection flags with the resolved value
   useEffect(() => {
-    const normalized = String(currentValue ?? "");
+    const normalized = String(currentValue ?? '')
     const updater = (item) => {
-      const nextSelected = String(item?.[valueKey] ?? "") === normalized;
-      if (item.selected !== nextSelected) item.selected = nextSelected;
-      return item;
-    };
-    if (typeof dataList?.forAll === "function") {
-      dataList.forAll(updater);
-    } else if (Array.isArray(dataList)) {
-      dataList.forEach(updater);
+      const nextSelected = String(item?.[valueKey] ?? '') === normalized
+      if (item.selected !== nextSelected) item.selected = nextSelected
+      return item
     }
-  }, [dataList, valueKey, currentValue]);
+    if (typeof dataList?.forAll === 'function') {
+      dataList.forAll(updater)
+    } else if (Array.isArray(dataList)) {
+      dataList.forEach(updater)
+    }
+  }, [dataList, valueKey, currentValue])
 
   // Update inner value when external sources change
   useEffect(() => {
-    const next = deriveValueFromSources();
-    setInnerValue((prev) => (prev === next ? prev : next));
-  }, [deriveValueFromSources]);
+    if (isControlled) return
+    const next = deriveValueFromSources()
+    setInnerValue((prev) => (prev === next ? prev : next))
+  }, [deriveValueFromSources, isControlled])
 
-  useEffect(() => {
-    if (process.env.NODE_ENV !== "development") return;
-    if (warnedUnsupportedBindingRef.current) return;
-    if (!dataObj && !dataKey) return;
-    warnedUnsupportedBindingRef.current = true;
-    // eslint-disable-next-line no-console
-    console.warn(
-      "[Select] dataObj/dataKey 바인딩은 지원하지 않아. value/onValueChange 또는 dataList.selected로 제어해."
-    );
-  }, [dataObj, dataKey]);
+  // Subscribe to EasyObj/EasyList updates so that external mutations reflect immediately
+  useEasySubscription(
+    dataObj,
+    useCallback(
+      (detail) => {
+        if (!detail || !dataKey) return
+        const key = String(dataKey)
+        const changedKey =
+          detail?.ctx?.dataKey ?? detail?.pathString ?? ''
+        const isMatch =
+          changedKey === key || changedKey.endsWith(`.${key}`)
+        if (isMatch) {
+          const next = deriveValueFromSources()
+          setInnerValue((prev) => (prev === next ? prev : next))
+        }
+      },
+      [dataKey, deriveValueFromSources],
+    ),
+  )
 
-  const normalizedStatus = disabled ? "disabled" : statusProp || "default";
-  const statusMeta = STATUS_PRESETS[normalizedStatus] || STATUS_PRESETS.default;
+  useEasySubscription(
+    dataList,
+    useCallback(() => {
+      if (isControlled) return
+      const next = deriveValueFromSources()
+      setInnerValue((prev) => (prev === next ? prev : next))
+    }, [isControlled, deriveValueFromSources]),
+  )
+
+  const normalizedStatus = disabled
+    ? 'disabled'
+    : statusProp || (error ? 'error' : 'default')
+  const statusMeta =
+    STATUS_PRESETS[normalizedStatus] || STATUS_PRESETS.default
   const messageText =
     statusMessage ??
     statusMeta.defaultMessage ??
-    (normalizedStatus === "disabled" ? "사용할 수 없는 상태입니다." : "");
+    (normalizedStatus === 'disabled' ? '사용할 수 없는 상태입니다.' : '')
 
   const isPlaceholderSelected =
     placeholderOption &&
-    (!currentValue || currentValue === placeholderOption.value);
+    (!currentValue || currentValue === placeholderOption.value)
 
   const messageId =
     messageText || assistiveText
-      ? `${id || `select-${reactId}`}-status`
-      : undefined;
+      ? `${selectId}-status`
+      : undefined
   const ariaDescribedBy =
-    [ariaDescribedByProp, messageId].filter(Boolean).join(" ") || undefined;
+    [ariaDescribedByProp, messageId].filter(Boolean).join(' ') || undefined
 
-  const updateSelectionFlags = (nextValue) => {
-    const normalized = String(nextValue ?? "");
-    const updater = (item) => {
-      const match = String(item?.[valueKey] ?? "") === normalized;
-      if (item.selected !== match) item.selected = match;
-      return item;
-    };
-    if (typeof dataList?.forAll === "function") {
-      dataList.forAll(updater);
+  const handleChange = (event) => {
+    const nextValue = event.target.value
+    if (!isControlled) setInnerValue(nextValue)
+    if (typeof dataList?.forAll === 'function') {
+      dataList.forAll((item) => {
+        const match = String(item?.[valueKey] ?? '') === String(nextValue)
+        if (item.selected !== match) item.selected = match
+        return item
+      })
     } else if (Array.isArray(dataList)) {
-      dataList.forEach(updater);
+      dataList.forEach((item) => {
+        item.selected = String(item?.[valueKey] ?? '') === String(nextValue)
+      })
     }
-  };
-
-  const handleSelect = (nextValue) => {
-    const valueString = String(nextValue ?? "");
-    setInnerValue(valueString);
-    updateSelectionFlags(valueString);
-    if (onValueChange) {
-      onValueChange(valueString);
+    if (dataObj && dataKey) {
+      setBoundValue(dataObj, dataKey, nextValue)
     }
-    if (onChange) {
-      onChange({
-        type: "change",
-        target: { value: valueString },
-      });
+    const ctx = buildCtx({
+      dataKey,
+      dataObj,
+      source: 'user',
+      valid: null,
+      dirty: true,
+    })
+    const modifiedEvent = {
+      ...event,
+      target: { ...event.target, value: nextValue },
     }
-    setIsOpen(false);
-  };
-
-  useEffect(() => {
-    if (!isOpen) return undefined;
-    const handleClickOutside = (event) => {
-      if (!containerRef.current) return;
-      if (!containerRef.current.contains(event.target)) {
-        setIsOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, [isOpen]);
+    fireValueHandlers({
+      onChange,
+      onValueChange,
+      value: nextValue,
+      ctx,
+      event: modifiedEvent,
+    })
+  }
 
   const baseStyle =
-    "w-full px-3 py-2 pr-10 text-sm rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-0 bg-white transition-colors text-left";
-  const triggerClass = [
+    'block w-full px-3 py-2 text-sm rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-0 appearance-none bg-white transition-colors'
+  const selectClass = [
     baseStyle,
     statusMeta.select,
-    isPlaceholderSelected ? "text-gray-400" : "text-gray-900",
+    isPlaceholderSelected ? 'text-gray-400' : 'text-gray-900',
     className,
   ]
     .filter(Boolean)
-    .join(" ");
-
-  const currentLabel =
-    normalizedOptions.find((opt) => opt.value === currentValue)?.label ||
-    placeholder ||
-    placeholderOption?.label ||
-    "";
+    .join(' ')
 
   return (
-    <div className="relative" ref={containerRef}>
-      <button
+    <div className="relative">
+      <select
         ref={ref}
-        id={id || `select-${reactId}`}
-        type="button"
-        disabled={disabled || normalizedStatus === "disabled"}
-        className={triggerClass}
-        aria-haspopup="listbox"
-        aria-expanded={isOpen}
+        id={selectId}
+        value={currentValue}
+        onChange={handleChange}
+        disabled={disabled || normalizedStatus === 'disabled'}
+        className={selectClass}
+        aria-invalid={normalizedStatus === 'error' ? true : undefined}
+        aria-busy={normalizedStatus === 'loading' ? true : undefined}
         aria-describedby={ariaDescribedBy}
         {...rest}
-        onClick={() => {
-          if (disabled || normalizedStatus === "disabled") return;
-          setIsOpen((prev) => !prev);
-        }}
       >
-        <span className={isPlaceholderSelected ? "text-gray-400" : ""}>
-          {currentLabel}
-        </span>
-      </button>
-      <div className="pointer-events-none absolute right-[6px] top-[20px] -translate-y-1/2 flex items-center justify-center">
-        {normalizedStatus === "loading" ? (
+        {placeholder &&
+          !normalizedOptions.some((opt) => opt.placeholder) && (
+            <option value="" className="text-gray-400">
+              {placeholder}
+            </option>
+          )}
+        {normalizedOptions.map((opt) => (
+          <option
+            key={opt.key}
+            value={opt.value}
+            className={opt.placeholder ? 'text-gray-400' : 'text-gray-900'}
+          >
+            {opt.label}
+          </option>
+        ))}
+      </select>
+      <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
+        {normalizedStatus === 'loading' ? (
           <span
             className="h-4 w-4 animate-spin rounded-full border-2 border-blue-300 border-t-transparent"
             aria-hidden="true"
           />
         ) : (
-          <Icon
-            icon={isOpen ? "md:MdKeyboardArrowUp" : "md:MdKeyboardArrowDown"}
-            size="1.5em"
-            className="text-gray-400"
-            decorative
-          />
+          <svg
+            className="h-5 w-5 text-gray-400"
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 20 20"
+            fill="currentColor"
+            aria-hidden="true"
+          >
+            <path
+              fillRule="evenodd"
+              d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+              clipRule="evenodd"
+            />
+          </svg>
         )}
       </div>
-      {isOpen && (
-        <ul
-          role="listbox"
-          aria-labelledby={id || `select-${reactId}`}
-          className="absolute z-20 mt-1 max-h-60 w-full overflow-auto rounded-md border border-gray-200 bg-white py-1 text-sm shadow-lg"
-        >
-          {normalizedOptions.map((opt) => {
-            const isSelected = opt.value === currentValue;
-            const isPlaceholder = opt.placeholder;
-            const itemClass = [
-              "cursor-pointer px-3 py-2",
-              isSelected
-                ? "bg-gray-200 text-gray-900"
-                : "text-gray-900 hover:bg-gray-50",
-              isPlaceholder ? "text-gray-400" : "",
-            ]
-              .filter(Boolean)
-              .join(" ");
-            return (
-              <li
-                key={opt.key}
-                role="option"
-                aria-selected={isSelected}
-                className={itemClass}
-                onClick={() => handleSelect(opt.value)}
-              >
-                {opt.label}
-              </li>
-            );
-          })}
-          {normalizedOptions.length === 0 && (
-            <li className="px-3 py-2 text-gray-500 text-sm">
-              선택 가능한 항목이 없습니다.
-            </li>
-          )}
-        </ul>
-      )}
       {messageId && (
         <p
           id={messageId}
           className={`mt-1 text-xs ${
-            messageText ? statusMeta.message : "sr-only"
+            messageText ? statusMeta.message : 'sr-only'
           }`}
-          aria-live={statusMeta.ariaLive || "polite"}
+          aria-live={statusMeta.ariaLive || 'polite'}
         >
           {messageText || assistiveText}
           {messageText && assistiveText && (
@@ -342,9 +324,9 @@ const Select = forwardRef((props, ref) => {
         </p>
       )}
     </div>
-  );
-});
+  )
+})
 
-Select.displayName = "Select";
+Select.displayName = 'Select'
 
-export default Select;
+export default Select

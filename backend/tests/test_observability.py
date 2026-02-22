@@ -1,6 +1,7 @@
 import asyncio
 import os
 import sys
+from configparser import ConfigParser
 from fastapi.testclient import TestClient
 
 
@@ -141,7 +142,61 @@ def testLoggingShape(caplog):
         seen = False
         for rec in caplog.records:
             msg = rec.message
-            if '"requestId"' in msg and '"latency_ms"' in msg and '"path"' in msg:
+            if (
+                '"requestId"' in msg
+                and '"latency_ms"' in msg
+                and '"path"' in msg
+                and '"sql_count"' in msg
+            ):
                 seen = True
                 break
         assert seen
+
+
+def testSqlCountWarnLogging(caplog, monkeypatch):
+    import lib.Middleware as middlewareModule
+    monkeypatch.setattr(middlewareModule, "getSqlWarnThreshold", lambda: 1)
+    monkeypatch.setattr(middlewareModule, "getSqlCount", lambda: 3)
+
+    from server import app
+    with TestClient(app) as client:
+        caplog.clear()
+        response = client.get("/healthz")
+        assert response.status_code == 200
+
+    seen = False
+    for rec in caplog.records:
+        if '"msg": "sql_count_high"' in rec.message and '"sql_count": 3' in rec.message:
+            seen = True
+            break
+    assert seen
+
+
+def testSqlWarnThresholdEnvPriority(monkeypatch):
+    import lib.Middleware as middlewareModule
+
+    config = ConfigParser()
+    config["SERVER"] = {"sql_warn_threshold": "7"}
+    monkeypatch.setattr(middlewareModule, "getConfig", lambda: config)
+    monkeypatch.setenv("SQL_WARN_THRESHOLD", "11")
+    assert middlewareModule.getSqlWarnThreshold() == 11
+
+
+def testSqlWarnThresholdConfigFallback(monkeypatch):
+    import lib.Middleware as middlewareModule
+
+    config = ConfigParser()
+    config["SERVER"] = {"sql_warn_threshold": "9"}
+    monkeypatch.setattr(middlewareModule, "getConfig", lambda: config)
+    monkeypatch.delenv("SQL_WARN_THRESHOLD", raising=False)
+    assert middlewareModule.getSqlWarnThreshold() == 9
+
+
+def testSqlWarnThresholdDefaultFallback(monkeypatch):
+    import lib.Middleware as middlewareModule
+
+    config = ConfigParser()
+    config["SERVER"] = {"sql_warn_threshold": "invalid"}
+    monkeypatch.setattr(middlewareModule, "getConfig", lambda: config)
+    monkeypatch.setenv("SQL_WARN_THRESHOLD", "-1")
+    assert middlewareModule.getSqlWarnThreshold() == 30

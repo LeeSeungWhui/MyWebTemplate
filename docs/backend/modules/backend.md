@@ -109,7 +109,8 @@ port = 2000
 ## 실행
 - 의존성: pip install -r backend/requirements.txt
 - 개발: python backend/run.py (uvicorn reload)
-- 배포: gunicorn -k uvicorn.workers.UvicornWorker server:app -w 4 -b 0.0.0.0:8000
+- 배포: (권장) Nginx 뒤에서 localhost로만 바인딩 → `127.0.0.1:2000` (docs/ops/nginx-subdomains.md 참고)
+  - 예: gunicorn -k uvicorn.workers.UvicornWorker server:app -w 4 -b 127.0.0.1:2000
 
 ## 체크리스트
 - 토큰 방식: Access/Refresh 둘 다 HttpOnly 쿠키. Access는 짧게, Refresh는 rememberMe에 따라 session/장기. 401 → refresh → 재시도.

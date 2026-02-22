@@ -8,6 +8,7 @@
 import importlib
 import os
 import pkgutil
+from urllib.parse import quote_plus
 
 try:
     from . import router as router  # 패키지로 실행될 때 라우터 임포트
@@ -57,6 +58,27 @@ app = FastAPI()
 # ---------------------------------------------------------------------------
 # 설정 관련 헬퍼
 # ---------------------------------------------------------------------------
+
+
+def encodeDsnUserInfo(value: object) -> str:
+    """DSN userinfo(user/password) 안전 인코딩."""
+    if value is None:
+        return ""
+    return quote_plus(str(value))
+
+
+def buildNetworkDbUrl(
+    scheme: str,
+    host: str,
+    port: str,
+    database: str,
+    user: str,
+    password: str,
+) -> str:
+    """네트워크 DB(mysql/postgresql) 접속 URL을 생성."""
+    safeUser = encodeDsnUserInfo(user)
+    safePassword = encodeDsnUserInfo(password)
+    return f"{scheme}://{safeUser}:{safePassword}@{host}:{port}/{database}"
 
 
 async def onShutdown():
@@ -110,14 +132,28 @@ async def onStartup():
             user = dbConfig.get("user")
             password = dbConfig.get("password")
             # databases 패키지와의 호환을 위해 async 드라이버를 사용
-            dbUrl = f"mysql+aiomysql://{user}:{password}@{host}:{port}/{database}"
+            dbUrl = buildNetworkDbUrl(
+                scheme="mysql+aiomysql",
+                host=host,
+                port=port,
+                database=database,
+                user=user,
+                password=password,
+            )
         elif dbType == "postgresql":
             host = dbConfig.get("host", "localhost")
             port = dbConfig.get("port", "5432")
             database = dbConfig.get("database")
             user = dbConfig.get("user")
             password = dbConfig.get("password")
-            dbUrl = f"postgresql://{user}:{password}@{host}:{port}/{database}"
+            dbUrl = buildNetworkDbUrl(
+                scheme="postgresql",
+                host=host,
+                port=port,
+                database=database,
+                user=user,
+                password=password,
+            )
         else:
             logger.warning(f"unsupported database type: {dbType}")
             continue

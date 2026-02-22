@@ -47,7 +47,7 @@ const Alert = ({
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-500/70">
             <div className={`
-                w-[400px] rounded-lg shadow-lg border ${currentStyle.borderColor}
+                min-w-[400px] max-w-[500px] rounded-lg shadow-lg border ${currentStyle.borderColor}
                 ${currentStyle.bgColor} backdrop-blur-sm
                 animate-fade-in-up
             `}>
@@ -62,7 +62,7 @@ const Alert = ({
                             <h3 className="text-lg font-semibold text-gray-900 mb-1">
                                 {title}
                             </h3>
-                            <p className="text-gray-600 whitespace-pre-line">
+                            <p className="text-gray-600 whitespace-pre-line break-words max-h-[50vh] overflow-y-auto pr-1">
                                 {displayText}
                             </p>
                         </div>

@@ -8,7 +8,7 @@
  * Drawer.jsx
  * Side-mounted sliding panel component (Tailwind only)
  */
-import { forwardRef, useEffect, useRef, useState } from 'react';
+import { forwardRef, useEffect } from 'react';
 
 const sides = {
   right: {
@@ -45,35 +45,11 @@ const Drawer = forwardRef(function Drawer(
   },
   ref
 ) {
-  const rootRef = useRef(null);
-  const [visible, setVisible] = useState(isOpen);
-  const [exiting, setExiting] = useState(false);
-  const [entering, setEntering] = useState(false);
-
   const conf = sides[side] || sides.right;
-
-  // Open/close visibility + enter/exit transitions
-  useEffect(() => {
-    if (isOpen) {
-      setVisible(true);
-      setExiting(false);
-      setEntering(true);
-      const id = requestAnimationFrame(() => setEntering(false));
-      return () => cancelAnimationFrame(id);
-    }
-    if (visible) {
-      setExiting(true);
-      const t = setTimeout(() => {
-        setVisible(false);
-        setExiting(false);
-      }, 300);
-      return () => clearTimeout(t);
-    }
-  }, [isOpen, visible]);
 
   // ESC to close + lock body scroll while visible
   useEffect(() => {
-    if (!visible) return;
+    if (!isOpen) return undefined;
     const onKey = (e) => {
       if (closeOnEsc && e.key === 'Escape') onClose?.();
     };
@@ -84,9 +60,7 @@ const Drawer = forwardRef(function Drawer(
       document.removeEventListener('keydown', onKey);
       document.body.style.overflow = prev;
     };
-  }, [visible, closeOnEsc, onClose]);
-
-  if (!visible) return null;
+  }, [isOpen, closeOnEsc, onClose]);
 
   // size: number or numeric string -> px width/height depending on side
   // non-numeric string -> treated as className (tailwind etc.)
@@ -104,7 +78,7 @@ const Drawer = forwardRef(function Drawer(
   const resizeCls = resizable
     ? (side === 'top' || side === 'bottom' ? 'resize-y overflow-auto' : 'resize-x overflow-auto')
     : '';
-  const transformCls = (exiting || entering) ? conf.transform.closed : conf.transform.open;
+  const transformCls = isOpen ? conf.transform.open : conf.transform.closed;
 
   // Emphasize the corner where the handle lives
   const cornerBoost = collapseButton
@@ -145,16 +119,18 @@ const Drawer = forwardRef(function Drawer(
     : '';
 
   const assignRef = (el) => {
-    rootRef.current = el;
     if (typeof ref === 'function') ref(el);
     else if (ref) ref.current = el;
   };
 
   return (
-    <div className="fixed inset-0 z-50">
+    <div
+      className={`fixed inset-0 z-50 transition-opacity duration-300 ease-in-out ${isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
+      aria-hidden={!isOpen}
+    >
       {/* Backdrop */}
       <div
-        className={`absolute inset-0 bg-black/40 transition-opacity duration-300 ${exiting ? 'opacity-0' : 'opacity-100'}`}
+        className={`absolute inset-0 bg-black/40 transition-opacity duration-300 ease-in-out ${isOpen ? 'opacity-100' : 'opacity-0'}`}
         onClick={() => { if (closeOnBackdrop) onClose?.(); }}
         aria-hidden="true"
       />
@@ -162,7 +138,7 @@ const Drawer = forwardRef(function Drawer(
       {/* Panel */}
       <div
         ref={assignRef}
-        className={`absolute bg-white shadow-xl will-change-transform transition-transform duration-300 ${conf.base} ${cornerBoost} ${transformCls} ${sizeCls} ${resizeCls} ${className}`.trim()}
+        className={`absolute bg-white shadow-xl transform-gpu will-change-transform transition-transform duration-300 ease-in-out ${conf.base} ${cornerBoost} ${transformCls} ${sizeCls} ${resizeCls} ${className}`.trim()}
         {...(() => {
           const { style: userStyle, ...rest } = props || {};
           const dim = (numericSize != null)

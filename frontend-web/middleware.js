@@ -18,16 +18,31 @@ import {
   base64UrlDecodeUtf8,
 } from '@/app/lib/runtime/authRedirect'
 
+const JWT_SEGMENT_RE = /^[A-Za-z0-9_-]+$/
+const JWT_MAX_LENGTH = 4096
+const JWT_PAYLOAD_MAX_LENGTH = 4096
+
+function isValidJwtSegment(segment) {
+  if (!segment || typeof segment !== 'string') return false
+  return JWT_SEGMENT_RE.test(segment)
+}
+
 function getJwtExpSeconds(token) {
   if (!token || typeof token !== 'string') return null
-  const parts = token.split('.')
-  if (parts.length < 2) return null
+  const normalized = token.trim()
+  if (!normalized || normalized.length > JWT_MAX_LENGTH) return null
+  const parts = normalized.split('.')
+  if (parts.length !== 3) return null
+  if (!isValidJwtSegment(parts[0]) || !isValidJwtSegment(parts[1])) return null
   const payloadText = base64UrlDecodeUtf8(parts[1])
-  if (!payloadText) return null
+  if (!payloadText || payloadText.length > JWT_PAYLOAD_MAX_LENGTH) return null
   try {
     const payload = JSON.parse(payloadText)
     const exp = payload?.exp
-    return typeof exp === 'number' ? exp : null
+    if (typeof exp !== 'number' || !Number.isFinite(exp)) return null
+    const normalizedExp = Math.trunc(exp)
+    if (normalizedExp <= 0) return null
+    return normalizedExp
   } catch {
     return null
   }

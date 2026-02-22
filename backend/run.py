@@ -4,16 +4,20 @@
 설명: 로컬 실행 엔트리. config.ini를 읽어 uvicorn을 기동한다.
 """
 
-from configparser import ConfigParser
+import os
+import sys
 
 import uvicorn
 
+baseDir = os.path.dirname(__file__)
+if baseDir not in sys.path:
+    sys.path.insert(0, baseDir)
+
+from lib.Config import getConfig
+
 
 def loadConfig():
-    config = ConfigParser()
-    with open("config.ini", "r", encoding="utf-8") as configFile:
-        config.read_file(configFile)
-    return config
+    return getConfig()
 
 
 if __name__ == "__main__":
@@ -23,6 +27,6 @@ if __name__ == "__main__":
     uvicorn.run(
         "server:app",
         host="0.0.0.0",
-        port=serverConfig.getint("port", 8000),
+        port=serverConfig.getint("port", 2000),
         reload=True,
     )

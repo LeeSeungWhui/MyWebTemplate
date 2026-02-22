@@ -25,7 +25,10 @@
 ## 보안(Security)
 - 기준: OWASP Top 10, 최소 권한 원칙
 - 인증/세션: Web은 쿠키(HttpOnly, Secure, SameSite=Lax), App은 토큰 헤더. 로그아웃/만료 필수
-- CSRF/CORS: 쿠키 인증의 비멱등 API는 CSRF 방어. CORS는 환경별 allowlist(와일드카드 금지)
+- CSRF/CORS:
+  - 기본(토큰 모드): 세션 미사용. 보호 API는 `Authorization: Bearer`만 신뢰하고, Web은 BFF가 HttpOnly 쿠키→Bearer로 변환한다. 이 모드에서는 CSRF 토큰 헤더를 기본 사용하지 않는다.
+  - 예외(쿠키 세션/교차 쿠키): 쿠키가 직접 권한을 갖는 비멱등 엔드포인트(또는 `SameSite=None` 등)에는 CSRF 방어(Origin/Referer allowlist 또는 double-submit 토큰)를 추가한다.
+  - CORS는 환경별 allowlist(와일드카드 금지)
 - 입력 검증: 화이트리스트 기반. 파일 업로드는 MIME/용량 검사 및 백엔드 재검증
 - SQL 안전성: 반드시 파라미터 바인딩. 문자열 치환 금지. 쿼리 로깅 시 PII 마스킹
 - 시크릿: 레포 저장 금지. ENV/배포 환경 시크릿 사용, 키 롤테이션 정책 유지

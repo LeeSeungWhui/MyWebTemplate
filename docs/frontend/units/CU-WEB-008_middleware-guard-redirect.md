@@ -2,7 +2,7 @@
 id: CU-WEB-008
 name: Middleware Guard & Redirect
 module: web
-status: in-progress
+status: implemented
 priority: P1
 links: [CU-WEB-001, CU-WEB-004, CU-WEB-005, CU-WEB-006, CU-WEB-002, CU-BE-001]
 ---

@@ -92,8 +92,15 @@ function normalizeArgs(path, a2, a3) {
     const keys = Object.keys(v)
     return (
       'method' in v || 'headers' in v || 'body' in v ||
-      'csrf' in v || 'auth' in v || 'authless' in v || keys.length === 0
+      'authless' in v || keys.length === 0
     )
+  }
+  const isLegacyOptionOnlyInit = (v) => {
+    if (!v || typeof v !== 'object') return false
+    if (isBodyLike(v)) return false
+    const keys = Object.keys(v)
+    if (!keys.length) return false
+    return keys.every((key) => key === 'csrf' || key === 'auth')
   }
 
   let init = {}
@@ -104,7 +111,7 @@ function normalizeArgs(path, a2, a3) {
   }
 
   if (typeof a2 === 'string') applyMode(a2)
-  else if (isInitLike(a2)) init = { ...a2 }
+  else if (isInitLike(a2) || isLegacyOptionOnlyInit(a2)) init = { ...a2 }
   else if (typeof a2 !== 'undefined') {
     init = { method: 'POST', body: a2 }
   }
@@ -120,6 +127,8 @@ function normalizeArgs(path, a2, a3) {
     options.authless = init.authless
     delete init.authless
   }
+  if ('csrf' in init) delete init.csrf
+  if ('auth' in init) delete init.auth
 
   return { path, init, options }
 }

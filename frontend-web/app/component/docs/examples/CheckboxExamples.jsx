@@ -13,7 +13,6 @@ export const CheckboxExamples = () => {
         termsAgreed: false,
         privacyAgreed: false,
         marketingAgreed: false,
-        checked: false,
     });
 
     // 제어 컴포넌트 예시를 위한 상태
@@ -26,7 +25,7 @@ export const CheckboxExamples = () => {
                 dataObj={dataObj}
                 dataKey="basicCheckbox"
             />,
-            description: "기본 체크박스 (토글 시 dataObj.checked 플래그도 함께 기록).",
+            description: "기본 체크박스 (dataObj/dataKey 바인딩).",
             code: `<Lib.Checkbox
     label="기본 체크박스"
     dataObj={dataObj}

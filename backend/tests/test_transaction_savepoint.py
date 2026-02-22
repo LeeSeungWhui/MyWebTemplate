@@ -1,6 +1,7 @@
 import os
 import sys
 from fastapi.testclient import TestClient
+import pytest
 
 
 baseDir = os.path.dirname(os.path.dirname(__file__))
@@ -49,3 +50,17 @@ def testSavepointPartialRollback():
         assert countsByValue.get("keep2") == 1
         # dup should not remain due to savepoint rollback; or at most 1 if unique has been inserted before error
         assert countsByValue.get("dup") in (None, 1)
+
+
+def testSavepointNameValidation():
+    from lib.Transaction import savepoint, TransactionError
+
+    with pytest.raises(TransactionError):
+        savepoint("main_db", "sp1; DROP TABLE user_template;")
+
+    with pytest.raises(TransactionError):
+        savepoint("main_db", "1bad")
+
+    # 정상 케이스
+    sp = savepoint("main_db", "sp_valid_1")
+    assert sp.name == "sp_valid_1"

@@ -1,6 +1,6 @@
 /**
  * 파일명: CheckButton.jsx
- * 작성자: LSH (원본), Codex(checked 플래그 추가)
+ * 작성자: LSH
  * 갱신일: 2025-02-19
  * 설명: CheckButton UI 컴포넌트 구현
  */
@@ -38,7 +38,6 @@ const CheckButton = React.forwardRef(({
             const value = getBoundValue(dataObj, dataKeyName);
             const next = [true, 'Y', 'y', '1', 1].includes(value);
             setInternalChecked(next);
-            setBoundValue(dataObj, 'checked', next);
         }
     }, [isDataObjControlled, dataObj, dataKeyName]);
 
@@ -52,7 +51,6 @@ const CheckButton = React.forwardRef(({
 
         if (isDataObjControlled) {
             setBoundValue(dataObj, dataKeyName, newChecked, { source: 'user' });
-            setBoundValue(dataObj, 'checked', newChecked, { source: 'user' });
         }
 
         const ctx = buildCtx({ dataKey: dataKeyName, dataObj, source: 'user', dirty: true, valid: null });

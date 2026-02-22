@@ -218,14 +218,29 @@ const EasyTable = forwardRef(function EasyTable(
     ? Math.max(0, effectivePageSize - rows.length)
     : 0;
 
+  const normalizeWidth = (width) => {
+    if (width == null || width === '') return null;
+    if (typeof width === 'number' && Number.isFinite(width)) return `${width}px`;
+    if (typeof width === 'string') return width;
+    return null;
+  };
+
+  const gridTemplateColumns = useMemo(
+    () =>
+      columns
+        .map((col) => normalizeWidth(col.width) || 'minmax(0, 1fr)')
+        .join(' '),
+    [columns],
+  );
+
   const header = (
-    <div role="row" className={`grid w-full bg-[#667586] text-white text-sm font-semibold items-center ${headerClassName}`.trim()} style={{ gridTemplateColumns: columns.map(c => c.width ? 'auto' : '1fr').join(' ') }}>
+    <div role="row" className={`grid w-full bg-[#667586] text-white text-sm font-semibold items-center ${headerClassName}`.trim()} style={{ gridTemplateColumns }}>
       {columns.map((col, i) => (
         <div
           key={col.key ?? i}
           role="columnheader"
-          className={`px-3 py-3 text-center ${col.headerClassName || ''}`}
-          style={{ width: col.width || 'auto' }}
+          className={`min-w-0 px-3 py-3 ${col.headerClassName || ''}`.trim()}
+          style={{ width: col.width || 'auto', textAlign: col.align || 'center' }}
         >
           {typeof col.header === 'function' ? col.header() : col.header}
         </div>
@@ -260,14 +275,14 @@ const EasyTable = forwardRef(function EasyTable(
             key={keyVal}
             role="row"
             className={`grid w-full bg-white text-sm text-center items-center border-b hover:bg-gray-50 ${rowClassName}`.trim()}
-            style={{ gridTemplateColumns: columns.map(c => c.width ? 'auto' : '1fr').join(' ') }}
+            style={{ gridTemplateColumns }}
             onClick={onRowClick ? () => onRowClick(row, globalIdx) : undefined}
           >
             {columns.map((col, ci) => (
               <div
                 key={col.key ?? ci}
                 role="cell"
-                className={`px-3 py-3 ${cellClassName} ${col.cellClassName || ''}`.trim()}
+                className={`min-w-0 px-3 py-3 ${cellClassName} ${col.cellClassName || ''}`.trim()}
                 style={{ width: col.width || 'auto', textAlign: col.align || 'center' }}
               >
                 {renderCell(col, row, globalIdx)}
@@ -282,13 +297,13 @@ const EasyTable = forwardRef(function EasyTable(
           role="presentation"
           aria-hidden="true"
           className={`grid w-full text-sm border-b opacity-0 pointer-events-none select-none ${rowClassName}`.trim()}
-          style={{ gridTemplateColumns: columns.map(c => c.width ? 'auto' : '1fr').join(' ') }}
+          style={{ gridTemplateColumns }}
         >
           {columns.map((col, ci) => (
             <div
               key={`filler-cell-${ci}`}
               aria-hidden="true"
-              className={`px-3 py-3 ${cellClassName} ${col.cellClassName || ''}`.trim()}
+              className={`min-w-0 px-3 py-3 ${cellClassName} ${col.cellClassName || ''}`.trim()}
               style={{ width: col.width || 'auto', textAlign: col.align || 'center' }}
             >
               Dummy

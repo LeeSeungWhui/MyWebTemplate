@@ -14,6 +14,7 @@ import threading
 import time
 from typing import Dict, Optional, Set, Any, List
 import contextvars
+from urllib.parse import urlsplit, urlunsplit
 
 from databases import Database
 from lib.Logger import logger
@@ -54,6 +55,32 @@ lastChangedFile: Optional[str] = None
 
 # 요청 단위 SQL 카운터(ContextVar)
 sqlCountVar: contextvars.ContextVar[int] = contextvars.ContextVar("sql_count", default=0)
+
+
+def maskDatabaseUrl(url: str) -> str:
+    """
+    설명: DB 접속 URL에서 자격증명(password)을 마스킹해 로그에 노출되지 않게 한다.
+    갱신일: 2026-02-06
+    """
+    if not url or not isinstance(url, str):
+        return ""
+    try:
+        parts = urlsplit(url)
+        if not parts.netloc or "@" not in parts.netloc:
+            return url
+        userinfo, hostinfo = parts.netloc.rsplit("@", 1)
+        if ":" in userinfo:
+            user, _password = userinfo.split(":", 1)
+            safeUserinfo = f"{user}:***"
+        else:
+            safeUserinfo = userinfo
+        safeNetloc = f"{safeUserinfo}@{hostinfo}"
+        return urlunsplit((parts.scheme, safeNetloc, parts.path, parts.query, parts.fragment))
+    except Exception:
+        try:
+            return re.sub(r"(^[a-zA-Z][a-zA-Z0-9+.-]*://[^:@/]+):[^@/]*@", r"\\1:***@", url)
+        except Exception:
+            return "<redacted>"
 
 
 def getSqlCount() -> int:
@@ -100,6 +127,14 @@ def incSqlCount(n: int = 1) -> None:
     try:
         cur = int(sqlCountVar.get())
         sqlCountVar.set(cur + int(n))
+    except Exception:
+        pass
+
+
+def resetSqlCount() -> None:
+    """설명: 현재 컨텍스트 SQL 카운터를 0으로 초기화. 갱신일: 2026-02-22"""
+    try:
+        sqlCountVar.set(0)
     except Exception:
         pass
 
@@ -207,7 +242,7 @@ class DatabaseManager:
     async def connect(self):
         """설명: DB 연결을 시작하고 SQLite 튜닝을 적용. 갱신일: 2025-11-12"""
         await self.database.connect()
-        logger.info(f"Connected to database {self.databaseUrl}")
+        logger.info(f"Connected to database {maskDatabaseUrl(self.databaseUrl)}")
         # SQLite 잠금 오류를 줄이기 위한 pragma 적용
         try:
             if (self.databaseUrl or "").startswith("sqlite"):

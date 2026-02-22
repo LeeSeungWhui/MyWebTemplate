@@ -5,6 +5,7 @@ from contextlib import AsyncExitStack
 from typing import List, Union, Tuple
 import time
 import uuid
+import re
 
 from lib.Database import dbManagers
 from lib import Database as DB
@@ -123,7 +124,19 @@ class Savepoint:
 
     def __init__(self, dbName: str, name: str):
         self.dbName = dbName
-        self.name = name
+        self.name = self.validateName(name)
+
+    @staticmethod
+    def validateName(name: str) -> str:
+        """설명: SAVEPOINT 이름을 SQL 식별자 규칙으로 검증. 갱신일: 2026-02-22"""
+        if not isinstance(name, str):
+            raise TransactionError("invalid savepoint name")
+        normalizedName = name.strip()
+        if not normalizedName:
+            raise TransactionError("invalid savepoint name")
+        if not re.match(r"^[a-zA-Z_][a-zA-Z0-9_]*$", normalizedName):
+            raise TransactionError("invalid savepoint name")
+        return normalizedName
 
     async def __aenter__(self):
         """설명: savepoint를 생성하고 self를 반환. 갱신일: 2025-11-12"""

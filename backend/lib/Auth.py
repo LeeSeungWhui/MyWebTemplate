@@ -58,7 +58,8 @@ class AuthConfig:
         cls.tokenEnable = tokenEnable
 
 
-oauth2Scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/token", auto_error=False)
+# OpenAPI 문서용 tokenUrl은 실제 로그인 엔드포인트와 일치시킨다.
+oauth2Scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login", auto_error=False)
 
 
 def createAccessToken(data: dict, *, tokenType: str = "access", expireMinutes: Optional[int] = None) -> Token:

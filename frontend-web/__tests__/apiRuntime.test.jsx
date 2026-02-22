@@ -113,6 +113,23 @@ describe('runtime api', () => {
     expect(res.status).toBe(401)
   })
 
+  it('401 + authless 모드에서는 자동 리다이렉트 없이 응답을 반환한다', async () => {
+    window.history.replaceState({}, '', '/dashboard')
+    fetch.mockResolvedValueOnce(new Response('', { status: 401 }))
+
+    const res = await apiRequest('/api/v1/auth/me', { method: 'GET' }, 'authless')
+    expect(res.status).toBe(401)
+  })
+
+  it('legacy csrf-only 인자는 본문 POST로 오해하지 않고 무시한다', async () => {
+    fetch.mockResolvedValueOnce(buildJsonResponse({ status: true, result: { ok: true } }))
+    await apiRequest('/api/v1/auth/me', { csrf: 'skip' })
+
+    const [, init] = fetch.mock.calls[0]
+    expect(init).toMatchObject({ method: 'GET', credentials: 'include' })
+    expect(init.body).toBeUndefined()
+  })
+
   it('apiJSON은 status=false 또는 비정상 statusCode에서 ApiError를 던진다', async () => {
     fetch.mockResolvedValueOnce(buildJsonResponse({ status: false, code: 'E', message: 'nope' }))
     await expect(apiJSON('/api/v1/test', { method: 'GET' })).rejects.toMatchObject({ name: 'ApiError', code: 'E' })

@@ -131,7 +131,7 @@ links: [CU-WEB-001, CU-WEB-002, CU-WEB-004, CU-WEB-005, CU-WEB-006]
 - Input: `value/defaultValue` 병행 지원, `onValueChange` 분리, IME/마스크/숫자 필터 안전 커밋, 패스워드 토글 포함
 - Textarea: draft 유지 + IME 커밋 개선, 외부 값과 동기화
 - EasyTable: `width` 지정 컬럼은 `grid-template-columns:auto`, filler row는 dummy role로 접근성 충돌 제거
-- useEasyUpload: 업로드 URL을 백엔드 호스트 기준 절대 경로로 해석(프리사인/별도 업로드 엔드포인트 대응)
+- useEasyUpload: 업로드 URL을 백엔드 호스트 기준 절대 경로로 해석(프리사인/별도 업로드 엔드포인트 대응), 인증 우회용 헤더는 자동 주입하지 않음
 - EasyChart: Recharts 기반 경량 래퍼, type/data/xKey/yKeys/height/색상 props 제공 예정
 - Layout 파트: Header/Sidebar/Footer를 공용 위치(app/common/layout)로 제공(햄버거 토글, 메뉴/서브메뉴 지원)
 - Docs: `app/component` 페이지에서 주요 컴포넌트 예제/가이드 제공 (EasyEditor/PdfViewer는 후속)

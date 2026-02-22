@@ -19,7 +19,7 @@ links: [CU-BE-001, CU-WEB-004, CU-WEB-005, CU-WEB-008]
 - 리다이렉트: `next=/protected` 지원(유효 경로만 허용, 없으면 `/dashboard`로 이동)
   - A11y: 레이블/에러 ARIA 연결, 오류/토스트 관리
 - 제외
-  - 소셜 로그인/비밀번호 초기화/2FA(차기)
+  - 소셜 로그인/2FA(차기)
 
 ### Interface
 - 라우팅(UI)

@@ -26,7 +26,7 @@ parse_port() {
 }
 
 SERVER_PORT="$(parse_port)"
-SERVER_PORT="${SERVER_PORT:-8000}"
+SERVER_PORT="${SERVER_PORT:-2000}"
 
 start() {
   if [[ -f "$PID_FILE" ]] && kill -0 "$(cat "$PID_FILE")" 2>/dev/null; then

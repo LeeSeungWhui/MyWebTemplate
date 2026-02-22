@@ -74,7 +74,6 @@ const ComponentsPage = () => {
           <DateTimeDocs />
           <ComboboxDocs />
           <DropdownDocs />
-          <IconDocs />
           <LoadingDocs />
           <AlertDocs />
           <ConfirmDocs />

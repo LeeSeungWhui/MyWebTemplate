@@ -240,25 +240,13 @@ def attachOpenAPI(app: FastAPI, config) -> None:
 
             logout = paths.get("/api/v1/auth/logout", {}).get("post")
             if isinstance(logout, dict):
-                logout.setdefault("parameters", []).append({"$ref": "#/components/parameters/CSRFToken"})
                 # 실제 구현은 204(No Content).
                 responses = logout.setdefault("responses", {})
                 responses.setdefault("204", {"description": "No Content"})
                 responses.pop("200", None)
-
-            # 비멱등 메서드 전체에 CSRF 파라미터를 공통으로 추가
-            csrfRef = {"$ref": "#/components/parameters/CSRFToken"}
-            unsafeMethods = ("post", "put", "patch", "delete")
-            for ops in paths.values():
-                if not isinstance(ops, dict):
-                    continue
-                for methodName in unsafeMethods:
-                    op = ops.get(methodName)
-                    if not isinstance(op, dict):
-                        continue
-                    params = op.setdefault("parameters", [])
-                    if not any(isinstance(param, dict) and param.get("$ref") == csrfRef["$ref"] for param in params):
-                        params.append(dict(csrfRef))
+            # NOTE: 템플릿 기본(토큰 모드)에서는 CSRF 헤더를 강제하지 않는다.
+            # 쿠키가 직접 권한을 갖는 엔드포인트를 추가하는 경우에만,
+            # 해당 라우트에 CSRFToken 파라미터를 수동으로 붙여 문서화한다.
         except Exception as e:
             logger.error(f"OpenAPI schema patching failed: {e}")
         return schema

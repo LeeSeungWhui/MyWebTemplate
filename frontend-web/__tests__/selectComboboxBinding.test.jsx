@@ -13,7 +13,7 @@ const JobsFixture = [
 ]
 
 describe('Select & Combobox binding contracts', () => {
-  test('Select ignores dataObj/dataKey and does not forward them to DOM', () => {
+  test('Select supports dataObj/dataKey and does not forward them to DOM', () => {
     const form = { profile: { job: 'developer' } }
     const jobs = JobsFixture
     render(
@@ -26,9 +26,10 @@ describe('Select & Combobox binding contracts', () => {
       />,
     )
 
-    const trigger = screen.getByRole('button')
-    expect(trigger).not.toHaveAttribute('dataobj')
-    expect(trigger).not.toHaveAttribute('datakey')
+    const select = screen.getByRole('combobox')
+    expect(select).toHaveValue('developer')
+    expect(select).not.toHaveAttribute('dataobj')
+    expect(select).not.toHaveAttribute('datakey')
   })
 
   test('Select synchronises with EasyList selected flags (single select)', async () => {
@@ -56,13 +57,9 @@ describe('Select & Combobox binding contracts', () => {
     render(<Harness onReady={(exposed) => { bound = exposed }} />)
     await waitFor(() => expect(bound).not.toBeNull())
 
-    const trigger = screen.getByRole('button', { name: '개발자' })
-    fireEvent.click(trigger)
-
-    const optionPm = screen.getByRole('option', { name: '프로덕트 매니저' })
-    fireEvent.click(optionPm)
-
-    await waitFor(() => expect(trigger).toHaveTextContent('프로덕트 매니저'))
+    const select = screen.getByRole('combobox')
+    fireEvent.change(select, { target: { value: 'pm' } })
+    await waitFor(() => expect(select).toHaveValue('pm'))
 
     const selectedIds = []
     bound.jobs.forAll((item) => {
@@ -91,11 +88,8 @@ describe('Select & Combobox binding contracts', () => {
     }
     render(<Controlled />)
 
-    const trigger = screen.getByRole('button', { name: '개발자' })
-    fireEvent.click(trigger)
-
-    const optionPm = screen.getByRole('option', { name: '프로덕트 매니저' })
-    fireEvent.click(optionPm)
+    const select = screen.getByRole('combobox')
+    fireEvent.change(select, { target: { value: 'pm' } })
 
     expect(screen.getByTestId('role-output')).toHaveTextContent('pm')
   })

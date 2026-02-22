@@ -35,9 +35,7 @@ const Switch = forwardRef(({
 
   useEffect(() => {
     if (isDataObj) {
-      const next = truthy(getBoundValue(dataObj, dataKey));
-      setInternalChecked(next);
-      setBoundValue(dataObj, 'checked', next);
+      setInternalChecked(truthy(getBoundValue(dataObj, dataKey)));
     }
   }, [isDataObj, dataObj, dataKey]);
 
@@ -54,7 +52,6 @@ const Switch = forwardRef(({
     if (!isControlled) setInternalChecked(newChecked);
     if (isDataObj) {
       setBoundValue(dataObj, dataKey, newChecked);
-      setBoundValue(dataObj, 'checked', newChecked);
     }
 
     const ctx = buildCtx({ dataKey, dataObj, source: 'user', dirty: true, valid: null });

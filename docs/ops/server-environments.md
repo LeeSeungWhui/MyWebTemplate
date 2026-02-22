@@ -6,6 +6,8 @@
 
 Nginx는 배포 전용. 로컬은 직결(Next↔FastAPI) 원칙.
 
+Nginx 서브도메인 배포 템플릿은 `docs/ops/nginx-subdomains.md` 참고.
+
 ## 범위
 
 네트워크 토폴로지, ENV 키 매트릭스, CORS/쿠키 정책, 배포/롤백 절차, 헬스체크·로그·백업 기준.

@@ -124,6 +124,18 @@ describe('middleware', () => {
     expect(nxValueRaw).toBe('')
   })
 
+  it('비정상 access_token이면 /login에서 /dashboard가 아니라 bootstrap으로 보낸다', async () => {
+    const req = buildReq({
+      url: 'http://localhost:3000/login',
+      cookies: {
+        refresh_token: 'rt',
+        access_token: 'header.invalid*payload.signature',
+      },
+    })
+    const res = await middleware(req)
+    expect(res.headers.get('location')).toBe('http://localhost:3000/api/session/bootstrap')
+  })
+
   it('/login에서 auth_reason이 있으면 페이지 표시 후 1회성으로 정리한다', async () => {
     const req = buildReq({
       url: 'http://localhost:3000/login',
@@ -157,6 +169,14 @@ describe('middleware', () => {
     const setCookies = getSetCookies(res)
     const nxValueRaw = findCookieValue(setCookies, 'nx')
     expect(nxValueRaw).toBe('')
+  })
+
+  it('/portfolio는 미인증이어도 공개 경로로 통과한다', async () => {
+    const req = buildReq({
+      url: 'http://localhost:3000/portfolio',
+    })
+    const res = await middleware(req)
+    expect(res.headers.get('location')).toBeNull()
   })
 
   it('미들웨어는 원격 호출(fetch)을 하지 않는다', async () => {

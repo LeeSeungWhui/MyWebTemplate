@@ -25,17 +25,19 @@
 - CU-WEB-007 Migration (Vite → Next)
 - CU-WEB-008 Middleware Guard & Redirect
 - CU-WEB-009 Data Fetch Strategy (Page MODE)
+- CU-WEB-010 Forgot Password (Public)
 
 ## Unit 진행 현황
 - CU-WEB-001: in-progress — `/login` SSR/CSR, 토큰+쿠키(Access/Refresh) 플로우로 전환 예정, A11y/UX 보완 필요
-- CU-WEB-002: planned — 대시보드 위젯 목업 구성
+- CU-WEB-002: in-progress — `/dashboard` SSR 초기 데이터(stats/list) + 차트/테이블 더미 구성, AC 보강 필요
 - CU-WEB-003: in-progress — Input/Textarea/EasyTable/useEasyUpload 등 핵심 바인딩 컴포넌트/업로드 훅 반영, Docs 페이지 포함. EasyEditor/고급 그리드 남음
-- CU-WEB-004: implemented — 보호 경로 가드, `/api/session/bootstrap` 자동 복구, 401→/login(reason) 규약 반영
+- CU-WEB-004: implemented — 보호 경로 가드(미들웨어 단일화), `/api/session/bootstrap` 자동 복구, 401→/login(reason) 규약 반영
 - CU-WEB-005: implemented — `apiJSON/apiRequest` 단일 진실 + OpenAPI(operationId) 유틸(`openapiClient.js`) 구성 완료
 - CU-WEB-006: in-progress — 페이지 MODE 규약 초안 작성, ENV 배선 진행
 - CU-WEB-007: completed — `frontend-web` Vite → Next 마이그레이션 반영 완료
-- CU-WEB-008: in-progress — `middleware.js` 리다이렉트 규칙 존재, 예외 경로 커버리지 보완 필요
+- CU-WEB-008: implemented — `middleware.js` 리다이렉트 규칙 + `nx/auth_reason` 쿠키 정리, 프리페치 bypass 포함
 - CU-WEB-009: in-progress — `initData` + 런타임 fetch 헬퍼 초안, AC 충족 보강 필요
+- CU-WEB-010: planned — `/forgot-password` 공개 페이지(요청 UI) 스펙 승격, 구현은 차기
 
 ## 프런트 설정: config.ini
 - 파일 위치: `frontend-web/config.ini` (우선순위: `config.ini` > `config_prod.ini` > `config_qa.ini` > `config_dev.ini`)
