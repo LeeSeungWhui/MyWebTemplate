@@ -185,9 +185,9 @@ describe("middleware", () => {
     expect(nxValueRaw).toBe("");
   });
 
-  it("/demo/portfolio는 미인증이어도 공개 경로로 통과한다", async () => {
+  it("/sample/portfolio는 미인증이어도 공개 경로로 통과한다", async () => {
     const req = buildReq({
-      url: "http://localhost:3000/demo/portfolio",
+      url: "http://localhost:3000/sample/portfolio",
     });
     const res = await middleware(req);
     expect(res.headers.get("location")).toBeNull();

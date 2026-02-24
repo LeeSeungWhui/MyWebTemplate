@@ -2,12 +2,12 @@
  * 파일명: demo/dashboard/initData.jsx
  * 작성자: LSH
  * 갱신일: 2026-02-23
- * 설명: 공개 데모 대시보드 페이지 정적 데이터
+ * 설명: 공개 샘플 대시보드 페이지 정적 데이터
  */
 
 export const PAGE_MODE = {
   MODE: "STATIC",
-  PUBLIC_PATH: "/demo/dashboard",
+  PUBLIC_PATH: "/sample/dashboard",
   READ_ONLY: true,
 };
 
@@ -34,7 +34,7 @@ export const RECENT_TASK_LIST = [
     createdAt: "2026-02-20",
   },
   {
-    title: "데모 허브 카드 구성 보강",
+    title: "샘플 허브 카드 구성 보강",
     status: "running",
     amount: 880000,
     createdAt: "2026-02-21",
@@ -60,6 +60,6 @@ export const RECENT_TASK_LIST = [
 ];
 
 export const CTA_LINK_LIST = [
-  { href: "/demo/crud", label: "CRUD 데모 보기" },
-  { href: "/demo/admin", label: "관리자 화면 보기" },
+  { href: "/sample/crud", label: "CRUD 샘플 보기" },
+  { href: "/sample/admin", label: "관리자 화면 보기" },
 ];

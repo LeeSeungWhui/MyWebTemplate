@@ -76,7 +76,7 @@ const ForgotPasswordView = () => {
 
         {submitted ? (
           <div className="rounded-md border border-green-200 bg-green-50 p-4 text-sm text-green-700">
-            입력하신 이메일로 안내를 보냈습니다. 데모 환경에서는 실제 메일이 발송되지 않습니다.
+            입력하신 이메일로 안내를 보냈습니다. 샘플 환경에서는 실제 메일이 발송되지 않습니다.
           </div>
         ) : null}
 

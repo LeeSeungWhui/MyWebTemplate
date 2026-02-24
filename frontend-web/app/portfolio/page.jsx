@@ -7,7 +7,7 @@
 
 import PortfolioView from "./view";
 import { PAGE_MODE } from "./initData";
-import { PAGE_CONTENT } from "../demo/portfolio/initData";
+import { PAGE_CONTENT } from "../sample/portfolio/initData";
 
 export const metadata = {
   title: "Portfolio | MyWebTemplate",

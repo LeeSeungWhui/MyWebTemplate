@@ -3,7 +3,7 @@
  * 파일명: common/layout/PublicGnb.jsx
  * 작성자: LSH
  * 갱신일: 2026-02-22
- * 설명: 공개 페이지 공통 GNB(데모 드롭다운/모바일 드로어 포함)
+ * 설명: 공개 페이지 공통 GNB(샘플 드롭다운/모바일 드로어 포함)
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -12,35 +12,35 @@ import { usePathname } from "next/navigation";
 import Icon from "@/app/lib/component/Icon";
 
 const DEMO_MENU_LIST = [
-  { href: "/demo", label: "데모 허브" },
-  { href: "/demo/dashboard", label: "데모 대시보드" },
-  { href: "/demo/crud", label: "CRUD 관리" },
-  { href: "/demo/form", label: "복합 폼" },
-  { href: "/demo/admin", label: "관리자 화면" },
+  { href: "/sample", label: "샘플 허브" },
+  { href: "/sample/dashboard", label: "샘플 대시보드" },
+  { href: "/sample/crud", label: "CRUD 관리" },
+  { href: "/sample/form", label: "복합 폼" },
+  { href: "/sample/admin", label: "관리자 화면" },
 ];
 
 const PUBLIC_MENU_LIST = [
   { href: "/component", label: "컴포넌트" },
-  { href: "/demo/portfolio", label: "포트폴리오" },
+  { href: "/sample/portfolio", label: "포트폴리오" },
 ];
 
 const isDemoPath = (pathname) => {
   const pathText = String(pathname || "");
-  if (pathText === "/demo") {
+  if (pathText === "/sample") {
     return true;
   }
-  if (!pathText.startsWith("/demo/")) {
+  if (!pathText.startsWith("/sample/")) {
     return false;
   }
-  if (pathText.startsWith("/demo/portfolio")) {
+  if (pathText.startsWith("/sample/portfolio")) {
     return false;
   }
   return true;
 };
 
 const isActiveMenu = (pathname, href) => {
-  if (href === "/demo") {
-    return pathname === "/demo";
+  if (href === "/sample") {
+    return pathname === "/sample";
   }
   if (href === "/") return pathname === "/";
   return pathname === href || pathname.startsWith(`${href}/`);
@@ -163,7 +163,7 @@ const PublicGnb = () => {
               aria-expanded={demoMenuOpen}
               onClick={handleToggleDemoMenu}
             >
-              데모
+              샘플
               <Icon icon="ri:RiArrowDownSLine" />
             </button>
             <div
@@ -173,7 +173,7 @@ const PublicGnb = () => {
                   : "invisible pointer-events-none opacity-0"
               }`}
               role="menu"
-              aria-label="데모 메뉴"
+              aria-label="샘플 메뉴"
             >
               {DEMO_MENU_LIST.map((menuItem) => {
                 const menuActive = isActiveMenu(pathname, menuItem.href);
@@ -212,7 +212,7 @@ const PublicGnb = () => {
         <div className="border-t border-gray-200 bg-white px-4 py-4 md:hidden">
           <div className="space-y-1">
             <p className="px-2 py-1 text-xs font-semibold tracking-wide text-gray-500">
-              데모
+              샘플
             </p>
             {DEMO_MENU_LIST.map((menuItem) => (
               <Link

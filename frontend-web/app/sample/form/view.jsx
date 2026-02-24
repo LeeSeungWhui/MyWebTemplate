@@ -3,7 +3,7 @@
  * 파일명: demo/form/view.jsx
  * 작성자: LSH
  * 갱신일: 2026-02-22
- * 설명: 공개 복합 폼 데모 페이지 뷰(스텝 검증/요약 기반)
+ * 설명: 공개 복합 폼 샘플 페이지 뷰(스텝 검증/요약 기반)
  */
 
 import { useEffect, useMemo, useState } from "react";
@@ -39,7 +39,7 @@ const createStepOneErrorModel = () => ({
 });
 
 /**
- * @description 공개 복합 폼 데모 화면을 렌더링한다.
+ * @description 공개 복합 폼 샘플 화면을 렌더링한다.
  */
 const FormDemoView = () => {
   const [isLoading, setIsLoading] = useState(true);
@@ -153,7 +153,7 @@ const FormDemoView = () => {
   return (
     <div className="mx-auto w-full max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
       <section className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900">복합 폼 데모</h1>
+        <h1 className="text-3xl font-bold text-gray-900">복합 폼 샘플</h1>
         <p className="mt-2 text-sm text-gray-600">
           스텝 전환/유효성 안내/제출 요약 흐름을 공개 페이지에서 체험할 수 있습니다.
         </p>

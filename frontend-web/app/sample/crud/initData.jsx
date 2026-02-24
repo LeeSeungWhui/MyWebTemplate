@@ -2,12 +2,12 @@
  * 파일명: demo/crud/initData.jsx
  * 작성자: LSH
  * 갱신일: 2026-02-22
- * 설명: 공개 CRUD 데모 페이지 정적 데이터
+ * 설명: 공개 CRUD 샘플 페이지 정적 데이터
  */
 
 export const PAGE_MODE = {
   MODE: "CSR",
-  PUBLIC_PATH: "/demo/crud",
+  PUBLIC_PATH: "/sample/crud",
 };
 
 export const STATUS_FILTER_LIST = [
@@ -52,12 +52,12 @@ export const DEMO_DATA_LIST = [
   },
   {
     id: 4,
-    title: "데모 페이지 QA",
+    title: "샘플 페이지 QA",
     status: "ready",
     owner: "QA",
     amount: 500000,
     createdAt: "2026-02-16",
-    description: "랜딩/데모 플로우 수동 점검",
+    description: "랜딩/샘플 플로우 수동 점검",
     attachmentName: "",
   },
   {
@@ -87,7 +87,7 @@ export const DEMO_DATA_LIST = [
     owner: "디자인",
     amount: 730000,
     createdAt: "2026-02-18",
-    description: "히어로/아키텍처/데모 섹션 개편",
+    description: "히어로/아키텍처/샘플 섹션 개편",
     attachmentName: "portfolio_wireframe.fig",
   },
   {
@@ -132,12 +132,12 @@ export const DEMO_DATA_LIST = [
   },
   {
     id: 12,
-    title: "숨고/크몽 데모 시나리오 작성",
+    title: "숨고/크몽 샘플 시나리오 작성",
     status: "pending",
     owner: "기획팀",
     amount: 460000,
     createdAt: "2026-02-22",
-    description: "랜딩→데모 허브→상세 데모 퍼널 스크립트",
+    description: "랜딩→샘플 허브→상세 샘플 퍼널 스크립트",
     attachmentName: "demo_script.docx",
   },
 ];

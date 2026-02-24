@@ -2,7 +2,7 @@
  * 파일명: demo/view.jsx
  * 작성자: LSH
  * 갱신일: 2026-02-23
- * 설명: 공개 데모 허브 페이지 뷰
+ * 설명: 공개 샘플 허브 페이지 뷰
  */
 
 import Link from "next/link";
@@ -15,14 +15,14 @@ import {
 } from "./initData";
 
 /**
- * @description 공개 데모 허브 화면을 렌더링한다.
+ * @description 공개 샘플 허브 화면을 렌더링한다.
  */
 const DemoHubView = () => {
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
       <section className="mb-6 rounded-2xl bg-gradient-to-r from-[#1e3a5f] to-[#312e81] px-6 py-7 text-white shadow-lg">
         <p className="text-xs font-semibold tracking-wide text-blue-100">
-          PUBLIC DEMO HUB
+          PUBLIC SAMPLE HUB
         </p>
         <h1 className="mt-2 text-2xl font-bold sm:text-3xl">
           {DEMO_HUB_HEADER.title}
@@ -54,7 +54,7 @@ const DemoHubView = () => {
                 href={cardItem.href}
                 className="inline-flex items-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-blue-700"
               >
-                데모 열기
+                샘플 열기
               </Link>
             </div>
           </Card>

@@ -93,7 +93,7 @@ const HomeView = () => {
       </section>
 
       <section className="mt-10">
-        <h2 className="text-2xl font-bold text-gray-900">데모 스크린샷 갤러리</h2>
+        <h2 className="text-2xl font-bold text-gray-900">샘플 스크린샷 갤러리</h2>
         <div className="mt-5 grid gap-4 md:grid-cols-3">
           {LANDING_GALLERY_LIST.map((galleryItem) => (
             <Link

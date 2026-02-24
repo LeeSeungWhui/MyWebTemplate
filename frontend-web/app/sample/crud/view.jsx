@@ -3,7 +3,7 @@
  * 파일명: demo/crud/view.jsx
  * 작성자: LSH
  * 갱신일: 2026-02-22
- * 설명: 공개 CRUD 데모 페이지 뷰(더미 데이터 기반, Drawer CRUD)
+ * 설명: 공개 CRUD 샘플 페이지 뷰(더미 데이터 기반, Drawer CRUD)
  */
 
 import { useEffect, useMemo, useState } from "react";
@@ -20,7 +20,7 @@ import NumberInput from "@/app/lib/component/NumberInput";
 import Select from "@/app/lib/component/Select";
 import Textarea from "@/app/lib/component/Textarea";
 import { STATUS_FILTER_LIST } from "./initData";
-import { useDemoSharedState } from "@/app/demo/demoSharedState";
+import { useDemoSharedState } from "@/app/sample/demoSharedState";
 
 const STATUS_LABEL_MAP = {
   ready: "준비",
@@ -62,7 +62,7 @@ const toAmountText = (amount) => {
 };
 
 /**
- * @description 공개 CRUD 데모 화면을 렌더링한다.
+ * @description 공개 CRUD 샘플 화면을 렌더링한다.
  * @param {{ mode: Object, initRows: Array }} props
  */
 const CrudDemoView = (props) => {
@@ -235,7 +235,7 @@ const CrudDemoView = (props) => {
                 const confirmed = await showConfirm(
                   "정말 삭제하시겠습니까?",
                   {
-                    title: "데모 삭제",
+                    title: "샘플 삭제",
                     type: "warning",
                     confirmText: "삭제",
                     cancelText: "취소",
@@ -375,9 +375,9 @@ const CrudDemoView = (props) => {
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
       <section className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900">CRUD 관리 데모</h1>
+        <h1 className="text-3xl font-bold text-gray-900">CRUD 관리 샘플</h1>
         <p className="mt-2 text-sm text-gray-600">
-          공개 페이지에서 관리형 데이터 화면 구성을 체험할 수 있는 더미 데모입니다.
+          공개 페이지에서 관리형 데이터 화면 구성을 체험할 수 있는 더미 샘플입니다.
         </p>
       </section>
 

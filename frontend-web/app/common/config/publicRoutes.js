@@ -9,14 +9,14 @@
 // 규칙:
 // - 정확 경로: '/login'
 // - 서브트리 포함: '/docs/:path*' (Next matcher 스타일 지원)
-// - 공개 퍼널은 '/' + '/demo/*'를 기본으로 유지한다.
+// - 공개 퍼널은 '/' + '/sample/*'를 기본으로 유지한다.
 export const publicRoutes = [
   "/",
-  "/demo",
+  "/sample",
   "/login",
   "/signup",
   "/forgot-password",
-  "/demo/:path*",
+  "/sample/:path*",
   "/component",
 ];
 

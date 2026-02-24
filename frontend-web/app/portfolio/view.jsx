@@ -5,7 +5,7 @@
  * 설명: 레거시 포트폴리오 경로에서 공개 포트폴리오 뷰를 재사용한다.
  */
 
-import DemoPortfolioView from "../demo/portfolio/view";
+import DemoPortfolioView from "../sample/portfolio/view";
 
 const PortfolioView = ({ content, publicPath }) => {
   return (

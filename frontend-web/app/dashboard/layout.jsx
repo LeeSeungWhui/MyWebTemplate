@@ -133,11 +133,11 @@ const DashboardLayout = ({ children }) => {
         }
         textObj={{ footerText: `© ${currentYear} MyWebTemplate` }}
         linkList={[
-          { linkId: "crud", linkNm: "CRUD 데모", href: "/demo/crud" },
-          { linkId: "form", linkNm: "복합 폼 데모", href: "/demo/form" },
-          { linkId: "admin", linkNm: "관리자 화면 데모", href: "/demo/admin" },
+          { linkId: "crud", linkNm: "CRUD 샘플", href: "/sample/crud" },
+          { linkId: "form", linkNm: "복합 폼 샘플", href: "/sample/form" },
+          { linkId: "admin", linkNm: "관리자 화면 샘플", href: "/sample/admin" },
           { linkId: "component", linkNm: "컴포넌트 문서", href: "/component" },
-          { linkId: "portfolio", linkNm: "포트폴리오", href: "/demo/portfolio" },
+          { linkId: "portfolio", linkNm: "포트폴리오", href: "/sample/portfolio" },
         ]}
       />
     </div>

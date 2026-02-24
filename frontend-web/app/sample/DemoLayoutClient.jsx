@@ -3,7 +3,7 @@
  * 파일명: demo/DemoLayoutClient.jsx
  * 작성자: LSH
  * 갱신일: 2026-02-23
- * 설명: 공개 데모 공통 레이아웃 클라이언트 컴포넌트
+ * 설명: 공개 샘플 공통 레이아웃 클라이언트 컴포넌트
  */
 
 import Link from "next/link";
@@ -18,12 +18,12 @@ import { resolveDemoLayoutMeta } from "./layoutMeta";
 const isBypassLayoutPath = (pathname) => {
   const pathText = String(pathname || "");
   if (!pathText) return false;
-  if (pathText.startsWith("/demo/portfolio")) return true;
+  if (pathText.startsWith("/sample/portfolio")) return true;
   return false;
 };
 
 /**
- * @description 공개 데모 페이지 공통 레이아웃을 렌더링한다.
+ * @description 공개 샘플 페이지 공통 레이아웃을 렌더링한다.
  * @param {{ children: React.ReactNode }} props
  */
 const DemoLayoutClient = (props) => {
@@ -110,9 +110,9 @@ const DemoLayoutClient = (props) => {
         logo={<span className="font-semibold text-blue-600">MyWebTemplate</span>}
         textObj={{ footerText: `© ${currentYear} MyWebTemplate` }}
         linkList={[
-          { linkId: "demo", linkNm: "데모 허브", href: "/demo" },
+          { linkId: "demo", linkNm: "샘플 허브", href: "/sample" },
           { linkId: "component", linkNm: "컴포넌트", href: "/component" },
-          { linkId: "portfolio", linkNm: "포트폴리오", href: "/demo/portfolio" },
+          { linkId: "portfolio", linkNm: "포트폴리오", href: "/sample/portfolio" },
         ]}
       />
     </div>

@@ -3,7 +3,7 @@
  * 파일명: demo/admin/view.jsx
  * 작성자: LSH
  * 갱신일: 2026-02-22
- * 설명: 공개 관리자 화면 데모 페이지 뷰(탭/사용자 Drawer 포함)
+ * 설명: 공개 관리자 화면 샘플 페이지 뷰(탭/사용자 Drawer 포함)
  */
 
 import { useEffect, useMemo, useState } from "react";
@@ -18,7 +18,7 @@ import Input from "@/app/lib/component/Input";
 import Select from "@/app/lib/component/Select";
 import Switch from "@/app/lib/component/Switch";
 import Tab from "@/app/lib/component/Tab";
-import { useDemoSharedState } from "@/app/demo/demoSharedState";
+import { useDemoSharedState } from "@/app/sample/demoSharedState";
 import {
   ROLE_OPTION_LIST,
   STATUS_OPTION_LIST,
@@ -107,7 +107,7 @@ const toTodayText = () => {
 };
 
 /**
- * @description 공개 관리자 화면 데모를 렌더링한다.
+ * @description 공개 관리자 화면 샘플를 렌더링한다.
  * @param {{ mode: Object, initRows: Array }} props
  */
 const AdminDemoView = (props) => {
@@ -293,9 +293,9 @@ const AdminDemoView = (props) => {
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
       <section className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900">관리자 화면 데모</h1>
+        <h1 className="text-3xl font-bold text-gray-900">관리자 화면 샘플</h1>
         <p className="mt-2 text-sm text-gray-600">
-          사용자/권한/설정 페이지 구성을 공개 데모 형태로 보여줍니다.
+          사용자/권한/설정 페이지 구성을 공개 샘플 형태로 보여줍니다.
         </p>
       </section>
 

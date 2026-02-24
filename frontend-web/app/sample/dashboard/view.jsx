@@ -3,7 +3,7 @@
  * 파일명: demo/dashboard/view.jsx
  * 작성자: LSH
  * 갱신일: 2026-02-23
- * 설명: 공개 데모 대시보드 페이지 뷰(읽기 전용)
+ * 설명: 공개 샘플 대시보드 페이지 뷰(읽기 전용)
  */
 
 import { useMemo } from "react";
@@ -12,7 +12,7 @@ import Card from "@/app/lib/component/Card";
 import EasyChart from "@/app/lib/component/EasyChart";
 import EasyTable from "@/app/lib/component/EasyTable";
 import Stat from "@/app/lib/component/Stat";
-import { useDemoSharedState } from "@/app/demo/demoSharedState";
+import { useDemoSharedState } from "@/app/sample/demoSharedState";
 
 const STATUS_LABEL_MAP = {
   ready: "준비",
@@ -32,7 +32,7 @@ const formatCurrency = (value) => {
 
 const toStatusSummaryList = (rowList) => {
   /**
-   * @description CRUD 데모 행 목록으로 상태 집계를 생성한다.
+   * @description CRUD 샘플 행 목록으로 상태 집계를 생성한다.
    * @updated 2026-02-23
    */
   return STATUS_ORDER.map((statusCode) => {
@@ -52,7 +52,7 @@ const toStatusSummaryList = (rowList) => {
 
 const toMonthlyTrendList = (rowList) => {
   /**
-   * @description CRUD 데모 행 목록으로 월별 추이 데이터를 생성한다.
+   * @description CRUD 샘플 행 목록으로 월별 추이 데이터를 생성한다.
    * @updated 2026-02-23
    */
   const monthlyMap = {};
@@ -82,7 +82,7 @@ const toMonthlyTrendList = (rowList) => {
 
 const toRecentTaskList = (rowList) => {
   /**
-   * @description CRUD 데모 행 목록으로 최근 업무 상위 5건을 구성한다.
+   * @description CRUD 샘플 행 목록으로 최근 업무 상위 5건을 구성한다.
    * @updated 2026-02-23
    */
   return [...rowList]
@@ -104,7 +104,7 @@ const toRecentTaskList = (rowList) => {
 };
 
 /**
- * @description 공개 데모 대시보드 화면을 렌더링한다.
+ * @description 공개 샘플 대시보드 화면을 렌더링한다.
  * @param {{ initRows:Array, ctaList:Array }} props
  */
 const DemoDashboardView = (props) => {
@@ -238,7 +238,7 @@ const DemoDashboardView = (props) => {
       <section>
         <Card
           title="최근 업무"
-          subtitle="공개 데모 대시보드는 읽기 전용으로 제공합니다."
+          subtitle="공개 샘플 대시보드는 읽기 전용으로 제공합니다."
         >
           <EasyTable
             data={recentList}

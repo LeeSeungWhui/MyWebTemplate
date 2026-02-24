@@ -1,17 +1,16 @@
 /**
  * 파일명: common/layout/PublicFooter.jsx
  * 작성자: LSH
- * 갱신일: 2026-02-22
+ * 갱신일: 2026-02-24
  * 설명: 공개 페이지 공통 푸터
  */
 
 import Link from "next/link";
 
 const FOOTER_LINK_LIST = [
-  { href: "/demo", label: "데모 허브" },
+  { href: "/sample", label: "샘플 허브" },
   { href: "/component", label: "컴포넌트" },
-  { href: "/demo/portfolio", label: "포트폴리오" },
-  { href: "https://github.com", label: "GitHub", external: true },
+  { href: "/sample/portfolio", label: "포트폴리오" },
 ];
 
 /**

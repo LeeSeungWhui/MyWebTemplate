@@ -16,11 +16,11 @@ export const LANDING_HERO = {
   title: "웹 개발, 깔끔하게 만들어드립니다",
   subtitle:
     "관리자 화면부터 반응형 웹까지, 이 페이지가 포트폴리오입니다.",
-  primaryCta: { href: "/demo", label: "데모 체험하기" },
+  primaryCta: { href: "/sample", label: "샘플 체험하기" },
   secondaryCta: { href: "/component", label: "컴포넌트 보기" },
   previewImage: {
     src: "/images/landing/demo-dashboard.png",
-    alt: "데모 대시보드 미리보기 스크린샷",
+    alt: "샘플 대시보드 미리보기 스크린샷",
   },
 };
 
@@ -50,25 +50,25 @@ export const LANDING_SERVICE_LIST = [
 
 export const LANDING_GALLERY_LIST = [
   {
-    href: "/demo/dashboard",
-    title: "데모 대시보드",
+    href: "/sample/dashboard",
+    title: "샘플 대시보드",
     description: "요약 지표/차트/최근 업무 확인",
     imageSrc: "/images/landing/demo-dashboard.png",
-    imageAlt: "데모 대시보드 화면 스크린샷",
+    imageAlt: "샘플 대시보드 화면 스크린샷",
   },
   {
-    href: "/demo/form",
-    title: "복합 폼 데모",
+    href: "/sample/form",
+    title: "복합 폼 샘플",
     description: "스텝 기반 입력/검증 흐름",
     imageSrc: "/images/landing/demo-form.png",
-    imageAlt: "복합 폼 데모 화면 스크린샷",
+    imageAlt: "복합 폼 샘플 화면 스크린샷",
   },
   {
-    href: "/demo/admin",
-    title: "관리자 화면 데모",
+    href: "/sample/admin",
+    title: "관리자 화면 샘플",
     description: "사용자/권한/설정 화면",
     imageSrc: "/images/landing/demo-admin.png",
-    imageAlt: "관리자 화면 데모 스크린샷",
+    imageAlt: "관리자 화면 샘플 스크린샷",
   },
 ];
 
@@ -84,6 +84,6 @@ export const LANDING_STACK_LIST = [
 export const LANDING_BOTTOM_CTA = {
   title: "직접 체험해 보세요",
   subtitle:
-    "데모 페이지와 컴포넌트 문서를 통해 구현 스타일과 완성도를 확인할 수 있습니다.",
-  demo: { href: "/demo", label: "데모 보기" },
+    "샘플 페이지와 컴포넌트 문서를 통해 구현 스타일과 완성도를 확인할 수 있습니다.",
+  demo: { href: "/sample", label: "샘플 보기" },
 };
