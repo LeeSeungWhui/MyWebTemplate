@@ -52,6 +52,47 @@ is_port_listening() {
   ss -ltn 2>/dev/null | awk '{print $4}' | grep -qE "[:.]${port}$"
 }
 
+list_port_listener_pids() {
+  local port="${1:-}"
+  if ! is_port_number "$port"; then
+    return 0
+  fi
+  ss -ltnp 2>/dev/null \
+    | awk -v needle=":${port}" '$4 ~ needle"$" { print $0 }' \
+    | grep -oE 'pid=[0-9]+' \
+    | cut -d '=' -f2 \
+    | sort -u || true
+}
+
+stop_existing_port_processes() {
+  local mode="${1:-prod}"
+  local port="${2:-}"
+  local listener_pids
+  listener_pids="$(list_port_listener_pids "$port" | tr '\n' ' ' | sed 's/[[:space:]]*$//')"
+  if [[ -z "$listener_pids" ]]; then
+    return 0
+  fi
+
+  echo "프론트엔드($mode) 포트 $port 기존 프로세스 종료: $listener_pids"
+  local pid
+  for pid in $listener_pids; do
+    kill "$pid" 2>/dev/null || true
+  done
+  sleep 1
+
+  for pid in $listener_pids; do
+    if kill -0 "$pid" 2>/dev/null; then
+      kill -9 "$pid" 2>/dev/null || true
+    fi
+  done
+  sleep 0.2
+
+  if is_port_listening "$port"; then
+    echo "프론트엔드($mode) 시작 실패: 포트 $port 점유 프로세스 종료 실패"
+    return 1
+  fi
+}
+
 extract_port_from_host() {
   local input="${1:-}"
   if [[ -z "$input" ]]; then
@@ -217,6 +258,9 @@ start_mode() {
     echo "프론트엔드($mode) 이미 실행 중 (PID $(cat "$pid_file"))"
     return
   fi
+
+  stop_existing_port_processes "$mode" "$port"
+
   echo "프론트엔드($mode) 시작... (port=$port)"
   (
     cd "$SCRIPT_DIR"
