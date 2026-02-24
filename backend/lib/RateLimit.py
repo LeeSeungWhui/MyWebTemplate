@@ -1,6 +1,7 @@
 """
-파일: backend/lib/RateLimit.py
-작성: Codex
+파일명: backend/lib/RateLimit.py
+작성자: Codex
+갱신일: 2026-02-24
 설명: 간단한 인메모리 속도 제한기와 FastAPI용 체크 헬퍼.
 """
 

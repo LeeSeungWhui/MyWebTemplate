@@ -17,6 +17,10 @@ router = APIRouter(tags=["common"])
 
 @router.get("/healthz")
 async def healthz(request: Request):
+    """
+    설명: 프로세스 헬스 체크 응답을 반환한다.
+    갱신일: 2026-02-24
+    """
     result = await CommonService.healthz({})
     resp = successResponse(result=result)
     r = JSONResponse(content=resp, status_code=200)
@@ -26,6 +30,10 @@ async def healthz(request: Request):
 
 @router.get("/readyz")
 async def readyz(request: Request):
+    """
+    설명: 레디니스 체크 결과를 상태코드와 함께 반환한다.
+    갱신일: 2026-02-24
+    """
     result, isReady = await CommonService.readyz({})
     if isReady:
         resp = successResponse(result=result)

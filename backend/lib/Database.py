@@ -378,7 +378,7 @@ class DatabaseManager:
         query = self.queryManager.getQuery(queryName)
         if not query:
             logger.info(f"cannot find query name : {queryName}")
-            raise ValueError()
+            raise ValueError(f"Query not found: {queryName}")
         return await self.execute(query, values, queryName=queryName)
 
     async def fetchOneQuery(self, queryName: str, values: dict[str, Any] | None = None) -> dict[str, Any] | None:
@@ -386,7 +386,7 @@ class DatabaseManager:
         query = self.queryManager.getQuery(queryName)
         if not query:
             logger.info(f"cannot find query name : {queryName}")
-            raise ValueError()
+            raise ValueError(f"Query not found: {queryName}")
         return await self.fetchOne(query, values, queryName=queryName)
 
     async def fetchAllQuery(
@@ -396,7 +396,7 @@ class DatabaseManager:
         query = self.queryManager.getQuery(queryName)
         if not query:
             logger.info(f"cannot find query name : {queryName}")
-            raise ValueError()
+            raise ValueError(f"Query not found: {queryName}")
         return await self.fetchAll(query, values, queryName=queryName)
 
 

@@ -1,7 +1,7 @@
 """
-파일: backend/lib/OpenAPI.py
-작성: LSH
-갱신: 2025-09-07
+파일명: backend/lib/OpenAPI.py
+작성자: LSH
+갱신일: 2025-09-07
 설명: FastAPI OpenAPI 스키마 커스터마이저 부착(보안 스키마/표준 응답/CSRF/servers/codeSamples 등).
 """
 
@@ -19,6 +19,7 @@ def attachOpenAPI(app: FastAPI, config) -> None:
     """
     이름: attachOpenAPI
     설명: 주어진 app에 custom openapi 함수 부착. config는 [AUTH]/기타 값을 제공.
+    갱신일: 2026-02-24
     """
 
     def readConfigValue(section: Optional[object], key: str, fallback: Optional[str] = None) -> Optional[str]:

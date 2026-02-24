@@ -1,3 +1,10 @@
+"""
+파일명: backend/lib/Transaction.py
+작성자: LSH
+갱신일: 2026-02-24
+설명: 단일/다중 DB 트랜잭션 데코레이터와 예외 처리 유틸.
+"""
+
 from __future__ import annotations
 
 from functools import wraps

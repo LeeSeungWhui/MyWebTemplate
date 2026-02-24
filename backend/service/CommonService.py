@@ -1,6 +1,7 @@
 """
-파일: backend/service/CommonService.py
-작성: LSH
+파일명: backend/service/CommonService.py
+작성자: LSH
+갱신일: 2026-02-24
 설명: 공통(헬스체크 및 레디니스) 서비스 로직.
 """
 
@@ -16,6 +17,10 @@ startedAt = datetime.now(timezone.utc)
 
 
 def versionInfo() -> Dict[str, str]:
+    """
+    설명: 버전/시작 시각 메타 정보를 반환한다.
+    갱신일: 2026-02-24
+    """
     version = os.getenv("APP_VERSION", "dev")
     gitSha = os.getenv("GIT_SHA", "unknown")
     return {
@@ -26,6 +31,10 @@ def versionInfo() -> Dict[str, str]:
 
 
 async def healthz(_: Dict | None = None) -> Dict[str, str | int | bool]:
+    """
+    설명: 프로세스 기동 상태와 업타임 정보를 반환한다.
+    갱신일: 2026-02-24
+    """
     now = datetime.now(timezone.utc)
     uptimeSeconds = int((now - startedAt).total_seconds())
     return {

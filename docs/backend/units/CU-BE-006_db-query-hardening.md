@@ -36,6 +36,7 @@ links: [CU-BE-003]
 - **AC-3:** 실행 시 항상 바인딩 파라미터만 사용하며 문자열 치환을 허용하지 않는다.
 - **AC-4:** 로드/리로드 이벤트가 JSON 로그(`file, keys, count, duration_ms`)로 기록된다.
 - **AC-5:** `query_watch` on/off와 `query_watch_debounce_ms` 설정이 정상 작동한다.
+- **AC-6:** 존재하지 않는 쿼리 키 실행 시 `ValueError("Query not found: <queryName>")` 형식의 명시적 예외를 반환한다.
 
 ### Tasks
 
@@ -46,3 +47,4 @@ links: [CU-BE-003]
 - Coding: 함수/변수는 camelCase, 파일/함수 헤더 주석을 포함한다(common-rules 준수).
 - Partial Reload: 변경된 파일만 파싱하여 해당 파일의 키 집합을 레지스트리에서 교체한다(추가/수정/삭제 반영). 교차 파일 중복 충돌이 발생하면 리로드를 중단하고 마지막 정상본을 유지한다.
 - Rollback Semantics: 핫리로드 실패 시 레지스트리는 변경되지 않으며 `event=query.reload.error` 로그만 남긴다.
+- Missing Query Handling: 서비스에서 존재하지 않는 queryName을 호출하면 `ValueError("Query not found: <queryName>")`를 발생시켜 원인 추적이 가능해야 한다.

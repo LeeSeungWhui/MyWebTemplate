@@ -30,6 +30,10 @@ logger: logging.Logger = logging.getLogger()
 
 
 def resolveLogLevel() -> int:
+    """
+    설명: 환경변수 LOG_LEVEL 값을 logging 레벨 상수로 변환한다.
+    갱신일: 2026-02-24
+    """
     raw = str(os.getenv("LOG_LEVEL", "INFO")).strip().upper()
     return getattr(logging, raw, logging.INFO)
 
@@ -51,6 +55,10 @@ class JsonLineFormatter(logging.Formatter):
     """
 
     def format(self, record: logging.LogRecord) -> str:
+        """
+        설명: logging 레코드를 JSON 한 줄 문자열로 직렬화한다.
+        갱신일: 2026-02-24
+        """
         payload: dict[str, Any] = {}
         msg = record.getMessage()
 

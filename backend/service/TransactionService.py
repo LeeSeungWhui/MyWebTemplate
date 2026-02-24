@@ -1,7 +1,7 @@
 """
-파일: backend/service/TransactionService.py
-작성: Codex
-갱신: 2025-12-18
+파일명: backend/service/TransactionService.py
+작성자: Codex
+갱신일: 2025-12-18
 설명: 트랜잭션/세이브포인트 동작을 검증하기 위한 데모 서비스.
 """
 
@@ -14,6 +14,10 @@ from lib.Transaction import transaction
 
 
 async def ensureTables(dbName: str = "main_db") -> None:
+    """
+    설명: 테스트용 트랜잭션 테이블을 준비한다.
+    갱신일: 2026-02-24
+    """
     db = DB.getManager(dbName)
     if not db:
         raise RuntimeError(f"database not found: {dbName}")
@@ -29,6 +33,10 @@ async def ensureTables(dbName: str = "main_db") -> None:
 
 @transaction("main_db")
 async def testSingle() -> dict:
+    """
+    설명: 단일 INSERT 트랜잭션 성공 케이스를 검증한다.
+    갱신일: 2026-02-24
+    """
     await ensureTables("main_db")
     db = DB.getManager("main_db")
     assert db is not None
@@ -42,6 +50,10 @@ async def testSingle() -> dict:
 
 @transaction("main_db")
 async def testUniqueViolation() -> None:
+    """
+    설명: UNIQUE 제약 위반 시 롤백 동작을 검증한다.
+    갱신일: 2026-02-24
+    """
     await ensureTables("main_db")
     db = DB.getManager("main_db")
     assert db is not None
