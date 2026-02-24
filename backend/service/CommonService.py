@@ -77,15 +77,25 @@ async def readyz(_: Dict | None = None) -> Tuple[Dict[str, Any], bool]:
                 for name in targets:
                     mgr = DB.dbManagers[name]
                     dbTargets.append(name)
-                    queryName = "sys.ping"
-                    fallbackSql = "SELECT 1"
+                    queryName = "common.ping"
                     try:
-                        if hasattr(mgr, "queryManager"):
-                            sql = mgr.queryManager.getQuery(queryName) or fallbackSql
+                        if hasattr(mgr, "fetchOneQuery"):
+                            started = time.perf_counter()
+                            await asyncio.wait_for(
+                                mgr.fetchOneQuery(queryName),
+                                timeout=timeoutMs / 1000.0,
+                            )
                         else:
-                            sql = fallbackSql
-                        started = time.perf_counter()
-                        await asyncio.wait_for(mgr.fetchOne(sql), timeout=timeoutMs / 1000.0)
+                            query = None
+                            if hasattr(mgr, "queryManager"):
+                                query = mgr.queryManager.getQuery(queryName)
+                            if not query or not hasattr(mgr, "fetchOne"):
+                                raise RuntimeError(f"readyz ping query not found: {queryName}")
+                            started = time.perf_counter()
+                            await asyncio.wait_for(
+                                mgr.fetchOne(query),
+                                timeout=timeoutMs / 1000.0,
+                            )
                         elapsedMs = int((time.perf_counter() - started) * 1000)
                         dbLatencies.append(elapsedMs)
                     except Exception:

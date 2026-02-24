@@ -19,6 +19,7 @@ MESSAGES = {
         "error.csrf_required": "CSRF required",
         "db.unavailable": "db unavailable",
         "obs.not_ready": "not ready",
+        "auth.state_store_unavailable": "temporary auth state storage unavailable",
     },
     "ko": {
         "success": "성공",
@@ -27,6 +28,7 @@ MESSAGES = {
         "error.csrf_required": "CSRF 토큰이 필요합니다",
         "db.unavailable": "DB를 사용할 수 없습니다",
         "obs.not_ready": "준비되지 않았습니다",
+        "auth.state_store_unavailable": "인증 상태 저장소를 일시적으로 사용할 수 없습니다",
     },
 }
 

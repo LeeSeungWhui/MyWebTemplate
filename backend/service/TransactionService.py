@@ -22,7 +22,7 @@ async def ensureTables(dbName: str = "main_db") -> None:
     if not db:
         raise RuntimeError(f"database not found: {dbName}")
     try:
-        await db.fetchOne("SELECT 1 FROM test_transaction LIMIT 1")
+        await db.fetchOneQuery("transaction.pingTestTable")
     except Exception as e:
         raise RuntimeError("test_transaction table is missing. seed/migrate schema before runtime.") from e
 
@@ -37,10 +37,7 @@ async def testSingle() -> dict:
     db = DB.getManager("main_db")
     assert db is not None
     value = f"tx-{uuid.uuid4().hex[:8]}"
-    await db.execute(
-        "INSERT INTO test_transaction (value) VALUES (:val)",
-        {"val": value},
-    )
+    await db.executeQuery("transaction.insertValue", {"val": value})
     return {"inserted": value}
 
 
@@ -54,11 +51,5 @@ async def testUniqueViolation() -> None:
     db = DB.getManager("main_db")
     assert db is not None
     # Intentionally trigger UNIQUE constraint error. The decorator must roll back the whole tx.
-    await db.execute(
-        "INSERT INTO test_transaction (value) VALUES (:val)",
-        {"val": "tx-dup"},
-    )
-    await db.execute(
-        "INSERT INTO test_transaction (value) VALUES (:val)",
-        {"val": "tx-dup"},
-    )
+    await db.executeQuery("transaction.insertValue", {"val": "tx-dup"})
+    await db.executeQuery("transaction.insertValue", {"val": "tx-dup"})

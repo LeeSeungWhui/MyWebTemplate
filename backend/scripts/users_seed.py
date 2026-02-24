@@ -1,7 +1,7 @@
 """
-파일: backend/scripts/users_seed.py
-작성: Codex
-갱신: 2025-12-18
+파일명: backend/scripts/users_seed.py
+작성자: Codex
+갱신일: 2026-02-24
 설명: 로컬/테스트용 SQLite 사용자 테이블 생성 및 데모 계정 시드 유틸.
 """
 
@@ -15,10 +15,18 @@ from typing import Optional
 
 
 def connect(dbPath: str) -> sqlite3.Connection:
+    """
+    설명: SQLite DB 경로로 연결을 생성한다.
+    갱신일: 2026-02-24
+    """
     return sqlite3.connect(dbPath)
 
 
 def hashPasswordPbkdf2(plain: str, iterations: int = 260000) -> str:
+    """
+    설명: PBKDF2-SHA256 해시 문자열을 생성한다.
+    갱신일: 2026-02-24
+    """
     salt = secrets.token_bytes(16)
     dk = hashlib.pbkdf2_hmac("sha256", plain.encode("utf-8"), salt, iterations)
     return (
@@ -29,6 +37,10 @@ def hashPasswordPbkdf2(plain: str, iterations: int = 260000) -> str:
 
 
 def ensureTable(con: sqlite3.Connection) -> None:
+    """
+    설명: T_USER 테이블을 보장하고 레거시 컬럼명을 표준 컬럼명으로 정리한다.
+    갱신일: 2026-02-24
+    """
     con.execute(
         """
         CREATE TABLE IF NOT EXISTS T_USER (
@@ -74,6 +86,10 @@ def seedDemo(
     email: Optional[str] = "demo@demo.demo",
     role: str = "user",
 ) -> None:
+    """
+    설명: 데모 사용자 계정이 없으면 1건을 삽입한다.
+    갱신일: 2026-02-24
+    """
     ensureTable(con)
     cursor = con.execute("SELECT 1 FROM T_USER WHERE USER_ID = ?", (username,))
     if cursor.fetchone():

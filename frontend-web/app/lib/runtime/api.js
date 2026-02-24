@@ -1,3 +1,10 @@
+/**
+ * 파일명: api.js
+ * 작성자: LSH
+ * 갱신일: 2026-01-18
+ * 설명: SSR/CSR 공통 API 호출 유틸 (isomorphic)
+ */
+
 import {
   parseJsonPayload,
   normalizeNestedJsonFields,
@@ -9,13 +16,6 @@ import {
   base64UrlEncodeUtf8,
   extractUnauthorizedReason,
 } from "@/app/lib/runtime/authRedirect";
-
-/**
- * 파일명: api.js
- * 작성자: LSH
- * 갱신일: 2026-01-18
- * 설명: SSR/CSR 공통 API 호출 유틸 (isomorphic)
- */
 
 const BFF_PREFIX = "/api/bff";
 const EMPTY_BODY_STATUS = new Set([204, 205, 304]);

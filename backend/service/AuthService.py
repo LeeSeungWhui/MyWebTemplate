@@ -12,6 +12,7 @@ import base64
 import hashlib
 import hmac
 import json
+import os
 import re
 import secrets
 from datetime import datetime, timezone
@@ -25,6 +26,7 @@ from jose import JWTError, jwt
 
 from lib.Auth import AuthConfig, Token, createAccessToken, createRefreshToken
 from lib import Database as DB
+from lib.Config import getConfig
 from lib.Logger import logger
 from lib.RequestContext import getRequestId
 from lib.Response import successResponse
@@ -42,6 +44,60 @@ tokenStateStoreWarned = False
 revokedRefreshJtiStore: dict[str, int] = {}
 # key: 이전 refresh jti, value: {"expiresAtMs": int, "tokenPayload": dict}
 refreshGraceStore: dict[str, dict[str, Any]] = {}
+
+
+def _toBool(rawValue: object, defaultValue: bool = False) -> bool:
+    """
+    설명: 문자열/숫자 형태의 bool 값을 파싱한다.
+    갱신일: 2026-02-24
+    """
+    if rawValue is None:
+        return defaultValue
+    value = str(rawValue).strip().lower()
+    if value in {"1", "true", "yes", "on"}:
+        return True
+    if value in {"0", "false", "no", "off"}:
+        return False
+    return defaultValue
+
+
+def _getRuntimeMode() -> str:
+    """
+    설명: 서버 런타임 모드(PROD/DEV/TEST/CI)를 반환한다.
+    갱신일: 2026-02-24
+    """
+    runtime = ""
+    try:
+        config = getConfig()
+        if "SERVER" in config:
+            runtime = str(config["SERVER"].get("runtime", "")).strip().upper()
+    except Exception:
+        runtime = ""
+    if runtime:
+        return runtime
+    return str(os.getenv("ENV", "")).strip().upper()
+
+
+def allowMemoryTokenStateFallback() -> bool:
+    """
+    설명: 토큰 상태 저장소 DB 장애 시 인메모리 폴백 허용 여부를 반환한다.
+    우선순위: AUTH_ALLOW_MEMORY_TOKEN_STATE > runtime(TEST/CI)
+    갱신일: 2026-02-24
+    """
+    envRaw = os.getenv("AUTH_ALLOW_MEMORY_TOKEN_STATE")
+    if envRaw is not None and str(envRaw).strip() != "":
+        return _toBool(envRaw, False)
+    runtime = _getRuntimeMode()
+    return runtime in {"TEST", "CI"}
+
+
+def tokenStateStoreUnavailableError(reason: str) -> RuntimeError:
+    """
+    설명: 토큰 상태 저장소 미가용 에러를 생성한다.
+    갱신일: 2026-02-24
+    """
+    message = f"token state store unavailable: {reason}"
+    return RuntimeError(message)
 
 
 def _getTokenStateStoreDbManager():
@@ -63,12 +119,15 @@ async def ensureTokenStateStore() -> bool:
     global tokenStateStoreReady, tokenStateStoreWarned
     if tokenStateStoreReady:
         return True
+    allowFallback = allowMemoryTokenStateFallback()
     manager = _getTokenStateStoreDbManager()
     if not manager:
-        if not tokenStateStoreWarned:
-            logger.warning("auth token-state DB manager not ready. fallback=memory")
-            tokenStateStoreWarned = True
-        return False
+        if allowFallback:
+            if not tokenStateStoreWarned:
+                logger.warning("auth token-state DB manager not ready. fallback=memory")
+                tokenStateStoreWarned = True
+            return False
+        raise tokenStateStoreUnavailableError("db manager not ready")
     try:
         await manager.fetchOneQuery(
             "auth.getTokenState",
@@ -77,14 +136,18 @@ async def ensureTokenStateStore() -> bool:
         tokenStateStoreReady = True
         logger.info("auth token-state store ready (db)")
         return True
+    except RuntimeError:
+        raise
     except Exception as e:
-        if not tokenStateStoreWarned:
-            logger.warning(
-                f"auth token-state store unavailable (schema missing or db error). "
-                f"fallback=memory error={type(e).__name__}"
-            )
-            tokenStateStoreWarned = True
-        return False
+        if allowFallback:
+            if not tokenStateStoreWarned:
+                logger.warning(
+                    f"auth token-state store unavailable (schema missing or db error). "
+                    f"fallback=memory error={type(e).__name__}"
+                )
+                tokenStateStoreWarned = True
+            return False
+        raise tokenStateStoreUnavailableError(type(e).__name__) from e
 
 
 async def cleanupTokenStateStore(nowMs: int) -> bool:
@@ -241,6 +304,10 @@ def cleanupRevokedRefreshJtiStore(nowMs: int) -> None:
 
 
 def _nowMs() -> int:
+    """
+    설명: 현재 UTC epoch milliseconds 값을 반환한다.
+    갱신일: 2026-02-24
+    """
     return int(datetime.now(timezone.utc).timestamp() * 1000)
 
 

@@ -26,14 +26,30 @@ class RateLimiter:
     - windowSec: 윈도우 길이(초)
     """
 
-    def __init__(self, limit: int = 5, windowSec: int = 60):
+    def __init__(self, limit: int = 5, windowSec: int = 60, sweepEvery: int = 256):
         self.limit = int(limit)
         self.window = int(windowSec)
         self.store = {}
+        self.sweepEvery = max(1, int(sweepEvery))
+        self.hitCount = 0
 
     def now(self):
         """설명: monotonic 초 단위를 반환. 갱신일: 2025-11-12"""
         return time.monotonic()
+
+    def sweepExpired(self, nowSec: float) -> None:
+        """
+        설명: 윈도우를 벗어난 키를 일괄 정리해 메모리 증가를 완화한다.
+        갱신일: 2026-02-24
+        """
+        expiredKeys = []
+        for key, timestamps in list(self.store.items()):
+            while timestamps and nowSec - timestamps[0] > self.window:
+                timestamps.popleft()
+            if not timestamps:
+                expiredKeys.append(key)
+        for key in expiredKeys:
+            self.store.pop(key, None)
 
     def hit(self, key: str, *, commit: bool = True):
         """
@@ -43,6 +59,9 @@ class RateLimiter:
         갱신일: 2026-01-15
         """
         now = self.now()
+        self.hitCount += 1
+        if self.hitCount % self.sweepEvery == 0:
+            self.sweepExpired(now)
         timestamps = self.store.get(key)
         if timestamps is None:
             if not commit:
@@ -51,6 +70,9 @@ class RateLimiter:
             self.store[key] = timestamps
         while timestamps and now - timestamps[0] > self.window:
             timestamps.popleft()
+        if not timestamps and not commit:
+            self.store.pop(key, None)
+            return True, 0
         if len(timestamps) >= self.limit:
             retryAfter = max(1, int(self.window - (now - timestamps[0])))
             return False, retryAfter

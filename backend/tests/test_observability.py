@@ -196,7 +196,7 @@ def testReadyzFail503(monkeypatch):
         def __init__(self):
             self.databaseUrl = "sqlite:///test.db"
 
-        async def fetchOne(self, sql):
+        async def fetchOneQuery(self, queryName):
             raise RuntimeError("db down")
 
     monkeypatch.setattr(DB, "dbManagers", {"main_db": FailingMgr()}, raising=False)
@@ -219,7 +219,7 @@ def testReadyzTimeout(monkeypatch):
         def __init__(self):
             self.databaseUrl = "postgresql://"
 
-        async def fetchOne(self, sql):
+        async def fetchOneQuery(self, queryName):
             await asyncio.sleep(1)
             return None
 
@@ -234,16 +234,16 @@ def testReadyzTimeout(monkeypatch):
 
 
 def testOraclePingSql(monkeypatch):
-    # Verify readyz ping uses 표준 쿼리(SELECT 1) by having stub capture SQL
+    # Verify readyz ping uses 표준 쿼리 키(common.ping) by having stub capture query name
     from lib import Database as DB
 
     class OracleMgr:
         def __init__(self):
             self.databaseUrl = "oracle+cx_oracle://"
-            self.lastSql = None
+            self.lastQueryName = None
 
-        async def fetchOne(self, sql):
-            self.lastSql = sql
+        async def fetchOneQuery(self, queryName):
+            self.lastQueryName = queryName
             return None
 
     mgr = OracleMgr()
@@ -253,7 +253,7 @@ def testOraclePingSql(monkeypatch):
     with TestClient(app) as client:
         response = client.get("/readyz")
         assert response.status_code in (200, 503)
-        assert mgr.lastSql == "SELECT 1"
+        assert mgr.lastQueryName == "common.ping"
 
 
 def testLoggingShape(caplog):

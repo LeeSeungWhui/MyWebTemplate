@@ -24,12 +24,11 @@ const DEFAULT_OPTIONS = {
 const normalizeErrorMessage = async (response) => {
   const text = await response.text().catch(() => "");
   if (!text) return `${response.status} 업로드 실패`;
-  try {
-    const json = JSON.parse(text);
+  const json = parseJsonPayload(text, { context: "EasyUploadError" });
+  if (json && typeof json === "object") {
     return json?.message || json?.result || text;
-  } catch (_) {
-    return text;
   }
+  return text;
 };
 
 const resolveUploadUrl = (url) => {

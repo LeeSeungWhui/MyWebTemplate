@@ -112,6 +112,89 @@ def testLoginRateLimit():
         assert lastResponse.json()["code"] == "AUTH_429_RATE_LIMIT"
 
 
+def testRateLimiterPrunesExpiredEmptyKey():
+    from lib.RateLimit import RateLimiter
+
+    limiter = RateLimiter(limit=5, windowSec=10, sweepEvery=1)
+    nowRef = {"value": 0.0}
+    limiter.now = lambda: nowRef["value"]
+
+    ok, _ = limiter.hit("ip:1", commit=True)
+    assert ok is True
+    assert "ip:1" in limiter.store
+
+    nowRef["value"] = 20.0
+    ok, _ = limiter.hit("ip:1", commit=False)
+    assert ok is True
+    assert "ip:1" not in limiter.store
+
+
+def testRateLimiterSweepsStaleKeysWithoutRevisit():
+    from lib.RateLimit import RateLimiter
+
+    limiter = RateLimiter(limit=5, windowSec=10, sweepEvery=1)
+    nowRef = {"value": 0.0}
+    limiter.now = lambda: nowRef["value"]
+
+    # 서로 다른 키가 단발성으로 들어오면 store에 누적된다.
+    for index in range(3):
+        ok, _ = limiter.hit(f"ip:{index}", commit=True)
+        assert ok is True
+    assert len(limiter.store) == 3
+
+    # 윈도우 이후 다음 요청 시 sweep이 동작해 stale key를 제거한다.
+    nowRef["value"] = 20.0
+    ok, _ = limiter.hit("ip:new", commit=True)
+    assert ok is True
+    assert list(limiter.store.keys()) == ["ip:new"]
+
+
+def testRefreshReturns503WhenTokenStateStoreUnavailable(monkeypatch):
+    from server import app
+    from service import AuthService
+
+    async def raiseUnavailable(_: str):
+        raise RuntimeError("token state store unavailable")
+
+    with TestClient(app) as client:
+        loginResponse = client.post(
+            "/api/v1/auth/login",
+            json={"username": "demo@demo.demo", "password": "password123", "rememberMe": True},
+        )
+        assert loginResponse.status_code == 200
+        monkeypatch.setattr(AuthService, "refresh", raiseUnavailable)
+
+        response = client.post("/api/v1/auth/refresh")
+        assert response.status_code == 503
+        assert response.headers.get("Cache-Control") == "no-store"
+        body = response.json()
+        assert body["status"] is False
+        assert body["code"] == "AUTH_503_STATE_STORE"
+
+
+def testLogoutReturns503WhenTokenStateStoreUnavailable(monkeypatch):
+    from server import app
+    from service import AuthService
+
+    async def raiseUnavailable(_: str | None):
+        raise RuntimeError("token state store unavailable")
+
+    with TestClient(app) as client:
+        loginResponse = client.post(
+            "/api/v1/auth/login",
+            json={"username": "demo@demo.demo", "password": "password123", "rememberMe": True},
+        )
+        assert loginResponse.status_code == 200
+        monkeypatch.setattr(AuthService, "revokeRefreshToken", raiseUnavailable)
+
+        response = client.post("/api/v1/auth/logout")
+        assert response.status_code == 503
+        assert response.headers.get("Cache-Control") == "no-store"
+        body = response.json()
+        assert body["status"] is False
+        assert body["code"] == "AUTH_503_STATE_STORE"
+
+
 def testRefreshPreservesSessionCookieWhenNotRemember():
     from server import app
     from lib.Auth import AuthConfig

@@ -220,7 +220,22 @@ async def refresh(request: Request):
         clearAuthCookies(response, request)
         response.headers["Cache-Control"] = "no-store"
         return response
-    tokenPayload = await AuthService.refresh(refreshToken)
+    try:
+        tokenPayload = await AuthService.refresh(refreshToken)
+    except RuntimeError:
+        response = JSONResponse(
+            status_code=503,
+            content=errorResponse(
+                message=i18nTranslate(
+                    "auth.state_store_unavailable",
+                    "temporary auth state storage unavailable",
+                    loc,
+                ),
+                code="AUTH_503_STATE_STORE",
+            ),
+        )
+        response.headers["Cache-Control"] = "no-store"
+        return response
     if not tokenPayload:
         response = JSONResponse(
             status_code=401,
@@ -262,8 +277,24 @@ async def logout(request: Request):
     설명: 로그아웃 처리 후 인증 쿠키를 제거한다.
     갱신일: 2026-02-22
     """
+    loc = detectLocale(request)
     refreshToken = request.cookies.get(AuthConfig.refreshCookieName)
-    await AuthService.revokeRefreshToken(refreshToken)
+    try:
+        await AuthService.revokeRefreshToken(refreshToken)
+    except RuntimeError:
+        response = JSONResponse(
+            status_code=503,
+            content=errorResponse(
+                message=i18nTranslate(
+                    "auth.state_store_unavailable",
+                    "temporary auth state storage unavailable",
+                    loc,
+                ),
+                code="AUTH_503_STATE_STORE",
+            ),
+        )
+        response.headers["Cache-Control"] = "no-store"
+        return response
     response = Response(status_code=204)
     clearAuthCookies(response, request)
     return response
