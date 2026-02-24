@@ -1,6 +1,6 @@
 /**
  * 파일명: EasyChartExamples.jsx
- * 작성자: Codex
+ * 작성자: LSH
  * 갱신일: 2025-11-26
  * 설명: EasyChart 사용 예시 모음
  */
@@ -20,7 +20,7 @@ const sampleData = [
  * @description EasyChart 사용 예시 세트
  * @returns {Array<{anchor:string, component:JSX.Element, description:string, code:string}>}
  */
-export const EasyChartExamples = () => ([
+export const EasyChartExamples = () => [
   {
     anchor: "easychart-line",
     description: "기본 라인 차트 예시",
@@ -28,8 +28,18 @@ export const EasyChartExamples = () => ([
       <EasyChart
         dataList={sampleData}
         seriesList={[
-          { seriesId: "signups", seriesNm: "가입자", dataKey: "signups", color: "#2563eb" },
-          { seriesId: "active", seriesNm: "활성이용자", dataKey: "active", color: "#10b981" },
+          {
+            seriesId: "signups",
+            seriesNm: "가입자",
+            dataKey: "signups",
+            color: "#2563eb",
+          },
+          {
+            seriesId: "active",
+            seriesNm: "활성이용자",
+            dataKey: "active",
+            color: "#10b981",
+          },
         ]}
         xKey="label"
         type="line"
@@ -58,8 +68,20 @@ export const EasyChartExamples = () => ([
       <EasyChart
         dataList={sampleData}
         seriesList={[
-          { seriesId: "signups", seriesNm: "가입자", dataKey: "signups", type: "bar", color: "#2563eb" },
-          { seriesId: "active", seriesNm: "활성이용자", dataKey: "active", type: "bar", color: "#10b981" },
+          {
+            seriesId: "signups",
+            seriesNm: "가입자",
+            dataKey: "signups",
+            type: "bar",
+            color: "#2563eb",
+          },
+          {
+            seriesId: "active",
+            seriesNm: "활성이용자",
+            dataKey: "active",
+            type: "bar",
+            color: "#10b981",
+          },
         ]}
         xKey="label"
         type="bar"
@@ -86,9 +108,29 @@ export const EasyChartExamples = () => ([
       <EasyChart
         dataList={sampleData}
         seriesList={[
-          { seriesId: "signups", seriesNm: "가입자", dataKey: "signups", type: "bar", color: "#2563eb", stackId: "v" },
-          { seriesId: "active", seriesNm: "활성이용자", dataKey: "active", type: "bar", color: "#10b981", stackId: "v" },
-          { seriesId: "churn", seriesNm: "이탈", dataKey: "churn", type: "line", color: "#ef4444" },
+          {
+            seriesId: "signups",
+            seriesNm: "가입자",
+            dataKey: "signups",
+            type: "bar",
+            color: "#2563eb",
+            stackId: "v",
+          },
+          {
+            seriesId: "active",
+            seriesNm: "활성이용자",
+            dataKey: "active",
+            type: "bar",
+            color: "#10b981",
+            stackId: "v",
+          },
+          {
+            seriesId: "churn",
+            seriesNm: "이탈",
+            dataKey: "churn",
+            type: "line",
+            color: "#ef4444",
+          },
         ]}
         xKey="label"
         type="bar"
@@ -120,9 +162,27 @@ export const EasyChartExamples = () => ([
       <EasyChart
         dataList={sampleData}
         seriesList={[
-          { seriesId: "signups", seriesNm: "가입자", dataKey: "signups", type: "pie", color: "#2563eb" },
-          { seriesId: "active", seriesNm: "활성이용자", dataKey: "active", type: "pie", color: "#10b981" },
-          { seriesId: "churn", seriesNm: "이탈", dataKey: "churn", type: "pie", color: "#ef4444" },
+          {
+            seriesId: "signups",
+            seriesNm: "가입자",
+            dataKey: "signups",
+            type: "pie",
+            color: "#2563eb",
+          },
+          {
+            seriesId: "active",
+            seriesNm: "활성이용자",
+            dataKey: "active",
+            type: "pie",
+            color: "#10b981",
+          },
+          {
+            seriesId: "churn",
+            seriesNm: "이탈",
+            dataKey: "churn",
+            type: "pie",
+            color: "#ef4444",
+          },
         ]}
         xKey="label"
         type="pie"
@@ -150,9 +210,27 @@ export const EasyChartExamples = () => ([
       <EasyChart
         dataList={sampleData}
         seriesList={[
-          { seriesId: "signups", seriesNm: "가입자", dataKey: "signups", type: "donut", color: "#2563eb" },
-          { seriesId: "active", seriesNm: "활성이용자", dataKey: "active", type: "donut", color: "#10b981" },
-          { seriesId: "churn", seriesNm: "이탈", dataKey: "churn", type: "donut", color: "#ef4444" },
+          {
+            seriesId: "signups",
+            seriesNm: "가입자",
+            dataKey: "signups",
+            type: "donut",
+            color: "#2563eb",
+          },
+          {
+            seriesId: "active",
+            seriesNm: "활성이용자",
+            dataKey: "active",
+            type: "donut",
+            color: "#10b981",
+          },
+          {
+            seriesId: "churn",
+            seriesNm: "이탈",
+            dataKey: "churn",
+            type: "donut",
+            color: "#ef4444",
+          },
         ]}
         xKey="label"
         type="donut"
@@ -176,19 +254,43 @@ export const EasyChartExamples = () => ([
   {
     anchor: "easychart-loading",
     description: "로딩 상태",
-    component: <EasyChart dataList={[]} seriesList={[]} xKey="label" loading hideLegend />,
+    component: (
+      <EasyChart
+        dataList={[]}
+        seriesList={[]}
+        xKey="label"
+        loading
+        hideLegend
+      />
+    ),
     code: `<EasyChart dataList={[]} seriesList={[]} xKey="label" loading hideLegend />`,
   },
   {
     anchor: "easychart-empty",
     description: "빈 상태",
-    component: <EasyChart dataList={[]} seriesList={[]} xKey="label" status="empty" empty="데이터 없음" />,
+    component: (
+      <EasyChart
+        dataList={[]}
+        seriesList={[]}
+        xKey="label"
+        status="empty"
+        empty="데이터 없음"
+      />
+    ),
     code: `<EasyChart dataList={[]} seriesList={[]} xKey="label" status="empty" empty="데이터 없음" />`,
   },
   {
     anchor: "easychart-error",
     description: "에러 상태 + 에러 메시지 표시",
-    component: <EasyChart dataList={sampleData} seriesList={[]} xKey="label" status="error" errorText="API 에러가 발생했습니다." />,
+    component: (
+      <EasyChart
+        dataList={sampleData}
+        seriesList={[]}
+        xKey="label"
+        status="error"
+        errorText="API 에러가 발생했습니다."
+      />
+    ),
     code: `<EasyChart dataList={sampleData} seriesList={[]} xKey="label" status="error" errorText="API 에러가 발생했습니다." />`,
   },
-]);
+];

@@ -1,7 +1,7 @@
 /**
  * 파일명: tests/login.view.test.jsx
- * 작성자: Codex
- * 갱신일: 2025-12-02
+ * 작성자: LSH
+ * 갱신일: 2026-02-23
  * 설명: 로그인 뷰 유효성/에러/리다이렉트 테스트
  */
 
@@ -52,9 +52,11 @@ test("폼 유효성 검사 후 첫 번째 에러 필드에 포커스한다", asy
   fireEvent.click(screen.getByRole("button", { name: "로그인" }));
 
   await waitFor(() => {
-    expect(screen.getAllByText("이메일을 입력해주세요").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("이메일을 입력해주세요").length).toBeGreaterThan(
+      0,
+    );
     expect(
-      screen.getAllByText("비밀번호를 입력해주세요").length
+      screen.getAllByText("비밀번호를 입력해주세요").length,
     ).toBeGreaterThan(0);
   });
 
@@ -89,9 +91,11 @@ test("백엔드 인증 오류를 비밀번호 필드와 에러 요약으로 노�
   await waitFor(() => {
     expect(screen.getByRole("alert")).toBeInTheDocument();
   });
-  expect(screen.getByRole("alert").textContent).toContain("이메일 또는 비밀번호");
+  expect(screen.getByRole("alert").textContent).toContain(
+    "이메일 또는 비밀번호",
+  );
   expect(
-    screen.getAllByText(/이메일 또는 비밀번호가 올바르지 않습니다/i).length
+    screen.getAllByText(/이메일 또는 비밀번호가 올바르지 않습니다/i).length,
   ).toBeGreaterThan(0);
   await waitFor(() => {
     expect(document.activeElement?.id).toBe("login-password");
@@ -105,7 +109,11 @@ test("로그인 성공 시 next가 없으면 대시보드로 이동한다", asyn
 
   const assignMock = vi.fn();
   const originalLocation = globalThis.location;
-  vi.stubGlobal("location", { ...originalLocation, assign: assignMock, replace: vi.fn() });
+  vi.stubGlobal("location", {
+    ...originalLocation,
+    assign: assignMock,
+    replace: vi.fn(),
+  });
 
   renderLogin();
 
@@ -122,4 +130,17 @@ test("로그인 성공 시 next가 없으면 대시보드로 이동한다", asyn
   });
 
   vi.unstubAllGlobals();
+});
+
+test("비밀번호 표시 토글 버튼으로 입력 타입을 전환한다", () => {
+  renderLogin();
+
+  const passwordInput = screen.getByLabelText("비밀번호");
+  expect(passwordInput).toHaveAttribute("type", "password");
+
+  fireEvent.click(screen.getByRole("button", { name: "비밀번호 보기" }));
+  expect(passwordInput).toHaveAttribute("type", "text");
+
+  fireEvent.click(screen.getByRole("button", { name: "비밀번호 숨기기" }));
+  expect(passwordInput).toHaveAttribute("type", "password");
 });

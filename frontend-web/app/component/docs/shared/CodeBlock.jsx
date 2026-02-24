@@ -16,9 +16,9 @@ const CodeBlock = ({ code, language = 'jsx' }) => {
     };
 
     return (
-        <div className="relative">
+        <div className="relative w-full min-w-0">
             <pre
-                className="bg-gray-50 p-2 rounded text-xs font-mono cursor-pointer hover:bg-gray-100"
+                className="max-w-full overflow-x-auto rounded bg-gray-50 p-2 text-xs font-mono cursor-pointer hover:bg-gray-100"
                 onClick={handleCodeClick}
             >
                 <code className={`language-${language}`}>

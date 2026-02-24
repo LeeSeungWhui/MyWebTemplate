@@ -1,0 +1,33 @@
+/**
+ * 파일명: demo/dashboard/page.jsx
+ * 작성자: LSH
+ * 갱신일: 2026-02-23
+ * 설명: 공개 데모 대시보드 페이지 엔트리
+ */
+
+import DemoDashboardView from "./view";
+import {
+  CTA_LINK_LIST,
+  PAGE_MODE,
+} from "./initData";
+import { DEMO_DATA_LIST } from "@/app/demo/crud/initData";
+
+export const metadata = {
+  title: "Demo Dashboard | MyWebTemplate",
+  description: "로그인 없이 확인 가능한 공개 데모 대시보드",
+};
+
+/**
+ * @description 공개 데모 대시보드 페이지를 렌더링한다.
+ */
+const DemoDashboardPage = () => {
+  return (
+    <DemoDashboardView
+      mode={PAGE_MODE}
+      initRows={DEMO_DATA_LIST}
+      ctaList={CTA_LINK_LIST}
+    />
+  );
+};
+
+export default DemoDashboardPage;

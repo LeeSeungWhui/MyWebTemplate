@@ -1,0 +1,143 @@
+/**
+ * 파일명: demo/crud/initData.jsx
+ * 작성자: LSH
+ * 갱신일: 2026-02-22
+ * 설명: 공개 CRUD 데모 페이지 정적 데이터
+ */
+
+export const PAGE_MODE = {
+  MODE: "CSR",
+  PUBLIC_PATH: "/demo/crud",
+};
+
+export const STATUS_FILTER_LIST = [
+  { value: "", text: "전체 상태" },
+  { value: "ready", text: "준비" },
+  { value: "pending", text: "대기" },
+  { value: "running", text: "진행중" },
+  { value: "done", text: "완료" },
+  { value: "failed", text: "실패" },
+];
+
+export const DEMO_DATA_LIST = [
+  {
+    id: 1,
+    title: "랜딩 페이지 시안 확정",
+    status: "done",
+    owner: "기획팀",
+    amount: 1200000,
+    createdAt: "2026-02-10",
+    description: "랜딩 IA 및 카피 확정",
+    attachmentName: "landing_spec.pdf",
+  },
+  {
+    id: 2,
+    title: "회원가입 폼 검증 규칙 반영",
+    status: "running",
+    owner: "프론트",
+    amount: 800000,
+    createdAt: "2026-02-12",
+    description: "필수값/형식/비밀번호 확인 검증",
+    attachmentName: "signup_flow.fig",
+  },
+  {
+    id: 3,
+    title: "로그 마스킹 정책 적용",
+    status: "pending",
+    owner: "백엔드",
+    amount: 950000,
+    createdAt: "2026-02-14",
+    description: "민감정보 마스킹 규칙 점검",
+    attachmentName: "log_policy.md",
+  },
+  {
+    id: 4,
+    title: "데모 페이지 QA",
+    status: "ready",
+    owner: "QA",
+    amount: 500000,
+    createdAt: "2026-02-16",
+    description: "랜딩/데모 플로우 수동 점검",
+    attachmentName: "",
+  },
+  {
+    id: 5,
+    title: "대시보드 통계 API 점검",
+    status: "running",
+    owner: "백엔드",
+    amount: 670000,
+    createdAt: "2026-02-17",
+    description: "상태 집계/금액 합계 검증",
+    attachmentName: "dashboard_api.postman_collection.json",
+  },
+  {
+    id: 6,
+    title: "공개 GNB 모바일 드로어 개선",
+    status: "done",
+    owner: "프론트",
+    amount: 420000,
+    createdAt: "2026-02-17",
+    description: "모바일 햄버거 메뉴 접근성 개선",
+    attachmentName: "gnb_mobile.png",
+  },
+  {
+    id: 7,
+    title: "포트폴리오 섹션 리뉴얼",
+    status: "pending",
+    owner: "디자인",
+    amount: 730000,
+    createdAt: "2026-02-18",
+    description: "히어로/아키텍처/데모 섹션 개편",
+    attachmentName: "portfolio_wireframe.fig",
+  },
+  {
+    id: 8,
+    title: "회원가입 중복 이메일 처리",
+    status: "done",
+    owner: "백엔드",
+    amount: 390000,
+    createdAt: "2026-02-18",
+    description: "409 AUTH_409_USER_EXISTS 매핑",
+    attachmentName: "",
+  },
+  {
+    id: 9,
+    title: "프로필 설정 화면 구성",
+    status: "running",
+    owner: "프론트",
+    amount: 610000,
+    createdAt: "2026-02-19",
+    description: "내 프로필/시스템 설정 탭 구현",
+    attachmentName: "settings_ui.fig",
+  },
+  {
+    id: 10,
+    title: "T_DATA 샘플 데이터 정리",
+    status: "ready",
+    owner: "DBA",
+    amount: 250000,
+    createdAt: "2026-02-20",
+    description: "초기 샘플 레코드/상태코드 정리",
+    attachmentName: "seed_data.sql",
+  },
+  {
+    id: 11,
+    title: "미들웨어 공개 경로 점검",
+    status: "done",
+    owner: "백엔드",
+    amount: 540000,
+    createdAt: "2026-02-21",
+    description: "공개/보호 경로 리다이렉트 테스트",
+    attachmentName: "middleware_test.log",
+  },
+  {
+    id: 12,
+    title: "숨고/크몽 데모 시나리오 작성",
+    status: "pending",
+    owner: "기획팀",
+    amount: 460000,
+    createdAt: "2026-02-22",
+    description: "랜딩→데모 허브→상세 데모 퍼널 스크립트",
+    attachmentName: "demo_script.docx",
+  },
+];

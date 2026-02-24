@@ -25,7 +25,7 @@ const Card = ({
       {...props}
     >
       {(title || actions || subtitle) && (
-        <div className={`flex items-start justify-between gap-4 border-b border-gray-200 p-4 ${headerClassName}`.trim()}>
+        <div className={`flex flex-col gap-3 border-b border-gray-200 p-4 sm:flex-row sm:items-start sm:justify-between ${headerClassName}`.trim()}>
           <div>
             {title && (
               <h3 id={headingId} className="text-base font-semibold text-gray-900">{title}</h3>
@@ -35,7 +35,7 @@ const Card = ({
             )}
           </div>
           {actions && (
-            <div className="shrink-0">{actions}</div>
+            <div className="w-full sm:w-auto sm:shrink-0">{actions}</div>
           )}
         </div>
       )}

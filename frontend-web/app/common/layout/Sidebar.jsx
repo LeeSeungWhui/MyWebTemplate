@@ -1,7 +1,7 @@
 "use client";
 /**
  * 파일명: common/layout/Sidebar.jsx
- * 작성자: Codex
+ * 작성자: LSH
  * 갱신일: 2025-11-27
  * 설명: 햄버거/화살표 토글이 가능한 공용 사이드바(EasyList 기반)
  */
@@ -12,12 +12,15 @@ import { usePathname } from "next/navigation";
 import Icon from "@/app/lib/component/Icon";
 import { getBoundValue, setBoundValue } from "@/app/lib/binding";
 
-const isListLike = (list) => !!list && (typeof list.size === "function" || Array.isArray(list));
+const isListLike = (list) =>
+  !!list && (typeof list.size === "function" || Array.isArray(list));
 const toArray = (list) => {
   if (Array.isArray(list)) return list;
   if (isListLike(list)) {
     const size = typeof list.size === "function" ? list.size() : 0;
-    return Array.from({ length: size }, (_, idx) => (typeof list.get === "function" ? list.get(idx) : undefined));
+    return Array.from({ length: size }, (_, idx) =>
+      typeof list.get === "function" ? list.get(idx) : undefined,
+    );
   }
   return [];
 };
@@ -96,6 +99,16 @@ const Sidebar = ({
     }, new Map());
   }, [subMenuList]);
 
+  const hasExplicitActive = useMemo(() => {
+    const menuActiveExists = resolvedItems.some((item) => !!item.active);
+    if (menuActiveExists) {
+      return true;
+    }
+    return Array.from(subMenuMap.values()).some((children) =>
+      children.some((child) => !!child.active),
+    );
+  }, [resolvedItems, subMenuMap]);
+
   useEffect(() => {
     if (!dataObj || !collapsedKey) return;
     setCollapsed(!!getBoundValue(dataObj, collapsedKey));
@@ -110,7 +123,11 @@ const Sidebar = ({
   useEffect(() => {
     if (isFirstRenderRef.current) {
       isFirstRenderRef.current = false;
-      setRenderWidth(isOpen ? (collapsed ? COLLAPSED_WIDTH : EXPANDED_WIDTH) : 0);
+      let initialWidth = 0;
+      if (isOpen) {
+        initialWidth = collapsed ? COLLAPSED_WIDTH : EXPANDED_WIDTH;
+      }
+      setRenderWidth(initialWidth);
       setTranslateX(isOpen ? 0 : -EXPANDED_WIDTH);
       return;
     }
@@ -142,7 +159,14 @@ const Sidebar = ({
     return () => {
       if (timer) clearTimeout(timer);
     };
-  }, [collapsed, isOpen, COLLAPSED_WIDTH, EXPANDED_WIDTH, TRANSITION_MS, renderWidth]);
+  }, [
+    collapsed,
+    isOpen,
+    COLLAPSED_WIDTH,
+    EXPANDED_WIDTH,
+    TRANSITION_MS,
+    renderWidth,
+  ]);
 
   const drawerStyle = {
     width: `${renderWidth}px`,
@@ -153,14 +177,40 @@ const Sidebar = ({
     setExpanded((prev) => ({ ...prev, [key]: !prev[key] }));
   };
 
-  const isActive = (item, children = []) => {
-    if (item.active) return true;
-    if (children.some((child) => child.active)) return true;
-    if (item.href && pathname) {
-      if (pathname === item.href) return true;
-      if (pathname.startsWith(`${item.href}/`)) return true;
+  const isPathActive = (href) => {
+    if (!href || !pathname) {
+      return false;
+    }
+    if (pathname === href) {
+      return true;
+    }
+    if (pathname.startsWith(`${href}/`)) {
+      return true;
     }
     return false;
+  };
+
+  const isChildActive = (child) => {
+    if (child.active) {
+      return true;
+    }
+    if (hasExplicitActive) {
+      return false;
+    }
+    return isPathActive(child.href);
+  };
+
+  const isItemActive = (item, children = []) => {
+    if (item.active) {
+      return true;
+    }
+    if (children.some((child) => isChildActive(child))) {
+      return true;
+    }
+    if (hasExplicitActive) {
+      return false;
+    }
+    return isPathActive(item.href);
   };
 
   useEffect(() => {
@@ -170,7 +220,7 @@ const Sidebar = ({
       resolvedItems.forEach((item) => {
         const key = item.key || item.label || item.href;
         const children = subMenuMap.get(item.key) || [];
-        if (children.some((child) => isActive(child))) {
+        if (children.some((child) => isChildActive(child))) {
           if (!next[key]) {
             next[key] = true;
             changed = true;
@@ -184,14 +234,20 @@ const Sidebar = ({
   const navItemClass = (active) =>
     [
       "group flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors",
-      active ? "bg-blue-50 text-blue-700 font-semibold ring-1 ring-blue-100" : "text-gray-700 hover:bg-gray-50",
+      active
+        ? "bg-blue-50 text-blue-700 font-semibold ring-1 ring-blue-100"
+        : "text-gray-700 hover:bg-gray-50",
     ].join(" ");
 
   const renderContent = (isMini) => (
     <>
       {logo ? (
         <div className="px-4 py-3">
-          <div className={`${isMini ? "sr-only" : ""} text-sm font-semibold text-gray-900`}>{logo}</div>
+          <div
+            className={`${isMini ? "sr-only" : ""} text-sm font-semibold text-gray-900`}
+          >
+            {logo}
+          </div>
         </div>
       ) : null}
 
@@ -201,7 +257,10 @@ const Sidebar = ({
         aria-label={isMini ? "사이드바 펼치기" : "사이드바 접기"}
         className="absolute -right-3 top-1/2 -translate-y-1/2 hidden h-8 w-8 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-600 shadow-sm hover:bg-gray-50 lg:flex"
       >
-        <Icon icon={isMini ? "ri:RiArrowRightSLine" : "ri:RiArrowLeftSLine"} size="1.2em" />
+        <Icon
+          icon={isMini ? "ri:RiArrowRightSLine" : "ri:RiArrowLeftSLine"}
+          size="1.2em"
+        />
       </button>
 
       <button
@@ -213,25 +272,36 @@ const Sidebar = ({
         <Icon icon="ri:RiCloseLine" size="1.1em" />
       </button>
 
-      <nav className="flex-1 overflow-y-auto px-3 py-4" aria-label="사이드바 메뉴">
+      <nav
+        className="flex-1 overflow-y-auto px-3 py-4"
+        aria-label="사이드바 메뉴"
+      >
         <ul className="space-y-1">
           {resolvedItems.map((item) => {
             const key = item.key || item.label || item.href;
             const children = subMenuMap.get(item.key) || [];
-            const active = isActive(item, children);
+            const active = isItemActive(item, children);
             const hasChildren = children.length > 0;
             const isOpenGroup = expanded[key] || false;
 
             const content = (
               <div className="flex w-full items-center gap-3">
-                {item.icon ? <Icon icon={item.icon} size="1.1em" ariaLabel={item.label} /> : null}
-                <span className={`${isMini ? "sr-only" : "truncate"}`}>{item.label}</span>
+                {item.icon ? (
+                  <Icon icon={item.icon} size="1.1em" ariaLabel={item.label} />
+                ) : null}
+                <span className={`${isMini ? "sr-only" : "truncate"}`}>
+                  {item.label}
+                </span>
                 {item.badge && !isMini ? (
-                  <span className="ml-auto rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-700">{item.badge}</span>
+                  <span className="ml-auto rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-700">
+                    {item.badge}
+                  </span>
                 ) : null}
                 {hasChildren ? (
                   <Icon
-                    icon={isOpenGroup ? "ri:RiArrowUpSLine" : "ri:RiArrowDownSLine"}
+                    icon={
+                      isOpenGroup ? "ri:RiArrowUpSLine" : "ri:RiArrowDownSLine"
+                    }
                     size="1em"
                     className={`ml-auto text-gray-500 ${isMini ? "hidden" : ""}`}
                   />
@@ -260,16 +330,27 @@ const Sidebar = ({
                     >
                       {children.map((child) => {
                         const childKey = child.key || child.label || child.href;
-                        const childActive = isActive(child);
+                        const childActive = isChildActive(child);
                         const childClass = navItemClass(childActive);
                         const childContent = (
                           <div className="flex w-full items-center gap-3 pl-2">
                             {child.icon ? (
-                              <Icon icon={child.icon} size="1.05em" ariaLabel={child.label} />
+                              <Icon
+                                icon={child.icon}
+                                size="1.05em"
+                                ariaLabel={child.label}
+                              />
                             ) : (
-                              <span className="h-1.5 w-1.5 rounded-full bg-gray-300" aria-hidden />
+                              <span
+                                className="h-1.5 w-1.5 rounded-full bg-gray-300"
+                                aria-hidden
+                              />
                             )}
-                            <span className={`${isMini ? "sr-only" : "truncate"}`}>{child.label}</span>
+                            <span
+                              className={`${isMini ? "sr-only" : "truncate"}`}
+                            >
+                              {child.label}
+                            </span>
                             {child.badge && !isMini ? (
                               <span className="ml-auto rounded-full bg-gray-50 px-2 py-0.5 text-xs text-gray-600">
                                 {child.badge}
@@ -280,7 +361,12 @@ const Sidebar = ({
                         if (child.href) {
                           return (
                             <li key={childKey}>
-                              <Link href={child.href} className={childClass} aria-current={childActive ? "page" : undefined} title={child.label}>
+                              <Link
+                                href={child.href}
+                                className={childClass}
+                                aria-current={childActive ? "page" : undefined}
+                                title={child.label}
+                              >
                                 {childContent}
                               </Link>
                             </li>
@@ -288,7 +374,12 @@ const Sidebar = ({
                         }
                         return (
                           <li key={childKey}>
-                            <button type="button" className={childClass} onClick={child.onClick} title={child.label}>
+                            <button
+                              type="button"
+                              className={childClass}
+                              onClick={child.onClick}
+                              title={child.label}
+                            >
                               {childContent}
                             </button>
                           </li>
@@ -306,7 +397,12 @@ const Sidebar = ({
                     {content}
                   </Link>
                 ) : (
-                  <button type="button" onClick={item.onClick} className={navItemClass(active)} title={item.label}>
+                  <button
+                    type="button"
+                    onClick={item.onClick}
+                    className={navItemClass(active)}
+                    title={item.label}
+                  >
                     {content}
                   </button>
                 )}
@@ -315,15 +411,23 @@ const Sidebar = ({
           })}
         </ul>
       </nav>
-      {footerSlot ? <div className="border-t border-gray-100 p-3 text-xs text-gray-500">{footerSlot}</div> : null}
+      {footerSlot ? (
+        <div className="border-t border-gray-100 p-3 text-xs text-gray-500">
+          {footerSlot}
+        </div>
+      ) : null}
     </>
   );
 
   return (
     <>
-      <div className={`fixed inset-0 z-30 bg-gray-900/30 lg:hidden ${isOpen ? "" : "hidden"}`} onClick={onClose} aria-hidden="true" />
+      <div
+        className={`fixed inset-0 z-30 bg-gray-900/30 lg:hidden ${isOpen ? "" : "hidden"}`}
+        onClick={onClose}
+        aria-hidden="true"
+      />
       <aside
-        className={`relative z-40 flex min-h-full flex-none flex-col overflow-visible border-r border-gray-200 bg-white shadow-sm lg:static ${isOpen ? "" : "pointer-events-none"} ${className}`.trim()}
+        className={`fixed bottom-0 left-0 top-16 z-40 flex h-auto flex-none flex-col overflow-visible border-r border-gray-200 bg-white shadow-sm lg:static lg:top-auto lg:bottom-auto lg:left-auto lg:min-h-full ${isOpen ? "" : "pointer-events-none"} ${className}`.trim()}
         aria-label="사이드바 내비게이션"
         style={drawerStyle}
       >

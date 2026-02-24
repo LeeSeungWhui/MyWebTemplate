@@ -1,6 +1,6 @@
 /**
  * 파일명: common/layout/Footer.jsx
- * 작성자: Codex
+ * 작성자: LSH
  * 갱신일: 2025-11-26
  * 설명: 대시보드 공용 푸터(EasyObj/EasyList 기반)
  */
@@ -9,12 +9,15 @@ import Link from "next/link";
 import { useMemo } from "react";
 import { getBoundValue } from "@/app/lib/binding";
 
-const isListLike = (list) => !!list && (typeof list.size === "function" || Array.isArray(list));
+const isListLike = (list) =>
+  !!list && (typeof list.size === "function" || Array.isArray(list));
 const toArray = (list) => {
   if (Array.isArray(list)) return list;
   if (isListLike(list)) {
     const size = typeof list.size === "function" ? list.size() : 0;
-    return Array.from({ length: size }, (_, idx) => (typeof list.get === "function" ? list.get(idx) : undefined));
+    return Array.from({ length: size }, (_, idx) =>
+      typeof list.get === "function" ? list.get(idx) : undefined,
+    );
   }
   return [];
 };
@@ -37,7 +40,9 @@ const Footer = ({
   logo,
   className = "",
 }) => {
-  const resolvedText = (textObj && textKey ? getBoundValue(textObj, textKey) : null) ?? "© 2025 MyWebTemplate";
+  const resolvedText =
+    (textObj && textKey ? getBoundValue(textObj, textKey) : null) ??
+    "© 2025 MyWebTemplate";
 
   const resolvedLinks = useMemo(() => {
     return toArray(linkList).map((item) => ({

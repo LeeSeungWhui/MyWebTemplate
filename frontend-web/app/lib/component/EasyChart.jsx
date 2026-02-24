@@ -1,7 +1,7 @@
 "use client";
 /**
  * 파일명: EasyChart.jsx
- * 작성자: Codex
+ * 작성자: LSH
  * 갱신일: 2025-11-27
  * 설명: Recharts 기반 대시보드 차트 카드 래퍼
  */
@@ -19,12 +19,11 @@ import {
   Cell,
   Pie,
   PieChart,
-  ResponsiveContainer,
   Tooltip,
   XAxis,
   YAxis,
 } from "recharts";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Card from "./Card";
 import Skeleton from "./Skeleton";
 import Empty from "./Empty";
@@ -47,7 +46,7 @@ const toArray = (list) => {
   if (isListLike(list)) {
     const size = typeof list.size === "function" ? list.size() : 0;
     return Array.from({ length: size }, (_, idx) =>
-      typeof list.get === "function" ? list.get(idx) : undefined
+      typeof list.get === "function" ? list.get(idx) : undefined,
     );
   }
   return [];
@@ -100,6 +99,8 @@ const EasyChart = ({
   cardProps = {},
 }) => {
   const [isClient, setIsClient] = useState(false);
+  const chartHostRef = useRef(null);
+  const [hostSize, setHostSize] = useState({ width: 0, height: 0 });
   const dataSource = dataList ?? data ?? [];
   const seriesSource = seriesList ?? series ?? [];
   const resolvedSeries = useMemo(() => {
@@ -127,10 +128,46 @@ const EasyChart = ({
   const isError = status === "error";
   const useComposed = resolvedSeries.some((s) => s.type && s.type !== type);
   const pieValueKey = resolvedSeries[0]?.key;
+  const hasHostSize = hostSize.width > 0 && hostSize.height > 0;
 
   useEffect(() => {
     setIsClient(true);
   }, []);
+
+  useEffect(() => {
+    if (!isClient) return undefined;
+    const hostEl = chartHostRef.current;
+    if (!hostEl) return undefined;
+
+    const updateHostSize = () => {
+      const rect = hostEl.getBoundingClientRect();
+      const nextSize = {
+        width: Math.round(rect.width || 0),
+        height: Math.round(rect.height || 0),
+      };
+      setHostSize((prevSize) => {
+        if (
+          prevSize.width === nextSize.width &&
+          prevSize.height === nextSize.height
+        ) {
+          return prevSize;
+        }
+        return nextSize;
+      });
+    };
+
+    updateHostSize();
+    if (typeof ResizeObserver === "undefined") {
+      const rafId = window.requestAnimationFrame(updateHostSize);
+      return () => window.cancelAnimationFrame(rafId);
+    }
+
+    const observer = new ResizeObserver(() => {
+      updateHostSize();
+    });
+    observer.observe(hostEl);
+    return () => observer.disconnect();
+  }, [isClient, height, isPie, isDonut]);
 
   const ChartComponent =
     useComposed && hasSeries
@@ -152,8 +189,12 @@ const EasyChart = ({
         fill: s.color,
         strokeWidth: s.strokeWidth || 2,
       };
-      const targetType =
-        isPie || isDonut ? chartType : useComposed ? s.type : type;
+      let targetType = type;
+      if (isPie || isDonut) {
+        targetType = chartType;
+      } else if (useComposed) {
+        targetType = s.type;
+      }
       if (targetType === "bar") {
         return (
           <Bar
@@ -255,9 +296,17 @@ const EasyChart = ({
 
       const pieHeight = Math.max(height, 180);
       return (
-        <div style={{ height: pieHeight, minWidth: 0 }} className="min-w-0 w-full">
-          <ResponsiveContainer width="100%" height="100%" minWidth={0}>
-            <PieChart margin={donutMargin}>
+        <div
+          ref={chartHostRef}
+          style={{ height: pieHeight, minWidth: 0 }}
+          className="min-w-0 w-full"
+        >
+          {hasHostSize ? (
+            <PieChart
+              width={hostSize.width}
+              height={hostSize.height}
+              margin={donutMargin}
+            >
               <Tooltip
                 contentStyle={{ borderRadius: 8, borderColor: "#e5e7eb" }}
                 labelStyle={{ color: "#111827", fontWeight: 600 }}
@@ -266,7 +315,11 @@ const EasyChart = ({
                 <Legend
                   verticalAlign="bottom"
                   align="center"
-                  wrapperStyle={{ paddingTop: 6, bottom: 8, fontSize: legendFontSize }}
+                  wrapperStyle={{
+                    paddingTop: 6,
+                    bottom: 8,
+                    fontSize: legendFontSize,
+                  }}
                   iconType="circle"
                   iconSize={10}
                 />
@@ -294,14 +347,23 @@ const EasyChart = ({
                 ))}
               </Pie>
             </PieChart>
-          </ResponsiveContainer>
+          ) : null}
         </div>
       );
     }
     return (
-      <div style={{ height, minWidth: 0 }} className="min-w-0 w-full">
-        <ResponsiveContainer width="100%" height="100%" minWidth={0}>
-          <ChartComponent data={resolvedData} margin={defaultMargin}>
+      <div
+        ref={chartHostRef}
+        style={{ height, minWidth: 0 }}
+        className="min-w-0 w-full"
+      >
+        {hasHostSize ? (
+          <ChartComponent
+            data={resolvedData}
+            margin={defaultMargin}
+            width={hostSize.width}
+            height={hostSize.height}
+          >
             <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
             <XAxis
               dataKey={xKey}
@@ -326,14 +388,18 @@ const EasyChart = ({
               <Legend
                 verticalAlign="bottom"
                 align="center"
-                wrapperStyle={{ paddingTop: 6, bottom: 8, fontSize: legendFontSize }}
+                wrapperStyle={{
+                  paddingTop: 6,
+                  bottom: 8,
+                  fontSize: legendFontSize,
+                }}
                 iconType="circle"
                 iconSize={10}
               />
             )}
             {renderSeries()}
           </ChartComponent>
-        </ResponsiveContainer>
+        ) : null}
       </div>
     );
   };

@@ -1,28 +1,31 @@
-"use client"
 /**
- * 파일명: page.jsx
- * 작성자: Codex
- * 갱신일: 2025-11-05
- * 설명: 홈 페이지(미들웨어 단일 가드 전제, 클라이언트 렌더)
+ * 파일명: app/page.jsx
+ * 작성자: LSH
+ * 갱신일: 2026-02-22
+ * 설명: 루트 페이지 서버 엔트리
  */
 
-import useSwr from '@/app/lib/hooks/useSwr'
-import { SESSION_PATH } from '@/app/login/initData'
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+export const runtime = "nodejs";
 
-const HomePage = () => {
-  const { data, isLoading } = useSwr('session', SESSION_PATH)
-  const authed = !!(data && data.result && data.result.username)
-  const name = authed ? (data.result.username || 'user') : null
-  return (
-    <main className="p-6">
-      <h1 className="text-2xl font-semibold">Home</h1>
-      {authed ? (
-        <p className="mt-2">Welcome, {name}</p>
-      ) : (
-        <p className="mt-2">Not authenticated</p>
-      )}
-    </main>
-  )
-}
+import { redirect } from "next/navigation";
+import { apiJSON } from "@/app/lib/runtime/api";
+import { HOME_INIT_DATA } from "@/app/initData";
+import HomeView from "@/app/view";
 
-export default HomePage
+/**
+ * @description 인증 상태를 확인하고 랜딩 또는 대시보드로 분기한다.
+ */
+const HomePage = async () => {
+  const sessionPayload = await apiJSON(HOME_INIT_DATA.sessionPath, {
+    method: "GET",
+  }).catch(() => null);
+  const hasUserSession = Boolean(sessionPayload?.result?.username);
+  if (hasUserSession) {
+    redirect("/dashboard");
+  }
+  return <HomeView />;
+};
+
+export default HomePage;

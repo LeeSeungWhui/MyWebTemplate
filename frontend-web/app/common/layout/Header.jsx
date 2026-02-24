@@ -1,7 +1,7 @@
 "use client";
 /**
  * 파일명: common/layout/Header.jsx
- * 작성자: Codex
+ * 작성자: LSH
  * 갱신일: 2025-11-27
  * 설명: 대시보드용 상단 헤더 내비게이션 (EasyObj/EasyList 기반)
  */
@@ -12,12 +12,15 @@ import { usePathname } from "next/navigation";
 import Button from "@/app/lib/component/Button";
 import Icon from "@/app/lib/component/Icon";
 
-const isListLike = (list) => !!list && (typeof list.size === "function" || Array.isArray(list));
+const isListLike = (list) =>
+  !!list && (typeof list.size === "function" || Array.isArray(list));
 const toArray = (list) => {
   if (Array.isArray(list)) return list;
   if (isListLike(list)) {
     const size = typeof list.size === "function" ? list.size() : 0;
-    return Array.from({ length: size }, (_, idx) => (typeof list.get === "function" ? list.get(idx) : undefined));
+    return Array.from({ length: size }, (_, idx) =>
+      typeof list.get === "function" ? list.get(idx) : undefined,
+    );
   }
   return [];
 };
@@ -78,6 +81,16 @@ const Header = ({
     }, new Map());
   }, [subMenuList]);
 
+  const hasExplicitActive = useMemo(() => {
+    const menuActiveExists = resolvedMenus.some((item) => !!item.active);
+    if (menuActiveExists) {
+      return true;
+    }
+    return Array.from(subMenuMap.values()).some((children) =>
+      children.some((child) => !!child.active),
+    );
+  }, [resolvedMenus, subMenuMap]);
+
   useEffect(() => {
     const handleOutside = (evt) => {
       if (navRef.current && !navRef.current.contains(evt.target)) {
@@ -88,14 +101,40 @@ const Header = ({
     return () => document.removeEventListener("pointerdown", handleOutside);
   }, []);
 
-  const isItemActive = (item, children = []) => {
-    if (item.active) return true;
-    if (children.some((child) => child.active)) return true;
-    if (item.href && pathname) {
-      if (pathname === item.href) return true;
-      if (pathname.startsWith(`${item.href}/`)) return true;
+  const isPathActive = (href) => {
+    if (!href || !pathname) {
+      return false;
+    }
+    if (pathname === href) {
+      return true;
+    }
+    if (pathname.startsWith(`${href}/`)) {
+      return true;
     }
     return false;
+  };
+
+  const isChildActive = (child) => {
+    if (child.active) {
+      return true;
+    }
+    if (hasExplicitActive) {
+      return false;
+    }
+    return isPathActive(child.href);
+  };
+
+  const isItemActive = (item, children = []) => {
+    if (item.active) {
+      return true;
+    }
+    if (children.some((child) => isChildActive(child))) {
+      return true;
+    }
+    if (hasExplicitActive) {
+      return false;
+    }
+    return isPathActive(item.href);
   };
 
   const handleMenuSelect = (item) => {
@@ -106,13 +145,17 @@ const Header = ({
   const menuButtonClass = (isActive) =>
     [
       "inline-flex items-center gap-2 rounded-md border border-transparent px-3 py-2 text-sm font-medium transition-colors",
-      isActive ? "bg-blue-50 text-blue-700 ring-1 ring-blue-100" : "text-gray-700 hover:bg-gray-100",
+      isActive
+        ? "bg-blue-50 text-blue-700 ring-1 ring-blue-100"
+        : "text-gray-700 hover:bg-gray-100",
     ].join(" ");
 
   return (
-    <header className={`border-b border-gray-200 bg-white shadow-sm ${className}`.trim()}>
-      <div className="flex items-center justify-between gap-3 px-4 py-3">
-        <div className="flex items-center gap-3">
+    <header
+      className={`border-b border-gray-200 bg-white shadow-sm ${className}`.trim()}
+    >
+      <div className="flex min-h-16 items-center justify-between gap-2 px-3 sm:gap-3 sm:px-4">
+        <div className="flex min-w-0 items-center gap-2 sm:gap-3">
           {typeof onToggleSidebar === "function" ? (
             <Button
               variant="ghost"
@@ -124,10 +167,16 @@ const Header = ({
               <Icon icon="ri:RiMenuLine" size="1.25em" />
             </Button>
           ) : null}
-          {logo ? <div className="flex items-center">{logo}</div> : null}
-          <div className="leading-tight">
-            <div className="text-base font-semibold text-gray-900">{title}</div>
-            {subtitle && <div className="text-xs text-gray-500">{subtitle}</div>}
+          {logo ? <div className="flex shrink-0 items-center">{logo}</div> : null}
+          <div className="min-w-0 leading-tight">
+            <div className="truncate text-sm font-semibold text-gray-900 sm:text-base">
+              {title}
+            </div>
+            {subtitle && (
+              <div className="hidden truncate text-xs text-gray-500 sm:block">
+                {subtitle}
+              </div>
+            )}
           </div>
         </div>
         <nav
@@ -165,8 +214,13 @@ const Header = ({
                     <ul className="py-1">
                       {children.map((child) => {
                         const childKey = child.key || child.label || child.href;
-                        const linkClass =
-                          "flex w-full items-start gap-2 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50";
+                        const childActive = isChildActive(child);
+                        const linkClass = [
+                          "flex w-full items-start gap-2 px-3 py-2 text-sm transition-colors",
+                          childActive
+                            ? "bg-blue-50 text-blue-700"
+                            : "text-gray-700 hover:bg-gray-50",
+                        ].join(" ");
                         return (
                           <li key={childKey}>
                             {child.href ? (
@@ -175,10 +229,19 @@ const Header = ({
                                 onClick={() => handleMenuSelect(child)}
                                 className={linkClass}
                                 role="menuitem"
+                                aria-current={childActive ? "page" : undefined}
                               >
-                                <span className="font-medium text-gray-900">{child.label}</span>
+                                <span
+                                  className={`font-medium ${childActive ? "text-blue-700" : "text-gray-900"}`}
+                                >
+                                  {child.label}
+                                </span>
                                 {child.description && (
-                                  <span className="text-xs text-gray-500">{child.description}</span>
+                                  <span
+                                    className={`text-xs ${childActive ? "text-blue-700" : "text-gray-500"}`}
+                                  >
+                                    {child.description}
+                                  </span>
                                 )}
                               </Link>
                             ) : (
@@ -187,10 +250,19 @@ const Header = ({
                                 onClick={() => handleMenuSelect(child)}
                                 className={linkClass}
                                 role="menuitem"
+                                aria-current={childActive ? "page" : undefined}
                               >
-                                <span className="font-medium text-gray-900">{child.label}</span>
+                                <span
+                                  className={`font-medium ${childActive ? "text-blue-700" : "text-gray-900"}`}
+                                >
+                                  {child.label}
+                                </span>
                                 {child.description && (
-                                  <span className="text-xs text-gray-500">{child.description}</span>
+                                  <span
+                                    className={`text-xs ${childActive ? "text-blue-700" : "text-gray-500"}`}
+                                  >
+                                    {child.description}
+                                  </span>
                                 )}
                               </button>
                             )}
@@ -226,9 +298,13 @@ const Header = ({
             );
           })}
         </nav>
-        <div className="flex items-center gap-2">
+        <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
           {actions}
-          {text ? <div className="flex items-center gap-2 text-sm text-gray-700">{text}</div> : null}
+          {text ? (
+            <div className="hidden max-w-[16rem] items-center gap-2 truncate text-sm text-gray-700 sm:flex">
+              {text}
+            </div>
+          ) : null}
           {children}
         </div>
       </div>

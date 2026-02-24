@@ -1,8 +1,8 @@
 "use client";
 /**
  * 파일명: app/login/view.jsx
- * 작성자: Codex
- * 갱신일: 2026-01-18
+ * 작성자: LSH
+ * 갱신일: 2026-02-23
  * 설명: 로그인 페이지 클라이언트 뷰
  */
 
@@ -36,7 +36,9 @@ const Client = ({ mode, init, nextHint, authReason }) => {
   const passwordRef = useRef(null);
   const errorSummaryRef = useRef(null);
   const { showToast } = useGlobalUi();
-  const { data: sessionData, mutate } = useSwr("session", SESSION_PATH, {
+  const hasInitSession = !!(init && init.result && init.result.username);
+  const sessionKey = hasInitSession ? "session" : null;
+  const { data: sessionData, mutate } = useSwr(sessionKey, SESSION_PATH, {
     swr: { fallbackData: init, revalidateOnFocus: true },
   });
   const isAuthed = !!(
@@ -56,6 +58,23 @@ const Client = ({ mode, init, nextHint, authReason }) => {
     const metaText = metaParts.length ? ` (${metaParts.join(", ")})` : "";
     showToast(`${message}${metaText}`, { type: "error", duration: 5000 });
   }, [authReason, showToast]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const currentUrl = new URL(window.location.href);
+    const signupStatus = currentUrl.searchParams.get("signup");
+    if (signupStatus !== "done") return;
+    showToast("회원가입이 완료되었습니다. 로그인해 주세요.", {
+      type: "success",
+      duration: 4000,
+    });
+    currentUrl.searchParams.delete("signup");
+    const nextSearch = currentUrl.searchParams.toString();
+    const nextUrl = nextSearch
+      ? `${currentUrl.pathname}?${nextSearch}`
+      : currentUrl.pathname;
+    window.history.replaceState({}, "", nextUrl);
+  }, [showToast]);
 
   const resetErrors = () => {
     loginObj.errors.email = "";
@@ -195,21 +214,21 @@ const Client = ({ mode, init, nextHint, authReason }) => {
     : undefined;
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-gray-50 p-6">
+    <main className="min-h-screen flex items-center justify-center bg-gray-50 p-4 sm:p-6">
       <div className="flex w-full max-w-5xl mx-4 shadow-xl rounded-2xl overflow-hidden bg-white">
-        <aside className="hidden lg:flex w-2/5 bg-gradient-to-br from-blue-600 to-blue-500 text-white flex-col justify-center items-center p-12 space-y-4">
+        <aside className="hidden w-2/5 flex-col items-center justify-center space-y-4 bg-gradient-to-br from-[#1e3a5f] to-[#312e81] p-12 text-white lg:flex">
           <h1 className="text-3xl font-bold">웹페이지 템플릿</h1>
-          <p className="text-sm text-blue-100 text-center max-w-xs">
+          <p className="max-w-xs text-center text-sm text-white/80">
             샘플 로그인 화면
           </p>
-          <ul className="text-sm text-blue-50 space-y-1 text-left w-full max-w-xs list-disc list-inside">
+          <ul className="w-full max-w-xs list-inside list-disc space-y-1 text-left text-sm text-white/90">
             <li>로그인 시 샘플 대시보드 페이지로 이동</li>
             <li>/component에서 컴포넌트 목록 조회</li>
             <li>demo@demo.demo / password123</li>
           </ul>
         </aside>
 
-        <section className="w-full lg:w-3/5 p-10 md:p-16">
+        <section className="w-full p-6 sm:p-10 md:p-16 lg:w-3/5">
           <div className="text-center mb-8">
             <h2 className="text-3xl font-semibold text-gray-900 mb-2">
               로그인
@@ -268,6 +287,7 @@ const Client = ({ mode, init, nextHint, authReason }) => {
                 <Input
                   id="login-password"
                   type="password"
+                  togglePassword
                   dataObj={loginObj}
                   dataKey="password"
                   ref={passwordRef}
@@ -283,7 +303,7 @@ const Client = ({ mode, init, nextHint, authReason }) => {
               </div>
             </div>
 
-            <div className="flex items-center justify-between">
+            <div className="flex flex-wrap items-center justify-between gap-2">
               <Checkbox
                 dataObj={loginObj}
                 dataKey="rememberMe"
@@ -306,6 +326,16 @@ const Client = ({ mode, init, nextHint, authReason }) => {
             >
               로그인
             </Button>
+
+            <div className="text-center text-sm text-gray-600">
+              계정이 없으신가요?{" "}
+              <Link
+                href="/signup"
+                className="font-medium text-blue-600 hover:text-blue-500"
+              >
+                회원가입
+              </Link>
+            </div>
           </form>
         </section>
       </div>

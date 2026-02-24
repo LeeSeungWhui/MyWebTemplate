@@ -1,0 +1,24 @@
+/**
+ * 파일명: signup/page.jsx
+ * 작성자: LSH
+ * 갱신일: 2026-02-22
+ * 설명: 회원가입 페이지 엔트리
+ */
+
+import SignupView from "./view";
+
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+export const metadata = {
+  title: "Signup | MyWebTemplate",
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
+
+const SignupPage = async () => {
+  return <SignupView />;
+};
+
+export default SignupPage;

@@ -1,10 +1,10 @@
 /**
  * 파일명: Input.jsx
  * 작성자: LSH
- * 갱신일: 2025-09-13
+ * 갱신일: 2026-02-23
  * 설명: 필터 및 마스크가 적용된 입력 컴포넌트
  */
-import { useState, useRef, forwardRef } from "react";
+import { useEffect, useState, useRef, forwardRef } from "react";
 import Icon from "./Icon";
 import {
   getBoundValue,
@@ -15,7 +15,7 @@ import {
 
 /**
  * Input - 필터/마스크 지원 입력 컴포넌트
- * @date 2025-09-13
+ * @date 2026-02-23
  */
 const Input = forwardRef(
   (
@@ -41,7 +41,10 @@ const Input = forwardRef(
     },
     ref
   ) => {
-    const isControlled = dataObj && dataKey;
+    const isBoundControlled = !!(dataObj && dataKey);
+    const isPropControlled =
+      !isBoundControlled && typeof propValue !== "undefined";
+    const isControlled = isBoundControlled || isPropControlled;
     const [showPassword, setShowPassword] = useState(false);
     const [isComposing, setIsComposing] = useState(false);
     const [draftValue, setDraftValue] = useState(undefined);
@@ -117,6 +120,11 @@ const Input = forwardRef(
       return result;
     };
 
+    useEffect(() => {
+      if (!isPropControlled) return;
+      setDraftValue(undefined);
+    }, [isPropControlled, propValue]);
+
     const commitValue = (raw) => {
       let value = raw;
       if (filter) {
@@ -138,8 +146,10 @@ const Input = forwardRef(
           return; // reject invalid numeric pattern
         }
       }
-      if (isControlled) {
+      if (isBoundControlled) {
         setBoundValue(dataObj, dataKey, value);
+      } else if (isPropControlled) {
+        // prop 기반 controlled 입력은 부모 상태를 단일 소스로 유지한다.
       } else {
         setInnerValue(value);
       }
@@ -148,18 +158,24 @@ const Input = forwardRef(
     };
 
     // 조합 중 임시 문자열 허용 여부 판단
-    const isAllowedDraft = (s) => {
+    const isAllowedDraft = (draftText) => {
       if (filter) {
         const allowHangulDraft = /가-힣/.test(filter);
         const cls = allowHangulDraft ? `${filter}ㄱ-ㅎㅏ-ㅣ가-힣` : filter;
-        if (!new RegExp(`^[${cls}]*$`).test(s)) return false;
+        if (!new RegExp(`^[${cls}]*$`).test(draftText)) return false;
       }
-      if (mask && HANGUL_RE.test(s)) return false; // 마스크 존재 시 한글 금지 가정
-      if (type === "number" && !/^[0-9.\-]*$/.test(s)) return false;
+      if (mask) {
+        if (HANGUL_RE.test(draftText)) return false; // 마스크 존재 시 한글 금지 가정
+      }
+      if (type === "number" && !/^[0-9.\-]*$/.test(draftText)) return false;
       return true;
     };
     const getCommitted = () =>
-      isControlled ? getBoundValue(dataObj, dataKey) ?? "" : innerValue ?? "";
+      isBoundControlled
+        ? getBoundValue(dataObj, dataKey) ?? ""
+        : isPropControlled
+          ? propValue ?? ""
+          : innerValue ?? "";
 
     // 마스크/필터/number가 있을 때 입력 직전 1차 필터링
     const handleBeforeInput = (e) => {
@@ -191,12 +207,12 @@ const Input = forwardRef(
             for (let i = 0; i < raw.length; i++) {
               while (maskPos < m.length && !isSlot(m[maskPos])) maskPos++;
               if (maskPos >= m.length) break;
-              const t = m[maskPos];
+              const slotToken = m[maskPos];
               const ch = raw[i];
               let ok = false;
-              if (t === "#") ok = isDigit(ch);
-              else if (t === "A" || t === "a" || t === "?") ok = isAlpha(ch);
-              else if (t === "*") ok = true;
+              if (slotToken === "#") ok = isDigit(ch);
+              else if (slotToken === "A" || slotToken === "a" || slotToken === "?") ok = isAlpha(ch);
+              else if (slotToken === "*") ok = true;
               if (ok) maskPos++;
             }
             while (maskPos < m.length && !isSlot(m[maskPos])) maskPos++;
@@ -331,11 +347,7 @@ const Input = forwardRef(
           pattern={type === "number" ? "[0-9]*" : undefined}
           inputMode={type === "number" ? "decimal" : undefined}
           placeholder={placeholder || mask}
-          value={
-            isControlled
-              ? draftValue ?? getBoundValue(dataObj, dataKey) ?? ""
-              : draftValue ?? innerValue ?? ""
-          }
+          value={draftValue ?? getCommitted()}
           onKeyDown={handleKeyDown}
           onBeforeInput={handleBeforeInput}
           onChange={handleChange}
@@ -425,6 +437,8 @@ const Input = forwardRef(
             type="button"
             onClick={() => setShowPassword(!showPassword)}
             className="absolute right-3 top-1/2 transform -translate-y-1/2"
+            aria-label={showPassword ? "비밀번호 숨기기" : "비밀번호 보기"}
+            aria-pressed={showPassword}
           >
             <Icon
               icon={showPassword ? "ri:RiEyeLine" : "ri:RiEyeOffLine"}

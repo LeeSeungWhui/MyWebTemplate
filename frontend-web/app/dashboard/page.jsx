@@ -1,52 +1,42 @@
 /**
  * 파일명: dashboard/page.jsx
- * 작성자: Codex
- * 갱신일: 2025-11-27
+ * 작성자: LSH
+ * 갱신일: 2026-02-23
  * 설명: 대시보드 페이지 엔트리(서버 컴포넌트)
  */
 
 import DashboardView from "./view";
 import { PAGE_MODE } from "./initData";
+import {
+  buildDashboardInitialData,
+  DASHBOARD_ERROR_KEY,
+} from "./dataStrategy";
 import { apiJSON } from "@/app/lib/runtime/api";
 
 export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
 export const revalidate = 0;
-
-const toErrorState = (err, key) => {
-  if (!err) return { key };
-  return {
-    key,
-    code: err.code,
-    requestId: err.requestId,
-  };
-};
-
-const fetchInitial = async () => {
-  const endpoints = PAGE_MODE.endPoints || {};
-  if (!endpoints.stats || !endpoints.list) {
-    console.error("대시보드 엔드포인트가 설정되지 않았습니다.");
-    return { statList: [], dataList: [], error: toErrorState(null, "ENDPOINT_MISSING") };
-  }
-  try {
-    const [stats, list] = await Promise.all([
-      apiJSON(endpoints.stats),
-      apiJSON(endpoints.list),
-    ]);
-    return {
-      statList: stats?.result?.byStatus || [],
-      dataList: list?.result?.items || [],
-      error: null,
-    };
-  } catch (error) {
-    console.error("대시보드 초기 데이터 조회 실패", error);
-    return { statList: [], dataList: [], error: toErrorState(error, "INIT_FETCH_FAILED") };
-  }
+export const fetchCache = "only-no-store";
+export const metadata = {
+  title: "Dashboard | MyWebTemplate",
+  robots: {
+    index: false,
+    follow: false,
+  },
 };
 
 const DashboardPage = async () => {
-  const initialData = PAGE_MODE.MODE === "SSR"
-    ? await fetchInitial()
-    : { statList: [], dataList: [], error: null };
+  const initialData = await buildDashboardInitialData({
+    mode: PAGE_MODE.MODE,
+    endPoints: PAGE_MODE.endPoints,
+    fetcher: apiJSON,
+  });
+  if (initialData?.error?.key === DASHBOARD_ERROR_KEY.ENDPOINT_MISSING) {
+    console.error("대시보드 엔드포인트가 설정되지 않았습니다.");
+  }
+  if (initialData?.error?.key === DASHBOARD_ERROR_KEY.INIT_FETCH_FAILED) {
+    console.error("대시보드 초기 데이터 조회 실패", initialData.error);
+  }
   return (
     <DashboardView
       statList={initialData.statList}

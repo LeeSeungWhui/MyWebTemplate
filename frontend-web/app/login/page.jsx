@@ -7,6 +7,13 @@
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
 export const runtime = 'nodejs'
+export const metadata = {
+  title: 'Login | MyWebTemplate',
+  robots: {
+    index: false,
+    follow: false,
+  },
+}
 
 import Client from './view'
 import { apiJSON } from '@/app/lib/runtime/api'

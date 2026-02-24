@@ -2,7 +2,7 @@
 /**
  * 파일명: SharedStore.jsx
  * 작성자: LSH
- * 갱신일: 2025-09-13
+ * 갱신일: 2026-02-22
  * 설명: Zustand 기반 전역 공유 스토어
  */
 
@@ -23,8 +23,8 @@ export const useSharedStore = create((set, get) => ({
   loadingCounter: 0,
   isLoading: false,
   updateLoading: (delta = 0) => set((s) => {
-    const c = Math.max(0, (s.loadingCounter || 0) + delta);
-    return { loadingCounter: c, isLoading: c > 0 };
+    const nextCounter = Math.max(0, (s.loadingCounter || 0) + delta);
+    return { loadingCounter: nextCounter, isLoading: nextCounter > 0 };
   }),
   setLoading: (v) => set({ isLoading: !!v, loadingCounter: v ? 1 : 0 }),
 
@@ -91,18 +91,30 @@ export const useSharedStore = create((set, get) => ({
 }));
 
 // 편의 훅: 서버/SSR 경고 방지를 위해 개별 셀렉터로 안정값만 반환
+/**
+ * @description 사용자 캐시 상태(user)와 setter를 반환한다.
+ * @returns {{ user: any, setUser: Function }}
+ */
 export const useUser = () => {
   const user = useSharedStore((s) => s.user);
   const setUser = useSharedStore((s) => s.setUser);
   return { user, setUser };
 };
 
+/**
+ * @description 공용 shared 상태와 patch setter를 반환한다.
+ * @returns {{ shared: Object, setShared: Function }}
+ */
 export const useSharedData = () => {
   const shared = useSharedStore((s) => s.shared);
   const setShared = useSharedStore((s) => s.setShared);
   return { shared, setShared };
 };
 
+/**
+ * @description 전역 UI 상태/액션(loading, alert, confirm, toast)을 반환한다.
+ * @returns {Object}
+ */
 export const useGlobalUi = () => {
   const isLoading = useSharedStore((s) => s.isLoading);
   const setLoading = useSharedStore((s) => s.setLoading);
@@ -136,3 +148,25 @@ export const useGlobalUi = () => {
   };
 };
 
+/**
+ * 설명: React 훅 컨텍스트 밖에서 안전하게 config 스냅샷을 조회한다.
+ * 갱신일: 2026-02-22
+ */
+export const getConfigSnapshot = () => {
+  const state = useSharedStore.getState?.();
+  const config = state?.config;
+  return config && typeof config === 'object' ? config : {};
+};
+
+/**
+ * 설명: React 훅 컨텍스트 밖에서 전역 UI 액션 스냅샷을 조회한다.
+ * 갱신일: 2026-02-22
+ */
+export const getGlobalUiActionsSnapshot = () => {
+  const state = useSharedStore.getState?.() || {};
+  return {
+    updateLoading:
+      typeof state.updateLoading === 'function' ? state.updateLoading : () => {},
+    showAlert: typeof state.showAlert === 'function' ? state.showAlert : () => {},
+  };
+};
