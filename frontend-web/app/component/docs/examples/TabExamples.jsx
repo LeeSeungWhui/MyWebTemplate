@@ -7,6 +7,10 @@
 import * as Lib from '@/app/lib';
 import { useState } from 'react';
 
+/**
+ * @description TabExamples 구성 데이터를 반환한다.
+ * @updated 2026-02-24
+ */
 export const TabExamples = () => {
     const tabState = Lib.EasyObj({
         selectedTab: 0

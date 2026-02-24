@@ -1,6 +1,7 @@
 /**
- * EasyEditorExamples.jsx
+ * 파일명: EasyEditorExamples.jsx
  * 작성자: LSH
+ * 갱신일: 2026-02-24
  * 설명: EasyEditor 컴포넌트 예제
  */
 import * as Lib from '@/app/lib';
@@ -14,6 +15,10 @@ const summariseHtml = (value) => {
   return stripped.length > 40 ? `${stripped.slice(0, 40)} ...` : stripped;
 };
 
+/**
+ * @description EasyEditorExamples 구성 데이터를 반환한다.
+ * @updated 2026-02-24
+ */
 export const EasyEditorExamples = () => {
   const dataObj = Lib.EasyObj({
     announcement: '<p></p>',

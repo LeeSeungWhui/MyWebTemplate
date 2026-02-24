@@ -1,4 +1,10 @@
 "use client";
+/**
+ * 파일명: PdfViewer.jsx
+ * 작성자: LSH
+ * 갱신일: 2026-02-24
+ * 설명: PDF 렌더링 컴포넌트
+ */
 
 import React, { useEffect, useMemo, useState } from 'react';
 import dynamic from 'next/dynamic';

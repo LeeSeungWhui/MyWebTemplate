@@ -11,7 +11,10 @@
 import React from 'react';
 
 const Arrow = ({ dir, className = '' }) => {
-  const rotate = dir === 'left' ? 'rotate-180' : dir === 'up' ? '-rotate-90' : dir === 'down' ? 'rotate-90' : '';
+  let rotate = '';
+  if (dir === 'left') rotate = 'rotate-180';
+  else if (dir === 'up') rotate = '-rotate-90';
+  else if (dir === 'down') rotate = 'rotate-90';
   return (
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" className={`${rotate} ${className}`} aria-hidden>
       <path d="M5.5 3L10 8L5.5 13" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
@@ -98,4 +101,3 @@ const Pagination = ({
 };
 
 export default Pagination;
-

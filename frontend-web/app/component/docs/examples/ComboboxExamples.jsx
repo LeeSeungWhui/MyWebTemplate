@@ -7,6 +7,10 @@
 import { useState } from 'react'
 import * as Lib from '@/app/lib'
 
+/**
+ * @description ComboboxExamples 구성 데이터를 반환한다.
+ * @updated 2026-02-24
+ */
 export const ComboboxExamples = () => {
   const cityList = Lib.EasyList([
     { value: 'seoul', text: '서울' },

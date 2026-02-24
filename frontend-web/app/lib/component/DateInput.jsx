@@ -11,21 +11,34 @@ import { forwardRef, useEffect, useRef, useState, useMemo } from 'react';
 import { getBoundValue, setBoundValue, buildCtx, fireValueHandlers } from '../binding';
 import Icon from './Icon';
 
-const pad2 = (n) => String(n).padStart(2, '0');
-const fmtISO = (y, m, d) => `${y}-${pad2(m)}-${pad2(d)}`;
-const parseISO = (s) => {
-  if (!s || typeof s !== 'string') return null;
-  const m = s.match(/^([0-9]{4})-([0-9]{2})-([0-9]{2})$/);
-  if (!m) return null;
-  const y = Number(m[1]);
-  const mo = Number(m[2]);
-  const da = Number(m[3]);
-  const dt = new Date(y, mo - 1, da);
-  if (dt.getFullYear() !== y || dt.getMonth() !== mo - 1 || dt.getDate() !== da) return null;
-  return dt;
+const pad2 = (numberValue) => String(numberValue).padStart(2, '0');
+const fmtISO = (yearValue, monthValue, dayValue) => `${yearValue}-${pad2(monthValue)}-${pad2(dayValue)}`;
+const parseISO = (isoText) => {
+  if (!isoText || typeof isoText !== 'string') return null;
+  const parsedMatch = isoText.match(/^([0-9]{4})-([0-9]{2})-([0-9]{2})$/);
+  if (!parsedMatch) return null;
+  const yearNumber = Number(parsedMatch[1]);
+  const monthNumber = Number(parsedMatch[2]);
+  const dayNumber = Number(parsedMatch[3]);
+  const parsedDate = new Date(yearNumber, monthNumber - 1, dayNumber);
+  if (
+    parsedDate.getFullYear() !== yearNumber ||
+    parsedDate.getMonth() !== monthNumber - 1 ||
+    parsedDate.getDate() !== dayNumber
+  ) {
+    return null;
+  }
+  return parsedDate;
 };
 
-const sameDay = (a, b) => a && b && a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+const sameDay = (firstDate, secondDate) => {
+  if (!firstDate || !secondDate) return false;
+  return (
+    firstDate.getFullYear() === secondDate.getFullYear() &&
+    firstDate.getMonth() === secondDate.getMonth() &&
+    firstDate.getDate() === secondDate.getDate()
+  );
+};
 
 const DateInput = forwardRef(({ 
   dataObj,
@@ -84,10 +97,18 @@ const DateInput = forwardRef(({
   const [viewMonth, setViewMonth] = useState(() => (selectedDate?.getMonth() ?? today.getMonth())); // 0-11
 
   const changeMonth = (delta) => {
-    let y = viewYear, m = viewMonth + delta;
-    while (m < 0) { m += 12; y -= 1; }
-    while (m > 11) { m -= 12; y += 1; }
-    setViewYear(y); setViewMonth(m);
+    let nextYear = viewYear;
+    let nextMonth = viewMonth + delta;
+    while (nextMonth < 0) {
+      nextMonth += 12;
+      nextYear -= 1;
+    }
+    while (nextMonth > 11) {
+      nextMonth -= 12;
+      nextYear += 1;
+    }
+    setViewYear(nextYear);
+    setViewMonth(nextMonth);
   };
 
   const monthGrid = useMemo(() => {
@@ -95,15 +116,25 @@ const DateInput = forwardRef(({
     const startDay = first.getDay(); // 0 Sun
     const start = new Date(viewYear, viewMonth, 1 - startDay);
     const days = [];
-    for (let i = 0; i < 42; i++) {
-      const d = new Date(start);
-      d.setDate(start.getDate() + i);
-      const inMonth = d.getMonth() === viewMonth;
-      const iso = fmtISO(d.getFullYear(), d.getMonth() + 1, d.getDate());
+    for (let dayIndex = 0; dayIndex < 42; dayIndex += 1) {
+      const dayDate = new Date(start);
+      dayDate.setDate(start.getDate() + dayIndex);
+      const inMonth = dayDate.getMonth() === viewMonth;
+      const iso = fmtISO(dayDate.getFullYear(), dayDate.getMonth() + 1, dayDate.getDate());
       let disabledDay = false;
-      if (minDate && d < new Date(minDate.getFullYear(), minDate.getMonth(), minDate.getDate())) disabledDay = true;
-      if (maxDate && d > new Date(maxDate.getFullYear(), maxDate.getMonth(), maxDate.getDate())) disabledDay = true;
-      days.push({ d, iso, inMonth, disabled: disabledDay });
+      if (
+        minDate &&
+        dayDate < new Date(minDate.getFullYear(), minDate.getMonth(), minDate.getDate())
+      ) {
+        disabledDay = true;
+      }
+      if (
+        maxDate &&
+        dayDate > new Date(maxDate.getFullYear(), maxDate.getMonth(), maxDate.getDate())
+      ) {
+        disabledDay = true;
+      }
+      days.push({ dayDate, iso, inMonth, disabled: disabledDay });
     }
     return days;
   }, [viewYear, viewMonth, minDate, maxDate]);
@@ -174,19 +205,28 @@ const DateInput = forwardRef(({
             {['일','월','화','수','목','금','토'].map((d) => (<div key={d}>{d}</div>))}
           </div>
           <div className="grid grid-cols-7 gap-1">
-            {monthGrid.map(({ d, iso, inMonth, disabled: dis }) => {
-              const isSel = selectedDate && sameDay(d, selectedDate);
-              const isToday = sameDay(d, today);
+            {monthGrid.map(({ dayDate, iso, inMonth, disabled: isDisabled }) => {
+              const isSel = sameDay(dayDate, selectedDate);
+              const isToday = sameDay(dayDate, today);
               const cls = [
                 'h-8 rounded text-sm flex items-center justify-center cursor-pointer',
                 inMonth ? '' : 'text-gray-400',
-                dis ? 'cursor-not-allowed opacity-50' : 'hover:bg-blue-50',
+                isDisabled ? 'cursor-not-allowed opacity-50' : 'hover:bg-blue-50',
                 isSel ? 'bg-blue-600 text-white hover:bg-blue-600' : '',
                 !isSel && isToday ? 'ring-1 ring-blue-400' : ''
               ].join(' ').trim();
               return (
-                <button key={iso} type="button" className={cls} disabled={dis} onClick={() => { commit(iso); setOpen(false); }}>
-                  {d.getDate()}
+                <button
+                  key={iso}
+                  type="button"
+                  className={cls}
+                  disabled={isDisabled}
+                  onClick={() => {
+                    commit(iso);
+                    setOpen(false);
+                  }}
+                >
+                  {dayDate.getDate()}
                 </button>
               );
             })}

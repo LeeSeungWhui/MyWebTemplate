@@ -6,6 +6,10 @@
  */
 import * as Lib from '@/app/lib';
 
+/**
+ * @description DataClassExamples 구성 데이터를 반환한다.
+ * @updated 2026-02-24
+ */
 export const DataClassExamples = () => {
     const examples = [
         {

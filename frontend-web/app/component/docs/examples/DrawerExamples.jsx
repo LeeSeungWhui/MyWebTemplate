@@ -11,6 +11,10 @@
 import * as Lib from '@/app/lib';
 import { useState } from 'react';
 
+/**
+ * @description DrawerExamples 구성 데이터를 반환한다.
+ * @updated 2026-02-24
+ */
 export const DrawerExamples = () => {
   const [rightOpen, setRightOpen] = useState(false);
   const [leftOpen, setLeftOpen] = useState(false);

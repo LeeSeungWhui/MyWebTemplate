@@ -11,6 +11,10 @@
 const isProxyLike = (obj) => obj && typeof obj === 'object' && (obj.__isProxy || obj.__rawObject);
 const getRaw = (obj) => (obj && obj.__rawObject) ? obj.__rawObject : obj;
 
+/**
+ * @description 바인딩 객체에서 key 경로 값을 읽는다.
+ * @updated 2026-02-24
+ */
 export function getBoundValue(dataObj, dataKey) {
   if (!dataObj || !dataKey) return undefined;
   // Prefer explicit getter if provided
@@ -18,13 +22,17 @@ export function getBoundValue(dataObj, dataKey) {
   // Dotted path support
   const parts = String(dataKey).split('.');
   let cur = dataObj;
-  for (const p of parts) {
+  for (const segment of parts) {
     if (cur == null) return undefined;
-    cur = cur[p];
+    cur = cur[segment];
   }
   return cur;
 }
 
+/**
+ * @description 바인딩 객체의 key 경로 값을 설정한다.
+ * @updated 2026-02-24
+ */
 export function setBoundValue(dataObj, dataKey, value, options = {}) {
   if (!dataObj || !dataKey) return;
   const meta = typeof options === 'object' && options !== null ? options : {};
@@ -32,23 +40,36 @@ export function setBoundValue(dataObj, dataKey, value, options = {}) {
   const parts = String(dataKey).split('.');
   let cur = dataObj;
   for (let i = 0; i < parts.length - 1; i++) {
-    const p = parts[i];
-    if (cur[p] == null || typeof cur[p] !== 'object') {
-      cur[p] = {};
+    const segment = parts[i];
+    if (cur[segment] == null || typeof cur[segment] !== 'object') {
+      cur[segment] = {};
     }
-    cur = cur[p];
+    cur = cur[segment];
   }
   const last = parts[parts.length - 1];
   cur[last] = value;
   return value;
 }
 
+/**
+ * @description 값 변경 컨텍스트를 구성한다.
+ * @updated 2026-02-24
+ */
 export function buildCtx({ dataKey, dataObj, source = 'user', valid = null, dirty = true }) {
   const raw = getRaw(dataObj);
-  const modelType = Array.isArray(raw) ? 'list' : (raw && typeof raw === 'object' ? 'obj' : null);
+  let modelType = null;
+  if (Array.isArray(raw)) {
+    modelType = 'list';
+  } else if (raw && typeof raw === 'object') {
+    modelType = 'obj';
+  }
   return { dataKey, modelType, dirty: !!dirty, valid, source };
 }
 
+/**
+ * @description onChange/onValueChange 핸들러를 공통 규약으로 호출한다.
+ * @updated 2026-02-24
+ */
 export function fireValueHandlers({ onChange, onValueChange, value, ctx, event }) {
   // Back-compat: if consumer provided onChange expecting event, pass event with detail
   if (event) {
@@ -59,7 +80,7 @@ export function fireValueHandlers({ onChange, onValueChange, value, ctx, event }
         event.detail.value = value;
         event.detail.ctx = ctx;
       }
-    } catch (e) {
+    } catch (error) {
       try {
         event.detail = { value, ctx };
       } catch (_) {

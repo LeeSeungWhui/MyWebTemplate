@@ -24,7 +24,10 @@ const Tab = ({
     const isControlled = dataObj && typeof dataKey !== 'undefined' && dataKey !== null;
     const [internalTab, setInternalTab] = useState(tabIndex || 0);
     const boundValue = isControlled ? getBoundValue(dataObj, dataKey) : undefined;
-    const currentTab = isControlled ? (typeof boundValue === 'number' ? boundValue : 0) : internalTab;
+    let currentTab = internalTab;
+    if (isControlled) {
+        currentTab = typeof boundValue === 'number' ? boundValue : 0;
+    }
 
     // children이 없거나 배열이 아닐 경우 처리
     const items = Array.isArray(children) ? children : [children].filter(Boolean);

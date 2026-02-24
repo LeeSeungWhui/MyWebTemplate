@@ -70,26 +70,32 @@ const Drawer = forwardRef(function Drawer(
     if (typeof size === 'number') {
       numericSize = size;
     } else if (typeof size === 'string') {
-      const m = size.trim().match(/^(\d+(?:\.\d+)?)(?:px)?$/);
-      if (m) numericSize = parseFloat(m[1]);
-      else sizeCls = size; // assume classes like 'w-96' or 'h-80'
+      const trimmedSize = size.trim();
+      const pxSuffix = trimmedSize.endsWith('px');
+      const numericText = pxSuffix ? trimmedSize.slice(0, -2) : trimmedSize;
+      const numericCandidate = Number(numericText);
+      if (numericText && !Number.isNaN(numericCandidate)) {
+        numericSize = numericCandidate;
+      } else {
+        sizeCls = size; // assume classes like 'w-96' or 'h-80'
+      }
     }
   }
-  const resizeCls = resizable
-    ? (side === 'top' || side === 'bottom' ? 'resize-y overflow-auto' : 'resize-x overflow-auto')
-    : '';
+  let resizeCls = '';
+  if (resizable) {
+    if (side === 'top' || side === 'bottom') resizeCls = 'resize-y overflow-auto';
+    else resizeCls = 'resize-x overflow-auto';
+  }
   const transformCls = isOpen ? conf.transform.open : conf.transform.closed;
 
   // Emphasize the corner where the handle lives
-  const cornerBoost = collapseButton
-    ? (side === 'right'
-      ? 'rounded-l-2xl'
-      : side === 'left'
-        ? 'rounded-r-2xl'
-        : side === 'top'
-          ? 'rounded-b-2xl'
-          : 'rounded-t-2xl')
-    : '';
+  let cornerBoost = '';
+  if (collapseButton) {
+    if (side === 'right') cornerBoost = 'rounded-l-2xl';
+    else if (side === 'left') cornerBoost = 'rounded-r-2xl';
+    else if (side === 'top') cornerBoost = 'rounded-b-2xl';
+    else cornerBoost = 'rounded-t-2xl';
+  }
 
   // Handle placement at edge center (inside panel)
   const handlePos = {
@@ -108,15 +114,13 @@ const Drawer = forwardRef(function Drawer(
   const handleBase = 'bg-gray-100/90 hover:bg-gray-200 text-gray-500 border-gray-200 shadow-sm flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-blue-500/30';
   const arrowRotate = { right: '', left: 'rotate-180', top: '-rotate-90', bottom: 'rotate-90' };
   // Add edge padding so the button does not overlap content
-  const contentPad = collapseButton
-    ? (side === 'right'
-      ? 'pl-10'
-      : side === 'left'
-        ? 'pr-10'
-        : side === 'top'
-          ? 'pb-10'
-          : 'pt-10')
-    : '';
+  let contentPad = '';
+  if (collapseButton) {
+    if (side === 'right') contentPad = 'pl-10';
+    else if (side === 'left') contentPad = 'pr-10';
+    else if (side === 'top') contentPad = 'pb-10';
+    else contentPad = 'pt-10';
+  }
 
   const assignRef = (el) => {
     if (typeof ref === 'function') ref(el);

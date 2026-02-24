@@ -1,4 +1,10 @@
 "use client";
+/**
+ * 파일명: useEditorUpload.jsx
+ * 작성자: LSH
+ * 갱신일: 2026-02-24
+ * 설명: EasyEditor 이미지 업로드 훅
+ */
 
 import { useMemo } from 'react';
 import easyUploadRequest from '@/app/lib/hooks/useEasyUpload.jsx';
@@ -116,6 +122,10 @@ const createUploader = (uploadUrl, fieldName, transform) => {
   };
 };
 
+/**
+ * @description useEditorUpload 구성 데이터를 반환한다.
+ * @updated 2026-02-24
+ */
 export default function useEditorUpload({ imageUploadUrl = '', fileUploadUrl = '' } = {}) {
   const uploadImage = useMemo(
     () => createUploader(imageUploadUrl, DEFAULT_IMAGE_FIELD, (payload) => extractUrl(payload)),

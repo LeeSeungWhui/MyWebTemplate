@@ -1,10 +1,16 @@
 /**
  * 파일명: PdfViewerExamples.jsx
+ * 작성자: LSH
+ * 갱신일: 2026-02-24
  * 설명: PdfViewer 컴포넌트 예제
  */
 import * as Lib from '@/app/lib';
 import { useState } from 'react';
 
+/**
+ * @description PdfViewerExamples 구성 데이터를 반환한다.
+ * @updated 2026-02-24
+ */
 export const PdfViewerExamples = () => {
   const [localFile, setLocalFile] = useState(null);
   const [remoteUrl, setRemoteUrl] = useState('');

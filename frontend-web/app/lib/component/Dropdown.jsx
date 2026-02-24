@@ -160,7 +160,10 @@ const Dropdown = ({
         aria-haspopup="menu"
         aria-expanded={open ? 'true' : 'false'}
         disabled={disabled}
-        onClick={() => !disabled && setOpen(!open)}
+        onClick={() => {
+          if (disabled) return;
+          setOpen(!open);
+        }}
         className={btnCls}
       >
         {(() => {

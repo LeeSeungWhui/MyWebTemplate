@@ -11,16 +11,16 @@ import { forwardRef, useEffect, useRef, useState } from 'react';
 import Icon from './Icon';
 import { getBoundValue, setBoundValue, buildCtx, fireValueHandlers } from '../binding';
 
-const clamp = (n, min, max) => {
-  if (min !== undefined && n < min) return min;
-  if (max !== undefined && n > max) return max;
-  return n;
+const clamp = (numberValue, min, max) => {
+  if (min !== undefined && numberValue < min) return min;
+  if (max !== undefined && numberValue > max) return max;
+  return numberValue;
 };
 
-const parseNum = (v) => {
-  if (v === '' || v === null || v === undefined) return '';
-  const n = Number(v);
-  return Number.isFinite(n) ? n : '';
+const parseNum = (rawValue) => {
+  if (rawValue === '' || rawValue === null || rawValue === undefined) return '';
+  const parsedNumber = Number(rawValue);
+  return Number.isFinite(parsedNumber) ? parsedNumber : '';
 };
 
 const NumberInput = forwardRef(({ 
@@ -57,8 +57,8 @@ const NumberInput = forwardRef(({
   }, [propValue, dataObj, dataKey]);
 
   const commit = (raw, event) => {
-    const n = raw === '' ? '' : parseNum(raw);
-    const next = n === '' ? '' : clamp(n, min, max);
+    const parsedNumber = raw === '' ? '' : parseNum(raw);
+    const next = parsedNumber === '' ? '' : clamp(parsedNumber, min, max);
     if (!isPropControlled && !isData) setInner(next);
     if (isData) setBoundValue(dataObj, dataKey, next);
     const ctx = buildCtx({ dataKey, dataObj, source: 'user', dirty: true, valid: null });
@@ -126,9 +126,9 @@ const NumberInput = forwardRef(({
         placeholder={placeholder}
         value={value}
         onChange={(e) => {
-          const v = e.target.value;
-          if (v === '' || /^-?\d*(?:\.\d*)?$/.test(v)) {
-            if (!isPropControlled && !isData) setInner(v);
+          const nextInputValue = e.target.value;
+          if (nextInputValue === '' || /^-?\d*(?:\.\d*)?$/.test(nextInputValue)) {
+            if (!isPropControlled && !isData) setInner(nextInputValue);
           }
         }}
         onKeyDown={(e) => {

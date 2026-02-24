@@ -11,6 +11,10 @@ import * as Lib from '@/app/lib';
  * Dropdown 예시 목록을 반환
  * @date 2025-09-13
  */
+/**
+ * @description DropdownExamples 구성 데이터를 반환한다.
+ * @updated 2026-02-24
+ */
 export const DropdownExamples = () => {
   const [lastAction, setLastAction] = useState('없음');
   const [sortLabel, setSortLabel] = useState('최신순');

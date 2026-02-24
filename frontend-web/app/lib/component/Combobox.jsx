@@ -272,14 +272,14 @@ const Combobox = forwardRef((props, ref) => {
 
   const filtered = useMemo(() => {
     if (!filterable || !query) return options
-    const q = normalize(query)
-    const qInit = normalize(getChosung(query))
+    const normalizedQuery = normalize(query)
+    const normalizedQueryInitial = normalize(getChosung(query))
     const onlyCho = /^[\u3131-\u314E]+$/.test(query)
     return options.filter((opt) => {
       const lower = normalize(opt.label)
       const init = normalize(getChosung(opt.label))
-      if (onlyCho) return init.includes(q)
-      return lower.includes(q) || init.includes(qInit)
+      if (onlyCho) return init.includes(normalizedQuery)
+      return lower.includes(normalizedQuery) || init.includes(normalizedQueryInitial)
     })
   }, [options, filterable, query])
 
@@ -442,7 +442,10 @@ const Combobox = forwardRef((props, ref) => {
         className={`w-full text-left px-3 py-2 text-sm rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-0 transition-colors ${
           statusMeta.button
         }`}
-        onClick={() => !disabled && setOpen((v) => !v)}
+        onClick={() => {
+          if (disabled) return
+          setOpen((isOpen) => !isOpen)
+        }}
         aria-haspopup="listbox"
         aria-expanded={open}
         aria-controls={open ? listboxId : undefined}
@@ -551,10 +554,12 @@ const Combobox = forwardRef((props, ref) => {
               </li>
             )}
             {filtered.map((opt) => {
-              const selected =
-                multi && Array.isArray(currentValue)
-                  ? valueSet.has(String(opt.value))
-                  : valueSet.has(String(opt.value))
+              let selected = valueSet.has(String(opt.value))
+              if (multi) {
+                if (Array.isArray(currentValue)) {
+                  selected = valueSet.has(String(opt.value))
+                }
+              }
               return (
                 <li
                   key={opt.value}

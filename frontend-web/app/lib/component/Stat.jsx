@@ -19,8 +19,15 @@ const Stat = ({
   helpText,
   className = '',
 }) => {
-  const deltaColor = deltaType === 'up' ? 'text-green-600' : deltaType === 'down' ? 'text-red-600' : 'text-gray-500';
-  const deltaPrefix = deltaType === 'up' ? '▲ ' : deltaType === 'down' ? '▼ ' : '';
+  let deltaColor = 'text-gray-500';
+  let deltaPrefix = '';
+  if (deltaType === 'up') {
+    deltaColor = 'text-green-600';
+    deltaPrefix = '▲ ';
+  } else if (deltaType === 'down') {
+    deltaColor = 'text-red-600';
+    deltaPrefix = '▼ ';
+  }
   return (
     <div className={`border rounded-lg p-4 bg-white shadow-sm ${className}`.trim()}>
       <div className="flex items-center justify-between">
@@ -39,4 +46,3 @@ const Stat = ({
 };
 
 export default Stat;
-

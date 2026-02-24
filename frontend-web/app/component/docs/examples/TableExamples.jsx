@@ -11,13 +11,23 @@
 import * as Lib from '@/app/lib';
 import { useMemo, useState } from 'react';
 
+const roleLabelByIndex = (index) => {
+  if (index % 3 === 0) return 'Admin';
+  if (index % 3 === 1) return 'Editor';
+  return 'Viewer';
+};
+
+/**
+ * @description TableExamples 구성 데이터를 반환한다.
+ * @updated 2026-02-24
+ */
 export const TableExamples = () => {
   const data = useMemo(() => (
     Array.from({ length: 53 }, (_, i) => ({
       id: i + 1,
       name: `사용자 ${i + 1}`,
       email: `user${i + 1}@example.com`,
-      role: i % 3 === 0 ? 'Admin' : i % 3 === 1 ? 'Editor' : 'Viewer',
+      role: roleLabelByIndex(i),
     }))
   ), []);
 
@@ -55,7 +65,7 @@ const data = Array.from({ length: 53 }, (_, i) => ({
   id: i + 1,
   name: '사용자 ' + (i + 1),
   email: 'user' + (i + 1) + '@example.com',
-  role: i % 3 === 0 ? 'Admin' : i % 3 === 1 ? 'Editor' : 'Viewer',
+  role: roleLabelByIndex(i),
 }));
 const columns = [
   { key: 'id', header: 'ID', width: '80px', align: 'center' },
@@ -91,7 +101,7 @@ const data = Array.from({ length: 53 }, (_, i) => ({
   id: i + 1,
   name: '사용자 ' + (i + 1),
   email: 'user' + (i + 1) + '@example.com',
-  role: i % 3 === 0 ? 'Admin' : i % 3 === 1 ? 'Editor' : 'Viewer',
+  role: roleLabelByIndex(i),
 }));
 const columns = [
   { key: 'id', header: 'ID', width: '80px', align: 'center' },
@@ -159,7 +169,7 @@ const data = Array.from({ length: 53 }, (_, i) => ({
   id: i + 1,
   name: '사용자 ' + (i + 1),
   email: 'user' + (i + 1) + '@example.com',
-  role: i % 3 === 0 ? 'Admin' : i % 3 === 1 ? 'Editor' : 'Viewer',
+  role: roleLabelByIndex(i),
 }));
 const styledColumns = [
   { key: 'id', header: 'ID', width: '80px', align: 'center', headerClassName: 'bg-gray-100 rounded-2xl ring-1 ring-gray-200 text-gray-700', cellClassName: 'text-gray-800' },

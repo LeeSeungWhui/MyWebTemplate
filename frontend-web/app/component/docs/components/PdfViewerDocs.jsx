@@ -1,5 +1,7 @@
 /**
  * 파일명: PdfViewerDocs.jsx
+ * 작성자: LSH
+ * 갱신일: 2026-02-24
  * 설명: PdfViewer 컴포넌트 문서
  */
 import { PdfViewerExamples } from '../examples/PdfViewerExamples';

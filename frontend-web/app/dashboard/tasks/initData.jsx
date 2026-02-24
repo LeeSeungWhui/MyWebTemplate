@@ -58,6 +58,10 @@ const toPositiveInt = (rawValue, defaultValue = 1) => {
   return parsed;
 };
 
+/**
+ * @description normalizeTasksQuery 구성 데이터를 반환한다.
+ * @updated 2026-02-24
+ */
 export const normalizeTasksQuery = (searchParams) => {
   const params = searchParams || {};
   const keyword = pickQueryValue(params.q).trim();

@@ -1,4 +1,10 @@
 "use client";
+/**
+ * 파일명: useEditor.jsx
+ * 작성자: LSH
+ * 갱신일: 2026-02-24
+ * 설명: EasyEditor 전용 훅
+ */
 
 import { useEffect, useMemo, useRef } from 'react';
 import { useEditor as useTiptapEditor } from '@tiptap/react';
@@ -11,6 +17,7 @@ import Color from '@tiptap/extension-color';
 import TextAlign from '@tiptap/extension-text-align';
 import { Extension } from '@tiptap/core';
 import { getBoundValue, setBoundValue, buildCtx, fireValueHandlers } from '../../binding';
+import { deepCloneValue, safeJsonParse } from '@/app/lib/runtime/json';
 
 const EMPTY_EXTENSIONS = [];
 
@@ -72,21 +79,17 @@ const normaliseExternalValue = (value, format) => {
   if (!raw) return createEmptyDoc();
 
   if (typeof raw === 'string') {
-    try {
-      return JSON.parse(raw);
-    } catch (error) {
-      console.warn('[EasyEditor] Failed to parse JSON content, using empty document instead.', error);
-      return createEmptyDoc();
-    }
+    const parsedValue = safeJsonParse(raw, null);
+    if (parsedValue && typeof parsedValue === 'object') return parsedValue;
+    console.warn('[EasyEditor] Failed to parse JSON content, using empty document instead.');
+    return createEmptyDoc();
   }
 
   if (typeof raw === 'object') {
-    try {
-      return JSON.parse(JSON.stringify(raw));
-    } catch (error) {
-      console.warn('[EasyEditor] Unable to clone document, using empty document instead.', error);
-      return createEmptyDoc();
-    }
+    const clonedValue = deepCloneValue(raw, null);
+    if (clonedValue && typeof clonedValue === 'object') return clonedValue;
+    console.warn('[EasyEditor] Unable to clone document, using empty document instead.');
+    return createEmptyDoc();
   }
 
   return createEmptyDoc();
@@ -105,13 +108,13 @@ const fingerprint = (value, format) => {
 const cloneForStorage = (value, format) => {
   const raw = unwrap(value);
   if (format === 'html' || format === 'text') return String(raw ?? '');
-  try {
-    return JSON.parse(JSON.stringify(raw ?? createEmptyDoc()));
-  } catch (error) {
-    return createEmptyDoc();
-  }
+  return deepCloneValue(raw ?? createEmptyDoc(), createEmptyDoc());
 };
 
+/**
+ * @description EasyEditor 상태를 바인딩/동기화하는 훅을 반환한다.
+ * @updated 2026-02-24
+ */
 export function useEasyEditor({
   dataObj,
   dataKey,

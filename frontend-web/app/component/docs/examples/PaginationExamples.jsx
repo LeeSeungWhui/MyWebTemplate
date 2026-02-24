@@ -11,6 +11,10 @@ import { useState } from 'react';
  * Pagination 예시 목록을 반환
  * @date 2025-09-13
  */
+/**
+ * @description PaginationExamples 구성 데이터를 반환한다.
+ * @updated 2026-02-24
+ */
 export const PaginationExamples = () => {
   const [pageA, setPageA] = useState(2);
   const [pageB, setPageB] = useState(5);

@@ -11,7 +11,7 @@ import { forwardRef, useEffect, useMemo, useRef, useState } from 'react';
 import { getBoundValue, setBoundValue, buildCtx, fireValueHandlers } from '../binding';
 import Icon from './Icon';
 
-const pad2 = (n) => String(n).padStart(2, '0');
+const pad2 = (numberValue) => String(numberValue).padStart(2, '0');
 
 const TimeInput = forwardRef(({ 
   dataObj,
@@ -43,7 +43,17 @@ const TimeInput = forwardRef(({
     return inner ?? '';
   };
 
-  useEffect(() => { setText(isPropControlled ? (propValue ?? '') : (isData ? (getBoundValue(dataObj, dataKey) ?? '') : inner ?? '')); }, [propValue, dataObj, dataKey]);
+  useEffect(() => {
+    if (isPropControlled) {
+      setText(propValue ?? '');
+      return;
+    }
+    if (isData) {
+      setText(getBoundValue(dataObj, dataKey) ?? '');
+      return;
+    }
+    setText(inner ?? '');
+  }, [propValue, dataObj, dataKey, inner, isData, isPropControlled]);
 
   const commit = (raw, event) => {
     setText(raw);
@@ -63,13 +73,13 @@ const TimeInput = forwardRef(({
 
   const interval = Math.max(1, step ?? 30); // seconds step for list granularity (default 30)
   const items = useMemo(() => {
-    const res = [];
-    for (let s = 0; s < 24 * 60 * 60; s += interval * 60) {
-      const h = Math.floor(s / 3600);
-      const m = Math.floor((s % 3600) / 60);
-      res.push(`${pad2(h)}:${pad2(m)}`);
+    const options = [];
+    for (let secondCursor = 0; secondCursor < 24 * 60 * 60; secondCursor += interval * 60) {
+      const hourValue = Math.floor(secondCursor / 3600);
+      const minuteValue = Math.floor((secondCursor % 3600) / 60);
+      options.push(`${pad2(hourValue)}:${pad2(minuteValue)}`);
     }
-    return res;
+    return options;
   }, [interval]);
 
   useEffect(() => {
@@ -96,14 +106,16 @@ const TimeInput = forwardRef(({
         onChange={(e) => setText(e.target.value)}
         onKeyDown={(e) => {
           if (e.key === 'Enter') {
-            const v = e.currentTarget.value;
-            if (/^\d{2}:\d{2}$/.test(v)) commit(v, e); else setText(value);
+            const typedValue = e.currentTarget.value;
+            if (/^\d{2}:\d{2}$/.test(typedValue)) commit(typedValue, e);
+            else setText(value);
             setOpen(false);
           }
         }}
         onBlur={(e) => {
-          const v = e.target.value;
-          if (/^\d{2}:\d{2}$/.test(v)) commit(v, e); else setText(value);
+          const typedValue = e.target.value;
+          if (/^\d{2}:\d{2}$/.test(typedValue)) commit(typedValue, e);
+          else setText(value);
         }}
         disabled={disabled}
         readOnly={readOnly}
@@ -115,7 +127,7 @@ const TimeInput = forwardRef(({
       <button
         type="button"
         className="absolute inset-y-0 right-2 my-auto h-6 w-6 rounded hover:bg-gray-100 text-gray-500 flex items-center justify-center"
-        onClick={() => setOpen((v) => !v)}
+        onClick={() => setOpen((previousOpen) => !previousOpen)}
         tabIndex={-1}
         aria-label="open time picker"
         disabled={disabled || readOnly}
@@ -124,15 +136,18 @@ const TimeInput = forwardRef(({
       </button>
       {open && (
         <div className="absolute z-10 mt-1 w-40 max-h-64 overflow-auto rounded-md border border-gray-200 bg-white shadow-lg p-1" role="listbox" id={inputId ? `${inputId}_list` : undefined}>
-          {items.map((t) => (
+          {items.map((timeOption) => (
             <div
-              key={t}
+              key={timeOption}
               role="option"
-              aria-selected={t === value}
-              className={`px-2 py-1 text-sm rounded cursor-pointer hover:bg-blue-50 ${t === value ? 'bg-blue-100' : ''}`}
-              onClick={() => { commit(t); setOpen(false); }}
+              aria-selected={timeOption === value}
+              className={`px-2 py-1 text-sm rounded cursor-pointer hover:bg-blue-50 ${timeOption === value ? 'bg-blue-100' : ''}`}
+              onClick={() => {
+                commit(timeOption);
+                setOpen(false);
+              }}
             >
-              {t}
+              {timeOption}
             </div>
           ))}
         </div>

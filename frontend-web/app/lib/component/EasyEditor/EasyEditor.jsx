@@ -1,4 +1,10 @@
 "use client";
+/**
+ * 파일명: EasyEditor.jsx
+ * 작성자: LSH
+ * 갱신일: 2026-02-24
+ * 설명: EasyEditor UI 컴포넌트
+ */
 
 import { useCallback, useMemo, useRef, useState, useEffect } from 'react';
 import { EditorContent } from '@tiptap/react';

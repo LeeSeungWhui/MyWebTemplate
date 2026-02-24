@@ -50,6 +50,10 @@ const ToastDurations = () => {
   );
 };
 
+/**
+ * @description ToastExamples 구성 데이터를 반환한다.
+ * @updated 2026-02-24
+ */
 export const ToastExamples = () => {
   return [
     {

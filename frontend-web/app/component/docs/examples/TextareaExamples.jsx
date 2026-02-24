@@ -8,6 +8,10 @@
 import * as Lib from '@/app/lib';
 import { useState } from 'react';
 
+/**
+ * @description TextareaExamples 구성 데이터를 반환한다.
+ * @updated 2026-02-24
+ */
 export const TextareaExamples = () => {
   const obj = Lib.EasyObj({ memo: '초기 메모' });
   const [val, setVal] = useState('로컬 상태');

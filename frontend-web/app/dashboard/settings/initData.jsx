@@ -32,15 +32,27 @@ const pickQueryValue = (searchParams, key) => {
   return String(rawValue);
 };
 
+/**
+ * @description normalizeSettingsTab 구성 데이터를 반환한다.
+ * @updated 2026-02-24
+ */
 export const normalizeSettingsTab = (searchParams) => {
   const tab = pickQueryValue(searchParams, "tab").trim().toLowerCase();
   return tab === SETTINGS_TAB.SYSTEM ? SETTINGS_TAB.SYSTEM : SETTINGS_TAB.PROFILE;
 };
 
+/**
+ * @description toSettingsTabIndex 구성 데이터를 반환한다.
+ * @updated 2026-02-24
+ */
 export const toSettingsTabIndex = (tab) => {
   return tab === SETTINGS_TAB.SYSTEM ? 1 : 0;
 };
 
+/**
+ * @description toSettingsTabQueryValue 구성 데이터를 반환한다.
+ * @updated 2026-02-24
+ */
 export const toSettingsTabQueryValue = (tabIndex) => {
   return Number(tabIndex) === 1 ? SETTINGS_TAB.SYSTEM : "";
 };

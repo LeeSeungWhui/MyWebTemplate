@@ -7,6 +7,10 @@
 import { useState } from 'react'
 import * as Lib from '@/app/lib'
 
+/**
+ * @description SelectExamples 구성 데이터를 반환한다.
+ * @updated 2026-02-24
+ */
 export const SelectExamples = () => {
   const jobOptions = Lib.EasyList([
     { id: '', label: '직무를 선택하세요', placeholder: true, selected: true },
