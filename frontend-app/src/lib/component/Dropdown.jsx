@@ -1,7 +1,7 @@
 /**
  * 파일명: lib/component/Dropdown.jsx
  * 설명: 단일/다중 선택 드롭다운 (EasyObj/controlled + EasyList selected 동기화)
- * 작성자: Codex
+ * 작성자: LSH
  * 갱신일: 2025-02-19
  */
 import { forwardRef, useEffect, useMemo, useState } from "react";
@@ -13,10 +13,12 @@ const normalizeOptions = (dataList = [], valueKey, textKey) => {
   const arr = Array.isArray(dataList)
     ? dataList
     : typeof dataList?.[Symbol.iterator] === "function"
-    ? Array.from(dataList)
-    : [];
+      ? Array.from(dataList)
+      : [];
   return arr.map((item, index) => ({
-    key: Object.prototype.hasOwnProperty.call(item, valueKey) ? item[valueKey] : index,
+    key: Object.prototype.hasOwnProperty.call(item, valueKey)
+      ? item[valueKey]
+      : index,
     value: String(item?.[valueKey] ?? ""),
     label: String(item?.[textKey] ?? ""),
     selected: !!item?.selected,
@@ -67,7 +69,9 @@ const Dropdown = forwardRef((props, ref) => {
         const bound = dataObj[dataKey];
         if (Array.isArray(bound)) return bound.map(String);
       }
-      const selected = options.filter((opt) => opt.selected).map((opt) => opt.value);
+      const selected = options
+        .filter((opt) => opt.selected)
+        .map((opt) => opt.value);
       if (selected.length) return selected;
       if (Array.isArray(defaultValue)) return defaultValue.map(String);
       return [];
@@ -79,7 +83,8 @@ const Dropdown = forwardRef((props, ref) => {
     }
     const selected = options.find((opt) => opt.selected);
     if (selected) return selected.value;
-    if (defaultValue !== undefined && defaultValue !== null) return String(defaultValue);
+    if (defaultValue !== undefined && defaultValue !== null)
+      return String(defaultValue);
     return "";
   };
 
@@ -88,21 +93,35 @@ const Dropdown = forwardRef((props, ref) => {
 
   const currentValue = multi
     ? isControlled
-      ? Array.isArray(value) ? value.map(String) : []
+      ? Array.isArray(value)
+        ? value.map(String)
+        : []
       : hasBinding
-      ? Array.isArray(dataObj[dataKey]) ? dataObj[dataKey].map(String) : []
-      : Array.isArray(innerValue) ? innerValue : []
+        ? Array.isArray(dataObj[dataKey])
+          ? dataObj[dataKey].map(String)
+          : []
+        : Array.isArray(innerValue)
+          ? innerValue
+          : []
     : isControlled
-    ? String(value ?? "")
-    : hasBinding
-    ? String(dataObj[dataKey] ?? innerValue ?? "")
-    : String(innerValue ?? "");
+      ? String(value ?? "")
+      : hasBinding
+        ? String(dataObj[dataKey] ?? innerValue ?? "")
+        : String(innerValue ?? "");
 
   useEffect(() => {
     if (isControlled || !hasBinding) return;
     const next = deriveInitial();
     setInnerValue(next);
-  }, [dataList, dataKey, dataObj, hasBinding, isControlled, value, defaultValue]);
+  }, [
+    dataList,
+    dataKey,
+    dataObj,
+    hasBinding,
+    isControlled,
+    value,
+    defaultValue,
+  ]);
 
   const syncSelectedFlags = (nextVal) => {
     const list = Array.from(dataList ?? []);
@@ -142,7 +161,10 @@ const Dropdown = forwardRef((props, ref) => {
   const handleSelect = (opt) => {
     if (disabled || opt.disabled) return;
     if (multi) {
-      const next = toggleArrayValue(Array.isArray(currentValue) ? currentValue : [], opt.value);
+      const next = toggleArrayValue(
+        Array.isArray(currentValue) ? currentValue : [],
+        opt.value,
+      );
       emitChange(next);
       return;
     }
@@ -155,7 +177,9 @@ const Dropdown = forwardRef((props, ref) => {
     if (multi) {
       const arr = Array.isArray(currentValue) ? currentValue : [];
       if (!arr.length) return placeholder;
-      const labels = options.filter((opt) => arr.includes(opt.value)).map((opt) => opt.label);
+      const labels = options
+        .filter((opt) => arr.includes(opt.value))
+        .map((opt) => opt.label);
       return labels.join(", ");
     }
     const match = options.find((opt) => opt.value === currentValue);
@@ -195,7 +219,8 @@ const Dropdown = forwardRef((props, ref) => {
         <Text
           className={cn(
             "text-sm flex-1",
-            currentValue && (!Array.isArray(currentValue) || currentValue.length)
+            currentValue &&
+              (!Array.isArray(currentValue) || currentValue.length)
               ? "text-gray-900"
               : "text-gray-400",
           )}

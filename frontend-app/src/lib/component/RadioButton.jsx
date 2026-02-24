@@ -1,7 +1,7 @@
 /**
  * 파일명: lib/component/RadioButton.jsx
  * 설명: 버튼 형태의 라디오(단일 선택) 컴포넌트
- * 작성자: Codex
+ * 작성자: LSH
  * 갱신일: 2025-02-19
  */
 import { useEffect, useState } from "react";
@@ -34,7 +34,8 @@ const RadioButton = ({
   onValueChange,
 }) => {
   const isControlled = typeof checked === "boolean";
-  const boundKey = dataKey || name || (typeof children === "string" ? children : undefined);
+  const boundKey =
+    dataKey || name || (typeof children === "string" ? children : undefined);
   const hasBinding = !!(dataObj && boundKey);
   const resolvedColor = COLOR_MAP[color] || color || COLOR_MAP.default;
 
@@ -45,8 +46,8 @@ const RadioButton = ({
   const currentChecked = isControlled
     ? !!checked
     : hasBinding
-    ? dataObj[boundKey] === value
-    : innerChecked;
+      ? dataObj[boundKey] === value
+      : innerChecked;
 
   useEffect(() => {
     if (isControlled || !hasBinding) return;
@@ -104,7 +105,10 @@ const RadioButton = ({
       style={buttonStyle}
     >
       {typeof children === "string" ? (
-        <Text className="text-sm font-medium" style={{ color: buttonStyle.color }}>
+        <Text
+          className="text-sm font-medium"
+          style={{ color: buttonStyle.color }}
+        >
           {children}
         </Text>
       ) : (

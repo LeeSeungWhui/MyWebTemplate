@@ -1,7 +1,7 @@
 /**
  * 파일명: SharedStore.jsx
  * 설명: Zustand 기반 전역 공유 스토어 (웹과 동일 API: useGlobalUi)
- * 작성자: Codex
+ * 작성자: LSH
  * 갱신일: 2025-02-19
  */
 import { create } from "zustand";
@@ -53,9 +53,11 @@ export const useSharedStore = create((set, get) => ({
   userJson: null,
   setUserJson: (userJson) => set({ userJson }),
   config: {},
-  setConfig: (config) => set({ config: config && typeof config === "object" ? config : {} }),
+  setConfig: (config) =>
+    set({ config: config && typeof config === "object" ? config : {} }),
   shared: {},
-  setShared: (patch) => set((s) => ({ shared: { ...s.shared, ...(patch || {}) } })),
+  setShared: (patch) =>
+    set((s) => ({ shared: { ...s.shared, ...(patch || {}) } })),
 
   loadingCounter: 0,
   isLoading: false,
@@ -66,7 +68,14 @@ export const useSharedStore = create((set, get) => ({
     }),
   setLoading: (v) => set({ isLoading: !!v, loadingCounter: v ? 1 : 0 }),
 
-  alert: { show: false, title: "", message: "", type: "info", onClick: undefined, onFocus: undefined },
+  alert: {
+    show: false,
+    title: "",
+    message: "",
+    type: "info",
+    onClick: undefined,
+    onFocus: undefined,
+  },
   showAlert: (message, opts = {}) =>
     set({
       alert: {
@@ -80,7 +89,14 @@ export const useSharedStore = create((set, get) => ({
     }),
   hideAlert: () =>
     set({
-      alert: { show: false, title: "", message: "", type: "info", onClick: undefined, onFocus: undefined },
+      alert: {
+        show: false,
+        title: "",
+        message: "",
+        type: "info",
+        onClick: undefined,
+        onFocus: undefined,
+      },
     }),
 
   confirm: {
@@ -107,7 +123,8 @@ export const useSharedStore = create((set, get) => ({
           cancelText: opts.cancelText || "취소",
           onConfirm: opts.onConfirm,
           onCancel: opts.onCancel,
-          onFocus: typeof opts.onFocus === "function" ? opts.onFocus : undefined,
+          onFocus:
+            typeof opts.onFocus === "function" ? opts.onFocus : undefined,
         },
         confirmPromiseResolve: resolve,
       });
@@ -115,9 +132,12 @@ export const useSharedStore = create((set, get) => ({
   hideConfirm: (confirmed) => {
     const { confirm, confirmPromiseResolve } = get();
     try {
-      if (confirmed && typeof confirm.onConfirm === "function") confirm.onConfirm();
-      if (!confirmed && typeof confirm.onCancel === "function") confirm.onCancel();
-      if (typeof confirmPromiseResolve === "function") confirmPromiseResolve(!!confirmed);
+      if (confirmed && typeof confirm.onConfirm === "function")
+        confirm.onConfirm();
+      if (!confirmed && typeof confirm.onCancel === "function")
+        confirm.onCancel();
+      if (typeof confirmPromiseResolve === "function")
+        confirmPromiseResolve(!!confirmed);
     } finally {
       set({
         confirm: {
@@ -140,7 +160,13 @@ export const useSharedStore = create((set, get) => ({
     }
   },
 
-  toast: { show: false, message: "", type: "info", duration: 3000, position: "bottom-center" },
+  toast: {
+    show: false,
+    message: "",
+    type: "info",
+    duration: 3000,
+    position: "bottom-center",
+  },
   showToast: (message, opts = {}) =>
     set({
       toast: {
@@ -148,12 +174,19 @@ export const useSharedStore = create((set, get) => ({
         message,
         type: normalizeType(opts.type),
         duration: typeof opts.duration === "number" ? opts.duration : 3000,
-        position: typeof opts.position === "string" ? opts.position : "bottom-center",
+        position:
+          typeof opts.position === "string" ? opts.position : "bottom-center",
       },
     }),
   hideToast: () =>
     set({
-      toast: { show: false, message: "", type: "info", duration: 3000, position: "bottom-center" },
+      toast: {
+        show: false,
+        message: "",
+        type: "info",
+        duration: 3000,
+        position: "bottom-center",
+      },
     }),
 }));
 
@@ -206,7 +239,15 @@ export const useGlobalUi = () => {
  * 오버레이 렌더러: 스토어 구독해서 Loading/Alert/Confirm/Toast 표시
  */
 export const UiOverlay = () => {
-  const { isLoading, alert, hideAlert, confirm, hideConfirm, toast, hideToast } = useGlobalUi();
+  const {
+    isLoading,
+    alert,
+    hideAlert,
+    confirm,
+    hideConfirm,
+    toast,
+    hideToast,
+  } = useGlobalUi();
   const toastOpacity = useRef(new Animated.Value(0)).current;
   const toastTimer = useRef(null);
 
@@ -256,25 +297,29 @@ export const UiOverlay = () => {
                   >
                     <Icon icon={meta.icon} size={20} color={meta.color} />
                   </View>
-                  <Text className="text-lg font-semibold text-gray-900">{alert.title}</Text>
+                  <Text className="text-lg font-semibold text-gray-900">
+                    {alert.title}
+                  </Text>
                 </View>
-                <Text className="mt-2 text-sm text-gray-700">{alert.message}</Text>
+                <Text className="mt-2 text-sm text-gray-700">
+                  {alert.message}
+                </Text>
                 <View className="mt-4 flex-row justify-end space-x-2">
                   <Pressable
                     className="px-4 py-2 rounded-md"
                     style={{ backgroundColor: meta.color }}
-                onPress={() => {
-                  if (typeof alert.onClick === "function") alert.onClick();
-                  hideAlert();
-                  if (typeof alert.onFocus === "function") {
-                    setTimeout(() => alert.onFocus(), 0);
-                  }
-                }}
-              >
-                <Text className="text-sm text-white">확인</Text>
-              </Pressable>
-            </View>
-          </View>
+                    onPress={() => {
+                      if (typeof alert.onClick === "function") alert.onClick();
+                      hideAlert();
+                      if (typeof alert.onFocus === "function") {
+                        setTimeout(() => alert.onFocus(), 0);
+                      }
+                    }}
+                  >
+                    <Text className="text-sm text-white">확인</Text>
+                  </Pressable>
+                </View>
+              </View>
             );
           })()}
         </View>
@@ -293,22 +338,30 @@ export const UiOverlay = () => {
                   >
                     <Icon icon={meta.icon} size={20} color={meta.color} />
                   </View>
-                  <Text className="text-lg font-semibold text-gray-900">{confirm.title}</Text>
+                  <Text className="text-lg font-semibold text-gray-900">
+                    {confirm.title}
+                  </Text>
                 </View>
-                <Text className="mt-2 text-sm text-gray-700">{confirm.message}</Text>
+                <Text className="mt-2 text-sm text-gray-700">
+                  {confirm.message}
+                </Text>
                 <View className="mt-4 flex-row justify-end space-x-2">
                   <Pressable
                     className="px-4 py-2 rounded-md border border-gray-300 bg-white active:bg-gray-100"
                     onPress={() => hideConfirm(false)}
                   >
-                    <Text className="text-sm text-gray-800">{confirm.cancelText}</Text>
+                    <Text className="text-sm text-gray-800">
+                      {confirm.cancelText}
+                    </Text>
                   </Pressable>
                   <Pressable
                     className="px-4 py-2 rounded-md"
                     style={{ backgroundColor: meta.color }}
                     onPress={() => hideConfirm(true)}
                   >
-                    <Text className="text-sm text-white">{confirm.confirmText}</Text>
+                    <Text className="text-sm text-white">
+                      {confirm.confirmText}
+                    </Text>
                   </Pressable>
                 </View>
               </View>

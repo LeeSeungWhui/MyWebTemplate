@@ -1,7 +1,7 @@
 /**
  * 파일명: lib/component/CheckButton.jsx
  * 설명: 토글 버튼 형태의 체크 컴포넌트
- * 작성자: Codex
+ * 작성자: LSH
  * 갱신일: 2025-02-19
  */
 import { forwardRef, useEffect, useState } from "react";
@@ -35,7 +35,8 @@ const CheckButton = forwardRef((props, ref) => {
 
   const isControlled = typeof checked === "boolean";
   const resolvedColor = COLOR_MAP[color] || color || COLOR_MAP.default;
-  const boundKey = dataKey || name || (typeof children === "string" ? children : undefined);
+  const boundKey =
+    dataKey || name || (typeof children === "string" ? children : undefined);
   const [innerChecked, setInnerChecked] = useState(() => {
     if (isControlled) return !!checked;
     if (dataObj && boundKey) return !!dataObj[boundKey];
@@ -107,7 +108,10 @@ const CheckButton = forwardRef((props, ref) => {
       style={colorStyle}
     >
       {typeof children === "string" ? (
-        <Text className="text-sm font-medium" style={{ color: colorStyle.color }}>
+        <Text
+          className="text-sm font-medium"
+          style={{ color: colorStyle.color }}
+        >
           {children}
         </Text>
       ) : (

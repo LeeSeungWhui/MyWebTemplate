@@ -1,7 +1,7 @@
 /**
  * 파일명: lib/component/TimeInput.jsx
  * 설명: 시간 선택 컴포넌트 (EasyObj/controlled + native DateTimePicker)
- * 작성자: Codex
+ * 작성자: LSH
  * 갱신일: 2025-02-19
  */
 import { forwardRef, useEffect, useState } from "react";
@@ -56,10 +56,10 @@ const TimeInput = forwardRef((props, ref) => {
   });
 
   const currentValue = isControlled
-    ? value ?? ""
+    ? (value ?? "")
     : hasBinding
-    ? dataObj[dataKey] ?? ""
-    : innerValue;
+      ? (dataObj[dataKey] ?? "")
+      : innerValue;
 
   useEffect(() => {
     if (isControlled || !hasBinding) return;
@@ -97,12 +97,19 @@ const TimeInput = forwardRef((props, ref) => {
         onPress={() => !disabled && !readOnly && setShowPicker(true)}
         className={cn(
           "h-10 px-3 flex-row items-center justify-between rounded-md border",
-          disabled || readOnly ? "bg-gray-100 border-gray-200" : "bg-white border-gray-300",
+          disabled || readOnly
+            ? "bg-gray-100 border-gray-200"
+            : "bg-white border-gray-300",
         )}
         accessibilityRole="button"
         accessibilityState={{ disabled }}
       >
-        <Text className={cn("text-sm", currentValue ? "text-gray-900" : "text-gray-400")}>
+        <Text
+          className={cn(
+            "text-sm",
+            currentValue ? "text-gray-900" : "text-gray-400",
+          )}
+        >
           {currentValue || placeholder}
         </Text>
         <Icon icon="md:schedule" size={18} color="#6b7280" />

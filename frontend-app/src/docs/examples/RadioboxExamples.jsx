@@ -1,16 +1,16 @@
 /**
  * 파일명: RadioboxExamples.jsx
  * 설명: 앱용 Radiobox 컴포넌트 예제
- * 작성자: Codex
+ * 작성자: LSH
  * 갱신일: 2025-02-19
  */
-import { View, Text } from 'react-native';
-import { useState } from 'react';
-import * as Lib from '../../lib';
+import { View, Text } from "react-native";
+import { useState } from "react";
+import * as Lib from "../../lib";
 
 export const RadioboxExamples = () => {
-  const dataObj = Lib.EasyObj({ role: 'developer' });
-  const [role, setRole] = useState('designer');
+  const dataObj = Lib.EasyObj({ role: "developer" });
+  const [role, setRole] = useState("designer");
   const setRoleChecked = (nextValue) => {
     setRole(nextValue);
   };
@@ -42,7 +42,7 @@ export const RadioboxExamples = () => {
           />
         </View>
       ),
-      description: 'name/dataKey를 공유해 하나만 선택되는 기본 라디오 패턴.',
+      description: "name/dataKey를 공유해 하나만 선택되는 기본 라디오 패턴.",
       code: `const dataObj = EasyObj({ role: 'developer' });
 
 <Radiobox label="디자이너" name="role" value="designer" dataObj={dataObj} dataKey="role" />
@@ -52,32 +52,35 @@ export const RadioboxExamples = () => {
     {
       component: (
         <View className="space-y-2">
-          <Text className="text-sm font-semibold text-gray-800">컨트롤드 모드</Text>
+          <Text className="text-sm font-semibold text-gray-800">
+            컨트롤드 모드
+          </Text>
           <Lib.Radiobox
             label="디자이너"
             name="controlled-role"
             value="designer"
-            checked={role === 'designer'}
+            checked={role === "designer"}
             onValueChange={setRole}
           />
           <Lib.Radiobox
             label="개발자"
             name="controlled-role"
             value="developer"
-            checked={role === 'developer'}
+            checked={role === "developer"}
             onValueChange={setRoleChecked}
           />
           <Lib.Radiobox
             label="PM"
             name="controlled-role"
             value="pm"
-            checked={role === 'pm'}
+            checked={role === "pm"}
             onValueChange={setRoleChecked}
           />
           <Text className="text-xs text-gray-600">현재 선택: {role}</Text>
         </View>
       ),
-      description: 'checked/onValueChange로 외부 상태를 제어하는 컨트롤드 패턴.',
+      description:
+        "checked/onValueChange로 외부 상태를 제어하는 컨트롤드 패턴.",
       code: `const [role, setRole] = useState('designer');
 
 <View className="space-y-2">

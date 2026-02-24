@@ -1,36 +1,51 @@
 /**
  * 파일명: RadioButtonExamples.jsx
  * 설명: 앱용 RadioButton 컴포넌트 예제
- * 작성자: Codex
+ * 작성자: LSH
  * 갱신일: 2025-02-19
  */
-import { useState } from 'react';
-import { View, Text } from 'react-native';
-import * as Lib from '../../lib';
+import { useState } from "react";
+import { View, Text } from "react-native";
+import * as Lib from "../../lib";
 
 export const RadioButtonExamples = () => {
   const dataObj = Lib.EasyObj({
-    size: 'medium',
-    theme: '',
+    size: "medium",
+    theme: "",
   });
-  const [lang, setLang] = useState('kr');
+  const [lang, setLang] = useState("kr");
 
   return [
     {
       component: (
         <View className="flex-row space-x-2">
-          <Lib.RadioButton name="size" value="small" dataObj={dataObj} dataKey="size">
+          <Lib.RadioButton
+            name="size"
+            value="small"
+            dataObj={dataObj}
+            dataKey="size"
+          >
             Small
           </Lib.RadioButton>
-          <Lib.RadioButton name="size" value="medium" dataObj={dataObj} dataKey="size">
+          <Lib.RadioButton
+            name="size"
+            value="medium"
+            dataObj={dataObj}
+            dataKey="size"
+          >
             Medium
           </Lib.RadioButton>
-          <Lib.RadioButton name="size" value="large" dataObj={dataObj} dataKey="size">
+          <Lib.RadioButton
+            name="size"
+            value="large"
+            dataObj={dataObj}
+            dataKey="size"
+          >
             Large
           </Lib.RadioButton>
         </View>
       ),
-      description: 'dataObj/dataKey로 하나만 선택되는 기본 라디오버튼.',
+      description: "dataObj/dataKey로 하나만 선택되는 기본 라디오버튼.",
       code: `const dataObj = EasyObj({ size: 'medium' });
 
 <View className="flex-row space-x-2">
@@ -50,7 +65,7 @@ export const RadioButtonExamples = () => {
           </Lib.RadioButton>
         </View>
       ),
-      description: '비활성화 상태.',
+      description: "비활성화 상태.",
       code: `<RadioButton name="disabled" value="d1" disabled>비활성화 1</RadioButton>
 <RadioButton name="disabled" value="d2" disabled checked>비활성화 2</RadioButton>`,
     },
@@ -89,7 +104,7 @@ export const RadioButtonExamples = () => {
           </Lib.RadioButton>
         </View>
       ),
-      description: '커스텀 색상 적용.',
+      description: "커스텀 색상 적용.",
       code: `const dataObj = EasyObj({ theme: '' });
 
 <View className="space-y-2">
@@ -132,7 +147,7 @@ export const RadioButtonExamples = () => {
             <Lib.RadioButton
               name="lang"
               value="kr"
-              checked={lang === 'kr'}
+              checked={lang === "kr"}
               onValueChange={setLang}
             >
               한국어
@@ -140,7 +155,7 @@ export const RadioButtonExamples = () => {
             <Lib.RadioButton
               name="lang"
               value="en"
-              checked={lang === 'en'}
+              checked={lang === "en"}
               onValueChange={setLang}
             >
               English
@@ -149,7 +164,7 @@ export const RadioButtonExamples = () => {
           <Text className="text-xs text-gray-600">선택된 언어: {lang}</Text>
         </View>
       ),
-      description: 'checked/onValueChange 컨트롤드 패턴.',
+      description: "checked/onValueChange 컨트롤드 패턴.",
       code: `const [lang, setLang] = useState('kr');
 
 <View className="flex-row space-x-2">

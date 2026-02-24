@@ -1,7 +1,7 @@
 /**
  * 파일명: lib/component/Select.jsx
  * 설명: EasyObj/EasyList 바인딩을 지원하는 RN 기본 Picker 기반 Select
- * 작성자: Codex
+ * 작성자: LSH
  * 갱신일: 2025-02-19
  */
 import { forwardRef, useEffect, useState } from "react";
@@ -62,8 +62,8 @@ const normalizeOptions = (dataList = [], valueKey, textKey, placeholder) => {
   const arr = Array.isArray(dataList)
     ? dataList
     : typeof dataList?.[Symbol.iterator] === "function"
-    ? Array.from(dataList)
-    : [];
+      ? Array.from(dataList)
+      : [];
   const items = arr.map((item, index) => ({
     key: Object.prototype.hasOwnProperty.call(item, valueKey)
       ? item[valueKey]
@@ -107,7 +107,12 @@ const Select = forwardRef((props, ref) => {
   } = props;
 
   const isControlled = valueProp !== undefined && valueProp !== null;
-  const normalizedOptions = normalizeOptions(dataList, valueKey, textKey, placeholder);
+  const normalizedOptions = normalizeOptions(
+    dataList,
+    valueKey,
+    textKey,
+    placeholder,
+  );
 
   const findInitialValue = () => {
     if (valueProp !== undefined && valueProp !== null) {
@@ -126,8 +131,7 @@ const Select = forwardRef((props, ref) => {
 
   const [innerValue, setInnerValue] = useState(() => findInitialValue());
 
-  const currentValue =
-    isControlled ? String(valueProp) : innerValue;
+  const currentValue = isControlled ? String(valueProp) : innerValue;
 
   useEffect(() => {
     if (isControlled) {
@@ -135,7 +139,15 @@ const Select = forwardRef((props, ref) => {
     }
     const next = findInitialValue();
     setInnerValue((prev) => (prev === next ? prev : next));
-  }, [dataList, defaultValue, isControlled, placeholder, textKey, valueKey, valueProp]);
+  }, [
+    dataList,
+    defaultValue,
+    isControlled,
+    placeholder,
+    textKey,
+    valueKey,
+    valueProp,
+  ]);
 
   useEffect(() => {
     const normalized = String(currentValue ?? "");
@@ -177,7 +189,7 @@ const Select = forwardRef((props, ref) => {
           "px-1",
           statusMeta.border,
           disabled ? "bg-gray-100" : "bg-white",
-          className
+          className,
         )}
         style={[
           styles.wrapper,
@@ -216,7 +228,7 @@ const Select = forwardRef((props, ref) => {
           style={styles.message}
           className={cn(
             statusMeta.message || "text-gray-600",
-            disabled ? "text-gray-500" : ""
+            disabled ? "text-gray-500" : "",
           )}
         >
           {messageText}

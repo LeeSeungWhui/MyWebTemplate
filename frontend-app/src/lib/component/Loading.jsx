@@ -1,7 +1,7 @@
 /**
  * 파일명: lib/component/Loading.jsx
  * 설명: 풀스크린 로딩 오버레이
- * 작성자: Codex
+ * 작성자: LSH
  * 갱신일: 2025-02-19
  */
 import { View, Text, ActivityIndicator } from "react-native";
@@ -12,10 +12,19 @@ import { cn } from "../../common/util/cn";
  */
 const Loading = ({ message = "처리중...", className = "" }) => {
   return (
-    <View className={cn("absolute inset-0 z-50 items-center justify-center bg-black/30", className)}>
+    <View
+      className={cn(
+        "absolute inset-0 z-50 items-center justify-center bg-black/30",
+        className,
+      )}
+    >
       <View className="bg-white/80 px-6 py-5 rounded-lg items-center shadow-lg min-w-[140px]">
         <ActivityIndicator size="large" color="#2563EB" />
-        {message ? <Text className="mt-3 text-sm font-medium text-gray-700">{message}</Text> : null}
+        {message ? (
+          <Text className="mt-3 text-sm font-medium text-gray-700">
+            {message}
+          </Text>
+        ) : null}
       </View>
     </View>
   );

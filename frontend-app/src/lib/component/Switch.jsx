@@ -1,7 +1,7 @@
 /**
  * 파일명: lib/component/Switch.jsx
  * 설명: 토글 스위치 컴포넌트(EasyObj/controlled 지원)
- * 작성자: Codex
+ * 작성자: LSH
  * 갱신일: 2025-02-19
  */
 import { useEffect, useState } from "react";
@@ -35,8 +35,8 @@ const Switch = ({
   const currentChecked = isControlled
     ? !!checked
     : hasBinding
-    ? truthy(dataObj[dataKey])
-    : innerChecked;
+      ? truthy(dataObj[dataKey])
+      : innerChecked;
 
   useEffect(() => {
     if (isControlled || !hasBinding) return;

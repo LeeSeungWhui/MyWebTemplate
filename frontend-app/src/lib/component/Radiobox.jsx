@@ -1,7 +1,7 @@
 /**
  * 파일명: lib/component/Radiobox.jsx
  * 설명: 단일 선택 라디오 버튼 컴포넌트(EasyObj/controlled 지원)
- * 작성자: Codex
+ * 작성자: LSH
  * 갱신일: 2025-02-19
  */
 import { useEffect, useState } from "react";
@@ -44,8 +44,8 @@ const Radiobox = ({
   const currentChecked = isControlled
     ? !!checked
     : hasBinding
-    ? dataObj[boundKey] === value
-    : innerChecked;
+      ? dataObj[boundKey] === value
+      : innerChecked;
 
   useEffect(() => {
     if (isControlled) return;
@@ -90,7 +90,11 @@ const Radiobox = ({
       accessibilityRole="radio"
       accessibilityState={{ selected: currentChecked, disabled }}
       disabled={disabled}
-      className={cn("flex-row items-center", disabled ? "opacity-60" : "", className)}
+      className={cn(
+        "flex-row items-center",
+        disabled ? "opacity-60" : "",
+        className,
+      )}
     >
       <View
         className="w-5 h-5 rounded-full border mr-2 items-center justify-center"

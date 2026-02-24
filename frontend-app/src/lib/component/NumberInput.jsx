@@ -1,7 +1,7 @@
 /**
  * 파일명: lib/component/NumberInput.jsx
  * 설명: 스텝 버튼과 min/max를 지원하는 숫자 입력 (EasyObj/controlled 지원)
- * 작성자: Codex
+ * 작성자: LSH
  * 갱신일: 2025-02-19
  */
 import { forwardRef, useEffect, useState } from "react";
@@ -47,15 +47,16 @@ const NumberInput = forwardRef((props, ref) => {
   const [innerValue, setInnerValue] = useState(() => {
     if (isControlled) return String(value ?? "");
     if (hasBinding) return String(dataObj[dataKey] ?? "");
-    if (defaultValue !== undefined && defaultValue !== null) return String(defaultValue);
+    if (defaultValue !== undefined && defaultValue !== null)
+      return String(defaultValue);
     return "";
   });
 
   const currentValue = isControlled
     ? String(value ?? "")
     : hasBinding
-    ? String(dataObj[dataKey] ?? "")
-    : innerValue;
+      ? String(dataObj[dataKey] ?? "")
+      : innerValue;
 
   useEffect(() => {
     if (isControlled) return;
@@ -142,7 +143,9 @@ const NumberInput = forwardRef((props, ref) => {
         onEndEditing={(e) => commit(e.nativeEvent.text)}
         className={cn(
           "flex-1 h-10 px-3 rounded-md border text-sm",
-          disabled || readOnly ? "bg-gray-100 text-gray-500" : "bg-white text-gray-900",
+          disabled || readOnly
+            ? "bg-gray-100 text-gray-500"
+            : "bg-white text-gray-900",
           "border-gray-300",
         )}
       />

@@ -1,12 +1,12 @@
 /**
  * 파일명: CheckboxExamples.jsx
  * 설명: 앱용 Checkbox 컴포넌트 예제
- * 작성자: Codex
+ * 작성자: LSH
  * 갱신일: 2025-02-19
  */
-import { useState } from 'react';
-import { View, Text } from 'react-native';
-import * as Lib from '../../lib';
+import { useState } from "react";
+import { View, Text } from "react-native";
+import * as Lib from "../../lib";
 
 export const CheckboxExamples = () => {
   const dataObj = Lib.EasyObj({
@@ -23,13 +23,9 @@ export const CheckboxExamples = () => {
   return [
     {
       component: (
-        <Lib.Checkbox
-          label="기본 체크박스"
-          dataObj={dataObj}
-          dataKey="basic"
-        />
+        <Lib.Checkbox label="기본 체크박스" dataObj={dataObj} dataKey="basic" />
       ),
-      description: 'dataObj/dataKey로 바인딩하는 기본 체크박스.',
+      description: "dataObj/dataKey로 바인딩하는 기본 체크박스.",
       code: `const dataObj = EasyObj({ basic: false });
 
 <Checkbox
@@ -47,11 +43,11 @@ export const CheckboxExamples = () => {
             onChange={(e) => setControlled(e.target.checked)}
           />
           <Text className="text-xs text-gray-600">
-            현재 상태: {controlled ? '체크됨' : '체크 해제됨'}
+            현재 상태: {controlled ? "체크됨" : "체크 해제됨"}
           </Text>
         </View>
       ),
-      description: 'checked/onChange로 외부 상태와 동기화하는 컨트롤드 패턴.',
+      description: "checked/onChange로 외부 상태와 동기화하는 컨트롤드 패턴.",
       code: `const [checked, setChecked] = useState(false);
 
 <Checkbox
@@ -63,10 +59,7 @@ export const CheckboxExamples = () => {
     {
       component: (
         <View className="space-y-2">
-          <Lib.Checkbox
-            label="비활성화"
-            disabled
-          />
+          <Lib.Checkbox label="비활성화" disabled />
           <Lib.Checkbox
             label="기본 색상 (primary)"
             dataObj={dataObj}
@@ -87,7 +80,7 @@ export const CheckboxExamples = () => {
           />
         </View>
       ),
-      description: '비활성화와 다양한 색상 변형 사례.',
+      description: "비활성화와 다양한 색상 변형 사례.",
       code: `const dataObj = EasyObj({ primary: false, red: false, green: false });
 
 <Checkbox label="비활성화" disabled />
@@ -128,7 +121,7 @@ export const CheckboxExamples = () => {
           />
         </View>
       ),
-      description: '실제 폼에서 사용하는 약관 동의 패턴.',
+      description: "실제 폼에서 사용하는 약관 동의 패턴.",
       code: `const dataObj = EasyObj({ terms: false, marketing: true });
 
 <Checkbox

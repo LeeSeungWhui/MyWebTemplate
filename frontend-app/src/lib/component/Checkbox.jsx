@@ -1,7 +1,7 @@
 /**
  * 파일명: lib/component/Checkbox.jsx
  * 설명: 라벨/색상/바인딩을 지원하는 공통 체크박스 컴포넌트
- * 작성자: Codex
+ * 작성자: LSH
  * 갱신일: 2025-02-19
  */
 import { useEffect, useState } from "react";
@@ -82,12 +82,16 @@ const Checkbox = ({
       accessibilityRole="checkbox"
       accessibilityState={{ checked: currentChecked, disabled }}
       disabled={disabled}
-      className={cn("flex-row items-center", disabled ? "opacity-60" : "", className)}
+      className={cn(
+        "flex-row items-center",
+        disabled ? "opacity-60" : "",
+        className,
+      )}
     >
       <View
         className={cn(
           "w-5 h-5 rounded border items-center justify-center mr-2",
-          currentChecked ? "" : "bg-white"
+          currentChecked ? "" : "bg-white",
         )}
         style={{
           borderColor: currentChecked ? resolvedColor : "#d1d5db",
