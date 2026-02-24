@@ -234,7 +234,7 @@ def testReadyzTimeout(monkeypatch):
 
 
 def testOraclePingSql(monkeypatch):
-    # Verify oracle ping uses SELECT 1 FROM DUAL by having stub capture SQL
+    # Verify readyz ping uses 표준 쿼리(SELECT 1) by having stub capture SQL
     from lib import Database as DB
 
     class OracleMgr:
@@ -253,8 +253,7 @@ def testOraclePingSql(monkeypatch):
     with TestClient(app) as client:
         response = client.get("/readyz")
         assert response.status_code in (200, 503)
-        # ensure dialect-specific SQL selected
-        assert mgr.lastSql == "SELECT 1 FROM DUAL"
+        assert mgr.lastSql == "SELECT 1"
 
 
 def testLoggingShape(caplog):

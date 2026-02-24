@@ -2,7 +2,7 @@
 id: CU-WEB-003
 name: UI Component Pack (EasyObj/EasyList Binding)
 module: web
-status: planned
+status: implemented
 priority: P1
 links: [CU-WEB-001, CU-WEB-002, CU-WEB-004, CU-WEB-005, CU-WEB-006]
 ---

@@ -1,3 +1,4 @@
+"use client";
 /**
  * 파일명: portfolio/view.jsx
  * 작성자: LSH

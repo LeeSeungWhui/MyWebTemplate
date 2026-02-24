@@ -8,7 +8,6 @@
 import importlib
 import os
 import pkgutil
-import re
 from urllib.parse import quote_plus
 
 try:
@@ -32,7 +31,6 @@ try:  # 패키지 컨텍스트
         startWatchingQueryFolder,
         setQueryConfig,
     )
-    from .lib.UserAccessLog import ensureUserLogTable  # type: ignore
     from .lib import Database as DB  # type: ignore
     from .lib.Logger import logger  # type: ignore
     from .lib.Response import errorResponse  # type: ignore
@@ -48,7 +46,6 @@ except Exception:  # 모듈 컨텍스트
         startWatchingQueryFolder,
         setQueryConfig,
     )
-    from lib.UserAccessLog import ensureUserLogTable
     from lib import Database as DB
     from lib.Logger import logger
     from lib.Response import errorResponse
@@ -101,195 +98,6 @@ async def onShutdown():
     if sqlObserver:
         sqlObserver.stop()
         sqlObserver.join()
-
-
-def isSafeSqlIdentifier(identifier: str) -> bool:
-    """
-    설명: DDL에 사용할 식별자(테이블/컬럼)가 안전한 형식인지 확인한다.
-    갱신일: 2026-02-22
-    """
-    return bool(re.fullmatch(r"[A-Za-z_][A-Za-z0-9_]*", str(identifier or "").strip()))
-
-
-async def tableExists(dbName: str, tableName: str) -> bool:
-    """
-    설명: 대상 DB에 테이블 존재 여부를 확인한다.
-    갱신일: 2026-02-22
-    """
-    manager = DB.getManager(dbName)
-    if not manager:
-        return False
-    databaseUrl = str(getattr(manager, "databaseUrl", "") or "").lower()
-    tableNameLower = str(tableName or "").strip().lower()
-    if not tableNameLower:
-        return False
-    try:
-        if databaseUrl.startswith("sqlite"):
-            row = await manager.fetchOne(
-                "SELECT 1 FROM sqlite_master WHERE type = 'table' AND lower(name) = :tableName LIMIT 1",
-                {"tableName": tableNameLower},
-            )
-            return row is not None
-        row = await manager.fetchOne(
-            """
-            SELECT 1
-              FROM information_schema.tables
-             WHERE LOWER(table_schema) = LOWER(CURRENT_SCHEMA())
-               AND LOWER(table_name) = :tableName
-             LIMIT 1
-            """,
-            {"tableName": tableNameLower},
-        )
-        return row is not None
-    except Exception:
-        return False
-
-
-async def columnExists(dbName: str, tableName: str, columnName: str) -> bool:
-    """
-    설명: 대상 테이블에 컬럼 존재 여부를 확인한다.
-    갱신일: 2026-02-22
-    """
-    manager = DB.getManager(dbName)
-    if not manager:
-        return False
-    databaseUrl = str(getattr(manager, "databaseUrl", "") or "").lower()
-    tableNameLower = str(tableName or "").strip().lower()
-    columnNameLower = str(columnName or "").strip().lower()
-    if not tableNameLower or not columnNameLower:
-        return False
-    if not isSafeSqlIdentifier(tableNameLower):
-        return False
-    try:
-        if databaseUrl.startswith("sqlite"):
-            row = await manager.fetchOne(
-                """
-                SELECT 1
-                  FROM pragma_table_info(:tableName)
-                 WHERE lower(name) = :columnName
-                 LIMIT 1
-                """,
-                {"tableName": tableNameLower, "columnName": columnNameLower},
-            )
-            return row is not None
-        row = await manager.fetchOne(
-            """
-            SELECT 1
-              FROM information_schema.columns
-             WHERE LOWER(table_schema) = LOWER(CURRENT_SCHEMA())
-               AND LOWER(table_name) = :tableName
-               AND LOWER(column_name) = :columnName
-             LIMIT 1
-            """,
-            {"tableName": tableNameLower, "columnName": columnNameLower},
-        )
-        return row is not None
-    except Exception:
-        return False
-
-
-async def renameLegacyTableIfNeeded(dbName: str, legacyName: str, targetName: str) -> bool:
-    """
-    설명: 레거시 테이블명이 존재하면 신규 네이밍으로 리네임한다.
-    갱신일: 2026-02-22
-    """
-    manager = DB.getManager(dbName)
-    if not manager:
-        return False
-    if not isSafeSqlIdentifier(legacyName) or not isSafeSqlIdentifier(targetName):
-        logger.warning(f"table rename skipped due to invalid identifier: {legacyName}->{targetName}")
-        return False
-    if await tableExists(dbName, targetName):
-        return False
-    if not await tableExists(dbName, legacyName):
-        return False
-    try:
-        await manager.execute(f"ALTER TABLE {legacyName} RENAME TO {targetName}")
-        logger.info(f"table renamed {legacyName} -> {targetName}")
-        return True
-    except Exception as e:
-        logger.warning(f"table rename failed {legacyName}->{targetName}: {str(e)}")
-        return False
-
-
-async def renameLegacyColumnIfNeeded(
-    dbName: str, tableName: str, legacyColumnName: str, targetColumnName: str
-) -> bool:
-    """
-    설명: 레거시 컬럼명이 존재하면 신규 네이밍으로 리네임한다.
-    갱신일: 2026-02-22
-    """
-    manager = DB.getManager(dbName)
-    if not manager:
-        return False
-    if not isSafeSqlIdentifier(tableName):
-        logger.warning(f"column rename skipped due to invalid table identifier: {tableName}")
-        return False
-    if not isSafeSqlIdentifier(legacyColumnName) or not isSafeSqlIdentifier(targetColumnName):
-        logger.warning(
-            f"column rename skipped due to invalid identifier: {tableName}.{legacyColumnName}->{targetColumnName}"
-        )
-        return False
-    if not await tableExists(dbName, tableName):
-        return False
-    if await columnExists(dbName, tableName, targetColumnName):
-        return False
-    if not await columnExists(dbName, tableName, legacyColumnName):
-        return False
-    try:
-        await manager.execute(f"ALTER TABLE {tableName} RENAME COLUMN {legacyColumnName} TO {targetColumnName}")
-        logger.info(f"column renamed {tableName}.{legacyColumnName} -> {targetColumnName}")
-        return True
-    except Exception as e:
-        logger.warning(f"column rename failed {tableName}.{legacyColumnName}->{targetColumnName}: {str(e)}")
-        return False
-
-
-async def migrateLegacyTemplateTables(dbName: str) -> None:
-    """
-    설명: 레거시 템플릿 테이블명을 규칙형(T_*)으로 정리한다.
-    갱신일: 2026-02-22
-    """
-    await renameLegacyTableIfNeeded(dbName, "user_template", "t_user")
-    await renameLegacyTableIfNeeded(dbName, "data_template", "t_data")
-
-
-async def migrateLegacyTemplateColumns(dbName: str) -> None:
-    """
-    설명: 템플릿 주요 테이블 컬럼을 규칙형 컬럼명으로 정리한다.
-    갱신일: 2026-02-22
-    """
-    userColumnMap = [
-        ("id", "USER_NO"),
-        ("username", "USER_ID"),
-        ("password_hash", "USER_PW"),
-        ("name", "USER_NM"),
-        ("email", "USER_EML"),
-        ("role", "ROLE_CD"),
-    ]
-    dataColumnMap = [
-        ("id", "DATA_NO"),
-        ("title", "DATA_NM"),
-        ("description", "DATA_DESC"),
-        ("status", "STAT_CD"),
-        ("amount", "AMT"),
-        ("tags", "TAG_JSON"),
-        ("created_at", "REG_DT"),
-    ]
-    for legacyColumnName, targetColumnName in userColumnMap:
-        await renameLegacyColumnIfNeeded(
-            dbName,
-            "t_user",
-            legacyColumnName,
-            targetColumnName,
-        )
-    for legacyColumnName, targetColumnName in dataColumnMap:
-        await renameLegacyColumnIfNeeded(
-            dbName,
-            "t_data",
-            legacyColumnName,
-            targetColumnName,
-        )
 
 
 # ---------------------------------------------------------------------------
@@ -372,20 +180,6 @@ async def onStartup():
             logger.error(f"database connect failed ({dbName}): {str(e)}")
 
     logger.info("database connect done")
-    try:
-        primaryDbName = DB.getPrimaryDbName()
-        await migrateLegacyTemplateTables(primaryDbName)
-        await migrateLegacyTemplateColumns(primaryDbName)
-    except Exception as e:
-        logger.warning(f"legacy table migration failed: {str(e)}")
-    try:
-        ensured = await ensureUserLogTable(DB.getPrimaryDbName())
-        if ensured:
-            logger.info("user access log table ensured")
-        else:
-            logger.warning("user access log table ensure skipped (db not ready)")
-    except Exception as e:
-        logger.warning(f"user access log table ensure failed: {str(e)}")
     logger.info("query load start")
 
     # 쿼리 로더 설정
@@ -500,14 +294,12 @@ try:
 except Exception:
     allowCredentials = True
 
-# 엄격 모드: 자격 증명 허용 시 '*' 사용 금지
+# 공통 규칙: CORS는 와일드카드('*')를 허용하지 않는다(환경별 allowlist 강제).
 if originsRaw == "*":
-    if allowCredentials:
-        raise ValueError(
-            "CORS misconfig: '*' cannot be used with allow_credentials=true. "
-            "Either set allow_credentials=false or list explicit origins."
-        )
-    origins = ["*"]
+    raise ValueError(
+        "CORS misconfig: allow_origins='*' is forbidden. "
+        "Use explicit allowlist origins instead."
+    )
 else:
     origins = [o.strip() for o in originsRaw.split(",") if o.strip()]
 

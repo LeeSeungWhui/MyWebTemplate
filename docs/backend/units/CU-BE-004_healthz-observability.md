@@ -39,7 +39,6 @@ links: [CU-BE-001, CU-BE-003]
 - 헬스 엔드포인트는 인증/CSRF/레이트리밋/서킷브레이커 예외 처리
 - DB ping:
   - sqlite/postgres/mysql: `SELECT 1`
-  - oracle: `SELECT 1 FROM DUAL`
 - 각 체크 타임아웃(기본 300ms). 초과 시 WARN 로그 + FAIL로 집계
 - 유지보수 모드: `MAINTENANCE_MODE=true`일 때 `/readyz`는 503 반환
 
@@ -52,13 +51,13 @@ links: [CU-BE-001, CU-BE-003]
 - AC-1: `/healthz` 200, `/readyz`는 모든 의존성 up일 때 200, down 시 503을 반환한다.
 - AC-2: 모든 요청/응답에 requestId가 로그로 남고 응답 헤더(`X-Request-Id`) 및 JSON에 포함된다.
 - AC-3: 공통 규칙의 로깅/관측성 항목을 만족한다.
-- AC-4: Oracle 드라이버 사용 시 `SELECT 1 FROM DUAL`로 ping이 수행된다.
+- AC-4: 지원 드라이버(sqlite/postgres/mysql)는 `SELECT 1` 기반 ping으로 레디니스를 판정한다.
 - AC-5: `MAINTENANCE_MODE=true` 설정 시 `/readyz`는 503을 반환한다.
 
 ### Tasks
 - T1: `/healthz` 구현(버전/sha/업타임, no-store), `/readyz` 구현(플러그형 체크)
 - T2: 요청 ID 미들웨어(헤더 수용→contextvar→로그/응답 반영), 로그 포맷 JSON 통일
-- T3: 드라이버별 ping 분기(sqlite/pg/mysql/oracle) + 체크 타임아웃/경과시간 로깅
+- T3: 드라이버별 ping 분기(sqlite/pg/mysql) + 체크 타임아웃/경과시간 로깅
 - T4: 유지보수 모드 스위치(`MAINTENANCE_MODE`) 반영
 - T5: Swagger 태그 `observability` 추가(필요 시 `include_in_schema=False`)
 - T6: (선택) `/metrics` Prometheus 지표(http_latency_histogram 등) 추가

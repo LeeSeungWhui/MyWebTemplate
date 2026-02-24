@@ -29,12 +29,176 @@ from lib.Logger import logger
 from lib.RequestContext import getRequestId
 from lib.Response import successResponse
 
-# 인메모리 리프레시 토큰 블랙리스트(재사용/로그아웃 차단용)
-# key: refresh jti, value: expiresAtMs (refresh exp 기반 TTL)
+# 리프레시 토큰 상태 타입
+TOKEN_STATE_REVOKED = "revoked"
+TOKEN_STATE_GRACE = "grace"
+
+# 토큰 상태 저장소 준비 상태
+tokenStateStoreReady = False
+tokenStateStoreWarned = False
+
+# 인메모리 폴백 스토어(DB 저장소 사용 불가 시 사용)
+# key: refresh jti, value: expiresAtMs(refresh exp 기반 TTL)
 revokedRefreshJtiStore: dict[str, int] = {}
-# refresh 토큰 회전 직후, 같은 refresh 토큰이 다시 들어오는 케이스(다중 탭/네트워크 재시도)를 흡수하기 위한 유예 캐시
 # key: 이전 refresh jti, value: {"expiresAtMs": int, "tokenPayload": dict}
 refreshGraceStore: dict[str, dict[str, Any]] = {}
+
+
+def _getTokenStateStoreDbManager():
+    """
+    설명: 토큰 상태 저장에 사용할 DB 매니저를 반환한다.
+    갱신일: 2026-02-24
+    """
+    try:
+        return DB.getManager()
+    except Exception:
+        return None
+
+
+async def ensureTokenStateStore() -> bool:
+    """
+    설명: 리프레시 토큰 상태 저장소(DB)의 사용 가능 여부를 점검한다(DDL 미수행).
+    갱신일: 2026-02-24
+    """
+    global tokenStateStoreReady, tokenStateStoreWarned
+    if tokenStateStoreReady:
+        return True
+    manager = _getTokenStateStoreDbManager()
+    if not manager:
+        if not tokenStateStoreWarned:
+            logger.warning("auth token-state DB manager not ready. fallback=memory")
+            tokenStateStoreWarned = True
+        return False
+    try:
+        await manager.fetchOneQuery(
+            "auth.getTokenState",
+            {"stateType": TOKEN_STATE_REVOKED, "tokenJti": "__probe__"},
+        )
+        tokenStateStoreReady = True
+        logger.info("auth token-state store ready (db)")
+        return True
+    except Exception as e:
+        if not tokenStateStoreWarned:
+            logger.warning(
+                f"auth token-state store unavailable (schema missing or db error). "
+                f"fallback=memory error={type(e).__name__}"
+            )
+            tokenStateStoreWarned = True
+        return False
+
+
+async def cleanupTokenStateStore(nowMs: int) -> bool:
+    """
+    설명: DB 토큰 상태 저장소에서 만료 항목을 정리한다.
+    갱신일: 2026-02-24
+    """
+    if not await ensureTokenStateStore():
+        return False
+    manager = _getTokenStateStoreDbManager()
+    if not manager:
+        return False
+    try:
+        await manager.executeQuery("auth.deleteExpiredTokenState", {"nowMs": nowMs})
+        return True
+    except Exception:
+        return False
+
+
+async def getTokenStateEntry(stateType: str, tokenJti: str) -> dict[str, Any] | None:
+    """
+    설명: DB 토큰 상태 저장소에서 상태 항목을 조회한다.
+    갱신일: 2026-02-24
+    """
+    if not await ensureTokenStateStore():
+        return None
+    manager = _getTokenStateStoreDbManager()
+    if not manager:
+        return None
+    try:
+        row = await manager.fetchOneQuery(
+            "auth.getTokenState",
+            {"stateType": stateType, "tokenJti": tokenJti},
+        )
+        if not row:
+            return None
+        expiresAtMs = int(row.get("expiresAtMs", 0) or 0)
+        payloadRaw = row.get("tokenPayloadJson")
+        tokenPayload: dict[str, Any] | None = None
+        if isinstance(payloadRaw, str) and payloadRaw.strip():
+            try:
+                parsed = json.loads(payloadRaw)
+                if isinstance(parsed, dict):
+                    tokenPayload = parsed
+            except Exception:
+                tokenPayload = None
+        return {"expiresAtMs": expiresAtMs, "tokenPayload": tokenPayload}
+    except Exception:
+        return None
+
+
+async def upsertTokenStateEntry(
+    stateType: str,
+    tokenJti: str,
+    expiresAtMs: int,
+    tokenPayload: dict[str, Any] | None = None,
+) -> bool:
+    """
+    설명: DB 토큰 상태 저장소에 상태 항목을 생성/갱신한다.
+    갱신일: 2026-02-24
+    """
+    if not await ensureTokenStateStore():
+        return False
+    manager = _getTokenStateStoreDbManager()
+    if not manager:
+        return False
+    payloadJson: str | None = None
+    if isinstance(tokenPayload, dict):
+        try:
+            payloadJson = json.dumps(tokenPayload, ensure_ascii=False)
+        except Exception:
+            payloadJson = None
+    params = {
+        "stateType": stateType,
+        "tokenJti": tokenJti,
+        "expiresAtMs": int(expiresAtMs or 0),
+        "tokenPayloadJson": payloadJson,
+    }
+    existing = await getTokenStateEntry(stateType, tokenJti)
+
+    try:
+        if existing:
+            await manager.executeQuery("auth.updateTokenState", params)
+            return True
+        await manager.executeQuery("auth.insertTokenState", params)
+        return True
+    except Exception as e:
+        if isDuplicateTokenStateConstraintError(e):
+            try:
+                await manager.executeQuery("auth.updateTokenState", params)
+                return True
+            except Exception:
+                return False
+        return False
+
+
+async def deleteTokenStateEntry(stateType: str, tokenJti: str) -> bool:
+    """
+    설명: DB 토큰 상태 저장소에서 특정 항목을 제거한다.
+    갱신일: 2026-02-24
+    """
+    if not await ensureTokenStateStore():
+        return False
+    manager = _getTokenStateStoreDbManager()
+    if not manager:
+        return False
+    try:
+        await manager.executeQuery(
+            "auth.deleteTokenState",
+            {"stateType": stateType, "tokenJti": tokenJti},
+        )
+        return True
+    except Exception:
+        return False
 
 
 def cleanupRefreshGraceStore(nowMs: int) -> None:
@@ -217,6 +381,27 @@ def isDuplicateUserConstraintError(error: Exception) -> bool:
     return False
 
 
+def isDuplicateTokenStateConstraintError(error: Exception) -> bool:
+    """
+    설명: 토큰 상태 저장의 unique 제약 위반 예외인지 판별한다.
+    갱신일: 2026-02-24
+    """
+    text = str(error or "").lower()
+    if not text:
+        return False
+    duplicateTokens = (
+        "duplicate key",
+        "duplicate entry",
+        "unique constraint failed",
+        "violates unique constraint",
+    )
+    if any(token in text for token in duplicateTokens):
+        return True
+    if "integrityerror" in text and ("unique" in text or "duplicate" in text):
+        return True
+    return False
+
+
 async def signup(payload: dict) -> tuple[dict | None, str | None]:
     """
     설명: 회원가입 입력을 검증하고 신규 계정을 생성한다.
@@ -277,7 +462,7 @@ async def signup(payload: dict) -> tuple[dict | None, str | None]:
         return result, None
     except Exception as e:
         auditLog("auth.signup", email, False, {"reason": "exception"})
-        logger.error(f"signup failed: {str(e)}")
+        logger.error(f"signup failed: error={type(e).__name__}")
         return None, "AUTH_500_SIGNUP_FAILED"
 
 
@@ -309,6 +494,7 @@ async def refresh(refreshToken: str) -> dict | None:
     갱신일: 2026-02-22
     """
     nowMs = _nowMs()
+    useDbTokenStateStore = await cleanupTokenStateStore(nowMs)
     cleanupRefreshGraceStore(nowMs)
     cleanupRevokedRefreshJtiStore(nowMs)
     payload = decodeRefreshTokenPayload(refreshToken)
@@ -326,10 +512,20 @@ async def refresh(refreshToken: str) -> dict | None:
     if not isinstance(jti, str) or not jti:
         auditLog("auth.refresh", username, False, {"reason": "missing_jti"})
         return None
-    revokedExpiresAtMs = int(revokedRefreshJtiStore.get(jti, 0) or 0)
+    revokedExpiresAtMs = 0
+    if useDbTokenStateStore:
+        revokedEntry = await getTokenStateEntry(TOKEN_STATE_REVOKED, jti)
+        revokedExpiresAtMs = int(revokedEntry.get("expiresAtMs", 0) or 0) if isinstance(revokedEntry, dict) else 0
+    if not revokedExpiresAtMs:
+        revokedExpiresAtMs = int(revokedRefreshJtiStore.get(jti, 0) or 0)
+
     if revokedExpiresAtMs and nowMs < revokedExpiresAtMs:
         # 이미 사용됐거나 로그아웃된 리프레시 토큰 재사용 시도
-        cached = refreshGraceStore.get(jti)
+        cached = None
+        if useDbTokenStateStore:
+            cached = await getTokenStateEntry(TOKEN_STATE_GRACE, jti)
+        if not cached:
+            cached = refreshGraceStore.get(jti)
         expiresAtMs = int(cached.get("expiresAtMs", 0) or 0) if isinstance(cached, dict) else 0
         tokenPayload = cached.get("tokenPayload") if isinstance(cached, dict) else None
         if expiresAtMs and nowMs < expiresAtMs and isinstance(tokenPayload, dict):
@@ -337,26 +533,42 @@ async def refresh(refreshToken: str) -> dict | None:
             return tokenPayload
         auditLog("auth.refresh", username, False, {"reason": "reused_token"})
         return None
+
     # TTL이 지난 항목이면 제거한다(만료된 refresh 토큰은 어차피 decode 단계에서 걸린다).
     if revokedExpiresAtMs:
+        if useDbTokenStateStore:
+            await deleteTokenStateEntry(TOKEN_STATE_REVOKED, jti)
         revokedRefreshJtiStore.pop(jti, None)
 
     # 현재 리프레시 토큰은 더 이상 사용하지 못하도록 블랙리스트에 추가
-    revokedRefreshJtiStore[jti] = _extractExpMs(payload, nowMs)
+    revokedExpiresAtMs = _extractExpMs(payload, nowMs)
+    revokedRefreshJtiStore[jti] = revokedExpiresAtMs
+    if useDbTokenStateStore:
+        await upsertTokenStateEntry(TOKEN_STATE_REVOKED, jti, revokedExpiresAtMs, None)
 
     tokenPayload = issueTokens(username, remember)
     # 다중 탭/네트워크 재시도 경합을 위해 짧은 유예 시간 동안 동일 토큰 페이로드를 재응답할 수 있게 캐시한다.
     graceMs = max(0, int(getattr(AuthConfig, "refreshGraceMs", 0) or 0))
     if graceMs > 0:
+        graceExpiresAtMs = nowMs + graceMs
         refreshGraceStore[jti] = {
-            "expiresAtMs": nowMs + graceMs,
+            "expiresAtMs": graceExpiresAtMs,
             "tokenPayload": tokenPayload,
         }
+        if useDbTokenStateStore:
+            await upsertTokenStateEntry(
+                TOKEN_STATE_GRACE,
+                jti,
+                graceExpiresAtMs,
+                tokenPayload,
+            )
+    elif useDbTokenStateStore:
+        await deleteTokenStateEntry(TOKEN_STATE_GRACE, jti)
     auditLog("auth.refresh", username, True, {"remember": bool(remember)})
     return tokenPayload
 
 
-def revokeRefreshToken(refreshToken: str | None) -> None:
+async def revokeRefreshToken(refreshToken: str | None) -> None:
     """
     설명: 로그아웃 시 리프레시 토큰을 블랙리스트에 추가해 재사용을 차단한다.
     갱신일: 2025-12-03
@@ -366,6 +578,7 @@ def revokeRefreshToken(refreshToken: str | None) -> None:
         return
 
     nowMs = _nowMs()
+    useDbTokenStateStore = await cleanupTokenStateStore(nowMs)
     cleanupRefreshGraceStore(nowMs)
     cleanupRevokedRefreshJtiStore(nowMs)
 
@@ -377,7 +590,10 @@ def revokeRefreshToken(refreshToken: str | None) -> None:
     username = payload.get("sub") if isinstance(payload.get("sub"), str) else None
     jti = payload.get("jti")
     if isinstance(jti, str) and jti:
-        revokedRefreshJtiStore[jti] = _extractExpMs(payload, nowMs)
+        revokedExpiresAtMs = _extractExpMs(payload, nowMs)
+        revokedRefreshJtiStore[jti] = revokedExpiresAtMs
+        if useDbTokenStateStore:
+            await upsertTokenStateEntry(TOKEN_STATE_REVOKED, jti, revokedExpiresAtMs, None)
     auditLog("auth.logout", username, True, {})
 
 

@@ -1,5 +1,6 @@
 -- 공통(헬스/레디니스) 관련 쿼리가 필요할 경우 이 파일을 사용한다.
--- 현재는 DB ping 용으로 users.sql의 sys.ping/sys.oraclePing 키를 사용한다.
+-- 현재는 사용자 접근 로그 저장 쿼리를 관리한다.
+
 -- name: common.userAccessLogInsert
 INSERT INTO T_USER_LOG (
     LOG_ID

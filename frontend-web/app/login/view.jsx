@@ -11,7 +11,7 @@ import EasyObj from "@/app/lib/dataset/EasyObj";
 import Button from "@/app/lib/component/Button";
 import Input from "@/app/lib/component/Input";
 import Checkbox from "@/app/lib/component/Checkbox";
-import { apiRequest } from "@/app/lib/runtime/api";
+import { apiJSON } from "@/app/lib/runtime/api";
 import useSwr from "@/app/lib/hooks/useSwr";
 import { SESSION_PATH, createLoginFormModel } from "./initData";
 import Link from "next/link";
@@ -89,13 +89,9 @@ const Client = ({ mode, init, nextHint, authReason }) => {
     });
   };
 
-  const resolveBackendError = (body, response) => {
-    const code = body?.code;
+  const resolveBackendError = (error) => {
+    const code = error?.code;
     if (code === "AUTH_429_RATE_LIMIT") {
-      const retry = response?.headers?.get?.("Retry-After");
-      if (retry) {
-        return { message: `로그인 시도가 너무 많습니다. ${retry}초 후 다시 시도해 주세요.` };
-      }
       return { message: "로그인 시도가 너무 많습니다. 잠시 후 다시 시도해 주세요." };
     }
     if (code === "AUTH_401_INVALID") {
@@ -104,14 +100,11 @@ const Client = ({ mode, init, nextHint, authReason }) => {
         field: "password",
       };
     }
-    if (
-      response?.status === 401 &&
-      response?.headers?.get?.("WWW-Authenticate")
-    ) {
+    if (error?.statusCode === 401) {
       return { message: "세션이 만료되었습니다. 다시 로그인해 주세요." };
     }
-    if (body?.message) {
-      return { message: body.message };
+    if (error?.message) {
+      return { message: error.message };
     }
     return { message: "로그인에 실패했습니다." };
   };
@@ -163,23 +156,17 @@ const Client = ({ mode, init, nextHint, authReason }) => {
         password: loginObj.password,
         rememberMe: !!loginObj.rememberMe,
       };
-      const response = await apiRequest("/api/v1/auth/login", {
+      await apiJSON("/api/v1/auth/login", {
         method: "POST",
         body: payload,
       });
-      if (response && response.ok) {
-        const nextData = await mutate?.();
-        const authed = !!(
-          nextData &&
-          nextData.result &&
-          nextData.result.username
-        );
-        const target = sanitizeRedirect(nextHint) || "/dashboard";
-        window.location.assign(target);
-        return;
-      }
-      const body = await response?.json?.().catch(() => ({}));
-      const { message, field } = resolveBackendError(body, response);
+      await mutate?.();
+      const target = sanitizeRedirect(nextHint) || "/dashboard";
+      window.location.assign(target);
+      return;
+    } catch (error) {
+      console.error(error);
+      const { message, field } = resolveBackendError(error);
       if (field === "email") {
         loginObj.errors.email = message;
         focusOnError(emailRef);
@@ -190,11 +177,6 @@ const Client = ({ mode, init, nextHint, authReason }) => {
         focusOnError(errorSummaryRef);
       }
       setFormError(message);
-    } catch (error) {
-      console.error(error);
-      loginObj.errors.password = "로그인 중 오류가 발생했습니다";
-      setFormError("로그인 중 오류가 발생했습니다");
-      focusOnError(errorSummaryRef);
     } finally {
       setPending(false);
     }

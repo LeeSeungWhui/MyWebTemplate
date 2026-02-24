@@ -9,22 +9,13 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 export const runtime = "nodejs";
 
-import { redirect } from "next/navigation";
-import { apiJSON } from "@/app/lib/runtime/api";
-import { HOME_INIT_DATA } from "@/app/initData";
 import HomeView from "@/app/view";
 
 /**
- * @description 인증 상태를 확인하고 랜딩 또는 대시보드로 분기한다.
+ * @description 공개 랜딩 화면을 렌더링한다.
+ * @note 인증 분기는 middleware.js에서 단일 처리한다.
  */
-const HomePage = async () => {
-  const sessionPayload = await apiJSON(HOME_INIT_DATA.sessionPath, {
-    method: "GET",
-  }).catch(() => null);
-  const hasUserSession = Boolean(sessionPayload?.result?.username);
-  if (hasUserSession) {
-    redirect("/dashboard");
-  }
+const HomePage = () => {
   return <HomeView />;
 };
 

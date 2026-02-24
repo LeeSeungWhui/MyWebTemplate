@@ -263,7 +263,7 @@ async def logout(request: Request):
     갱신일: 2026-02-22
     """
     refreshToken = request.cookies.get(AuthConfig.refreshCookieName)
-    AuthService.revokeRefreshToken(refreshToken)
+    await AuthService.revokeRefreshToken(refreshToken)
     response = Response(status_code=204)
     clearAuthCookies(response, request)
     return response

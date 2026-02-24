@@ -109,11 +109,39 @@ def ensureTxTable(dbPath: str) -> None:
         con.close()
 
 
+def ensureUserLogTable(dbPath: str) -> None:
+    os.makedirs(os.path.dirname(dbPath), exist_ok=True)
+    con = sqlite3.connect(dbPath)
+    try:
+        con.execute(
+            """
+            CREATE TABLE IF NOT EXISTS T_USER_LOG (
+                LOG_ID TEXT PRIMARY KEY,
+                USER_ID TEXT NOT NULL,
+                REQ_ID TEXT,
+                REQ_MTHD TEXT NOT NULL,
+                REQ_PATH TEXT NOT NULL,
+                RES_CD INTEGER NOT NULL,
+                LATENCY_MS INTEGER NOT NULL,
+                SQL_CNT INTEGER NOT NULL DEFAULT 0,
+                CLIENT_IP TEXT,
+                IP_LOC_TXT TEXT,
+                IP_LOC_SRC TEXT,
+                REG_DT TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
+            )
+            """
+        )
+        con.commit()
+    finally:
+        con.close()
+
+
 def pytest_sessionstart(session):
     # Seed required tables/data for tests without touching runtime code.
     dbPath = loadDbPath()
     ensureUserTableAndDemo(dbPath)
     ensureTxTable(dbPath)
+    ensureUserLogTable(dbPath)
 
 
 @pytest.fixture(autouse=True)

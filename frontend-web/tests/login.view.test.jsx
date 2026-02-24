@@ -20,12 +20,12 @@ vi.mock("@/app/lib/hooks/useSwr", () => ({
 
 vi.mock("@/app/lib/runtime/api", () => ({
   __esModule: true,
-  apiRequest: vi.fn(),
+  apiJSON: vi.fn(),
 }));
 
 import Client from "@/app/login/view";
 import useSwr from "@/app/lib/hooks/useSwr";
-import { apiRequest } from "@/app/lib/runtime/api";
+import { apiJSON } from "@/app/lib/runtime/api";
 
 const mutateMock = vi.fn();
 
@@ -67,15 +67,11 @@ test("폼 유효성 검사 후 첫 번째 에러 필드에 포커스한다", asy
 
 test("백엔드 인증 오류를 비밀번호 필드와 에러 요약으로 노출한다", async () => {
   useSwr.mockReturnValue({ data: { result: null }, mutate: mutateMock });
-  apiRequest.mockResolvedValue({
-    ok: false,
-    status: 401,
-    headers: { get: vi.fn() },
-    json: vi.fn().mockResolvedValue({
-      status: false,
-      code: "AUTH_401_INVALID",
-      message: "invalid credentials",
-    }),
+  apiJSON.mockRejectedValue({
+    name: "ApiError",
+    statusCode: 401,
+    code: "AUTH_401_INVALID",
+    message: "invalid credentials",
   });
 
   renderLogin();
@@ -105,7 +101,7 @@ test("백엔드 인증 오류를 비밀번호 필드와 에러 요약으로 노�
 test("로그인 성공 시 next가 없으면 대시보드로 이동한다", async () => {
   useSwr.mockReturnValue({ data: { result: null }, mutate: mutateMock });
   mutateMock.mockResolvedValue({ result: { username: "demo" } });
-  apiRequest.mockResolvedValue({ ok: true });
+  apiJSON.mockResolvedValue({ status: true, result: {} });
 
   const assignMock = vi.fn();
   const originalLocation = globalThis.location;

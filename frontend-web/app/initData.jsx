@@ -5,13 +5,6 @@
  * 설명: 루트 랜딩 페이지 정적 데이터
  */
 
-/**
- * @description 루트 페이지 인증 체크 경로
- */
-export const HOME_INIT_DATA = {
-  sessionPath: "/api/v1/auth/me",
-};
-
 export const LANDING_HERO = {
   title: "웹 개발, 깔끔하게 만들어드립니다",
   subtitle:

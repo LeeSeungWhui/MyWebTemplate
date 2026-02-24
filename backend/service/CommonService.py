@@ -77,13 +77,8 @@ async def readyz(_: Dict | None = None) -> Tuple[Dict[str, Any], bool]:
                 for name in targets:
                     mgr = DB.dbManagers[name]
                     dbTargets.append(name)
-                    url = getattr(mgr, "databaseUrl", "") or ""
-                    if "oracle" in url:
-                        queryName = "sys.oraclePing"
-                        fallbackSql = "SELECT 1 FROM DUAL"
-                    else:
-                        queryName = "sys.ping"
-                        fallbackSql = "SELECT 1"
+                    queryName = "sys.ping"
+                    fallbackSql = "SELECT 1"
                     try:
                         if hasattr(mgr, "queryManager"):
                             sql = mgr.queryManager.getQuery(queryName) or fallbackSql

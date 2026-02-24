@@ -1,3 +1,4 @@
+"use client";
 /**
  * 파일명: app/view.jsx
  * 작성자: LSH

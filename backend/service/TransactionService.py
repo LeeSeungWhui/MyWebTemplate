@@ -15,20 +15,16 @@ from lib.Transaction import transaction
 
 async def ensureTables(dbName: str = "main_db") -> None:
     """
-    설명: 테스트용 트랜잭션 테이블을 준비한다.
+    설명: 테스트용 트랜잭션 테이블 존재만 확인한다(런타임 DDL 금지).
     갱신일: 2026-02-24
     """
     db = DB.getManager(dbName)
     if not db:
         raise RuntimeError(f"database not found: {dbName}")
-    await db.execute(
-        """
-        CREATE TABLE IF NOT EXISTS test_transaction (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            value TEXT UNIQUE
-        )
-        """,
-    )
+    try:
+        await db.fetchOne("SELECT 1 FROM test_transaction LIMIT 1")
+    except Exception as e:
+        raise RuntimeError("test_transaction table is missing. seed/migrate schema before runtime.") from e
 
 
 @transaction("main_db")

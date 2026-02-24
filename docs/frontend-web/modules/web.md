@@ -37,7 +37,7 @@
 ## Unit 진행 현황
 - CU-WEB-001: implemented — `/login` SSR/CSR + Access/Refresh 쿠키 플로우 + 하단 보조 링크(`/forgot-password`,`/signup`) + 비밀번호 표시 토글 반영
 - CU-WEB-002: implemented — `/dashboard` SSR 초기 데이터 + 에러/requestId 표시 + 업무 상태 바로가기 + 헤더 breadcrumb(경로/쿼리) 연동 반영
-- CU-WEB-003: planned — 핵심 바인딩 컴포넌트(Input/Textarea/EasyTable/Select/EasyChart/EasyEditor/PdfViewer) 문서 경로를 `/component` 기준으로 정렬
+- CU-WEB-003: implemented — 핵심 바인딩 컴포넌트(Input/Textarea/EasyTable/Select/EasyChart/EasyEditor/PdfViewer)와 `/component` 문서 경로 정렬 반영
 - CU-WEB-004: implemented — 보호 경로 가드(미들웨어 단일화), `/api/session/bootstrap` 자동 복구, 401→/login(reason) 규약 반영
 - CU-WEB-005: implemented — `apiJSON/apiRequest` 단일 진실 + OpenAPI(operationId) 유틸(`openapiClient.js`) 구성 완료
 - CU-WEB-006: implemented — 페이지별 `PAGE_MODE` + `dynamic/runtime/revalidate/fetchCache` 규약 적용(보호 경로 기본 SSR/nodejs/no-store)
@@ -49,7 +49,7 @@
 - CU-WEB-012: implemented — 공개 GNB(샘플 드롭다운/모바일 메뉴) + 랜딩 섹션 + 단일 CTA(`샘플 보기`) 구성 반영
 - CU-WEB-013: implemented — 공개 샘플 5종(`/sample`, `/sample/dashboard`, `/sample/crud`, `/sample/form`, `/sample/admin`) 구현 및 샘플 세션 상태 공유 적용
 - CU-WEB-014: implemented — `/dashboard/tasks`, `/dashboard/settings` UI + API 계약 + 에러/로딩/빈 상태 + 쿼리(`q/status/sort/page`) 동기화
-- CU-WEB-015: implemented — 공개 포트폴리오는 `/sample/portfolio` 기준으로 운영하고, 레거시 `/portfolio`는 비노출 호환 경로로 유지
+- CU-WEB-015: implemented — 공개 포트폴리오는 `/sample/portfolio` 기준으로 운영하고, 레거시 `/portfolio`는 템플릿 보호 경로(인증 필요, 공개 메뉴 비노출)로 유지
 - CU-WEB-016: implemented — `/signup` 템플릿 인증 보조 경로 + `/login` 하단 회원가입 링크 + 기본 유효성/API 연동
 
 ## 프런트 설정: config.ini

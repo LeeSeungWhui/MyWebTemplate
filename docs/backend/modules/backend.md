@@ -7,7 +7,7 @@
 - Python 3.12, FastAPI 0.128.x (Pydantic v2), Starlette 0.50.x
 - Uvicorn 0.40.x (reload in dev)
 - SQLAlchemy 2.0.45 async(Core 우선)
-- Drivers: aiosqlite / aiomysql|asyncmy / asyncpg / python-oracledb
+- Drivers: aiosqlite / aiomysql / asyncpg
 - Docs/Client: OpenAPI(Swagger UI/Redoc), JS 클라이언트(openapi-client-axios)
 
 ## 인증 모드 & CORS
@@ -76,7 +76,7 @@
 - 규칙: 목록 응답에만 count. 오류는 code 포함 + HTTP 4xx/5xx.
 
 ## DB Ping
-- sqlite/postgresql/mysql: SELECT 1, oracle: SELECT 1 FROM DUAL
+- sqlite/postgresql/mysql: SELECT 1
 - 캐시/메시지는 /readyz에서 함께 노출 가능.
 
 ## 튜닝 권장

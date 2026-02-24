@@ -26,32 +26,8 @@ except Exception:
     from lib.Config import getConfig  # type: ignore
 
 
-createUserLogTableSql = """
-CREATE TABLE IF NOT EXISTS T_USER_LOG (
-      LOG_ID VARCHAR(64) PRIMARY KEY
-    , USER_ID VARCHAR(190) NOT NULL
-    , REQ_ID VARCHAR(120)
-    , REQ_MTHD VARCHAR(16) NOT NULL
-    , REQ_PATH VARCHAR(255) NOT NULL
-    , RES_CD INTEGER NOT NULL
-    , LATENCY_MS INTEGER NOT NULL
-    , SQL_CNT INTEGER NOT NULL DEFAULT 0
-    , CLIENT_IP VARCHAR(64)
-    , IP_LOC_TXT VARCHAR(255)
-    , IP_LOC_SRC VARCHAR(32)
-    , REG_DT TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
-)
-"""
-
-tableReadyMap: dict[str, bool] = {}
-tableEnsureLock = asyncio.Lock()
 ipGeoCache: dict[str, dict[str, object]] = {}
 ipGeoCacheLock = asyncio.Lock()
-
-geoColumnAddSqlList = [
-    "ALTER TABLE T_USER_LOG ADD COLUMN IP_LOC_TXT VARCHAR(255)",
-    "ALTER TABLE T_USER_LOG ADD COLUMN IP_LOC_SRC VARCHAR(32)",
-]
 
 
 def parseBool(rawValue: object, defaultValue: bool = False) -> bool:
@@ -161,41 +137,6 @@ def getIpGeoCacheTtlSec() -> int:
     return 3600
 
 
-def isDuplicateColumnError(message: str) -> bool:
-    """
-    설명: 컬럼 중복 생성 오류 메시지인지 판별한다.
-    갱신일: 2026-02-22
-    """
-    raw = (message or "").lower()
-    return (
-        "duplicate column name" in raw
-        or "duplicate column" in raw
-        or "already exists" in raw
-    )
-
-
-async def ensureUserLogColumns(dbName: str, dbManager) -> None:
-    """
-    설명: T_USER_LOG 확장 컬럼(IP_LOC_TXT, IP_LOC_SRC) 존재를 보장한다.
-    갱신일: 2026-02-22
-    """
-    for alterSql in geoColumnAddSqlList:
-        try:
-            await dbManager.execute(alterSql)
-        except Exception as e:
-            if isDuplicateColumnError(str(e)):
-                continue
-            logger.warning(
-                json.dumps(
-                    {
-                        "event": "db.user_log.alter.failed",
-                        "dbName": dbName,
-                        "sql": alterSql,
-                        "error": str(e),
-                    },
-                    ensure_ascii=False,
-                )
-            )
 
 
 def normalizeIp(clientIp: Optional[str]) -> Optional[str]:
@@ -326,39 +267,6 @@ async def resolveIpLocation(clientIp: Optional[str]) -> tuple[Optional[str], Opt
         return ("PUBLIC_IP", "IP_GEO_FAIL")
 
 
-async def ensureUserLogTable(dbName: Optional[str] = None) -> bool:
-    """
-    설명: 사용자 로그 테이블(T_USER_LOG) 존재를 보장한다.
-    갱신일: 2026-02-22
-    """
-    targetDbName = (dbName or "").strip() or DB.getPrimaryDbName()
-    if tableReadyMap.get(targetDbName):
-        return True
-    async with tableEnsureLock:
-        if tableReadyMap.get(targetDbName):
-            return True
-        db = DB.getManager(targetDbName)
-        if not db:
-            return False
-        try:
-            await db.execute(createUserLogTableSql)
-            await ensureUserLogColumns(targetDbName, db)
-            tableReadyMap[targetDbName] = True
-            return True
-        except Exception as e:
-            logger.warning(
-                json.dumps(
-                    {
-                        "event": "db.user_log.ensure.failed",
-                        "dbName": targetDbName,
-                        "error": str(e),
-                    },
-                    ensure_ascii=False,
-                )
-            )
-            return False
-
-
 async def writeUserAccessLog(
     *,
     username: Optional[str],
@@ -380,10 +288,6 @@ async def writeUserAccessLog(
         return
 
     targetDbName = (dbName or "").strip() or DB.getPrimaryDbName()
-    tableReady = await ensureUserLogTable(targetDbName)
-    if not tableReady:
-        return
-
     db = DB.getManager(targetDbName)
     if not db:
         return
