@@ -36,7 +36,7 @@
 - CU-BE-003: implemented — 단일/중첩 트랜잭션 유틸 + requestId/sqlCount 로깅 반영
 - CU-BE-004: implemented — `/healthz` `/readyz` + requestId 전파 + 유지보수 모드(`MAINTENANCE_MODE`) 처리 반영
 - CU-BE-005: implemented — OpenAPI 문서(`/docs`, `/openapi.json`)와 JS 호출 유틸 계약 정렬
-- CU-BE-006: implemented — query loader/watcher + 바인드 파라미터 검증 + SQL 실행 하드닝 반영
+- CU-BE-006: implemented — query loader/watcher + 바인드 파라미터 검증 + SQL 실행 하드닝 + 누락 쿼리명 명시 예외(`Query not found: <name>`) 반영
 - CU-BE-007: implemented — `/api/v1/dashboard` REST CRUD + 검색/필터/페이지네이션 + 상태 집계 반영
 - CU-BE-008: implemented — `/api/v1/profile/me` 조회/저장 + 설정 화면 연동 API 반영
 - CU-BE-009: implemented — `/api/v1/auth/signup` + 중복 이메일(409) + 입력 검증(422) 반영
@@ -108,24 +108,33 @@ query_watch_debounce_ms = 150
 
 [AUTH]
 token_enable = true
-secret_key = your-secret-key
+; ⚠️ 반드시 32바이트 이상 랜덤 키로 교체
+secret_key = replace-with-strong-random-secret
 token_expire = 3600
-session_cookie = sid
-csrf_header = X-CSRF-Token
+refresh_expire = 604800
+access_cookie = access_token
+refresh_cookie = refresh_token
 
 [CORS]
-allow_origins = http://localhost:3000
+allow_origins = http://localhost:3000,http://localhost
 allow_credentials = true
 
 [SERVER]
 port = 2000
 ```
 
+- `secret_key`는 기본값/예제값을 절대 그대로 쓰지 않는다. 배포 환경에서는 ENV 또는 서버 비밀값으로 주입한다.
+
 ## 실행
-- 의존성: pip install -r backend/requirements.txt
-- 개발: python backend/run.py (uvicorn reload)
-- 배포: (권장) Nginx 뒤에서 localhost로만 바인딩 → `127.0.0.1:2000` (docs/ops/nginx-subdomains.md 참고)
-  - 예: gunicorn -k uvicorn.workers.UvicornWorker server:app -w 4 -b 127.0.0.1:2000
+- 의존성: `pip install -r backend/requirements.txt`
+- PATH 세팅: `source ./env.sh`
+- 개발(포그라운드): `python backend/run.py`
+- 운영/백그라운드(run.sh):
+  - 시작(prod): `./backend/run.sh start`
+  - 시작(dev): `./backend/run.sh start-dev`
+  - 상태 확인: `./backend/run.sh status` / `./backend/run.sh status-dev`
+  - 중지: `./backend/run.sh stop` / `./backend/run.sh stop-dev`
+- 배포 권장: `backend/run.sh start` 기본 바인딩은 `0.0.0.0:<port>`다. 운영에서는 Nginx 리버스 프록시 + 방화벽(또는 보안그룹)으로 외부 접근을 제한한다. localhost 바인딩이 필요하면 run.sh의 host를 `127.0.0.1`로 조정해 사용한다. (docs/ops/nginx-subdomains.md 참고)
 
 ## 체크리스트
 - 토큰 방식: Access/Refresh 둘 다 HttpOnly 쿠키. Access는 짧게, Refresh는 rememberMe에 따라 session/장기. 401 → refresh → 재시도.

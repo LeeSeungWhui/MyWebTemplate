@@ -20,7 +20,7 @@
 - 네이밍/역할: landmark/role/aria-label 제공, 이미지 대체텍스트 명시
 - 대비: 텍스트 4.5:1 이상, 비텍스트 3:1 이상
 - 스크린리더: 상태 변경(Toast/Dialog 등)은 라이브 영역 또는 적절한 aria로 알림
-- 테스트: Axe/Lighthouse A11y ≥ 90, 키보드 전수 동작
+- 테스트: Axe/Lighthouse A11y ≥ 90 기준을 충족해야 하며, 자동화는 권장이고 수동 점검 시 결과 증빙(리포트/체크리스트)을 남긴다. 키보드 전수 동작은 필수
 
 ## 보안(Security)
 - 기준: OWASP Top 10, 최소 권한 원칙
@@ -45,7 +45,8 @@
 - Web: LCP < 2.5s, INP < 200ms, CLS < 0.1, Lighthouse ≥ 80
 - API: P95 응답 < 400ms(핵심 엔드포인트), 타임아웃/재시도/서킷브레이커 고려
 - DB: 주요 쿼리 P95 < 200ms, N+1 금지, 인덱스 설계 문서화
-- 번들: 페이지별 JS(gzip) ≤ 200KB, 코드 스플리팅/지연 로딩, `next/image` 사용
+- 번들: 페이지별 JS(gzip) ≤ 200KB(프론트 빌드 산출물 기준), 코드 스플리팅/지연 로딩, `next/image` 사용
+- 백엔드 응답 압축: 우선순위는 Nginx/Ingress 등 엣지 레이어 압축이며, 애플리케이션 `GZipMiddleware`는 환경에 따라 선택 적용한다.
 - 캐싱: SSR `no-store`/`revalidate:N` 명시, API 캐시 헤더 일관 적용
 - 모니터링: Web Vitals 수집, 서버/DB 지표 대시보드
 
@@ -83,7 +84,7 @@
 
 ## DoD(Definition of Done)
 - Lint/Format 통과, 테스트 커버리지 ≥ 70%
-- 접근성 체크(Axe/Lighthouse A11y ≥ 90, 키보드 전수 OK)
+- 접근성 체크(Axe/Lighthouse A11y ≥ 90 기준 충족, 자동화 또는 수동 증빙 + 키보드 전수 OK)
 - 성능 예산 충족(LCP/INP/CLS, API·DB P95 목표)
 - 보안 체크리스트 통과(CORS/CSRF/시크릿/입력 검증/SQL 바인딩)
 - 문서 업데이트(README, 설계/모듈/Unit, 변경 로그)
