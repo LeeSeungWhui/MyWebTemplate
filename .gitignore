@@ -147,6 +147,13 @@ AGENTS.md
 backend/logs/
 logs/
 output/
+frontend-web/logs/*.err
+frontend-web/logs/*.out
+frontend-web/logs/*.pid
+
+# Local runtime DB artifacts
+backend/data/*.db
+!backend/data/main.db
 
 # Spyder project settings
 .spyderproject
