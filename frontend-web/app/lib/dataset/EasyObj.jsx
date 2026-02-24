@@ -1,3 +1,10 @@
+/**
+ * 파일명: EasyObj.jsx
+ * 작성자: LSH
+ * 갱신일: 2026-02-24
+ * 설명: 객체형 반응형 데이터 모델
+ */
+
 import { useState, useRef } from 'react';
 
 const scheduleUpdate = (fn) => {
@@ -8,6 +15,12 @@ const scheduleUpdate = (fn) => {
 };
 
 const isObject = (value) => typeof value === 'object' && value !== null;
+const isPlainObject = (value) => {
+    if (!isObject(value)) return false;
+    const proto = Object.getPrototypeOf(value);
+    return proto === Object.prototype || proto === null;
+};
+const isProxyableObject = (value) => Array.isArray(value) || isPlainObject(value);
 const isNumericKey = (key) => typeof key === 'string' && /^\d+$/.test(key);
 
 const toSegments = (key) => {
@@ -23,6 +36,7 @@ const toSegments = (key) => {
 
 const deepCopy = (value) => {
     if (!isObject(value)) return value;
+    if (!isProxyableObject(value)) return value;
     if (Array.isArray(value)) return value.map((item) => deepCopy(item));
     const out = {};
     for (const key of Object.keys(value)) out[key] = deepCopy(value[key]);
@@ -123,11 +137,13 @@ function useEasyObj(initialData = {}) {
 
     const wrapPrevValue = (rawPrev) => {
         if (!isObject(rawPrev)) return rawPrev;
+        if (!isProxyableObject(rawPrev)) return rawPrev;
         return deepCopy(rawPrev);
     };
 
     const wrapValue = (rawValue, pathSegments) => {
         if (!isObject(rawValue)) return rawValue;
+        if (!isProxyableObject(rawValue)) return rawValue;
         if (!pathSegments.length) return ensureRootProxy();
         return getOrCreateProxy(rawValue, pathSegments);
     };
@@ -188,7 +204,12 @@ function useEasyObj(initialData = {}) {
         const source = options.source ?? 'program';
         const nextRaw = unwrap(incomingValue);
         const onRoot = pathSegments.length === 0;
-        const normalizedValue = onRoot && isObject(nextRaw) ? deepCopy(nextRaw) : nextRaw;
+        let normalizedValue = nextRaw;
+        if (onRoot) {
+            if (isObject(nextRaw)) {
+                normalizedValue = deepCopy(nextRaw);
+            }
+        }
         const { prev } = assignAtPath(pathSegments, normalizedValue);
         const prevExport = wrapPrevValue(prev);
 
@@ -235,7 +256,7 @@ function useEasyObj(initialData = {}) {
 
     const replaceBranch = (basePath, sourceValue, options = {}) => {
         const plain = unwrap(sourceValue);
-        if (Array.isArray(plain) || !isObject(plain)) {
+        if (!isPlainObject(plain)) {
             applySet(basePath, deepCopy(plain), options);
             return;
         }
@@ -251,12 +272,12 @@ function useEasyObj(initialData = {}) {
     };
 
     function getOrCreateProxy(raw, basePath = []) {
-        if (!isObject(raw)) return raw;
+        if (!isProxyableObject(raw)) return raw;
         const cached = rawToProxyRef.current.get(raw);
         if (cached) return cached;
         let proxy;
         const handler = {
-            get(target, prop, receiver) {
+            get(target, prop) {
                 const container = resolveContainer(target, proxy, basePath);
                 if (prop === '__isProxy') return true;
                 if (prop === '__rawObject') return container;
@@ -324,8 +345,9 @@ function useEasyObj(initialData = {}) {
                     return wrapValue(value, fullPath);
                 }
                 const baseObject = isObject(container) ? container : Object(container ?? {});
-                const value = Reflect.get(baseObject, prop, receiver);
-                if (isObject(value)) {
+                // Native branded objects(File/Blob 등)는 자기 자신을 receiver로 써야 getter가 안전하다.
+                const value = Reflect.get(baseObject, prop, baseObject);
+                if (isProxyableObject(value)) {
                     const nextContainer = readAtPath(normalizePath(basePath, prop));
                     return getOrCreateProxy(nextContainer ?? value, [...basePath, typeof prop === 'symbol' ? prop : String(prop)]);
                 }
@@ -373,8 +395,11 @@ function useEasyObj(initialData = {}) {
 
     function ensureRootProxy() {
         if (!isObject(rootRef.current)) rootRef.current = {};
-        if (rootProxyRef.current && proxyToRawRef.current.get(rootProxyRef.current) === rootRef.current) {
-            return rootProxyRef.current;
+        if (rootProxyRef.current) {
+            const cachedRawRoot = proxyToRawRef.current.get(rootProxyRef.current);
+            if (cachedRawRoot === rootRef.current) {
+                return rootProxyRef.current;
+            }
         }
         return getOrCreateProxy(rootRef.current, []);
     }

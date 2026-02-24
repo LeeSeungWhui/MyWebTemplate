@@ -101,6 +101,21 @@ describe('EasyObj binding contract', () => {
         expect(branch.name).toBeUndefined();
         expect(branch.valueOf()).toBe('Solo');
     });
+
+    it('keeps native File/Blob values readable without proxy brand errors', () => {
+        const nativeValue = typeof File !== 'undefined'
+            ? new File(['hello'], 'hello.txt', { type: 'text/plain' })
+            : new Blob(['hello'], { type: 'text/plain' });
+
+        const { result } = renderHook(() => EasyObj({ attachment: nativeValue }));
+
+        expect(result.current.attachment).toBe(nativeValue);
+        expect(() => result.current.attachment.size).not.toThrow();
+        expect(result.current.attachment.size).toBe(nativeValue.size);
+        if ('name' in nativeValue) {
+            expect(result.current.attachment.name).toBe(nativeValue.name);
+        }
+    });
 });
 
 describe('EasyList binding contract', () => {

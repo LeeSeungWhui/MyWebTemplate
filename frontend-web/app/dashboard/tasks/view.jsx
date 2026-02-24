@@ -20,6 +20,7 @@ import Pagination from "@/app/lib/component/Pagination";
 import Select from "@/app/lib/component/Select";
 import Textarea from "@/app/lib/component/Textarea";
 import { apiJSON } from "@/app/lib/runtime/api";
+import { safeJsonParse } from "@/app/lib/runtime/json";
 import {
   buildTasksQueryString,
   DEFAULT_SORT,
@@ -51,10 +52,8 @@ const STATUS_FORM_LIST = STATUS_FILTER_LIST.filter((item) => item.value);
 const toTagList = (value) => {
   if (Array.isArray(value)) return value.filter(Boolean).map(String);
   if (typeof value !== "string" || !value.trim()) return [];
-  try {
-    const parsed = JSON.parse(value);
-    if (Array.isArray(parsed)) return parsed.filter(Boolean).map(String);
-  } catch {}
+  const parsedValue = safeJsonParse(value, null);
+  if (Array.isArray(parsedValue)) return parsedValue.filter(Boolean).map(String);
   return value
     .split(",")
     .map((tag) => tag.trim())

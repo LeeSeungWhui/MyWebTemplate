@@ -1,3 +1,10 @@
+/**
+ * 파일명: EasyList.jsx
+ * 작성자: LSH
+ * 갱신일: 2026-02-24
+ * 설명: 리스트형 반응형 데이터 모델
+ */
+
 import { useState, useRef } from 'react';
 
 const scheduleUpdate = (fn) => {
@@ -181,7 +188,10 @@ function useEasyList(initialData = []) {
         const source = options.source ?? 'program';
         const nextRaw = unwrap(incomingValue);
         const onRoot = pathSegments.length === 0;
-        const normalizedValue = onRoot && Array.isArray(nextRaw) ? deepCopy(nextRaw) : nextRaw;
+        let normalizedValue = nextRaw;
+        if (onRoot) {
+            normalizedValue = Array.isArray(nextRaw) ? deepCopy(nextRaw) : nextRaw;
+        }
         const { prev } = assignAtPath(pathSegments, normalizedValue);
         const prevExport = wrapPrevValue(prev);
 
@@ -328,7 +338,12 @@ function useEasyList(initialData = []) {
                 }
                 if (prop === 'push') {
                     return (...items) => {
-                        const start = Array.isArray(container) ? container.length : (Array.isArray(target) ? target.length : 0);
+                        let start = 0;
+                        if (Array.isArray(container)) {
+                            start = container.length;
+                        } else if (Array.isArray(target)) {
+                            start = target.length;
+                        }
                         items.forEach((item, offset) => {
                             applySet([...basePath, String(start + offset)], item, { source: 'program' });
                         });
@@ -430,8 +445,11 @@ function useEasyList(initialData = []) {
 
     function ensureRootProxy() {
         if (!Array.isArray(rootRef.current)) rootRef.current = [];
-        if (rootProxyRef.current && proxyToRawRef.current.get(rootProxyRef.current) === rootRef.current) {
-            return rootProxyRef.current;
+        if (rootProxyRef.current) {
+            const rawRoot = proxyToRawRef.current.get(rootProxyRef.current);
+            if (rawRoot === rootRef.current) {
+                return rootProxyRef.current;
+            }
         }
         return getOrCreateProxy(rootRef.current, []);
     }

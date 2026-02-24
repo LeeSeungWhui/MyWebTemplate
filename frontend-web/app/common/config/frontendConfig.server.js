@@ -1,9 +1,11 @@
 /**
  * 파일명: frontendConfig.server.js
  * 작성자: LSH
- * 갱신일: 2025-09-13
+ * 갱신일: 2026-02-24
  * 설명: 프론트엔드 config.ini 로더
  */
+
+import { safeJsonParse } from "@/app/lib/runtime/json";
 
 let cachedConfig = null
 
@@ -32,10 +34,10 @@ export async function loadFrontendConfig() {
     join(cwd, 'config_dev.ini'),
   ]
 
-  for (const p of candidates) {
+  for (const candidatePath of candidates) {
     try {
-      if (existsSync(p)) {
-        const iniText = readFileSync(p, 'utf-8')
+      if (existsSync(candidatePath)) {
+        const iniText = readFileSync(candidatePath, 'utf-8')
         cachedConfig = parseIni(iniText)
         if (typeof globalThis !== 'undefined') {
           globalThis.__APP_RUNTIME_CONFIG__ = cachedConfig
@@ -43,7 +45,7 @@ export async function loadFrontendConfig() {
         return cachedConfig
       }
     } catch (error) {
-      console.warn('[config] 읽기 실패, 다음 후보로 진행:', p, error)
+      console.warn('[config] 읽기 실패, 다음 후보로 진행:', candidatePath, error)
     }
   }
   cachedConfig = {}
@@ -98,8 +100,14 @@ function coerceValue(valueRaw) {
   const num = Number(valueRaw)
   if (!Number.isNaN(num) && valueRaw.trim() !== '') return num
   try {
-    if ((valueRaw.startsWith('{') && valueRaw.endsWith('}')) || (valueRaw.startsWith('[') && valueRaw.endsWith(']')))
-      return JSON.parse(valueRaw)
+    const looksLikeJson =
+      (valueRaw.startsWith('{') && valueRaw.endsWith('}')) ||
+      (valueRaw.startsWith('[') && valueRaw.endsWith(']'))
+    if (looksLikeJson) {
+      const notParsed = Symbol('notParsed')
+      const parsedValue = safeJsonParse(valueRaw, notParsed)
+      if (parsedValue !== notParsed) return parsedValue
+    }
   } catch (error) {
     console.warn('[config] JSON 파싱 실패', valueRaw, error)
   }
