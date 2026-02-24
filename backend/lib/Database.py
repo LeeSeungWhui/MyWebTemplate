@@ -12,7 +12,7 @@ import os
 import re
 import threading
 import time
-from typing import Dict, Optional, Set, Any, List
+from typing import Any
 import contextvars
 from urllib.parse import urlsplit, urlunsplit
 
@@ -39,19 +39,19 @@ except Exception:
 # 모듈 전역 상태
 # =========================
 
-dbManagers: Dict[str, "DatabaseManager"] = {}
+dbManagers: dict[str, "DatabaseManager"] = {}
 # 기본 DB 이름(템플릿 기본값은 main_db)
-primaryDbName: Optional[str] = None
+primaryDbName: str | None = None
 # 일부 서드파티 패키지는 PEP 561 타입 스텁이 없어 Pylance가 Unknown으로 인식한다.
-sqlObserver: Optional[Any] = None
+sqlObserver: Any | None = None
 
 baseDir = os.path.dirname(__file__)
 # 기본 쿼리 디렉터리: backend/query
 queryDir: str = os.path.normpath(os.path.join(baseDir, "..", "query"))
 queryWatch: bool = True
 debounceMs: int = 150
-debounceTimer: Optional[threading.Timer] = None
-lastChangedFile: Optional[str] = None
+debounceTimer: threading.Timer | None = None
+lastChangedFile: str | None = None
 
 # 요청 단위 SQL 카운터(ContextVar)
 sqlCountVar: contextvars.ContextVar[int] = contextvars.ContextVar("sql_count", default=0)
@@ -116,7 +116,7 @@ def getPrimaryDbName() -> str:
     return "main_db"
 
 
-def getManager(name: Optional[str] = None) -> Optional["DatabaseManager"]:
+def getManager(name: str | None = None) -> "DatabaseManager" | None:
     """설명: 이름(없으면 기본 DB)으로 DatabaseManager를 조회. 갱신일: 2025-11-12"""
     key = (name or "").strip() or getPrimaryDbName()
     return dbManagers.get(key)
@@ -140,7 +140,7 @@ def resetSqlCount() -> None:
 
 
 class QueryManager:
-    instance: Optional["QueryManager"] = None
+    instance: "QueryManager" | None = None
 
     @staticmethod
     def getInstance():
@@ -151,11 +151,11 @@ class QueryManager:
 
     def __init__(self):
         if QueryManager.instance is None:
-            self.queries: Dict[str, str] = {}
-            self.nameToFile: Dict[str, str] = {}
-            self.fileToNames: Dict[str, Set[str]] = {}
+            self.queries: dict[str, str] = {}
+            self.nameToFile: dict[str, str] = {}
+            self.fileToNames: dict[str, set[str]] = {}
 
-    def setAll(self, queries: Dict[str, str], nameToFile: Dict[str, str], fileToNames: Dict[str, Set[str]]):
+    def setAll(self, queries: dict[str, str], nameToFile: dict[str, str], fileToNames: dict[str, set[str]]):
         """설명: 전체 쿼리/파일 매핑을 덮어쓴다. 갱신일: 2025-11-12"""
         self.queries = dict(queries or {})
         self.nameToFile = dict(nameToFile or {})
@@ -166,7 +166,7 @@ class QueryManager:
         # 이전 코드 호환을 위해 쿼리 dict만 갱신 허용
         self.queries = dict(queries or {})
 
-    def getQuery(self, queryName: str) -> Optional[str]:
+    def getQuery(self, queryName: str) -> str | None:
         """설명: 이름으로 SQL 텍스트를 조회한다. 갱신일: 2025-11-12"""
         return self.queries.get(queryName)
 
@@ -181,13 +181,13 @@ class DatabaseManager:
         self.metadata = MetaData()
         self.queryManager = QueryManager.getInstance()
 
-    def maskParams(self, values: Optional[Dict[str, Any]]) -> Dict[str, str]:
+    def maskParams(self, values: dict[str, Any] | None) -> dict[str, str]:
         """설명: 로그에 사용할 파라미터 키만 노출. 갱신일: 2025-11-12"""
         if not values:
             return {}
         return {k: "***" for k in values.keys()}
 
-    def extractPlaceholders(self, query: str) -> Set[str]:
+    def extractPlaceholders(self, query: str) -> set[str]:
         """설명: 쿼리에서 :name 형 플레이스홀더 목록을 추출. 갱신일: 2025-11-12"""
         # 예시: :id, :user_name 등 명명 파라미터
         # PostgreSQL 캐스트(::jsonb)와 구분하기 위해 단일 ':'만 파라미터로 본다.
@@ -196,7 +196,7 @@ class DatabaseManager:
     def normalizeQueryForLog(self, query: str) -> str:
         """설명: SQL 원문의 빈 줄/불필요 공백을 정리해 사람이 읽기 좋게 만든다. 갱신일: 2026-02-22"""
         rawLines = str(query or "").splitlines()
-        lines: List[str] = []
+        lines: list[str] = []
         for rawLine in rawLines:
             line = re.sub(r"\s+", " ", rawLine).strip()
             if not line:
@@ -241,7 +241,7 @@ class DatabaseManager:
         text = str(value).replace("'", "''")
         return f"'{text}'"
 
-    def renderQueryForLog(self, normalizedQuery: str, values: Optional[Dict[str, Any]], revealLiteral: bool) -> str:
+    def renderQueryForLog(self, normalizedQuery: str, values: dict[str, Any] | None, revealLiteral: bool) -> str:
         """설명: :name 플레이스홀더를 로그용 리터럴로 치환한 SQL을 생성한다. 갱신일: 2026-02-22"""
         params = values or {}
         pattern = re.compile(r"(?<!:):([a-zA-Z_][a-zA-Z0-9_]*)")
@@ -254,19 +254,19 @@ class DatabaseManager:
 
         return pattern.sub(replace, normalizedQuery)
 
-    def logQuery(self, op: str, query: str, values: Optional[Dict[str, Any]] = None, queryName: Optional[str] = None) -> None:
+    def logQuery(self, op: str, query: str, values: dict[str, Any] | None = None, queryName: str | None = None) -> None:
         """설명: SQL 로그를 읽기 쉬운 최소 필드(queryName/sqlRendered)로 남긴다. 갱신일: 2026-02-22"""
         normalized = self.normalizeQueryForLog(query)
         revealLiteral = self.shouldRevealSqlLiteralValues()
         rendered = self.renderQueryForLog(normalized, values, revealLiteral)
-        payload: Dict[str, Any] = {
+        payload: dict[str, Any] = {
             "event": "db.query",
             "sqlRendered": self.truncateLogText(rendered),
         }
         payload["queryName"] = queryName or op
         logger.info(json.dumps(payload, ensure_ascii=False))
 
-    def validateBindParameters(self, query: str, values: Optional[Dict[str, Any]]):
+    def validateBindParameters(self, query: str, values: dict[str, Any] | None):
         """설명: 제공된 파라미터와 플레이스홀더 일치 여부를 검사. 갱신일: 2025-11-12"""
         values = values or {}
         placeholders = self.extractPlaceholders(query)
@@ -330,7 +330,7 @@ class DatabaseManager:
         """설명: 데이터베이스 연결을 종료한다. 갱신일: 2025-11-12"""
         await self.database.disconnect()
 
-    async def execute(self, query: str, values: Optional[Dict[str, Any]] = None, queryName: Optional[str] = None) -> Any:
+    async def execute(self, query: str, values: dict[str, Any] | None = None, queryName: str | None = None) -> Any:
         """설명: 쓰기 쿼리를 실행하고 영향 행을 반환. 갱신일: 2025-11-12"""
         self.validateBindParameters(query, values)
         self.logQuery("execute", query, values, queryName)
@@ -340,14 +340,14 @@ class DatabaseManager:
         return result
 
     async def fetchOne(
-        self, query: str, values: Optional[Dict[str, Any]] = None, queryName: Optional[str] = None
-    ) -> Optional[Dict[str, Any]]:
+        self, query: str, values: dict[str, Any] | None = None, queryName: str | None = None
+    ) -> dict[str, Any] | None:
         """설명: 단일 행을 조회해 dict로 반환. 갱신일: 2025-11-12"""
         self.validateBindParameters(query, values)
         self.logQuery("fetchOne", query, values, queryName)
         result = await self.database.fetch_one(query=query, values=values or {})
         if result is not None:
-            data: Dict[str, Any] = dict(result)
+            data: dict[str, Any] = dict(result)
             logger.info("rows_returned=1")
             incSqlCount()
             return data
@@ -357,14 +357,14 @@ class DatabaseManager:
             return None
 
     async def fetchAll(
-        self, query: str, values: Optional[Dict[str, Any]] = None, queryName: Optional[str] = None
-    ) -> Optional[List[Dict[str, Any]]]:
+        self, query: str, values: dict[str, Any] | None = None, queryName: str | None = None
+    ) -> list[dict[str, Any]] | None:
         """설명: 여러 행을 리스트로 반환. 갱신일: 2025-11-12"""
         self.validateBindParameters(query, values)
         self.logQuery("fetchAll", query, values, queryName)
         result = await self.database.fetch_all(query=query, values=values or {})
         if result is not None:
-            data: List[Dict[str, Any]] = [{column: row[column] for column in row.keys()} for row in result]  # type: ignore[index]
+            data: list[dict[str, Any]] = [{column: row[column] for column in row.keys()} for row in result]  # type: ignore[index]
             logger.info(f"rows_returned={len(data)}")
             incSqlCount()
             return data
@@ -373,7 +373,7 @@ class DatabaseManager:
             incSqlCount()
             return None
 
-    async def executeQuery(self, queryName: str, values: Optional[Dict[str, Any]] = None) -> Any:
+    async def executeQuery(self, queryName: str, values: dict[str, Any] | None = None) -> Any:
         """설명: 등록된 이름 기반 쿼리를 실행. 갱신일: 2025-11-12"""
         query = self.queryManager.getQuery(queryName)
         if not query:
@@ -381,7 +381,7 @@ class DatabaseManager:
             raise ValueError()
         return await self.execute(query, values, queryName=queryName)
 
-    async def fetchOneQuery(self, queryName: str, values: Optional[Dict[str, Any]] = None) -> Optional[Dict[str, Any]]:
+    async def fetchOneQuery(self, queryName: str, values: dict[str, Any] | None = None) -> dict[str, Any] | None:
         """설명: 등록 쿼리 중 단일 행을 가져온다. 갱신일: 2025-11-12"""
         query = self.queryManager.getQuery(queryName)
         if not query:
@@ -390,8 +390,8 @@ class DatabaseManager:
         return await self.fetchOne(query, values, queryName=queryName)
 
     async def fetchAllQuery(
-        self, queryName: str, values: Optional[Dict[str, Any]] = None
-    ) -> Optional[List[Dict[str, Any]]]:
+        self, queryName: str, values: dict[str, Any] | None = None
+    ) -> list[dict[str, Any]] | None:
         """설명: 등록 쿼리 중 여러 행을 가져온다. 갱신일: 2025-11-12"""
         query = self.queryManager.getQuery(queryName)
         if not query:
@@ -438,7 +438,7 @@ def loadQueries() -> int:
     return len(queries)
 
 
-def scheduleReload(changedPath: Optional[str]):
+def scheduleReload(changedPath: str | None):
     """설명: 변경된 파일을 기록하고 디바운스 타이머를 기동. 갱신일: 2025-11-12"""
     global debounceTimer, lastChangedFile
     lastChangedFile = changedPath
@@ -492,7 +492,7 @@ def doReload() -> bool:
     # 성공하면 새로운 쿼리 매핑으로 교체
     qm.setAll(newQueries, newNameToFile, newFileToNames)
     durationMs = int((time.perf_counter() - started) * 1000)
-    keysFromFile: Optional[list] = None
+    keysFromFile: list[str] | None = None
     try:
         if changedFile and os.path.isfile(changedFile):
             pairs2 = parseSqlFile(changedFile)
@@ -510,7 +510,7 @@ def doReload() -> bool:
     return True
 
 
-def startWatchingQueryFolder() -> Optional[Any]:
+def startWatchingQueryFolder() -> Any | None:
     """설명: watchdog으로 쿼리 폴더 변화를 감시. 갱신일: 2025-11-12"""
     if not queryWatch:
         return None

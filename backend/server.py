@@ -1,5 +1,5 @@
 """
-파일: backend/server.py
+파일명: backend/server.py
 작성자: LSH
 갱신일: 2025-11-12
 설명: FastAPI 서버 기동, DB/CORS/라우터 전체 초기화 담당.
@@ -24,7 +24,7 @@ from fastapi.responses import JSONResponse
 
 # backend.server / server 양쪽 임포트 경로를 모두 지원
 try:  # 패키지 컨텍스트
-    from .lib.Auth import AuthConfig  # type: ignore
+    from .lib.Auth import AuthConfig, isStrongAuthSecret  # type: ignore
     from .lib.Database import (  # type: ignore
         DatabaseManager,
         loadQueries,
@@ -40,7 +40,7 @@ try:  # 패키지 컨텍스트
     from .lib.OpenAPI import attachOpenAPI  # type: ignore
     from .lib.Config import getConfig  # type: ignore
 except Exception:  # 모듈 컨텍스트
-    from lib.Auth import AuthConfig
+    from lib.Auth import AuthConfig, isStrongAuthSecret
     from lib.Database import (
         DatabaseManager,
         loadQueries,
@@ -64,7 +64,10 @@ app = FastAPI()
 
 
 def encodeDsnUserInfo(value: object) -> str:
-    """DSN userinfo(user/password) 안전 인코딩."""
+    """
+    설명: DB DSN user/password 구간을 URL-safe 문자열로 인코딩한다.
+    갱신일: 2026-02-24
+    """
     if value is None:
         return ""
     return quote_plus(str(value))
@@ -78,14 +81,20 @@ def buildNetworkDbUrl(
     user: str,
     password: str,
 ) -> str:
-    """네트워크 DB(mysql/postgresql) 접속 URL을 생성."""
+    """
+    설명: 네트워크 DB(mysql/postgresql) 접속 URL을 생성한다.
+    갱신일: 2026-02-24
+    """
     safeUser = encodeDsnUserInfo(user)
     safePassword = encodeDsnUserInfo(password)
     return f"{scheme}://{safeUser}:{safePassword}@{host}:{port}/{database}"
 
 
 async def onShutdown():
-    """애플리케이션 종료 시 DB/워처 리소스를 정리한다. (갱신: 2025-11-12)"""
+    """
+    설명: 애플리케이션 종료 시 DB 연결과 쿼리 워처 리소스를 정리한다.
+    갱신일: 2026-02-24
+    """
     for manager in DB.dbManagers.values():
         if hasattr(manager, "disconnect"):
             await manager.disconnect()
@@ -154,8 +163,13 @@ async def columnExists(dbName: str, tableName: str, columnName: str) -> bool:
     try:
         if databaseUrl.startswith("sqlite"):
             row = await manager.fetchOne(
-                f"SELECT 1 FROM pragma_table_info('{tableNameLower}') WHERE lower(name) = :columnName LIMIT 1",
-                {"columnName": columnNameLower},
+                """
+                SELECT 1
+                  FROM pragma_table_info(:tableName)
+                 WHERE lower(name) = :columnName
+                 LIMIT 1
+                """,
+                {"tableName": tableNameLower, "columnName": columnNameLower},
             )
             return row is not None
         row = await manager.fetchOne(
@@ -284,7 +298,10 @@ async def migrateLegacyTemplateColumns(dbName: str) -> None:
 
 
 async def onStartup():
-    """DB/쿼리/인증 설정을 초기화한다. (갱신: 2025-11-12)"""
+    """
+    설명: 서버 시작 시 DB 연결, 쿼리 로더, 인증 설정을 초기화한다.
+    갱신일: 2026-02-24
+    """
     logger.info("database connect start")
     global sqlObserver
 
@@ -411,6 +428,7 @@ async def onStartup():
     # 인증 설정 로딩
     config = getConfig()
     authConfig = config["AUTH"]
+    serverConfig = config["SERVER"] if "SERVER" in config else {}
     # Refresh 토큰 회전 직후 경합(동시 탭/네트워크 재시도)을 완화하기 위한 유예 시간(ms)
     try:
         refreshGraceMs = authConfig.getint("refresh_grace_ms", 10_000)
@@ -419,15 +437,36 @@ async def onStartup():
             refreshGraceMs = authConfig.getint("refresh_grace_seconds", 10) * 1000
         except Exception:
             refreshGraceMs = 10_000
+    secretKey = authConfig.get("secret_key", "")
+    tokenEnable = authConfig.getboolean("token_enable", True)
+    runtimeRaw = serverConfig.get("runtime", "DEV") if serverConfig else "DEV"
+    runtime = str(runtimeRaw or "").strip().upper()
+    allowWeakAuthSecret = runtime in {"TEST", "CI"} or str(os.getenv("ALLOW_WEAK_AUTH_SECRET", "")).strip().lower() in {
+        "1",
+        "true",
+        "yes",
+        "on",
+    }
+    strictSecretValidation = tokenEnable and not allowWeakAuthSecret
+
+    if strictSecretValidation and not isStrongAuthSecret(secretKey):
+        raise RuntimeError(
+            "AUTH secret_key is too weak. Use 32+ chars strong random secret and restart."
+        )
+    if tokenEnable and not strictSecretValidation and not isStrongAuthSecret(secretKey):
+        logger.warning(
+            "weak AUTH secret_key allowed in non-strict runtime. set ALLOW_WEAK_AUTH_SECRET=false in runtime."
+        )
     AuthConfig.initConfig(
-        secretKey=authConfig["secret_key"],
+        secretKey=secretKey,
         accessExpireMinutes=authConfig.getint("token_expire", 3600) // 60,
         refreshExpireMinutes=authConfig.getint("refresh_expire", 3600 * 24 * 7)
         // 60,
         refreshGraceMs=refreshGraceMs,
-        tokenEnable=authConfig.getboolean("token_enable", True),
+        tokenEnable=tokenEnable,
         accessCookie=authConfig.get("access_cookie", "access_token"),
         refreshCookie=authConfig.get("refresh_cookie", "refresh_token"),
+        strictSecretValidation=strictSecretValidation,
     )
 
     # 사용자 테이블 생성/시드는 스크립트나 AuthService가 담당하므로 여기서는 건드리지 않는다.
@@ -511,7 +550,10 @@ logger.info("router load done")
 
 @app.exception_handler(Exception)
 async def globalExceptionHandler(request: Request, exc: Exception):
-    """전역 예외를 JSON 응답으로 치환한다. (갱신: 2025-11-12)"""
+    """
+    설명: 처리되지 않은 예외를 표준 에러 응답(JSON)으로 변환한다.
+    갱신일: 2026-02-24
+    """
     try:
         # 내부 예외 메시지는 응답에 노출하지 않고, 로그로만 남긴다.
         logger.exception(f"unhandled_exception path={request.url.path}")
@@ -551,7 +593,10 @@ def sanitizeValidationErrors(errors: object) -> list[dict]:
 
 @app.exception_handler(RequestValidationError)
 async def requestValidationExceptionHandler(request: Request, exc: RequestValidationError):
-    """요청 검증 오류를 표준 응답 스키마로 변환한다. (갱신: 2026-01-15)"""
+    """
+    설명: 요청 바디/파라미터 검증 실패를 표준 422 응답으로 변환한다.
+    갱신일: 2026-02-24
+    """
     return JSONResponse(
         status_code=422,
         content=errorResponse(
@@ -567,7 +612,10 @@ async def requestValidationExceptionHandler(request: Request, exc: RequestValida
 
 @app.exception_handler(HTTPException)
 async def httpExceptionHandler(request: Request, exc: HTTPException):
-    """HTTPException을 표준 응답 스키마로 변환한다(401 헤더 포함). (갱신: 2026-01-15)"""
+    """
+    설명: HTTPException을 표준 에러 응답으로 변환하고 401 헤더를 보강한다.
+    갱신일: 2026-02-24
+    """
     headers = dict(getattr(exc, "headers", None) or {})
 
     # 401은 인증 방식에 맞춰 WWW-Authenticate 헤더를 유지/보강한다.

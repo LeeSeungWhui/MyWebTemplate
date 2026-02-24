@@ -7,7 +7,6 @@
 
 from datetime import datetime, timedelta, timezone
 import uuid
-from typing import Optional
 
 from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordBearer
@@ -23,12 +22,12 @@ class Token(BaseModel):
 
 
 class TokenData(BaseModel):
-    username: Optional[str] = None
+    username: str | None = None
 
 
 class AuthConfig:
-    # Pylance 정적 타입 경고 방지를 위해 Optional[str]로 선언
-    secretKey: Optional[str] = None
+    # JWT 시크릿은 배포 환경에서 강한 랜덤 키를 사용해야 한다.
+    secretKey: str | None = None
     algorithm: str = "HS256"
     accessTokenExpireMinutes: int = 60
     refreshTokenExpireMinutes: int = 60 * 24 * 7
@@ -37,6 +36,7 @@ class AuthConfig:
     accessCookieName: str = "access_token"
     refreshCookieName: str = "refresh_token"
     tokenEnable: bool = True
+    strictSecretValidation: bool = False
 
     @classmethod
     def initConfig(
@@ -48,7 +48,12 @@ class AuthConfig:
         tokenEnable: bool = True,
         accessCookie: str = "access_token",
         refreshCookie: str = "refresh_token",
+        strictSecretValidation: bool = False,
     ):
+        """
+        설명: 인증 토큰 만료/쿠키/보안 강제 옵션을 전역 설정에 반영한다.
+        갱신일: 2026-02-24
+        """
         cls.secretKey = secretKey
         cls.accessTokenExpireMinutes = accessExpireMinutes
         cls.refreshTokenExpireMinutes = refreshExpireMinutes
@@ -56,13 +61,42 @@ class AuthConfig:
         cls.accessCookieName = accessCookie
         cls.refreshCookieName = refreshCookie
         cls.tokenEnable = tokenEnable
+        cls.strictSecretValidation = bool(strictSecretValidation)
 
 
 # OpenAPI 문서용 tokenUrl은 실제 로그인 엔드포인트와 일치시킨다.
 oauth2Scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/login", auto_error=False)
 
 
-def bindAuthUsernameToRequestState(request: Request, username: Optional[str]) -> None:
+def isStrongAuthSecret(secretKey: str | None) -> bool:
+    """
+    설명: 운영용 JWT 시크릿 강도(길이/금지 키워드/문자 다양성)를 검증한다.
+    갱신일: 2026-02-24
+    """
+    raw = str(secretKey or "").strip()
+    if len(raw) < 32:
+        return False
+    forbidden = {
+        "replace-with-strong-random-secret",
+        "changeme",
+        "change-me",
+        "secret",
+        "default",
+        "test-secret-key",
+        "password",
+    }
+    if raw.lower() in forbidden:
+        return False
+
+    hasLower = any(ch.islower() for ch in raw)
+    hasUpper = any(ch.isupper() for ch in raw)
+    hasDigit = any(ch.isdigit() for ch in raw)
+    hasPunct = any(not ch.isalnum() for ch in raw)
+    score = sum([hasLower, hasUpper, hasDigit, hasPunct])
+    return score >= 3
+
+
+def bindAuthUsernameToRequestState(request: Request, username: str | None) -> None:
     """
     설명: 인증된 사용자 식별자를 request.state에 바인딩한다(미들웨어 접근 로그용).
     갱신일: 2026-02-22
@@ -73,13 +107,15 @@ def bindAuthUsernameToRequestState(request: Request, username: Optional[str]) ->
         pass
 
 
-def createAccessToken(data: dict, *, tokenType: str = "access", expireMinutes: Optional[int] = None) -> Token:
+def createAccessToken(data: dict, *, tokenType: str = "access", expireMinutes: int | None = None) -> Token:
     """
     설명: 페이로드에 만료(exp)를 추가해 JWT 액세스/리프레시 토큰 생성.
     갱신일: 2025-11-XX
     """
     if not AuthConfig.secretKey:
         raise Exception("SECRET_KEY가 설정되지 않았습니다.")
+    if AuthConfig.strictSecretValidation and not isStrongAuthSecret(AuthConfig.secretKey):
+        raise Exception("SECRET_KEY가 보안 기준을 충족하지 않습니다.")
 
     toEncode = data.copy()
     now = datetime.now(timezone.utc)
@@ -101,7 +137,10 @@ def createAccessToken(data: dict, *, tokenType: str = "access", expireMinutes: O
 
 
 def createRefreshToken(data: dict) -> Token:
-    """설명: 리프레시 토큰 생성."""
+    """
+    설명: 리프레시 토큰을 생성한다.
+    갱신일: 2026-02-24
+    """
     return createAccessToken(
         data,
         tokenType="refresh",
@@ -109,7 +148,7 @@ def createRefreshToken(data: dict) -> Token:
     )
 
 
-async def getCurrentUser(request: Request, token: Optional[str] = Depends(oauth2Scheme)):
+async def getCurrentUser(request: Request, token: str | None = Depends(oauth2Scheme)):
     """
     설명: Bearer 토큰을 검증하고 인증된 사용자 식별자를 반환.
     갱신일: 2025-11-XX
@@ -135,8 +174,11 @@ async def getCurrentUser(request: Request, token: Optional[str] = Depends(oauth2
         if not secret:
             logger.error("AuthConfig.secretKey not configured")
             raise HTTPException(status_code=500, detail="server misconfigured")
+        if AuthConfig.strictSecretValidation and not isStrongAuthSecret(secret):
+            logger.error("AuthConfig.secretKey too weak for strict mode")
+            raise HTTPException(status_code=500, detail="server misconfigured")
         payload = jwt.decode(token, secret, algorithms=[AuthConfig.algorithm])
-        # payload.get는 Optional[Any]를 반환하므로 런타임 타입 검사로 보수적으로 확인한다.
+        # payload.get 반환값은 런타임 타입 검사로 보수적으로 검증한다.
         username = payload.get("sub")
         tokenType = payload.get("typ")
         if tokenType != "access":

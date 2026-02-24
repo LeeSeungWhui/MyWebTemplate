@@ -1,6 +1,7 @@
 """
-파일: backend/lib/Config.py
-작성: LSH
+파일명: backend/lib/Config.py
+작성자: LSH
+갱신일: 2026-02-24
 설명: 구성 로더 + server.config 접근 헬퍼.
  - loadConfig: backend 기준 상대 경로로 INI 로드
  - get: server.config 노출 값을 간편히 읽기
@@ -8,7 +9,6 @@
 
 from __future__ import annotations
 
-from typing import Optional
 from configparser import ConfigParser
 import os
 
@@ -19,28 +19,30 @@ except Exception:  # pragma: no cover
     logger = None  # type: ignore
 
 
-configCache: Optional[ConfigParser] = None
-configCachePath: Optional[str] = None
+configCache: ConfigParser | None = None
+configCachePath: str | None = None
 
 
 def backendDir() -> str:
+    """설명: backend 루트 디렉터리 절대 경로를 반환한다. 갱신일: 2026-02-24"""
     return os.path.dirname(os.path.dirname(__file__))
 
 
 def resolvePath(filename: str) -> str:
+    """설명: 설정 파일 경로를 backend 기준 절대 경로로 해석한다. 갱신일: 2026-02-24"""
     if os.path.isabs(filename):
         return filename
     return os.path.join(backendDir(), filename)
 
 
-def get(section: str, key: str, default: Optional[str] = None) -> str:
+def get(section: str, key: str, default: str | None = None) -> str:
     """설명: 지정 섹션/키 값을 조회한다. 갱신일: 2025-11-12"""
     conf = getConfig()
     sec = conf[section]
     return sec.get(key, default) if default is not None else sec[key]
 
 
-def getAuth(key: str, default: Optional[str] = None) -> str:
+def getAuth(key: str, default: str | None = None) -> str:
     """설명: AUTH 섹션 키를 조회한다. 갱신일: 2025-11-12"""
     return get("AUTH", key, default)
 
@@ -67,7 +69,7 @@ def loadConfig(filename: str) -> ConfigParser:
     return config
 
 
-def getConfig(path: Optional[str] = None, forceReload: bool = False) -> ConfigParser:
+def getConfig(path: str | None = None, forceReload: bool = False) -> ConfigParser:
     """설명: 설정 캐시를 반환하고 필요 시 재로딩한다. 갱신일: 2025-11-12"""
     global configCache, configCachePath
 

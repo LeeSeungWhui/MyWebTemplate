@@ -1,17 +1,19 @@
 """
 파일명: backend/service/AuthService.py
 작성자: LSH
-갱신일: 2026-01-18
+갱신일: 2026-02-22
 설명: 인증 도메인 서비스. 비즈니스 로직만 포함한다(HTTP/세션은 라우터 책임).
 """
 
 import uuid
-from typing import Optional, Tuple, Dict, Any
+from typing import Any
 
 import base64
 import hashlib
 import hmac
 import json
+import re
+import secrets
 from datetime import datetime, timezone
 
 try:
@@ -29,10 +31,10 @@ from lib.Response import successResponse
 
 # 인메모리 리프레시 토큰 블랙리스트(재사용/로그아웃 차단용)
 # key: refresh jti, value: expiresAtMs (refresh exp 기반 TTL)
-revokedRefreshJtiStore: Dict[str, int] = {}
+revokedRefreshJtiStore: dict[str, int] = {}
 # refresh 토큰 회전 직후, 같은 refresh 토큰이 다시 들어오는 케이스(다중 탭/네트워크 재시도)를 흡수하기 위한 유예 캐시
 # key: 이전 refresh jti, value: {"expiresAtMs": int, "tokenPayload": dict}
-refreshGraceStore: Dict[str, Dict[str, Any]] = {}
+refreshGraceStore: dict[str, dict[str, Any]] = {}
 
 
 def cleanupRefreshGraceStore(nowMs: int) -> None:
@@ -78,31 +80,59 @@ def _nowMs() -> int:
     return int(datetime.now(timezone.utc).timestamp() * 1000)
 
 
-def auditLog(event: str, username: Optional[str], success: bool, meta: Optional[Dict[str, Any]] = None) -> None:
+def maskUsernameForAudit(username: str | None) -> str | None:
+    """
+    설명: 감사 로그(audit)에서 사용자 식별자를 마스킹한다.
+    갱신일: 2026-02-22
+    """
+    value = str(username or "").strip()
+    if not value:
+        return None
+    if "@" in value:
+        localPart, domainPart = value.split("@", 1)
+        if not localPart:
+            return f"***@{domainPart}"
+        if len(localPart) == 1:
+            maskedLocal = "*"
+        elif len(localPart) == 2:
+            maskedLocal = f"{localPart[0]}*"
+        else:
+            maskedLocal = f"{localPart[:2]}{'*' * (len(localPart) - 2)}"
+        return f"{maskedLocal}@{domainPart}"
+    if len(value) == 1:
+        return "*"
+    if len(value) == 2:
+        return f"{value[0]}*"
+    return f"{value[:2]}{'*' * (len(value) - 2)}"
+
+
+def auditLog(event: str, username: str | None, success: bool, meta: dict[str, Any] | None = None) -> None:
     """
     설명: 로그인/리프레시/로그아웃 등 인증 이벤트 감사 로그를 남긴다.
     갱신일: 2025-12-03
     """
     try:
-        payload: Dict[str, Any] = {
+        maskedUsername = maskUsernameForAudit(username)
+        payload: dict[str, Any] = {
             "ts": _nowMs(),
             "event": event,
-            "username": username,
             "success": bool(success),
             "requestId": getRequestId(),
         }
+        if maskedUsername:
+            payload["usernameMasked"] = maskedUsername
         if meta and isinstance(meta, dict):
             payload.update(meta)
         logger.info(json.dumps(payload, ensure_ascii=False))
     except Exception:
         # 로깅 실패가 인증 흐름을 막지 않도록 방어
         try:
-            logger.info("auth_audit_fallback %s %s %s %s", event, username, success, meta)
+            logger.info("auth_audit_fallback %s %s %s %s", event, maskUsernameForAudit(username), success, meta)
         except Exception:
             pass
 
 
-def _extractExpMs(payload: Dict[str, Any], nowMs: int) -> int:
+def _extractExpMs(payload: dict[str, Any], nowMs: int) -> int:
     """
     설명: JWT payload의 exp를 ms로 변환한다. 없으면 refreshExpire 설정으로 추정한다.
     갱신일: 2026-01-18
@@ -121,12 +151,19 @@ def _extractExpMs(payload: Dict[str, Any], nowMs: int) -> int:
 
 
 async def me(user):
+    """
+    설명: 현재 인증 사용자 정보를 응답 스키마로 변환한다.
+    갱신일: 2026-02-22
+    """
     return successResponse(result={"username": user.username})
 
 
-async def login(payload: dict, rememberMe: bool = False) -> Optional[dict]:
-    """로그인 요청을 처리하고 사용자/토큰 정보를 함께 반환."""
-    candidateUsername: Optional[str] = None
+async def login(payload: dict, rememberMe: bool = False) -> dict | None:
+    """
+    설명: 로그인 입력을 검증하고 사용자/토큰 정보를 반환한다.
+    갱신일: 2026-02-22
+    """
+    candidateUsername: str | None = None
     if isinstance(payload, dict):
         rawUsername = payload.get("username")
         if isinstance(rawUsername, str):
@@ -141,8 +178,114 @@ async def login(payload: dict, rememberMe: bool = False) -> Optional[dict]:
     return {"user": authUser, "token": tokenPayload}
 
 
+def hashPasswordPbkdf2(plain: str, iterations: int = 260000) -> str:
+    """
+    설명: 평문 비밀번호를 PBKDF2 해시 문자열로 변환한다.
+    갱신일: 2026-02-22
+    """
+    salt = secrets.token_bytes(16)
+    derivedKey = hashlib.pbkdf2_hmac("sha256", plain.encode("utf-8"), salt, iterations)
+    return f"pbkdf2${iterations}${base64.b64encode(salt).decode()}${base64.b64encode(derivedKey).decode()}"
+
+
+def isValidEmail(value: str) -> bool:
+    """
+    설명: 기본 이메일 형식을 검사한다.
+    갱신일: 2026-02-22
+    """
+    return bool(re.match(r"^[^\s@]+@[^\s@]+\.[^\s@]+$", value or ""))
+
+
+def isDuplicateUserConstraintError(error: Exception) -> bool:
+    """
+    설명: DB unique 제약 위반(중복 가입) 예외인지 판별한다.
+    갱신일: 2026-02-24
+    """
+    text = str(error or "").lower()
+    if not text:
+        return False
+    duplicateTokens = (
+        "duplicate key",
+        "duplicate entry",
+        "unique constraint failed",
+        "violates unique constraint",
+    )
+    if any(token in text for token in duplicateTokens):
+        return True
+    if "integrityerror" in text and ("unique" in text or "duplicate" in text):
+        return True
+    return False
+
+
+async def signup(payload: dict) -> tuple[dict | None, str | None]:
+    """
+    설명: 회원가입 입력을 검증하고 신규 계정을 생성한다.
+    갱신일: 2026-02-22
+    """
+    if not isinstance(payload, dict):
+        return None, "AUTH_422_INVALID_INPUT"
+
+    rawName = payload.get("name")
+    rawEmail = payload.get("email")
+    rawPassword = payload.get("password")
+    if not isinstance(rawName, str) or not isinstance(rawEmail, str) or not isinstance(rawPassword, str):
+        return None, "AUTH_422_INVALID_INPUT"
+
+    name = rawName.strip()
+    email = rawEmail.strip().lower()
+    password = rawPassword
+    if len(name) < 2 or len(password) < 8 or not isValidEmail(email):
+        return None, "AUTH_422_INVALID_INPUT"
+
+    db = DB.getManager()
+    if not db:
+        return None, "AUTH_503_DB_NOT_READY"
+
+    try:
+        exists = await db.fetchOneQuery("auth.userByUsername", {"u": email})
+        if exists:
+            auditLog("auth.signup", email, False, {"reason": "user_exists"})
+            return None, "AUTH_409_USER_EXISTS"
+
+        passwordHash = hashPasswordPbkdf2(password)
+        try:
+            await db.executeQuery(
+                "auth.insertUser",
+                {
+                    "userId": email,
+                    "userPw": passwordHash,
+                    "userNm": name,
+                    "userEml": email,
+                    "roleCd": "user",
+                },
+            )
+        except Exception as insertError:
+            if isDuplicateUserConstraintError(insertError):
+                auditLog("auth.signup", email, False, {"reason": "user_exists_race"})
+                return None, "AUTH_409_USER_EXISTS"
+            raise
+        created = await db.fetchOneQuery("auth.userByUsername", {"u": email})
+        if not created:
+            auditLog("auth.signup", email, False, {"reason": "create_failed"})
+            return None, "AUTH_500_SIGNUP_FAILED"
+
+        result = {
+            "userId": created.get("username") or email,
+            "userNm": created.get("name") or name,
+        }
+        auditLog("auth.signup", email, True, {})
+        return result, None
+    except Exception as e:
+        auditLog("auth.signup", email, False, {"reason": "exception"})
+        logger.error(f"signup failed: {str(e)}")
+        return None, "AUTH_500_SIGNUP_FAILED"
+
+
 def session(payload: dict) -> dict:
-    """세션 조회 요청 payload(dict)로 응답 result를 구성."""
+    """
+    설명: 세션 조회 payload를 표준 result 구조로 매핑한다.
+    갱신일: 2026-02-22
+    """
     userId = (payload or {}).get("userId")
     name = (payload or {}).get("name")
     authed = bool(userId)
@@ -152,13 +295,19 @@ def session(payload: dict) -> dict:
     return result
 
 
-def csrf(_: Optional[dict] = None) -> dict:
-    """CSRF 토큰 응답 payload를 반환."""
+def csrf(_: dict | None = None) -> dict:
+    """
+    설명: 임시 CSRF 토큰 응답 payload를 생성한다.
+    갱신일: 2026-02-22
+    """
     return {"csrf": uuid.uuid4().hex}
 
 
-async def refresh(refreshToken: str) -> Optional[dict]:
-    """리프레시 토큰으로 새 액세스/리프레시 토큰을 발급한다(토큰 회전 + 재사용 차단)."""
+async def refresh(refreshToken: str) -> dict | None:
+    """
+    설명: refresh 토큰 회전 정책으로 새 Access/Refresh 토큰을 발급한다.
+    갱신일: 2026-02-22
+    """
     nowMs = _nowMs()
     cleanupRefreshGraceStore(nowMs)
     cleanupRevokedRefreshJtiStore(nowMs)
@@ -207,7 +356,7 @@ async def refresh(refreshToken: str) -> Optional[dict]:
     return tokenPayload
 
 
-def revokeRefreshToken(refreshToken: Optional[str]) -> None:
+def revokeRefreshToken(refreshToken: str | None) -> None:
     """
     설명: 로그아웃 시 리프레시 토큰을 블랙리스트에 추가해 재사용을 차단한다.
     갱신일: 2025-12-03
@@ -233,6 +382,10 @@ def revokeRefreshToken(refreshToken: Optional[str]) -> None:
 
 
 def verifyPassword(plain: str, stored: str) -> bool:
+    """
+    설명: 저장된 해시(pbkdf2/bcrypt)와 평문 비밀번호 일치 여부를 검증한다.
+    갱신일: 2026-02-22
+    """
     try:
         if stored and stored.startswith("pbkdf2$"):
             parts = stored.split("$")
@@ -254,8 +407,11 @@ def verifyPassword(plain: str, stored: str) -> bool:
         return False
 
 
-async def authenticateUser(payload: dict) -> Tuple[Optional[dict], Optional[str]]:
-    """payload에서 자격 증명을 추출해 사용자/아이디를 반환."""
+async def authenticateUser(payload: dict) -> tuple[dict | None, str | None]:
+    """
+    설명: 로그인 payload에서 자격 증명을 확인하고 사용자 정보를 반환한다.
+    갱신일: 2026-02-22
+    """
     if not isinstance(payload, dict):
         return None, None
     username = payload.get("username")
@@ -273,7 +429,7 @@ async def authenticateUser(payload: dict) -> Tuple[Optional[dict], Optional[str]
     return user, username
 
 
-def decodeRefreshTokenPayload(refreshToken: str) -> Optional[Dict[str, Any]]:
+def decodeRefreshTokenPayload(refreshToken: str) -> dict[str, Any] | None:
     """
     설명: 리프레시 토큰을 디코드해 페이로드를 반환한다. typ이 refresh가 아니면 None.
     갱신일: 2025-12-03
@@ -292,7 +448,10 @@ def decodeRefreshTokenPayload(refreshToken: str) -> Optional[Dict[str, Any]]:
 
 
 def issueTokens(username: str, remember: bool = False) -> dict:
-    """주어진 사용자명으로 액세스/리프레시 토큰 페이로드를 생성."""
+    """
+    설명: 사용자 기준 Access/Refresh 토큰 페이로드를 생성한다.
+    갱신일: 2026-02-22
+    """
     accessToken: Token = createAccessToken({"sub": username, "remember": remember}, tokenType="access")
     refreshToken: Token = createRefreshToken({"sub": username, "remember": remember})
     return {

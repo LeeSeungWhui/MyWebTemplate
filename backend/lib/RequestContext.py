@@ -6,11 +6,10 @@
 """
 
 import contextvars
-from typing import Optional
 
 
 # 요청ID 등 요청 스코프 값을 저장하는 컨텍스트 변수
-requestIdVar: contextvars.ContextVar[Optional[str]] = contextvars.ContextVar(
+requestIdVar: contextvars.ContextVar[str | None] = contextvars.ContextVar(
     "request_id", default=None
 )
 
@@ -23,7 +22,7 @@ def setRequestId(requestId: str) -> contextvars.Token:
     return requestIdVar.set(requestId)
 
 
-def getRequestId() -> Optional[str]:
+def getRequestId() -> str | None:
     """
     설명: 현재 컨텍스트의 요청ID를 반환.
     갱신일: 2025-11-12

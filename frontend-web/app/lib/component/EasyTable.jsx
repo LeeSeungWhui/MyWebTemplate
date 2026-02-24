@@ -13,8 +13,16 @@
 import { forwardRef, useEffect, useMemo, useRef, useState } from 'react';
 
 const isListLike = (list) => !!list && (typeof list.size === 'function' || Array.isArray(list));
-const listSize = (list) => (Array.isArray(list) ? list.length : (typeof list.size === 'function' ? list.size() : 0));
-const listGet = (list, idx) => (Array.isArray(list) ? list[idx] : (typeof list.get === 'function' ? list.get(idx) : undefined));
+const listSize = (list) => {
+  if (Array.isArray(list)) return list.length;
+  if (typeof list?.size === 'function') return list.size();
+  return 0;
+};
+const listGet = (list, idx) => {
+  if (Array.isArray(list)) return list[idx];
+  if (typeof list?.get === 'function') return list.get(idx);
+  return undefined;
+};
 const defaultRowKey = (row, idx) => {
   if (row && typeof row === 'object') {
     if (typeof row.get === 'function') {
@@ -31,7 +39,10 @@ const defaultRowKey = (row, idx) => {
 const clamp = (n, min, max) => Math.max(min, Math.min(n, max));
 
 const Arrow = ({ dir, className = '' }) => {
-  const rotate = dir === 'left' ? 'rotate-180' : dir === 'up' ? '-rotate-90' : dir === 'down' ? 'rotate-90' : '';
+  let rotate = '';
+  if (dir === 'left') rotate = 'rotate-180';
+  else if (dir === 'up') rotate = '-rotate-90';
+  else if (dir === 'down') rotate = 'rotate-90';
   return (
     <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" className={`${rotate} ${className}`} aria-hidden>
       <path d="M5.5 3L10 8L5.5 13" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
@@ -151,7 +162,11 @@ const EasyTable = forwardRef(function EasyTable(
   const [pageState, setPageState] = useState(initPage);
   const page = typeof pageProp === 'number' ? pageProp : pageState;
 
-  const size = useMemo(() => (totalProp != null ? totalProp : (isListLike(data) ? listSize(data) : 0)), [data, totalProp]);
+  const size = useMemo(() => {
+    if (totalProp != null) return totalProp;
+    if (isListLike(data)) return listSize(data);
+    return 0;
+  }, [data, totalProp]);
   const effectivePageSize = Math.max(1, pageSize);
   const pageCount = Math.max(1, Math.ceil(size / effectivePageSize));
 
@@ -169,17 +184,21 @@ const EasyTable = forwardRef(function EasyTable(
     let fromParam = null;
     if (pageParam) {
       const sp = new URLSearchParams(window.location.search);
-      const v = sp.get(pageParam);
-      const p = parseInt(v || '');
-      if (!isNaN(p) && p > 0) fromParam = p;
+      const paramValue = sp.get(pageParam);
+      const parsedPageFromParam = parseInt(paramValue || '', 10);
+      if (!isNaN(parsedPageFromParam) && parsedPageFromParam > 0) {
+        fromParam = parsedPageFromParam;
+      }
     }
     if (fromParam != null) next = fromParam;
     else if (persistKey) {
       const store = persist === 'local' ? window.localStorage : window.sessionStorage;
       const raw = store.getItem(persistKey);
       if (raw) {
-        const p = parseInt(raw);
-        if (!isNaN(p) && p > 0) next = p;
+        const parsedPersistedPage = parseInt(raw, 10);
+        if (!isNaN(parsedPersistedPage) && parsedPersistedPage > 0) {
+          next = parsedPersistedPage;
+        }
       }
     }
     if (next !== pageState) setPageState(next);
@@ -255,6 +274,15 @@ const EasyTable = forwardRef(function EasyTable(
     return row?.[col.key];
   };
 
+  const resolveRowKey = (row, globalIdx) => {
+    if (typeof rowKey === 'function') return rowKey(row, globalIdx);
+    if (typeof rowKey === 'string') {
+      if (row?.get) return row.get(rowKey);
+      return row?.[rowKey];
+    }
+    return defaultRowKey(row, globalIdx);
+  };
+
   const onChangePage = (next) => {
     const target = clamp(next, 1, pageCount);
     if (typeof pageProp === 'number') {
@@ -269,7 +297,7 @@ const EasyTable = forwardRef(function EasyTable(
     <div role="rowgroup" className={`w-full ${rowsClassName}`.trim()}>
       {rows.map((row, i) => {
         const globalIdx = (page - 1) * effectivePageSize + i;
-        const keyVal = typeof rowKey === 'function' ? rowKey(row, globalIdx) : (typeof rowKey === 'string' ? (row?.get ? row.get(rowKey) : row?.[rowKey]) : defaultRowKey(row, globalIdx));
+        const keyVal = resolveRowKey(row, globalIdx);
         return (
           <div
             key={keyVal}
@@ -318,7 +346,7 @@ const EasyTable = forwardRef(function EasyTable(
     <div className={gridClassName}>
       {rows.map((row, i) => {
         const globalIdx = (page - 1) * effectivePageSize + i;
-        const keyVal = typeof rowKey === 'function' ? rowKey(row, globalIdx) : (typeof rowKey === 'string' ? (row?.get ? row.get(rowKey) : row?.[rowKey]) : defaultRowKey(row, globalIdx));
+        const keyVal = resolveRowKey(row, globalIdx);
         return (
           <div key={keyVal} className="w-full">
             {typeof renderCard === 'function' ? renderCard(row, globalIdx) : (
@@ -336,22 +364,50 @@ const EasyTable = forwardRef(function EasyTable(
     </div>
   );
 
-  const effStatus = status ?? (loading ? 'loading' : (rows.length === 0 ? 'empty' : 'idle'));
+  const resolveStatus = () => {
+    if (status != null) return status;
+    if (loading) return 'loading';
+    if (rows.length === 0) return 'empty';
+    return 'idle';
+  };
+
+  const effStatus = resolveStatus();
   const isBusy = effStatus === 'loading';
   const isError = effStatus === 'error';
   const isEmpty = effStatus === 'empty' && !isError && !isBusy;
+  const renderStatusPanel = () => {
+    if (isBusy) {
+      return (
+        <div className="p-6 text-center text-gray-500" role="status" aria-live="polite">
+          Loading...
+        </div>
+      );
+    }
+    if (isError) {
+      return (
+        <div className="p-6 text-center text-red-600" role="alert">
+          {errorText || 'Error'}
+        </div>
+      );
+    }
+    if (isEmpty) {
+      return <div className="p-6 text-center text-gray-500">{empty}</div>;
+    }
+    return null;
+  };
+  const statusPanel = renderStatusPanel();
 
   return (
     <div ref={ref} className={`w-full border border-gray-200 rounded ${className}`.trim()} role="table" aria-busy={isBusy ? 'true' : undefined}>
-      {variant === 'table' && header}
-      {isBusy ? (
-        <div className="p-6 text-center text-gray-500" role="status" aria-live="polite">Loading...</div>
-      ) : isError ? (
-        <div className="p-6 text-center text-red-600" role="alert">{errorText || 'Error'}</div>
-      ) : isEmpty ? (
-        <div className="p-6 text-center text-gray-500">{empty}</div>
+      {variant === 'table' ? (
+        <div className="w-full overflow-x-auto">
+          <div className="min-w-max">
+            {header}
+            {statusPanel || bodyTable}
+          </div>
+        </div>
       ) : (
-        variant === 'table' ? bodyTable : bodyCards
+        statusPanel || bodyCards
       )}
       {pageCount > 1 && !isBusy && !isError && pager}
     </div>

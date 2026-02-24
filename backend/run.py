@@ -1,6 +1,7 @@
 """
 파일명: backend/run.py
 작성자: LSH
+갱신일: 2026-02-24
 설명: 로컬 실행 엔트리. config.ini를 읽어 uvicorn을 기동한다.
 """
 
@@ -17,6 +18,7 @@ from lib.Config import getConfig
 
 
 def loadConfig():
+    """설명: 실행 시점 설정(config.ini)을 로딩한다. 갱신일: 2026-02-24"""
     return getConfig()
 
 
