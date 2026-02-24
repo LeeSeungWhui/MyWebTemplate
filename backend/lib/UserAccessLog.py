@@ -1,6 +1,6 @@
 """
 파일명: backend/lib/UserAccessLog.py
-작성자: Codex
+작성자: LSH
 갱신일: 2026-02-22
 설명: 인증 사용자 접근 로그를 DB 테이블(T_USER_LOG)에 적재한다.
 """
@@ -43,34 +43,6 @@ CREATE TABLE IF NOT EXISTS T_USER_LOG (
 )
 """
 
-insertUserLogSql = """
-INSERT INTO T_USER_LOG (
-      LOG_ID
-    , USER_ID
-    , REQ_ID
-    , REQ_MTHD
-    , REQ_PATH
-    , RES_CD
-    , LATENCY_MS
-    , SQL_CNT
-    , CLIENT_IP
-    , IP_LOC_TXT
-    , IP_LOC_SRC
-) VALUES (
-      :logId
-    , :userId
-    , :reqId
-    , :reqMthd
-    , :reqPath
-    , :resCd
-    , :latencyMs
-    , :sqlCnt
-    , :clientIp
-    , :ipLocTxt
-    , :ipLocSrc
-)
-"""
-
 tableReadyMap: dict[str, bool] = {}
 tableEnsureLock = asyncio.Lock()
 ipGeoCache: dict[str, dict[str, object]] = {}
@@ -83,6 +55,10 @@ geoColumnAddSqlList = [
 
 
 def parseBool(rawValue: object, defaultValue: bool = False) -> bool:
+    """
+    설명: 다양한 입력값을 bool로 파싱한다.
+    갱신일: 2026-02-22
+    """
     if rawValue is None:
         return defaultValue
     try:
@@ -92,6 +68,10 @@ def parseBool(rawValue: object, defaultValue: bool = False) -> bool:
 
 
 def parsePositiveInt(rawValue: object, defaultValue: int) -> int:
+    """
+    설명: 양의 정수만 허용해 파싱하고, 실패 시 기본값을 반환한다.
+    갱신일: 2026-02-22
+    """
     try:
         value = int(str(rawValue).strip())
         if value <= 0:
@@ -99,6 +79,32 @@ def parsePositiveInt(rawValue: object, defaultValue: int) -> int:
         return value
     except Exception:
         return defaultValue
+
+
+def maskUserIdForLog(userId: Optional[str]) -> Optional[str]:
+    """
+    설명: 사용자 ID 로그 출력값을 마스킹한다.
+    갱신일: 2026-02-22
+    """
+    value = str(userId or "").strip()
+    if not value:
+        return None
+    if "@" in value:
+        localPart, domainPart = value.split("@", 1)
+        if not localPart:
+            return f"***@{domainPart}"
+        if len(localPart) == 1:
+            maskedLocal = "*"
+        elif len(localPart) == 2:
+            maskedLocal = f"{localPart[0]}*"
+        else:
+            maskedLocal = f"{localPart[:2]}{'*' * (len(localPart) - 2)}"
+        return f"{maskedLocal}@{domainPart}"
+    if len(value) == 1:
+        return "*"
+    if len(value) == 2:
+        return f"{value[0]}*"
+    return f"{value[:2]}{'*' * (len(value) - 2)}"
 
 
 def getIpGeoEnabled() -> bool:
@@ -156,6 +162,10 @@ def getIpGeoCacheTtlSec() -> int:
 
 
 def isDuplicateColumnError(message: str) -> bool:
+    """
+    설명: 컬럼 중복 생성 오류 메시지인지 판별한다.
+    갱신일: 2026-02-22
+    """
     raw = (message or "").lower()
     return (
         "duplicate column name" in raw
@@ -189,6 +199,10 @@ async def ensureUserLogColumns(dbName: str, dbManager) -> None:
 
 
 def normalizeIp(clientIp: Optional[str]) -> Optional[str]:
+    """
+    설명: 원본 클라이언트 IP 문자열을 정규화한다.
+    갱신일: 2026-02-22
+    """
     rawIp = (clientIp or "").strip()
     if not rawIp:
         return None
@@ -224,6 +238,10 @@ def classifyIpLocal(ipValue: str) -> tuple[str, str]:
 
 
 def buildLocationText(geoJson: dict) -> str:
+    """
+    설명: 외부 IP 위치 조회 결과를 저장용 텍스트로 변환한다.
+    갱신일: 2026-02-22
+    """
     countryCode = str(geoJson.get("country_code") or "").strip()
     countryName = str(geoJson.get("country") or "").strip()
     regionName = str(geoJson.get("region") or "").strip()
@@ -387,7 +405,7 @@ async def writeUserAccessLog(
     bindValues["ipLocTxt"] = ipLocTxt
     bindValues["ipLocSrc"] = ipLocSrc
     try:
-        await db.execute(insertUserLogSql, bindValues)
+        await db.executeQuery("common.userAccessLogInsert", bindValues)
     except Exception as e:
         logger.warning(
             json.dumps(
@@ -395,7 +413,7 @@ async def writeUserAccessLog(
                     "event": "db.user_log.insert.failed",
                     "dbName": targetDbName,
                     "requestId": requestId,
-                    "username": userId,
+                    "usernameMasked": maskUserIdForLog(userId),
                     "error": str(e),
                 },
                 ensure_ascii=False,

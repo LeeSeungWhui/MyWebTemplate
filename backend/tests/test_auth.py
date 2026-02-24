@@ -1,5 +1,6 @@
 import os
 import sys
+import uuid
 from fastapi.testclient import TestClient
 
 baseDir = os.path.dirname(os.path.dirname(__file__))
@@ -61,6 +62,21 @@ def testLoginInvalidAndWwwAuthenticateHeader():
         assert response.headers.get("WWW-Authenticate") == "Bearer"
         j = response.json()
         assert j["status"] is False and j["code"] == "AUTH_401_INVALID"
+
+
+def testLoginMalformedJsonReturns422():
+    from server import app
+    with TestClient(app) as client:
+        response = client.post(
+            "/api/v1/auth/login",
+            content='{"username":"demo@demo.demo","password":"password123"',
+            headers={"Content-Type": "application/json"},
+        )
+        assert response.status_code == 422
+        assert response.headers.get("WWW-Authenticate") == "Bearer"
+        body = response.json()
+        assert body["status"] is False
+        assert body["code"] == "AUTH_422_INVALID_INPUT"
 
 
 def testRequiresBearerHeaderNotCookie():
@@ -184,3 +200,74 @@ def testRefreshAfterLogoutIsRejected(monkeypatch):
         body = response2.json()
         assert body["status"] is False
         assert body["code"] == "AUTH_401_INVALID"
+
+
+def testSignupSuccessThenLogin():
+    from server import app
+
+    with TestClient(app) as client:
+        email = f"signup-{uuid.uuid4().hex[:8]}@demo.demo"
+        signupResponse = client.post(
+            "/api/v1/auth/signup",
+            json={"name": "Signup User", "email": email, "password": "password123"},
+        )
+        assert signupResponse.status_code == 201
+        signupBody = signupResponse.json()
+        assert signupBody["status"] is True
+        assert signupBody["result"]["userId"] == email
+
+        loginResponse = client.post(
+            "/api/v1/auth/login",
+            json={"username": email, "password": "password123"},
+        )
+        assert loginResponse.status_code == 200
+
+
+def testSignupDuplicateEmailReturns409():
+    from server import app
+
+    with TestClient(app) as client:
+        email = f"dup-{uuid.uuid4().hex[:8]}@demo.demo"
+        first = client.post(
+            "/api/v1/auth/signup",
+            json={"name": "Dup User", "email": email, "password": "password123"},
+        )
+        assert first.status_code == 201
+
+        second = client.post(
+            "/api/v1/auth/signup",
+            json={"name": "Dup User", "email": email, "password": "password123"},
+        )
+        assert second.status_code == 409
+        body = second.json()
+        assert body["status"] is False
+        assert body["code"] == "AUTH_409_USER_EXISTS"
+
+
+def testSignupInvalidInputReturns422():
+    from server import app
+
+    with TestClient(app) as client:
+        response = client.post(
+            "/api/v1/auth/signup",
+            json={"name": "A", "email": "not-email", "password": "123"},
+        )
+        assert response.status_code == 422
+        body = response.json()
+        assert body["status"] is False
+        assert body["code"] == "AUTH_422_INVALID_INPUT"
+
+
+def testSignupMalformedJsonReturns422():
+    from server import app
+
+    with TestClient(app) as client:
+        response = client.post(
+            "/api/v1/auth/signup",
+            content='{"name":"홍길동","email":"hong@example.com","password":"password123"',
+            headers={"Content-Type": "application/json"},
+        )
+        assert response.status_code == 422
+        body = response.json()
+        assert body["status"] is False
+        assert body["code"] == "AUTH_422_INVALID_INPUT"

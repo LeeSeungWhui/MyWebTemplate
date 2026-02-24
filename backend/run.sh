@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # 파일명: backend/run.sh
-# 작성자: Codex
+# 작성자: LSH
 # 설명: FastAPI 백엔드 prod/dev 실행/중지/상태 확인/재시작 스크립트
 
 set -euo pipefail
@@ -30,6 +30,60 @@ parse_port() {
   fi
 }
 
+is_port_number() {
+  [[ "${1:-}" =~ ^[0-9]+$ ]]
+}
+
+is_port_listening() {
+  local port="${1:-}"
+  if ! is_port_number "$port"; then
+    return 1
+  fi
+  ss -ltn 2>/dev/null | awk '{print $4}' | grep -qE "[:.]${port}$"
+}
+
+wait_until_started() {
+  local mode="${1:-prod}"
+  local pid_file="${2:-}"
+  local port="${3:-}"
+  local err_file="${4:-}"
+  local retries=20
+  local delay_sec=0.5
+  local i
+
+  for ((i = 1; i <= retries; i++)); do
+    if [[ ! -f "$pid_file" ]]; then
+      break
+    fi
+    local pid
+    pid="$(cat "$pid_file" 2>/dev/null || true)"
+    if [[ -z "$pid" ]] || ! kill -0 "$pid" 2>/dev/null; then
+      echo "백엔드($mode) 시작 실패: 프로세스가 종료됨"
+      rm -f "$pid_file"
+      if [[ -f "$err_file" ]]; then
+        tail -n 40 "$err_file" || true
+      fi
+      return 1
+    fi
+    if is_port_listening "$port"; then
+      return 0
+    fi
+    sleep "$delay_sec"
+  done
+
+  echo "백엔드($mode) 시작 실패: 포트 $port 리슨 확인 불가"
+  if [[ -f "$pid_file" ]]; then
+    local pid
+    pid="$(cat "$pid_file" 2>/dev/null || true)"
+    [[ -n "$pid" ]] && kill "$pid" 2>/dev/null || true
+    rm -f "$pid_file"
+  fi
+  if [[ -f "$err_file" ]]; then
+    tail -n 40 "$err_file" || true
+  fi
+  return 1
+}
+
 SERVER_PORT_PROD="$(parse_port)"
 SERVER_PORT_PROD="${SERVER_PORT_PROD:-2000}"
 SERVER_PORT_DEV="${BACKEND_DEV_PORT:-2100}"
@@ -57,11 +111,16 @@ start_mode() {
   echo "백엔드($mode) 시작... (port=$port)"
   (
     cd "$SCRIPT_DIR"
-    uvicorn server:app --host 0.0.0.0 --port "$port" "${extra_args[@]}" \
+    nohup uvicorn server:app --host 0.0.0.0 --port "$port" "${extra_args[@]}" \
+      </dev/null \
       >>"$out_file" 2>>"$err_file" &
     echo $! >"$pid_file"
   )
-  echo "백엔드($mode) 시작됨 (PID $(cat "$pid_file"))"
+  if wait_until_started "$mode" "$pid_file" "$port" "$err_file"; then
+    echo "백엔드($mode) 시작됨 (PID $(cat "$pid_file"))"
+    return 0
+  fi
+  return 1
 }
 
 stop_mode() {

@@ -84,7 +84,7 @@ def testAccessLogIncludesAuthenticatedUsername(caplog):
                 '"msg": "access"' in msg
                 and '"path": "/api/v1/auth/me"' in msg
                 and '"is_authenticated": true' in msg
-                and '"username": "demo@demo.demo"' in msg
+                and '"usernameMasked": "de**@demo.demo"' in msg
             ):
                 seen = True
                 break

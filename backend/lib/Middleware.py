@@ -1,11 +1,12 @@
 """
 파일명: backend/lib/Middleware.py
 작성자: LSH
-갱신일: 2025-09-07
+갱신일: 2026-02-22
 설명: 요청ID 전파 및 구조적 접근 로그 미들웨어.
 """
 
 import json
+import ipaddress
 import os
 import time
 import uuid
@@ -23,6 +24,10 @@ from .UserAccessLog import writeUserAccessLog
 
 
 def parsePositiveInt(rawValue: object) -> int | None:
+    """
+    설명: 양의 정수 값만 파싱해서 반환한다.
+    갱신일: 2026-02-22
+    """
     if rawValue is None:
         return None
     try:
@@ -123,6 +128,53 @@ def resolveAuthUsername(request: Request) -> str | None:
     return None
 
 
+def maskUsernameForLog(username: str | None) -> str | None:
+    """
+    설명: 로그 출력용 사용자 식별자(username)를 마스킹한다.
+    갱신일: 2026-02-22
+    """
+    value = (username or "").strip()
+    if not value:
+        return None
+    if "@" in value:
+        localPart, domainPart = value.split("@", 1)
+        if not localPart:
+            return f"***@{domainPart}"
+        if len(localPart) == 1:
+            maskedLocal = "*"
+        elif len(localPart) == 2:
+            maskedLocal = f"{localPart[0]}*"
+        else:
+            maskedLocal = f"{localPart[:2]}{'*' * (len(localPart) - 2)}"
+        return f"{maskedLocal}@{domainPart}"
+    if len(value) == 1:
+        return "*"
+    if len(value) == 2:
+        return f"{value[0]}*"
+    return f"{value[:2]}{'*' * (len(value) - 2)}"
+
+
+def maskClientIpForLog(clientIp: str | None) -> str | None:
+    """
+    설명: 로그 출력용 클라이언트 IP를 마스킹한다.
+    갱신일: 2026-02-22
+    """
+    value = (clientIp or "").strip()
+    if not value:
+        return None
+    try:
+        parsedIp = ipaddress.ip_address(value)
+    except Exception:
+        return "***"
+    if isinstance(parsedIp, ipaddress.IPv4Address):
+        octets = value.split(".")
+        if len(octets) == 4:
+            return f"{octets[0]}.{octets[1]}.{octets[2]}.*"
+        return "***"
+    hextets = parsedIp.exploded.split(":")
+    return ":".join(hextets[:4] + ["*"])
+
+
 class RequestLogMiddleware(BaseHTTPMiddleware):
     """
     설명: X-Request-Id 생성/전파 및 구조적 JSON 접근 로그 기록.
@@ -153,6 +205,8 @@ class RequestLogMiddleware(BaseHTTPMiddleware):
             level = "INFO"
             username = resolveAuthUsername(request)
             clientIp = resolveClientIp(request)
+            maskedUsername = maskUsernameForLog(username)
+            maskedClientIp = maskClientIpForLog(clientIp)
             logObj = {
                 "ts": int(time.time() * 1000),
                 "level": level,
@@ -165,10 +219,10 @@ class RequestLogMiddleware(BaseHTTPMiddleware):
                 "is_authenticated": bool(username),
                 "msg": "access",
             }
-            if username:
-                logObj["username"] = username
-            if clientIp:
-                logObj["client_ip"] = clientIp
+            if maskedUsername:
+                logObj["usernameMasked"] = maskedUsername
+            if maskedClientIp:
+                logObj["clientIpMasked"] = maskedClientIp
             # 구조적 로그를 위해 JSON 문자열로 기록
             msg = json.dumps(logObj, ensure_ascii=False)
             logger.info(msg)

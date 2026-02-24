@@ -1,6 +1,7 @@
 """
 파일명: backend/lib/Casing.py
-작성자: Codex
+작성자: LSH
+갱신일: 2026-02-22
 설명: snake_case → camelCase 변환 유틸(응답/데이터 매핑용).
 """
 
@@ -10,6 +11,10 @@ from typing import Any
 
 
 def toCamelCaseKey(key: str) -> str:
+    """
+    설명: snake_case 문자열 키를 camelCase로 변환한다.
+    갱신일: 2026-02-22
+    """
     if not isinstance(key, str) or "_" not in key:
         return key
     parts = [p for p in key.split("_") if p]
@@ -21,6 +26,10 @@ def toCamelCaseKey(key: str) -> str:
 
 
 def convertKeysToCamelCase(value: Any) -> Any:
+    """
+    설명: dict/list 내부의 모든 키를 재귀적으로 camelCase로 변환한다.
+    갱신일: 2026-02-22
+    """
     if isinstance(value, list):
         return [convertKeysToCamelCase(v) for v in value]
     if isinstance(value, dict):
@@ -32,4 +41,3 @@ def convertKeysToCamelCase(value: Any) -> Any:
                 converted[k] = convertKeysToCamelCase(v)
         return converted
     return value
-
