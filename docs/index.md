@@ -17,7 +17,9 @@
 - 프론트(Web)
   - Next.js(App Router) 기반 스캐폴드 `frontend-web`
   - UI 컴포넌트 셋(EasyObj/EasyList 바인딩 규약 준수)
-  - 로그인 화면(+유효성) → 메인 대시보드(카드/리스트/차트 더미) 구현
+  - 공개 퍼널: 랜딩(`/`) → 데모 허브(`/demo`) → 데모 페이지(`/demo/dashboard|crud|form|admin`) → 컴포넌트(`/component`) → 포트폴리오(`/demo/portfolio`)
+  - 템플릿 인증 경로(비노출): `/login`, `/signup`, `/forgot-password`, `/dashboard*`
+  - 로그인 화면(+유효성) → 템플릿 대시보드(카드/리스트/차트 더미) 구현
   - 보호 라우팅, 로그인 상태 유지, 백엔드 로그인 API 연동
 - 프론트(App)
   - Expo 기반 스캐폴드, 공통 UI 컴포넌트, 네비게이션 스택
@@ -33,6 +35,7 @@
 
 ## 사용자 여정(템플릿 기준)
 
+- 고객(숨고/크몽): URL 진입(`/`) → 데모 허브(`/demo`) → 데모 체험(`/demo/dashboard`, `/demo/crud`) → 컴포넌트 확인(`/component`) → 포트폴리오(`/demo/portfolio`)
 - 개발자: `source ./env.sh` → backend/frontend-web 실행 → 샘플 로그인 → 대시보드 확인 → 화면/API 추가 개발
 - 기획/디자이너: UI 가이드 기반 컴포넌트 선정 → 화면 검수(템플릿 Docs)
 - 운영: 헬스체크/로그/모니터링으로 품질 확인 및 롤백
@@ -75,11 +78,13 @@
 ## 현재 구현 상태(요약)
 
 - Backend: FastAPI 앱/라우터 자동 로드, 로그인(Access/Refresh 쿠키), 쿼리 로더/트랜잭션 샘플, sqlite(`backend/data/main.db`) 포함.
-- Web: Next.js `frontend-web` 단일 로그인(`/login`, SSR page + CSR view), 미들웨어 가드, 대시보드(`/dashboard`), EasyObj/EasyList 바인딩 컴포넌트 묶음과 컴포넌트 Docs 페이지 포함.
+- Web: Next.js `frontend-web` 공개 퍼널(`/`, `/demo/*`) + 템플릿 인증 흐름(`/login`, `/signup`, `/forgot-password`) + 템플릿 대시보드(`/dashboard`, `/dashboard/tasks`, `/dashboard/settings`) 구현/정비 예정.
 - App: Expo 골격/네비게이션 + 기본 컴포넌트 + Dataset 구현.
 
 ## Acceptance Criteria(템플릿 완료)
+- 공개 URL(`/`)에서 랜딩 Hero/GNB/CTA가 노출되고, `/demo`, `/demo/dashboard`, `/demo/crud`, `/demo/form`, `/demo/admin`, `/component`, `/demo/portfolio`로 이동할 수 있다.
 - 로컬에서 Web/App/Backend를 실행해 샘플 계정으로 로그인 후 메인 대시보드를 확인할 수 있다.
+- `/login`, `/signup`, `/forgot-password`, `/dashboard*` 경로는 공개 퍼널 메뉴에 노출되지 않지만 직접 URL 접근 시 동작해야 한다.
 - Web/App은 보호 라우팅이 적용되고, 로그인 상태가 새로고침/재시작 후에도 유지된다.
 - Backend는 표준 응답 스키마/에러 규격으로 로그인 API를 제공하고 `/healthz`가 200을 반환한다.
 - OpenAPI 스키마가 제공되며, 프런트는 통합 유틸(`apiJSON`/`apiRequest`)로 백엔드와 통신한다.

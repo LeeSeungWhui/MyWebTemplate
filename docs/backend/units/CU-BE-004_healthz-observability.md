@@ -2,7 +2,7 @@
 id: CU-BE-004
 name: Healthz & Observability
 module: backend
-status: partial
+status: implemented
 priority: P1
 links: [CU-BE-001, CU-BE-003]
 ---

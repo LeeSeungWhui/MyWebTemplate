@@ -2,7 +2,7 @@
 id: CU-WEB-009
 name: Data Fetch Strategy (Page MODE: SSR|CSR)
 module: web
-status: in-progress
+status: implemented
 priority: P1
 links: [CU-WEB-001, CU-WEB-002, CU-WEB-004, CU-WEB-005, CU-WEB-006, CU-WEB-008, CU-BE-001]
 ---
@@ -41,6 +41,8 @@ links: [CU-WEB-001, CU-WEB-002, CU-WEB-004, CU-WEB-005, CU-WEB-006, CU-WEB-008, 
 
 ### Implementation Notes
 - 예시(`app/login`): `initData.jsx`에 `SESSION_PATH` 정의, `page.jsx`에서 `MODE='SSR'`일 때 `apiJSON(SESSION_PATH)`로 초기 데이터 전달 + `SharedHydrator` 하이드레이션. `view.jsx`는 CSR 시 `apiJSON` 단발 패치 또는 `useSwr` 사용.
+- 예시(`app/dashboard`): `initData.jsx`에서 `MODE/dynamic/runtime/revalidate/fetchCache/endPoints`를 선언하고, `page.jsx`는 `dataStrategy.buildDashboardInitialData()`를 통해 SSR/CSR 분기를 일관 처리한다.
+- 검증: `frontend-web/__tests__/dashboardDataStrategy.test.jsx`에서 MODE 분기, 엔드포인트 누락, SSR 성공/실패 케이스를 단위 테스트로 고정했다.
 - 전역 ENV 기반 모드 스위치는 사용하지 않는다(NOT USED). ISR은 본 유닛 범위에서 제외한다.
 
 ### Tasks

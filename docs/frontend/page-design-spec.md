@@ -1,8 +1,21 @@
 # MyWebTemplate — 페이지 구성 디자인 스펙
 
-> **목적:** 숨고/크몽에 "포트폴리오 URL" 하나로 공유 시, 고객이 로그인 없이도 개발 역량을 파악하고, 로그인하면 실제 동작까지 체험할 수 있는 구조 설계
+> **목적:** 숨고/크몽에 "포트폴리오 URL" 하나로 공유 시, 고객이 로그인 없이도 데모 화면을 연속 체험하고 개발 역량을 파악할 수 있는 구조 설계
 >
 > **대상:** Codex가 구현할 수 있도록 페이지별 레이아웃/섹션/동선을 명시
+
+## Compact CST 매핑
+
+- CU-WEB-011: Public Demo Funnel (Landing → Demo Hub)
+- CU-WEB-010: Forgot Password (Request Reset)
+- CU-WEB-012: Landing & Public GNB
+- CU-WEB-013: Public Demo Pages (Dashboard / CRUD / Form / Admin)
+- CU-WEB-014: Dashboard Expansion (Tasks CRUD + Settings)
+- CU-WEB-015: Demo Portfolio Page Refresh (Visual + Trust)
+- CU-WEB-016: Signup Page (Template Route, Login-linked)
+- CU-BE-007: Dashboard Tasks CRUD API (웹 `/dashboard/tasks` 대응)
+- CU-BE-008: Profile & Settings API (웹 `/dashboard/settings` 대응)
+- CU-BE-009: Auth Signup API (웹 `/signup` 대응)
 
 ---
 
@@ -10,11 +23,11 @@
 
 | 경로 | 공개 | 현재 상태 |
 |---|---|---|
-| `/login` | 🌐 | 로그인 폼 (깔끔, 유지) |
-| `/dashboard` | 🔒 | 지표카드 + 차트 + 테이블 (완성도 높음, 유지) |
-| `/portfolio` | 🌐 | 텍스트 위주, 비주얼 임팩트 부족 |
-| `/component` | 🌐 | 33개 컴포넌트 문서 (킬러 페이지, 유지) |
-| `/` | — | 인증 시 `/dashboard`로 리다이렉트만 함 |
+| `/login`, `/signup`, `/forgot-password` | ⚙️ 템플릿 | 인증 흐름용 라우트, 공개 네비 비노출 대상 |
+| `/dashboard` | ⚙️ 템플릿 | 보호 경로, 템플릿 검증용으로 유지 |
+| `/demo`, `/demo/dashboard`, `/demo/crud`, `/demo/form`, `/demo/admin` | 🌐 | 공개 데모 페이지 구현됨 |
+| `/demo/portfolio`, `/component` | 🌐 | 공개 페이지 구현됨(포트폴리오는 `/demo/portfolio`, 컴포넌트는 `/component` 유지) |
+| `/` | 🌐 | 랜딩 공개 전환 완료 |
 
 ---
 
@@ -23,12 +36,15 @@
 ### 사이트맵
 
 ```
-                            / (랜딩, 공개)
-                  /    |       |         \       \
-          /demo/crud  /demo/form  /demo/admin  /component  /portfolio
-           (공개)       (공개)       (공개)        (공개)      (공개,리뉴얼)
+                                 / (랜딩, 공개)
+                                       |
+                                  /demo (허브)
+          ┌───────────────┬───────────────┬───────────────┬───────────────────┬───────────────────┐
+     /demo/dashboard   /demo/crud      /demo/form      /demo/admin         /component       /demo/portfolio
+        (공개)           (공개)          (공개)           (공개)              (공개)               (공개)
 
-              /login (공개) → /dashboard (보호)
+      [템플릿 전용/비노출 경로: 직접 URL 진입만]
+      /login, /signup, /forgot-password, /dashboard, /dashboard/tasks, /dashboard/settings
 ```
 
 ### 고객 동선
@@ -38,13 +54,15 @@
       ↓
   / (랜딩) — 3초 안에 "이 사람 뭐하는 사람인지" 파악
       ↓ CTA 클릭
-  /demo/crud  — "관리자 화면 이렇게 만들어줌" 직접 체험
-  /demo/form  — "복잡한 폼도 깔끔하게" 체험
-  /demo/admin — "사용자/권한 관리까지 가능하구나" 체험
+  /demo (허브) — 어떤 데모를 볼지 빠르게 선택
+      ↓
+  /demo/dashboard — 대시보드 품질 확인
+  /demo/crud      — CRUD 실사용 화면 체험
+  /demo/form      — 복합 폼 UX 체험
+  /demo/admin     — 관리자 화면 체험
       ↓ 더 보기
-  /component — "컴포넌트까지 문서화? 전문가다"
-      ↓ 관심 생기면
-  /login → /dashboard — "인증 체계까지 구현 가능"
+  /component — 컴포넌트 문서
+  /demo/portfolio — 아키텍처/구현 요약
 ```
 
 ---
@@ -57,8 +75,9 @@
 
 **공개 GNB (글로벌 네비게이션 바)** — 모든 공개 페이지 공통
 - 좌: 로고 `MyWebTemplate`
-- 우: `데모` | `컴포넌트` | `포트폴리오` | `로그인`
+- 우: `데모` | `컴포넌트` | `포트폴리오`
 - 스크롤 시 상단 고정 (sticky), 배경 blur
+- 인증 경로(`/login`, `/signup`, `/forgot-password`)는 GNB에 노출하지 않음
 
 #### 섹션 1: Hero
 
@@ -84,7 +103,7 @@
 
 #### 섹션 3: 데모 스크린샷 갤러리
 
-- 3개 카드: 대시보드 / CRUD 목록 / 폼 화면
+- 3개 카드: 데모 대시보드 / CRUD 목록 / 폼 화면
 - 각 카드: 스크린샷 이미지 + 하단 캡션 텍스트
 - 카드 클릭 시 해당 데모 페이지로 이동
 
@@ -97,16 +116,44 @@
 
 - 배경: 연한 블루 (`bg-blue-50`)
 - 텍스트: "직접 체험해 보세요"
-- 버튼: `데모 보기` + `문의하기(숨고)`
+- 버튼: `데모 보기`
 
 #### 섹션 6: Footer
 
 - 다크 배경 (`bg-gray-900`)
-- 로고 + 카피라이트 + 링크(도움말, 개인정보, GitHub)
+- 로고 + 카피라이트 + 링크(데모 허브, 컴포넌트, 포트폴리오, GitHub)
 
 ---
 
-## Page 2: `/demo/crud` CRUD 관리 화면 (신규, 공개)
+## Page 2: `/demo/dashboard` 데모 대시보드 (신규, 공개)
+
+> 핵심 목적: 로그인 없이도 "대시보드 품질"을 먼저 체험하게 하는 첫 데모 화면
+
+### 레이아웃
+
+대시보드와 동일한 레이아웃(Header + Sidebar + Footer) 사용. 로그인 불필요, 읽기 전용 또는 더미 데이터 기준.
+
+#### 구성
+
+1. **KPI 카드 영역**
+   - 카드 3~4개(총 건수, 상태별 건수, 합계 금액 등)
+2. **요약 차트 영역**
+   - 월별/상태별 추이 시각화(EasyChart)
+3. **최근 항목 테이블**
+   - 최근 5~10건 표시(제목/상태/금액/등록일)
+4. **CTA**
+   - `CRUD 데모 보기`(`/demo/crud`)
+   - `관리자 화면 보기`(`/demo/admin`)
+
+#### 동작 규칙
+
+- 기본값은 읽기 전용(등록/수정/삭제 버튼 없음)
+- 비인증 사용자 접근 허용
+- 데이터 소스는 더미 또는 읽기 전용 API 허용
+
+---
+
+## Page 3: `/demo/crud` CRUD 관리 화면 (신규, 공개)
 
 > 핵심 목적: "관리자 화면 이렇게 만들어드립니다"의 실물 증거
 
@@ -119,7 +166,7 @@
 | 요소 | 스펙 |
 |---|---|
 | 키워드 검색 | `Input` (placeholder: "검색어를 입력하세요") |
-| 상태 필터 | `Select` (전체/진행중/완료/대기/실패) |
+| 상태 필터 | `Select` (전체/ready/pending/running/done/failed) |
 | 날짜 범위 | `DateInput` × 2 (시작일 ~ 종료일) |
 | 검색 버튼 | `Button` variant=primary |
 | 신규 등록 | `Button` variant=primary, 우측 정렬 |
@@ -145,12 +192,14 @@
 | 필드 | 컴포넌트 | 비고 |
 |---|---|---|
 | 제목 | `Input` | required |
-| 상태 | `Select` | 진행중/완료/대기/실패 |
+| 상태 | `Select` | ready/pending/running/done/failed |
 | 담당자 | `Input` | |
 | 금액 | `NumberInput` | 원 단위 |
 | 설명 | `Textarea` | |
 | 첨부파일 | 파일 업로드 영역 | 드래그앤드롭 UI |
 | 하단 | `저장` + `취소` 버튼 | |
+
+> 상태 저장은 영문 코드(`ready/pending/running/done/failed`)로 통일하고, 화면 텍스트만 한글 라벨로 매핑한다.
 
 #### 삭제: Confirm 다이얼로그
 
@@ -160,7 +209,7 @@
 
 ---
 
-## Page 3: `/demo/form` 복합 폼 (신규, 공개)
+## Page 4: `/demo/form` 복합 폼 (신규, 공개)
 
 > 핵심 목적: "폼이 복잡해도 깔끔하게 만들어드립니다" 증거
 
@@ -205,7 +254,7 @@
 
 ---
 
-## Page 4: `/demo/admin` 관리자 화면 (신규, 공개)
+## Page 5: `/demo/admin` 관리자 화면 (신규, 공개)
 
 > 핵심 목적: "사용자/권한/시스템 설정 화면도 만듭니다" 증거. 의뢰 유형 중 매우 흔한 어드민 패널.
 
@@ -279,7 +328,7 @@
 
 ---
 
-## Page 5: `/portfolio` 리뉴얼 (기존 개선)
+## Page 6: `/demo/portfolio` 리뉴얼 (기존 개선)
 
 > 핵심 목적: 텍스트벽 → 비주얼 강화, 신뢰 어필
 
@@ -304,34 +353,75 @@
 
 ---
 
+## Page 7: `/signup` 회원가입 페이지 (템플릿 전용 경로)
+
+> 핵심 목적: 템플릿 인증 플로우를 보존하기 위한 보조 경로. 고객 공개 퍼널에서는 직접 노출하지 않는다.
+
+### 동선 규칙
+
+- 공개 GNB에는 회원가입/로그인 메뉴를 추가하지 않는다.
+- `/login` 하단 링크로만 진입한다.
+  - `계정이 없으신가요? 회원가입` → `/signup`
+  - `비밀번호를 잊으셨나요?` → `/forgot-password`
+
+### 레이아웃
+
+- 로그인 페이지와 동일 톤의 단일 카드 레이아웃(모바일 중심, 가운데 정렬)
+- 상단 제목: `회원가입`
+- 하단 링크: `이미 계정이 있으신가요? 로그인`
+
+### 입력 필드
+
+| 필드 | 컴포넌트 | 규칙 |
+|---|---|---|
+| 이름 | `Input` | 필수, 2자 이상 |
+| 이메일 | `Input` type=email | 필수, 이메일 형식 |
+| 비밀번호 | `Input` type=password | 필수, 8자 이상 |
+| 비밀번호 확인 | `Input` type=password | 비밀번호와 일치 |
+| 약관 동의 | `Checkbox` | 필수 |
+| 제출 | `Button` | 로딩 중 disabled |
+
+### API 연동
+
+| 메서드 | 경로 | 설명 |
+|---|---|---|
+| `POST` | `/api/v1/auth/signup` | 신규 계정 생성 |
+
+- 성공: `/login` 이동 + 성공 안내 메시지
+- 실패: 필드 에러 또는 공통 에러 메시지 + `requestId` 노출
+
+---
+
 ## 공통 사항
 
 ### 공개 페이지 GNB (Global Navigation Bar)
 
 | 요소 | 스펙 |
 |---|---|
-| GNB | 로고(좌) + 메뉴(우): 데모 ▾, 컴포넌트, 포트폴리오, 로그인 |
-| 데모 드롭다운 | CRUD 관리, 복합 폼, 관리자 화면 |
+| GNB | 로고(좌) + 메뉴(우): 데모 ▾, 컴포넌트, 포트폴리오 |
+| 인증 동선 | 공개 GNB 미노출. `/login` 하단 보조 링크로만 접근 |
+| 데모 드롭다운 | 데모 홈, 데모 대시보드, CRUD 관리, 복합 폼, 관리자 화면 |
 | 스타일 | sticky top, `backdrop-blur`, 흰 배경 80% |
 | 모바일 | 햄버거 메뉴 → Drawer |
 
 ### 공개 페이지 레이아웃 선택지
 
 - **랜딩 `/`**: GNB만 (사이드바 없음, 풀 와이드)
-- **데모 `/demo/*`**: 대시보드 레이아웃 재사용 (Header + Sidebar + Footer)
-- **포트폴리오 `/portfolio`**: GNB + 풀 와이드 (사이드바 없음)
-- **컴포넌트 `/component`**: 현재 유지 (자체 TOC 사이드바)
+- **데모 허브 `/demo` + 데모 상세 `/demo/*`**: 대시보드 레이아웃 재사용 (Header + Sidebar + Footer)
+- **포트폴리오 `/demo/portfolio`**: GNB + 풀 와이드 (사이드바 없음)
+- **컴포넌트 `/component`**: 기존 Docs UI 재사용
 
 ### publicRoutes.js 변경
 
 ```diff
  export const publicRoutes = [
+   '/',
+   '/demo/:path*',
+   '/demo',
    '/login',
+   '/signup',
+   '/forgot-password',
    '/component',
-   '/portfolio',
-+  '/demo/crud',
-+  '/demo/form',
-+  '/demo/admin',
  ]
 ```
 
@@ -346,17 +436,20 @@
 | 순위 | 페이지 | 이유 |
 |---|---|---|
 | **P0** | `/` 랜딩 | 숨고 URL 첫인상의 전부 |
+| **P0** | `/demo` 허브 | 데모 진입점 통합 |
+| **P0** | `/demo/dashboard` | 대시보드 품질을 로그인 없이 증명 |
 | **P0** | `/demo/crud` | 가장 흔한 의뢰 유형 증거 |
-| **P0** | 대시보드 메뉴 확장 | "뼈대만 있는 대시보드"에서 "진짜 동작하는 어드민"으로 |
 | **P1** | `/demo/form` | 복잡한 폼 역량 증거 |
 | **P1** | `/demo/admin` | 어드민 패널 구현 역량 증거 |
-| **P2** | `/portfolio` 리뉴얼 | 현재도 동작, 비주얼만 개선 |
+| **P1** | `/component` | 컴포넌트 문서 가시성 확보 |
+| **P2** | `/demo/portfolio` 리뉴얼 | 현재도 동작, 비주얼 강화 |
+| **P2** | `/login`/`/signup`/`/forgot-password` | 템플릿 보조 동선 유지(공개 네비 비노출) |
 
 ---
 
-## 대시보드 메뉴 확장 (기존 `/dashboard` 보강)
+## 템플릿 전용 대시보드 확장 (기존 `/dashboard` 보강)
 
-> 핵심 목적: 메뉴 3개가 빈 껍데기라 "데모인데 실제로 동작하는 게 없다"는 인상. **백엔드 API까지 포함해서 실제 CRUD가 동작**하게 만든다.
+> 핵심 목적: 템플릿 인증 경로(`/dashboard*`)의 완성도를 높이기 위해, 공개 퍼널과 분리된 상태에서 **백엔드 API 포함 CRUD 동작**을 유지한다.
 
 ### 현재 → 목표
 
@@ -388,11 +481,11 @@
 
 | 메서드 | 경로 | 설명 |
 |---|---|---|
-| `GET` | `/api/v1/dashboard/list` | 기존 목록 (검색/필터 파라미터 추가) |
-| `POST` | `/api/v1/dashboard/create` | 신규 등록 |
-| `PUT` | `/api/v1/dashboard/update/:id` | 수정 |
-| `DELETE` | `/api/v1/dashboard/delete/:id` | 삭제 |
-| `GET` | `/api/v1/dashboard/detail/:id` | 상세 조회 |
+| `GET` | `/api/v1/dashboard` | 기존 목록 (검색/필터 파라미터 추가) |
+| `POST` | `/api/v1/dashboard` | 신규 등록 |
+| `PUT` | `/api/v1/dashboard/{id}` | 수정 |
+| `DELETE` | `/api/v1/dashboard/{id}` | 삭제 |
+| `GET` | `/api/v1/dashboard/{id}` | 상세 조회 |
 
 기존 `T_DATA` 테이블 스키마:
 ```sql
@@ -432,10 +525,10 @@ DATA_NO, DATA_NM, DATA_DESC, STAT_CD, AMT, TAG_JSON, REG_DT
    | 설명 | `Textarea` | `DATA_DESC` |
    | 하단 | `저장` + `취소` | |
 
-   - **저장 시**: `POST /create` or `PUT /update/:id` → 성공 Toast → 목록 새로고침
-   - **수정 모드**: `GET /detail/:id`로 기존 데이터 로드
+   - **저장 시**: `POST /api/v1/dashboard` or `PUT /api/v1/dashboard/{id}` → 성공 Toast → 목록 새로고침
+   - **수정 모드**: `GET /api/v1/dashboard/{id}`로 기존 데이터 로드
 
-4. **삭제**: Confirm → `DELETE /delete/:id` → 성공 Toast → 목록 새로고침
+4. **삭제**: Confirm → `DELETE /api/v1/dashboard/{id}` → 성공 Toast → 목록 새로고침
 
 > ⚠️ **실제 API 연동**: 이 페이지는 더미 데이터가 아닌 실제 백엔드 API와 통신. DB에 CRUD가 반영됨.
 
@@ -467,7 +560,7 @@ DATA_NO, DATA_NM, DATA_DESC, STAT_CD, AMT, TAG_JSON, REG_DT
 | 최대 업로드 크기 | `NumberInput` (MB) | |
 | 하단 | `저장` 버튼 | Toast |
 
-> 참고: 프로필은 가능하면 백엔드 API(`PUT /api/v1/auth/profile`)까지 연동. 시스템 설정은 프론트 상태만으로도 OK.
+> 참고: 프로필은 백엔드 API(`PUT /api/v1/profile/me`) 기준으로 연동. 시스템 설정은 프론트 상태만으로도 OK.
 
 ---
 

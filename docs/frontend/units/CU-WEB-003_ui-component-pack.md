@@ -2,7 +2,7 @@
 id: CU-WEB-003
 name: UI Component Pack (EasyObj/EasyList Binding)
 module: web
-status: in-progress
+status: planned
 priority: P1
 links: [CU-WEB-001, CU-WEB-002, CU-WEB-004, CU-WEB-005, CU-WEB-006]
 ---
@@ -24,6 +24,8 @@ links: [CU-WEB-001, CU-WEB-002, CU-WEB-004, CU-WEB-005, CU-WEB-006]
   - 고급 그리드(컬럼 리사이즈/그룹핑), 리치 텍스트 에디터 고기능 그리드
 
 ### Interface
+- 라우트(UI)
+  - `GET /component` (고객 노출용 컴포넌트 문서 경로)
 - 공통 props(바인딩 + 접근성 중심)
   - `dataObj?`: EasyObj 또는 EasyList 프록시 기반 모델 (단, Select(Web)는 `dataObj/dataKey` 바인딩을 지원하지 않는다)
   - `dataKey?`: EasyObj의 필드 경로 문자열(`foo.bar`), EasyList는 selection/sort/page 등 키로 사용 (Select(Web) 제외)
@@ -134,4 +136,4 @@ links: [CU-WEB-001, CU-WEB-002, CU-WEB-004, CU-WEB-005, CU-WEB-006]
 - useEasyUpload: 업로드 URL을 백엔드 호스트 기준 절대 경로로 해석(프리사인/별도 업로드 엔드포인트 대응), 인증 우회용 헤더는 자동 주입하지 않음
 - EasyChart: Recharts 기반 경량 래퍼, type/data/xKey/yKeys/height/색상 props 제공 예정
 - Layout 파트: Header/Sidebar/Footer를 공용 위치(app/common/layout)로 제공(햄버거 토글, 메뉴/서브메뉴 지원)
-- Docs: `app/component` 페이지에서 주요 컴포넌트 예제/가이드 제공 (EasyEditor/PdfViewer는 후속)
+- Docs: `app/component` 페이지에서 주요 컴포넌트 예제/가이드 제공(EasyEditor/PdfViewer 포함)

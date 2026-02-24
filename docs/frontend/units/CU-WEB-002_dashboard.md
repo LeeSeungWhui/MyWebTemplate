@@ -2,7 +2,7 @@
 id: CU-WEB-002
 name: Dashboard (Cards/List/Stats Dummy)
 module: web
-status: in-progress
+status: implemented
 priority: P1
 links: [CU-WEB-001, CU-WEB-003, CU-WEB-004, CU-WEB-005, CU-WEB-006, CU-BE-002]
 ---
@@ -25,10 +25,10 @@ links: [CU-WEB-001, CU-WEB-003, CU-WEB-004, CU-WEB-005, CU-WEB-006, CU-BE-002]
 
 ### Interface
 - 라우트(UI)
-  - `GET /` 또는 `GET /dashboard`(보호 경로; links: CU-WEB-004)
+  - `GET /dashboard`(보호 경로; links: CU-WEB-004)
 - API(계약 약속)
   - `GET /api/v1/dashboard/stats` (통계: byStatus 등)
-  - `GET /api/v1/dashboard/list` (리스트: 최근 N)
+  - `GET /api/v1/dashboard` (리스트: 최근 N)
   - 공통 응답 스키마 준수 `{status,message,result,count?,code?,requestId}`
 - 렌더링 전략 요약
   - SSR 기본: 초회 서버 패치 후 화면 렌더링
@@ -44,6 +44,8 @@ links: [CU-WEB-001, CU-WEB-003, CU-WEB-004, CU-WEB-005, CU-WEB-006, CU-BE-002]
 - 에러/로딩 규칙
   - 서버 에러: 코드 맵핑으로 사용자 친화 메시지 + 요청ID 표출
   - 로딩: 스켈레톤 우선(레이아웃 시프 최소)
+- 노출 정책
+  - 고객 공개 퍼널에서는 `/dashboard` 링크를 노출하지 않고, 템플릿/개발자 경로로 유지한다.
 
 ### NFR & A11y
 - 성능: 최초진입 LCP < 2.5s(로컬 샘플 기준), 위젯 응답 P95 < 400ms(데모 API)

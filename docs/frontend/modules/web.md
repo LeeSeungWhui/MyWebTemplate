@@ -2,6 +2,7 @@
 
 ## 목적
 - 보호 경로와 공개 경로를 모두 커버하는 Next.js(App Router) 템플릿 제공
+- 고객 공개 동선을 `/demo/*` 중심으로 구성하되, 컴포넌트 문서는 `/component` 단일 경로로 유지
 - 페이지 파일 설정(`dynamic`/`runtime`/`revalidate`) 또는 `'use client'` 게이팅으로 SSR/CSR 모드가 명확·일관 되게 동작
 
 ## 기술 스택
@@ -25,19 +26,31 @@
 - CU-WEB-007 Migration (Vite → Next)
 - CU-WEB-008 Middleware Guard & Redirect
 - CU-WEB-009 Data Fetch Strategy (Page MODE)
-- CU-WEB-010 Forgot Password (Public)
+- CU-WEB-010 Forgot Password (Template Auth Route)
+- CU-WEB-011 Public Demo Funnel (Landing → Demo Hub)
+- CU-WEB-012 Landing & Public GNB
+- CU-WEB-013 Public Demo Pages (Dashboard / CRUD / Form / Admin)
+- CU-WEB-014 Dashboard Expansion (Tasks CRUD + Settings)
+- CU-WEB-015 Demo Portfolio Page Refresh (Visual + Trust)
+- CU-WEB-016 Signup Page (Template Auth Route, Login-linked)
 
 ## Unit 진행 현황
-- CU-WEB-001: in-progress — `/login` SSR/CSR, 토큰+쿠키(Access/Refresh) 플로우로 전환 예정, A11y/UX 보완 필요
-- CU-WEB-002: in-progress — `/dashboard` SSR 초기 데이터(stats/list) + 차트/테이블 더미 구성, AC 보강 필요
-- CU-WEB-003: in-progress — Input/Textarea/EasyTable/useEasyUpload 등 핵심 바인딩 컴포넌트/업로드 훅 반영, Docs 페이지 포함. EasyEditor/고급 그리드 남음
+- CU-WEB-001: implemented — `/login` SSR/CSR + Access/Refresh 쿠키 플로우 + 하단 보조 링크(`/forgot-password`,`/signup`) + 비밀번호 표시 토글 반영
+- CU-WEB-002: implemented — `/dashboard` SSR 초기 데이터 + 에러/requestId 표시 + 업무 상태 바로가기 + 헤더 breadcrumb(경로/쿼리) 연동 반영
+- CU-WEB-003: planned — 핵심 바인딩 컴포넌트(Input/Textarea/EasyTable/Select/EasyChart/EasyEditor/PdfViewer) 문서 경로를 `/component` 기준으로 정렬
 - CU-WEB-004: implemented — 보호 경로 가드(미들웨어 단일화), `/api/session/bootstrap` 자동 복구, 401→/login(reason) 규약 반영
 - CU-WEB-005: implemented — `apiJSON/apiRequest` 단일 진실 + OpenAPI(operationId) 유틸(`openapiClient.js`) 구성 완료
-- CU-WEB-006: in-progress — 페이지 MODE 규약 초안 작성, ENV 배선 진행
+- CU-WEB-006: implemented — 페이지별 `PAGE_MODE` + `dynamic/runtime/revalidate/fetchCache` 규약 적용(보호 경로 기본 SSR/nodejs/no-store)
 - CU-WEB-007: completed — `frontend-web` Vite → Next 마이그레이션 반영 완료
 - CU-WEB-008: implemented — `middleware.js` 리다이렉트 규칙 + `nx/auth_reason` 쿠키 정리, 프리페치 bypass 포함
-- CU-WEB-009: in-progress — `initData` + 런타임 fetch 헬퍼 초안, AC 충족 보강 필요
-- CU-WEB-010: planned — `/forgot-password` 공개 페이지(요청 UI) 스펙 승격, 구현은 차기
+- CU-WEB-009: implemented — `initData` 기반 MODE 분기(SSR/CSR) + `dataStrategy` 유틸 + 단위 테스트(`dashboardDataStrategy`)로 데이터 패치 계약 고정
+- CU-WEB-010: implemented — `/forgot-password` 템플릿 인증 보조 경로(공개 GNB 비노출)
+- CU-WEB-011: implemented — 공개 퍼널을 `/(랜딩) → /demo/* + /component` 구조로 고정하고 템플릿 인증 경로 비노출 정책 반영
+- CU-WEB-012: implemented — 공개 GNB(데모 드롭다운/모바일 메뉴) + 랜딩 섹션 + 단일 CTA(`데모 보기`) 구성 반영
+- CU-WEB-013: implemented — 공개 데모 5종(`/demo`, `/demo/dashboard`, `/demo/crud`, `/demo/form`, `/demo/admin`) 구현 및 데모 세션 상태 공유 적용
+- CU-WEB-014: implemented — `/dashboard/tasks`, `/dashboard/settings` UI + API 계약 + 에러/로딩/빈 상태 + 쿼리(`q/status/sort/page`) 동기화
+- CU-WEB-015: implemented — 공개 포트폴리오를 `/demo/portfolio`로 전환하고 시각 중심 섹션 구성으로 개편
+- CU-WEB-016: implemented — `/signup` 템플릿 인증 보조 경로 + `/login` 하단 회원가입 링크 + 기본 유효성/API 연동
 
 ## 프런트 설정: config.ini
 - 파일 위치: `frontend-web/config.ini` (우선순위: `config.ini` > `config_prod.ini` > `config_qa.ini` > `config_dev.ini`)

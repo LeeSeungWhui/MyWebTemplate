@@ -2,14 +2,15 @@
 id: CU-WEB-010
 name: Forgot Password (Request Reset)
 module: web
-status: planned
-priority: P2
+status: implemented
+priority: P1
 links: [CU-WEB-001, CU-WEB-004, CU-WEB-008, CU-WEB-005]
 ---
 
 ### Purpose
 - 로그인 화면에서 “비밀번호 찾기”로 진입 가능한 **공개 페이지**(`/forgot-password`)를 제공한다.
 - 템플릿에서 비밀번호 재설정 플로우의 UI/접근성/에러 UX 기준선을 문서화한다.
+- 공개 퍼널 네비에서는 비노출하고, 템플릿 인증 경로의 보조 진입점으로 유지한다.
 
 ### Scope
 - 포함
@@ -23,7 +24,7 @@ links: [CU-WEB-001, CU-WEB-004, CU-WEB-008, CU-WEB-005]
 
 ### Interface
 - 라우팅(UI)
-  - `GET /forgot-password` (공개; `frontend-web/app/common/config/publicRoutes.js` Allowlist에 포함)
+  - `GET /forgot-password` (템플릿 경로; `frontend-web/app/common/config/publicRoutes.js` Allowlist에 포함)
 - API(차기 계약 제안)
   - `POST /api/v1/auth/password-reset/request`
     - req: `{ email: string }`
@@ -57,4 +58,3 @@ links: [CU-WEB-001, CU-WEB-004, CU-WEB-008, CU-WEB-005]
 
 ### Notes
 - `/login`의 “비밀번호 찾기” 링크는 이 유닛이 구현되면 동작해야 한다.
-

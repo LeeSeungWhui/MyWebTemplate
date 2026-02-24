@@ -26,6 +26,20 @@
 - CU-BE-004 Healthz & Observability
 - CU-BE-005 OpenAPI Docs & JS Client
 - CU-BE-006 DB & Query Loader Hardening
+- CU-BE-007 Dashboard Tasks CRUD API
+- CU-BE-008 Profile & Settings API (Dashboard)
+- CU-BE-009 Auth Signup API
+
+## Unit 진행 현황
+- CU-BE-001: implemented — Access/Refresh 쿠키 기반 인증/세션 API + 401/refresh 재시도 규약 반영
+- CU-BE-002: implemented — `T_USER` 기반 샘플 계정/시드 스크립트와 테스트 데이터 초기화 흐름 반영
+- CU-BE-003: implemented — 단일/중첩 트랜잭션 유틸 + requestId/sqlCount 로깅 반영
+- CU-BE-004: implemented — `/healthz` `/readyz` + requestId 전파 + 유지보수 모드(`MAINTENANCE_MODE`) 처리 반영
+- CU-BE-005: implemented — OpenAPI 문서(`/docs`, `/openapi.json`)와 JS 호출 유틸 계약 정렬
+- CU-BE-006: implemented — query loader/watcher + 바인드 파라미터 검증 + SQL 실행 하드닝 반영
+- CU-BE-007: implemented — `/api/v1/dashboard` REST CRUD + 검색/필터/페이지네이션 + 상태 집계 반영
+- CU-BE-008: implemented — `/api/v1/profile/me` 조회/저장 + 설정 화면 연동 API 반영
+- CU-BE-009: implemented — `/api/v1/auth/signup` + 중복 이메일(409) + 입력 검증(422) 반영
 
 ## 구현 상태(요약)
 - 라우트: backend/router/*.py
@@ -33,6 +47,7 @@
 - 오류 응답: 일관 JSON
 - 로깅: 파일+콘솔(backend/logs/*.log)
 - 데모 계정은 환경별 DB에 준비되어 있어야 한다(예: `demo@demo.demo/password123`).
+- 대시보드 확장 API(CU-BE-007, CU-BE-008)와 회원가입 API(CU-BE-009)는 구현 완료 상태로 반영됨.
 
 ## 코드 구조
 - router/: API 엔드포인트(APIRouter). prefix=/api/v1 고정, 모듈별 라우터 분리(예: AuthRouter, ObservabilityRouter).

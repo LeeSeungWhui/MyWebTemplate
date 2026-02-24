@@ -2,9 +2,9 @@
 id: CU-WEB-001
 name: Auth & Login Page (Access/Refresh 쿠키 토큰)
 module: web
-status: in-progress
+status: implemented
 priority: P1
-links: [CU-BE-001, CU-WEB-004, CU-WEB-005, CU-WEB-008]
+links: [CU-BE-001, CU-WEB-004, CU-WEB-005, CU-WEB-008, CU-WEB-010, CU-WEB-016]
 ---
 
 ### Purpose
@@ -14,16 +14,18 @@ links: [CU-BE-001, CU-WEB-004, CU-WEB-005, CU-WEB-008]
 ### Scope
 - 포함
   - 로그인 폼(아이디/비밀번호/rememberMe), 기본 유효성/에러 UX, 비밀번호 표시 토글
+  - 로그인 하단 보조 링크: `비밀번호 찾기`(`/forgot-password`), `회원가입`(`/signup`)
   - API 연동: `POST /api/v1/auth/login` → Access/Refresh 쿠키 + `{accessToken,...}`, `POST /api/v1/auth/refresh` → Access/Refresh 회전, `POST /api/v1/auth/logout`
   - 토큰 플로우: `credentials:'include'` 고정, Authorization 헤더는 BFF가 Access 쿠키에서 주입
 - 리다이렉트: `next=/protected` 지원(유효 경로만 허용, 없으면 `/dashboard`로 이동)
   - A11y: 레이블/에러 ARIA 연결, 오류/토스트 관리
+  - 공개 퍼널 노출 정책: `/login`은 공개 GNB/푸터에서 직접 노출하지 않는 템플릿 경로로 유지
 - 제외
   - 소셜 로그인/2FA(차기)
 
 ### Interface
 - 라우팅(UI)
-  - `GET /login`(공개): 로그인 UI. 인증이면 `/dashboard`로 307(미들웨어 처리, links: CU-WEB-008)
+  - `GET /login`(템플릿 경로): 로그인 UI. 인증이면 `/dashboard`로 307(미들웨어 처리, links: CU-WEB-008)
   - (보조) 로그아웃 버튼 → `POST /api/v1/auth/logout` 호출 후 `/login` 이동
 - API(백엔드 연동 규약 요약)
   - `POST /api/v1/auth/login` → 200 JSON + Access/Refresh HttpOnly 쿠키
@@ -65,6 +67,7 @@ links: [CU-BE-001, CU-WEB-004, CU-WEB-005, CU-WEB-008]
 - T7: SWR 캐시 무효화 규칙: 로그인/로그아웃/refresh 시 세션 상태 갱신
 - T8: Docs 페이지: 에러/로딩/비밀번호표시/다크모드 시나리오 수록
 - T9: 테스트(Vitest): 폼 유효성/2xx 처리/401 메시지/`next` 검증/가드 리다이렉트/refresh 흐름
+- T10: 로그인 하단 링크(`/forgot-password`, `/signup`) 노출 및 이동 동작 검증
 
 ### Notes
 - ENV: 별도 전역 ENV 스위치 없음. API Base는 config.ini(`[API].base`)에서 로드(getBackendHost)하며, 프런트는 `/api/bff/*`를 통해 호출된다.
