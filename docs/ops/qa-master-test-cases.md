@@ -1,7 +1,7 @@
 # QA Master Test Cases (Web + Backend)
 
 ## 목적
-- 이 문서는 `docs/index.md`, `docs/common-rules.md`, `docs/frontend/units/CU-WEB-*`, `docs/backend/units/CU-BE-*` 기준으로 템플릿 전체 기능을 가능한 한 빠짐없이 검수하기 위한 마스터 테스트케이스다.
+- 이 문서는 `docs/index.md`, `docs/common-rules.md`, `docs/frontend-web/units/CU-WEB-*`, `docs/backend/units/CU-BE-*` 기준으로 템플릿 전체 기능을 가능한 한 빠짐없이 검수하기 위한 마스터 테스트케이스다.
 - 범위는 Web + Backend이며, App(`CU-APP-*`)은 이번 사이클에서 제외한다.
 - 목표는 “기능 하나/버튼 하나” 레벨까지 재현 가능한 체크리스트를 고정하는 것이다.
 
@@ -52,37 +52,37 @@
 | ID | Pri | 자동화 | 시나리오 | 절차 | 기대 결과 |
 | --- | --- | --- | --- | --- | --- |
 | TC-PUB-001 | P0 | PW | 랜딩 Hero 렌더링 | 비인증 상태 `/` 접속 | Hero 제목/부제/CTA 2개 노출 |
-| TC-PUB-002 | P0 | PW | Hero CTA-데모 | `데모 체험하기` 클릭 | `/demo` 이동 |
+| TC-PUB-002 | P0 | PW | Hero CTA-샘플 | `샘플 체험하기` 클릭 | `/sample` 이동 |
 | TC-PUB-003 | P1 | PW | Hero CTA-컴포넌트 | `컴포넌트 보기` 클릭 | `/component` 이동 |
 | TC-PUB-004 | P1 | PW | Hero 우측 프리뷰 카드 | `/` 접속 후 Hero 우측 카드 확인 | 카드 1개 이상 노출, 레이아웃 깨짐 없음 |
 | TC-PUB-005 | P0 | PW | 서비스 카드 4종 렌더링 | 랜딩 서비스 섹션 스크롤 | 카드 4개 제목/설명 노출 |
-| TC-PUB-006 | P1 | PW | 스크린샷 카드-대시보드 | 랜딩 스크린샷 카드 1 클릭 | `/demo/dashboard` 이동 |
-| TC-PUB-007 | P1 | PW | 스크린샷 카드-CRUD | 랜딩 스크린샷 카드 2 클릭 | `/demo/crud` 이동 |
-| TC-PUB-008 | P1 | PW | 스크린샷 카드-폼 | 랜딩 스크린샷 카드 3 클릭 | `/demo/form` 이동 |
+| TC-PUB-006 | P1 | PW | 스크린샷 카드-대시보드 | 랜딩 스크린샷 카드 1 클릭 | `/sample/dashboard` 이동 |
+| TC-PUB-007 | P1 | PW | 스크린샷 카드-CRUD | 랜딩 스크린샷 카드 2 클릭 | `/sample/crud` 이동 |
+| TC-PUB-008 | P1 | PW | 스크린샷 카드-폼 | 랜딩 스크린샷 카드 3 클릭 | `/sample/form` 이동 |
 | TC-PUB-009 | P2 | PW | 기술 스택 뱃지 갯수 | 스택 섹션 확인 | 6개 뱃지 노출 |
-| TC-PUB-010 | P1 | PW | 하단 CTA-데모 | 하단 `데모 보기` 클릭 | `/demo` 이동 |
-| TC-PUB-011 | P1 | PW | 하단 CTA 단일 노출 | 하단 CTA 영역 확인 | `데모 보기`만 노출되고 외부 문의 링크는 노출되지 않음 |
-| TC-PUB-012 | P0 | PW | 공개 GNB 메뉴 구성 | 데스크톱 GNB 확인 | `데모/컴포넌트/포트폴리오`만 노출 |
+| TC-PUB-010 | P1 | PW | 하단 CTA-샘플 | 하단 `샘플 보기` 클릭 | `/sample` 이동 |
+| TC-PUB-011 | P1 | PW | 하단 CTA 단일 노출 | 하단 CTA 영역 확인 | `샘플 보기`만 노출되고 외부 문의 링크는 노출되지 않음 |
+| TC-PUB-012 | P0 | PW | 공개 GNB 메뉴 구성 | 데스크톱 GNB 확인 | `샘플/컴포넌트/포트폴리오`만 노출 |
 | TC-PUB-013 | P0 | PW | 공개 GNB 로그인 비노출 | 공개 페이지 GNB 확인 | 로그인/회원가입 메뉴 미노출 |
-| TC-PUB-014 | P0 | PW | 데모 드롭다운 링크 집합 | GNB `데모` 드롭다운 열기 | `/demo/*` 5개 링크 노출 |
-| TC-PUB-015 | P1 | PW | 활성 메뉴 하이라이트 정합 | `/demo/portfolio` 진입 | `포트폴리오`만 active, `데모` inactive |
-| TC-PUB-016 | P1 | PW | 포트폴리오 Hero 렌더링 | `/demo/portfolio` 접속 | 제목/소개/CTA 노출 |
+| TC-PUB-014 | P0 | PW | 샘플 드롭다운 링크 집합 | GNB `샘플` 드롭다운 열기 | `/sample/*` 5개 링크 노출 |
+| TC-PUB-015 | P1 | PW | 활성 메뉴 하이라이트 정합 | `/sample/portfolio` 진입 | `포트폴리오`만 active, `샘플` inactive |
+| TC-PUB-016 | P1 | PW | 포트폴리오 Hero 렌더링 | `/sample/portfolio` 접속 | 제목/소개/CTA 노출 |
 | TC-PUB-017 | P1 | PW | 포트폴리오 섹션 6개 | 포트폴리오 섹션 순회 | 6개 섹션 순서대로 노출 |
 | TC-PUB-018 | P2 | PW | 포트폴리오 mode/path 뱃지 제거 | 포트폴리오 상단 확인 | mode/path 뱃지 미노출 |
-| TC-PUB-019 | P1 | PW | 포트폴리오 데모 CTA | 포트폴리오 CTA 클릭 | 대응 데모 경로 이동 |
+| TC-PUB-019 | P1 | PW | 포트폴리오 샘플 CTA | 포트폴리오 CTA 클릭 | 대응 샘플 경로 이동 |
 | TC-PUB-020 | P1 | PW | 모바일 GNB 링크 집합 | 모바일 햄버거 열기 | 데스크톱과 동일 링크 집합 노출 |
 
-## 2) 데모 허브/데모 페이지 (`TC-DEMO-*`)
+## 2) 샘플 허브/샘플 페이지 (`TC-DEMO-*`)
 | ID | Pri | 자동화 | 시나리오 | 절차 | 기대 결과 |
 | --- | --- | --- | --- | --- | --- |
-| TC-DEMO-001 | P0 | PW | 데모 허브 카드 4종 | `/demo` 접속 | 대시보드/CRUD/복합폼/관리자 카드 노출 |
-| TC-DEMO-002 | P1 | PW | 데모 허브 카드 이동-대시보드 | 허브 카드 클릭 | `/demo/dashboard` 이동 |
-| TC-DEMO-003 | P1 | PW | 데모 허브 카드 이동-CRUD | 허브 카드 클릭 | `/demo/crud` 이동 |
-| TC-DEMO-004 | P1 | PW | 데모 허브 카드 이동-폼/관리자 | 카드 각각 클릭 | `/demo/form`, `/demo/admin` 이동 |
-| TC-DEMO-005 | P0 | PW | 데모 대시보드 비인증 접근 | 로그아웃 상태 `/demo/dashboard` 접속 | 페이지 렌더링 성공 |
-| TC-DEMO-006 | P1 | PW | 데모 대시보드 KPI 렌더링 | KPI 카드 영역 확인 | KPI 카드가 1개 이상 노출 |
-| TC-DEMO-007 | P1 | PW | 데모 대시보드 차트/목록 | 차트/최근 목록 영역 확인 | 두 영역 모두 렌더링 |
-| TC-DEMO-008 | P0 | PW | CRUD 비인증 접근 | 로그아웃 상태 `/demo/crud` 접속 | 페이지 렌더링 성공 |
+| TC-DEMO-001 | P0 | PW | 샘플 허브 카드 4종 | `/sample` 접속 | 대시보드/CRUD/복합폼/관리자 카드 노출 |
+| TC-DEMO-002 | P1 | PW | 샘플 허브 카드 이동-대시보드 | 허브 카드 클릭 | `/sample/dashboard` 이동 |
+| TC-DEMO-003 | P1 | PW | 샘플 허브 카드 이동-CRUD | 허브 카드 클릭 | `/sample/crud` 이동 |
+| TC-DEMO-004 | P1 | PW | 샘플 허브 카드 이동-폼/관리자 | 카드 각각 클릭 | `/sample/form`, `/sample/admin` 이동 |
+| TC-DEMO-005 | P0 | PW | 샘플 대시보드 비인증 접근 | 로그아웃 상태 `/sample/dashboard` 접속 | 페이지 렌더링 성공 |
+| TC-DEMO-006 | P1 | PW | 샘플 대시보드 KPI 렌더링 | KPI 카드 영역 확인 | KPI 카드가 1개 이상 노출 |
+| TC-DEMO-007 | P1 | PW | 샘플 대시보드 차트/목록 | 차트/최근 목록 영역 확인 | 두 영역 모두 렌더링 |
+| TC-DEMO-008 | P0 | PW | CRUD 비인증 접근 | 로그아웃 상태 `/sample/crud` 접속 | 페이지 렌더링 성공 |
 | TC-DEMO-009 | P0 | PW | CRUD 검색 필터 구성 | 검색 카드 확인 | 키워드/상태/기간/버튼/신규등록 노출 |
 | TC-DEMO-010 | P0 | PW | CRUD 테이블 컬럼 8개 | 테이블 헤더 확인 | 명세된 8개 컬럼 노출 |
 | TC-DEMO-011 | P0 | PW | CRUD 신규 등록 | 신규 등록 → 저장 | 목록 건수 +1 |
@@ -95,16 +95,16 @@
 | TC-DEMO-018 | P1 | PW | CRUD 초기화 | 필터 입력 후 초기화 클릭 | 필터 값 리셋 + 전체 목록 복원 |
 | TC-DEMO-019 | P1 | PW | CRUD 빈 상태 | 필터로 0건 유도 | 빈 상태 메시지 노출 |
 | TC-DEMO-020 | P1 | PW | CRUD 로딩 상태 | 데이터 로딩 구간 관찰 | 로딩/스켈레톤 후 콘텐츠 전환 |
-| TC-DEMO-021 | P1 | PW | 폼 비인증 접근 | `/demo/form` 접속 | 페이지 렌더링 성공 |
+| TC-DEMO-021 | P1 | PW | 폼 비인증 접근 | `/sample/form` 접속 | 페이지 렌더링 성공 |
 | TC-DEMO-022 | P0 | PW | 폼 Step1 유효성 차단 | 필수값 비우고 다음 단계 | 진행 차단 + 에러 표시 |
 | TC-DEMO-023 | P0 | PW | 폼 Step3 제출 성공 | 필수값 입력 후 최종 제출 | 성공 Toast + 폼 초기화 |
 | TC-DEMO-024 | P1 | PW | 폼 단계 이동 | 이전/다음 버튼 반복 | 단계 상태와 인디케이터 일치 |
-| TC-DEMO-025 | P1 | PW | 관리자 비인증 접근 | `/demo/admin` 접속 | 페이지 렌더링 성공 |
+| TC-DEMO-025 | P1 | PW | 관리자 비인증 접근 | `/sample/admin` 접속 | 페이지 렌더링 성공 |
 | TC-DEMO-026 | P1 | PW | 관리자 탭 전환 | 탭 3개 순회 클릭 | 탭 콘텐츠 즉시 전환 |
 | TC-DEMO-027 | P1 | PW | 관리자 사용자 Drawer 저장 | 사용자 탭 저장 | 저장 성공 알림 |
 | TC-DEMO-028 | P1 | PW | 관리자 사용자 Drawer 취소 | 수정 후 취소 | 원본 유지 |
 | TC-DEMO-029 | P1 | PW | 관리자 시스템 설정 저장 | 시스템 설정 탭 저장 | `설정이 저장되었습니다` Toast |
-| TC-DEMO-030 | P1 | PW | 데모 공통 에러 복원력 | API 실패/예외 모킹 | Alert/Toast 노출 + 레이아웃 유지 |
+| TC-DEMO-030 | P1 | PW | 샘플 공통 에러 복원력 | API 실패/예외 모킹 | Alert/Toast 노출 + 레이아웃 유지 |
 
 ## 3) 인증 템플릿 경로 (`TC-AUTH-*`)
 | ID | Pri | 자동화 | 시나리오 | 절차 | 기대 결과 |
@@ -246,10 +246,10 @@
 | TC-NFR-006 | P1 | PW | contrast 보호 화면 | dashboard/tasks/settings 대비 | WCAG AA 충족 |
 | TC-NFR-007 | P2 | VT | 컴포넌트 바인딩 회귀 | dataObj/dataKey 테스트 | 중첩 변경/삭제 반영 |
 | TC-NFR-008 | P2 | VT | 컨트롤드/바운드 모드 동등성 | Input/Select 양 모드 테스트 | 동일 UX 보장 |
-| TC-NFR-009 | P1 | PW | SSR 페이지 성능 스모크 | `/`, `/demo`, `/dashboard` 측정 | LCP<2.5s(로컬 기준), 레이아웃 안정 |
+| TC-NFR-009 | P1 | PW | SSR 페이지 성능 스모크 | `/`, `/sample`, `/dashboard` 측정 | LCP<2.5s(로컬 기준), 레이아웃 안정 |
 | TC-NFR-010 | P1 | PW | 마이그레이션 회귀 | 로그인→대시보드→로그아웃 플로우 | 콘솔 에러 0, 기능 동등 |
-| TC-NFR-011 | P1 | PW | 모바일 레이아웃-데모 허브 | 360x800에서 `/demo` 검수 | 텍스트/버튼 깨짐 없음 |
-| TC-NFR-012 | P1 | PW | 모바일 레이아웃-CRUD | 360x800에서 `/demo/crud` 검수 | 스크롤/드로어/필터 동작 정상 |
+| TC-NFR-011 | P1 | PW | 모바일 레이아웃-샘플 허브 | 360x800에서 `/sample` 검수 | 텍스트/버튼 깨짐 없음 |
+| TC-NFR-012 | P1 | PW | 모바일 레이아웃-CRUD | 360x800에서 `/sample/crud` 검수 | 스크롤/드로어/필터 동작 정상 |
 | TC-NFR-013 | P1 | PW | 모바일 사이드바 오버레이 | 모바일에서 메뉴 오픈 | 본문 가림/클릭차단 정상 |
 | TC-NFR-014 | P1 | PW | 모바일 메뉴 닫힘 동작 | 메뉴 항목 클릭/외부 클릭 | 메뉴 닫힘 및 포커스 복원 |
 | TC-NFR-015 | P1 | MANUAL | 보안 헤더 점검 | 주요 응답 헤더 확인 | 민감 정보 노출 없음, 캐시 정책 적절 |
@@ -277,9 +277,9 @@
 - `MINOR`: 우회 가능/UI 미세 오차(P2)
 
 ## 제품 정책 결정(2026-02-23)
-1. `/demo/crud` 데이터는 복잡한 영속 저장을 추가하지 않고, 브라우저 새로고침 기준으로 초기화되는 현재 동작을 유지한다.
-2. `/demo/dashboard` KPI/차트/최근목록은 `/demo/crud` 조작 결과를 반영한다.
-3. `/demo/admin` 저장은 더미 단절 상태를 끝내고, 데모 내부 공유 상태와 연결해 화면 이동 후에도 반영 상태를 유지한다.
+1. `/sample/crud` 데이터는 복잡한 영속 저장을 추가하지 않고, 브라우저 새로고침 기준으로 초기화되는 현재 동작을 유지한다.
+2. `/sample/dashboard` KPI/차트/최근목록은 `/sample/crud` 조작 결과를 반영한다.
+3. `/sample/admin` 저장은 더미 단절 상태를 끝내고, 샘플 내부 공유 상태와 연결해 화면 이동 후에도 반영 상태를 유지한다.
 4. `/forgot-password`는 실제 SMTP 발송 없이 “요청 접수” UX만 제공한다.
 5. 공개 랜딩의 문의하기 외부 링크는 제거한다.
-6. robots 정책은 공개 퍼널(`/, /demo/*, /component`) 인덱싱 허용, 템플릿 인증/보호 경로(`/login`, `/signup`, `/forgot-password`, `/dashboard*`)는 `noindex` 적용을 기본안으로 사용한다.
+6. robots 정책은 공개 퍼널(`/, /sample/*, /component`) 인덱싱 허용, 템플릿 인증/보호 경로(`/login`, `/signup`, `/forgot-password`, `/dashboard*`)는 `noindex` 적용을 기본안으로 사용한다.

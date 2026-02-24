@@ -4,7 +4,8 @@
 코드 짤 때 항상 지켜야 하는 **공통 코딩 규칙의 기준선**이다.
 
 - 관련 문서
-  - 프론트엔드: `docs/frontend/codding-rules-frontend.md`
+  - 프론트엔드 웹: `docs/frontend-web/codding-rules-frontend.md`
+  - 프론트엔드 앱: `docs/frontend-app/codding-rules-rn.md`
   - 백엔드: `docs/backend/codding-rules-backend.md`
   - 공통: `docs/common-rules.md`
 

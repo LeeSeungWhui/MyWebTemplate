@@ -34,7 +34,8 @@
 ## 반드시 준수할 규칙
 
 - 공통: `docs/common-rules.md`
-- 프론트 리뷰: `docs/frontend/codding-rules-frontend.md`
+- 프론트 웹 리뷰: `docs/frontend-web/codding-rules-frontend.md`
+- 프론트 앱 리뷰: `docs/frontend-app/codding-rules-rn.md`
 - 백엔드 리뷰: `docs/backend/codding-rules-backend.md`
 - Unit 스펙이면 CompactCST 구조 + Parent-Child(links만) 원칙 확인
 

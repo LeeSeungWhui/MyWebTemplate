@@ -2,7 +2,7 @@
 id: CU-APP-006
 name: OTA & Runtime Config (EAS Update)
 module: app
-status: draft
+status: planned
 priority: P2
 links: [CU-APP-001, CU-APP-004, CU-APP-005, CU-APP-007, CU-APP-008, CU-BE-004]
 ---

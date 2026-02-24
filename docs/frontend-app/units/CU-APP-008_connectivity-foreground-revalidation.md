@@ -2,7 +2,7 @@
 id: CU-APP-008
 name: Connectivity & Foreground Revalidation
 module: app
-status: draft
+status: planned
 priority: P1
 links: [CU-APP-001, CU-APP-002, CU-APP-003, CU-APP-004, CU-APP-005, CU-APP-006, CU-APP-007, CU-BE-004]
 ---

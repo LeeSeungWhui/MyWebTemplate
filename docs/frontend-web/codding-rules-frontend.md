@@ -290,7 +290,7 @@
 ### 6.4 페이지 뷰(view.jsx) 구현 스타일
 
 - 한 페이지에는 **메인 뷰 컴포넌트 하나**를 두고, 그 안에서 도메인 흐름이 위→아래로 자연스럽게 읽히게 만든다.
-  - 예시 구조 ( `app/demo/resumeUpload/view.jsx` 스타일 ):
+  - 예시 구조 ( `app/sample/resumeUpload/view.jsx` 스타일 ):
     - 상단: 상수, EasyObj/EasyList, 훅(`useState`, `useRef`, `useEffect` cleanup 등) 선언
     - 중간: 도메인 이름이 붙은 헬퍼/이벤트 함수 (`acceptFile`, `onUpload`, `resolvePdfUrl` 등)
     - 하단: `return (…)` 안에서 JSX 렌더링
@@ -304,7 +304,7 @@
 
 - 일반 컴포넌트 파일(PascalCase `.jsx`, 예: `ResumeRender.jsx`, `FilterBar.jsx`)은
   - **기본적으로 한 파일당 하나의 React 컴포넌트**만 export 한다.
-  - 서브 컴포넌트가 필요하면 `app/demo/SomeComponent/SubPart.jsx`처럼 별도 파일로 분리한다.
+  - 서브 컴포넌트가 필요하면 `app/sample/SomeComponent/SubPart.jsx`처럼 별도 파일로 분리한다.
 - 예외:
   - `view.jsx`, `page.jsx`처럼 페이지 템플릿 파일은
     - 메인 뷰 컴포넌트 하나만 export 하되,
@@ -341,8 +341,8 @@
 
   ```jsx
   /**
-   * 파일명: demo/resumeList/view.jsx
-   * 설명: /demo/resumeList 페이지 CSR 뷰
+   * 파일명: sample/resumeList/view.jsx
+   * 설명: /sample/resumeList 페이지 CSR 뷰
    * 작성자: LSH
    * 갱신일: 2025-01-01
    */

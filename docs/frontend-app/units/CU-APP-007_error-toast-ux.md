@@ -2,7 +2,7 @@
 id: CU-APP-007
 name: Error & Toast UX (코드 사전/전역 핸들러)
 module: app
-status: draft
+status: planned
 priority: P1
 links: [CU-APP-001, CU-APP-002, CU-APP-003, CU-APP-004, CU-APP-005, CU-APP-006, CU-APP-008, CU-BE-001, CU-BE-004]
 ---

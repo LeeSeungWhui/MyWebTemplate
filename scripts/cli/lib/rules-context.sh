@@ -12,14 +12,16 @@ build_rule_context() {
     defaults=(
       "AGENTS_REVIEW.md"
       "docs/common-rules.md"
-      "docs/frontend/codding-rules-frontend.md"
+      "docs/frontend-web/codding-rules-frontend.md"
+      "docs/frontend-app/codding-rules-rn.md"
       "docs/backend/codding-rules-backend.md"
     )
   else
     defaults=(
       "AGENTS.md"
       "docs/common-rules.md"
-      "docs/frontend/codding-rules-frontend.md"
+      "docs/frontend-web/codding-rules-frontend.md"
+      "docs/frontend-app/codding-rules-rn.md"
       "docs/backend/codding-rules-backend.md"
     )
   fi
