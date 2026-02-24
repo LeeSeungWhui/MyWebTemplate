@@ -139,10 +139,14 @@ venv.bak/
 backend/config.ini
 frontend-web/config.ini
 AGENTS.md
+.gemini/
+.playwright/
+.playwright-cli/
 
 # Runtime logs (may contain secrets)
 backend/logs/
 logs/
+output/
 
 # Spyder project settings
 .spyderproject
@@ -180,3 +184,6 @@ cython_debug/
 
 # Template development tools (not shipped)
 test-tools/
+scripts/*
+!scripts/cli/
+!scripts/cli/**

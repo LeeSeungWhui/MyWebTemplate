@@ -38,19 +38,28 @@
 - 백엔드 리뷰: `docs/backend/codding-rules-backend.md`
 - Unit 스펙이면 CompactCST 구조 + Parent-Child(links만) 원칙 확인
 
-## Figma(디자인) 근거 사용
+## Figma/OpenClaw 근거 사용
 
-기획/리뷰에서 “시안 근거”가 필요하면, Figma 링크 대신 **레포 안의 추출물**을 근거로 써라.
+기획/리뷰에서 “시안 근거”가 필요하면 아래 우선순위를 따른다.
 
+1) 사용자가 Figma URL 또는 node-id를 제공한 경우  
+- `Figma MCP`를 1순위로 사용해 노드/스크린샷/속성값을 확인한다.
+- 리뷰 결과에는 출처를 남긴다. (예: Figma URL, node-id, 캡처 시각)
+
+2) Figma MCP를 사용할 수 없거나 실패한 경우  
+- 레포 추출물을 근거로 사용한다.
 - 1차 근거(프레임 단위): `figma/<AI명>/exports/<node-id>.png`
 - 위치/사이즈 근거(px): `figma/<AI명>/tree/.../bbox.tsv`
-- “이게 Figma에서 어디냐” 근거: `figma/<AI명>/tree/.../source.url.txt`
+- 추적 근거: `figma/<AI명>/tree/.../source.url.txt`
 - 전체 인덱스: `figma/<AI명>/manifest.tsv`
-- 추출/우회 방법은 `figma/figma-wsl.md` 참고
+
+3) UI 재현/시각 검증이 필요한 경우  
+- 기능 검증은 Playwright 우선, 시각/UI 깨짐 확인은 OpenClaw 우선.
+- 증거가 필요하면 OpenClaw 캡처 경로/파일명을 리뷰에 남긴다.
 
 주의:
-
-- `figma/cvfit-figma/images/*`는 대부분 아이콘/로고 같은 “재료”라서 화면 단위 자동 매핑 근거로 쓰기 어렵다.
+- `figma/cvfit-figma/images/*`는 아이콘/로고 재료가 많아 화면 단위 근거로는 부적합할 수 있다.
+- 로그인/토큰 등 민감정보 입력이 필요한 자동화는 먼저 사용자 확인 후 진행한다.
 
 ## 스펙 리뷰 체크
 
@@ -102,3 +111,20 @@
 ### 질문/확인 필요
 
 - ...
+
+## 교차검토 모드 (강제)
+
+- 다른 리뷰어(codex/gemini) 결과와 비교 요청을 받으면, 아래 절차를 따른다.
+  1) 공통 이슈(중복) 먼저 확정
+  2) 1차+2차 리뷰 결과를 `candidate-issues` 파일로 정리
+  3) `scripts/cli/review-debate-with-gemini.sh <candidate-issues-file> [project-path]` 실행
+  4) 단일 이슈는 `주장/반박/재반박` 형태로 검토
+  5) 미합의 항목이 남으면 `candidate-issues`를 갱신하고 3)~4)를 반복 (`2차+`)
+  6) 최종 결론을 `ISSUE` 또는 `DROP`으로 명확히 표기하고, 해소 불가 시 `보류`로 사용자 확인을 받는다
+- 교차검토 출력 템플릿
+  - 항목:
+  - codex 주장:
+  - gemini 반박:
+  - 재검토(수긍/재반박):
+  - 합의: `ISSUE | DROP | 보류`
+  - 최종 심각도: `P0 | P1 | P2 | NA`
