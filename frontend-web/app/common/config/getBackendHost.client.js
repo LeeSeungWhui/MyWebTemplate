@@ -1,7 +1,18 @@
-import { useSharedStore } from '@/app/common/store/SharedStore'
+/**
+ * 파일명: getBackendHost.client.js
+ * 작성자: LSH
+ * 갱신일: 2026-02-22
+ * 설명: 클라이언트 컨텍스트에서 백엔드 호스트를 조회한다.
+ */
 
+import { getConfigSnapshot } from '@/app/common/store/SharedStore'
+
+/**
+ * @description config 스냅샷에서 백엔드 호스트를 우선순위로 해석한다.
+ * @returns {string}
+ */
 export function getBackendHost() {
-  const cfg = useSharedStore.getState()?.config || {}
+  const cfg = getConfigSnapshot()
   const base = cfg?.API?.base
     ?? cfg?.APP?.backendHost
     ?? cfg?.APP?.api_base_url
