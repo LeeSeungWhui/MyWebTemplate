@@ -1,6 +1,6 @@
 "use client";
 /**
- * 파일명: demo/DemoLayoutClient.jsx
+ * 파일명: sample/DemoLayoutClient.jsx
  * 작성자: LSH
  * 갱신일: 2026-02-23
  * 설명: 공개 샘플 공통 레이아웃 클라이언트 컴포넌트

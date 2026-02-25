@@ -1,5 +1,5 @@
 /**
- * 파일명: demo/portfolio/initData.jsx
+ * 파일명: sample/portfolio/initData.jsx
  * 작성자: LSH
  * 갱신일: 2026-02-24
  * 설명: 공개 샘플 포트폴리오 페이지 정적 데이터

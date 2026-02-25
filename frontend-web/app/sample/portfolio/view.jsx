@@ -1,6 +1,6 @@
 "use client";
 /**
- * 파일명: demo/portfolio/view.jsx
+ * 파일명: sample/portfolio/view.jsx
  * 작성자: LSH
  * 갱신일: 2026-02-24
  * 설명: 공개 포트폴리오 페이지 뷰(시각 중심 리뉴얼)

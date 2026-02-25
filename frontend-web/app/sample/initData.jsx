@@ -1,5 +1,5 @@
 /**
- * 파일명: demo/initData.jsx
+ * 파일명: sample/initData.jsx
  * 작성자: LSH
  * 갱신일: 2026-02-23
  * 설명: 공개 샘플 허브 페이지 정적 데이터

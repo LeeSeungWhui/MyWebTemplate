@@ -1,6 +1,6 @@
 "use client";
 /**
- * 파일명: demo/form/view.jsx
+ * 파일명: sample/form/view.jsx
  * 작성자: LSH
  * 갱신일: 2026-02-22
  * 설명: 공개 복합 폼 샘플 페이지 뷰(스텝 검증/요약 기반)

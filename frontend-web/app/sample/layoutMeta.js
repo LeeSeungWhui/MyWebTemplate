@@ -1,5 +1,5 @@
 /**
- * 파일명: demo/layoutMeta.js
+ * 파일명: sample/layoutMeta.js
  * 작성자: LSH
  * 갱신일: 2026-02-23
  * 설명: 공개 샘플 레이아웃(헤더/사이드바) 메타 계산 유틸

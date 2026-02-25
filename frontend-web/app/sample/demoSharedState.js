@@ -1,6 +1,6 @@
 "use client";
 /**
- * 파일명: demo/demoSharedState.js
+ * 파일명: sample/demoSharedState.js
  * 작성자: LSH
  * 갱신일: 2026-02-23
  * 설명: 공개 샘플 페이지 간 공유 상태(세션 메모리) 유틸

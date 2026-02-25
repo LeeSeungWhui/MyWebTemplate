@@ -1,5 +1,5 @@
 /**
- * 파일명: demo/crud/page.jsx
+ * 파일명: sample/crud/page.jsx
  * 작성자: LSH
  * 갱신일: 2026-02-22
  * 설명: 공개 CRUD 샘플 페이지 엔트리

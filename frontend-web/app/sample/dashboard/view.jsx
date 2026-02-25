@@ -1,6 +1,6 @@
 "use client";
 /**
- * 파일명: demo/dashboard/view.jsx
+ * 파일명: sample/dashboard/view.jsx
  * 작성자: LSH
  * 갱신일: 2026-02-23
  * 설명: 공개 샘플 대시보드 페이지 뷰(읽기 전용)

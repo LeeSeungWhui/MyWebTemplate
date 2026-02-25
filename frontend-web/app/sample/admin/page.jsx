@@ -1,5 +1,5 @@
 /**
- * 파일명: demo/admin/page.jsx
+ * 파일명: sample/admin/page.jsx
  * 작성자: LSH
  * 갱신일: 2026-02-22
  * 설명: 공개 관리자 화면 샘플 페이지 엔트리

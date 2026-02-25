@@ -1,5 +1,5 @@
 /**
- * 파일명: demo/crud/initData.jsx
+ * 파일명: sample/crud/initData.jsx
  * 작성자: LSH
  * 갱신일: 2026-02-22
  * 설명: 공개 CRUD 샘플 페이지 정적 데이터

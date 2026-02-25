@@ -1,5 +1,5 @@
 /**
- * 파일명: demo/portfolio/page.jsx
+ * 파일명: sample/portfolio/page.jsx
  * 작성자: LSH
  * 갱신일: 2026-02-23
  * 설명: 공개 샘플 경로용 포트폴리오 페이지 엔트리
