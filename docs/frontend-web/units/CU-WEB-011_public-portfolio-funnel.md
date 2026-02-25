@@ -37,6 +37,8 @@ links: [CU-WEB-012, CU-WEB-013, CU-WEB-015, CU-WEB-003, CU-WEB-001, CU-WEB-002, 
   - P0: `/`, `/sample`, `/sample/dashboard`, `/sample/crud`
   - P1: `/sample/form`, `/sample/admin`, `/component`
   - P2: `/sample/portfolio`, 템플릿 인증 경로 노출 정책 정리
+- i18n 규칙
+  - 공개 퍼널의 사용자 노출 문구(메뉴명/CTA/안내 문구)는 `lang.ko.js` 키를 통해 렌더링한다.
 
 ### NFR & A11y
 - 공개 퍼널 성능 기준: LCP < 2.5s, INP < 200ms.
@@ -50,8 +52,10 @@ links: [CU-WEB-012, CU-WEB-013, CU-WEB-015, CU-WEB-003, CU-WEB-001, CU-WEB-002, 
 - AC-4: `/component`, `/sample/portfolio`가 비인증 상태에서 직접 접근 가능하다.
 - AC-5: `/login`, `/signup`, `/forgot-password`, `/dashboard*` 라우트는 유지되며 직접 URL 접근 시 기존 동작(인증/가드)이 유지된다.
 - AC-6: 본 유닛의 하위 유닛(CU-WEB-012, CU-WEB-013, CU-WEB-015)이 `/sample/* + /component` 구조와 일관되게 정의된다.
+- AC-7: 공개 퍼널의 사용자 노출 문구는 `lang.ko.js` 기반으로 렌더링되고 하드코딩 문자열이 없다.
 
 ### Tasks
 - T1: IA를 `/sample/* + /component` 중심으로 재정의하고 라우트 정책을 고정한다.
 - T2: 랜딩/GNB(CU-WEB-012), 샘플 허브+샘플 페이지(CU-WEB-013), 포트폴리오 경로 전환(CU-WEB-015) 순으로 구현한다.
 - T3: 템플릿 인증 경로(CU-WEB-001/002/010/016)는 비노출 정책만 적용하고 코드/라우트는 유지한다.
+- T4: 퍼널 공통 네비/CTA/안내 텍스트를 `lang.ko.js` 키로 정렬한다.

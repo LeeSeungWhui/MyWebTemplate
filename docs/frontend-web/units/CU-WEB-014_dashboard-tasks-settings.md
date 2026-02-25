@@ -66,6 +66,8 @@ links: [CU-WEB-011, CU-WEB-002, CU-WEB-003, CU-WEB-004, CU-WEB-005, CU-WEB-009, 
 - CRUD 저장 후 목록을 즉시 재조회해 서버 상태를 기준으로 화면을 동기화한다.
 - 에러/로딩/빈 상태 표시는 `codding-rules-frontend.md` 7장 규칙(Alert/Toast/Loading)을 따른다.
 - `TAG_JSON`은 콤마 입력값을 배열로 분리한 뒤 JSON 배열 문자열(예: `["태그1","태그2"]`)로 변환해 전송한다.
+- i18n 규칙
+  - `/dashboard/tasks`, `/dashboard/settings`의 사용자 노출 문구(필터/버튼/테이블/탭/상태 메시지)는 `lang.ko.js` 키로 관리한다.
 
 ### NFR & A11y
 - 에러 시 사용자 메시지 + requestId 표시.
@@ -81,9 +83,11 @@ links: [CU-WEB-011, CU-WEB-002, CU-WEB-003, CU-WEB-004, CU-WEB-005, CU-WEB-009, 
 - AC-7: `/dashboard/settings`에서 `내 프로필/시스템 설정` 탭 전환이 동작하고 각 탭의 필드 구성이 스펙과 일치한다.
 - AC-8: `/dashboard/settings` 저장 클릭 시 성공 피드백(Toast 또는 Alert)이 표시된다.
 - AC-9: 보호 경로 미인증 접근 시 로그인 리다이렉트가 유지된다.
+- AC-10: Dashboard 확장 화면의 사용자 노출 문구는 `lang.ko.js` 기반으로 렌더링되고 하드코딩 문자열이 없다.
 
 ### Tasks
 - T1: 백엔드 CRUD 엔드포인트(쿼리/서비스/라우터) 추가.
 - T2: `/dashboard/tasks` UI + API 연동 + 에러/로딩/빈상태 처리.
 - T3: `/dashboard/settings` 탭 UI 구현 및 저장 UX 정리.
 - T4: 대시보드 화면에서 업무관리로의 링크/CTA 연결.
+- T5: tasks/settings 텍스트 키를 `lang.ko.js`로 분리하고 화면 렌더링에 적용.

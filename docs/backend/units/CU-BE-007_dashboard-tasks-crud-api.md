@@ -28,6 +28,30 @@ links: [CU-BE-001, CU-BE-002, CU-BE-006, CU-WEB-014]
 - API 계약
   - `GET /api/v1/dashboard`
     - query: `q?`, `status?`, `page?`, `size?`, `sort?`
+    - res 200:
+      - 래퍼: `{ status, message, result, count, requestId }`
+      - `result`: `DashboardItem[]`
+      - `count`: 필터 조건 기준 전체 건수(페이지네이션 totalCount)
+      - 예시:
+        ```json
+        {
+          "status": true,
+          "message": "ok",
+          "result": [
+            {
+              "id": 101,
+              "title": "작업명",
+              "description": "상세",
+              "status": "OPEN",
+              "amount": 12000,
+              "tags": ["urgent"],
+              "createdAt": "2026-02-25T10:00:00Z"
+            }
+          ],
+          "count": 37,
+          "requestId": "..."
+        }
+        ```
   - `GET /api/v1/dashboard/{id}`
   - `POST /api/v1/dashboard`
     - req: `{ title, description?, status, amount?, tags? }`
@@ -55,6 +79,7 @@ links: [CU-BE-001, CU-BE-002, CU-BE-006, CU-WEB-014]
 - AC-2: 잘못된 입력/미존재 ID에 대해 4xx 코드와 표준 에러 본문이 반환된다.
 - AC-3: 모든 CRUD 엔드포인트가 Bearer 인증 가드를 통과해야만 동작한다.
 - AC-4: 쿼리는 전부 query 파일 기반으로 실행되고 SQL 바인딩 규칙을 준수한다.
+- AC-5: `GET /api/v1/dashboard` 목록 응답은 `{status,message,result,count,requestId}`를 준수하고, `count`는 필터 기준 전체 건수(totalCount)를 반환한다.
 
 ### Tasks
 - T1: `dashboard.sql`에 list/detail/create/update/delete 쿼리 블록 추가.

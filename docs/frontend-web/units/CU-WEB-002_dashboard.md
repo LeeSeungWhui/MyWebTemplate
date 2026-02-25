@@ -46,6 +46,8 @@ links: [CU-WEB-001, CU-WEB-003, CU-WEB-004, CU-WEB-005, CU-WEB-006, CU-BE-002]
   - 로딩: 스켈레톤 우선(레이아웃 시프 최소)
 - 노출 정책
   - 고객 공개 퍼널에서는 `/dashboard` 링크를 노출하지 않고, 템플릿/개발자 경로로 유지한다.
+- i18n 규칙
+  - 카드 제목/필터 라벨/빈상태/에러/보조문구 등 사용자 노출 문구는 `lang.ko.js` 키로 관리한다.
 
 ### NFR & A11y
 - 성능: 최초진입 LCP < 2.5s(로컬 샘플 기준), 위젯 응답 P95 < 400ms(데모 API)
@@ -58,17 +60,19 @@ links: [CU-WEB-001, CU-WEB-003, CU-WEB-004, CU-WEB-005, CU-WEB-006, CU-BE-002]
 - AC-3: API 에러가 `{status:false, code, requestId}`인 경우 사용자 메시지와 함께 requestId가 표출된다.
 - AC-4: 페이지 파일 설정(`dynamic/revalidate/runtime`) 또는 `'use client'` 게이팅만으로 SSR/CSR 구성을 바꿔도 규약이 유지된다(links: CU-WEB-006).
 - AC-5: 필수 landmark/role/테이블이 유효하며 콘트라스트 기준을 충족한다.
+- AC-6: Dashboard 사용자 노출 문구는 `lang.ko.js` 기반으로 렌더링되고 하드코딩 문자열이 없다.
 
 ### Tasks
 - T1 레이아웃: Header/Sidebar/Footer(공용) 조합 + 12-그리드 본문(차트 카드 3~4, 리스트 1, 통계 3) 반응형 구성
 - T2 데이터 연동: 통계/리스트 데모 API 호출(공통 응답 파싱), 에러·로딩·빈상태 처리
 - T3 차트: Recharts 기반 EasyChart 래퍼(lib/component) 추가 및 샘플 시리즈 렌더
 - T4 바인딩: EasyObj/EasyList 동작 규칙 구현(필터 변경→리스트 갱신)
-- T4 상태관리: SWR 캐시 무효화 규칙 정리(토큰/로그아웃 시 리셋)
-- T5 렌더링: SSR 기본 + ISR/CSR 전환 ENV 적용(links: CU-WEB-006)
-- T6 A11y/UX: 스켈레톤, 에러 코드 맵핑, 정보 탐색/네비게이션 커버리지
-- T7 스토리북: 카드/리스트/에러/빈상태 + 다크모드 스토리 등록
-- T8 테스트: SSR 초기 데이터 확인, SWR 지속 패칭, 에러 메시지/requestId 표출, ENV 전환 동작
+- T5 상태관리: SWR 캐시 무효화 규칙 정리(토큰/로그아웃 시 리셋)
+- T6 렌더링: SSR 기본 + ISR/CSR 전환 ENV 적용(links: CU-WEB-006)
+- T7 A11y/UX: 스켈레톤, 에러 코드 맵핑, 정보 탐색/네비게이션 커버리지
+- T8 스토리북: 카드/리스트/에러/빈상태 + 다크모드 스토리 등록
+- T9 테스트: SSR 초기 데이터 확인, SWR 지속 패칭, 에러 메시지/requestId 표출, ENV 전환 동작
+- T10 i18n: Dashboard 타이틀/필터/테이블/상태 메시지 키를 `lang.ko.js`로 분리
 
 ### Notes
 - 인증/가드: 보호 경로 진입용 미들웨어 가이드(CU-WEB-004, CU-WEB-008)

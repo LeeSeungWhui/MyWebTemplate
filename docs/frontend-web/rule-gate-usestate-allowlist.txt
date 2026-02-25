@@ -1,0 +1,13 @@
+# FE-A-013 useState 예외 allowlist
+# 형식: <glob-pattern> | <reason-tag> | <detail>
+# reason-tag 예시:
+# - UNAVOIDABLE_CORE_HOOK
+# - UNAVOIDABLE_COMPONENT_INTERNAL
+# - DOCS_EXAMPLE
+# - TEST_SCENARIO
+
+frontend-web/app/lib/dataset/EasyObj.jsx | UNAVOIDABLE_CORE_HOOK | EasyObj 내부 forceRender 구현
+frontend-web/app/lib/dataset/EasyList.jsx | UNAVOIDABLE_CORE_HOOK | EasyList 내부 forceRender 구현
+frontend-web/app/lib/component/** | UNAVOIDABLE_COMPONENT_INTERNAL | 제어/입력/접근성 처리를 위한 컴포넌트 내부 상태
+frontend-web/app/component/docs/** | DOCS_EXAMPLE | 컴포넌트 문서/예제 코드의 상태 데모
+frontend-web/__tests__/** | TEST_SCENARIO | 테스트 시나리오 상태 구성

@@ -90,6 +90,8 @@ links: [CU-WEB-011, CU-WEB-012, CU-WEB-003, CU-WEB-006, CU-WEB-009]
 - 에러/로딩/빈 상태 처리는 `codding-rules-frontend.md` 7장 규칙(Alert/Toast/Loading)과 동일 패턴을 사용한다.
 - 상태값은 코드 기준(`ready`, `pending`, `running`, `done`, `failed`)으로 저장하고, 화면 표시는 한글 라벨로 매핑한다.
 - 고객 노출 관점에서 샘플 경로는 `/sample/*`만 사용하며, 인증 경로(`/dashboard*`)로 직접 유도하지 않는다.
+- i18n 규칙
+  - 샘플 페이지의 사용자 노출 문구(카드명/버튼/테이블 헤더/Toast/빈상태/에러)는 `lang.ko.js` 키로 관리한다.
 
 ### NFR & A11y
 - 키보드 조작만으로 필터/입력/제출/다이얼로그 이동 가능.
@@ -108,8 +110,10 @@ links: [CU-WEB-011, CU-WEB-012, CU-WEB-003, CU-WEB-006, CU-WEB-009]
 - AC-10: `/sample/dashboard`, `/sample/crud`, `/sample/form`, `/sample/admin` 모두 비인증 상태에서 직접 접근 가능하다.
 - AC-11: 데이터 초기화 또는 비정상 상태 예외 시 사용자에게 Alert/Toast 에러 메시지를 보여주고 화면은 기본 레이아웃을 유지한다.
 - AC-12: 데이터 준비 중 로딩 컴포넌트(또는 스켈레톤)가 표시되고, 완료 시 콘텐츠로 전환된다.
+- AC-13: 샘플 허브 및 `/sample/*`의 사용자 노출 문구는 `lang.ko.js` 기반으로 렌더링되고 하드코딩 문자열이 없다.
 
 ### Tasks
 - T1: `/sample` 허브 + 4개 샘플 페이지를 `initData/page/view` 구조로 작성한다.
 - T2: 공통 UI 컴포넌트(EasyTable/Drawer/Tab/Toast/EasyChart) 조합으로 페이지 구현.
 - T3: 공개 라우트 Allowlist를 `/sample/:path*` 중심으로 정리하고 링크를 연결한다.
+- T4: 샘플 페이지 공통 텍스트 키를 `lang.ko.js`로 분리하고 적용(카드/필터/테이블/Toast/에러 포함).

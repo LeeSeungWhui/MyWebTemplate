@@ -1,0 +1,7 @@
+# format: <glob pattern> | <reason tag> | <detail>
+# reason tag examples: CORE_DATASET_HOOK / LIB_COMPONENT_INTERNAL_STATE / DOCS_EXAMPLE_STATE / THIRD_PARTY_CONTROLLED
+
+frontend-app/src/lib/dataset/EasyObj.jsx | CORE_DATASET_HOOK | EasyObj 내부 forceRender hook
+frontend-app/src/lib/dataset/EasyList.jsx | CORE_DATASET_HOOK | EasyList 내부 forceRender hook
+frontend-app/src/lib/component/** | LIB_COMPONENT_INTERNAL_STATE | 공용 입력/선택 컴포넌트의 내부 제어 상태
+frontend-app/src/docs/** | DOCS_EXAMPLE_STATE | 문서 데모/예제 상태

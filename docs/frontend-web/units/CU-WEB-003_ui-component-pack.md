@@ -50,6 +50,8 @@ links: [CU-WEB-001, CU-WEB-002, CU-WEB-004, CU-WEB-005, CU-WEB-006]
 - 상태 우선순위: `disabled > loading > error > success > idle`
 - 접근성: `for/id` 연결, `aria-describedby`, 복합 위젯 로빙 포커스, 모달 포커스 트랩
 - 성능: SSR 초기 상태는 스켈레톤 우선, CSR 하이드레이션은 레이아웃 쉬프트 방지
+- i18n 규칙
+  - 컴포넌트 Docs(`/component`)와 예제 화면의 사용자 노출 문구(제목/설명/버튼/상태 메시지)는 `lang.ko.js` 키로 관리한다.
 
 ### NFR & A11y
 - 렌더 비용: 주요 컴포넌트 로컬 렌더 < 2ms, 전체 LCP < 2.5s 기여
@@ -62,6 +64,7 @@ links: [CU-WEB-001, CU-WEB-002, CU-WEB-004, CU-WEB-005, CU-WEB-006]
 - AC-3: 로딩/에러/빈 상태 프리셋이 일관된 비주얼과 ARIA 속성으로 출력된다.
 - AC-4: 대시보드(CU-WEB-002)가 최소한의 글루 코드와 컴포넌트 조립만으로 SSR/CSR 환경에서 카드/리스트를 렌더링한다.
 - AC-5: Docs 페이지에서 컨트롤·A11y 체크, 다크 모드, 바인딩 시나리오가 제공된다.
+- AC-6: `/component`의 사용자 노출 문구는 `lang.ko.js` 기반으로 렌더링되고 하드코딩 문자열이 없다.
 
 ### 컴포넌트 스펙: Select (Web)
 - 목적: 경량 커스텀 Select 제공. `dataList.selected` 또는 `value/onValueChange`로만 제어한다(Select 자체는 `dataObj/dataKey` 바운드를 지원하지 않는다).
@@ -128,6 +131,7 @@ links: [CU-WEB-001, CU-WEB-002, CU-WEB-004, CU-WEB-005, CU-WEB-006]
 - T12 문서 보강: A11y/SSR 주의 사항 및 업로드/워커 경로 설정 가이드
 - T13 EasyChart(Recharts) 컴포넌트 추가 및 Docs/예제
 - T14 Header/Sidebar/Footer 공용 레이아웃 컴포넌트 초안(app/common/layout/*) 및 간단 Docs
+- T15 `/component` 문서/예제의 텍스트 키를 `lang.ko.js`로 분리하고 렌더링 적용
 
 ### Implementation Snapshot (템플릿 동기화)
 - Input: `value/defaultValue` 병행 지원, `onValueChange` 분리, IME/마스크/숫자 필터 안전 커밋, 패스워드 토글 포함

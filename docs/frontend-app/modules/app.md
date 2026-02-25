@@ -63,14 +63,15 @@
 - CU-APP-008: planned — 복귀 재검증/오프라인 정책 정의 단계
 
 ## 인증 & API 계약 (백엔드 기준 최신)
-- 인증 API: `/api/v1/auth/login`, `/api/v1/auth/me`, `/api/v1/auth/logout` (CU-BE-001)
+- 인증 API(App 계약): `/api/v1/auth/app/login`, `/api/v1/auth/app/refresh`, `/api/v1/auth/app/logout`, `/api/v1/auth/me` (CU-BE-001)
 - 대시보드 API: `/api/v1/dashboard`, `/api/v1/dashboard/stats` (CU-BE-007)
 - 설정 API: `/api/v1/profile/me` (CU-BE-008)
 - 공통 응답 스키마: `{status, message, result, count?, code?, requestId}`
 - 모바일 1차 규약
-  - 로그인 성공 응답의 `accessToken`을 Bearer로 저장/사용
+  - 로그인 성공 응답의 `accessToken`/`refreshToken`을 SecureStore에 저장하고 Bearer로 사용
+  - `app/refresh`는 `refreshToken` 본문으로 호출해 토큰 페어를 회전한다.
   - 401 발생 시 토큰 파기 후 로그인 스택으로 전환
-  - `refresh`는 백엔드가 쿠키 기반이므로, 앱 기본 범위에서는 만료 시 재로그인을 기본 전략으로 둔다(쿠키 매니저 도입 시 확장 가능)
+  - Web 쿠키 계약(`/api/v1/auth/*`)은 앱에서 사용하지 않는다.
 
 ## 단계별 릴리스
 - Phase 1 (P0/P1): 로그인 + 보호 가드 + 대시보드(read-only)

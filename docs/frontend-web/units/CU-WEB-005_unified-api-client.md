@@ -2,85 +2,73 @@
 id: CU-WEB-005
 name: Unified API Client (apiJSON/apiRequest)
 module: web
-status: implemented
+status: in-progress
 priority: P1
 links: [CU-BE-001, CU-BE-005, CU-WEB-001, CU-WEB-004, CU-WEB-006]
 ---
 
 ### Purpose
 - SSR/CSR 공통 통신 계층(`apiJSON`/`apiRequest`)으로 쿠키/401/프록시 규약을 일원화한다.
-- 어디서 호출하든 응답 스키마/리다이렉트/에러 처리 정책이 일관되게 동작한다.
-- 401(세션 만료) 글로벌 처리: `/login?next=현재경로&reason=...`로 이동 → 미들웨어가 `nx`/`auth_reason` 쿠키로 정리.
+- Web 클라이언트는 인증 토큰 문자열을 직접 소비하지 않고, 세션 동기화는 `/api/v1/auth/me`로 고정한다.
 
 ### Scope
 - 포함
   - Runtime 유틸: `app/lib/runtime/api.js` — `apiRequest`(Response) / `apiJSON`(JSON)
-  - OpenAPI(operationId) 유틸: `app/lib/runtime/openapiClient.js` — `openapiRequest`(Response) / `openapiJSON`(JSON)
+  - OpenAPI(operationId) 유틸: `app/lib/runtime/openapiClient.js`
   - BFF 프록시: `/api/bff/*` 경유(쿠키/도메인 재작성)
-  - 응답 스키마: {status,message,result,count?,code?,requestId} 강제
-  - 오류 정책: 401(리프레시 1회→재시도→실패 시 로그인 리다이렉트), 그 외 상태코드는 호출자가 처리
-  - 선택: `useSwr`(SWR 래퍼) — 키 체계/재검증/무효화 규약
+  - 응답 스키마: `{status,message,result,count?,code?,requestId}` 강제
+  - 오류 정책: 401(리프레시 1회→재시도→실패 시 로그인 리다이렉트)
+  - 선택: `useSwr`(SWR 래퍼)
 - 제외
-  - TypeScript/백그라운드 리프레시 고도화(차기)
+  - TypeScript/백그라운드 리프레시 고도화
+  - App 전용 토큰 계약(`/api/v1/auth/app/*`) 소비
 
 ### Interface
 - Export
   - Runtime: `apiRequest`, `apiJSON`, `apiGet/post/put/patch/delete`
-  - OpenAPI: `openapiRequest`, `openapiJSON` (operationId 기반, 내부적으로 `apiRequest/apiJSON`에 위임)
+  - OpenAPI: `openapiRequest`, `openapiJSON`
   - Hook(optional): `useSwr(key, path, options)`
-- ENV: 전역 ENV 스위치 사용 안 함. Backend Host는 config.ini의 `[API].base` → `[APP].backendHost` 우선순위로 로드(getBackendHost)한다.
+
 - 요청 규약
-  - 모든 요청은 credentials:'include' 고정(쿠키 세션)
-  - 세션 조회(/api/v1/auth/me)는 Cache-Control: no-store
-  - 로그인(/api/v1/auth/login) 200 JSON 처리(Access/Refresh 쿠키 + body.result.accessToken)
-  - 401 수신 시 전역 인터셉터에서 `/login?next=현재경로&reason=...`로 이동(루프 방지: `/login`에서는 미동작)
-    - `reason`: base64url(JSON `{ code, requestId, message? }`)
-    - 미들웨어가 `reason`을 httpOnly 쿠키 `auth_reason`로 정리하고 주소창은 `/login`으로 깨끗하게 유지한다(CU-WEB-008)
-  - CSR 호출은 `/api/bff/*` 프록시를 통해 Backend API로 전달되고, `Set-Cookie`는 프론트 도메인으로 재작성된다
+  - 모든 요청은 `credentials:'include'` 고정(Web 쿠키)
+  - 세션 조회는 `/api/v1/auth/me` 기준으로 동기화
+  - 로그인(`/api/v1/auth/login`) 2xx 응답은 쿠키 발급 성공 여부만 사용
+  - 로그인/리프레시 응답 본문의 `accessToken`/`refreshToken` 소비 금지
+  - 401 수신 시 `/login?next=현재경로&reason=...` 이동(루프 방지: `/login`에서는 미동작)
+    - 미들웨어가 `reason`을 httpOnly `auth_reason` 쿠키로 변환하고 URL을 `/login`으로 정리
+
 - 응답/오류 규약
-  - 성공: 응답 스키마 준수 + 요청ID 로깅
+  - 성공: 표준 응답 스키마 + requestId 로깅
   - 실패:
-    - 401 → /login 리다이렉트 + 토스트에 code/requestId 표시(`auth_reason` 쿠키로 전달)
-    - 4xx/5xx → `apiJSON`은 `ApiError`를 throw하고(호출자가 catch), `{code, requestId}`로 사용자 메시지를 매핑한다
-      - `ApiError`: `{ statusCode, code, requestId, path, body }`
+    - 401 → refresh 1회 후 실패 시 로그인 리다이렉트
+    - 4xx/5xx → `ApiError` throw(`{statusCode, code, requestId, path, body}`)
 
 ### Data & Rules
-- SWR 키: 'session' (권장), 또는 ['auth','me'] 같은 배열 키(선택)
-- 로깅/관측성: 모든 실패 응답에 requestId 기록(콘솔/로거)
-- 보안: 로컬스토리지 민감정보 금지, 쿠키 인증만 사용
-- 오픈 리다이렉트 방지: next 쿼리의 경로 화이트리스트(CU-WEB-004)
+- SWR 키: `'session'` 또는 `['auth','me']`
+- 보안: 로컬스토리지/메모리 장기 토큰 저장 금지(Web)
+- 오픈 리다이렉트 방지: `next` 내부 경로만 허용
+- App 전용 토큰 계약은 `/api/v1/auth/app/*`에서 별도 운영(웹 코드에서 호출 금지)
 
 ### NFR
-- 추가 오버헤드(P95): 요청 < 5ms(헬퍼/스키마 적용, 로컬)
+- 추가 오버헤드(P95): 요청 < 5ms(헬퍼 레벨)
 - 네트워크 실패 백오프: 최대 2회, 멱등 GET 한정
-- 번들 최적화: 클라이언트 측에서 불필요한 OpenAPI 메타 로드 금지
+- 번들 최적화: 클라이언트에서 불필요한 OpenAPI 메타 로드 금지
 
 ### Acceptance Criteria
-- AC-1: 모든 요청에서 credentials:'include'가 적용된다.
-- AC-2: 로그인 200 JSON이 정상 처리되고, 이후 `/api/v1/auth/me` 응답에서 username이 반환된다.
-- AC-3: 401 수신 시 refresh 1회→재시도 후 실패하면 `/login?next=...&reason=...`로 전역 리다이렉트된다(주소창은 미들웨어가 `/login`으로 정리).
-- AC-4: (선택) `useSwr` 사용 시 재검증/무효화 규약이 정상 동작한다.
+- AC-1: 모든 요청에서 `credentials:'include'`가 적용된다.
+- AC-2: 로그인 2xx 후 `/api/v1/auth/me` 재조회로 세션 상태가 확정된다.
+- AC-3: 로그인/리프레시 응답 본문 토큰을 웹 클라이언트가 읽지 않는다.
+- AC-4: 401 수신 시 refresh 1회 후 실패하면 `/login?next=...&reason=...`로 리다이렉트된다.
 - AC-5: SSR/CSR 경로 모두에서 에러/리다이렉트 정책이 일관 동작한다.
-- AC-6: 로컬 스모크에서 `/healthz` 또는 `/api/v1/auth/me` 호출이 통과한다.
 
 ### Tasks
-- T1 Runtime 유틸 설계: apiRequest/apiJSON 구조/직렬화 규약(EasyObj/EasyList 포함)
-- T2 오류 맵핑: AUTH_*/VALID_422_* 코드 처리, 401 리다이렉트 규칙
-- T3 BFF 프록시 연계: Set-Cookie 재작성, /api/bff 경로 매칭
-- T4 (선택) `useSwr` 규약: 키 체계/무효화/재검증
-- T5 SSR 연동: 서버 컴포넌트/세션에서 공통 유틸 사용 규칙 문서화
-- T6 시나리오: 200 로그인, 401→login, 422 맵핑, 재검증 흐름
-- T7 문서: ENV/요청 규약/리다이렉트/오류 코드 및 최소 로깅
-
-### Defaults
-- 로컬 스모크: `/healthz` 또는 `/api/v1/auth/me` 호출 확인
+- T1: `apiRequest/apiJSON` 직렬화/헤더/에러 정규화 유지
+- T2: 로그인/리프레시 성공 후 `/api/v1/auth/me` 동기화 규약 적용
+- T3: 로그인/리프레시 응답 본문 토큰 필드 의존 제거
+- T4: BFF 프록시(Set-Cookie 재작성, /api/bff 경로 매칭) 규약 검증
+- T5: 401 리다이렉트 + `reason` 쿠키 정리 플로우(CU-WEB-008) 검증
+- T6: 테스트: 200 로그인, 401→refresh→login, 422/429 에러 맵핑
 
 ### Notes
-- 기술: JavaScript Only, Next 15(App Router), 기본 nodejs(쿠키/세션), 경로별 edge 가능
-- 백엔드 연계: CU-BE-001(인증), CU-BE-005(문서)와 1:1 맞춤; /api/v1 고정, 응답 스키마 일치
-- 호출 규약: SWR 영역과 credentials:'include' 강제, 401은 전역 리다이렉트(리프레시 1회) 처리
-
-### Implementation Notes
-- `app/lib/runtime/api.js`에 SSR/CSR 통합 유틸이 구현되어 있다(`apiRequest`/`apiJSON`).
-- 클라이언트에서 `/api/bff` 경유, 서버에서 쿠키/언어 포워딩 + no-store.
-- `app/lib/runtime/openapiClient.js`는 OpenAPI `/openapi.json`을 1회 로드해 operationId→요청 구성을 만들고, 실제 요청/에러 처리는 `apiRequest/apiJSON`에 위임한다.
+- JavaScript Only, Next App Router 기준.
+- App 전용 토큰 계약은 Web 유닛 범위 밖이며 `docs/frontend-app/units/CU-APP-001_auth-login-page.md`에서 관리한다.

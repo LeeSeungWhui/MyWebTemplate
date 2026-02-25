@@ -11,10 +11,12 @@
 - Docs/Client: OpenAPI(Swagger UI/Redoc), JS 클라이언트(openapi-client-axios)
 
 ## 인증 모드 & CORS
-- Web/APP 공통: 토큰 기반. 액세스 토큰은 짧게 발급해 HttpOnly Access 쿠키로 내려주고, 리프레시 토큰은 HttpOnly Refresh 쿠키로 관리(rememberMe에 따라 session/장기).
-- BFF(Next)에서 Access 쿠키를 읽어 `Authorization: Bearer ...` 헤더로 백엔드에 전달, 401 시 한 번 `/api/v1/auth/refresh` 후 재시도.
+- 공통 코어: 토큰 발급/검증/회전 로직은 `AuthService`에서 공용으로 유지한다.
+- Web 계약(`/api/v1/auth/login|refresh|logout`): HttpOnly Access/Refresh 쿠키 중심. 로그인/리프레시 응답 본문에 `accessToken`/`refreshToken`을 노출하지 않는다.
+- App 계약(`/api/v1/auth/app/login|refresh|logout`): 토큰 JSON 중심. `accessToken`/`refreshToken`을 본문으로 반환하고 쿠키에 의존하지 않는다.
+- BFF(Next)는 Web 계약만 사용한다. Access 쿠키를 `Authorization: Bearer ...`로 변환해 백엔드에 전달하고, 401 시 `/api/v1/auth/refresh`를 1회 재시도한다.
 - CORS(dev): origin= http://localhost:3000 + allow_credentials=true(리프레시 쿠키 전달). 필요 시 allow_origin_regex 사용.
-- CSRF: 세션을 쓰지 않으므로 비멱등 요청에서 CSRF 헤더 요구를 제거. Refresh는 HttpOnly 쿠키 검증으로 처리.
+- CSRF: Web 쿠키 권한 경로(`refresh`, `logout`)는 Origin/Referer allowlist를 기본 적용한다. App 토큰 경로는 쿠키 비의존 계약으로 CSRF 대상에서 제외한다.
 
 ## 버전
 - 모든 업무 도메인 경로는 /api/v1/... 사용. 과거 .do 경로는 이관/리다이렉트.
@@ -31,11 +33,11 @@
 - CU-BE-009 Auth Signup API
 
 ## Unit 진행 현황
-- CU-BE-001: implemented — Access/Refresh 쿠키 기반 인증/세션 API + 401/refresh 재시도 규약 반영
+- CU-BE-001: in-progress — Web 쿠키 계약(JSON 토큰 비노출) + App 토큰 계약(`/auth/app/*`) 분리 반영 중
 - CU-BE-002: implemented — `T_USER` 기반 샘플 계정/시드 스크립트와 테스트 데이터 초기화 흐름 반영
 - CU-BE-003: implemented — 단일/중첩 트랜잭션 유틸 + requestId/sqlCount 로깅 반영
 - CU-BE-004: implemented — `/healthz` `/readyz` + requestId 전파 + 유지보수 모드(`MAINTENANCE_MODE`) 처리 반영
-- CU-BE-005: implemented — OpenAPI 문서(`/docs`, `/openapi.json`)와 JS 호출 유틸 계약 정렬
+- CU-BE-005: in-progress — Web/App 이중 인증 계약(OpenAPI/코드샘플) 문서 동기화 반영 중
 - CU-BE-006: implemented — query loader/watcher + 바인드 파라미터 검증 + SQL 실행 하드닝 + 누락 쿼리명 명시 예외(`Query not found: <name>`) 반영
 - CU-BE-007: implemented — `/api/v1/dashboard` REST CRUD + 검색/필터/페이지네이션 + 상태 집계 반영
 - CU-BE-008: implemented — `/api/v1/profile/me` 조회/저장 + 설정 화면 연동 API 반영
@@ -137,7 +139,10 @@ port = 2000
 - 배포 권장: `backend/run.sh start` 기본 바인딩은 `0.0.0.0:<port>`다. 운영에서는 Nginx 리버스 프록시 + 방화벽(또는 보안그룹)으로 외부 접근을 제한한다. localhost 바인딩이 필요하면 run.sh의 host를 `127.0.0.1`로 조정해 사용한다. (docs/ops/nginx-subdomains.md 참고)
 
 ## 체크리스트
-- 토큰 방식: Access/Refresh 둘 다 HttpOnly 쿠키. Access는 짧게, Refresh는 rememberMe에 따라 session/장기. 401 → refresh → 재시도.
+- 토큰 방식 분리:
+  - Web: Access/Refresh HttpOnly 쿠키 + JSON 본문 토큰 비노출
+  - App: `/api/v1/auth/app/*`에서 토큰 JSON 반환 + 쿠키 비의존
+- Web 쿠키 권한 경로(`refresh/logout`)는 Origin/Referer allowlist 적용
 - Health: GET /healthz, GET /readyz(DB ping/캐시) 제공
 - OpenAPI: 스키마/보안 정의, 쿠키+Bearer 병행
 - JS 클라이언트: openapi-client-axios 가이드(타입스크립트 금지)
@@ -153,6 +158,6 @@ port = 2000
 - Children: docs/backend/units/
 
 ## 정책/명시
-- CSRF 헤더는 현재 템플릿에서 강제하지 않는다(세션 미사용).
+- CSRF 헤더는 기본 강제가 아니며, Web 쿠키 권한 경로는 Origin/Referer allowlist를 기본 적용한다.
 - 버전 규칙: /api/v1 고정. 공개 경로(/healthz, /readyz, /docs, /openapi.json)는 루트 유지.
 - 응답 래퍼 규약은 docs/common-rules.md를 따른다.

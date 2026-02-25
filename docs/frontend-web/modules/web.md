@@ -35,11 +35,11 @@
 - CU-WEB-016 Signup Page (Template Auth Route, Login-linked)
 
 ## Unit 진행 현황
-- CU-WEB-001: implemented — `/login` SSR/CSR + Access/Refresh 쿠키 플로우 + 하단 보조 링크(`/forgot-password`,`/signup`) + 비밀번호 표시 토글 반영
+- CU-WEB-001: in-progress — Web 쿠키 계약(JSON 토큰 비노출) 기준으로 `/login` 인증 흐름 재정렬 진행 중
 - CU-WEB-002: implemented — `/dashboard` SSR 초기 데이터 + 에러/requestId 표시 + 업무 상태 바로가기 + 헤더 breadcrumb(경로/쿼리) 연동 반영
 - CU-WEB-003: implemented — 핵심 바인딩 컴포넌트(Input/Textarea/EasyTable/Select/EasyChart/EasyEditor/PdfViewer)와 `/component` 문서 경로 정렬 반영
 - CU-WEB-004: implemented — 보호 경로 가드(미들웨어 단일화), `/api/session/bootstrap` 자동 복구, 401→/login(reason) 규약 반영
-- CU-WEB-005: implemented — `apiJSON/apiRequest` 단일 진실 + OpenAPI(operationId) 유틸(`openapiClient.js`) 구성 완료
+- CU-WEB-005: in-progress — 로그인/리프레시 응답 토큰 비사용 규약 + App 전용 auth 경로 분리 대응 진행 중
 - CU-WEB-006: implemented — 페이지별 `PAGE_MODE` + `dynamic/runtime/revalidate/fetchCache` 규약 적용(보호 경로 기본 SSR/nodejs/no-store)
 - CU-WEB-007: completed — `frontend-web` Vite → Next 마이그레이션 반영 완료
 - CU-WEB-008: implemented — `middleware.js` 리다이렉트 규칙 + `nx/auth_reason` 쿠키 정리, 프리페치 bypass 포함
@@ -85,12 +85,17 @@ base = http://localhost:2000
 - 미들웨어 단일 가드(Default Protect): 모든 페이지에 적용하되 Next 내부/정적/파비콘/파일 확장자는 제외
   - config.matcher: `/((?!api|_next/static|_next/image|favicon.ico|.*\.).*)`
   - 공개 경로 Allowlist: `frontend-web/app/common/config/publicRoutes.js`에서만 관리
-- 인증/토큰(C+): BFF(`app/api/bff`)가 HttpOnly Access/Refresh 쿠키를 받아 Authorization 헤더로 백엔드에 전달. 401이면 `/api/v1/auth/refresh`를 1회 호출 후 재시도(singleflight). 그래도 401이면 응답을 그대로 반환하고, 클라이언트 `apiRequest`가 `/login?next=...`로 이동한다.
+- 인증/토큰(C+): BFF(`app/api/bff`)가 HttpOnly Access/Refresh 쿠키를 받아 Authorization 헤더로 백엔드에 전달한다. 401이면 `/api/v1/auth/refresh`를 1회 호출 후 재시도(singleflight)하고, 실패 시 클라이언트 `apiRequest`가 `/login?next=...`로 이동한다.
+  - Web 로그인/리프레시(`/api/v1/auth/login|refresh`)는 JSON 본문에 `accessToken`/`refreshToken`을 노출하지 않는다.
+  - App은 `/api/v1/auth/app/*` 경로에서 토큰 JSON 계약을 사용한다(쿠키 비의존).
 - BFF 프록시: `frontend-web/app/api/bff/[...path]/route.js`가 Backend API를 호출하고 `Set-Cookie`를 프론트 도메인으로 재작성
 - 통신 계층: `app/lib/runtime/api.js`의 `apiJSON`/`apiRequest`를 단일 진실로 사용(SSR/CSR 공통)
   - CSR에서 스트리밍/자동 재검증이 필요하면 `app/lib/hooks/useSwr.jsx`(SWR 래퍼) 선택적 사용
 - CORS/헤더: `credentials:'include'`, 헤더 `Authorization` 기본. CSRF 헤더는 사용하지 않음(세션 미사용).
 - JS Only 강제: 린트/프리셋 규칙으로 .ts/.tsx 금지
+- i18n 파일 구조 고정:
+  - 라우트 폴더(`initData/page/view`를 가진 경로)마다 `lang.ko.js`를 필수로 둔다.
+  - 사용자 노출 문구는 `lang.ko.js`(또는 공통 i18n 리소스)에서만 관리한다.
 
 ## 완료 기준(DoD)
 - 인증 흐름 로컬 검증(로그인→보호 페이지)
@@ -98,6 +103,7 @@ base = http://localhost:2000
 - OpenAPI/Fetch 공통 헬퍼에서 401 수신 시 `/login?next=현재경로`로 이동(미들웨어가 `nx`로 정리)
 - SSR/CSR 모드가 페이지 `MODE`를 존중하고 SSR 페이지는 SEO 메타 정상 출력
 - 공통 규칙(`docs/common-rules.md`) DoD 충족
+- 라우트 폴더마다 `lang.ko.js`가 존재하고, `view.jsx`/`initData.jsx`에 사용자 노출 하드코딩 문구가 없거나 최소화되어 있다.
 
 ## API 통신 계약(고정)
 - 접근: `app/lib/runtime/api.js` — `apiJSON`(기본) / `apiRequest`(Response 제어 필요 시)

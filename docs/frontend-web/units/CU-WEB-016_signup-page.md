@@ -45,6 +45,8 @@ links: [CU-WEB-001, CU-WEB-004, CU-WEB-005, CU-WEB-008, CU-WEB-010, CU-WEB-011, 
 - 실패 메시지는 필드 단위 인라인으로 노출하고, 서버 오류는 Toast/Alert로 보강한다.
 - 서버가 `409 AUTH_409_USER_EXISTS`를 반환하면 이메일 필드에 인라인 에러 `이미 사용 중인 이메일입니다.`를 표시한다.
 - 성공 시 `/login`으로 이동하며, “회원가입이 완료되었습니다. 로그인해 주세요.” 안내를 표시한다.
+- i18n 규칙
+  - 회원가입 페이지 사용자 노출 문구(라벨/도움말/버튼/에러/성공 안내)는 `lang.ko.js` 키로 렌더링한다.
 
 ### NFR & A11y
 - 키보드만으로 입력/체크/제출/링크 이동이 가능해야 한다.
@@ -57,9 +59,11 @@ links: [CU-WEB-001, CU-WEB-004, CU-WEB-005, CU-WEB-008, CU-WEB-010, CU-WEB-011, 
 - AC-3: 필수값 누락/이메일 형식 오류/비밀번호 불일치/약관 미동의 상태에서는 제출이 차단되고 항목별 에러가 표시된다.
 - AC-4: 유효한 입력으로 제출하면 `POST /api/v1/auth/signup` 요청이 1회 호출된다.
 - AC-5: 가입 성공 시 `/login`으로 이동하고 성공 안내 문구가 노출된다.
+- AC-6: `/signup`의 사용자 노출 문구는 `lang.ko.js` 기반으로 렌더링되고 하드코딩 문자열이 없다.
 
 ### Tasks
 - T1: `frontend-web/app/signup/` 페이지 추가(`initData.jsx`, `page.jsx`, `view.jsx` 권장).
 - T2: `/login` 화면 하단에 회원가입 링크 추가.
 - T3: 공개 경로 Allowlist(`publicRoutes.js`)에 `/signup` 반영.
 - T4: Vitest로 링크 이동/유효성/성공·실패 UX 검증.
+- T5: 회원가입 페이지 텍스트 키를 `lang.ko.js`로 분리하고 렌더링 적용.

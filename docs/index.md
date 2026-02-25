@@ -46,6 +46,7 @@
 - App: React Native(Expo), OTA(EAS Update), 네이티브 최소화
 - Backend: FastAPI(Uvicorn), SQLAlchemy, OpenAPI 스키마(문서)
 - 공통 데이터/상태: EasyObj/EasyList + 바인딩 규약(value/onChange/model)
+- 인증 전송 계약: Web(`/api/v1/auth/*`)은 쿠키 중심(JSON 토큰 비노출), App(`/api/v1/auth/app/*`)은 토큰 JSON 중심
 - 배포/관측성: Nginx, `/healthz`, JSON 로그, Sentry/Prometheus
 
 ```text
@@ -79,7 +80,8 @@
 
 ## 현재 구현 상태(요약)
 
-- Backend: FastAPI 앱/라우터 자동 로드, 로그인(Access/Refresh 쿠키), 쿼리 로더/트랜잭션 유틸, sqlite(`backend/data/main.db`) 포함.
+- Backend: FastAPI 앱/라우터 자동 로드, 인증 코어/쿼리 로더/트랜잭션 유틸, sqlite(`backend/data/main.db`) 포함.
+- Auth 계약 분리 문서화: Web 쿠키 계약(JSON 토큰 비노출) + App 토큰 계약(`/api/v1/auth/app/*`)으로 전환 진행 중.
 - Web: Next.js `frontend-web` 공개 퍼널(`/`, `/sample/*`) + 템플릿 인증 흐름(`/login`, `/signup`, `/forgot-password`) + 템플릿 대시보드(`/dashboard`, `/dashboard/tasks`, `/dashboard/settings`) 구현 완료.
 - App: Expo 골격/네비게이션 + 기본 컴포넌트 + Dataset 구현.
 

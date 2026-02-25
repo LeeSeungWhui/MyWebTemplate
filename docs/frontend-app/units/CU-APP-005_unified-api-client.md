@@ -27,7 +27,7 @@ links: [CU-APP-001, CU-APP-002, CU-APP-003, CU-APP-004, CU-APP-007, CU-APP-008, 
   - `apiJSON(operationIdOrPath, payload?, options?)`
   - `apiRequest(...)` (Response 제어가 필요한 경우)
 - 대상 API
-  - Auth: `/api/v1/auth/login`, `/api/v1/auth/me`, `/api/v1/auth/logout`
+  - Auth(App): `/api/v1/auth/app/login`, `/api/v1/auth/app/refresh`, `/api/v1/auth/me`, `/api/v1/auth/app/logout`
   - Dashboard: `/api/v1/dashboard`, `/api/v1/dashboard/stats`
   - Profile: `/api/v1/profile/me`
 
@@ -47,7 +47,7 @@ links: [CU-APP-001, CU-APP-002, CU-APP-003, CU-APP-004, CU-APP-007, CU-APP-008, 
   - 성공: `{status:true, result, count?, requestId}`
   - 실패: `{status:false, code, message, requestId, httpStatus}`
   - 204는 `{status:true, result:null}`로 정규화한다.
-  - 401은 전역 가드로 위임하고 호출부는 business 에러만 처리한다.
+  - 401은 refreshToken 존재 시 `app/refresh` 1회 시도 후 재요청하고, 실패 시 전역 가드로 위임한다.
   - 로깅은 requestId 중심으로 추적하고 민감정보는 마스킹한다.
 
 ### NFR & A11y
