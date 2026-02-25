@@ -1,7 +1,7 @@
 """
 파일명: backend/service/AuthService.py
 작성자: LSH
-갱신일: 2026-02-22
+갱신일: 2026-02-25
 설명: 인증 도메인 서비스. 비즈니스 로직만 포함한다(HTTP/세션은 라우터 책임).
 """
 
@@ -28,8 +28,8 @@ from lib.Auth import AuthConfig, Token, createAccessToken, createRefreshToken
 from lib import Database as DB
 from lib.Config import getConfig
 from lib.Logger import logger
+from lib.Masking import maskUserIdentifierForLog
 from lib.RequestContext import getRequestId
-from lib.Response import successResponse
 
 # 리프레시 토큰 상태 타입
 TOKEN_STATE_REVOKED = "revoked"
@@ -129,6 +129,7 @@ async def ensureTokenStateStore() -> bool:
             return False
         raise tokenStateStoreUnavailableError("db manager not ready")
     try:
+        await manager.executeQuery("auth.ensureTokenStateTable")
         await manager.fetchOneQuery(
             "auth.getTokenState",
             {"stateType": TOKEN_STATE_REVOKED, "tokenJti": "__probe__"},
@@ -311,39 +312,13 @@ def _nowMs() -> int:
     return int(datetime.now(timezone.utc).timestamp() * 1000)
 
 
-def maskUsernameForAudit(username: str | None) -> str | None:
-    """
-    설명: 감사 로그(audit)에서 사용자 식별자를 마스킹한다.
-    갱신일: 2026-02-22
-    """
-    value = str(username or "").strip()
-    if not value:
-        return None
-    if "@" in value:
-        localPart, domainPart = value.split("@", 1)
-        if not localPart:
-            return f"***@{domainPart}"
-        if len(localPart) == 1:
-            maskedLocal = "*"
-        elif len(localPart) == 2:
-            maskedLocal = f"{localPart[0]}*"
-        else:
-            maskedLocal = f"{localPart[:2]}{'*' * (len(localPart) - 2)}"
-        return f"{maskedLocal}@{domainPart}"
-    if len(value) == 1:
-        return "*"
-    if len(value) == 2:
-        return f"{value[0]}*"
-    return f"{value[:2]}{'*' * (len(value) - 2)}"
-
-
 def auditLog(event: str, username: str | None, success: bool, meta: dict[str, Any] | None = None) -> None:
     """
     설명: 로그인/리프레시/로그아웃 등 인증 이벤트 감사 로그를 남긴다.
     갱신일: 2025-12-03
     """
     try:
-        maskedUsername = maskUsernameForAudit(username)
+        maskedUsername = maskUserIdentifierForLog(username)
         payload: dict[str, Any] = {
             "ts": _nowMs(),
             "event": event,
@@ -358,7 +333,7 @@ def auditLog(event: str, username: str | None, success: bool, meta: dict[str, An
     except Exception:
         # 로깅 실패가 인증 흐름을 막지 않도록 방어
         try:
-            logger.info("auth_audit_fallback %s %s %s %s", event, maskUsernameForAudit(username), success, meta)
+            logger.info("auth_audit_fallback %s %s %s %s", event, maskUserIdentifierForLog(username), success, meta)
         except Exception:
             pass
 
@@ -383,10 +358,10 @@ def _extractExpMs(payload: dict[str, Any], nowMs: int) -> int:
 
 async def me(user):
     """
-    설명: 현재 인증 사용자 정보를 응답 스키마로 변환한다.
-    갱신일: 2026-02-22
+    설명: 현재 인증 사용자 정보를 도메인 payload로 반환한다.
+    갱신일: 2026-02-25
     """
-    return successResponse(result={"username": user.username})
+    return {"username": user.username}
 
 
 async def login(payload: dict, rememberMe: bool = False) -> dict | None:

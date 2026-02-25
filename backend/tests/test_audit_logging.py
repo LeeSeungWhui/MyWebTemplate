@@ -27,7 +27,10 @@ def testAuditLoginAndLogoutLogs(caplog):
         )
         assert seenLogin
 
-        logoutResponse = client.post("/api/v1/auth/logout")
+        logoutResponse = client.post(
+            "/api/v1/auth/logout",
+            headers={"Origin": "http://localhost:3000"},
+        )
         assert logoutResponse.status_code == 204
 
         seenLogout = any("auth.logout" in rec.message for rec in caplog.records)

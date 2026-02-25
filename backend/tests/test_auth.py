@@ -1,5 +1,6 @@
 import os
 import sys
+import sqlite3
 import uuid
 from fastapi.testclient import TestClient
 
@@ -20,6 +21,9 @@ def findCookie(headers, name):
     return ""
 
 
+WEB_ORIGIN_HEADERS = {"Origin": "http://localhost:3000"}
+
+
 def testLoginRefreshMeLogoutFlow():
     from server import app
     with TestClient(app) as client:
@@ -30,7 +34,9 @@ def testLoginRefreshMeLogoutFlow():
         assert response.status_code == 200
         j = response.json()
         assert j["status"] is True
-        assert j["result"]["accessToken"]
+        assert j["result"]["tokenType"] == "cookie"
+        assert "accessToken" not in j["result"]
+        assert "refreshToken" not in j["result"]
         assert client.cookies.get("access_token")
         assert client.cookies.get("refresh_token")
 
@@ -39,16 +45,75 @@ def testLoginRefreshMeLogoutFlow():
         assert response.json()["result"]["username"] == "demo@demo.demo"
 
         firstAccess = client.cookies.get("access_token")
-        response = client.post("/api/v1/auth/refresh")
+        response = client.post("/api/v1/auth/refresh", headers=WEB_ORIGIN_HEADERS)
         assert response.status_code == 200
+        refreshBody = response.json()
+        assert refreshBody["result"]["tokenType"] == "cookie"
+        assert "accessToken" not in refreshBody["result"]
+        assert "refreshToken" not in refreshBody["result"]
         secondAccess = client.cookies.get("access_token")
         assert firstAccess != secondAccess
 
-        response = client.post("/api/v1/auth/logout")
+        response = client.post("/api/v1/auth/logout", headers=WEB_ORIGIN_HEADERS)
         assert response.status_code == 204
         response = client.get("/api/v1/auth/me", headers=authHeaderFromCookie(client))
         assert response.status_code == 401
         assert response.headers.get("WWW-Authenticate") == "Bearer"
+
+
+def testAppLoginRefreshMeLogoutFlow():
+    from server import app
+
+    with TestClient(app) as client:
+        loginResponse = client.post(
+            "/api/v1/auth/app/login",
+            json={"username": "demo@demo.demo", "password": "password123", "rememberMe": True},
+        )
+        assert loginResponse.status_code == 200
+        loginBody = loginResponse.json()
+        assert loginBody["status"] is True
+        appAccessToken = loginBody["result"]["accessToken"]
+        appRefreshToken = loginBody["result"]["refreshToken"]
+        assert appAccessToken
+        assert appRefreshToken
+        assert loginBody["result"]["tokenType"] == "bearer"
+        # App 계약은 쿠키를 사용하지 않는다.
+        assert not findCookie(loginResponse.headers, "access_token")
+        assert not findCookie(loginResponse.headers, "refresh_token")
+
+        meResponse = client.get("/api/v1/auth/me", headers={"Authorization": f"Bearer {appAccessToken}"})
+        assert meResponse.status_code == 200
+        assert meResponse.json()["result"]["username"] == "demo@demo.demo"
+
+        refreshResponse = client.post(
+            "/api/v1/auth/app/refresh",
+            json={"refreshToken": appRefreshToken},
+        )
+        assert refreshResponse.status_code == 200
+        refreshBody = refreshResponse.json()
+        nextAccessToken = refreshBody["result"]["accessToken"]
+        nextRefreshToken = refreshBody["result"]["refreshToken"]
+        assert nextAccessToken
+        assert nextRefreshToken
+        assert nextAccessToken != appAccessToken
+        assert not findCookie(refreshResponse.headers, "access_token")
+        assert not findCookie(refreshResponse.headers, "refresh_token")
+
+        logoutResponse = client.post(
+            "/api/v1/auth/app/logout",
+            json={"refreshToken": nextRefreshToken},
+        )
+        assert logoutResponse.status_code == 204
+
+        # 로그아웃으로 폐기된 refresh 토큰은 재사용할 수 없다.
+        rejected = client.post(
+            "/api/v1/auth/app/refresh",
+            json={"refreshToken": nextRefreshToken},
+        )
+        assert rejected.status_code == 401
+        rejectedBody = rejected.json()
+        assert rejectedBody["status"] is False
+        assert rejectedBody["code"] == "AUTH_401_INVALID"
 
 
 def testLoginInvalidAndWwwAuthenticateHeader():
@@ -94,6 +159,81 @@ def testRequiresBearerHeaderNotCookie():
 
         responseWithHeader = client.get("/api/v1/auth/me", headers=authHeaderFromCookie(client))
         assert responseWithHeader.status_code == 200
+
+
+def testWebRefreshRequiresAllowedOriginHeader():
+    from server import app
+    with TestClient(app) as client:
+        loginResponse = client.post(
+            "/api/v1/auth/login",
+            json={"username": "demo@demo.demo", "password": "password123"},
+        )
+        assert loginResponse.status_code == 200
+
+        missingOrigin = client.post("/api/v1/auth/refresh")
+        assert missingOrigin.status_code == 403
+        missingBody = missingOrigin.json()
+        assert missingBody["status"] is False
+        assert missingBody["code"] == "AUTH_403_ORIGIN_REQUIRED"
+
+        deniedOrigin = client.post(
+            "/api/v1/auth/refresh",
+            headers={"Origin": "https://evil.example"},
+        )
+        assert deniedOrigin.status_code == 403
+        deniedBody = deniedOrigin.json()
+        assert deniedBody["status"] is False
+        assert deniedBody["code"] == "AUTH_403_ORIGIN_DENIED"
+
+
+def testWebLogoutRequiresAllowedOriginHeader():
+    from server import app
+    with TestClient(app) as client:
+        loginResponse = client.post(
+            "/api/v1/auth/login",
+            json={"username": "demo@demo.demo", "password": "password123"},
+        )
+        assert loginResponse.status_code == 200
+
+        deniedOrigin = client.post(
+            "/api/v1/auth/logout",
+            headers={"Origin": "https://evil.example"},
+        )
+        assert deniedOrigin.status_code == 403
+        deniedBody = deniedOrigin.json()
+        assert deniedBody["status"] is False
+        assert deniedBody["code"] == "AUTH_403_ORIGIN_DENIED"
+
+
+def testWebOriginAllowsServerFrontendHostFallback(monkeypatch):
+    from router import AuthRouter
+
+    class FakeSection(dict):
+        def get(self, key, fallback=None):
+            return dict.get(self, key, fallback)
+
+    fakeConfig = {
+        "CORS": FakeSection(
+            {
+                "allow_origins": "http://localhost:3000,http://localhost",
+                "allow_origin_regex": "",
+            }
+        ),
+        "SERVER": FakeSection(
+            {
+                "frontendHost": "http://localhost:4000",
+            }
+        ),
+    }
+
+    AuthRouter.getCorsOriginRules.cache_clear()
+    monkeypatch.setattr(AuthRouter, "getConfig", lambda: fakeConfig)
+    try:
+        assert AuthRouter.isAllowedWebOrigin("http://localhost:4000") is True
+        assert AuthRouter.isAllowedWebOrigin("http://127.0.0.1:4000") is True
+        assert AuthRouter.isAllowedWebOrigin("http://evil.example") is False
+    finally:
+        AuthRouter.getCorsOriginRules.cache_clear()
 
 
 def testLoginRateLimit():
@@ -164,12 +304,48 @@ def testRefreshReturns503WhenTokenStateStoreUnavailable(monkeypatch):
         assert loginResponse.status_code == 200
         monkeypatch.setattr(AuthService, "refresh", raiseUnavailable)
 
-        response = client.post("/api/v1/auth/refresh")
+        response = client.post("/api/v1/auth/refresh", headers=WEB_ORIGIN_HEADERS)
         assert response.status_code == 503
         assert response.headers.get("Cache-Control") == "no-store"
         body = response.json()
         assert body["status"] is False
         assert body["code"] == "AUTH_503_STATE_STORE"
+
+
+def testRefreshAutoCreatesTokenStateTableWhenMissing(monkeypatch):
+    from server import app
+    from service import AuthService
+
+    dbPath = os.path.join(baseDir, "data", "test.db")
+    con = sqlite3.connect(dbPath)
+    try:
+        con.execute("DROP TABLE IF EXISTS T_TOKEN")
+        con.commit()
+    finally:
+        con.close()
+
+    monkeypatch.setenv("AUTH_ALLOW_MEMORY_TOKEN_STATE", "false")
+    monkeypatch.setattr(AuthService, "tokenStateStoreReady", False)
+    monkeypatch.setattr(AuthService, "tokenStateStoreWarned", False)
+
+    with TestClient(app) as client:
+        loginResponse = client.post(
+            "/api/v1/auth/login",
+            json={"username": "demo@demo.demo", "password": "password123", "rememberMe": True},
+        )
+        assert loginResponse.status_code == 200
+
+        refreshResponse = client.post("/api/v1/auth/refresh", headers=WEB_ORIGIN_HEADERS)
+        assert refreshResponse.status_code == 200
+
+    con = sqlite3.connect(dbPath)
+    try:
+        cursor = con.execute(
+            "SELECT name FROM sqlite_master WHERE type = 'table' AND upper(name) = 'T_TOKEN'"
+        )
+        assert cursor.fetchone() is not None
+    finally:
+        con.close()
 
 
 def testLogoutReturns503WhenTokenStateStoreUnavailable(monkeypatch):
@@ -187,7 +363,7 @@ def testLogoutReturns503WhenTokenStateStoreUnavailable(monkeypatch):
         assert loginResponse.status_code == 200
         monkeypatch.setattr(AuthService, "revokeRefreshToken", raiseUnavailable)
 
-        response = client.post("/api/v1/auth/logout")
+        response = client.post("/api/v1/auth/logout", headers=WEB_ORIGIN_HEADERS)
         assert response.status_code == 503
         assert response.headers.get("Cache-Control") == "no-store"
         body = response.json()
@@ -209,7 +385,7 @@ def testRefreshPreservesSessionCookieWhenNotRemember():
         assert refreshCookieHeader
         assert "max-age" not in refreshCookieHeader.lower()
 
-        response = client.post("/api/v1/auth/refresh")
+        response = client.post("/api/v1/auth/refresh", headers=WEB_ORIGIN_HEADERS)
         assert response.status_code == 200
         refreshedCookieHeader = findCookie(response.headers, AuthConfig.refreshCookieName)
         assert refreshedCookieHeader
@@ -236,7 +412,7 @@ def testRefreshTokenReuseGraceWindow(monkeypatch):
         assert originalRefresh
 
         # 첫 번째 refresh는 정상 동작해야 한다.
-        refreshResponse1 = client.post("/api/v1/auth/refresh")
+        refreshResponse1 = client.post("/api/v1/auth/refresh", headers=WEB_ORIGIN_HEADERS)
         assert refreshResponse1.status_code == 200
         accessAfterRefresh1 = client.cookies.get("access_token")
         assert accessAfterRefresh1
@@ -244,14 +420,14 @@ def testRefreshTokenReuseGraceWindow(monkeypatch):
         # 유예 시간 내: 이전 refresh 토큰 재전송은 동일 토큰 페이로드로 재응답한다.
         client.cookies.set("refresh_token", originalRefresh)
         now["ms"] += 100
-        refreshResponse2 = client.post("/api/v1/auth/refresh")
+        refreshResponse2 = client.post("/api/v1/auth/refresh", headers=WEB_ORIGIN_HEADERS)
         assert refreshResponse2.status_code == 200
         assert client.cookies.get("access_token") == accessAfterRefresh1
 
         # 유예 시간 이후: 이전 refresh 토큰 재전송은 401이어야 한다.
         client.cookies.set("refresh_token", originalRefresh)
         now["ms"] += 1000
-        response3 = client.post("/api/v1/auth/refresh")
+        response3 = client.post("/api/v1/auth/refresh", headers=WEB_ORIGIN_HEADERS)
         assert response3.status_code == 401
         assert response3.headers.get("WWW-Authenticate") == "Bearer"
         body = response3.json()
@@ -272,12 +448,12 @@ def testRefreshAfterLogoutIsRejected(monkeypatch):
         assert refreshCookie
 
         # 서버와 클라이언트 양쪽에서 쿠키 삭제를 시뮬레ート하되, 테스트를 위해 토큰 값은 별도로 보존한다.
-        response = client.post("/api/v1/auth/logout")
+        response = client.post("/api/v1/auth/logout", headers=WEB_ORIGIN_HEADERS)
         assert response.status_code == 204
 
         # 클라이언트 측에서 예전 refresh 토큰을 다시 보내는 상황을 재현
         client.cookies.set("refresh_token", refreshCookie)
-        response2 = client.post("/api/v1/auth/refresh")
+        response2 = client.post("/api/v1/auth/refresh", headers=WEB_ORIGIN_HEADERS)
         assert response2.status_code == 401
         assert response2.headers.get("WWW-Authenticate") == "Bearer"
         body = response2.json()

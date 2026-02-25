@@ -1,7 +1,7 @@
 """
 파일명: backend/lib/UserAccessLog.py
 작성자: LSH
-갱신일: 2026-02-22
+갱신일: 2026-02-25
 설명: 인증 사용자 접근 로그를 DB 테이블(T_USER_LOG)에 적재한다.
 """
 
@@ -19,6 +19,7 @@ import httpx
 
 from lib import Database as DB
 from lib.Logger import logger
+from .Masking import maskUserIdentifierForLog
 
 try:
     from .Config import getConfig  # type: ignore
@@ -55,32 +56,6 @@ def parsePositiveInt(rawValue: object, defaultValue: int) -> int:
         return value
     except Exception:
         return defaultValue
-
-
-def maskUserIdForLog(userId: Optional[str]) -> Optional[str]:
-    """
-    설명: 사용자 ID 로그 출력값을 마스킹한다.
-    갱신일: 2026-02-22
-    """
-    value = str(userId or "").strip()
-    if not value:
-        return None
-    if "@" in value:
-        localPart, domainPart = value.split("@", 1)
-        if not localPart:
-            return f"***@{domainPart}"
-        if len(localPart) == 1:
-            maskedLocal = "*"
-        elif len(localPart) == 2:
-            maskedLocal = f"{localPart[0]}*"
-        else:
-            maskedLocal = f"{localPart[:2]}{'*' * (len(localPart) - 2)}"
-        return f"{maskedLocal}@{domainPart}"
-    if len(value) == 1:
-        return "*"
-    if len(value) == 2:
-        return f"{value[0]}*"
-    return f"{value[:2]}{'*' * (len(value) - 2)}"
 
 
 def getIpGeoEnabled() -> bool:
@@ -317,7 +292,7 @@ async def writeUserAccessLog(
                     "event": "db.user_log.insert.failed",
                     "dbName": targetDbName,
                     "requestId": requestId,
-                    "usernameMasked": maskUserIdForLog(userId),
+                    "usernameMasked": maskUserIdentifierForLog(userId),
                     "error": str(e),
                 },
                 ensure_ascii=False,

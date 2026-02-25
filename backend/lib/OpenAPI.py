@@ -92,24 +92,46 @@ def attachOpenAPI(app: FastAPI, config) -> None:
             if "ErrorResponse" not in schemas:
                 schemas["ErrorResponse"] = dict(schemas["StandardResponse"])
 
-            if "AuthTokenResult" not in schemas:
-                schemas["AuthTokenResult"] = {
+            if "AuthWebSessionResult" not in schemas:
+                schemas["AuthWebSessionResult"] = {
                     "type": "object",
                     "properties": {
-                        "accessToken": {"type": "string"},
-                        "tokenType": {"type": "string", "example": "bearer"},
+                        "tokenType": {"type": "string", "example": "cookie"},
                         "expiresIn": {"type": "integer", "example": 3600},
                         "refreshExpiresIn": {"type": "integer", "example": 604800},
                     },
-                    "required": ["accessToken", "tokenType", "expiresIn", "refreshExpiresIn"],
+                    "required": ["tokenType", "expiresIn", "refreshExpiresIn"],
                 }
-            if "AuthTokenResponse" not in schemas:
-                schemas["AuthTokenResponse"] = {
+            if "AuthWebSessionResponse" not in schemas:
+                schemas["AuthWebSessionResponse"] = {
                     "allOf": [
                         {"$ref": "#/components/schemas/StandardResponse"},
                         {
                             "type": "object",
-                            "properties": {"result": {"$ref": "#/components/schemas/AuthTokenResult"}},
+                            "properties": {"result": {"$ref": "#/components/schemas/AuthWebSessionResult"}},
+                        },
+                    ]
+                }
+
+            if "AuthAppTokenResult" not in schemas:
+                schemas["AuthAppTokenResult"] = {
+                    "type": "object",
+                    "properties": {
+                        "accessToken": {"type": "string"},
+                        "refreshToken": {"type": "string"},
+                        "tokenType": {"type": "string", "example": "bearer"},
+                        "expiresIn": {"type": "integer", "example": 3600},
+                        "refreshExpiresIn": {"type": "integer", "example": 604800},
+                    },
+                    "required": ["accessToken", "refreshToken", "tokenType", "expiresIn", "refreshExpiresIn"],
+                }
+            if "AuthAppTokenResponse" not in schemas:
+                schemas["AuthAppTokenResponse"] = {
+                    "allOf": [
+                        {"$ref": "#/components/schemas/StandardResponse"},
+                        {
+                            "type": "object",
+                            "properties": {"result": {"$ref": "#/components/schemas/AuthAppTokenResult"}},
                         },
                     ]
                 }
@@ -139,6 +161,20 @@ def attachOpenAPI(app: FastAPI, config) -> None:
                 "required": False,
                 "schema": {"type": "string"},
                 "description": "CSRF token header for cookie-mode unsafe requests.",
+            }
+            params["OriginHeader"] = {
+                "name": "Origin",
+                "in": "header",
+                "required": False,
+                "schema": {"type": "string"},
+                "description": "Allowed origin for Web cookie-authorized endpoints (/api/v1/auth/refresh|logout).",
+            }
+            params["RefererHeader"] = {
+                "name": "Referer",
+                "in": "header",
+                "required": False,
+                "schema": {"type": "string"},
+                "description": "Fallback header for Web cookie-authorized endpoint origin checks.",
             }
 
             # 설정값에서 서버 URL 목록을 구성
@@ -174,6 +210,32 @@ def attachOpenAPI(app: FastAPI, config) -> None:
                 schema["x-tagGroups"] = [{"name": "default", "tags": tags}]
 
             paths = schema.get("paths", {})
+
+            def ensureJavaScriptCodeSample(operation: Dict[str, Any], source: str) -> None:
+                samples = operation.setdefault("x-codeSamples", [])
+                hasSample = any(
+                    isinstance(sample, dict)
+                    and sample.get("lang") == "JavaScript"
+                    and sample.get("label") == "openapi-client-axios"
+                    for sample in samples
+                )
+                if hasSample:
+                    return
+                samples.append(
+                    {
+                        "lang": "JavaScript",
+                        "label": "openapi-client-axios",
+                        "source": source,
+                    }
+                )
+
+            def ensureHeaderRef(operation: Dict[str, Any], refName: str) -> None:
+                parameters = operation.setdefault("parameters", [])
+                refPath = f"#/components/parameters/{refName}"
+                hasRef = any(isinstance(param, dict) and param.get("$ref") == refPath for param in parameters)
+                if not hasRef:
+                    parameters.append({"$ref": refPath})
+
             # 실제 구현은 /api/v1/auth/me 를 사용한다.
             me = paths.get("/api/v1/auth/me", {}).get("get")
             if isinstance(me, dict):
@@ -193,51 +255,52 @@ def attachOpenAPI(app: FastAPI, config) -> None:
                 responses.pop("204", None)
 
                 res200 = responses.setdefault("200", {"description": "OK"})
-                res200["description"] = "OK (sets access/refresh cookies on success)"
+                res200["description"] = "OK (sets access/refresh cookies; token strings are hidden in JSON body)"
                 res200.setdefault("headers", {})["Set-Cookie"] = {
                     "description": f"Sets `{accessCookie}` and `{refreshCookie}` cookies on success.",
                     "schema": {"type": "string"},
                 }
                 res200.setdefault("content", {}).setdefault("application/json", {})["schema"] = {
-                    "$ref": "#/components/schemas/AuthTokenResponse"
+                    "$ref": "#/components/schemas/AuthWebSessionResponse"
                 }
-
-                samples = login.setdefault("x-codeSamples", [])
-                hasSample = any(
-                    isinstance(sample, dict)
-                    and sample.get("lang") == "JavaScript"
-                    and sample.get("label") == "openapi-client-axios"
-                    for sample in samples
+                ensureJavaScriptCodeSample(
+                    login,
+                    (
+                        "// Example using openapi-client-axios\n"
+                        "// const client = ...;\n"
+                        "// await client.POST('/api/v1/auth/login', {\n"
+                        "//   body: { username: 'demo@demo.demo', password: 'password123', rememberMe: false },\n"
+                        "// });\n"
+                        "// The backend responds 200 JSON(tokenType/expiresIn only) and sets HttpOnly cookies."
+                    ),
                 )
-                if not hasSample:
-                    samples.append(
-                        {
-                            "lang": "JavaScript",
-                            "label": "openapi-client-axios",
-                            "source": (
-                                "// Example using openapi-client-axios\n"
-                                "// const client = ...;\n"
-                                "// await client.POST('/api/v1/auth/login', {\n"
-                                "//   body: { username: 'demo@demo.demo', password: 'password123', rememberMe: false },\n"
-                                "// });\n"
-                                "// The backend responds 200 JSON and also sets HttpOnly cookies."
-                            ),
-                        }
-                    )
 
             refresh = paths.get("/api/v1/auth/refresh", {}).get("post")
             if isinstance(refresh, dict):
                 # Refresh는 refresh cookie로 새 토큰 발급 + Set-Cookie 를 반환한다.
                 responses = refresh.setdefault("responses", {})
                 res200 = responses.setdefault("200", {"description": "OK"})
-                res200["description"] = "OK (rotates access/refresh cookies on success)"
+                res200["description"] = "OK (rotates access/refresh cookies; token strings are hidden in JSON body)"
                 res200.setdefault("headers", {})["Set-Cookie"] = {
                     "description": f"Rotates `{accessCookie}` and `{refreshCookie}` cookies on success.",
                     "schema": {"type": "string"},
                 }
                 res200.setdefault("content", {}).setdefault("application/json", {})["schema"] = {
-                    "$ref": "#/components/schemas/AuthTokenResponse"
+                    "$ref": "#/components/schemas/AuthWebSessionResponse"
                 }
+                ensureHeaderRef(refresh, "OriginHeader")
+                ensureHeaderRef(refresh, "RefererHeader")
+                ensureJavaScriptCodeSample(
+                    refresh,
+                    (
+                        "// Example using openapi-client-axios\n"
+                        "// const client = ...;\n"
+                        "// await client.POST('/api/v1/auth/refresh', {\n"
+                        "//   headers: { Origin: 'http://localhost:3000' },\n"
+                        "// });\n"
+                        "// Web refresh uses HttpOnly refresh cookie + Origin/Referer allowlist."
+                    ),
+                )
 
             logout = paths.get("/api/v1/auth/logout", {}).get("post")
             if isinstance(logout, dict):
@@ -245,6 +308,76 @@ def attachOpenAPI(app: FastAPI, config) -> None:
                 responses = logout.setdefault("responses", {})
                 responses.setdefault("204", {"description": "No Content"})
                 responses.pop("200", None)
+                ensureHeaderRef(logout, "OriginHeader")
+                ensureHeaderRef(logout, "RefererHeader")
+                ensureJavaScriptCodeSample(
+                    logout,
+                    (
+                        "// Example using openapi-client-axios\n"
+                        "// const client = ...;\n"
+                        "// await client.POST('/api/v1/auth/logout', {\n"
+                        "//   headers: { Origin: 'http://localhost:3000' },\n"
+                        "// });"
+                    ),
+                )
+
+            appLogin = paths.get("/api/v1/auth/app/login", {}).get("post")
+            if isinstance(appLogin, dict):
+                responses = appLogin.setdefault("responses", {})
+                responses.pop("204", None)
+                res200 = responses.setdefault("200", {"description": "OK"})
+                res200["description"] = "OK (returns access/refresh tokens in JSON; no cookies)"
+                res200.setdefault("content", {}).setdefault("application/json", {})["schema"] = {
+                    "$ref": "#/components/schemas/AuthAppTokenResponse"
+                }
+                ensureJavaScriptCodeSample(
+                    appLogin,
+                    (
+                        "// Example using openapi-client-axios\n"
+                        "// const client = ...;\n"
+                        "// const res = await client.POST('/api/v1/auth/app/login', {\n"
+                        "//   body: { username: 'demo@demo.demo', password: 'password123', rememberMe: false },\n"
+                        "// });\n"
+                        "// console.log(res.data.result.accessToken);"
+                    ),
+                )
+
+            appRefresh = paths.get("/api/v1/auth/app/refresh", {}).get("post")
+            if isinstance(appRefresh, dict):
+                responses = appRefresh.setdefault("responses", {})
+                responses.pop("204", None)
+                res200 = responses.setdefault("200", {"description": "OK"})
+                res200["description"] = "OK (returns rotated access/refresh tokens in JSON; no cookies)"
+                res200.setdefault("content", {}).setdefault("application/json", {})["schema"] = {
+                    "$ref": "#/components/schemas/AuthAppTokenResponse"
+                }
+                ensureJavaScriptCodeSample(
+                    appRefresh,
+                    (
+                        "// Example using openapi-client-axios\n"
+                        "// const client = ...;\n"
+                        "// const res = await client.POST('/api/v1/auth/app/refresh', {\n"
+                        "//   body: { refreshToken: '<refresh-token>' },\n"
+                        "// });\n"
+                        "// console.log(res.data.result.accessToken);"
+                    ),
+                )
+
+            appLogout = paths.get("/api/v1/auth/app/logout", {}).get("post")
+            if isinstance(appLogout, dict):
+                responses = appLogout.setdefault("responses", {})
+                responses.setdefault("204", {"description": "No Content"})
+                responses.pop("200", None)
+                ensureJavaScriptCodeSample(
+                    appLogout,
+                    (
+                        "// Example using openapi-client-axios\n"
+                        "// const client = ...;\n"
+                        "// await client.POST('/api/v1/auth/app/logout', {\n"
+                        "//   body: { refreshToken: '<refresh-token>' },\n"
+                        "// });"
+                    ),
+                )
             # NOTE: 템플릿 기본(토큰 모드)에서는 CSRF 헤더를 강제하지 않는다.
             # 쿠키가 직접 권한을 갖는 엔드포인트를 추가하는 경우에만,
             # 해당 라우트에 CSRFToken 파라미터를 수동으로 붙여 문서화한다.

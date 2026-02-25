@@ -1,7 +1,7 @@
 """
 파일명: backend/lib/Middleware.py
 작성자: LSH
-갱신일: 2026-02-22
+갱신일: 2026-02-25
 설명: 요청ID 전파 및 구조적 접근 로그 미들웨어.
 """
 
@@ -17,6 +17,7 @@ from starlette.responses import Response as StarletteResponse
 from starlette.middleware.base import BaseHTTPMiddleware
 
 from lib.Logger import logger
+from .Masking import maskUserIdentifierForLog
 from .Database import getSqlCount, resetSqlCount
 from .Config import getConfig
 from .RequestContext import resetRequestId, setRequestId
@@ -128,32 +129,6 @@ def resolveAuthUsername(request: Request) -> str | None:
     return None
 
 
-def maskUsernameForLog(username: str | None) -> str | None:
-    """
-    설명: 로그 출력용 사용자 식별자(username)를 마스킹한다.
-    갱신일: 2026-02-22
-    """
-    value = (username or "").strip()
-    if not value:
-        return None
-    if "@" in value:
-        localPart, domainPart = value.split("@", 1)
-        if not localPart:
-            return f"***@{domainPart}"
-        if len(localPart) == 1:
-            maskedLocal = "*"
-        elif len(localPart) == 2:
-            maskedLocal = f"{localPart[0]}*"
-        else:
-            maskedLocal = f"{localPart[:2]}{'*' * (len(localPart) - 2)}"
-        return f"{maskedLocal}@{domainPart}"
-    if len(value) == 1:
-        return "*"
-    if len(value) == 2:
-        return f"{value[0]}*"
-    return f"{value[:2]}{'*' * (len(value) - 2)}"
-
-
 def maskClientIpForLog(clientIp: str | None) -> str | None:
     """
     설명: 로그 출력용 클라이언트 IP를 마스킹한다.
@@ -205,7 +180,7 @@ class RequestLogMiddleware(BaseHTTPMiddleware):
             level = "INFO"
             username = resolveAuthUsername(request)
             clientIp = resolveClientIp(request)
-            maskedUsername = maskUsernameForLog(username)
+            maskedUsername = maskUserIdentifierForLog(username)
             maskedClientIp = maskClientIpForLog(clientIp)
             logObj = {
                 "ts": int(time.time() * 1000),

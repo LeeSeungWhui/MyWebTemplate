@@ -75,10 +75,9 @@ def testDashboardListRestPath():
         body = response.json()
         assert body["status"] is True
         result = body["result"]
-        assert isinstance(result["items"], list)
-        assert result["count"] == 1
-        assert result["total"] >= 1
-        assert result["items"][0]["title"] == "테스트 업무"
+        assert isinstance(result, list)
+        assert body["count"] >= 1
+        assert result[0]["title"] == "테스트 업무"
 
 
 def testDashboardCrudFlow():
@@ -107,7 +106,7 @@ def testDashboardCrudFlow():
 
         listResponse = client.get("/api/v1/dashboard?q=신규 업무&size=10&page=1", headers=headers)
         assert listResponse.status_code == 200
-        listItems = listResponse.json()["result"]["items"]
+        listItems = listResponse.json()["result"]
         assert len(listItems) >= 1
         dataId = int(listItems[0]["id"])
 

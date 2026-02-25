@@ -65,17 +65,22 @@ def maskDatabaseUrl(url: str) -> str:
     if not url or not isinstance(url, str):
         return ""
     try:
-        parts = urlsplit(url)
-        if not parts.netloc or "@" not in parts.netloc:
+        urlParts = urlsplit(url)
+        if not urlParts.netloc or "@" not in urlParts.netloc:
             return url
-        userinfo, hostinfo = parts.netloc.rsplit("@", 1)
-        if ":" in userinfo:
-            user, _password = userinfo.split(":", 1)
-            safeUserinfo = f"{user}:***"
+        userInfo, hostInfo = urlParts.netloc.rsplit("@", 1)
+        if ":" in userInfo:
+            user, ignoredPassword = userInfo.split(":", 1)
+            if ignoredPassword:
+                safeUserInfo = f"{user}:***"
+            else:
+                safeUserInfo = userInfo
         else:
-            safeUserinfo = userinfo
-        safeNetloc = f"{safeUserinfo}@{hostinfo}"
-        return urlunsplit((parts.scheme, safeNetloc, parts.path, parts.query, parts.fragment))
+            safeUserInfo = userInfo
+        safeNetloc = f"{safeUserInfo}@{hostInfo}"
+        return urlunsplit(
+            (urlParts.scheme, safeNetloc, urlParts.path, urlParts.query, urlParts.fragment)
+        )
     except Exception:
         try:
             return re.sub(r"(^[a-zA-Z][a-zA-Z0-9+.-]*://[^:@/]+):[^@/]*@", r"\\1:***@", url)

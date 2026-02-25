@@ -100,7 +100,18 @@ async def listDataTemplates(
             size=size,
             sort=sort,
         )
-        return successResponse(result=result)
+        body = successResponse(result=result["items"])
+        body["count"] = result["total"]
+        body["meta"] = {
+            "page": result["page"],
+            "size": result["size"],
+            "limit": result["limit"],
+            "offset": result["offset"],
+            "sort": result["sort"],
+            "q": result["q"],
+            "status": result["status"],
+        }
+        return body
     except Exception as exc:
         return handleDashboardError(exc)
 
