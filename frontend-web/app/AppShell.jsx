@@ -7,19 +7,40 @@
  */
 
 import { useEffect, useCallback } from 'react'
+import { usePathname } from "next/navigation";
 import { useSharedStore } from './common/store/SharedStore'
 import Loading from '@/app/lib/component/Loading'
 import Alert from '@/app/lib/component/Alert'
 import Confirm from '@/app/lib/component/Confirm'
 import Toast from '@/app/lib/component/Toast/Toast'
+import PublicGnb from "@/app/common/layout/PublicGnb";
+import PublicFooter from "@/app/common/layout/PublicFooter";
+
+const isPublicShellPath = (pathname) => {
+  const pathText = String(pathname || "");
+  if (pathText === "/") return true;
+  if (pathText.startsWith("/sample/portfolio")) return true;
+  return false;
+};
+
+const resolvePublicContentClassName = (pathname) => {
+  const pathText = String(pathname || "");
+  if (pathText.startsWith("/sample/portfolio")) {
+    return "mx-auto w-full max-w-6xl px-4 py-10 sm:px-6 lg:px-8";
+  }
+  return "mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 lg:px-8";
+};
 
 const AppShell = ({ children }) => {
+  const pathname = usePathname();
   const {
     isLoading,
     alert, hideAlert,
     confirm, hideConfirm,
     toast, hideToast,
   } = useSharedStore()
+  const usePublicShell = isPublicShellPath(pathname);
+  const publicContentClassName = resolvePublicContentClassName(pathname);
 
   const onAlertClick = useCallback(() => {
     const onClick = alert && typeof alert.onClick === 'function' ? alert.onClick : null
@@ -52,7 +73,15 @@ const AppShell = ({ children }) => {
   return (
     <>
       {isLoading && <Loading />}
-      {children}
+      {usePublicShell ? (
+        <div className="min-h-screen bg-gray-50 text-gray-900">
+          <PublicGnb />
+          <main className={publicContentClassName}>{children}</main>
+          <PublicFooter />
+        </div>
+      ) : (
+        children
+      )}
       {alert?.show && (
         <Alert title={alert.title} text={alert.message} type={alert.type} onClick={onAlertClick} />
       )}

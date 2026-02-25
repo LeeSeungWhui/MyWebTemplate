@@ -7,6 +7,7 @@
 
 import { NextResponse } from "next/server";
 import { getBackendHost } from "@/app/common/config/getBackendHost.server";
+import { getFrontendHost } from "@/app/common/config/getFrontendHost.server";
 import {
   AUTH_REASON_COOKIE,
   AUTH_REASON_MAXLEN,
@@ -97,11 +98,21 @@ export async function GET(request) {
   }
 
   const backendHost = await getBackendHost();
+  const frontendOrigin =
+    (await getFrontendHost()) ||
+    request.nextUrl?.origin ||
+    "";
   const refreshUrl = new URL(REFRESH_PATH, backendHost);
   const headers = new Headers();
   const acceptLanguage = request.headers.get("accept-language");
+  const originHeader = request.headers.get("origin");
+  const refererHeader = request.headers.get("referer");
   if (acceptLanguage) headers.set("accept-language", acceptLanguage);
   if (cookieHeader) headers.set("cookie", cookieHeader);
+  if (originHeader) headers.set("origin", originHeader);
+  else if (frontendOrigin) headers.set("origin", frontendOrigin);
+  if (refererHeader) headers.set("referer", refererHeader);
+  else if (frontendOrigin) headers.set("referer", `${frontendOrigin}/login`);
   headers.set("content-type", "application/json");
 
   const refreshRes = await fetch(refreshUrl, {

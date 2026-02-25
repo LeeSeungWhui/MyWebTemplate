@@ -6,11 +6,12 @@
  * 설명: 대시보드용 상단 헤더 내비게이션 (EasyObj/EasyList 기반)
  */
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Button from "@/app/lib/component/Button";
 import Icon from "@/app/lib/component/Icon";
+import EasyObj from "@/app/lib/dataset/EasyObj";
 
 const isListLike = (list) =>
   !!list && (typeof list.size === "function" || Array.isArray(list));
@@ -51,7 +52,7 @@ const Header = ({
   children,
   className = "",
 }) => {
-  const [openMenu, setOpenMenu] = useState(null);
+  const ui = EasyObj(useMemo(() => ({ openMenu: null }), []));
   const navRef = useRef(null);
   const pathname = usePathname();
   const resolvedMenus = useMemo(() => {
@@ -94,12 +95,12 @@ const Header = ({
   useEffect(() => {
     const handleOutside = (evt) => {
       if (navRef.current && !navRef.current.contains(evt.target)) {
-        setOpenMenu(null);
+        ui.openMenu = null;
       }
     };
     document.addEventListener("pointerdown", handleOutside);
     return () => document.removeEventListener("pointerdown", handleOutside);
-  }, []);
+  }, [ui]);
 
   const isPathActive = (href) => {
     if (!href || !pathname) {
@@ -139,7 +140,7 @@ const Header = ({
 
   const handleMenuSelect = (item) => {
     if (typeof item.onClick === "function") item.onClick();
-    setOpenMenu(null);
+    ui.openMenu = null;
   };
 
   const menuButtonClass = (isActive) =>
@@ -190,7 +191,7 @@ const Header = ({
             const isActive = isItemActive(item, children);
             const hasChildren = children.length > 0;
             if (hasChildren) {
-              const isOpen = openMenu === key;
+              const isOpen = ui.openMenu === key;
               return (
                 <div key={key} className="relative">
                   <Button
@@ -198,7 +199,9 @@ const Header = ({
                     size="sm"
                     aria-haspopup="menu"
                     aria-expanded={isOpen ? "true" : "false"}
-                    onClick={() => setOpenMenu(isOpen ? null : key)}
+                    onClick={() => {
+                      ui.openMenu = isOpen ? null : key;
+                    }}
                     className={menuButtonClass(isActive)}
                   >
                     <span>{item.label}</span>

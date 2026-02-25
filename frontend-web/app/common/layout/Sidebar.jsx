@@ -6,11 +6,12 @@
  * 설명: 햄버거/화살표 토글이 가능한 공용 사이드바(EasyList 기반)
  */
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Icon from "@/app/lib/component/Icon";
 import { getBoundValue, setBoundValue } from "@/app/lib/binding";
+import EasyObj from "@/app/lib/dataset/EasyObj";
 
 const isListLike = (list) =>
   !!list && (typeof list.size === "function" || Array.isArray(list));
@@ -52,20 +53,24 @@ const Sidebar = ({
   const COLLAPSED_WIDTH = 64;
   const EXPANDED_WIDTH = 256;
   const TRANSITION_MS = 180;
-  const [collapsed, setCollapsed] = useState(() => {
-    if (dataObj && collapsedKey) return !!getBoundValue(dataObj, collapsedKey);
-    return false;
-  });
-  const [renderWidth, setRenderWidth] = useState(() => {
-    if (!isOpen) return 0;
-    return collapsed ? COLLAPSED_WIDTH : EXPANDED_WIDTH;
-  });
-  const [translateX, setTranslateX] = useState(() => {
-    if (!isOpen) return -EXPANDED_WIDTH;
-    return 0;
-  });
+  const initialCollapsed =
+    dataObj && collapsedKey ? !!getBoundValue(dataObj, collapsedKey) : false;
+  const ui = EasyObj(
+    useMemo(
+      () => ({
+        collapsed: initialCollapsed,
+        renderWidth: isOpen
+          ? initialCollapsed
+            ? COLLAPSED_WIDTH
+            : EXPANDED_WIDTH
+          : 0,
+        translateX: isOpen ? 0 : -EXPANDED_WIDTH,
+        expanded: {},
+      }),
+      [],
+    ),
+  );
   const isFirstRenderRef = useRef(true);
-  const [expanded, setExpanded] = useState({});
   const pathname = usePathname();
 
   const resolvedItems = useMemo(() => {
@@ -111,12 +116,12 @@ const Sidebar = ({
 
   useEffect(() => {
     if (!dataObj || !collapsedKey) return;
-    setCollapsed(!!getBoundValue(dataObj, collapsedKey));
-  }, [dataObj, collapsedKey]);
+    ui.collapsed = !!getBoundValue(dataObj, collapsedKey);
+  }, [dataObj, collapsedKey, ui]);
 
   const toggleCollapsed = () => {
-    const next = !collapsed;
-    setCollapsed(next);
+    const next = !ui.collapsed;
+    ui.collapsed = next;
     if (dataObj && collapsedKey) setBoundValue(dataObj, collapsedKey, next);
   };
 
@@ -125,20 +130,20 @@ const Sidebar = ({
       isFirstRenderRef.current = false;
       let initialWidth = 0;
       if (isOpen) {
-        initialWidth = collapsed ? COLLAPSED_WIDTH : EXPANDED_WIDTH;
+        initialWidth = ui.collapsed ? COLLAPSED_WIDTH : EXPANDED_WIDTH;
       }
-      setRenderWidth(initialWidth);
-      setTranslateX(isOpen ? 0 : -EXPANDED_WIDTH);
+      ui.renderWidth = initialWidth;
+      ui.translateX = isOpen ? 0 : -EXPANDED_WIDTH;
       return;
     }
     let timer = null;
-    const targetWidth = collapsed ? COLLAPSED_WIDTH : EXPANDED_WIDTH;
+    const targetWidth = ui.collapsed ? COLLAPSED_WIDTH : EXPANDED_WIDTH;
 
     // 닫기: 현재 폭만큼 왼쪽으로 밀고, 애니메이션 뒤 폭 0
     if (!isOpen) {
-      setTranslateX(-renderWidth || -targetWidth);
+      ui.translateX = -ui.renderWidth || -targetWidth;
       timer = setTimeout(() => {
-        setRenderWidth(0);
+        ui.renderWidth = 0;
       }, TRANSITION_MS);
       return () => {
         if (timer) clearTimeout(timer);
@@ -146,35 +151,38 @@ const Sidebar = ({
     }
 
     // 열기: 폭을 먼저 복원하고 화면 밖에서 슬라이드 인
-    if (renderWidth === 0) {
-      setRenderWidth(targetWidth);
-      setTranslateX(-targetWidth);
-      requestAnimationFrame(() => setTranslateX(0));
+    if (ui.renderWidth === 0) {
+      ui.renderWidth = targetWidth;
+      ui.translateX = -targetWidth;
+      requestAnimationFrame(() => {
+        ui.translateX = 0;
+      });
       return;
     }
 
     // 축소/확대: 폭만 바꾸고 위치는 고정
-    setRenderWidth(targetWidth);
-    setTranslateX(0);
+    ui.renderWidth = targetWidth;
+    ui.translateX = 0;
     return () => {
       if (timer) clearTimeout(timer);
     };
   }, [
-    collapsed,
+    ui,
+    ui.collapsed,
     isOpen,
     COLLAPSED_WIDTH,
     EXPANDED_WIDTH,
     TRANSITION_MS,
-    renderWidth,
+    ui.renderWidth,
   ]);
 
   const drawerStyle = {
-    width: `${renderWidth}px`,
-    transform: `translateX(${translateX}px)`,
+    width: `${ui.renderWidth}px`,
+    transform: `translateX(${ui.translateX}px)`,
     transition: `transform ${TRANSITION_MS}ms ease`,
   };
   const toggleGroup = (key) => {
-    setExpanded((prev) => ({ ...prev, [key]: !prev[key] }));
+    ui.expanded = { ...ui.expanded, [key]: !ui.expanded[key] };
   };
 
   const isPathActive = (href) => {
@@ -214,22 +222,23 @@ const Sidebar = ({
   };
 
   useEffect(() => {
-    setExpanded((prev) => {
-      let changed = false;
-      const next = { ...prev };
-      resolvedItems.forEach((item) => {
-        const key = item.key || item.label || item.href;
-        const children = subMenuMap.get(item.key) || [];
-        if (children.some((child) => isChildActive(child))) {
-          if (!next[key]) {
-            next[key] = true;
-            changed = true;
-          }
+    const prev = ui.expanded;
+    const next = { ...prev };
+    let changed = false;
+    resolvedItems.forEach((item) => {
+      const key = item.key || item.label || item.href;
+      const children = subMenuMap.get(item.key) || [];
+      if (children.some((child) => isChildActive(child))) {
+        if (!next[key]) {
+          next[key] = true;
+          changed = true;
         }
-      });
-      return changed ? next : prev;
+      }
     });
-  }, [resolvedItems, pathname, subMenuMap]);
+    if (changed) {
+      ui.expanded = next;
+    }
+  }, [resolvedItems, pathname, subMenuMap, ui]);
 
   const navItemClass = (active) =>
     [
@@ -282,7 +291,7 @@ const Sidebar = ({
             const children = subMenuMap.get(item.key) || [];
             const active = isItemActive(item, children);
             const hasChildren = children.length > 0;
-            const isOpenGroup = expanded[key] || false;
+            const isOpenGroup = ui.expanded[key] || false;
 
             const content = (
               <div className="flex w-full items-center gap-3">
@@ -431,7 +440,7 @@ const Sidebar = ({
         aria-label="사이드바 내비게이션"
         style={drawerStyle}
       >
-        {renderContent(collapsed)}
+        {renderContent(ui.collapsed)}
       </aside>
     </>
   );

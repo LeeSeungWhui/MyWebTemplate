@@ -6,7 +6,7 @@
  * 설명: 로그인 페이지 클라이언트 뷰
  */
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import EasyObj from "@/app/lib/dataset/EasyObj";
 import Button from "@/app/lib/component/Button";
 import Input from "@/app/lib/component/Input";
@@ -16,6 +16,7 @@ import useSwr from "@/app/lib/hooks/useSwr";
 import { SESSION_PATH, createLoginFormModel } from "./initData";
 import Link from "next/link";
 import { useGlobalUi } from "@/app/common/store/SharedStore";
+import LANG_KO from "./lang.ko";
 
 const MIN_USERNAME_LENGTH = 3;
 const MIN_PASSWORD_LENGTH = 8;
@@ -29,9 +30,17 @@ const sanitizeRedirect = (candidate) => {
 };
 
 const Client = ({ mode, init, nextHint, authReason }) => {
+  const viewText = LANG_KO.view;
   const loginObj = EasyObj(useMemo(() => createLoginFormModel(), []));
-  const [pending, setPending] = useState(false);
-  const [formError, setFormError] = useState("");
+  const ui = EasyObj(
+    useMemo(
+      () => ({
+        pending: false,
+        formError: "",
+      }),
+      [],
+    ),
+  );
   const emailRef = useRef(null);
   const passwordRef = useRef(null);
   const errorSummaryRef = useRef(null);
@@ -51,20 +60,20 @@ const Client = ({ mode, init, nextHint, authReason }) => {
     if (!authReason) return;
     const message = authReason?.message
       ? String(authReason.message)
-      : "세션이 만료되었습니다. 다시 로그인해 주세요.";
+      : viewText.toast.sessionExpired;
     const metaParts = [];
     if (authReason?.code) metaParts.push(`code: ${authReason.code}`);
     if (authReason?.requestId) metaParts.push(`requestId: ${authReason.requestId}`);
     const metaText = metaParts.length ? ` (${metaParts.join(", ")})` : "";
     showToast(`${message}${metaText}`, { type: "error", duration: 5000 });
-  }, [authReason, showToast]);
+  }, [authReason, showToast, viewText.toast.sessionExpired]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
     const currentUrl = new URL(window.location.href);
     const signupStatus = currentUrl.searchParams.get("signup");
     if (signupStatus !== "done") return;
-    showToast("회원가입이 완료되었습니다. 로그인해 주세요.", {
+    showToast(viewText.toast.signupDone, {
       type: "success",
       duration: 4000,
     });
@@ -74,12 +83,12 @@ const Client = ({ mode, init, nextHint, authReason }) => {
       ? `${currentUrl.pathname}?${nextSearch}`
       : currentUrl.pathname;
     window.history.replaceState({}, "", nextUrl);
-  }, [showToast]);
+  }, [showToast, viewText.toast.signupDone]);
 
   const resetErrors = () => {
     loginObj.errors.email = "";
     loginObj.errors.password = "";
-    setFormError("");
+    ui.formError = "";
   };
 
   const focusOnError = (ref) => {
@@ -92,21 +101,24 @@ const Client = ({ mode, init, nextHint, authReason }) => {
   const resolveBackendError = (error) => {
     const code = error?.code;
     if (code === "AUTH_429_RATE_LIMIT") {
-      return { message: "로그인 시도가 너무 많습니다. 잠시 후 다시 시도해 주세요." };
+      return { message: viewText.error.tooManyAttempts };
+    }
+    if (code === "AUTH_422_INVALID_INPUT") {
+      return { message: viewText.error.invalidInput };
     }
     if (code === "AUTH_401_INVALID") {
       return {
-        message: "이메일 또는 비밀번호가 올바르지 않습니다.",
+        message: viewText.error.invalidCredential,
         field: "password",
       };
     }
     if (error?.statusCode === 401) {
-      return { message: "세션이 만료되었습니다. 다시 로그인해 주세요." };
+      return { message: viewText.toast.sessionExpired };
     }
     if (error?.message) {
       return { message: error.message };
     }
-    return { message: "로그인에 실패했습니다." };
+    return { message: viewText.error.loginFailed };
   };
 
   const validateForm = () => {
@@ -119,26 +131,26 @@ const Client = ({ mode, init, nextHint, authReason }) => {
     loginObj.email = email;
 
     if (!email) {
-      loginObj.errors.email = "이메일을 입력해주세요";
+      loginObj.errors.email = viewText.validation.emailRequired;
       issues.push({ ref: emailRef, summary: loginObj.errors.email });
     } else if (email.length < MIN_USERNAME_LENGTH) {
-      loginObj.errors.email = "아이디는 최소 3자 이상 입력해주세요";
+      loginObj.errors.email = viewText.validation.emailMinLength;
       issues.push({ ref: emailRef, summary: loginObj.errors.email });
     } else if (!/\S+@\S+\.\S+/.test(email)) {
-      loginObj.errors.email = "올바른 이메일 형식이 아닙니다";
+      loginObj.errors.email = viewText.validation.emailInvalid;
       issues.push({ ref: emailRef, summary: loginObj.errors.email });
     }
 
     if (!password) {
-      loginObj.errors.password = "비밀번호를 입력해주세요";
+      loginObj.errors.password = viewText.validation.passwordRequired;
       issues.push({ ref: passwordRef, summary: loginObj.errors.password });
     } else if (password.length < MIN_PASSWORD_LENGTH) {
-      loginObj.errors.password = "비밀번호는 최소 8자 이상이어야 합니다";
+      loginObj.errors.password = viewText.validation.passwordMinLength;
       issues.push({ ref: passwordRef, summary: loginObj.errors.password });
     }
 
     if (issues.length) {
-      setFormError(issues[0].summary || "입력값을 확인해 주세요.");
+      ui.formError = issues[0].summary || viewText.error.invalidInput;
       focusOnError(issues[0].ref);
       return false;
     }
@@ -149,7 +161,7 @@ const Client = ({ mode, init, nextHint, authReason }) => {
     e.preventDefault();
     if (!validateForm()) return;
 
-    setPending(true);
+    ui.pending = true;
     try {
       const payload = {
         username: loginObj.email,
@@ -165,7 +177,9 @@ const Client = ({ mode, init, nextHint, authReason }) => {
       window.location.assign(target);
       return;
     } catch (error) {
-      console.error(error);
+      if (process.env.NODE_ENV !== "production") {
+        console.error("login submit failed", error);
+      }
       const { message, field } = resolveBackendError(error);
       if (field === "email") {
         loginObj.errors.email = message;
@@ -176,9 +190,9 @@ const Client = ({ mode, init, nextHint, authReason }) => {
       } else {
         focusOnError(errorSummaryRef);
       }
-      setFormError(message);
+      ui.formError = message;
     } finally {
-      setPending(false);
+      ui.pending = false;
     }
   };
 
@@ -199,29 +213,29 @@ const Client = ({ mode, init, nextHint, authReason }) => {
     <main className="min-h-screen flex items-center justify-center bg-gray-50 p-4 sm:p-6">
       <div className="flex w-full max-w-5xl mx-4 shadow-xl rounded-2xl overflow-hidden bg-white">
         <aside className="hidden w-2/5 flex-col items-center justify-center space-y-4 bg-gradient-to-br from-[#1e3a5f] to-[#312e81] p-12 text-white lg:flex">
-          <h1 className="text-3xl font-bold">웹페이지 템플릿</h1>
+          <h1 className="text-3xl font-bold">{viewText.side.title}</h1>
           <p className="max-w-xs text-center text-sm text-white/80">
-            샘플 로그인 화면
+            {viewText.side.subtitle}
           </p>
           <ul className="w-full max-w-xs list-inside list-disc space-y-1 text-left text-sm text-white/90">
-            <li>로그인 시 샘플 대시보드 페이지로 이동</li>
-            <li>/component에서 컴포넌트 목록 조회</li>
-            <li>demo@demo.demo / password123</li>
+            <li>{viewText.side.pointList[0]}</li>
+            <li>{viewText.side.pointList[1]}</li>
+            <li>{viewText.side.pointList[2]}</li>
           </ul>
         </aside>
 
         <section className="w-full p-6 sm:p-10 md:p-16 lg:w-3/5">
           <div className="text-center mb-8">
             <h2 className="text-3xl font-semibold text-gray-900 mb-2">
-              로그인
+              {viewText.form.title}
             </h2>
             <p className="text-sm text-gray-600">
-              계정 정보로 로그인하여 시작하세요
+              {viewText.form.subtitle}
             </p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6" noValidate>
-            {formError ? (
+            {ui.formError ? (
               <div
                 ref={errorSummaryRef}
                 tabIndex={-1}
@@ -229,7 +243,7 @@ const Client = ({ mode, init, nextHint, authReason }) => {
                 aria-live="assertive"
                 className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700"
               >
-                {formError}
+                {ui.formError}
               </div>
             ) : null}
             <div>
@@ -237,16 +251,17 @@ const Client = ({ mode, init, nextHint, authReason }) => {
                 htmlFor="login-email"
                 className="block text-sm font-medium text-gray-700"
               >
-                이메일
+                {viewText.form.emailLabel}
               </label>
               <div className="mt-2">
                 <Input
                   id="login-email"
                   type="email"
+                  autoComplete="username"
                   dataObj={loginObj}
                   dataKey="email"
                   ref={emailRef}
-                  placeholder="이메일을 입력하세요"
+                  placeholder={viewText.form.emailPlaceholder}
                   aria-describedby={emailErrorId}
                   error={loginObj.errors.email}
                 />
@@ -263,17 +278,18 @@ const Client = ({ mode, init, nextHint, authReason }) => {
                 htmlFor="login-password"
                 className="block text-sm font-medium text-gray-700"
               >
-                비밀번호
+                {viewText.form.passwordLabel}
               </label>
               <div className="mt-2">
                 <Input
                   id="login-password"
                   type="password"
+                  autoComplete="current-password"
                   togglePassword
                   dataObj={loginObj}
                   dataKey="password"
                   ref={passwordRef}
-                  placeholder="비밀번호를 입력하세요"
+                  placeholder={viewText.form.passwordPlaceholder}
                   aria-describedby={passwordErrorId}
                   error={loginObj.errors.password}
                 />
@@ -289,13 +305,13 @@ const Client = ({ mode, init, nextHint, authReason }) => {
               <Checkbox
                 dataObj={loginObj}
                 dataKey="rememberMe"
-                label="로그인 상태 유지"
+                label={viewText.form.rememberMeLabel}
               />
               <Link
                 href="/forgot-password"
                 className="text-sm font-medium text-blue-600 hover:text-blue-500"
               >
-                비밀번호 찾기
+                {viewText.form.forgotPasswordLabel}
               </Link>
             </div>
 
@@ -304,18 +320,18 @@ const Client = ({ mode, init, nextHint, authReason }) => {
               variant="primary"
               size="lg"
               className="w-full"
-              loading={pending}
+              loading={ui.pending}
             >
-              로그인
+              {viewText.form.submitLabel}
             </Button>
 
             <div className="text-center text-sm text-gray-600">
-              계정이 없으신가요?{" "}
+              {`${viewText.form.signupGuidePrefix} `}{" "}
               <Link
                 href="/signup"
                 className="font-medium text-blue-600 hover:text-blue-500"
               >
-                회원가입
+                {viewText.form.signupLinkLabel}
               </Link>
             </div>
           </form>

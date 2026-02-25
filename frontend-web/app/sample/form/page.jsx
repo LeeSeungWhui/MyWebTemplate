@@ -7,10 +7,11 @@
 
 import FormDemoView from "./view";
 import { PAGE_MODE } from "./initData";
+import LANG_KO from "./lang.ko";
 
 export const metadata = {
   title: "Form Sample | MyWebTemplate",
-  description: "공개 복합 폼 샘플 화면",
+  description: LANG_KO.page.metadataDescription,
 };
 
 /**

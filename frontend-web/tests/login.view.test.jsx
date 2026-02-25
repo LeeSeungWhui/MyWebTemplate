@@ -98,6 +98,56 @@ test("백엔드 인증 오류를 비밀번호 필드와 에러 요약으로 노�
   });
 });
 
+test("레이트리밋(429) 오류를 에러 요약으로 노출한다", async () => {
+  useSwr.mockReturnValue({ data: { result: null }, mutate: mutateMock });
+  apiJSON.mockRejectedValue({
+    name: "ApiError",
+    statusCode: 429,
+    code: "AUTH_429_RATE_LIMIT",
+    message: "too many requests",
+  });
+
+  renderLogin();
+
+  fireEvent.change(screen.getByLabelText("이메일"), {
+    target: { value: "demo@demo.demo" },
+  });
+  fireEvent.change(screen.getByLabelText("비밀번호"), {
+    target: { value: "password123" },
+  });
+  fireEvent.click(screen.getByRole("button", { name: "로그인" }));
+
+  await waitFor(() => {
+    expect(screen.getByRole("alert")).toBeInTheDocument();
+  });
+  expect(screen.getByRole("alert").textContent).toContain("로그인 시도가 너무 많습니다");
+});
+
+test("입력 오류(422) 응답 코드를 사용자 메시지로 매핑한다", async () => {
+  useSwr.mockReturnValue({ data: { result: null }, mutate: mutateMock });
+  apiJSON.mockRejectedValue({
+    name: "ApiError",
+    statusCode: 422,
+    code: "AUTH_422_INVALID_INPUT",
+    message: "invalid input",
+  });
+
+  renderLogin();
+
+  fireEvent.change(screen.getByLabelText("이메일"), {
+    target: { value: "demo@demo.demo" },
+  });
+  fireEvent.change(screen.getByLabelText("비밀번호"), {
+    target: { value: "password123" },
+  });
+  fireEvent.click(screen.getByRole("button", { name: "로그인" }));
+
+  await waitFor(() => {
+    expect(screen.getByRole("alert")).toBeInTheDocument();
+  });
+  expect(screen.getByRole("alert").textContent).toContain("입력값을 확인해 주세요.");
+});
+
 test("로그인 성공 시 next가 없으면 대시보드로 이동한다", async () => {
   useSwr.mockReturnValue({ data: { result: null }, mutate: mutateMock });
   mutateMock.mockResolvedValue({ result: { username: "demo" } });

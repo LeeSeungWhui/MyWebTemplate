@@ -7,10 +7,11 @@
 
 import DemoHubView from "./view";
 import { PAGE_MODE } from "./initData";
+import LANG_KO from "./lang.ko";
 
 export const metadata = {
   title: "Sample Hub | MyWebTemplate",
-  description: "공개 샘플 허브",
+  description: LANG_KO.page.metadataDescription,
 };
 
 export const dynamic = "force-static";

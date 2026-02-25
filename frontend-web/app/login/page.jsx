@@ -7,13 +7,6 @@
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
 export const runtime = 'nodejs'
-export const metadata = {
-  title: 'Login | MyWebTemplate',
-  robots: {
-    index: false,
-    follow: false,
-  },
-}
 
 import Client from './view'
 import { apiJSON } from '@/app/lib/runtime/api'
@@ -21,6 +14,15 @@ import { SESSION_PATH } from './initData'
 import SharedHydrator from '@/app/common/store/SharedHydrator'
 import { cookies } from 'next/headers'
 import { AUTH_REASON_COOKIE, NX_COOKIE, parseAuthReason, safeDecodeURIComponent, sanitizeInternalPath } from '@/app/lib/runtime/authRedirect'
+import LANG_KO from './lang.ko'
+
+export const metadata = {
+  title: LANG_KO.page.metadataTitle,
+  robots: {
+    index: false,
+    follow: false,
+  },
+}
 
 const Page = async () => {
   const init = await apiJSON(SESSION_PATH, { method: 'GET' }).catch(() => null)

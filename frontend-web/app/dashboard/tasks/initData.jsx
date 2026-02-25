@@ -5,6 +5,10 @@
  * 설명: 업무 관리 페이지 초기 설정
  */
 
+import LANG_KO from "./lang.ko";
+
+const { initData } = LANG_KO;
+
 export const PAGE_MODE = {
   MODE: "CSR",
   dynamic: "force-dynamic",
@@ -20,23 +24,9 @@ export const PAGE_MODE = {
   },
 };
 
-export const STATUS_FILTER_LIST = [
-  { value: "", text: "전체 상태" },
-  { value: "ready", text: "준비" },
-  { value: "pending", text: "대기" },
-  { value: "running", text: "진행중" },
-  { value: "done", text: "완료" },
-  { value: "failed", text: "실패" },
-];
+export const STATUS_FILTER_LIST = initData.statusFilterList.map((item) => ({ ...item }));
 
-export const SORT_FILTER_LIST = [
-  { value: "reg_dt_desc", text: "등록일 최신순" },
-  { value: "reg_dt_asc", text: "등록일 오래된순" },
-  { value: "amt_desc", text: "금액 높은순" },
-  { value: "amt_asc", text: "금액 낮은순" },
-  { value: "title_asc", text: "제목 오름차순" },
-  { value: "title_desc", text: "제목 내림차순" },
-];
+export const SORT_FILTER_LIST = initData.sortFilterList.map((item) => ({ ...item }));
 
 export const DEFAULT_SORT = "reg_dt_desc";
 

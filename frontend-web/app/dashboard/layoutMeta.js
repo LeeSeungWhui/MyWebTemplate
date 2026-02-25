@@ -10,27 +10,10 @@ import {
   SORT_FILTER_LIST,
   STATUS_FILTER_LIST,
 } from "./tasks/initData";
+import LANG_KO from "./lang.ko";
 
-const MENU_TEMPLATE_LIST = [
-  {
-    menuId: "dashboard",
-    menuNm: "대시보드",
-    href: "/dashboard",
-    icon: "ri:RiDashboardLine",
-  },
-  {
-    menuId: "tasks",
-    menuNm: "업무 관리",
-    href: "/dashboard/tasks",
-    icon: "ri:RiListCheck3",
-  },
-  {
-    menuId: "settings",
-    menuNm: "설정",
-    href: "/dashboard/settings",
-    icon: "ri:RiSettings3Line",
-  },
-];
+const { layoutMeta } = LANG_KO;
+const MENU_TEMPLATE_LIST = layoutMeta.menuList.map((item) => ({ ...item }));
 
 const STATUS_LABEL_MAP = new Map(
   STATUS_FILTER_LIST.filter((item) => item.value).map((item) => [
@@ -77,7 +60,7 @@ const buildTasksSubMenuList = ({ status }) => {
     return {
       menuId: "tasks",
       subMenuId: statusValue || "all",
-      subMenuNm: statusValue ? item.text : "전체 상태",
+      subMenuNm: statusValue ? item.text : layoutMeta.tasksAllStatus,
       href,
       active: isActive,
     };
@@ -85,33 +68,33 @@ const buildTasksSubMenuList = ({ status }) => {
 };
 
 const resolveTitle = (routeKey) => {
-  if (routeKey === "tasks") return "업무 관리";
-  if (routeKey === "settings") return "설정";
-  return "대시보드";
+  if (routeKey === "tasks") return layoutMeta.title.tasks;
+  if (routeKey === "settings") return layoutMeta.title.settings;
+  return layoutMeta.title.dashboard;
 };
 
 const resolveSettingsSubtitle = (tab) => {
-  if (tab === "system") return "대시보드 > 설정 > 시스템 설정";
-  return "대시보드 > 설정 > 내 프로필";
+  if (tab === "system") return layoutMeta.subtitle.settingsSystem;
+  return layoutMeta.subtitle.settingsProfile;
 };
 
 const resolveTasksSubtitle = ({ keyword, status, sort, page }) => {
-  const partList = ["대시보드 > 업무 관리"];
+  const partList = [layoutMeta.subtitle.tasksPrefix];
   if (status) {
     const statusLabel = STATUS_LABEL_MAP.get(status);
     if (statusLabel) {
-      partList.push(`상태: ${statusLabel}`);
+      partList.push(`${layoutMeta.subtitle.statusPrefix}: ${statusLabel}`);
     }
   }
   if (sort) {
     const isDefaultSort = sort === DEFAULT_SORT;
     const sortLabel = SORT_LABEL_MAP.get(sort);
     if (!isDefaultSort && sortLabel) {
-      partList.push(`정렬: ${sortLabel}`);
+      partList.push(`${layoutMeta.subtitle.sortPrefix}: ${sortLabel}`);
     }
   }
-  if (keyword) partList.push(`검색: ${keyword}`);
-  if (page > 1) partList.push(`페이지: ${page}`);
+  if (keyword) partList.push(`${layoutMeta.subtitle.keywordPrefix}: ${keyword}`);
+  if (page > 1) partList.push(`${layoutMeta.subtitle.pagePrefix}: ${page}`);
   return partList.join(" · ");
 };
 
@@ -139,7 +122,7 @@ export const resolveDashboardLayoutMeta = ({ pathname, searchParams }) => {
     ? buildTasksSubMenuList({ status })
     : [];
 
-  let subtitle = "대시보드 > 요약";
+  let subtitle = layoutMeta.subtitle.dashboard;
   if (routeKey === "tasks") {
     subtitle = resolveTasksSubtitle({ keyword, status, sort, page });
   } else if (routeKey === "settings") {
@@ -149,7 +132,7 @@ export const resolveDashboardLayoutMeta = ({ pathname, searchParams }) => {
   return {
     title: resolveTitle(routeKey),
     subtitle,
-    text: "어서오세요.",
+    text: layoutMeta.welcomeText,
     menuList,
     subMenuList,
   };

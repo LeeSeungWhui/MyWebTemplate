@@ -7,13 +7,14 @@
 
 import TasksView from "./view";
 import { normalizeTasksQuery } from "./initData";
+import LANG_KO from "./lang.ko";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 export const revalidate = 0;
 export const fetchCache = "only-no-store";
 export const metadata = {
-  title: "Dashboard Tasks | MyWebTemplate",
+  title: LANG_KO.page.metadataTitle,
   robots: {
     index: false,
     follow: false,

@@ -6,10 +6,11 @@
  * 설명: 대시보드 클라이언트 뷰
  */
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEasyList } from "@/app/lib/dataset/EasyList";
+import EasyObj from "@/app/lib/dataset/EasyObj";
 import Button from "@/app/lib/component/Button";
 import Card from "@/app/lib/component/Card";
 import EasyChart from "@/app/lib/component/EasyChart";
@@ -23,24 +24,20 @@ import {
   isSsrMode,
   toErrorState,
 } from "./dataStrategy";
+import LANG_KO from "./lang.ko";
 
 const CHART_HEIGHT = 180;
 const DONUT_HEIGHT = 180;
-const STATUS_LABELS = {
-  ready: "준비",
-  pending: "대기",
-  running: "진행중",
-  done: "완료",
-  failed: "실패",
-};
+const { view: viewText } = LANG_KO;
+const STATUS_LABELS = viewText.statusLabelMap;
 const STATUS_ORDER = ["ready", "pending", "running", "done", "failed"];
 
 const monthKey = (iso) => {
-  if (!iso) return "알 수 없음";
+  if (!iso) return viewText.unknown;
   const date = new Date(iso);
-  if (Number.isNaN(date.getTime())) return "알 수 없음";
+  if (Number.isNaN(date.getTime())) return viewText.unknown;
   const month = date.getMonth() + 1;
-  return `${month}월`;
+  return `${month}${viewText.monthSuffix}`;
 };
 
 const formatCurrency = (value) => {
@@ -51,10 +48,10 @@ const formatCurrency = (value) => {
 
 const resolveErrorText = (errorKey) => {
   if (errorKey === DASHBOARD_ERROR_KEY.ENDPOINT_MISSING) {
-    return "엔드포인트가 설정되지 않았습니다.";
+    return viewText.error.endpointMissing;
   }
   if (errorKey === DASHBOARD_ERROR_KEY.INIT_FETCH_FAILED) {
-    return "대시보드 데이터를 불러오지 못했습니다.";
+    return viewText.error.fetchFailed;
   }
   return null;
 };
@@ -84,32 +81,44 @@ const DashboardView = ({ statList, dataList, initialError }) => {
   const router = useRouter();
   const statsList = useEasyList(statList || []);
   const tableList = useEasyList(dataList || []);
-  const [isLoading, setIsLoading] = useState(() =>
-    !isSsrMode(PAGE_MODE.MODE) || !statList?.length || !dataList?.length
+  const ui = EasyObj(
+    useMemo(
+      () => ({
+        isLoading:
+          !isSsrMode(PAGE_MODE.MODE) || !statList?.length || !dataList?.length,
+        error: normalizeErrorState(initialError),
+      }),
+      [],
+    ),
   );
-  const [error, setError] = useState(() => normalizeErrorState(initialError));
   const endpoints = PAGE_MODE.endPoints || {};
   const hasEndpoint = Boolean(endpoints.stats && endpoints.list);
 
   const fetchDashboard = async () => {
     if (!hasEndpoint) {
-      setError(toErrorState(null, DASHBOARD_ERROR_KEY.ENDPOINT_MISSING));
+      ui.error = toErrorState(null, DASHBOARD_ERROR_KEY.ENDPOINT_MISSING);
       return;
     }
-    setIsLoading(true);
-    setError(null);
+    ui.isLoading = true;
+    ui.error = null;
     try {
       const [statsRes, listRes] = await Promise.all([
         apiJSON(endpoints.stats),
         apiJSON(endpoints.list),
       ]);
+      const listResult = listRes?.result;
+      const normalizedItems = Array.isArray(listResult)
+        ? listResult
+        : Array.isArray(listResult?.items)
+          ? listResult.items
+          : [];
       statsList.copy(statsRes?.result?.byStatus || []);
-      tableList.copy(listRes?.result?.items || []);
+      tableList.copy(normalizedItems);
     } catch (err) {
-      console.error("대시보드 데이터 조회 실패", err);
-      setError(toErrorState(err, DASHBOARD_ERROR_KEY.INIT_FETCH_FAILED));
+      console.error(viewText.error.fetchFailed, err);
+      ui.error = toErrorState(err, DASHBOARD_ERROR_KEY.INIT_FETCH_FAILED);
     } finally {
-      setIsLoading(false);
+      ui.isLoading = false;
     }
   };
 
@@ -131,19 +140,19 @@ const DashboardView = ({ statList, dataList, initialError }) => {
     const activeCount = runningCount + pendingCount;
     return [
       {
-        label: "전체 건수",
+        label: viewText.stat.totalCount,
         value: totalCount.toLocaleString("ko-KR"),
         delta: null,
         deltaType: "neutral",
       },
       {
-        label: "총 금액",
+        label: viewText.stat.totalAmount,
         value: `${formatCurrency(totalAmount)}`,
         delta: null,
         deltaType: "neutral",
       },
       {
-        label: "진행 중",
+        label: viewText.stat.activeCount,
         value: activeCount.toLocaleString("ko-KR"),
         delta: null,
         deltaType: "neutral",
@@ -154,7 +163,7 @@ const DashboardView = ({ statList, dataList, initialError }) => {
   const donutData = useMemo(() => {
     const byStatus = statsList.toJSON();
     return byStatus.map((row) => ({
-      label: STATUS_LABELS[row.status] || row.status || "알 수 없음",
+      label: STATUS_LABELS[row.status] || row.status || viewText.unknown,
       value: row.count ?? 0,
     }));
   }, [statsList]);
@@ -186,28 +195,28 @@ const DashboardView = ({ statList, dataList, initialError }) => {
   }, [tableList]);
 
   const legendFontSize = 12;
-  const errorText = resolveErrorText(error?.key);
+  const errorText = resolveErrorText(ui.error?.key);
 
   return (
     <div className="space-y-2">
-      <h1 className="sr-only">대시보드</h1>
+      <h1 className="sr-only">{LANG_KO.layoutMeta.title.dashboard}</h1>
       {errorText ? (
         <section role="region" aria-labelledby="dashboard-error-heading">
           <h2 id="dashboard-error-heading" className="sr-only">
-            오류 안내
+            {viewText.error.sectionAriaLabel}
           </h2>
           <div
             className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
             role="alert"
           >
             <div>{errorText}</div>
-            {error?.requestId ? (
+            {ui.error?.requestId ? (
               <div className="mt-1 text-xs text-red-700/80">
-                requestId: {error.requestId}
+                requestId: {ui.error.requestId}
               </div>
             ) : null}
-            {error?.code ? (
-              <div className="mt-1 text-xs text-red-700/80">code: {error.code}</div>
+            {ui.error?.code ? (
+              <div className="mt-1 text-xs text-red-700/80">code: {ui.error.code}</div>
             ) : null}
           </div>
         </section>
@@ -219,9 +228,9 @@ const DashboardView = ({ statList, dataList, initialError }) => {
         className="grid gap-3 md:grid-cols-3"
       >
         <h2 id="dashboard-summary-heading" className="sr-only">
-          지표 요약
+          {viewText.chart.summaryAriaLabel}
         </h2>
-        {isLoading
+        {ui.isLoading
           ? Array.from({ length: 3 }).map((_, idx) => (
               <div
                 key={`stat-skeleton-${idx}`}
@@ -242,22 +251,22 @@ const DashboardView = ({ statList, dataList, initialError }) => {
         className="grid gap-3 md:grid-cols-2"
       >
         <h2 id="dashboard-chart-heading" className="sr-only">
-          차트 영역
+          {viewText.chart.chartAriaLabel}
         </h2>
         <EasyChart
-          title="가입/활성 추이"
+          title={viewText.chart.trendTitle}
           dataList={lineData}
-          loading={isLoading}
+          loading={ui.isLoading}
           seriesList={[
             {
               seriesId: "count",
-              seriesNm: "건수",
+              seriesNm: viewText.chart.seriesCount,
               dataKey: "count",
               color: "#2563eb",
             },
             {
               seriesId: "amount",
-              seriesNm: "금액",
+              seriesNm: viewText.chart.seriesAmount,
               dataKey: "amount",
               color: "#10b981",
             },
@@ -270,13 +279,13 @@ const DashboardView = ({ statList, dataList, initialError }) => {
         />
 
         <EasyChart
-          title="상태 분포"
+          title={viewText.chart.statusTitle}
           dataList={donutData}
-          loading={isLoading}
+          loading={ui.isLoading}
           seriesList={[
             {
               seriesId: "value",
-              seriesNm: "건수",
+              seriesNm: viewText.chart.seriesCount,
               dataKey: "value",
               type: "donut",
             },
@@ -292,16 +301,16 @@ const DashboardView = ({ statList, dataList, initialError }) => {
 
       <section role="region" aria-labelledby="dashboard-table-heading">
         <h2 id="dashboard-table-heading" className="sr-only">
-          업무 테이블
+          {viewText.chart.tableAriaLabel}
         </h2>
-        <Card title="업무 바로가기" className="mb-3">
+        <Card title={viewText.card.quickTitle} className="mb-3">
           <div className="flex flex-wrap items-center gap-2">
             <Button
               size="sm"
               variant="secondary"
               onClick={() => router.push("/dashboard/tasks")}
             >
-              전체 업무
+              {viewText.action.allTasks}
             </Button>
             {statusQuickList.map((item) => (
               <Button
@@ -310,26 +319,26 @@ const DashboardView = ({ statList, dataList, initialError }) => {
                 variant="secondary"
                 onClick={() => router.push(item.href)}
               >
-                {item.label} {item.count.toLocaleString("ko-KR")}건
+                {item.label} {item.count.toLocaleString("ko-KR")}{viewText.action.countSuffix}
               </Button>
             ))}
           </div>
         </Card>
         <Card
-          title="최근 업무"
+          title={viewText.card.recentTitle}
           actions={
             <Button size="sm" variant="secondary" onClick={() => router.push("/dashboard/tasks")}>
-              전체보기
+              {viewText.action.viewAll}
             </Button>
           }
         >
           <EasyTable
             data={tableList}
-            loading={isLoading}
+            loading={ui.isLoading}
             columns={[
               {
                 key: "title",
-                header: "제목",
+                header: viewText.table.titleHeader,
                 render: (row) => (
                   <Link
                     href={createTasksPath({ status: row?.status })}
@@ -339,12 +348,12 @@ const DashboardView = ({ statList, dataList, initialError }) => {
                   </Link>
                 ),
               },
-              { key: "status", header: "상태" },
-              { key: "amount", header: "금액" },
-              { key: "createdAt", header: "생성일" },
+              { key: "status", header: viewText.table.statusHeader },
+              { key: "amount", header: viewText.table.amountHeader },
+              { key: "createdAt", header: viewText.table.createdAtHeader },
             ]}
             pageSize={4}
-            empty={error ? "데이터를 불러오지 못했습니다." : "업무가 없습니다."}
+            empty={ui.error ? viewText.table.emptyWhenError : viewText.table.emptyDefault}
           />
         </Card>
       </section>

@@ -13,14 +13,10 @@ import EasyChart from "@/app/lib/component/EasyChart";
 import EasyTable from "@/app/lib/component/EasyTable";
 import Stat from "@/app/lib/component/Stat";
 import { useDemoSharedState } from "@/app/sample/demoSharedState";
+import LANG_KO from "./lang.ko";
 
-const STATUS_LABEL_MAP = {
-  ready: "준비",
-  pending: "대기",
-  running: "진행중",
-  done: "완료",
-  failed: "실패",
-};
+const { view: viewText } = LANG_KO;
+const STATUS_LABEL_MAP = viewText.statusLabelMap;
 
 const STATUS_ORDER = ["ready", "pending", "running", "done", "failed"];
 
@@ -73,7 +69,7 @@ const toMonthlyTrendList = (rowList) => {
       const monthNo = Number(monthKey.split("-")[1] || 0);
       const monthlyValue = monthlyMap[monthKey] || { count: 0, amount: 0 };
       return {
-        label: `${monthNo}월`,
+        label: `${monthNo}${viewText.monthSuffix}`,
         count: monthlyValue.count,
         amount: monthlyValue.amount,
       };
@@ -138,17 +134,17 @@ const DemoDashboardView = (props) => {
     }, 0);
     return [
       {
-        label: "전체 건수",
+        label: viewText.statLabel.totalCount,
         value: totalCount.toLocaleString("ko-KR"),
         deltaType: "neutral",
       },
       {
-        label: "총 금액",
+        label: viewText.statLabel.totalAmount,
         value: formatCurrency(totalAmount),
         deltaType: "neutral",
       },
       {
-        label: "진행 + 대기",
+        label: viewText.statLabel.activePending,
         value: activeCount.toLocaleString("ko-KR"),
         deltaType: "neutral",
       },
@@ -158,7 +154,7 @@ const DemoDashboardView = (props) => {
   const donutData = useMemo(
     () =>
       summaryList.map((item) => ({
-        label: STATUS_LABEL_MAP[item?.status] || item?.status || "알 수 없음",
+        label: STATUS_LABEL_MAP[item?.status] || item?.status || viewText.unknown,
         value: Number(item?.count || 0),
       })),
     [summaryList],
@@ -166,21 +162,21 @@ const DemoDashboardView = (props) => {
 
   const tableColumns = useMemo(
     () => [
-      { key: "title", header: "제목", align: "left", width: "2fr" },
+      { key: "title", header: viewText.table.titleHeader, align: "left", width: "2fr" },
       {
         key: "status",
-        header: "상태",
+        header: viewText.table.statusHeader,
         width: 120,
         render: (rowItem) =>
           STATUS_LABEL_MAP[rowItem?.status] || rowItem?.status || "-",
       },
       {
         key: "amount",
-        header: "금액",
+        header: viewText.table.amountHeader,
         width: 140,
         render: (rowItem) => formatCurrency(rowItem?.amount),
       },
-      { key: "createdAt", header: "등록일", width: 120 },
+      { key: "createdAt", header: viewText.table.createdAtHeader, width: 120 },
     ],
     [],
   );
@@ -195,18 +191,18 @@ const DemoDashboardView = (props) => {
 
       <section className="grid gap-3 md:grid-cols-2">
         <EasyChart
-          title="월별 추이"
+          title={viewText.chart.trendTitle}
           dataList={trendList}
           seriesList={[
             {
               seriesId: "count",
-              seriesNm: "건수",
+              seriesNm: viewText.chart.seriesCount,
               dataKey: "count",
               color: "#2563eb",
             },
             {
               seriesId: "amount",
-              seriesNm: "금액",
+              seriesNm: viewText.chart.seriesAmount,
               dataKey: "amount",
               color: "#10b981",
             },
@@ -217,12 +213,12 @@ const DemoDashboardView = (props) => {
           legendFontSize={12}
         />
         <EasyChart
-          title="상태 분포"
+          title={viewText.chart.statusTitle}
           dataList={donutData}
           seriesList={[
             {
               seriesId: "value",
-              seriesNm: "건수",
+              seriesNm: viewText.chart.seriesCount,
               dataKey: "value",
               type: "donut",
             },
@@ -237,14 +233,14 @@ const DemoDashboardView = (props) => {
 
       <section>
         <Card
-          title="최근 업무"
-          subtitle="공개 샘플 대시보드는 읽기 전용으로 제공합니다."
+          title={viewText.card.recentTitle}
+          subtitle={viewText.card.recentSubtitle}
         >
           <EasyTable
             data={recentList}
             columns={tableColumns}
             pageSize={5}
-            empty="표시할 업무가 없습니다."
+            empty={viewText.table.empty}
             rowKey={(rowItem, rowIndex) => rowItem?.title ?? rowIndex}
           />
           <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:flex-wrap">

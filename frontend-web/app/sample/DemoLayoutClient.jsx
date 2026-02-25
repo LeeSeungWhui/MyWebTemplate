@@ -7,13 +7,14 @@
  */
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { usePathname } from "next/navigation";
 import Header from "@/app/common/layout/Header";
 import Sidebar from "@/app/common/layout/Sidebar";
 import Footer from "@/app/common/layout/Footer";
 import Icon from "@/app/lib/component/Icon";
 import { resolveDemoLayoutMeta } from "./layoutMeta";
+import EasyObj from "@/app/lib/dataset/EasyObj";
 
 const isBypassLayoutPath = (pathname) => {
   const pathText = String(pathname || "");
@@ -28,8 +29,15 @@ const isBypassLayoutPath = (pathname) => {
  */
 const DemoLayoutClient = (props) => {
   const { children } = props;
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [isDesktopViewport, setIsDesktopViewport] = useState(false);
+  const ui = EasyObj(
+    useMemo(
+      () => ({
+        sidebarOpen: false,
+        isDesktopViewport: false,
+      }),
+      [],
+    ),
+  );
   const pathname = usePathname();
   const shouldBypassLayout = useMemo(
     () => isBypassLayoutPath(pathname),
@@ -48,20 +56,20 @@ const DemoLayoutClient = (props) => {
     const mediaQuery = window.matchMedia("(min-width: 1024px)");
     const syncViewport = () => {
       const isDesktop = mediaQuery.matches;
-      setIsDesktopViewport(isDesktop);
-      setSidebarOpen(isDesktop);
+      ui.isDesktopViewport = isDesktop;
+      ui.sidebarOpen = isDesktop;
     };
 
     syncViewport();
     mediaQuery.addEventListener("change", syncViewport);
     return () => mediaQuery.removeEventListener("change", syncViewport);
-  }, []);
+  }, [ui]);
 
   useEffect(() => {
-    if (!isDesktopViewport) {
-      setSidebarOpen(false);
+    if (!ui.isDesktopViewport) {
+      ui.sidebarOpen = false;
     }
-  }, [pathname, isDesktopViewport]);
+  }, [pathname, ui.isDesktopViewport]);
 
   if (shouldBypassLayout) {
     return children;
@@ -74,7 +82,9 @@ const DemoLayoutClient = (props) => {
           title={layoutMeta.title}
           subtitle={layoutMeta.subtitle}
           menuList={layoutMeta.menuList}
-          onToggleSidebar={() => setSidebarOpen((prevState) => !prevState)}
+          onToggleSidebar={() => {
+            ui.sidebarOpen = !ui.sidebarOpen;
+          }}
           text={layoutMeta.text}
           logo={(
             <Link
@@ -91,8 +101,10 @@ const DemoLayoutClient = (props) => {
       <div className="flex min-h-0 flex-1 items-stretch">
         <Sidebar
           menuList={layoutMeta.menuList}
-          isOpen={sidebarOpen}
-          onClose={() => setSidebarOpen(false)}
+          isOpen={ui.sidebarOpen}
+          onClose={() => {
+            ui.sidebarOpen = false;
+          }}
           logo={
             <span className="inline-flex items-center rounded-md bg-gradient-to-r from-[#1e3a5f] to-[#312e81] px-2 py-1 text-xs font-semibold text-white">
               MyWebTemplate

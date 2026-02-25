@@ -6,7 +6,7 @@
  * 설명: 공개 관리자 화면 샘플 페이지 뷰(탭/사용자 Drawer 포함)
  */
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { useGlobalUi } from "@/app/common/store/SharedStore";
 import Badge from "@/app/lib/component/Badge";
 import Button from "@/app/lib/component/Button";
@@ -19,17 +19,16 @@ import Select from "@/app/lib/component/Select";
 import Switch from "@/app/lib/component/Switch";
 import Tab from "@/app/lib/component/Tab";
 import { useDemoSharedState } from "@/app/sample/demoSharedState";
+import EasyObj from "@/app/lib/dataset/EasyObj";
 import {
   ROLE_OPTION_LIST,
   STATUS_OPTION_LIST,
   TAB_LIST,
 } from "./initData";
+import LANG_KO from "./lang.ko";
 
-const ROLE_LABEL_MAP = {
-  admin: "관리자",
-  editor: "편집자",
-  user: "일반사용자",
-};
+const { view: viewText } = LANG_KO;
+const ROLE_LABEL_MAP = viewText.roleLabelMap;
 
 const ROLE_BADGE_VARIANT_MAP = {
   admin: "primary",
@@ -37,23 +36,14 @@ const ROLE_BADGE_VARIANT_MAP = {
   user: "neutral",
 };
 
-const STATUS_LABEL_MAP = {
-  active: "활성",
-  inactive: "비활성",
-};
+const STATUS_LABEL_MAP = viewText.statusLabelMap;
 
 const STATUS_BADGE_VARIANT_MAP = {
   active: "success",
   inactive: "neutral",
 };
 
-const ROLE_PERMISSION_LIST = [
-  { key: "manageUser", label: "사용자 관리" },
-  { key: "editContent", label: "콘텐츠 편집" },
-  { key: "changeSetting", label: "설정 변경" },
-  { key: "viewLog", label: "로그 조회" },
-  { key: "deleteData", label: "데이터 삭제" },
-];
+const ROLE_PERMISSION_LIST = viewText.rolePermissionList.map((item) => ({ ...item }));
 
 const ROLE_PERMISSION_MAP = {
   admin: {
@@ -79,13 +69,7 @@ const ROLE_PERMISSION_MAP = {
   },
 };
 
-const SYSTEM_DEFAULT = {
-  siteName: "MyWebTemplate",
-  adminEmail: "admin@demo.demo",
-  maintenanceMode: false,
-  sessionTimeout: 60,
-  maxUploadMb: 30,
-};
+const SYSTEM_DEFAULT = { ...viewText.systemDefault };
 
 const createDefaultUserForm = () => ({
   name: "",
@@ -112,9 +96,23 @@ const toTodayText = () => {
  */
 const AdminDemoView = (props) => {
   const { initRows = [] } = props;
-  const [isLoading, setIsLoading] = useState(true);
-  const [tabIndex, setTabIndex] = useState(0);
-  const [keyword, setKeyword] = useState("");
+  const ui = EasyObj(
+    useMemo(
+      () => ({
+        isLoading: true,
+        tabIndex: 0,
+        keyword: "",
+        drawerState: {
+          isOpen: false,
+          mode: "create",
+          editingId: null,
+        },
+        userForm: createDefaultUserForm(),
+        formError: "",
+      }),
+      [],
+    ),
+  );
   const { value: rows, setValue: setRows } = useDemoSharedState({
     stateKey: "demoAdminUsers",
     initialValue: initRows,
@@ -124,36 +122,29 @@ const AdminDemoView = (props) => {
       stateKey: "demoAdminSystemSetting",
       initialValue: SYSTEM_DEFAULT,
     });
-  const [drawerState, setDrawerState] = useState({
-    isOpen: false,
-    mode: "create",
-    editingId: null,
-  });
-  const [userForm, setUserForm] = useState(createDefaultUserForm());
-  const [formError, setFormError] = useState("");
   const { showToast } = useGlobalUi();
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      setIsLoading(false);
+      ui.isLoading = false;
     }, 180);
     return () => clearTimeout(timer);
-  }, []);
+  }, [ui]);
 
   const filteredRows = useMemo(() => {
-    const normalizedKeyword = keyword.trim().toLowerCase();
+    const normalizedKeyword = ui.keyword.trim().toLowerCase();
     if (!normalizedKeyword) return rows;
     return rows.filter((rowItem) => {
       const targetText = `${rowItem.name} ${rowItem.email} ${ROLE_LABEL_MAP[rowItem.role] || ""}`.toLowerCase();
       return targetText.includes(normalizedKeyword);
     });
-  }, [keyword, rows]);
+  }, [ui.keyword, rows]);
 
   const tableColumns = useMemo(
     () => [
       {
         key: "profile",
-        header: "프로필",
+        header: viewText.table.profileHeader,
         width: 90,
         render: (rowItem) => (
           <div className="flex items-center justify-center">
@@ -163,11 +154,11 @@ const AdminDemoView = (props) => {
           </div>
         ),
       },
-      { key: "name", header: "이름", width: 120 },
-      { key: "email", header: "이메일", align: "left", width: "2fr" },
+      { key: "name", header: viewText.table.nameHeader, width: 120 },
+      { key: "email", header: viewText.table.emailHeader, align: "left", width: "2fr" },
       {
         key: "role",
-        header: "역할",
+        header: viewText.table.roleHeader,
         width: 130,
         render: (rowItem) => (
           <Badge variant={ROLE_BADGE_VARIANT_MAP[rowItem?.role] || "neutral"} pill>
@@ -177,7 +168,7 @@ const AdminDemoView = (props) => {
       },
       {
         key: "status",
-        header: "상태",
+        header: viewText.table.statusHeader,
         width: 100,
         render: (rowItem) => (
           <Badge variant={STATUS_BADGE_VARIANT_MAP[rowItem?.status] || "neutral"} pill>
@@ -185,22 +176,22 @@ const AdminDemoView = (props) => {
           </Badge>
         ),
       },
-      { key: "createdAt", header: "가입일", width: 120 },
+      { key: "createdAt", header: viewText.table.createdAtHeader, width: 120 },
       {
         key: "actions",
-        header: "관리",
+        header: viewText.table.actionsHeader,
         width: 120,
         render: (rowItem) => (
           <Button
             size="sm"
             variant="secondary"
             onClick={() => {
-              setDrawerState({
+              ui.drawerState = {
                 isOpen: true,
                 mode: "edit",
                 editingId: rowItem.id,
-              });
-              setUserForm({
+              };
+              ui.userForm = {
                 name: rowItem.name || "",
                 email: rowItem.email || "",
                 role: rowItem.role || "user",
@@ -209,11 +200,11 @@ const AdminDemoView = (props) => {
                 notifySms: Boolean(rowItem.notifySms),
                 notifyPush: Boolean(rowItem.notifyPush),
                 profileImageName: "",
-              });
-              setFormError("");
+              };
+              ui.formError = "";
             }}
           >
-            수정
+            {viewText.users.editButton}
           </Button>
         ),
       },
@@ -222,70 +213,70 @@ const AdminDemoView = (props) => {
   );
 
   const openCreateDrawer = () => {
-    setDrawerState({
+    ui.drawerState = {
       isOpen: true,
       mode: "create",
       editingId: null,
-    });
-    setUserForm(createDefaultUserForm());
-    setFormError("");
+    };
+    ui.userForm = createDefaultUserForm();
+    ui.formError = "";
   };
 
   const closeDrawer = () => {
-    setDrawerState({
+    ui.drawerState = {
       isOpen: false,
       mode: "create",
       editingId: null,
-    });
-    setFormError("");
+    };
+    ui.formError = "";
   };
 
   const saveUser = () => {
-    const name = String(userForm.name || "").trim();
-    const email = String(userForm.email || "").trim();
+    const name = String(ui.userForm.name || "").trim();
+    const email = String(ui.userForm.email || "").trim();
     if (!name) {
-      setFormError("이름을 입력해주세요.");
+      ui.formError = viewText.users.nameRequired;
       return;
     }
     if (!email) {
-      setFormError("이메일을 입력해주세요.");
+      ui.formError = viewText.users.emailRequired;
       return;
     }
-    if (drawerState.mode === "create") {
+    if (ui.drawerState.mode === "create") {
       const nextId = Math.max(0, ...rows.map((rowItem) => Number(rowItem.id || 0))) + 1;
       setRows((prevRows) => [
         {
           id: nextId,
           name,
           email,
-          role: userForm.role,
-          status: userForm.status,
+          role: ui.userForm.role,
+          status: ui.userForm.status,
           createdAt: toTodayText(),
-          notifyEmail: Boolean(userForm.notifyEmail),
-          notifySms: Boolean(userForm.notifySms),
-          notifyPush: Boolean(userForm.notifyPush),
+          notifyEmail: Boolean(ui.userForm.notifyEmail),
+          notifySms: Boolean(ui.userForm.notifySms),
+          notifyPush: Boolean(ui.userForm.notifyPush),
           profileImageUrl: "",
         },
         ...prevRows,
       ]);
-      showToast("사용자가 등록되었습니다.", { type: "success" });
+      showToast(viewText.users.saveCreatedToast, { type: "success" });
     } else {
       setRows((prevRows) =>
         prevRows.map((prevRow) =>
-          prevRow.id === drawerState.editingId
+          prevRow.id === ui.drawerState.editingId
             ? {
                 ...prevRow,
                 name,
-                role: userForm.role,
-                status: userForm.status,
-                notifyEmail: Boolean(userForm.notifyEmail),
-                notifySms: Boolean(userForm.notifySms),
-                notifyPush: Boolean(userForm.notifyPush),
+                role: ui.userForm.role,
+                status: ui.userForm.status,
+                notifyEmail: Boolean(ui.userForm.notifyEmail),
+                notifySms: Boolean(ui.userForm.notifySms),
+                notifyPush: Boolean(ui.userForm.notifyPush),
               }
             : prevRow,
         ),
       );
-      showToast("사용자 정보가 저장되었습니다.", { type: "success" });
+      showToast(viewText.users.saveUpdatedToast, { type: "success" });
     }
     closeDrawer();
   };
@@ -293,56 +284,60 @@ const AdminDemoView = (props) => {
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
       <section className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900">관리자 화면 샘플</h1>
+        <h1 className="text-3xl font-bold text-gray-900">{viewText.section.title}</h1>
         <p className="mt-2 text-sm text-gray-600">
-          사용자/권한/설정 페이지 구성을 공개 샘플 형태로 보여줍니다.
+          {viewText.section.subtitle}
         </p>
       </section>
 
-      {isLoading ? (
-        <Card title="로딩 중">
-          <p className="text-sm text-gray-600">관리자 화면 데이터를 준비하는 중입니다...</p>
+      {ui.isLoading ? (
+        <Card title={viewText.card.loadingTitle}>
+          <p className="text-sm text-gray-600">{viewText.card.loadingBody}</p>
         </Card>
       ) : null}
 
-      <Card title="관리자 패널">
+      <Card title={viewText.card.panelTitle}>
         <Tab
-          tabIndex={tabIndex}
-          onChange={(event) =>
-            setTabIndex(Number(event?.target?.value || 0))
-          }
+          tabIndex={ui.tabIndex}
+          onChange={(event) => {
+            ui.tabIndex = Number(event?.target?.value || 0);
+          }}
         >
           <Tab.Item title={TAB_LIST[0].label}>
             <div className="space-y-3">
               <div className="flex flex-col gap-2 md:flex-row md:items-center">
                 <div className="flex-1">
                   <Input
-                    value={keyword}
-                    onChange={(event) => setKeyword(event.target.value)}
-                    placeholder="이름/이메일/역할 검색"
+                    value={ui.keyword}
+                    onChange={(event) => {
+                      ui.keyword = event.target.value;
+                    }}
+                    placeholder={viewText.users.searchPlaceholder}
                   />
                 </div>
                 <Button
                   variant="secondary"
-                  onClick={() => setKeyword("")}
+                  onClick={() => {
+                    ui.keyword = "";
+                  }}
                   className="w-full sm:w-auto"
                 >
-                  초기화
+                  {viewText.users.resetButton}
                 </Button>
                 <Button
                   variant="primary"
                   onClick={openCreateDrawer}
                   className="w-full sm:w-auto"
                 >
-                  사용자 추가
+                  {viewText.users.addButton}
                 </Button>
               </div>
               <EasyTable
                 data={filteredRows}
                 columns={tableColumns}
-                loading={isLoading}
+                loading={ui.isLoading}
                 pageSize={5}
-                empty="데이터가 없습니다."
+                empty={viewText.table.empty}
                 rowKey={(rowItem, rowIndex) => rowItem?.id ?? rowIndex}
               />
             </div>
@@ -379,7 +374,7 @@ const AdminDemoView = (props) => {
           <Tab.Item title={TAB_LIST[2].label}>
             <div className="grid gap-3 md:grid-cols-2">
               <label className="block space-y-1">
-                <span className="text-sm font-medium text-gray-700">사이트명</span>
+                <span className="text-sm font-medium text-gray-700">{viewText.settings.siteNameLabel}</span>
                 <Input
                   value={systemSetting.siteName}
                   onChange={(event) =>
@@ -392,7 +387,7 @@ const AdminDemoView = (props) => {
               </label>
 
               <label className="block space-y-1">
-                <span className="text-sm font-medium text-gray-700">관리자 이메일</span>
+                <span className="text-sm font-medium text-gray-700">{viewText.settings.adminEmailLabel}</span>
                 <Input
                   value={systemSetting.adminEmail}
                   onChange={(event) =>
@@ -406,7 +401,7 @@ const AdminDemoView = (props) => {
               </label>
 
               <label className="block space-y-1">
-                <span className="text-sm font-medium text-gray-700">세션 타임아웃(분)</span>
+                <span className="text-sm font-medium text-gray-700">{viewText.settings.sessionTimeoutLabel}</span>
                 <Input
                   value={String(systemSetting.sessionTimeout)}
                   onChange={(event) =>
@@ -420,7 +415,7 @@ const AdminDemoView = (props) => {
               </label>
 
               <label className="block space-y-1">
-                <span className="text-sm font-medium text-gray-700">최대 업로드 크기(MB)</span>
+                <span className="text-sm font-medium text-gray-700">{viewText.settings.maxUploadLabel}</span>
                 <Input
                   value={String(systemSetting.maxUploadMb)}
                   onChange={(event) =>
@@ -444,7 +439,7 @@ const AdminDemoView = (props) => {
                       }))
                     }
                   />
-                  점검 모드
+                  {viewText.settings.maintenanceModeLabel}
                 </label>
               </div>
             </div>
@@ -453,12 +448,12 @@ const AdminDemoView = (props) => {
                 variant="primary"
                 className="w-full sm:w-auto"
                 onClick={() =>
-                  showToast("설정이 저장되었습니다", {
+                  showToast(viewText.settings.saveToast, {
                     type: "success",
                   })
                 }
               >
-                저장
+                {viewText.settings.saveButton}
               </Button>
             </div>
           </Tab.Item>
@@ -466,7 +461,7 @@ const AdminDemoView = (props) => {
       </Card>
 
       <Drawer
-        isOpen={drawerState.isOpen}
+        isOpen={ui.drawerState.isOpen}
         onClose={closeDrawer}
         side="right"
         size={500}
@@ -475,138 +470,114 @@ const AdminDemoView = (props) => {
         <div className="space-y-4 p-5">
           <div>
             <h2 className="text-xl font-semibold text-gray-900">
-              {drawerState.mode === "create" ? "사용자 추가" : "사용자 수정"}
+              {ui.drawerState.mode === "create" ? viewText.drawer.createTitle : viewText.drawer.editTitle}
             </h2>
             <p className="mt-1 text-sm text-gray-500">
-              {drawerState.mode === "create"
-                ? "신규 사용자를 등록합니다."
-                : `사용자 번호 #${drawerState.editingId || "-"}`}
+              {ui.drawerState.mode === "create"
+                ? viewText.drawer.createSubtitle
+                : `${viewText.drawer.editSubtitlePrefix}${ui.drawerState.editingId || "-"}`}
             </p>
           </div>
 
-          {formError ? (
+          {ui.formError ? (
             <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
-              {formError}
+              {ui.formError}
             </div>
           ) : null}
 
           <label className="block space-y-1">
-            <span className="text-sm font-medium text-gray-700">프로필 이미지</span>
+            <span className="text-sm font-medium text-gray-700">{viewText.drawer.profileImageLabel}</span>
             <input
               type="file"
               className="block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700"
               onChange={(event) => {
                 const nextFile = event?.target?.files?.[0];
-                setUserForm((prevForm) => ({
-                  ...prevForm,
-                  profileImageName: nextFile?.name || "",
-                }));
+                ui.userForm.profileImageName = nextFile?.name || "";
               }}
             />
-            {userForm.profileImageName ? (
-              <p className="text-xs text-gray-500">{userForm.profileImageName}</p>
+            {ui.userForm.profileImageName ? (
+              <p className="text-xs text-gray-500">{ui.userForm.profileImageName}</p>
             ) : null}
           </label>
 
           <label className="block space-y-1">
-            <span className="text-sm font-medium text-gray-700">이름</span>
+            <span className="text-sm font-medium text-gray-700">{viewText.drawer.nameLabel}</span>
             <Input
-              value={userForm.name}
-              onChange={(event) =>
-                setUserForm((prevForm) => ({
-                  ...prevForm,
-                  name: event.target.value,
-                }))
-              }
-              placeholder="이름을 입력해주세요"
+              value={ui.userForm.name}
+              onChange={(event) => {
+                ui.userForm.name = event.target.value;
+              }}
+              placeholder={viewText.drawer.namePlaceholder}
             />
           </label>
 
           <label className="block space-y-1">
-            <span className="text-sm font-medium text-gray-700">이메일</span>
+            <span className="text-sm font-medium text-gray-700">{viewText.drawer.emailLabel}</span>
             <Input
-              value={userForm.email}
-              readOnly={drawerState.mode === "edit"}
-              onChange={(event) =>
-                setUserForm((prevForm) => ({
-                  ...prevForm,
-                  email: event.target.value,
-                }))
-              }
-              placeholder="이메일을 입력해주세요"
+              value={ui.userForm.email}
+              readOnly={ui.drawerState.mode === "edit"}
+              onChange={(event) => {
+                ui.userForm.email = event.target.value;
+              }}
+              placeholder={viewText.drawer.emailPlaceholder}
               type="email"
             />
           </label>
 
           <label className="block space-y-1">
-            <span className="text-sm font-medium text-gray-700">역할</span>
+            <span className="text-sm font-medium text-gray-700">{viewText.drawer.roleLabel}</span>
             <Select
-              value={userForm.role}
-              onChange={(event) =>
-                setUserForm((prevForm) => ({
-                  ...prevForm,
-                  role: event.target.value,
-                }))
-              }
+              value={ui.userForm.role}
+              onChange={(event) => {
+                ui.userForm.role = event.target.value;
+              }}
               dataList={ROLE_OPTION_LIST}
             />
           </label>
 
           <label className="block space-y-1">
-            <span className="text-sm font-medium text-gray-700">상태</span>
+            <span className="text-sm font-medium text-gray-700">{viewText.drawer.statusLabel}</span>
             <Select
-              value={userForm.status}
-              onChange={(event) =>
-                setUserForm((prevForm) => ({
-                  ...prevForm,
-                  status: event.target.value,
-                }))
-              }
+              value={ui.userForm.status}
+              onChange={(event) => {
+                ui.userForm.status = event.target.value;
+              }}
               dataList={STATUS_OPTION_LIST}
             />
           </label>
 
           <div className="space-y-2">
-            <span className="text-sm font-medium text-gray-700">알림 설정</span>
+            <span className="text-sm font-medium text-gray-700">{viewText.drawer.notifyLabel}</span>
             <div className="flex flex-wrap gap-4">
               <Switch
-                label="이메일 알림"
-                checked={Boolean(userForm.notifyEmail)}
-                onChange={(event) =>
-                  setUserForm((prevForm) => ({
-                    ...prevForm,
-                    notifyEmail: Boolean(event?.target?.checked),
-                  }))
-                }
+                label={viewText.drawer.notifyEmailLabel}
+                checked={Boolean(ui.userForm.notifyEmail)}
+                onChange={(event) => {
+                  ui.userForm.notifyEmail = Boolean(event?.target?.checked);
+                }}
               />
               <Switch
-                label="SMS 알림"
-                checked={Boolean(userForm.notifySms)}
-                onChange={(event) =>
-                  setUserForm((prevForm) => ({
-                    ...prevForm,
-                    notifySms: Boolean(event?.target?.checked),
-                  }))
-                }
+                label={viewText.drawer.notifySmsLabel}
+                checked={Boolean(ui.userForm.notifySms)}
+                onChange={(event) => {
+                  ui.userForm.notifySms = Boolean(event?.target?.checked);
+                }}
               />
               <Switch
-                label="푸시 알림"
-                checked={Boolean(userForm.notifyPush)}
-                onChange={(event) =>
-                  setUserForm((prevForm) => ({
-                    ...prevForm,
-                    notifyPush: Boolean(event?.target?.checked),
-                  }))
-                }
+                label={viewText.drawer.notifyPushLabel}
+                checked={Boolean(ui.userForm.notifyPush)}
+                onChange={(event) => {
+                  ui.userForm.notifyPush = Boolean(event?.target?.checked);
+                }}
               />
             </div>
           </div>
 
           <div className="flex flex-col-reverse gap-2 pt-2 sm:flex-row sm:items-center sm:justify-end">
             <Button variant="secondary" onClick={closeDrawer} className="w-full sm:w-auto">
-              취소
+              {viewText.drawer.cancelButton}
             </Button>
-            <Button onClick={saveUser} className="w-full sm:w-auto">저장</Button>
+            <Button onClick={saveUser} className="w-full sm:w-auto">{viewText.drawer.saveButton}</Button>
           </div>
         </div>
       </Drawer>

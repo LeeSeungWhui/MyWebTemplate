@@ -6,7 +6,7 @@
  * 설명: 회원가입 페이지 클라이언트 뷰
  */
 
-import { useMemo, useRef, useState } from "react";
+import { useMemo, useRef } from "react";
 import EasyObj from "@/app/lib/dataset/EasyObj";
 import Button from "@/app/lib/component/Button";
 import Checkbox from "@/app/lib/component/Checkbox";
@@ -15,13 +15,22 @@ import Link from "next/link";
 import { apiJSON } from "@/app/lib/runtime/api";
 import { useGlobalUi } from "@/app/common/store/SharedStore";
 import { SIGNUP_PATH, createSignupFormModel } from "./initData";
+import LANG_KO from "./lang.ko";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const SignupView = () => {
+  const viewText = LANG_KO.view;
   const signupObj = EasyObj(useMemo(() => createSignupFormModel(), []));
-  const [pending, setPending] = useState(false);
-  const [formError, setFormError] = useState("");
+  const ui = EasyObj(
+    useMemo(
+      () => ({
+        pending: false,
+        formError: "",
+      }),
+      [],
+    ),
+  );
   const nameRef = useRef(null);
   const emailRef = useRef(null);
   const passwordRef = useRef(null);
@@ -36,7 +45,7 @@ const SignupView = () => {
     signupObj.errors.password = "";
     signupObj.errors.passwordConfirm = "";
     signupObj.errors.agreeTerms = "";
-    setFormError("");
+    ui.formError = "";
   };
 
   const focusOnError = (ref) => {
@@ -59,31 +68,31 @@ const SignupView = () => {
     signupObj.email = email;
 
     if (!name || name.length < 2) {
-      signupObj.errors.name = "이름은 2자 이상 입력해주세요.";
+      signupObj.errors.name = viewText.validation.nameMinLength;
       issues.push({ ref: nameRef, message: signupObj.errors.name });
     }
     if (!email || !EMAIL_RE.test(email)) {
-      signupObj.errors.email = "올바른 이메일 형식을 입력해주세요.";
+      signupObj.errors.email = viewText.validation.emailInvalid;
       issues.push({ ref: emailRef, message: signupObj.errors.email });
     }
     if (!password || password.length < 8) {
-      signupObj.errors.password = "비밀번호는 8자 이상 입력해주세요.";
+      signupObj.errors.password = viewText.validation.passwordMinLength;
       issues.push({ ref: passwordRef, message: signupObj.errors.password });
     }
     if (passwordConfirm !== password) {
-      signupObj.errors.passwordConfirm = "비밀번호 확인이 일치하지 않습니다.";
+      signupObj.errors.passwordConfirm = viewText.validation.passwordConfirmMismatch;
       issues.push({
         ref: passwordConfirmRef,
         message: signupObj.errors.passwordConfirm,
       });
     }
     if (!agreeTerms) {
-      signupObj.errors.agreeTerms = "약관 동의는 필수입니다.";
+      signupObj.errors.agreeTerms = viewText.validation.agreeTermsRequired;
       issues.push({ ref: agreeTermsRef, message: signupObj.errors.agreeTerms });
     }
 
     if (issues.length) {
-      setFormError(issues[0].message);
+      ui.formError = issues[0].message;
       focusOnError(issues[0].ref);
       return false;
     }
@@ -94,7 +103,7 @@ const SignupView = () => {
     event.preventDefault();
     if (!validateForm()) return;
 
-    setPending(true);
+    ui.pending = true;
     try {
       await apiJSON(SIGNUP_PATH, {
         method: "POST",
@@ -104,24 +113,24 @@ const SignupView = () => {
           password: String(signupObj.password || ""),
         },
       });
-      showToast("회원가입이 완료되었습니다. 로그인해 주세요.", { type: "success" });
+      showToast(viewText.toast.signupDone, { type: "success" });
       window.location.assign("/login?signup=done");
     } catch (error) {
       if (error?.code === "AUTH_409_USER_EXISTS") {
-        signupObj.errors.email = "이미 사용 중인 이메일입니다.";
-        setFormError(signupObj.errors.email);
+        signupObj.errors.email = viewText.error.userExists;
+        ui.formError = signupObj.errors.email;
         focusOnError(emailRef);
         return;
       }
       if (error?.code === "AUTH_422_INVALID_INPUT") {
-        setFormError("입력값을 다시 확인해주세요.");
+        ui.formError = viewText.error.invalidInput;
       } else {
         const requestIdText = error?.requestId ? ` (requestId: ${error.requestId})` : "";
-        setFormError(`${error?.message || "회원가입에 실패했습니다."}${requestIdText}`);
+        ui.formError = `${error?.message || viewText.error.signupFailed}${requestIdText}`;
       }
       focusOnError(errorSummaryRef);
     } finally {
-      setPending(false);
+      ui.pending = false;
     }
   };
 
@@ -129,14 +138,14 @@ const SignupView = () => {
     <main className="min-h-screen flex items-center justify-center bg-gray-50 p-4 sm:p-6">
       <section className="w-full max-w-xl rounded-2xl bg-white p-6 shadow-xl sm:p-10">
         <div className="mb-8 text-center">
-          <h1 className="text-3xl font-semibold text-gray-900">회원가입</h1>
+          <h1 className="text-3xl font-semibold text-gray-900">{viewText.form.title}</h1>
           <p className="mt-2 text-sm text-gray-600">
-            새 계정을 만들고 로그인해서 대시보드를 확인하세요.
+            {viewText.form.subtitle}
           </p>
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-5" noValidate>
-          {formError ? (
+          {ui.formError ? (
             <div
               ref={errorSummaryRef}
               tabIndex={-1}
@@ -144,13 +153,13 @@ const SignupView = () => {
               aria-live="assertive"
               className="rounded-md border border-red-200 bg-red-50 p-3 text-sm text-red-700"
             >
-              {formError}
+              {ui.formError}
             </div>
           ) : null}
 
           <div>
             <label htmlFor="signup-name" className="block text-sm font-medium text-gray-700">
-              이름
+              {viewText.form.nameLabel}
             </label>
             <div className="mt-2">
               <Input
@@ -158,7 +167,7 @@ const SignupView = () => {
                 dataObj={signupObj}
                 dataKey="name"
                 ref={nameRef}
-                placeholder="이름을 입력해주세요"
+                placeholder={viewText.form.namePlaceholder}
                 error={signupObj.errors.name}
               />
               {signupObj.errors.name ? (
@@ -169,7 +178,7 @@ const SignupView = () => {
 
           <div>
             <label htmlFor="signup-email" className="block text-sm font-medium text-gray-700">
-              이메일
+              {viewText.form.emailLabel}
             </label>
             <div className="mt-2">
               <Input
@@ -178,7 +187,7 @@ const SignupView = () => {
                 dataObj={signupObj}
                 dataKey="email"
                 ref={emailRef}
-                placeholder="이메일을 입력해주세요"
+                placeholder={viewText.form.emailPlaceholder}
                 error={signupObj.errors.email}
               />
               {signupObj.errors.email ? (
@@ -189,7 +198,7 @@ const SignupView = () => {
 
           <div>
             <label htmlFor="signup-password" className="block text-sm font-medium text-gray-700">
-              비밀번호
+              {viewText.form.passwordLabel}
             </label>
             <div className="mt-2">
               <Input
@@ -198,7 +207,7 @@ const SignupView = () => {
                 dataObj={signupObj}
                 dataKey="password"
                 ref={passwordRef}
-                placeholder="비밀번호를 입력해주세요"
+                placeholder={viewText.form.passwordPlaceholder}
                 error={signupObj.errors.password}
               />
               {signupObj.errors.password ? (
@@ -209,7 +218,7 @@ const SignupView = () => {
 
           <div>
             <label htmlFor="signup-password-confirm" className="block text-sm font-medium text-gray-700">
-              비밀번호 확인
+              {viewText.form.passwordConfirmLabel}
             </label>
             <div className="mt-2">
               <Input
@@ -218,7 +227,7 @@ const SignupView = () => {
                 dataObj={signupObj}
                 dataKey="passwordConfirm"
                 ref={passwordConfirmRef}
-                placeholder="비밀번호를 다시 입력해주세요"
+                placeholder={viewText.form.passwordConfirmPlaceholder}
                 error={signupObj.errors.passwordConfirm}
               />
               {signupObj.errors.passwordConfirm ? (
@@ -231,7 +240,7 @@ const SignupView = () => {
             <Checkbox
               dataObj={signupObj}
               dataKey="agreeTerms"
-              label="이용약관에 동의합니다."
+              label={viewText.form.agreeTermsLabel}
               ref={agreeTermsRef}
             />
             {signupObj.errors.agreeTerms ? (
@@ -239,15 +248,15 @@ const SignupView = () => {
             ) : null}
           </div>
 
-          <Button type="submit" variant="primary" size="lg" className="w-full" loading={pending}>
-            회원가입
+          <Button type="submit" variant="primary" size="lg" className="w-full" loading={ui.pending}>
+            {viewText.form.submitLabel}
           </Button>
         </form>
 
         <div className="mt-6 text-center text-sm text-gray-600">
-          이미 계정이 있으신가요?{" "}
+          {`${viewText.form.loginGuidePrefix} `}{" "}
           <Link href="/login" className="font-medium text-blue-600 hover:text-blue-500">
-            로그인
+            {viewText.form.loginLinkLabel}
           </Link>
         </div>
       </section>

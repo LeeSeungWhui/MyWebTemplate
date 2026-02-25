@@ -6,7 +6,7 @@
  * 설명: 공개 복합 폼 샘플 페이지 뷰(스텝 검증/요약 기반)
  */
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { useGlobalUi } from "@/app/common/store/SharedStore";
 import Button from "@/app/lib/component/Button";
 import Card from "@/app/lib/component/Card";
@@ -19,12 +19,10 @@ import {
   FEATURE_CHECK_LIST,
   createDefaultForm,
 } from "./initData";
+import EasyObj from "@/app/lib/dataset/EasyObj";
+import LANG_KO from "./lang.ko";
 
-const STEP_LIST = [
-  { step: 1, label: "기본 정보" },
-  { step: 2, label: "상세 정보" },
-  { step: 3, label: "확인/제출" },
-];
+const STEP_LIST = LANG_KO.view.stepList.map((item) => ({ ...item }));
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -42,120 +40,121 @@ const createStepOneErrorModel = () => ({
  * @description 공개 복합 폼 샘플 화면을 렌더링한다.
  */
 const FormDemoView = () => {
-  const [isLoading, setIsLoading] = useState(true);
-  const [step, setStep] = useState(1);
-  const [form, setForm] = useState(createDefaultForm());
-  const [stepOneErrors, setStepOneErrors] = useState(createStepOneErrorModel());
+  const viewText = LANG_KO.view;
+  const ui = EasyObj(
+    useMemo(
+      () => ({
+        isLoading: true,
+        step: 1,
+        form: createDefaultForm(),
+        stepOneErrors: createStepOneErrorModel(),
+      }),
+      [],
+    ),
+  );
   const { showToast } = useGlobalUi();
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      setIsLoading(false);
+      ui.isLoading = false;
     }, 160);
     return () => clearTimeout(timer);
-  }, []);
+  }, [ui]);
 
   const summaryRows = useMemo(
     () => [
-      { label: "이름", value: form.name || "-" },
-      { label: "이메일", value: form.email || "-" },
-      { label: "연락처", value: form.phone || "-" },
+      { label: viewText.summaryLabel.name, value: ui.form.name || "-" },
+      { label: viewText.summaryLabel.email, value: ui.form.email || "-" },
+      { label: viewText.summaryLabel.phone, value: ui.form.phone || "-" },
       {
-        label: "분류",
+        label: viewText.summaryLabel.category,
         value:
           CATEGORY_OPTION_LIST.find(
-            (categoryItem) => categoryItem.value === form.category,
+            (categoryItem) => categoryItem.value === ui.form.category,
           )?.text || "-",
       },
-      { label: "기간", value: `${form.startDate || "-"} ~ ${form.endDate || "-"}` },
-      { label: "예산 범위", value: form.budgetRange || "-" },
+      { label: viewText.summaryLabel.period, value: `${ui.form.startDate || "-"} ~ ${ui.form.endDate || "-"}` },
+      { label: viewText.summaryLabel.budgetRange, value: ui.form.budgetRange || "-" },
       {
-        label: "우선 기능",
+        label: viewText.summaryLabel.features,
         value:
-          form.selectedFeatures.length > 0
-            ? form.selectedFeatures.join(", ")
+          ui.form.selectedFeatures.length > 0
+            ? ui.form.selectedFeatures.join(", ")
             : "-",
       },
-      { label: "요청사항", value: form.requirement || "-" },
-      { label: "참고 URL", value: form.referenceUrl || "-" },
-      { label: "첨부파일", value: form.attachmentName || "-" },
+      { label: viewText.summaryLabel.requirement, value: ui.form.requirement || "-" },
+      { label: viewText.summaryLabel.referenceUrl, value: ui.form.referenceUrl || "-" },
+      { label: viewText.summaryLabel.attachmentName, value: ui.form.attachmentName || "-" },
     ],
-    [form],
+    [ui.form, viewText.summaryLabel],
   );
   const stepOneErrorIds = {
-    name: stepOneErrors.name ? "demo-form-name-error" : undefined,
-    email: stepOneErrors.email ? "demo-form-email-error" : undefined,
-    phone: stepOneErrors.phone ? "demo-form-phone-error" : undefined,
-    category: stepOneErrors.category ? "demo-form-category-error" : undefined,
-    startDate: stepOneErrors.startDate ? "demo-form-start-date-error" : undefined,
-    endDate: stepOneErrors.endDate ? "demo-form-end-date-error" : undefined,
-    budgetRange: stepOneErrors.budgetRange ? "demo-form-budget-range-error" : undefined,
+    name: ui.stepOneErrors.name ? "demo-form-name-error" : undefined,
+    email: ui.stepOneErrors.email ? "demo-form-email-error" : undefined,
+    phone: ui.stepOneErrors.phone ? "demo-form-phone-error" : undefined,
+    category: ui.stepOneErrors.category ? "demo-form-category-error" : undefined,
+    startDate: ui.stepOneErrors.startDate ? "demo-form-start-date-error" : undefined,
+    endDate: ui.stepOneErrors.endDate ? "demo-form-end-date-error" : undefined,
+    budgetRange: ui.stepOneErrors.budgetRange ? "demo-form-budget-range-error" : undefined,
   };
 
   const moveStep = (nextStep) => {
-    setStep(Math.min(3, Math.max(1, nextStep)));
+    ui.step = Math.min(3, Math.max(1, nextStep));
   };
 
   const resetStepOneErrors = () => {
-    setStepOneErrors(createStepOneErrorModel());
+    ui.stepOneErrors = createStepOneErrorModel();
   };
 
   const validateStepOne = () => {
     const nextErrors = createStepOneErrorModel();
-    const name = String(form.name || "").trim();
-    const email = String(form.email || "").trim();
-    const phone = String(form.phone || "").trim();
-    const category = String(form.category || "").trim();
-    const startDate = String(form.startDate || "").trim();
-    const endDate = String(form.endDate || "").trim();
-    const budgetRange = String(form.budgetRange || "").trim();
+    const name = String(ui.form.name || "").trim();
+    const email = String(ui.form.email || "").trim();
+    const phone = String(ui.form.phone || "").trim();
+    const category = String(ui.form.category || "").trim();
+    const startDate = String(ui.form.startDate || "").trim();
+    const endDate = String(ui.form.endDate || "").trim();
+    const budgetRange = String(ui.form.budgetRange || "").trim();
 
-    if (!name) nextErrors.name = "이름을 입력해주세요.";
+    if (!name) nextErrors.name = viewText.validation.nameRequired;
     if (!email || !EMAIL_RE.test(email)) {
-      nextErrors.email = "올바른 이메일 형식을 입력해주세요.";
+      nextErrors.email = viewText.validation.emailInvalid;
     }
-    if (!phone) nextErrors.phone = "연락처를 입력해주세요.";
-    if (!category) nextErrors.category = "분류를 선택해주세요.";
-    if (!startDate) nextErrors.startDate = "시작일을 입력해주세요.";
-    if (!endDate) nextErrors.endDate = "종료일을 입력해주세요.";
-    if (!budgetRange) nextErrors.budgetRange = "예산 범위를 입력해주세요.";
+    if (!phone) nextErrors.phone = viewText.validation.phoneRequired;
+    if (!category) nextErrors.category = viewText.validation.categoryRequired;
+    if (!startDate) nextErrors.startDate = viewText.validation.startDateRequired;
+    if (!endDate) nextErrors.endDate = viewText.validation.endDateRequired;
+    if (!budgetRange) nextErrors.budgetRange = viewText.validation.budgetRangeRequired;
     if (startDate && endDate && startDate > endDate) {
-      nextErrors.endDate = "종료일은 시작일 이후여야 합니다.";
+      nextErrors.endDate = viewText.validation.endDateAfterStartDate;
     }
 
     const hasError = Object.values(nextErrors).some(Boolean);
-    setStepOneErrors(nextErrors);
+    ui.stepOneErrors = nextErrors;
     if (hasError) {
-      showToast("필수 입력값을 확인해주세요.", { type: "error" });
+      showToast(viewText.validation.requiredFieldToast, { type: "error" });
       return false;
     }
     return true;
   };
 
   const toggleFeature = (label) => {
-    setForm((prevForm) => {
-      const exists = prevForm.selectedFeatures.includes(label);
-      if (exists) {
-        return {
-          ...prevForm,
-          selectedFeatures: prevForm.selectedFeatures.filter(
-            (selectedLabel) => selectedLabel !== label,
-          ),
-        };
-      }
-      return {
-        ...prevForm,
-        selectedFeatures: [...prevForm.selectedFeatures, label],
-      };
-    });
+    const exists = ui.form.selectedFeatures.includes(label);
+    if (exists) {
+      ui.form.selectedFeatures = ui.form.selectedFeatures.filter(
+        (selectedLabel) => selectedLabel !== label,
+      );
+      return;
+    }
+    ui.form.selectedFeatures = [...ui.form.selectedFeatures, label];
   };
 
   return (
     <div className="mx-auto w-full max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
       <section className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900">복합 폼 샘플</h1>
+        <h1 className="text-3xl font-bold text-gray-900">{viewText.page.title}</h1>
         <p className="mt-2 text-sm text-gray-600">
-          스텝 전환/유효성 안내/제출 요약 흐름을 공개 페이지에서 체험할 수 있습니다.
+          {viewText.page.subtitle}
         </p>
       </section>
 
@@ -164,7 +163,7 @@ const FormDemoView = () => {
           <li
             key={stepItem.step}
             className={`rounded-lg border px-4 py-3 text-sm ${
-              stepItem.step === step
+              stepItem.step === ui.step
                 ? "border-blue-500 bg-blue-50 text-blue-700"
                 : "border-gray-200 bg-white text-gray-500"
             }`}
@@ -174,150 +173,138 @@ const FormDemoView = () => {
         ))}
       </ol>
 
-      {isLoading ? (
-        <Card title="로딩 중">
-          <p className="text-sm text-gray-600">데이터를 준비하는 중입니다...</p>
+      {ui.isLoading ? (
+        <Card title={viewText.page.loadingCardTitle}>
+          <p className="text-sm text-gray-600">{viewText.page.loadingCardBody}</p>
         </Card>
       ) : null}
 
-      {step === 1 ? (
-        <Card title="기본 정보">
+      {ui.step === 1 ? (
+        <Card title={viewText.card.step1Title}>
           <div className="grid gap-3 md:grid-cols-2">
             <label className="block space-y-1">
-              <span className="text-sm font-medium text-gray-700">이름</span>
+              <span className="text-sm font-medium text-gray-700">{viewText.summaryLabel.name}</span>
               <Input
-                value={form.name}
-                onChange={(event) =>
-                  setForm((prevForm) => ({ ...prevForm, name: event.target.value }))
-                }
-                placeholder="이름"
-                error={stepOneErrors.name}
+                value={ui.form.name}
+                onChange={(event) => {
+                  ui.form.name = event.target.value;
+                }}
+                placeholder={viewText.input.namePlaceholder}
+                error={ui.stepOneErrors.name}
                 aria-describedby={stepOneErrorIds.name}
               />
-              {stepOneErrors.name ? (
+              {ui.stepOneErrors.name ? (
                 <p id={stepOneErrorIds.name} className="text-xs text-red-600">
-                  {stepOneErrors.name}
+                  {ui.stepOneErrors.name}
                 </p>
               ) : null}
             </label>
 
             <label className="block space-y-1">
-              <span className="text-sm font-medium text-gray-700">이메일</span>
+              <span className="text-sm font-medium text-gray-700">{viewText.summaryLabel.email}</span>
               <Input
-                value={form.email}
-                onChange={(event) =>
-                  setForm((prevForm) => ({ ...prevForm, email: event.target.value }))
-                }
-                placeholder="이메일"
+                value={ui.form.email}
+                onChange={(event) => {
+                  ui.form.email = event.target.value;
+                }}
+                placeholder={viewText.input.emailPlaceholder}
                 type="email"
-                error={stepOneErrors.email}
+                error={ui.stepOneErrors.email}
                 aria-describedby={stepOneErrorIds.email}
               />
-              {stepOneErrors.email ? (
+              {ui.stepOneErrors.email ? (
                 <p id={stepOneErrorIds.email} className="text-xs text-red-600">
-                  {stepOneErrors.email}
+                  {ui.stepOneErrors.email}
                 </p>
               ) : null}
             </label>
 
             <label className="block space-y-1">
-              <span className="text-sm font-medium text-gray-700">연락처</span>
+              <span className="text-sm font-medium text-gray-700">{viewText.summaryLabel.phone}</span>
               <Input
-                value={form.phone}
-                onChange={(event) =>
-                  setForm((prevForm) => ({ ...prevForm, phone: event.target.value }))
-                }
-                placeholder="연락처"
-                error={stepOneErrors.phone}
+                value={ui.form.phone}
+                onChange={(event) => {
+                  ui.form.phone = event.target.value;
+                }}
+                placeholder={viewText.input.phonePlaceholder}
+                error={ui.stepOneErrors.phone}
                 aria-describedby={stepOneErrorIds.phone}
               />
-              {stepOneErrors.phone ? (
+              {ui.stepOneErrors.phone ? (
                 <p id={stepOneErrorIds.phone} className="text-xs text-red-600">
-                  {stepOneErrors.phone}
+                  {ui.stepOneErrors.phone}
                 </p>
               ) : null}
             </label>
 
             <label className="block space-y-1">
-              <span className="text-sm font-medium text-gray-700">분류</span>
+              <span className="text-sm font-medium text-gray-700">{viewText.summaryLabel.category}</span>
               <Select
-                value={form.category}
-                onChange={(event) =>
-                  setForm((prevForm) => ({
-                    ...prevForm,
-                    category: event.target.value,
-                  }))
-                }
+                value={ui.form.category}
+                onChange={(event) => {
+                  ui.form.category = event.target.value;
+                }}
                 dataList={CATEGORY_OPTION_LIST}
-                error={stepOneErrors.category}
+                error={ui.stepOneErrors.category}
                 aria-describedby={stepOneErrorIds.category}
               />
-              {stepOneErrors.category ? (
+              {ui.stepOneErrors.category ? (
                 <p id={stepOneErrorIds.category} className="text-xs text-red-600">
-                  {stepOneErrors.category}
+                  {ui.stepOneErrors.category}
                 </p>
               ) : null}
             </label>
 
             <label className="block space-y-1">
-              <span className="text-sm font-medium text-gray-700">시작일</span>
+              <span className="text-sm font-medium text-gray-700">{viewText.summaryLabel.startDate}</span>
               <Input
-                value={form.startDate}
-                onChange={(event) =>
-                  setForm((prevForm) => ({
-                    ...prevForm,
-                    startDate: event.target.value,
-                  }))
-                }
+                value={ui.form.startDate}
+                onChange={(event) => {
+                  ui.form.startDate = event.target.value;
+                }}
                 type="date"
-                error={stepOneErrors.startDate}
+                error={ui.stepOneErrors.startDate}
                 aria-describedby={stepOneErrorIds.startDate}
               />
-              {stepOneErrors.startDate ? (
+              {ui.stepOneErrors.startDate ? (
                 <p id={stepOneErrorIds.startDate} className="text-xs text-red-600">
-                  {stepOneErrors.startDate}
+                  {ui.stepOneErrors.startDate}
                 </p>
               ) : null}
             </label>
 
             <label className="block space-y-1">
-              <span className="text-sm font-medium text-gray-700">종료일</span>
+              <span className="text-sm font-medium text-gray-700">{viewText.summaryLabel.endDate}</span>
               <Input
-                value={form.endDate}
-                onChange={(event) =>
-                  setForm((prevForm) => ({
-                    ...prevForm,
-                    endDate: event.target.value,
-                  }))
-                }
+                value={ui.form.endDate}
+                onChange={(event) => {
+                  ui.form.endDate = event.target.value;
+                }}
                 type="date"
-                error={stepOneErrors.endDate}
+                error={ui.stepOneErrors.endDate}
                 aria-describedby={stepOneErrorIds.endDate}
               />
-              {stepOneErrors.endDate ? (
+              {ui.stepOneErrors.endDate ? (
                 <p id={stepOneErrorIds.endDate} className="text-xs text-red-600">
-                  {stepOneErrors.endDate}
+                  {ui.stepOneErrors.endDate}
                 </p>
               ) : null}
             </label>
 
             <label className="block space-y-1 md:col-span-2">
-              <span className="text-sm font-medium text-gray-700">예산 범위</span>
+              <span className="text-sm font-medium text-gray-700">{viewText.summaryLabel.budgetRange}</span>
               <Input
-                value={form.budgetRange}
-                onChange={(event) =>
-                  setForm((prevForm) => ({
-                    ...prevForm,
-                    budgetRange: event.target.value,
-                  }))
-                }
-                placeholder="예) 300만 ~ 500만"
-                error={stepOneErrors.budgetRange}
+                value={ui.form.budgetRange}
+                onChange={(event) => {
+                  ui.form.budgetRange = event.target.value;
+                }}
+                placeholder={viewText.input.budgetRangePlaceholder}
+                error={ui.stepOneErrors.budgetRange}
                 aria-describedby={stepOneErrorIds.budgetRange}
               />
-              {stepOneErrors.budgetRange ? (
+              {ui.stepOneErrors.budgetRange ? (
                 <p id={stepOneErrorIds.budgetRange} className="text-xs text-red-600">
-                  {stepOneErrors.budgetRange}
+                  {ui.stepOneErrors.budgetRange}
                 </p>
               ) : null}
             </label>
@@ -325,29 +312,26 @@ const FormDemoView = () => {
         </Card>
       ) : null}
 
-      {step === 2 ? (
-        <Card title="상세 정보">
+      {ui.step === 2 ? (
+        <Card title={viewText.card.step2Title}>
           <div className="space-y-3">
             <label className="block space-y-1">
-              <span className="text-sm font-medium text-gray-700">요청사항</span>
+              <span className="text-sm font-medium text-gray-700">{viewText.summaryLabel.requirement}</span>
               <Textarea
-                value={form.requirement}
-                onChange={(event) =>
-                  setForm((prevForm) => ({
-                    ...prevForm,
-                    requirement: event.target.value,
-                  }))
-                }
-                placeholder="요청사항"
+                value={ui.form.requirement}
+                onChange={(event) => {
+                  ui.form.requirement = event.target.value;
+                }}
+                placeholder={viewText.input.requirementPlaceholder}
                 rows={5}
               />
             </label>
 
             <div className="space-y-1">
-              <span className="text-sm font-medium text-gray-700">우선 기능</span>
+              <span className="text-sm font-medium text-gray-700">{viewText.summaryLabel.features}</span>
               <div className="flex flex-wrap gap-2">
                 {FEATURE_CHECK_LIST.map((featureItem) => {
-                  const selected = form.selectedFeatures.includes(featureItem.label);
+                  const selected = ui.form.selectedFeatures.includes(featureItem.label);
                   return (
                     <CheckButton
                       key={featureItem.key}
@@ -362,42 +346,36 @@ const FormDemoView = () => {
             </div>
 
             <label className="block space-y-1">
-              <span className="text-sm font-medium text-gray-700">참고 URL</span>
+              <span className="text-sm font-medium text-gray-700">{viewText.summaryLabel.referenceUrl}</span>
               <Input
-                value={form.referenceUrl}
-                onChange={(event) =>
-                  setForm((prevForm) => ({
-                    ...prevForm,
-                    referenceUrl: event.target.value,
-                  }))
-                }
-                placeholder="참고 URL"
+                value={ui.form.referenceUrl}
+                onChange={(event) => {
+                  ui.form.referenceUrl = event.target.value;
+                }}
+                placeholder={viewText.input.referenceUrlPlaceholder}
               />
             </label>
 
             <label className="block space-y-1">
-              <span className="text-sm font-medium text-gray-700">파일 첨부</span>
+              <span className="text-sm font-medium text-gray-700">{viewText.summaryLabel.attachmentName}</span>
               <input
                 type="file"
-                className="block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700"
-                onChange={(event) => {
-                  const nextFile = event?.target?.files?.[0];
-                  setForm((prevForm) => ({
-                    ...prevForm,
-                    attachmentName: nextFile?.name || "",
-                  }));
-                }}
-              />
-              {form.attachmentName ? (
-                <p className="text-xs text-gray-500">{form.attachmentName}</p>
+              className="block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700"
+              onChange={(event) => {
+                const nextFile = event?.target?.files?.[0];
+                ui.form.attachmentName = nextFile?.name || "";
+              }}
+            />
+              {ui.form.attachmentName ? (
+                <p className="text-xs text-gray-500">{ui.form.attachmentName}</p>
               ) : null}
             </label>
           </div>
         </Card>
       ) : null}
 
-      {step === 3 ? (
-        <Card title="확인/제출">
+      {ui.step === 3 ? (
+        <Card title={viewText.card.step3Title}>
           <ul className="space-y-2 text-sm text-gray-700">
             {summaryRows.map((summaryItem) => (
               <li
@@ -415,39 +393,39 @@ const FormDemoView = () => {
       <div className="mt-4 flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-between">
         <Button
           variant="secondary"
-          onClick={() => moveStep(step - 1)}
-          disabled={step === 1}
+          onClick={() => moveStep(ui.step - 1)}
+          disabled={ui.step === 1}
           className="w-full sm:w-auto"
         >
-          이전
+          {viewText.action.prev}
         </Button>
-        {step < 3 ? (
+        {ui.step < 3 ? (
           <Button
             variant="primary"
             className="w-full sm:w-auto"
             onClick={() => {
-              if (step === 1) {
+              if (ui.step === 1) {
                 const valid = validateStepOne();
                 if (!valid) return;
                 resetStepOneErrors();
               }
-              moveStep(step + 1);
+              moveStep(ui.step + 1);
             }}
           >
-            다음
+            {viewText.action.next}
           </Button>
         ) : (
           <Button
             variant="primary"
             className="w-full sm:w-auto"
             onClick={() => {
-              showToast("신청이 완료되었습니다", { type: "success" });
-              setForm(createDefaultForm());
+              showToast(viewText.action.submitSuccessToast, { type: "success" });
+              ui.form = createDefaultForm();
               resetStepOneErrors();
-              setStep(1);
+              ui.step = 1;
             }}
           >
-            제출하기
+            {viewText.action.submit}
           </Button>
         )}
       </div>

@@ -70,9 +70,15 @@ export async function buildDashboardInitialData({
       fetcher(endpoints.stats),
       fetcher(endpoints.list),
     ]);
+    const listResult = list?.result;
+    const normalizedList = Array.isArray(listResult)
+      ? listResult
+      : Array.isArray(listResult?.items)
+        ? listResult.items
+        : [];
     return {
       statList: stats?.result?.byStatus || [],
-      dataList: list?.result?.items || [],
+      dataList: normalizedList,
       error: null,
     };
   } catch (error) {

@@ -6,7 +6,7 @@
  * 설명: 업무 관리 클라이언트 뷰(CSR API 연동 CRUD)
  */
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useGlobalUi } from "@/app/common/store/SharedStore";
 import Badge from "@/app/lib/component/Badge";
@@ -21,6 +21,7 @@ import Select from "@/app/lib/component/Select";
 import Textarea from "@/app/lib/component/Textarea";
 import { apiJSON } from "@/app/lib/runtime/api";
 import { safeJsonParse } from "@/app/lib/runtime/json";
+import EasyObj from "@/app/lib/dataset/EasyObj";
 import {
   buildTasksQueryString,
   DEFAULT_SORT,
@@ -28,16 +29,11 @@ import {
   SORT_FILTER_LIST,
   STATUS_FILTER_LIST,
 } from "./initData";
+import LANG_KO from "./lang.ko";
 
 const PAGE_SIZE = 10;
-
-const STATUS_LABELS = {
-  ready: "준비",
-  pending: "대기",
-  running: "진행중",
-  done: "완료",
-  failed: "실패",
-};
+const { view: viewText } = LANG_KO;
+const STATUS_LABELS = viewText.statusLabelMap;
 
 const STATUS_BADGE_VARIANT = {
   ready: "neutral",
@@ -64,14 +60,14 @@ const toTagText = (value) => toTagList(value).join(", ");
 
 const toCurrencyText = (value) => {
   const amount = Number(value || 0);
-  if (Number.isNaN(amount)) return "0";
+  if (Number.isNaN(amount)) return viewText.misc.currencyZero;
   return amount.toLocaleString("ko-KR");
 };
 
 const toDateText = (value) => {
-  if (!value) return "-";
+  if (!value) return viewText.misc.dateUnknown;
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "-";
+  if (Number.isNaN(date.getTime())) return viewText.misc.dateUnknown;
   return date.toISOString().slice(0, 10);
 };
 
@@ -94,24 +90,30 @@ const TasksView = ({ initialFilter = {} }) => {
   const router = useRouter();
   const pathname = usePathname();
   const { showToast, showConfirm } = useGlobalUi();
-  const [keyword, setKeyword] = useState(() => String(initialFilter?.keyword || ""));
-  const [status, setStatus] = useState(() => String(initialFilter?.status || ""));
-  const [sort, setSort] = useState(() => String(initialFilter?.sort || DEFAULT_SORT));
-  const [page, setPage] = useState(() =>
-    Number.isFinite(initialFilter?.page) && initialFilter.page > 0
-      ? Number(initialFilter.page)
-      : 1
+  const ui = EasyObj(
+    useMemo(
+      () => ({
+        keyword: String(initialFilter?.keyword || ""),
+        status: String(initialFilter?.status || ""),
+        sort: String(initialFilter?.sort || DEFAULT_SORT),
+        page:
+          Number.isFinite(initialFilter?.page) && initialFilter.page > 0
+            ? Number(initialFilter.page)
+            : 1,
+        totalCount: 0,
+        rows: [],
+        isLoading: true,
+        isSaving: false,
+        isDrawerLoading: false,
+        error: null,
+        isDrawerOpen: false,
+        drawerMode: "create",
+        editingId: null,
+        form: createDefaultForm(),
+      }),
+      [],
+    ),
   );
-  const [totalCount, setTotalCount] = useState(0);
-  const [rows, setRows] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isSaving, setIsSaving] = useState(false);
-  const [isDrawerLoading, setIsDrawerLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
-  const [drawerMode, setDrawerMode] = useState("create");
-  const [editingId, setEditingId] = useState(null);
-  const [form, setForm] = useState(createDefaultForm());
   const endPoints = PAGE_MODE.endPoints || {};
   const hasListEndpoint = Boolean(endPoints.list);
   const hasDetailEndpoint = Boolean(endPoints.detail);
@@ -132,17 +134,17 @@ const TasksView = ({ initialFilter = {} }) => {
   };
 
   const loadTasks = async ({
-    nextKeyword = keyword,
-    nextStatus = status,
-    nextSort = sort,
-    nextPage = page,
+    nextKeyword = ui.keyword,
+    nextStatus = ui.status,
+    nextSort = ui.sort,
+    nextPage = ui.page,
     syncQuery = true,
   } = {}) => {
     if (!hasListEndpoint) {
-      setError({ message: "업무 목록 API가 설정되지 않았습니다." });
-      setRows([]);
-      setTotalCount(0);
-      setIsLoading(false);
+      ui.error = { message: viewText.error.listEndpointMissing };
+      ui.rows = [];
+      ui.totalCount = 0;
+      ui.isLoading = false;
       return;
     }
     const params = new URLSearchParams();
@@ -154,16 +156,27 @@ const TasksView = ({ initialFilter = {} }) => {
     const queryString = params.toString();
     const url = queryString ? `${endPoints.list}?${queryString}` : endPoints.list;
 
-    setIsLoading(true);
-    setError(null);
+    ui.isLoading = true;
+    ui.error = null;
     try {
       const response = await apiJSON(url);
-      const itemList = Array.isArray(response?.result?.items) ? response.result.items : [];
-      const total = Number(response?.result?.total || 0);
-      setRows(itemList);
-      setTotalCount(Number.isNaN(total) ? itemList.length : total);
-      setPage(nextPage);
-      setSort(nextSort || DEFAULT_SORT);
+      const listResult = response?.result;
+      const itemList = Array.isArray(listResult)
+        ? listResult
+        : Array.isArray(listResult?.items)
+          ? listResult.items
+          : [];
+      const totalFromWrapperCount = Number(response?.count);
+      const totalFromLegacy = Number(listResult?.total);
+      const total = !Number.isNaN(totalFromWrapperCount)
+        ? totalFromWrapperCount
+        : !Number.isNaN(totalFromLegacy)
+          ? totalFromLegacy
+          : itemList.length;
+      ui.rows = itemList;
+      ui.totalCount = total;
+      ui.page = nextPage;
+      ui.sort = nextSort || DEFAULT_SORT;
       if (syncQuery) {
         syncBrowserQuery({
           nextKeyword,
@@ -173,146 +186,148 @@ const TasksView = ({ initialFilter = {} }) => {
         });
       }
     } catch (err) {
-      console.error("업무 목록 조회 실패", err);
-      setRows([]);
-      setTotalCount(0);
-      setError(toApiError(err, "업무 목록을 불러오지 못했습니다."));
+      console.error(viewText.error.listLoadFailed, err);
+      ui.rows = [];
+      ui.totalCount = 0;
+      ui.error = toApiError(err, viewText.error.listLoadFailed);
     } finally {
-      setIsLoading(false);
+      ui.isLoading = false;
     }
   };
 
   const openCreateDrawer = () => {
-    setDrawerMode("create");
-    setEditingId(null);
-    setForm(createDefaultForm());
-    setIsDrawerOpen(true);
-    setIsDrawerLoading(false);
+    ui.drawerMode = "create";
+    ui.editingId = null;
+    ui.form = createDefaultForm();
+    ui.isDrawerOpen = true;
+    ui.isDrawerLoading = false;
   };
 
   const openEditDrawer = async (id) => {
     if (!id || !hasDetailEndpoint) {
-      showToast("상세 API 경로가 설정되지 않았습니다.", { type: "error" });
+      showToast(viewText.error.detailEndpointMissing, { type: "error" });
       return;
     }
-    setDrawerMode("edit");
-    setEditingId(id);
-    setIsDrawerOpen(true);
-    setIsDrawerLoading(true);
+    ui.drawerMode = "edit";
+    ui.editingId = id;
+    ui.isDrawerOpen = true;
+    ui.isDrawerLoading = true;
     try {
       const detailPath = toPathWithId(endPoints.detail, id);
       const response = await apiJSON(detailPath);
       const detail = response?.result || {};
-      setForm({
+      ui.form = {
         title: detail?.title || "",
         status: detail?.status || "ready",
         amount: Number(detail?.amount || 0),
         tags: toTagText(detail?.tags),
         description: detail?.description || "",
-      });
+      };
     } catch (err) {
-      console.error("업무 상세 조회 실패", err);
-      showToast(err?.message || "업무 상세를 불러오지 못했습니다.", { type: "error" });
-      setIsDrawerOpen(false);
+      console.error(viewText.error.detailLoadFailed, err);
+      showToast(err?.message || viewText.error.detailLoadFailed, { type: "error" });
+      ui.isDrawerOpen = false;
     } finally {
-      setIsDrawerLoading(false);
+      ui.isDrawerLoading = false;
     }
   };
 
   const closeDrawer = () => {
-    if (isSaving) return;
-    setIsDrawerOpen(false);
-    setIsDrawerLoading(false);
+    if (ui.isSaving) return;
+    ui.isDrawerOpen = false;
+    ui.isDrawerLoading = false;
   };
 
   const saveTask = async () => {
-    const title = String(form.title || "").trim();
+    const title = String(ui.form.title || "").trim();
     if (!title) {
-      showToast("제목은 필수입니다.", { type: "warning" });
+      showToast(viewText.validation.titleRequired, { type: "warning" });
       return;
     }
-    if (!STATUS_LABELS[form.status]) {
-      showToast("상태 값이 유효하지 않습니다.", { type: "warning" });
+    if (!STATUS_LABELS[ui.form.status]) {
+      showToast(viewText.validation.invalidStatus, { type: "warning" });
       return;
     }
-    if (drawerMode === "create" && !hasCreateEndpoint) {
-      showToast("생성 API 경로가 설정되지 않았습니다.", { type: "error" });
+    if (ui.drawerMode === "create" && !hasCreateEndpoint) {
+      showToast(viewText.error.createEndpointMissing, { type: "error" });
       return;
     }
-    if (drawerMode === "edit" && (!editingId || !hasUpdateEndpoint)) {
-      showToast("수정 API 경로가 설정되지 않았습니다.", { type: "error" });
+    if (ui.drawerMode === "edit" && (!ui.editingId || !hasUpdateEndpoint)) {
+      showToast(viewText.error.updateEndpointMissing, { type: "error" });
       return;
     }
 
     const payload = {
       title,
-      status: form.status,
-      amount: Number(form.amount || 0),
-      tags: toTagList(form.tags),
-      description: String(form.description || "").trim(),
+      status: ui.form.status,
+      amount: Number(ui.form.amount || 0),
+      tags: toTagList(ui.form.tags),
+      description: String(ui.form.description || "").trim(),
     };
-    const isCreate = drawerMode === "create";
-    const path = isCreate ? endPoints.create : toPathWithId(endPoints.update, editingId);
+    const isCreate = ui.drawerMode === "create";
+    const path = isCreate
+      ? endPoints.create
+      : toPathWithId(endPoints.update, ui.editingId);
     const method = isCreate ? "POST" : "PUT";
 
-    setIsSaving(true);
+    ui.isSaving = true;
     try {
       await apiJSON(path, { method, body: payload });
-      showToast(isCreate ? "업무가 등록되었습니다." : "업무가 수정되었습니다.", {
+      showToast(isCreate ? viewText.toast.savedCreated : viewText.toast.savedUpdated, {
         type: "success",
       });
-      setIsDrawerOpen(false);
+      ui.isDrawerOpen = false;
       await loadTasks({
-        nextKeyword: keyword,
-        nextStatus: status,
-        nextSort: sort,
-        nextPage: isCreate ? 1 : page,
+        nextKeyword: ui.keyword,
+        nextStatus: ui.status,
+        nextSort: ui.sort,
+        nextPage: isCreate ? 1 : ui.page,
       });
     } catch (err) {
-      console.error("업무 저장 실패", err);
-      showToast(err?.message || "업무 저장에 실패했습니다.", { type: "error" });
-      setError(toApiError(err, "업무 저장에 실패했습니다."));
+      console.error(viewText.error.saveFailed, err);
+      showToast(err?.message || viewText.error.saveFailed, { type: "error" });
+      ui.error = toApiError(err, viewText.error.saveFailed);
     } finally {
-      setIsSaving(false);
+      ui.isSaving = false;
     }
   };
 
   const removeTask = async (row) => {
     if (!hasRemoveEndpoint) {
-      showToast("삭제 API 경로가 설정되지 않았습니다.", { type: "error" });
+      showToast(viewText.error.removeEndpointMissing, { type: "error" });
       return;
     }
-    const confirmed = await showConfirm("정말 삭제하시겠습니까?", {
-      title: "업무 삭제",
+    const confirmed = await showConfirm(viewText.confirm.removeText, {
+      title: viewText.confirm.removeTitle,
       type: "warning",
-      confirmText: "삭제",
-      cancelText: "취소",
+      confirmText: viewText.confirm.confirmText,
+      cancelText: viewText.confirm.cancelText,
     });
     if (!confirmed) return;
 
     try {
       await apiJSON(toPathWithId(endPoints.remove, row?.id), { method: "DELETE" });
-      showToast("업무가 삭제되었습니다.", { type: "success" });
-      const nextPage = page > 1 && rows.length === 1 ? page - 1 : page;
+      showToast(viewText.toast.removed, { type: "success" });
+      const nextPage = ui.page > 1 && ui.rows.length === 1 ? ui.page - 1 : ui.page;
       await loadTasks({
-        nextKeyword: keyword,
-        nextStatus: status,
-        nextSort: sort,
+        nextKeyword: ui.keyword,
+        nextStatus: ui.status,
+        nextSort: ui.sort,
         nextPage,
       });
     } catch (err) {
-      console.error("업무 삭제 실패", err);
-      showToast(err?.message || "업무 삭제에 실패했습니다.", { type: "error" });
-      setError(toApiError(err, "업무 삭제에 실패했습니다."));
+      console.error(viewText.error.removeFailed, err);
+      showToast(err?.message || viewText.error.removeFailed, { type: "error" });
+      ui.error = toApiError(err, viewText.error.removeFailed);
     }
   };
 
   useEffect(() => {
     loadTasks({
-      nextKeyword: keyword,
-      nextStatus: status,
-      nextSort: sort,
-      nextPage: page,
+      nextKeyword: ui.keyword,
+      nextStatus: ui.status,
+      nextSort: ui.sort,
+      nextPage: ui.page,
       syncQuery: false,
     });
   }, [hasListEndpoint]);
@@ -321,7 +336,7 @@ const TasksView = ({ initialFilter = {} }) => {
     () => [
       {
         key: "title",
-        header: "제목",
+        header: viewText.table.titleHeader,
         align: "left",
         width: "2fr",
         render: (row) => (
@@ -336,29 +351,29 @@ const TasksView = ({ initialFilter = {} }) => {
       },
       {
         key: "status",
-        header: "상태",
+        header: viewText.table.statusHeader,
         width: 140,
         render: (row) => (
           <Badge variant={STATUS_BADGE_VARIANT[row?.status] || "neutral"} pill>
-            {STATUS_LABELS[row?.status] || row?.status || "미정"}
+            {STATUS_LABELS[row?.status] || row?.status || viewText.misc.noData}
           </Badge>
         ),
       },
       {
         key: "amount",
-        header: "금액",
+        header: viewText.table.amountHeader,
         width: 140,
         align: "right",
         render: (row) => toCurrencyText(row?.amount),
       },
       {
         key: "tags",
-        header: "태그",
+        header: viewText.table.tagsHeader,
         align: "left",
         width: "2fr",
         render: (row) => {
           const tagList = toTagList(row?.tags);
-          if (!tagList.length) return <span className="text-gray-400">-</span>;
+          if (!tagList.length) return <span className="text-gray-400">{viewText.misc.dateUnknown}</span>;
           return (
             <div className="flex flex-wrap gap-1">
               {tagList.map((tag) => (
@@ -372,94 +387,100 @@ const TasksView = ({ initialFilter = {} }) => {
       },
       {
         key: "createdAt",
-        header: "등록일",
+        header: viewText.table.createdAtHeader,
         width: 140,
         render: (row) => toDateText(row?.createdAt),
       },
       {
         key: "actions",
-        header: "관리",
+        header: viewText.table.actionsHeader,
         width: 180,
         render: (row) => (
           <div className="flex items-center justify-center gap-2">
             <Button size="sm" variant="secondary" onClick={() => openEditDrawer(row?.id)}>
-              수정
+              {viewText.action.editButton}
             </Button>
             <Button size="sm" variant="danger" onClick={() => removeTask(row)}>
-              삭제
+              {viewText.action.removeButton}
             </Button>
           </div>
         ),
       },
     ],
-    [rows, keyword, status, page]
+    [ui.rows, ui.keyword, ui.status, ui.page]
   );
 
-  const pageCount = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
+  const pageCount = Math.max(1, Math.ceil(ui.totalCount / PAGE_SIZE));
 
   return (
     <div className="space-y-3">
-      {error?.message ? (
-        <section aria-label="오류 안내">
+      {ui.error?.message ? (
+        <section aria-label={viewText.error.listLoadFailed}>
           <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700" role="alert">
-            <div>{error.message}</div>
-            {error.requestId ? (
-              <div className="mt-1 text-xs text-red-700/80">requestId: {error.requestId}</div>
+            <div>{ui.error.message}</div>
+            {ui.error.requestId ? (
+              <div className="mt-1 text-xs text-red-700/80">requestId: {ui.error.requestId}</div>
             ) : null}
           </div>
         </section>
       ) : null}
 
       <Card
-        title="업무 관리"
+        title={viewText.card.managementTitle}
         actions={
           <Button onClick={openCreateDrawer} variant="primary" className="w-full sm:w-auto">
-            업무 등록
+            {viewText.card.quickCreateButton}
           </Button>
         }
       >
         <div className="flex flex-col gap-2 md:flex-row md:items-center">
           <div className="flex-1">
             <Input
-              value={keyword}
-              onChange={(event) => setKeyword(event.target.value)}
-              placeholder="제목/설명 검색"
+              value={ui.keyword}
+              onChange={(event) => {
+                ui.keyword = event.target.value;
+              }}
+              placeholder={viewText.search.keywordPlaceholder}
             />
           </div>
           <div className="w-full md:w-48">
             <Select
-              value={status}
-              onChange={(event) => setStatus(event.target.value)}
+              value={ui.status}
+              onChange={(event) => {
+                ui.status = event.target.value;
+              }}
               dataList={STATUS_FILTER_LIST}
             />
           </div>
           <div className="w-full md:w-52">
             <Select
-              value={sort}
-              onChange={(event) => setSort(event.target.value)}
+              value={ui.sort}
+              onChange={(event) => {
+                ui.sort = event.target.value;
+              }}
               dataList={SORT_FILTER_LIST}
             />
           </div>
           <Button
             onClick={() =>
               loadTasks({
-                nextKeyword: keyword,
-                nextStatus: status,
-                nextSort: sort,
+                nextKeyword: ui.keyword,
+                nextStatus: ui.status,
+                nextSort: ui.sort,
                 nextPage: 1,
               })
             }
-            loading={isLoading}
+            loading={ui.isLoading}
             className="w-full sm:w-auto"
           >
-            검색
+            {viewText.search.searchButton}
           </Button>
           <Button
             variant="secondary"
             onClick={() => {
-              setKeyword("");
-              setStatus("");
-              setSort(DEFAULT_SORT);
+              ui.keyword = "";
+              ui.status = "";
+              ui.sort = DEFAULT_SORT;
               loadTasks({
                 nextKeyword: "",
                 nextStatus: "",
@@ -467,33 +488,35 @@ const TasksView = ({ initialFilter = {} }) => {
                 nextPage: 1,
               });
             }}
-            disabled={isLoading}
+            disabled={ui.isLoading}
             className="w-full sm:w-auto"
           >
-            초기화
+            {viewText.search.resetButton}
           </Button>
         </div>
       </Card>
 
-      <Card title="업무 목록">
+      <Card title={viewText.card.tableTitle}>
         <EasyTable
-          data={rows}
-          loading={isLoading}
+          data={ui.rows}
+          loading={ui.isLoading}
           columns={tableColumns}
           pageSize={PAGE_SIZE}
-          empty="업무가 없습니다."
+          empty={viewText.table.emptyFallback}
           rowKey={(row, idx) => row?.id ?? idx}
         />
         <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <div className="text-sm text-gray-600">총 {totalCount.toLocaleString("ko-KR")}건</div>
+          <div className="text-sm text-gray-600">
+            {`총 ${ui.totalCount.toLocaleString("ko-KR")}${viewText.action.totalCountSuffix}`}
+          </div>
           <Pagination
-            page={page}
+            page={ui.page}
             pageCount={pageCount}
             onChange={(nextPage) =>
               loadTasks({
-                nextKeyword: keyword,
-                nextStatus: status,
-                nextSort: sort,
+                nextKeyword: ui.keyword,
+                nextStatus: ui.status,
+                nextSort: ui.sort,
                 nextPage,
               })
             }
@@ -501,82 +524,90 @@ const TasksView = ({ initialFilter = {} }) => {
         </div>
       </Card>
 
-      <Drawer isOpen={isDrawerOpen} onClose={closeDrawer} side="right" size={460} collapseButton>
+      <Drawer isOpen={ui.isDrawerOpen} onClose={closeDrawer} side="right" size={460} collapseButton>
         <div className="p-5 space-y-4">
           <div>
             <h3 className="text-lg font-semibold text-gray-900">
-              {drawerMode === "create" ? "업무 등록" : "업무 수정"}
+              {ui.drawerMode === "create" ? viewText.drawer.createTitle : viewText.drawer.editTitle}
             </h3>
             <p className="mt-1 text-sm text-gray-500">
-              {drawerMode === "create" ? "새 업무를 등록합니다." : `업무 번호 #${editingId || "-"}`}
+              {ui.drawerMode === "create"
+                ? viewText.drawer.createSubtitle
+                : `${viewText.drawer.editSubtitlePrefix}${ui.editingId || viewText.misc.dateUnknown}`}
             </p>
           </div>
 
-          {isDrawerLoading ? (
+          {ui.isDrawerLoading ? (
             <div className="rounded-md border border-gray-200 bg-gray-50 px-4 py-6 text-sm text-gray-600">
-              상세 데이터를 불러오는 중...
+              {viewText.misc.drawerLoading}
             </div>
           ) : (
             <div className="space-y-3">
               <label className="block space-y-1">
-                <span className="text-sm font-medium text-gray-700">제목</span>
+                <span className="text-sm font-medium text-gray-700">{viewText.drawer.titleLabel}</span>
                 <Input
-                  value={form.title}
-                  onChange={(event) => setForm((prev) => ({ ...prev, title: event.target.value }))}
-                  placeholder="업무 제목을 입력해주세요"
+                  value={ui.form.title}
+                  onChange={(event) => {
+                    ui.form.title = event.target.value;
+                  }}
+                  placeholder={viewText.drawer.titlePlaceholder}
                 />
               </label>
 
               <label className="block space-y-1">
-                <span className="text-sm font-medium text-gray-700">상태</span>
+                <span className="text-sm font-medium text-gray-700">{viewText.drawer.statusLabel}</span>
                 <Select
-                  value={form.status}
-                  onChange={(event) => setForm((prev) => ({ ...prev, status: event.target.value }))}
+                  value={ui.form.status}
+                  onChange={(event) => {
+                    ui.form.status = event.target.value;
+                  }}
                   dataList={STATUS_FORM_LIST}
                 />
               </label>
 
               <label className="block space-y-1">
-                <span className="text-sm font-medium text-gray-700">금액</span>
+                <span className="text-sm font-medium text-gray-700">{viewText.drawer.amountLabel}</span>
                 <NumberInput
-                  value={form.amount}
+                  value={ui.form.amount}
                   min={0}
                   step={1000}
-                  onChange={(event) =>
-                    setForm((prev) => ({ ...prev, amount: Number(event?.target?.value || 0) }))
-                  }
+                  onChange={(event) => {
+                    ui.form.amount = Number(event?.target?.value || 0);
+                  }}
                 />
               </label>
 
               <label className="block space-y-1">
-                <span className="text-sm font-medium text-gray-700">태그 (콤마 구분)</span>
+                <span className="text-sm font-medium text-gray-700">{viewText.drawer.tagsLabel}</span>
                 <Input
-                  value={form.tags}
-                  onChange={(event) => setForm((prev) => ({ ...prev, tags: event.target.value }))}
-                  placeholder="backend, admin, sample"
+                  value={ui.form.tags}
+                  onChange={(event) => {
+                    ui.form.tags = event.target.value;
+                  }}
+                  placeholder={viewText.drawer.tagsPlaceholder}
                 />
               </label>
 
               <label className="block space-y-1">
-                <span className="text-sm font-medium text-gray-700">설명</span>
+                <span className="text-sm font-medium text-gray-700">{viewText.drawer.descriptionLabel}</span>
                 <Textarea
                   rows={5}
-                  value={form.description}
-                  onChange={(event) =>
-                    setForm((prev) => ({ ...prev, description: event.target.value }))
-                  }
-                  placeholder="업무 설명을 입력해주세요"
+                  value={ui.form.description}
+                  onChange={(event) => {
+                    ui.form.description = event.target.value;
+                  }}
+                  placeholder={viewText.drawer.descriptionPlaceholder}
                 />
               </label>
             </div>
           )}
 
           <div className="pt-2 flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-end">
-            <Button variant="secondary" onClick={closeDrawer} disabled={isSaving} className="w-full sm:w-auto">
-              취소
+            <Button variant="secondary" onClick={closeDrawer} disabled={ui.isSaving} className="w-full sm:w-auto">
+              {viewText.drawer.cancelButton}
             </Button>
-            <Button onClick={saveTask} loading={isSaving || isDrawerLoading} className="w-full sm:w-auto">
-              저장
+            <Button onClick={saveTask} loading={ui.isSaving || ui.isDrawerLoading} className="w-full sm:w-auto">
+              {viewText.drawer.saveButton}
             </Button>
           </div>
         </div>

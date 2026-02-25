@@ -11,10 +11,11 @@ import {
   PAGE_MODE,
 } from "./initData";
 import { DEMO_DATA_LIST } from "@/app/sample/crud/initData";
+import LANG_KO from "./lang.ko";
 
 export const metadata = {
   title: "Sample Dashboard | MyWebTemplate",
-  description: "공개 샘플 대시보드",
+  description: LANG_KO.page.metadataDescription,
 };
 
 /**

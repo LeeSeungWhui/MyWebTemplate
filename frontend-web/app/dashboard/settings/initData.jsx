@@ -5,6 +5,8 @@
  * 설명: 설정 페이지 초기 설정
  */
 
+import LANG_KO from "./lang.ko";
+
 export const PAGE_MODE = {
   MODE: "CSR",
   dynamic: "force-dynamic",
@@ -58,8 +60,5 @@ export const toSettingsTabQueryValue = (tabIndex) => {
 };
 
 export const SYSTEM_SETTING_DEFAULT = {
-  siteName: "MyWebTemplate",
-  maintenanceMode: false,
-  sessionTimeoutMinutes: 60,
-  maxUploadMb: 30,
+  ...LANG_KO.initData.systemDefault,
 };

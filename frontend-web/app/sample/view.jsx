@@ -14,16 +14,18 @@ import {
   DEMO_HUB_EXTRA_LINK_LIST,
   DEMO_HUB_HEADER,
 } from "./initData";
+import LANG_KO from "./lang.ko";
 
 /**
  * @description 공개 샘플 허브 화면을 렌더링한다.
  */
 const DemoHubView = () => {
+  const { view: viewText } = LANG_KO;
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
       <section className="mb-6 rounded-2xl bg-gradient-to-r from-[#1e3a5f] to-[#312e81] px-6 py-7 text-white shadow-lg">
         <p className="text-xs font-semibold tracking-wide text-blue-100">
-          PUBLIC SAMPLE HUB
+          {viewText.heroBadge}
         </p>
         <h1 className="mt-2 text-2xl font-bold sm:text-3xl">
           {DEMO_HUB_HEADER.title}
@@ -55,7 +57,7 @@ const DemoHubView = () => {
                 href={cardItem.href}
                 className="inline-flex items-center rounded-md bg-blue-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-blue-700"
               >
-                샘플 열기
+                {viewText.openSampleButton}
               </Link>
             </div>
           </Card>
@@ -63,7 +65,7 @@ const DemoHubView = () => {
       </section>
 
       <section className="mt-6 rounded-xl border border-gray-200 bg-white px-4 py-4 text-sm text-gray-700 shadow-sm">
-        <p className="font-semibold text-gray-900">추가 자료</p>
+        <p className="font-semibold text-gray-900">{viewText.extraSectionTitle}</p>
         <div className="mt-2 flex flex-wrap gap-2">
           {DEMO_HUB_EXTRA_LINK_LIST.map((item) => (
             <Link

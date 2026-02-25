@@ -6,7 +6,7 @@
  * 설명: 대시보드 레이아웃 (Header/Sidebar/Footer 포함)
  */
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo } from "react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import Header from "@/app/common/layout/Header";
@@ -17,10 +17,18 @@ import Icon from "@/app/lib/component/Icon";
 import { apiJSON } from "@/app/lib/runtime/api";
 import { useGlobalUi, useUser } from "@/app/common/store/SharedStore";
 import { resolveDashboardLayoutMeta } from "./layoutMeta";
+import EasyObj from "@/app/lib/dataset/EasyObj";
 
 const DashboardLayout = ({ children }) => {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [isDesktopViewport, setIsDesktopViewport] = useState(false);
+  const ui = EasyObj(
+    useMemo(
+      () => ({
+        sidebarOpen: false,
+        isDesktopViewport: false,
+      }),
+      [],
+    ),
+  );
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -46,20 +54,20 @@ const DashboardLayout = ({ children }) => {
     const mediaQuery = window.matchMedia("(min-width: 1024px)");
     const syncViewport = () => {
       const isDesktop = mediaQuery.matches;
-      setIsDesktopViewport(isDesktop);
-      setSidebarOpen(isDesktop);
+      ui.isDesktopViewport = isDesktop;
+      ui.sidebarOpen = isDesktop;
     };
 
     syncViewport();
     mediaQuery.addEventListener("change", syncViewport);
     return () => mediaQuery.removeEventListener("change", syncViewport);
-  }, []);
+  }, [ui]);
 
   useEffect(() => {
-    if (!isDesktopViewport) {
-      setSidebarOpen(false);
+    if (!ui.isDesktopViewport) {
+      ui.sidebarOpen = false;
     }
-  }, [pathname, searchParams?.toString(), isDesktopViewport]);
+  }, [pathname, searchParams?.toString(), ui.isDesktopViewport]);
 
   const handleLogout = async () => {
     setLoading(true);
@@ -84,7 +92,9 @@ const DashboardLayout = ({ children }) => {
           subtitle={layoutMeta.subtitle}
           menuList={layoutMeta.menuList}
           subMenuList={layoutMeta.subMenuList}
-          onToggleSidebar={() => setSidebarOpen((v) => !v)}
+          onToggleSidebar={() => {
+            ui.sidebarOpen = !ui.sidebarOpen;
+          }}
           text={layoutMeta.text}
           logo={(
             <Link
@@ -114,8 +124,10 @@ const DashboardLayout = ({ children }) => {
         <Sidebar
           menuList={layoutMeta.menuList}
           subMenuList={layoutMeta.subMenuList}
-          isOpen={sidebarOpen}
-          onClose={() => setSidebarOpen(false)}
+          isOpen={ui.sidebarOpen}
+          onClose={() => {
+            ui.sidebarOpen = false;
+          }}
           logo={
             <span className="inline-flex items-center rounded-md bg-gradient-to-r from-[#1e3a5f] to-[#312e81] px-2 py-1 text-xs font-semibold text-white">
               MyWebTemplate

@@ -7,11 +7,11 @@
 
 import PortfolioView from "./view";
 import { PAGE_CONTENT } from "./initData";
+import LANG_KO from "./lang.ko";
 
 export const metadata = {
   title: "Portfolio | MyWebTemplate",
-  description:
-    "프로젝트 요약, 역할, 신뢰 포인트를 한 페이지에서 보여주는 웹 포트폴리오",
+  description: LANG_KO.page.metadataDescription,
 };
 
 /**

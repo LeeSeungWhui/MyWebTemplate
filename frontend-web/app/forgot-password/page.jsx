@@ -6,11 +6,12 @@
  */
 
 import ForgotPasswordView from "./view";
+import LANG_KO from "./lang.ko";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 export const metadata = {
-  title: "Forgot Password | MyWebTemplate",
+  title: LANG_KO.page.metadataTitle,
   robots: {
     index: false,
     follow: false,

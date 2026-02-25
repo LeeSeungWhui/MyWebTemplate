@@ -6,10 +6,11 @@
  * 설명: 공개 페이지 공통 GNB(샘플 드롭다운/모바일 드로어 포함)
  */
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Icon from "@/app/lib/component/Icon";
+import EasyObj from "@/app/lib/dataset/EasyObj";
 
 const DEMO_MENU_LIST = [
   { href: "/sample", label: "샘플 허브" },
@@ -73,8 +74,15 @@ const getDropdownItemClassName = (active) =>
  */
 const PublicGnb = () => {
   const pathname = usePathname() || "/";
-  const [mobileOpen, setMobileOpen] = useState(false);
-  const [demoMenuOpen, setDemoMenuOpen] = useState(false);
+  const ui = EasyObj(
+    useMemo(
+      () => ({
+        mobileOpen: false,
+        demoMenuOpen: false,
+      }),
+      [],
+    ),
+  );
   const demoMenuRef = useRef(null);
   const demoMenuPinnedRef = useRef(false);
 
@@ -82,16 +90,16 @@ const PublicGnb = () => {
 
   const closeDemoMenu = useCallback(() => {
     demoMenuPinnedRef.current = false;
-    setDemoMenuOpen(false);
-  }, []);
+    ui.demoMenuOpen = false;
+  }, [ui]);
 
   const handleToggleDemoMenu = () => {
-    if (demoMenuOpen && demoMenuPinnedRef.current) {
+    if (ui.demoMenuOpen && demoMenuPinnedRef.current) {
       closeDemoMenu();
       return;
     }
     demoMenuPinnedRef.current = true;
-    setDemoMenuOpen(true);
+    ui.demoMenuOpen = true;
   };
 
   useEffect(() => {
@@ -129,10 +137,12 @@ const PublicGnb = () => {
             type="button"
             className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-gray-200 text-gray-700 md:hidden"
             aria-label="모바일 메뉴 열기"
-            onClick={() => setMobileOpen((prevState) => !prevState)}
+            onClick={() => {
+              ui.mobileOpen = !ui.mobileOpen;
+            }}
           >
             <Icon
-              icon={mobileOpen ? "ri:RiCloseLine" : "ri:RiMenuLine"}
+              icon={ui.mobileOpen ? "ri:RiCloseLine" : "ri:RiMenuLine"}
               className="text-lg"
             />
           </button>
@@ -149,10 +159,12 @@ const PublicGnb = () => {
           <div
             ref={demoMenuRef}
             className="relative"
-            onMouseEnter={() => setDemoMenuOpen(true)}
+            onMouseEnter={() => {
+              ui.demoMenuOpen = true;
+            }}
             onMouseLeave={() => {
               if (!demoMenuPinnedRef.current) {
-                setDemoMenuOpen(false);
+                ui.demoMenuOpen = false;
               }
             }}
           >
@@ -160,7 +172,7 @@ const PublicGnb = () => {
               type="button"
               className={getDemoButtonClassName(isDemoActive)}
               aria-haspopup="menu"
-              aria-expanded={demoMenuOpen}
+              aria-expanded={ui.demoMenuOpen}
               onClick={handleToggleDemoMenu}
             >
               샘플
@@ -168,7 +180,7 @@ const PublicGnb = () => {
             </button>
             <div
               className={`absolute right-0 top-full w-48 rounded-lg border border-gray-200 bg-white p-2 shadow-lg transition ${
-                demoMenuOpen
+                ui.demoMenuOpen
                   ? "visible opacity-100"
                   : "invisible pointer-events-none opacity-0"
               }`}
@@ -208,7 +220,7 @@ const PublicGnb = () => {
 
       </div>
 
-      {mobileOpen ? (
+      {ui.mobileOpen ? (
         <div className="border-t border-gray-200 bg-white px-4 py-4 md:hidden">
           <div className="space-y-1">
             <p className="px-2 py-1 text-xs font-semibold tracking-wide text-gray-500">
@@ -223,7 +235,9 @@ const PublicGnb = () => {
                     ? "bg-blue-50 text-blue-700"
                     : "text-gray-700"
                 }`}
-                onClick={() => setMobileOpen(false)}
+                onClick={() => {
+                  ui.mobileOpen = false;
+                }}
               >
                 {menuItem.label}
               </Link>
@@ -240,7 +254,9 @@ const PublicGnb = () => {
                     ? "bg-blue-50 text-blue-700"
                     : "text-gray-700"
                 }`}
-                onClick={() => setMobileOpen(false)}
+                onClick={() => {
+                  ui.mobileOpen = false;
+                }}
               >
                 {menuItem.label}
               </Link>

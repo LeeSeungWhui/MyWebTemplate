@@ -8,17 +8,18 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import PublicPageShell from "@/app/common/layout/PublicPageShell";
+import LANG_KO from "./lang.ko";
 
 const flowItemClassName =
   "relative rounded-xl border border-blue-100 bg-white px-4 py-4 text-center shadow-sm";
 
 const PortfolioView = ({ content }) => {
+  const { view: viewText } = LANG_KO;
   return (
-    <PublicPageShell contentClassName="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6 lg:px-8">
+    <>
       <section className="overflow-hidden rounded-3xl bg-gradient-to-br from-[#1e3a5f] to-[#312e81] px-6 py-10 text-white shadow-xl sm:px-10">
         <p className="text-xs font-semibold tracking-wide text-blue-100">
-          PUBLIC PORTFOLIO
+          {viewText.heroBadge}
         </p>
         <h1 className="mt-3 text-3xl font-bold leading-tight sm:text-4xl">
           {content.hero.title}
@@ -52,7 +53,7 @@ const PortfolioView = ({ content }) => {
       </section>
 
       <section className="mt-8">
-        <h2 className="text-2xl font-bold text-gray-900">프로젝트 개요</h2>
+        <h2 className="text-2xl font-bold text-gray-900">{viewText.sectionTitle.overview}</h2>
         <div className="mt-4 grid gap-3 sm:grid-cols-3">
           {content.overview.map((item) => (
             <article
@@ -69,11 +70,11 @@ const PortfolioView = ({ content }) => {
       <section className="mt-8 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
         <details open={false}>
           <summary className="cursor-pointer list-none text-2xl font-bold text-gray-900">
-            Developer Profile (열고 닫기)
+            {viewText.sectionTitle.profile}
           </summary>
           <p className="mt-2 text-sm text-gray-600">{content.profile.tagline}</p>
           <div className="mt-4">
-            <p className="text-sm text-gray-500">담당 개발자</p>
+            <p className="text-sm text-gray-500">{viewText.label.developer}</p>
             <p className="text-lg font-semibold text-gray-900">
               {content.profile.name} · {content.profile.role}
             </p>
@@ -100,7 +101,7 @@ const PortfolioView = ({ content }) => {
           </ul>
 
           <div className="mt-6">
-            <h3 className="text-base font-semibold text-gray-900">대표 프로젝트</h3>
+            <h3 className="text-base font-semibold text-gray-900">{viewText.sectionTitle.featuredProjects}</h3>
             <div className="mt-3 grid gap-3 md:grid-cols-2">
               {(content.profile.featuredProjects || []).map((projectItem) => (
                 <article
@@ -117,7 +118,7 @@ const PortfolioView = ({ content }) => {
           </div>
 
           <div className="mt-6">
-            <h3 className="text-base font-semibold text-gray-900">회사별 경력(요약)</h3>
+            <h3 className="text-base font-semibold text-gray-900">{viewText.sectionTitle.careerTimeline}</h3>
             <div className="mt-3 space-y-2">
               {(content.profile.careerTimeline || []).map((companyItem) => (
                 <details
@@ -144,7 +145,7 @@ const PortfolioView = ({ content }) => {
           </div>
 
           <div className="mt-6">
-            <h3 className="text-base font-semibold text-gray-900">학력</h3>
+            <h3 className="text-base font-semibold text-gray-900">{viewText.sectionTitle.education}</h3>
             <div className="mt-3 grid gap-2 md:grid-cols-2">
               {(content.profile.education || []).map((educationItem) => (
                 <article
@@ -162,7 +163,7 @@ const PortfolioView = ({ content }) => {
           </div>
 
           <div className="mt-6">
-            <h3 className="text-base font-semibold text-gray-900">경험/활동</h3>
+            <h3 className="text-base font-semibold text-gray-900">{viewText.sectionTitle.research}</h3>
             <ul className="mt-2 space-y-1 text-sm text-gray-700">
               {(content.profile.research || []).map((line) => (
                 <li key={line} className="flex items-start gap-2">
@@ -176,7 +177,7 @@ const PortfolioView = ({ content }) => {
       </section>
 
       <section className="mt-8">
-        <h2 className="text-2xl font-bold text-gray-900">주요 강점</h2>
+        <h2 className="text-2xl font-bold text-gray-900">{viewText.sectionTitle.strengths}</h2>
         <div className="mt-4 grid gap-3 sm:grid-cols-3">
           {content.features.map((item) => (
             <article
@@ -191,9 +192,9 @@ const PortfolioView = ({ content }) => {
       </section>
 
       <section className="mt-8 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-        <h2 className="text-2xl font-bold text-gray-900">작동 흐름</h2>
+        <h2 className="text-2xl font-bold text-gray-900">{viewText.sectionTitle.architecture}</h2>
         <p className="mt-2 text-sm text-gray-600">
-          화면에서 요청한 정보가 어떤 단계로 처리되는지, 이해하기 쉽게 단순화해서 표현했습니다.
+          {viewText.label.architectureDescription}
         </p>
         <div className="mt-5 grid gap-3 md:grid-cols-[1fr_auto_1fr_auto_1fr]">
           {content.architectureFlow.map((stepItem, index) => (
@@ -216,7 +217,7 @@ const PortfolioView = ({ content }) => {
       </section>
 
       <section className="mt-8">
-        <h2 className="text-2xl font-bold text-gray-900">샘플 동선</h2>
+        <h2 className="text-2xl font-bold text-gray-900">{viewText.sectionTitle.demoFlow}</h2>
         <div className="mt-4 grid gap-3 md:grid-cols-3">
           {content.demoFlow.map((item) => (
             <article
@@ -239,7 +240,7 @@ const PortfolioView = ({ content }) => {
                   href={item.path}
                   className="inline-flex items-center rounded-md bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-blue-700"
                 >
-                  샘플 이동
+                  {viewText.label.moveSample}
                 </Link>
               </div>
             </article>
@@ -250,7 +251,7 @@ const PortfolioView = ({ content }) => {
       <section className="mt-8">
         <details className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm" open={false}>
           <summary className="cursor-pointer list-none text-base font-semibold text-gray-900">
-            기술 상세 노트 (필요할 때만 열기)
+            {viewText.sectionTitle.technicalNotes}
           </summary>
           <ul className="mt-3 space-y-2 text-sm text-gray-700">
             {content.technicalNotes.map((line) => (
@@ -262,7 +263,7 @@ const PortfolioView = ({ content }) => {
           </ul>
         </details>
       </section>
-    </PublicPageShell>
+    </>
   );
 };
 

@@ -7,10 +7,11 @@
 
 import CrudDemoView from "./view";
 import { DEMO_DATA_LIST, PAGE_MODE } from "./initData";
+import LANG_KO from "./lang.ko";
 
 export const metadata = {
   title: "CRUD Sample | MyWebTemplate",
-  description: "공개 CRUD 샘플 화면",
+  description: LANG_KO.page.metadataDescription,
 };
 
 /**

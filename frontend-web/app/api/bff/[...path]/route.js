@@ -7,6 +7,7 @@
 
 import { NextResponse } from "next/server";
 import { getBackendHost } from "@/app/common/config/getBackendHost.server";
+import { getFrontendHost } from "@/app/common/config/getFrontendHost.server";
 import { createHash } from "node:crypto";
 
 export const dynamic = "force-dynamic";
@@ -16,6 +17,7 @@ const SKIP_HEADERS = new Set(["connection", "content-length", "host"]);
 const REFRESH_PATH = "/api/v1/auth/refresh";
 const LOGIN_PATH = "/api/v1/auth/login";
 const LOGOUT_PATH = "/api/v1/auth/logout";
+const ACCESS_COOKIE_NAME = "access_token";
 
 // refresh_token 기반 singleflight(동시 탭/요청 경합 완화)
 // key: sha256(refresh_token)
@@ -71,6 +73,21 @@ function collectSetCookies(res) {
   return setCookies;
 }
 
+function extractCookieValueFromSetCookies(setCookies, cookieName) {
+  if (!Array.isArray(setCookies) || !cookieName) return null;
+  for (const cookie of setCookies) {
+    if (!cookie || typeof cookie !== "string") continue;
+    const firstPair = cookie.split(";")[0] || "";
+    const eqIndex = firstPair.indexOf("=");
+    if (eqIndex <= 0) continue;
+    const name = firstPair.slice(0, eqIndex).trim();
+    if (name !== cookieName) continue;
+    const value = firstPair.slice(eqIndex + 1);
+    return value || null;
+  }
+  return null;
+}
+
 function hashToken(token) {
   if (!token || typeof token !== "string") return null;
   try {
@@ -88,7 +105,7 @@ function shouldAttemptRefresh(backendPathname) {
   return true;
 }
 
-async function refreshOnce(req, backendHost) {
+async function refreshOnce(req, backendHost, frontendOrigin) {
   const refreshToken = req.cookies.get("refresh_token")?.value || null;
   const tokenKey = hashToken(refreshToken);
   if (!tokenKey) return { ok: false, accessToken: null, setCookies: [] };
@@ -101,6 +118,16 @@ async function refreshOnce(req, backendHost) {
     const headers = cloneRequestHeaders(req, null);
     // refresh는 쿠키 기반이므로 Authorization은 붙이지 않는다.
     headers.delete("authorization");
+    const fallbackOrigin =
+      (typeof frontendOrigin === "string" && frontendOrigin) ||
+      req.nextUrl?.origin ||
+      "";
+    if (fallbackOrigin && !headers.has("origin")) {
+      headers.set("origin", fallbackOrigin);
+    }
+    if (fallbackOrigin && !headers.has("referer")) {
+      headers.set("referer", `${fallbackOrigin}/`);
+    }
     if (!headers.has("content-type"))
       headers.set("content-type", "application/json");
 
@@ -114,8 +141,8 @@ async function refreshOnce(req, backendHost) {
     const setCookies = collectSetCookies(refreshRes)
       .map(rewriteSetCookie)
       .filter(Boolean);
-    const json = await refreshRes.json().catch(() => null);
-    const accessToken = json?.result?.accessToken || null;
+    const accessToken =
+      extractCookieValueFromSetCookies(setCookies, ACCESS_COOKIE_NAME) || null;
 
     if (!refreshRes.ok || !accessToken) {
       return { ok: false, accessToken: null, setCookies };
@@ -134,6 +161,7 @@ async function refreshOnce(req, backendHost) {
 async function proxy(req, context = {}) {
   const params = await context?.params;
   const backendHost = await getBackendHost();
+  const frontendOrigin = await getFrontendHost();
   const accessToken = req.cookies.get("access_token")?.value || null;
   const target = toBackendUrl(params?.path, req.nextUrl.search, backendHost);
   const headers = cloneRequestHeaders(req, accessToken);
@@ -157,7 +185,7 @@ async function proxy(req, context = {}) {
 
   // 401이면 refresh 1회만 수행한 뒤 재시도한다(동시 탭/요청 경합은 singleflight로 흡수).
   if (backendRes.status === 401 && shouldAttemptRefresh(backendPathname)) {
-    refreshResult = await refreshOnce(req, backendHost);
+    refreshResult = await refreshOnce(req, backendHost, frontendOrigin);
     if (refreshResult.ok && refreshResult.accessToken) {
       const retryHeaders = cloneRequestHeaders(req, refreshResult.accessToken);
       const retryInit = {

@@ -5,38 +5,10 @@
  * 설명: 공개 샘플 레이아웃(헤더/사이드바) 메타 계산 유틸
  */
 
-const MENU_TEMPLATE_LIST = [
-  {
-    menuId: "demo",
-    menuNm: "샘플 허브",
-    href: "/sample",
-    icon: "ri:RiApps2Line",
-  },
-  {
-    menuId: "dashboard",
-    menuNm: "샘플 대시보드",
-    href: "/sample/dashboard",
-    icon: "ri:RiBarChart2Line",
-  },
-  {
-    menuId: "crud",
-    menuNm: "CRUD 관리",
-    href: "/sample/crud",
-    icon: "ri:RiTableLine",
-  },
-  {
-    menuId: "form",
-    menuNm: "복합 폼",
-    href: "/sample/form",
-    icon: "ri:RiFileEditLine",
-  },
-  {
-    menuId: "admin",
-    menuNm: "관리자 화면",
-    href: "/sample/admin",
-    icon: "ri:RiShieldUserLine",
-  },
-];
+import LANG_KO from "./lang.ko";
+
+const { layoutMeta } = LANG_KO;
+const MENU_TEMPLATE_LIST = layoutMeta.menuList.map((item) => ({ ...item }));
 
 const resolveRouteKey = (pathname) => {
   const pathText = String(pathname || "");
@@ -49,19 +21,19 @@ const resolveRouteKey = (pathname) => {
 };
 
 const resolveTitle = (routeKey) => {
-  if (routeKey === "demo") return "샘플 허브";
-  if (routeKey === "dashboard") return "샘플 대시보드";
-  if (routeKey === "form") return "복합 폼 샘플";
-  if (routeKey === "admin") return "관리자 화면 샘플";
-  return "CRUD 관리 샘플";
+  if (routeKey === "demo") return layoutMeta.title.demo;
+  if (routeKey === "dashboard") return layoutMeta.title.dashboard;
+  if (routeKey === "form") return layoutMeta.title.form;
+  if (routeKey === "admin") return layoutMeta.title.admin;
+  return layoutMeta.title.default;
 };
 
 const resolveSubtitle = (routeKey) => {
-  if (routeKey === "demo") return "공개 샘플 > 허브";
-  if (routeKey === "dashboard") return "공개 샘플 > 샘플 대시보드";
-  if (routeKey === "form") return "공개 샘플 > 복합 폼";
-  if (routeKey === "admin") return "공개 샘플 > 관리자 화면";
-  return "공개 샘플 > CRUD 관리";
+  if (routeKey === "demo") return layoutMeta.subtitle.demo;
+  if (routeKey === "dashboard") return layoutMeta.subtitle.dashboard;
+  if (routeKey === "form") return layoutMeta.subtitle.form;
+  if (routeKey === "admin") return layoutMeta.subtitle.admin;
+  return layoutMeta.subtitle.default;
 };
 
 /**
@@ -79,7 +51,7 @@ export const resolveDemoLayoutMeta = (pathname) => {
   return {
     title: resolveTitle(routeKey),
     subtitle: resolveSubtitle(routeKey),
-    text: "샘플 화면을 체험할 수 있어요.",
+    text: layoutMeta.helperText,
     menuList,
   };
 };

@@ -5,26 +5,18 @@
  * 설명: 공개 복합 폼 샘플 페이지 정적 데이터
  */
 
+import LANG_KO from "./lang.ko";
+
+const { initData } = LANG_KO;
+
 export const PAGE_MODE = {
   MODE: "CSR",
   PUBLIC_PATH: "/sample/form",
 };
 
-export const CATEGORY_OPTION_LIST = [
-  { value: "", text: "분류 선택" },
-  { value: "web", text: "웹개발" },
-  { value: "app", text: "앱개발" },
-  { value: "api", text: "API개발" },
-  { value: "etc", text: "기타" },
-];
+export const CATEGORY_OPTION_LIST = initData.categoryOptions.map((item) => ({ ...item }));
 
-export const FEATURE_CHECK_LIST = [
-  { key: "login", label: "로그인" },
-  { key: "board", label: "게시판" },
-  { key: "payment", label: "결제" },
-  { key: "chart", label: "차트" },
-  { key: "admin", label: "관리자" },
-];
+export const FEATURE_CHECK_LIST = initData.featureOptions.map((item) => ({ ...item }));
 
 /**
  * @description createDefaultForm 구성 데이터를 반환한다.
