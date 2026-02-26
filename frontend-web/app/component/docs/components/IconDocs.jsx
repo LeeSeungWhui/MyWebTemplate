@@ -12,6 +12,9 @@ import { IconExamples } from '../examples/IconExamples';
 import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';
 
+/**
+ * @description IconDocs export를 노출한다.
+ */
 const IconDocs = () => {
     const examples = IconExamples();
 

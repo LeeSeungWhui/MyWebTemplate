@@ -9,6 +9,9 @@ import { LoadingExamples } from '../examples/LoadingExamples';
 import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';
 
+/**
+ * @description LoadingDocs export를 노출한다.
+ */
 const LoadingDocs = () => {
   const examples = LoadingExamples();
 

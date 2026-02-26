@@ -23,11 +23,11 @@ const roleLabelByIndex = (index) => {
  */
 export const TableExamples = () => {
   const data = useMemo(() => (
-    Array.from({ length: 53 }, (_, i) => ({
-      id: i + 1,
-      name: `사용자 ${i + 1}`,
-      email: `user${i + 1}@example.com`,
-      role: roleLabelByIndex(i),
+    Array.from({ length: 53 }, (unusedItem, itemIndex) => ({
+      id: itemIndex + 1,
+      name: `사용자 ${itemIndex + 1}`,
+      email: `user${itemIndex + 1}@example.com`,
+      role: roleLabelByIndex(itemIndex),
     }))
   ), []);
 
@@ -61,11 +61,11 @@ export const TableExamples = () => {
       ),
       description: '기본 테이블: URL(page) 동기화 + 세션 보존, 페이지당 10개',
       code: `// 데이터와 컬럼 정의
-const data = Array.from({ length: 53 }, (_, i) => ({
-  id: i + 1,
-  name: '사용자 ' + (i + 1),
-  email: 'user' + (i + 1) + '@example.com',
-  role: roleLabelByIndex(i),
+const data = Array.from({ length: 53 }, (unusedItem, itemIndex) => ({
+  id: itemIndex + 1,
+  name: '사용자 ' + (itemIndex + 1),
+  email: 'user' + (itemIndex + 1) + '@example.com',
+  role: roleLabelByIndex(itemIndex),
 }));
 const columns = [
   { key: 'id', header: 'ID', width: '80px', align: 'center' },
@@ -92,16 +92,16 @@ const columns = [
           page={page}
           pageSize={5}
           maxPageButtons={7}
-          onPageChange={(p) => setPage(p)}
+          onPageChange={(nextPage) => setPage(nextPage)}
         />
       ),
       description: '제어형 페이지: page/onPageChange로 바깥에서 관리 (pageSize=5)',
       code: `// 데이터와 컬럼 정의
-const data = Array.from({ length: 53 }, (_, i) => ({
-  id: i + 1,
-  name: '사용자 ' + (i + 1),
-  email: 'user' + (i + 1) + '@example.com',
-  role: roleLabelByIndex(i),
+const data = Array.from({ length: 53 }, (unusedItem, itemIndex) => ({
+  id: itemIndex + 1,
+  name: '사용자 ' + (itemIndex + 1),
+  email: 'user' + (itemIndex + 1) + '@example.com',
+  role: roleLabelByIndex(itemIndex),
 }));
 const columns = [
   { key: 'id', header: 'ID', width: '80px', align: 'center' },
@@ -165,11 +165,11 @@ const columns = [
       ),
       description: '커스텀 스타일: 셀 rounded-2xl + ring, 헤더/행 gap으로 물리적 분리된 모던 스타일',
       code: `// 데이터와 styledColumns 정의
-const data = Array.from({ length: 53 }, (_, i) => ({
-  id: i + 1,
-  name: '사용자 ' + (i + 1),
-  email: 'user' + (i + 1) + '@example.com',
-  role: roleLabelByIndex(i),
+const data = Array.from({ length: 53 }, (unusedItem, itemIndex) => ({
+  id: itemIndex + 1,
+  name: '사용자 ' + (itemIndex + 1),
+  email: 'user' + (itemIndex + 1) + '@example.com',
+  role: roleLabelByIndex(itemIndex),
 }));
 const styledColumns = [
   { key: 'id', header: 'ID', width: '80px', align: 'center', headerClassName: 'bg-gray-100 rounded-2xl ring-1 ring-gray-200 text-gray-700', cellClassName: 'text-gray-800' },

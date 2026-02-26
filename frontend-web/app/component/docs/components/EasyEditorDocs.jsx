@@ -8,6 +8,9 @@ import { EasyEditorExamples } from '../examples/EasyEditorExamples';
 import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';
 
+/**
+ * @description EasyEditorDocs export를 노출한다.
+ */
 const EasyEditorDocs = () => {
   const examples = EasyEditorExamples();
 

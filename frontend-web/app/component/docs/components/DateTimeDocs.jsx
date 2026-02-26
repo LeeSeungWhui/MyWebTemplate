@@ -13,6 +13,9 @@ import CodeBlock from '../shared/CodeBlock';
 import { DateInputExamples } from '../examples/DateInputExamples';
 import { TimeInputExamples } from '../examples/TimeInputExamples';
 
+/**
+ * @description DateTimeDocs export를 노출한다.
+ */
 const DateTimeDocs = () => {
   const dateEx = DateInputExamples();
   const timeEx = TimeInputExamples();

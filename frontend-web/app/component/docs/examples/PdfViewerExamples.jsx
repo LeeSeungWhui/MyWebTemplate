@@ -43,14 +43,14 @@ export const PdfViewerExamples = () => {
       component: (
         <div className="space-y-3">
           <div className="flex items-center gap-2">
-            <input type="file" accept="application/pdf" onChange={(e) => setLocalFile(e.target.files?.[0] ?? null)} />
+            <input type="file" accept="application/pdf" onChange={(event) => setLocalFile(event.target.files?.[0] ?? null)} />
           </div>
           {localFile && <Lib.PdfViewer src={localFile} />}
         </div>
       ),
       description: '로컬 파일 선택 후 뷰어로 표시',
       code: `const [file, setFile] = useState(null);
-<input type="file" accept="application/pdf" onChange={(e)=>setFile(e.target.files?.[0])} />
+<input type="file" accept="application/pdf" onChange={(event)=>setFile(event.target.files?.[0])} />
 {file && <Lib.PdfViewer src={file} />}`,
     },
     {
@@ -59,10 +59,10 @@ export const PdfViewerExamples = () => {
         <div className="space-y-3">
           <div className="flex items-center gap-2">
             <input
-              className="border rounded px-2 py-1 text-sm w-[360px]"
+              className="w-full max-w-md border rounded px-2 py-1 text-sm"
               placeholder="https://example.com/sample.pdf"
               value={remoteUrl}
-              onChange={(e) => setRemoteUrl(e.target.value)}
+              onChange={(event) => setRemoteUrl(event.target.value)}
             />
           </div>
           {remoteUrl && <Lib.PdfViewer src={remoteUrl} />}
@@ -70,7 +70,7 @@ export const PdfViewerExamples = () => {
       ),
       description: '원격 URL로 PDF 표시(서버 CORS 허용 필요)',
       code: `const [url, setUrl] = useState('');
-<input value={url} onChange={(e)=>setUrl(e.target.value)} />
+<input value={url} onChange={(event)=>setUrl(event.target.value)} />
 {url && <Lib.PdfViewer src={url} />}`,
     },
     {

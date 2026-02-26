@@ -8,6 +8,9 @@ import { PdfViewerExamples } from '../examples/PdfViewerExamples';
 import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';
 
+/**
+ * @description PdfViewerDocs export를 노출한다.
+ */
 const PdfViewerDocs = () => {
   const examples = PdfViewerExamples();
   return (

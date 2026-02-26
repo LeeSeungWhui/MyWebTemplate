@@ -9,6 +9,9 @@ import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';
 import { DrawerExamples } from '../examples/DrawerExamples';
 
+/**
+ * @description DrawerDocs export를 노출한다.
+ */
 const DrawerDocs = () => {
   const examples = DrawerExamples();
   return (

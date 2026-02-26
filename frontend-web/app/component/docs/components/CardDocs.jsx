@@ -9,6 +9,9 @@ import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';
 import { CardExamples } from '../examples/CardExamples';
 
+/**
+ * @description CardDocs export를 노출한다.
+ */
 const CardDocs = () => {
   const examples = CardExamples();
   return (

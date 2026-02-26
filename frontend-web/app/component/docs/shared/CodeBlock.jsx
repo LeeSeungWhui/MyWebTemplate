@@ -6,6 +6,9 @@
  */
 import { useState } from 'react';
 
+/**
+ * @description CodeBlock export를 노출한다.
+ */
 const CodeBlock = ({ code, language = 'jsx' }) => {
     const [copied, setCopied] = useState(false);
 

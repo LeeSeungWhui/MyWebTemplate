@@ -12,6 +12,9 @@ import CodeBlock from '../shared/CodeBlock';
  * Stat 문서 섹션
  * @date 2025-09-13
  */
+/**
+ * @description StatDocs export를 노출한다.
+ */
 const StatDocs = () => {
   const examples = StatExamples();
   return (

@@ -7,6 +7,9 @@
 import ComponentsView from "./view";
 import { PAGE_MODE } from "./initData";
 
+/**
+ * @description ComponentsPage export를 노출한다.
+ */
 const ComponentsPage = () => {
   return <ComponentsView pageMode={PAGE_MODE.MODE} />;
 };

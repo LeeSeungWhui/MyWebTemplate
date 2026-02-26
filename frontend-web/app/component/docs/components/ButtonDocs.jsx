@@ -12,6 +12,9 @@ import { ButtonExamples } from '../examples/ButtonExamples';
 import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';
 
+/**
+ * @description ButtonDocs export를 노출한다.
+ */
 const ButtonDocs = () => {
     const examples = ButtonExamples();  // 컴포넌트 실행
 

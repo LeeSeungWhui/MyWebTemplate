@@ -7,6 +7,9 @@
 import { useState, useEffect } from 'react';
 import * as Lib from '@/app/lib';
 
+/**
+ * @description TopButton export를 노출한다.
+ */
 const TopButton = () => {
     const [isVisible, setIsVisible] = useState(false);
 

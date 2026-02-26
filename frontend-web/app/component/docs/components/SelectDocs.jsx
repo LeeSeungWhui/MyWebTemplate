@@ -12,6 +12,9 @@ import { SelectExamples } from '../examples/SelectExamples';
 import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';
 
+/**
+ * @description SelectDocs export를 노출한다.
+ */
 const SelectDocs = () => {
     const examples = SelectExamples();
 

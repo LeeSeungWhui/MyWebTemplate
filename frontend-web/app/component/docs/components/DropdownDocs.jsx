@@ -12,6 +12,9 @@ import CodeBlock from '../shared/CodeBlock';
  * Dropdown 문서 섹션
  * @date 2025-09-13
  */
+/**
+ * @description DropdownDocs export를 노출한다.
+ */
 const DropdownDocs = () => {
   const examples = DropdownExamples();
 

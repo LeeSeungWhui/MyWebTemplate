@@ -12,6 +12,9 @@ import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';
 import { SkeletonExamples } from '../examples/SkeletonExamples';
 
+/**
+ * @description SkeletonDocs export를 노출한다.
+ */
 const SkeletonDocs = () => {
   const examples = SkeletonExamples();
   return (

@@ -12,6 +12,9 @@ import { DataClassExamples } from '../examples/DataClassExamples';
 import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';
 
+/**
+ * @description DataClassDocs export를 노출한다.
+ */
 const DataClassDocs = () => {
     const examples = DataClassExamples();
 

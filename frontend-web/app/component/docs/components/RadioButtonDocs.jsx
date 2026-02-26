@@ -12,6 +12,9 @@ import { RadioButtonExamples } from '../examples/RadioButtonExamples';
 import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';
 
+/**
+ * @description RadioButtonDocs export를 노출한다.
+ */
 const RadioButtonDocs = () => {
     const examples = RadioButtonExamples();
 

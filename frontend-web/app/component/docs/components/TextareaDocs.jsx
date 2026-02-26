@@ -12,6 +12,9 @@ import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';
 import { TextareaExamples } from '../examples/TextareaExamples';
 
+/**
+ * @description TextareaDocs export를 노출한다.
+ */
 const TextareaDocs = () => {
   const examples = TextareaExamples();
   return (

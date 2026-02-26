@@ -153,14 +153,14 @@ export const RadioboxExamples = () => {
                         label="옵션 1"
                         value="option1"
                         checked={controlledValue === 'option1'}
-                        onChange={(e) => setControlledValue(e.target.value)}
+                        onChange={(event) => setControlledValue(event.target.value)}
                     />
                     <Lib.Radiobox
                         name="controlled"
                         label="옵션 2"
                         value="option2"
                         checked={controlledValue === 'option2'}
-                        onChange={(e) => setControlledValue(e.target.value)}
+                        onChange={(event) => setControlledValue(event.target.value)}
                     />
                     <div className="text-sm text-gray-600">
                         선택된 값: {controlledValue || '없음'}
@@ -175,14 +175,14 @@ export const RadioboxExamples = () => {
     label="옵션 1"
     value="option1"
     checked={value === 'option1'}
-    onChange={(e) => setValue(e.target.value)}
+    onChange={(event) => setValue(event.target.value)}
 />
 <Lib.Radiobox
     name="controlled"
     label="옵션 2"
     value="option2"
     checked={value === 'option2'}
-    onChange={(e) => setValue(e.target.value)}
+    onChange={(event) => setValue(event.target.value)}
 />`
         }
     ];

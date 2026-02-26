@@ -12,6 +12,9 @@ import { CheckboxExamples } from '../examples/CheckboxExamples';
 import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';
 
+/**
+ * @description CheckboxDocs export를 노출한다.
+ */
 const CheckboxDocs = () => {
     const examples = CheckboxExamples();
 

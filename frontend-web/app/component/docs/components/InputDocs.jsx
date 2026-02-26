@@ -12,6 +12,9 @@ import { InputExamples } from '../examples/InputExamples';
 import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';
 
+/**
+ * @description InputDocs export를 노출한다.
+ */
 const InputDocs = () => {
     const examples = InputExamples();  // 컴포넌트 실행
 
@@ -35,7 +38,7 @@ const InputDocs = () => {
                         <li><code>type?</code>: HTML input 타입 (기본: 'text')</li>
                         <li><code>placeholder?</code>: 안내 문구</li>
                         <li><code>filter?</code>: 허용 문자 필터</li>
-                        <li><code>mask?</code>: 입력 마스크 패턴</li>
+                        <li><code>mask?</code>: 입력 마스크 패턴 문자열 또는 함수</li>
                         <li><code>maxDigits?/maxDecimals?</code>: 숫자 자릿수 제한</li>
                         <li><code>prefix?/suffix?</code>: 입력 앞/뒤 표시 문자열</li>
                         <li><code>togglePassword?</code>: 비밀번호 토글 버튼</li>

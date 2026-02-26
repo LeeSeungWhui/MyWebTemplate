@@ -12,6 +12,9 @@ import { TooltipExamples } from '../examples/TooltipExamples';
  * Tooltip 문서 섹션
  * @date 2025-09-13
  */
+/**
+ * @description TooltipDocs export를 노출한다.
+ */
 const TooltipDocs = () => {
   const examples = TooltipExamples();
   return (

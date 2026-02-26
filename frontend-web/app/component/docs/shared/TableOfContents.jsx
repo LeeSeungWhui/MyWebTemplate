@@ -261,6 +261,9 @@ const tocItems = [
   },
 ];
 
+/**
+ * @description TableOfContents export를 노출한다.
+ */
 const TableOfContents = () => {
   return (
     <section className="bg-white">

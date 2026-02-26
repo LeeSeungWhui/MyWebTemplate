@@ -26,6 +26,9 @@ const propRows = [
   { name: "hideLegend", desc: "범례 숨김 여부" },
 ];
 
+/**
+ * @description EasyChartDocs export를 노출한다.
+ */
 const EasyChartDocs = () => {
   const examples = EasyChartExamples();
   return (

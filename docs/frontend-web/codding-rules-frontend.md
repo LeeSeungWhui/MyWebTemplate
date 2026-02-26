@@ -41,6 +41,9 @@
 - `initData/page/view`에서 사용자에게 보이는 텍스트는 이 파일(또는 공통 i18n 파일)에서 가져온다.
 - 하드코딩 금지 대상:
   - 제목/설명/버튼 라벨/placeholder/empty/error 안내 문구
+- `lib/component` 공용 컴포넌트 기본 문구도 같은 기준을 적용한다.
+  - 기본값 문자열은 `app/common/i18n/lang.ko.js` 등 공통 i18n 리소스에서 가져온다.
+  - 컴포넌트 호출부에서 `props`로 문구를 덮어쓸 수 있게 설계한다.
 - 예외(하드코딩 허용):
   - 개발용 로그 문구
   - 코드/프로토콜/헤더 키/상태 코드 같은 기술 상수
@@ -335,7 +338,13 @@ export const LANG_KO = {
 - 일반 컴포넌트 파일(PascalCase `.jsx`, 예: `ResumeRender.jsx`, `FilterBar.jsx`)은
   - **기본적으로 한 파일당 하나의 React 컴포넌트**만 export 한다.
   - 서브 컴포넌트가 필요하면 `app/sample/SomeComponent/SubPart.jsx`처럼 별도 파일로 분리한다.
-- 예외:
+- 예외(공용 컴포넌트 파일 내부 소형 컴포넌트 허용):
+  - 같은 파일에서만 쓰는 내부 UI 조각은 파일 내부에 둘 수 있다.
+  - 조건:
+    - `export` 하지 않는다.
+    - 약 30줄 내외의 단순 표현 컴포넌트(`Arrow`, `TabItem`, `ModalHeader` 등)로 제한한다.
+    - 동일 패턴이 2개 이상 파일에서 반복되면 별도 컴포넌트로 분리한다.
+- 추가 예외:
   - `view.jsx`, `page.jsx`처럼 페이지 템플릿 파일은
     - 메인 뷰 컴포넌트 하나만 export 하되,
     - 파일 내부에 도메인 헬퍼/이벤트 함수는 자유롭게 둘 수 있다.

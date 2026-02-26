@@ -24,7 +24,7 @@ export const SwitchExamples = () => {
             dataObj={obj}
             dataKey="enabled"
             label={`바운드: ${obj.enabled ? 'ON' : 'OFF'}`}
-            onValueChange={(v) => console.log('switch(bound):', v)}
+            onValueChange={(nextValue) => console.log('switch(bound):', nextValue)}
           />
           <span className="text-sm text-gray-600">obj.enabled = {String(obj.enabled)}</span>
         </div>
@@ -36,7 +36,7 @@ export const SwitchExamples = () => {
   dataObj={obj}
   dataKey="enabled"
   label={\`바운드: \${obj.enabled ? 'ON' : 'OFF'}\`}
-  onValueChange={(v) => console.log('switch(bound):', v)}
+  onValueChange={(nextValue) => console.log('switch(bound):', nextValue)}
 />`
     },
     {
@@ -44,7 +44,7 @@ export const SwitchExamples = () => {
         <div className="flex items-center gap-4">
           <Lib.Switch
             checked={local}
-            onValueChange={(v) => setLocal(v)}
+            onValueChange={(nextValue) => setLocal(nextValue)}
             label={`컨트롤드: ${local ? 'ON' : 'OFF'}`}
           />
           <span className="text-sm text-gray-600">local = {String(local)}</span>
@@ -55,7 +55,7 @@ export const SwitchExamples = () => {
 
 <Lib.Switch
   checked={local}
-  onValueChange={(v) => setLocal(v)}
+  onValueChange={(nextValue) => setLocal(nextValue)}
   label={\`컨트롤드: ${local ? 'ON' : 'OFF'}\`}
 />`
     },
@@ -93,4 +93,3 @@ export const SwitchExamples = () => {
 
   return examples;
 };
-

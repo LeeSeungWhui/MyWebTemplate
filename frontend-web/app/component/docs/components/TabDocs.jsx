@@ -12,6 +12,9 @@ import { TabExamples } from '../examples/TabExamples';
 import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';
 
+/**
+ * @description TabDocs export를 노출한다.
+ */
 const TabDocs = () => {
     const examples = TabExamples();
 

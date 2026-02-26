@@ -9,6 +9,9 @@ import { AlertExamples } from '../examples/AlertExamples';
 import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';
 
+/**
+ * @description AlertDocs export를 노출한다.
+ */
 const AlertDocs = () => {
   const examples = AlertExamples();
 

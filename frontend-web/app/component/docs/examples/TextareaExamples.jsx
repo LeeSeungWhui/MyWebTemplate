@@ -26,7 +26,7 @@ export const TextareaExamples = () => {
             dataKey="memo"
             rows={4}
             placeholder="메모를 입력하세요"
-            onValueChange={(v) => console.log('textarea(bound):', v)}
+            onValueChange={(nextValue) => console.log('textarea(bound):', nextValue)}
           />
           <div className="mt-1 text-xs text-gray-500">obj.memo = {obj.memo}</div>
         </div>
@@ -39,7 +39,7 @@ export const TextareaExamples = () => {
   dataKey="memo"
   rows={4}
   placeholder="메모를 입력하세요"
-  onValueChange={(v) => console.log('textarea(bound):', v)}
+  onValueChange={(nextValue) => console.log('textarea(bound):', nextValue)}
 />`
     },
     {
@@ -98,4 +98,3 @@ export const TextareaExamples = () => {
 
   return examples;
 };
-

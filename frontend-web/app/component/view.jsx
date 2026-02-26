@@ -45,8 +45,10 @@ import EasyChartDocs from "./docs/components/EasyChartDocs";
 import PdfViewerDocs from "./docs/components/PdfViewerDocs";
 import LANG_KO from "./lang.ko";
 
+/**
+ * @description ComponentsView export를 노출한다.
+ */
 const ComponentsView = ({ pageMode = "CSR" }) => {
-  const { view: viewText } = LANG_KO;
   const ui = EasyObj(useMemo(() => ({ mobileTocOpen: false }), []));
 
   useEffect(() => {
@@ -78,16 +80,16 @@ const ComponentsView = ({ pageMode = "CSR" }) => {
 
       <div className="min-w-0 flex-1 md:ml-64">
         <div className="sticky top-0 z-20 flex items-center justify-between border-b border-gray-200 bg-white px-4 py-3 md:hidden">
-          <h1 className="text-base font-semibold text-gray-900">{viewText.mobileTitle}</h1>
+          <h1 className="text-base font-semibold text-gray-900">{LANG_KO.view.mobileTitle}</h1>
           <button
             type="button"
             onClick={() => {
               ui.mobileTocOpen = true;
             }}
             className="rounded-md border border-gray-200 px-3 py-1.5 text-sm font-medium text-gray-700"
-            aria-label={viewText.openTocAriaLabel}
+            aria-label={LANG_KO.view.openTocAriaLabel}
           >
-            {viewText.openTocLabel}
+            {LANG_KO.view.openTocLabel}
           </button>
         </div>
 
@@ -136,11 +138,11 @@ const ComponentsView = ({ pageMode = "CSR" }) => {
             onClick={() => {
               ui.mobileTocOpen = false;
             }}
-            aria-label={viewText.closeTocAriaLabel}
+            aria-label={LANG_KO.view.closeTocAriaLabel}
           />
           <aside className="relative z-10 h-full w-72 max-w-[80vw] overflow-auto border-r border-gray-200 bg-white p-4">
             <div className="mb-4 flex items-center justify-between">
-              <span className="text-sm font-semibold text-gray-900">{viewText.tocLabel}</span>
+              <span className="text-sm font-semibold text-gray-900">{LANG_KO.view.tocLabel}</span>
               <button
                 type="button"
                 onClick={() => {
@@ -148,7 +150,7 @@ const ComponentsView = ({ pageMode = "CSR" }) => {
                 }}
                 className="rounded-md border border-gray-200 px-2 py-1 text-xs text-gray-700"
               >
-                {viewText.closeLabel}
+                {LANG_KO.view.closeLabel}
               </button>
             </div>
             <TableOfContents />

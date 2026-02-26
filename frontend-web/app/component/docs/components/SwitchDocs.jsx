@@ -12,6 +12,9 @@ import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';
 import { SwitchExamples } from '../examples/SwitchExamples';
 
+/**
+ * @description SwitchDocs export를 노출한다.
+ */
 const SwitchDocs = () => {
   const examples = SwitchExamples();
   return (

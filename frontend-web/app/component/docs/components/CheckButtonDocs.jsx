@@ -12,6 +12,9 @@ import { CheckButtonExamples } from '../examples/CheckButtonExamples';
 import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';
 
+/**
+ * @description CheckButtonDocs export를 노출한다.
+ */
 const CheckButtonDocs = () => {
     const examples = CheckButtonExamples();
 

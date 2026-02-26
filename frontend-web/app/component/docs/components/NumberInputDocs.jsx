@@ -12,6 +12,9 @@ import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';
 import { NumberInputExamples } from '../examples/NumberInputExamples';
 
+/**
+ * @description NumberInputDocs export를 노출한다.
+ */
 const NumberInputDocs = () => {
   const examples = NumberInputExamples();
   return (

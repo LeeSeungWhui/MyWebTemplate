@@ -96,7 +96,7 @@ export const CheckboxExamples = () => {
                     <Lib.Checkbox
                         label="제어 컴포넌트"
                         checked={controlledCheck}
-                        onChange={(e) => setControlledCheck(e.target.checked)}
+                        onChange={(event) => setControlledCheck(event.target.checked)}
                     />
                     <div className="text-sm text-gray-600">
                         현재 상태: {controlledCheck ? '체크됨' : '체크 해제됨'}
@@ -109,7 +109,7 @@ export const CheckboxExamples = () => {
 <Lib.Checkbox
     label="제어 컴포넌트"
     checked={checked}
-    onChange={(e) => setChecked(e.target.checked)}
+    onChange={(event) => setChecked(event.target.checked)}
 />`
         },
         {

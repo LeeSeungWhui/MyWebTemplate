@@ -12,6 +12,9 @@ import { ModalExamples } from '../examples/ModalExamples';
 import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';
 
+/**
+ * @description ModalDocs export를 노출한다.
+ */
 const ModalDocs = () => {
     const examples = ModalExamples();
 

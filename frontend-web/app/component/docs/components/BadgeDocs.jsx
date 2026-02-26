@@ -12,6 +12,9 @@ import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';
 import { BadgeExamples } from '../examples/BadgeExamples';
 
+/**
+ * @description BadgeDocs export를 노출한다.
+ */
 const BadgeDocs = () => {
   const examples = BadgeExamples();
   return (

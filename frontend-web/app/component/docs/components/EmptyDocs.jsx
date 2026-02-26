@@ -12,6 +12,9 @@ import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';
 import { EmptyExamples } from '../examples/EmptyExamples';
 
+/**
+ * @description EmptyDocs export를 노출한다.
+ */
 const EmptyDocs = () => {
   const examples = EmptyExamples();
   return (

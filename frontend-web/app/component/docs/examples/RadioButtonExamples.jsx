@@ -140,7 +140,7 @@ export const RadioButtonExamples = () => {
                             name="controlled"
                             value="kr"
                             checked={controlledValue === 'kr'}
-                            onChange={(e) => setControlledValue(e.target.value)}
+                            onChange={(event) => setControlledValue(event.target.value)}
                         >
                             한국어
                         </Lib.RadioButton>
@@ -148,7 +148,7 @@ export const RadioButtonExamples = () => {
                             name="controlled"
                             value="en"
                             checked={controlledValue === 'en'}
-                            onChange={(e) => setControlledValue(e.target.value)}
+                            onChange={(event) => setControlledValue(event.target.value)}
                         >
                             English
                         </Lib.RadioButton>
@@ -165,7 +165,7 @@ export const RadioButtonExamples = () => {
     name="controlled"
     value="kr"
     checked={value === 'kr'}
-    onChange={(e) => setValue(e.target.value)}
+    onChange={(event) => setValue(event.target.value)}
 >
     한국어
 </Lib.RadioButton>
@@ -173,7 +173,7 @@ export const RadioButtonExamples = () => {
     name="controlled"
     value="en"
     checked={value === 'en'}
-    onChange={(e) => setValue(e.target.value)}
+    onChange={(event) => setValue(event.target.value)}
 >
     English
 </Lib.RadioButton>`

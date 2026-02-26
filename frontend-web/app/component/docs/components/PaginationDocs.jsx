@@ -12,6 +12,9 @@ import CodeBlock from '../shared/CodeBlock';
  * Pagination 문서 섹션
  * @date 2025-09-13
  */
+/**
+ * @description PaginationDocs export를 노출한다.
+ */
 const PaginationDocs = () => {
   const examples = PaginationExamples();
   return (

@@ -9,6 +9,9 @@ import { ConfirmExamples } from '../examples/ConfirmExamples';
 import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';
 
+/**
+ * @description ConfirmDocs export를 노출한다.
+ */
 const ConfirmDocs = () => {
   const examples = ConfirmExamples();
 
