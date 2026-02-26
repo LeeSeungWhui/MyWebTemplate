@@ -12,11 +12,20 @@ def testTransactionSingleAndUniqueRollback():
     from lib import Database as DB
 
     with TestClient(app) as client:
-        response = client.post("/api/v1/transaction/test/single")
+        loginResponse = client.post(
+            "/api/v1/auth/app/login",
+            json={"username": "demo@demo.demo", "password": "password123"},
+        )
+        assert loginResponse.status_code == 200
+        loginPayload = loginResponse.json()
+        accessToken = loginPayload["result"]["accessToken"]
+        authHeaders = {"Authorization": f"Bearer {accessToken}"}
+
+        response = client.post("/api/v1/transaction/test/single", headers=authHeaders)
         assert response.status_code == 200
         assert response.json()["status"] is True
 
-        response = client.post("/api/v1/transaction/test/unique-violation")
+        response = client.post("/api/v1/transaction/test/unique-violation", headers=authHeaders)
         assert response.status_code == 409
         j = response.json()
         assert j["status"] is False

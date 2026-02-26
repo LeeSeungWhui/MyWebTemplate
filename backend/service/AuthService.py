@@ -113,8 +113,8 @@ def _getTokenStateStoreDbManager():
 
 async def ensureTokenStateStore() -> bool:
     """
-    설명: 리프레시 토큰 상태 저장소(DB)의 사용 가능 여부를 점검한다(DDL 미수행).
-    갱신일: 2026-02-24
+    설명: 리프레시 토큰 상태 저장소(DB)의 사용 가능 여부를 점검한다(필요 시 테이블 생성 DDL 포함).
+    갱신일: 2026-02-26
     """
     global tokenStateStoreReady, tokenStateStoreWarned
     if tokenStateStoreReady:

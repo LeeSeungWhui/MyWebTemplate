@@ -11,6 +11,7 @@ from __future__ import annotations
 
 from configparser import ConfigParser
 import os
+import sys
 
 # 로거 (선택)
 try:
@@ -81,9 +82,24 @@ def getConfig(path: str | None = None, forceReload: bool = False) -> ConfigParse
     if forceReload or configCache is None or configCachePath != resolved:
         configCache = loadConfig(path)
         configCachePath = resolved
+        clearConfigDependentCaches()
     return configCache
 
 
 def reloadConfig() -> ConfigParser:
     """설명: 캐시를 무시하고 설정을 다시 읽는다. 갱신일: 2025-11-12"""
     return getConfig(forceReload=True)
+
+
+def clearConfigDependentCaches() -> None:
+    """
+    설명: 설정 파생 캐시(AuthRouter CORS rules 등)를 무효화한다.
+    갱신일: 2026-02-26
+    """
+    module = sys.modules.get("router.AuthRouter") or sys.modules.get("backend.router.AuthRouter")
+    if not module:
+        return
+    getCorsOriginRules = getattr(module, "getCorsOriginRules", None)
+    cacheClear = getattr(getCorsOriginRules, "cache_clear", None)
+    if callable(cacheClear):
+        cacheClear()

@@ -12,9 +12,23 @@ def testTxLogsIncludeRequestIdAndSqlCount(caplog):
     from server import app
 
     with TestClient(app) as client:
+        loginResponse = client.post(
+            "/api/v1/auth/app/login",
+            json={"username": "demo@demo.demo", "password": "password123"},
+        )
+        assert loginResponse.status_code == 200
+        loginPayload = loginResponse.json()
+        accessToken = loginPayload["result"]["accessToken"]
+
         caplog.clear()
         requestId = "rid-tx-1234"
-        response = client.post("/api/v1/transaction/test/single", headers={"X-Request-Id": requestId})
+        response = client.post(
+            "/api/v1/transaction/test/single",
+            headers={
+                "Authorization": f"Bearer {accessToken}",
+                "X-Request-Id": requestId,
+            },
+        )
         assert response.status_code == 200
         # find tx.commit log with our requestId and sql_count field
         seen = False

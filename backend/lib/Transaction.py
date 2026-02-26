@@ -24,23 +24,64 @@ class TransactionError(Exception):
     pass
 
 
+def findUnsupportedTransactionOption(options: dict[str, object], error: TypeError) -> str | None:
+    """
+    설명: TypeError 메시지에서 미지원 트랜잭션 옵션 키를 추출한다.
+    갱신일: 2026-02-26
+    """
+    if not options:
+        return None
+    message = str(error or "")
+    lowered = message.lower()
+    if "unexpected keyword argument" not in lowered:
+        return None
+
+    match = re.search(r"unexpected keyword argument ['\"]([^'\"]+)['\"]", message, flags=re.IGNORECASE)
+    if match:
+        key = str(match.group(1) or "").strip()
+        normalizedKey = "timeout" if key == "timeout_ms" else key
+        if normalizedKey in options:
+            return normalizedKey
+
+    if "timeout" in lowered and "timeout" in options:
+        return "timeout"
+    if "isolation" in lowered and "isolation" in options:
+        return "isolation"
+    if len(options) == 1:
+        return next(iter(options.keys()))
+    return None
+
+
 def transaction(
     dbNames: Union[str, List[str]],
     *,
     isolation: str | None = None,
     timeoutMs: int | None = None,
+    timeout_ms: int | None = None,
     retries: int = 0,
     retryOn: Tuple[type[BaseException], ...] = (),
 ):
     """
     설명: 단일/다중 DB 트랜잭션을 지원하는 데코레이터.
-    인자: dbNames/isolation/timeoutMs/retries/retryOn.
-    갱신일: 2025-11-12
+    인자: dbNames/isolation/timeoutMs(timeout_ms)/retries/retryOn.
+    갱신일: 2026-02-26
     """
     if isinstance(dbNames, str):
         dbList = [dbNames]
     else:
         dbList = list(dbNames)
+
+    transactionOptions: dict[str, object] = {}
+    if isinstance(isolation, str) and isolation.strip():
+        transactionOptions["isolation"] = isolation.strip()
+    effectiveTimeoutMs = timeoutMs if timeoutMs is not None else timeout_ms
+    if effectiveTimeoutMs is not None:
+        try:
+            timeoutFloat = float(effectiveTimeoutMs) / 1000.0
+            if timeoutFloat > 0:
+                transactionOptions["timeout"] = timeoutFloat
+        except (TypeError, ValueError):
+            pass
 
     def decorator(func):
         @wraps(func)
@@ -58,10 +99,26 @@ def transaction(
                     for name in dbList:
                         if name not in dbManagers:
                             raise TransactionError(f"database not found: {name}")
-                        await stack.enter_async_context(dbManagers[name].database.transaction())
+                        manager = dbManagers[name]
+                        resolvedOptions = dict(transactionOptions)
+                        while True:
+                            try:
+                                await stack.enter_async_context(manager.database.transaction(**resolvedOptions))
+                                break
+                            except TypeError as e:
+                                unsupportedKey = findUnsupportedTransactionOption(resolvedOptions, e)
+                                if not unsupportedKey:
+                                    raise
+                                resolvedOptions.pop(unsupportedKey, None)
+                                try:
+                                    logger.warning(
+                                        f"tx.option_fallback txId={txId} db={name} dropped={unsupportedKey} remaining={list(resolvedOptions.keys())} requestId={getRequestId()}"
+                                    )
+                                except Exception:
+                                    pass
                         try:
                             logger.info(
-                                f"tx.begin txId={txId} db={name} isolation={isolation} timeoutMs={timeoutMs} requestId={getRequestId()}"
+                                f"tx.begin txId={txId} db={name} isolation={isolation} timeoutMs={effectiveTimeoutMs} requestId={getRequestId()}"
                             )
                         except Exception:
                             pass

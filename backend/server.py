@@ -324,11 +324,11 @@ app.add_middleware(RequestLogMiddleware)
 # 라우터 로딩
 logger.info("router load start")
 # 설정값에 따라 데모 라우터를 비활성화할 수 있음
-disableDemoRoutes = False
+disableDemoRoutes = True
 try:
-    disableDemoRoutes = config["SERVER"].getboolean("disable_demo_routes", False)
+    disableDemoRoutes = config["SERVER"].getboolean("disable_demo_routes", True)
 except Exception:
-    disableDemoRoutes = False
+    disableDemoRoutes = True
 
 for _, moduleName, _ in pkgutil.iter_modules(router.__path__, router.__name__ + "."):
     # 데모 TransactionRouter는 비활성화 시 제외

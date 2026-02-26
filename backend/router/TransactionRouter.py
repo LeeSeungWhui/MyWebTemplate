@@ -7,9 +7,10 @@
 
 from __future__ import annotations
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
 
+from lib.Auth import getCurrentUser
 from lib.Response import errorResponse, successResponse
 from service import TransactionService
 
@@ -17,7 +18,7 @@ router = APIRouter(prefix="/api/v1/transaction", tags=["transaction"])
 
 
 @router.post("/test/single")
-async def testSingle():
+async def testSingle(user=Depends(getCurrentUser)):
     """
     설명: 단일 트랜잭션 정상 커밋 동작을 검증한다.
     갱신일: 2026-02-22
@@ -27,7 +28,7 @@ async def testSingle():
 
 
 @router.post("/test/unique-violation")
-async def testUniqueViolation():
+async def testUniqueViolation(user=Depends(getCurrentUser)):
     """
     설명: unique 제약 위반 시 롤백/에러 응답 동작을 검증한다.
     갱신일: 2026-02-22
