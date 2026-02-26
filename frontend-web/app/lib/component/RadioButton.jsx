@@ -43,9 +43,9 @@ const RadioButton = forwardRef(({
         }
     }, [isDataObjControlled, dataObj, dataKeyName, value]);
 
-    const handleChange = (e) => {
-        e.stopPropagation();
-        const newChecked = e.target.checked;
+    const handleChange = (event) => {
+        event.stopPropagation();
+        const newChecked = event.target.checked;
 
         if (!isControlled) {
             setInternalChecked(newChecked);
@@ -57,14 +57,14 @@ const RadioButton = forwardRef(({
 
         const ctx = buildCtx({ dataKey: dataKeyName, dataObj, source: 'user', dirty: true, valid: null });
         if (newChecked) {
-            try { e.target.value = value; } catch (_) { /* ignore */ }
+            try { event.target.value = value; } catch (_) { /* ignore */ }
         }
         fireValueHandlers({
             onChange,
             onValueChange,
             value: newChecked ? value : undefined,
             ctx,
-            event: e,
+            event,
         });
     };
 
@@ -127,4 +127,7 @@ const RadioButton = forwardRef(({
 
 RadioButton.displayName = 'RadioButton';
 
+/**
+ * @description RadioButton export를 노출한다.
+ */
 export default RadioButton; 

@@ -98,49 +98,53 @@ function useEasyList(initialData = []) {
 
     const assignAtPath = (pathSegments, value) => {
         if (!pathSegments.length) {
-            const prev = rootRef.current;
+            const result = { prev: rootRef.current };
             rootRef.current = Array.isArray(value) ? value : [];
-            return { prev };
+            return result;
         }
         if (!Array.isArray(rootRef.current)) rootRef.current = [];
         let cursor = rootRef.current;
         for (let idx = 0; idx < pathSegments.length - 1; idx += 1) {
-            const segment = pathSegments[idx];
-            const key = typeof segment === 'symbol' ? segment : String(segment);
-            const nextKey = pathSegments[idx + 1];
-            cursor = ensureContainer(cursor, key, typeof nextKey === 'symbol' ? undefined : String(nextKey));
+            const key = typeof pathSegments[idx] === 'symbol' ? pathSegments[idx] : String(pathSegments[idx]);
+            cursor = ensureContainer(
+                cursor,
+                key,
+                typeof pathSegments[idx + 1] === 'symbol' ? undefined : String(pathSegments[idx + 1]),
+            );
         }
-        const lastSegment = pathSegments[pathSegments.length - 1];
-        const lastKey = typeof lastSegment === 'symbol' ? lastSegment : String(lastSegment);
-        const prev = cursor[lastKey];
+        const lastKey =
+            typeof pathSegments[pathSegments.length - 1] === 'symbol'
+                ? pathSegments[pathSegments.length - 1]
+                : String(pathSegments[pathSegments.length - 1]);
+        const result = { prev: cursor[lastKey] };
         cursor[lastKey] = value;
-        return { prev };
+        return result;
     };
 
     const removeAtPath = (pathSegments) => {
         if (!pathSegments.length) return { prev: undefined, removed: false };
         let cursor = rootRef.current;
         for (let idx = 0; idx < pathSegments.length - 1; idx += 1) {
-            const segment = pathSegments[idx];
-            const key = typeof segment === 'symbol' ? segment : String(segment);
+            const key = typeof pathSegments[idx] === 'symbol' ? pathSegments[idx] : String(pathSegments[idx]);
             cursor = cursor?.[key];
             if (cursor == null) return { prev: undefined, removed: false };
         }
-        const leafSegment = pathSegments[pathSegments.length - 1];
-        const leafKey = typeof leafSegment === 'symbol' ? leafSegment : String(leafSegment);
+        const leafKey =
+            typeof pathSegments[pathSegments.length - 1] === 'symbol'
+                ? pathSegments[pathSegments.length - 1]
+                : String(pathSegments[pathSegments.length - 1]);
         if (Array.isArray(cursor) && typeof leafKey === 'string' && isNumericKey(leafKey)) {
             const index = Number(leafKey);
             if (Number.isNaN(index) || index < 0 || index >= cursor.length) return { prev: undefined, removed: false };
-            const prev = cursor[index];
-            cursor.splice(index, 1);
-            return { prev, removed: true };
+            return { prev: cursor.splice(index, 1)[0], removed: true };
         }
         if (!Object.prototype.hasOwnProperty.call(cursor ?? {}, leafKey)) {
             return { prev: undefined, removed: false };
         }
-        const prev = cursor[leafKey];
-        const removed = Reflect.deleteProperty(cursor, leafKey);
-        return { prev, removed };
+        return {
+            prev: cursor[leafKey],
+            removed: Reflect.deleteProperty(cursor, leafKey),
+        };
     };
 
     const normalizePath = (basePath, key) => {
@@ -461,6 +465,9 @@ function useEasyList(initialData = []) {
     return rootProxyRef.current;
 }
 
+/**
+ * @description EasyList export를 노출한다.
+ */
 function EasyList(initialData = []) {
     return useEasyList(initialData);
 }

@@ -40,14 +40,12 @@ export function setBoundValue(dataObj, dataKey, value, options = {}) {
   const parts = String(dataKey).split('.');
   let cur = dataObj;
   for (let i = 0; i < parts.length - 1; i++) {
-    const segment = parts[i];
-    if (cur[segment] == null || typeof cur[segment] !== 'object') {
-      cur[segment] = {};
+    if (cur[parts[i]] == null || typeof cur[parts[i]] !== 'object') {
+      cur[parts[i]] = {};
     }
-    cur = cur[segment];
+    cur = cur[parts[i]];
   }
-  const last = parts[parts.length - 1];
-  cur[last] = value;
+  cur[parts[parts.length - 1]] = value;
   return value;
 }
 
@@ -99,4 +97,7 @@ const bindingUtils = {
   fireValueHandlers,
 };
 
+/**
+ * @description bindingUtils export를 노출한다.
+ */
 export default bindingUtils

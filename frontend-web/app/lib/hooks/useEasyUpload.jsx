@@ -7,6 +7,7 @@
 
 import { getGlobalUiActionsSnapshot } from "@/app/common/store/SharedStore";
 import { getBackendHost } from "@/app/common/config/getBackendHost.client";
+import { COMMON_COMPONENT_LANG_KO } from "@/app/common/i18n/lang.ko";
 import {
   parseJsonPayload,
   normalizeNestedJsonFields,
@@ -23,7 +24,9 @@ const DEFAULT_OPTIONS = {
 
 const normalizeErrorMessage = async (response) => {
   const text = await response.text().catch(() => "");
-  if (!text) return `${response.status} 업로드 실패`;
+  if (!text) {
+    return `${response.status}${COMMON_COMPONENT_LANG_KO.easyUpload.uploadFailedWithStatusSuffix}`;
+  }
   const json = parseJsonPayload(text, { context: "EasyUploadError" });
   if (json && typeof json === "object") {
     return json?.message || json?.result || text;
@@ -63,8 +66,7 @@ const toArray = (filesInput) => {
   }
   if (typeof filesInput.length === "number") {
     for (let idx = 0; idx < filesInput.length; idx += 1) {
-      const value = filesInput[idx];
-      if (value) result.push(value);
+      if (filesInput[idx]) result.push(filesInput[idx]);
     }
     return result;
   }
@@ -80,7 +82,7 @@ const toArray = (filesInput) => {
 export default async function useEasyUpload(filesInput, options = {}) {
   const config = { ...DEFAULT_OPTIONS, ...options };
   if (!config.fileUploadUrl) {
-    throw new Error("fileUploadUrl is required.");
+    throw new Error(COMMON_COMPONENT_LANG_KO.easyUpload.fileUploadUrlRequired);
   }
   const extraPayloadCandidates = [];
   if (config.extraFormData && typeof config.extraFormData === "object") {
@@ -130,11 +132,11 @@ export default async function useEasyUpload(filesInput, options = {}) {
 
     if (!response.ok) {
       const message = await normalizeErrorMessage(response);
-      showAlert(message || "파일 업로드에 실패했습니다.", {
-        title: "업로드 실패",
+      showAlert(message || COMMON_COMPONENT_LANG_KO.easyUpload.uploadFailedDescription, {
+        title: COMMON_COMPONENT_LANG_KO.easyUpload.uploadFailedTitle,
         type: "error",
       });
-      throw new Error(message || "업로드 실패");
+      throw new Error(message || COMMON_COMPONENT_LANG_KO.easyUpload.uploadFailedDefault);
     }
 
     const contentType = (
@@ -150,8 +152,8 @@ export default async function useEasyUpload(filesInput, options = {}) {
     return normalizeNestedJsonFields(parsed);
   } catch (error) {
     if (!error?.message) {
-      showAlert("파일 업로드 중 알 수 없는 오류가 발생했습니다.", {
-        title: "업로드 실패",
+      showAlert(COMMON_COMPONENT_LANG_KO.easyUpload.uploadUnknownError, {
+        title: COMMON_COMPONENT_LANG_KO.easyUpload.uploadFailedTitle,
         type: "error",
       });
     }

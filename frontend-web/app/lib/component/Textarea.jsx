@@ -43,11 +43,11 @@ const Textarea = forwardRef(({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [propValue, dataObj, dataKey, draftValue]);
 
-  const commit = (raw, e) => {
+  const commit = (raw, event) => {
     if (isData) setBoundValue(dataObj, dataKey, raw);
     if (!isPropControlled && !isData) setInnerValue(raw);
     const ctx = buildCtx({ dataKey, dataObj, source: 'user', dirty: true, valid: null });
-    const evt = e ? { ...e, target: { ...e.target, value: raw } } : { target: { value: raw } };
+    const evt = event ? { ...event, target: { ...event.target, value: raw } } : { target: { value: raw } };
     fireValueHandlers({ onChange, onValueChange, value: raw, ctx, event: evt });
   };
 
@@ -62,17 +62,17 @@ const Textarea = forwardRef(({
       className={`${base} ${states} ${className}`.trim()}
       rows={rows}
       value={value}
-      onChange={(e) => {
-        const composing = e.nativeEvent?.isComposing || composingRef.current;
-        const raw = e.target.value;
+      onChange={(event) => {
+        const composing = event.nativeEvent?.isComposing || composingRef.current;
+        const raw = event.target.value;
         setDraftValue(raw);
         if (!composing) {
-          commit(raw, e);
+          commit(raw, event);
         }
       }}
       onCompositionStart={() => { composingRef.current = true; }}
-      onCompositionEnd={(e) => { composingRef.current = false; commit(e.target.value, e); }}
-      onBlur={(e) => { commit(e.target.value, e); }}
+      onCompositionEnd={(event) => { composingRef.current = false; commit(event.target.value, event); }}
+      onBlur={(event) => { commit(event.target.value, event); }}
       disabled={disabled}
       readOnly={readOnly}
       placeholder={placeholder}
@@ -84,4 +84,7 @@ const Textarea = forwardRef(({
 
 Textarea.displayName = 'Textarea';
 
+/**
+ * @description Textarea export를 노출한다.
+ */
 export default Textarea;

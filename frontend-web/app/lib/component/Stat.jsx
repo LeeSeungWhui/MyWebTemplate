@@ -9,6 +9,7 @@
  * 설명: 간단 KPI 지표 카드
  */
 import React from 'react';
+import { COMMON_COMPONENT_LANG_KO } from '@/app/common/i18n/lang.ko';
 
 const Stat = ({
   label,
@@ -35,9 +36,9 @@ const Stat = ({
         {icon ? <div aria-hidden>{icon}</div> : null}
       </div>
       <div className="mt-1 flex items-end gap-2">
-        <div className="text-2xl font-bold" aria-label="값">{value}</div>
+        <div className="text-2xl font-bold" aria-label={COMMON_COMPONENT_LANG_KO.stat.valueAriaLabel}>{value}</div>
         {delta != null && (
-          <div className={`${deltaColor} text-sm`} aria-label="증감">{deltaPrefix}{delta}</div>
+          <div className={`${deltaColor} text-sm`} aria-label={COMMON_COMPONENT_LANG_KO.stat.deltaAriaLabel}>{deltaPrefix}{delta}</div>
         )}
       </div>
       {helpText && <div className="mt-1 text-xs text-gray-500">{helpText}</div>}
@@ -45,4 +46,7 @@ const Stat = ({
   );
 };
 
+/**
+ * @description Stat export를 노출한다.
+ */
 export default Stat;

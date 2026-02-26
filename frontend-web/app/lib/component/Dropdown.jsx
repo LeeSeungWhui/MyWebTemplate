@@ -1,29 +1,79 @@
 /**
  * 파일명: Dropdown.jsx
  * 작성자: LSH
- * 갱신일: 2025-09-13
- * 설명: Dropdown UI 컴포넌트 구현
- */
-/**
- * 파일명: Dropdown.jsx
+ * 갱신일: 2026-02-26
  * 설명: 경량 Dropdown 컴포넌트 (EasyList 지원, 접근성 포함)
- * 스타일: 기본값을 모던한 Material 느낌으로 개선 (rounded, elevation, subtle hover)
  */
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import { COMMON_COMPONENT_LANG_KO } from '@/app/common/i18n/lang.ko';
 
-const isListLike = (list) => !!list && (Array.isArray(list) || typeof list.forAll === 'function' || typeof list.length === 'number');
 const toArray = (list) => {
   if (!list) return [];
   if (Array.isArray(list)) return list;
   if (typeof list.forAll === 'function') {
-    const arr = [];
-    list.forAll((item) => arr.push(item));
-    return arr;
+    const resultList = [];
+    list.forAll((item) => resultList.push(item));
+    return resultList;
   }
-  // fallback (proxy array-like)
-  try { return Array.from(list); } catch { return []; }
+  try {
+    return Array.from(list);
+  } catch {
+    return [];
+  }
 };
 
+const resolvePositionClass = (side, align) => {
+  let sideClassName = '';
+  if (side === 'bottom') sideClassName = 'top-full mt-2';
+  else if (side === 'top') sideClassName = 'bottom-full mb-2';
+
+  let alignClassName = 'left-1/2 -translate-x-1/2';
+  if (align === 'start') alignClassName = 'left-0';
+  else if (align === 'end') alignClassName = 'right-0';
+
+  return `${sideClassName} ${alignClassName}`.trim();
+};
+
+const resolveVariantClass = (variant) => {
+  if (variant === 'filled') {
+    return 'bg-gray-50 border border-transparent hover:bg-gray-100 shadow-inner';
+  }
+  if (variant === 'text') {
+    return 'bg-transparent border border-transparent hover:bg-gray-50 shadow-none';
+  }
+  return 'bg-white border border-gray-300 hover:bg-gray-50 shadow-sm';
+};
+
+const resolveSelectedLabel = ({ multiSelect, selectedItem, selectedItems, labelKey }) => {
+  if (!multiSelect) {
+    if (!selectedItem) return null;
+    if (selectedItem?.get) return selectedItem.get(labelKey);
+    return selectedItem?.[labelKey];
+  }
+
+  if (selectedItems.length === 1) {
+    if (selectedItems[0]?.get) return selectedItems[0].get(labelKey);
+    return selectedItems[0]?.[labelKey];
+  }
+
+  if (selectedItems.length > 1) {
+    return `${selectedItems.length}${COMMON_COMPONENT_LANG_KO.dropdown.multiSelectedSuffix}`;
+  }
+
+  return null;
+};
+
+const resolveItemLabelClassName = ({ disabledItem, selected, selectedItemClassName }) => {
+  if (disabledItem) return 'text-gray-400';
+  if (selected) return selectedItemClassName;
+  return 'text-gray-800';
+};
+
+/**
+ * @description 단일/다중 선택 Dropdown UI를 렌더링한다.
+ * @param {Object} props
+ * @returns {JSX.Element}
+ */
 const Dropdown = ({
   dataList,
   open: openProp,
@@ -33,12 +83,11 @@ const Dropdown = ({
   trigger,
   labelKey = 'label',
   valueKey = 'value',
-  placeholder = '선택',
-  // 스타일 옵션
-  variant = 'outlined', // 'outlined' | 'filled' | 'text'
-  size = 'md', // 'sm' | 'md' | 'lg'
-  rounded = 'rounded-lg', // tailwind rounded class
-  elevation = 'shadow-md', // shadow-sm|md|lg|xl
+  placeholder = COMMON_COMPONENT_LANG_KO.dropdown.placeholder,
+  variant = 'outlined',
+  size = 'md',
+  rounded = 'rounded-lg',
+  elevation = 'shadow-md',
   buttonClassName = '',
   iconClassName = '',
   selectedItemClassName = 'text-blue-700',
@@ -55,53 +104,17 @@ const Dropdown = ({
 }) => {
   const [openState, setOpenState] = useState(defaultOpen);
   const open = typeof openProp === 'boolean' ? openProp : openState;
-  const setOpen = (v) => (typeof openProp === 'boolean' ? onOpenChange?.(v) : setOpenState(v));
-  const data = useMemo(() => toArray(dataList), [dataList]);
+  const setOpen = (nextOpen) => {
+    if (typeof openProp === 'boolean') {
+      onOpenChange?.(nextOpen);
+      return;
+    }
+    setOpenState(nextOpen);
+  };
+  const data = toArray(dataList);
   const [activeIdx, setActiveIdx] = useState(-1);
   const rootRef = useRef(null);
   const effectiveCloseOnSelect = multiSelect ? false : closeOnSelect;
-
-  useEffect(() => {
-    if (!open) return;
-    const onKey = (e) => {
-      if (e.key === 'Escape') { setOpen(false); return; }
-      if (!data.length) return;
-      if (e.key === 'ArrowDown') { e.preventDefault(); setActiveIdx((i) => (i + 1) % data.length); }
-      if (e.key === 'ArrowUp') { e.preventDefault(); setActiveIdx((i) => (i - 1 + data.length) % data.length); }
-      if (e.key === 'Enter' && activeIdx >= 0) {
-        const item = data[activeIdx];
-        // 키보드 Enter도 클릭과 동일하게 처리
-        handleItemActivate(item);
-      }
-    };
-    const onClickOutside = (e) => {
-      if (rootRef.current && !rootRef.current.contains(e.target)) setOpen(false);
-    };
-    document.addEventListener('keydown', onKey);
-    document.addEventListener('mousedown', onClickOutside);
-    return () => { document.removeEventListener('keydown', onKey); document.removeEventListener('mousedown', onClickOutside); };
-  }, [open, data, activeIdx, closeOnSelect]);
-
-  const pos = `${side === 'bottom' ? 'top-full mt-2' : side === 'top' ? 'bottom-full mb-2' : ''} ${align === 'start' ? 'left-0' : align === 'end' ? 'right-0' : 'left-1/2 -translate-x-1/2'}`.trim();
-
-  // 선택 상태 계산 (EasyList 프록시 지원)
-  const selectedItems = [];
-  for (const it of data) {
-    const sel = it?.get ? it.get('selected') : it?.selected;
-    if (sel) selectedItems.push(it);
-  }
-  const selectedItem = selectedItems.length > 0 ? selectedItems[0] : null;
-  let selectedLabel = null;
-  if (!multiSelect) {
-    selectedLabel = selectedItem
-      ? (selectedItem?.get ? selectedItem.get(labelKey) : selectedItem?.[labelKey])
-      : null;
-  } else if (selectedItems.length === 1) {
-    const first = selectedItems[0];
-    selectedLabel = first?.get ? first.get(labelKey) : first?.[labelKey];
-  } else if (selectedItems.length > 1) {
-    selectedLabel = `${selectedItems.length}개 선택됨`;
-  }
 
   const handleItemActivate = (item) => {
     if (!item) return;
@@ -141,17 +154,65 @@ const Dropdown = ({
     if (effectiveCloseOnSelect) setOpen(false);
   };
 
-  // 버튼 스타일 계산 (Material-esque)
-  const sizeCls = size === 'sm' ? 'min-w-[140px] px-2.5 py-1.5 text-sm'
-                  : size === 'lg' ? 'min-w-[200px] px-4 py-2.5 text-base'
-                  : 'min-w-[170px] px-3 py-2 text-sm';
-  const variantCls = variant === 'filled'
-    ? 'bg-gray-50 border border-transparent hover:bg-gray-100 shadow-inner'
-    : variant === 'text'
-      ? 'bg-transparent border border-transparent hover:bg-gray-50 shadow-none'
-      : 'bg-white border border-gray-300 hover:bg-gray-50 shadow-sm';
-  const btnCls = `inline-flex items-center justify-between gap-2 ${sizeCls} ${rounded} ${variantCls} focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 ${buttonClassName}`.trim();
-  const iconCls = `text-gray-500 ${iconClassName}`.trim();
+  useEffect(() => {
+    if (!open) return undefined;
+
+    const onKey = (event) => {
+      if (event.key === 'Escape') {
+        setOpen(false);
+        return;
+      }
+      if (!data.length) return;
+      if (event.key === 'ArrowDown') {
+        event.preventDefault();
+        setActiveIdx((prevIdx) => (prevIdx + 1) % data.length);
+      }
+      if (event.key === 'ArrowUp') {
+        event.preventDefault();
+        setActiveIdx((prevIdx) => (prevIdx - 1 + data.length) % data.length);
+      }
+      if (event.key === 'Enter' && activeIdx >= 0) {
+        handleItemActivate(data[activeIdx]);
+      }
+    };
+
+    const onClickOutside = (event) => {
+      if (rootRef.current && !rootRef.current.contains(event.target)) setOpen(false);
+    };
+
+    document.addEventListener('keydown', onKey);
+    document.addEventListener('mousedown', onClickOutside);
+
+    return () => {
+      document.removeEventListener('keydown', onKey);
+      document.removeEventListener('mousedown', onClickOutside);
+    };
+  }, [open, data, activeIdx]);
+
+  const positionClassName = resolvePositionClass(side, align);
+
+  const selectedItems = [];
+  for (const item of data) {
+    const isSelected = item?.get ? item.get('selected') : item?.selected;
+    if (isSelected) selectedItems.push(item);
+  }
+  const selectedItem = selectedItems.length > 0 ? selectedItems[0] : null;
+  const selectedLabel = resolveSelectedLabel({
+    multiSelect,
+    selectedItem,
+    selectedItems,
+    labelKey,
+  });
+
+  let sizeClassName = 'min-w-[170px] px-3 py-2 text-sm';
+  if (size === 'sm') {
+    sizeClassName = 'min-w-[140px] px-2.5 py-1.5 text-sm';
+  } else if (size === 'lg') {
+    sizeClassName = 'min-w-[200px] px-4 py-2.5 text-base';
+  }
+  const variantClassName = resolveVariantClass(variant);
+  const buttonClass = `inline-flex items-center justify-between gap-2 ${sizeClassName} ${rounded} ${variantClassName} focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 ${buttonClassName}`.trim();
+  const iconClass = `text-gray-500 ${iconClassName}`.trim();
 
   return (
     <div ref={rootRef} className={`relative inline-block ${className}`.trim()}>
@@ -164,7 +225,7 @@ const Dropdown = ({
           if (disabled) return;
           setOpen(!open);
         }}
-        className={btnCls}
+        className={buttonClass}
       >
         {(() => {
           if (typeof trigger === 'function') {
@@ -174,24 +235,28 @@ const Dropdown = ({
               selectedLabel,
             });
           }
-          // 우선순위: 선택 라벨 > 사용자 제공 트리거 노드 > placeholder
-          return (selectedLabel ?? trigger ?? placeholder);
+          return selectedLabel ?? trigger ?? placeholder;
         })()}
-        <svg width="16" height="16" viewBox="0 0 12 12" aria-hidden className={`${open ? 'rotate-180' : ''} transition-transform ${iconCls}`}>
+        <svg width="16" height="16" viewBox="0 0 12 12" aria-hidden className={`${open ? 'rotate-180' : ''} transition-transform ${iconClass}`}>
           <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
         </svg>
       </button>
 
       {open && (
-        <ul role="menu" className={`absolute z-30 min-w-56 bg-white border border-gray-200 ${rounded} ${elevation} ${pos} ${menuClassName} transition ease-out duration-150 transform origin-top-left opacity-100 scale-100`.trim()}>
-          {data.map((it, idx) => {
-            const label = it?.get ? it.get(labelKey) : it?.[labelKey];
-            const value = it?.get ? it.get(valueKey) : it?.[valueKey];
-            const selected = it?.get ? !!it.get('selected') : !!it?.selected;
-            const disabledItem = it?.get ? it.get('disabled') : it?.disabled;
-            const isActive = idx === activeIdx;
+        <ul role="menu" className={`absolute z-30 min-w-56 bg-white border border-gray-200 ${rounded} ${elevation} ${positionClassName} ${menuClassName} transition ease-out duration-150 transform origin-top-left opacity-100 scale-100`.trim()}>
+          {data.map((item, itemIdx) => {
+            const label = item?.get ? item.get(labelKey) : item?.[labelKey];
+            const value = item?.get ? item.get(valueKey) : item?.[valueKey];
+            const selected = item?.get ? !!item.get('selected') : !!item?.selected;
+            const disabledItem = item?.get ? item.get('disabled') : item?.disabled;
+            const isActive = itemIdx === activeIdx;
+            const itemLabelClassName = resolveItemLabelClassName({
+              disabledItem,
+              selected,
+              selectedItemClassName,
+            });
             return (
-              <li key={(value ?? idx)} role="none">
+              <li key={value ?? itemIdx} role="none">
                 <button
                   type="button"
                   role="menuitem"
@@ -199,26 +264,25 @@ const Dropdown = ({
                   aria-checked={selected ? 'true' : 'false'}
                   className={`w-full text-left px-3 py-2 flex items-center gap-2 text-sm ${isActive || selected ? activeClassName : ''} hover:bg-gray-50 disabled:opacity-50 ${itemClassName}`.trim()}
                   disabled={!!disabledItem}
-                  onMouseEnter={() => setActiveIdx(idx)}
-                  onFocus={() => setActiveIdx(idx)}
+                  onMouseEnter={() => setActiveIdx(itemIdx)}
+                  onFocus={() => setActiveIdx(itemIdx)}
                   onClick={() => {
                     if (disabledItem) return;
-                    handleItemActivate(it);
+                    handleItemActivate(item);
                   }}
                 >
-                  {/* 체크 아이콘 (선택 시 표시) */}
                   {showCheck && (
                     <svg width="14" height="14" viewBox="0 0 16 16" aria-hidden className={`${selected ? 'opacity-100 text-blue-600' : 'opacity-0'} transition-opacity`}>
                       <path d="M6.5 10.5L3.5 7.5L2.5 8.5L6.5 12.5L13.5 5.5L12.5 4.5L6.5 10.5Z" fill="currentColor" />
                     </svg>
                   )}
-                  <span className={`${disabledItem ? 'text-gray-400' : selected ? selectedItemClassName : 'text-gray-800'}`}>{String(label ?? '')}</span>
+                  <span className={itemLabelClassName}>{String(label ?? '')}</span>
                 </button>
               </li>
             );
           })}
           {data.length === 0 && (
-            <li role="none"><div className="px-3 py-2 text-sm text-gray-500">항목 없음</div></li>
+            <li role="none"><div className="px-3 py-2 text-sm text-gray-500">{COMMON_COMPONENT_LANG_KO.dropdown.emptyItem}</div></li>
           )}
         </ul>
       )}
@@ -226,4 +290,7 @@ const Dropdown = ({
   );
 };
 
+/**
+ * @description Dropdown 컴포넌트 엔트리를 export 한다.
+ */
 export default Dropdown;

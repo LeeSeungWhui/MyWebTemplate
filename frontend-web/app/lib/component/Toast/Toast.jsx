@@ -53,9 +53,6 @@ const Toast = forwardRef(({
         'bottom-right': 'bottom-4 right-4'
     };
 
-    const currentType = types[type];
-    const currentPosition = positions[position];
-
     // 위치에 따른 슬라이드 방향 결정
     const isTopPosition = position.startsWith('top-');
     const slideInAnimation = isTopPosition ? styles.slideDown : styles.slideUp;
@@ -80,13 +77,13 @@ const Toast = forwardRef(({
             ref={ref}
             className={`
                 fixed z-50 
-                ${currentPosition}
+                ${positions[position] || positions['bottom-center']}
                 flex items-center
-                min-w-[320px] max-w-[420px]
+                w-[calc(100vw-2rem)] max-w-md
                 px-4 py-3
                 rounded-lg shadow-lg
-                border ${currentType.borderColor}
-                ${currentType.bgColor}
+                border ${(types[type] || types.info).borderColor}
+                ${(types[type] || types.info).bgColor}
                 backdrop-blur-sm
                 ${isExiting ? slideOutAnimation : slideInAnimation}
                 ${className}
@@ -95,9 +92,9 @@ const Toast = forwardRef(({
             {...props}
         >
             <Icon
-                icon={currentType.icon}
+                icon={(types[type] || types.info).icon}
                 size="1.25em"
-                className={`mr-3 ${currentType.iconColor} flex-shrink-0`}
+                className={`mr-3 ${(types[type] || types.info).iconColor} flex-shrink-0`}
             />
             <div className="flex-1 text-sm text-gray-600">
                 {message}
@@ -116,4 +113,7 @@ const Toast = forwardRef(({
 
 Toast.displayName = 'Toast';
 
+/**
+ * @description Toast export를 노출한다.
+ */
 export default Toast; 

@@ -12,6 +12,7 @@ import '@react-pdf-viewer/core/lib/styles/index.css';
 import '@react-pdf-viewer/default-layout/lib/styles/index.css';
 import { defaultLayoutPlugin } from '@react-pdf-viewer/default-layout';
 import Empty from '../Empty.jsx';
+import { COMMON_COMPONENT_LANG_KO } from '@/app/common/i18n/lang.ko';
 
 // Viewer/Worker stay client-only to avoid node-canvas crashes under SSR
 const Viewer = dynamic(() => import('@react-pdf-viewer/core').then((m) => m.Viewer), { ssr: false });
@@ -61,23 +62,23 @@ const PdfViewer = ({
     ? defaultLayoutPlugin({ renderToolbar: (Toolbar) => <Toolbar /> })
     : null;
 
-  const fileUrl = useMemo(() => toObjectUrl(src), [src]);
   const plugins = useMemo(() => (defaultLayoutPluginInstance ? [defaultLayoutPluginInstance] : []), [defaultLayoutPluginInstance]);
 
   // No dynamic import for plugin; created synchronously above.
 
   useEffect(() => {
-    setObjectUrl(fileUrl);
+    const nextFileUrl = toObjectUrl(src);
+    setObjectUrl(nextFileUrl);
     return () => {
-      if (fileUrl && typeof fileUrl === 'string' && fileUrl.startsWith('blob:')) {
+      if (nextFileUrl && typeof nextFileUrl === 'string' && nextFileUrl.startsWith('blob:')) {
         try {
-          URL.revokeObjectURL(fileUrl);
+          URL.revokeObjectURL(nextFileUrl);
         } catch {
           // Ignore revoke failures
         }
       }
     };
-  }, [fileUrl]);
+  }, [src]);
 
   useEffect(() => {
     if (!objectUrl) {
@@ -90,16 +91,16 @@ const PdfViewer = ({
   }, [objectUrl, normalizedInitialPage]);
 
   const describeDocumentStatus = () => {
-    if (viewerError) return 'PDF document failed to load.';
-    if (!objectUrl) return 'PDF source is unavailable.';
+    if (viewerError) return COMMON_COMPONENT_LANG_KO.pdfViewer.loadFailedStatus;
+    if (!objectUrl) return COMMON_COMPONENT_LANG_KO.pdfViewer.sourceUnavailableStatus;
     if (isLoading || documentState.totalPages === 0) {
-      return 'PDF document is loading.';
+      return COMMON_COMPONENT_LANG_KO.pdfViewer.loadingStatus;
     }
     if (documentState.totalPages > 0) {
       const zoomPercent = Math.round(documentState.zoom * 100);
-      return `Page ${documentState.currentPage} of ${documentState.totalPages}, zoom ${zoomPercent}%`;
+      return `총 ${documentState.totalPages}페이지 중 ${documentState.currentPage}페이지, 확대 ${zoomPercent}%`;
     }
-    return 'PDF document is ready.';
+    return COMMON_COMPONENT_LANG_KO.pdfViewer.readyStatus;
   };
 
   const handleDocumentLoad = (event) => {
@@ -145,7 +146,7 @@ const PdfViewer = ({
     if (typeof viewerError === 'string') return viewerError;
     if (viewerError?.message) return viewerError.message;
     if (viewerError?.name) return `${viewerError.name} error`;
-    return 'Unable to display the PDF document.';
+    return COMMON_COMPONENT_LANG_KO.pdfViewer.loadFailedDescription;
   })();
 
   const shouldRenderViewer = Boolean(objectUrl) && !viewerError;
@@ -156,7 +157,7 @@ const PdfViewer = ({
       className={`relative w-full h-[70vh] border rounded overflow-hidden bg-white ${className}`.trim()}
       style={style}
       role="document"
-      aria-label="PDF viewer"
+      aria-label={COMMON_COMPONENT_LANG_KO.pdfViewer.ariaLabel}
       aria-busy={isLoading ? 'true' : 'false'}
       data-page={documentState.currentPage}
       data-page-count={documentState.totalPages}
@@ -178,7 +179,7 @@ const PdfViewer = ({
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
             </svg>
-            <span className="text-sm font-medium">Loading PDF...</span>
+            <span className="text-sm font-medium">{COMMON_COMPONENT_LANG_KO.pdfViewer.loadingText}</span>
           </div>
         </div>
       )}
@@ -187,8 +188,10 @@ const PdfViewer = ({
         <div className="flex h-full w-full items-center justify-center bg-gray-50 px-6 py-8">
           <Empty
             className="max-w-sm"
-            title={`Unable to load PDF${errorStatusCode ? ` (HTTP ${errorStatusCode})` : ''}`}
-            description={errorMessage ?? 'Check the file path or permissions and try again.'}
+            title={errorStatusCode
+              ? `${COMMON_COMPONENT_LANG_KO.pdfViewer.loadFailedTitle} (HTTP ${errorStatusCode})`
+              : COMMON_COMPONENT_LANG_KO.pdfViewer.loadFailedTitle}
+            description={errorMessage ?? COMMON_COMPONENT_LANG_KO.pdfViewer.loadFailedDescription}
             data-status-code={errorStatusCode ?? undefined}
           />
         </div>
@@ -198,8 +201,8 @@ const PdfViewer = ({
         <div className="flex h-full w-full items-center justify-center bg-gray-50 px-6 py-8">
           <Empty
             className="max-w-sm"
-            title="PDF source is missing"
-            description="Provide a valid URL, File, Blob, or ArrayBuffer to preview the document."
+            title={COMMON_COMPONENT_LANG_KO.pdfViewer.missingSourceTitle}
+            description={COMMON_COMPONENT_LANG_KO.pdfViewer.missingSourceDescription}
           />
         </div>
       )}
@@ -223,4 +226,7 @@ const PdfViewer = ({
   );
 };
 
+/**
+ * @description PdfViewer export를 노출한다.
+ */
 export default PdfViewer;

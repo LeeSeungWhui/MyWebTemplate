@@ -10,6 +10,7 @@
 import { forwardRef, useEffect, useMemo, useRef, useState } from 'react';
 import { getBoundValue, setBoundValue, buildCtx, fireValueHandlers } from '../binding';
 import Icon from './Icon';
+import { COMMON_COMPONENT_LANG_KO } from '@/app/common/i18n/lang.ko';
 
 const pad2 = (numberValue) => String(numberValue).padStart(2, '0');
 
@@ -84,8 +85,8 @@ const TimeInput = forwardRef(({
 
   useEffect(() => {
     if (!open) return;
-    const handler = (e) => { if (rootRef.current && !rootRef.current.contains(e.target)) setOpen(false); };
-    const esc = (e) => { if (e.key === 'Escape') setOpen(false); };
+    const handler = (event) => { if (rootRef.current && !rootRef.current.contains(event.target)) setOpen(false); };
+    const esc = (keyboardEvent) => { if (keyboardEvent.key === 'Escape') setOpen(false); };
     document.addEventListener('mousedown', handler);
     document.addEventListener('keydown', esc);
     return () => { document.removeEventListener('mousedown', handler); document.removeEventListener('keydown', esc); };
@@ -103,18 +104,18 @@ const TimeInput = forwardRef(({
         max={max}
         step={step}
         placeholder={placeholder}
-        onChange={(e) => setText(e.target.value)}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter') {
-            const typedValue = e.currentTarget.value;
-            if (/^\d{2}:\d{2}$/.test(typedValue)) commit(typedValue, e);
+        onChange={(event) => setText(event.target.value)}
+        onKeyDown={(event) => {
+          if (event.key === 'Enter') {
+            const typedValue = event.currentTarget.value;
+            if (/^\d{2}:\d{2}$/.test(typedValue)) commit(typedValue, event);
             else setText(value);
             setOpen(false);
           }
         }}
-        onBlur={(e) => {
-          const typedValue = e.target.value;
-          if (/^\d{2}:\d{2}$/.test(typedValue)) commit(typedValue, e);
+        onBlur={(event) => {
+          const typedValue = event.target.value;
+          if (/^\d{2}:\d{2}$/.test(typedValue)) commit(typedValue, event);
           else setText(value);
         }}
         disabled={disabled}
@@ -129,7 +130,7 @@ const TimeInput = forwardRef(({
         className="absolute inset-y-0 right-2 my-auto h-6 w-6 rounded hover:bg-gray-100 text-gray-500 flex items-center justify-center"
         onClick={() => setOpen((previousOpen) => !previousOpen)}
         tabIndex={-1}
-        aria-label="open time picker"
+        aria-label={COMMON_COMPONENT_LANG_KO.timeInput.openPickerAriaLabel}
         disabled={disabled || readOnly}
       >
         <Icon icon="md:MdAccessTime" className="w-5 h-5" />
@@ -158,4 +159,7 @@ const TimeInput = forwardRef(({
 
 TimeInput.displayName = 'TimeInput';
 
+/**
+ * @description TimeInput export를 노출한다.
+ */
 export default TimeInput;

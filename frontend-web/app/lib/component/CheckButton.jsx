@@ -41,8 +41,8 @@ const CheckButton = React.forwardRef(({
         }
     }, [isDataObjControlled, dataObj, dataKeyName]);
 
-    const handleChange = (e) => {
-        e.stopPropagation();
+    const handleChange = (event) => {
+        event.stopPropagation();
         const newChecked = !getCheckedState(); // 토글
 
         if (!isControlled) {
@@ -54,13 +54,13 @@ const CheckButton = React.forwardRef(({
         }
 
         const ctx = buildCtx({ dataKey: dataKeyName, dataObj, source: 'user', dirty: true, valid: null });
-        try { e.target.value = newChecked; } catch (_) { /* ignore read-only */ }
+        try { event.target.value = newChecked; } catch (_) { /* ignore read-only */ }
         fireValueHandlers({
             onChange,
             onValueChange,
             value: newChecked,
             ctx,
-            event: e,
+            event,
         });
     };
 
@@ -113,4 +113,7 @@ const CheckButton = React.forwardRef(({
 
 CheckButton.displayName = 'CheckButton';
 
+/**
+ * @description CheckButton export를 노출한다.
+ */
 export default CheckButton;

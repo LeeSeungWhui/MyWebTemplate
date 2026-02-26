@@ -11,6 +11,7 @@ import { EditorContent } from '@tiptap/react';
 import clsx from 'clsx';
 import useEasyEditor from './useEditor';
 import useEditorUpload from './useEditorUpload';
+import { COMMON_COMPONENT_LANG_KO } from '@/app/common/i18n/lang.ko';
 
 const ToolbarButton = ({ active, label, onClick, children, disabled }) => (
   <button
@@ -49,7 +50,7 @@ const statusStyles = {
 };
 
 const fontSizeOptions = [
-  { label: '기본', value: 'default' },
+  { label: COMMON_COMPONENT_LANG_KO.easyEditor.fontSizeDefault, value: 'default' },
   { label: '12px', value: '12px' },
   { label: '14px', value: '14px' },
   { label: '16px', value: '16px' },
@@ -58,10 +59,10 @@ const fontSizeOptions = [
 ];
 
 const alignments = [
-  { label: '좌', value: 'left', icon: 'L' },
-  { label: '중앙', value: 'center', icon: 'C' },
-  { label: '우', value: 'right', icon: 'R' },
-  { label: '양끝', value: 'justify', icon: 'J' },
+  { label: COMMON_COMPONENT_LANG_KO.easyEditor.alignLeft, value: 'left', icon: 'L' },
+  { label: COMMON_COMPONENT_LANG_KO.easyEditor.alignCenter, value: 'center', icon: 'C' },
+  { label: COMMON_COMPONENT_LANG_KO.easyEditor.alignRight, value: 'right', icon: 'R' },
+  { label: COMMON_COMPONENT_LANG_KO.easyEditor.alignJustify, value: 'justify', icon: 'J' },
 ];
 
 const EMPTY_EXTENSIONS = [];
@@ -72,7 +73,7 @@ const EasyEditor = ({
   value,
   onChange,
   onValueChange,
-  placeholder = '내용을 입력하세요',
+  placeholder = COMMON_COMPONENT_LANG_KO.easyEditor.placeholder,
   readOnly = false,
   className = '',
   status = 'idle',
@@ -144,7 +145,7 @@ const EasyEditor = ({
   const handleSetLink = useCallback(() => {
     if (!editor || toolbarDisabled) return;
     const previous = editor.getAttributes('link')?.href;
-    const url = window.prompt('링크 URL을 입력하세요', previous || 'https://');
+    const url = window.prompt(COMMON_COMPONENT_LANG_KO.easyEditor.promptLinkUrl, previous || 'https://');
     if (url === null) return;
     if (url === '') {
       editor.chain().focus().unsetLink().run();
@@ -265,7 +266,7 @@ const EasyEditor = ({
           <div className={toolbarClass}>
             <div className="flex items-center gap-2">
               <ToolbarButton
-                label="굵게"
+                label={COMMON_COMPONENT_LANG_KO.easyEditor.toolbarBold}
                 active={editor.isActive('bold')}
                 onClick={() => handleToggle('toggleBold')}
                 disabled={toolbarDisabled}
@@ -273,7 +274,7 @@ const EasyEditor = ({
                 B
               </ToolbarButton>
               <ToolbarButton
-                label="기울임"
+                label={COMMON_COMPONENT_LANG_KO.easyEditor.toolbarItalic}
                 active={editor.isActive('italic')}
                 onClick={() => handleToggle('toggleItalic')}
                 disabled={toolbarDisabled}
@@ -281,7 +282,7 @@ const EasyEditor = ({
                 I
               </ToolbarButton>
               <ToolbarButton
-                label="밑줄"
+                label={COMMON_COMPONENT_LANG_KO.easyEditor.toolbarUnderline}
                 active={editor.isActive('underline')}
                 onClick={() => handleToggle('toggleUnderline')}
                 disabled={toolbarDisabled}
@@ -289,7 +290,7 @@ const EasyEditor = ({
                 U
               </ToolbarButton>
               <ToolbarButton
-                label="링크"
+                label={COMMON_COMPONENT_LANG_KO.easyEditor.toolbarLink}
                 active={editor.isActive('link')}
                 onClick={handleSetLink}
                 disabled={toolbarDisabled}
@@ -325,7 +326,7 @@ const EasyEditor = ({
                   disabled={toolbarDisabled}
                   className="text-xs text-gray-500 underline"
                 >
-                  초기화
+                  {COMMON_COMPONENT_LANG_KO.easyEditor.colorReset}
                 </button>
               </div>
             </div>
@@ -334,7 +335,7 @@ const EasyEditor = ({
               {alignments.map((item) => (
                 <ToolbarButton
                   key={item.value}
-                  label={`${item.label} 정렬`}
+                  label={`${item.label}${COMMON_COMPONENT_LANG_KO.easyEditor.alignSuffix}`}
                   active={editor.isActive({ textAlign: item.value })}
                   onClick={() => handleTextAlign(item.value)}
                   disabled={toolbarDisabled}
@@ -346,7 +347,7 @@ const EasyEditor = ({
 
             <div className="flex items-center gap-2">
               <ToolbarButton
-                label="이미지 첨부"
+                label={COMMON_COMPONENT_LANG_KO.easyEditor.attachImage}
                 active={false}
                 onClick={triggerImageDialog}
                 disabled={toolbarDisabled}
@@ -354,7 +355,7 @@ const EasyEditor = ({
                 🖼️
               </ToolbarButton>
               <ToolbarButton
-                label="파일 첨부"
+                label={COMMON_COMPONENT_LANG_KO.easyEditor.attachFile}
                 active={false}
                 onClick={triggerFileDialog}
                 disabled={toolbarDisabled}
@@ -365,7 +366,7 @@ const EasyEditor = ({
 
             <div className="flex items-center gap-2 ml-auto">
               <ToolbarButton
-                label="에디터 모드"
+                label={COMMON_COMPONENT_LANG_KO.easyEditor.modeEditor}
                 active={mode === 'editor'}
                 onClick={() => setMode('editor')}
                 disabled={mode === 'editor'}
@@ -373,7 +374,7 @@ const EasyEditor = ({
                 Editor
               </ToolbarButton>
               <ToolbarButton
-                label="HTML 모드"
+                label={COMMON_COMPONENT_LANG_KO.easyEditor.modeHtml}
                 active={mode === 'html'}
                 onClick={() => setMode('html')}
                 disabled={mode === 'html'}
@@ -431,4 +432,7 @@ const EasyEditor = ({
   );
 };
 
+/**
+ * @description EasyEditor export를 노출한다.
+ */
 export default EasyEditor;

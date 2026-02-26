@@ -50,8 +50,8 @@ const Drawer = forwardRef(function Drawer(
   // ESC to close + lock body scroll while visible
   useEffect(() => {
     if (!isOpen) return undefined;
-    const onKey = (e) => {
-      if (closeOnEsc && e.key === 'Escape') onClose?.();
+    const onKey = (keyboardEvent) => {
+      if (closeOnEsc && keyboardEvent.key === 'Escape') onClose?.();
     };
     document.addEventListener('keydown', onKey);
     const prev = document.body.style.overflow;
@@ -177,4 +177,7 @@ const Drawer = forwardRef(function Drawer(
 
 Drawer.displayName = 'Drawer';
 
+/**
+ * @description Drawer export를 노출한다.
+ */
 export default Drawer;

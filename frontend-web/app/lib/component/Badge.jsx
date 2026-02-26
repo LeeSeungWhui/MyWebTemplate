@@ -18,6 +18,9 @@ const sizes = {
   md: 'text-sm px-2.5 py-0.5',
 };
 
+/**
+ * @description Badge export를 노출한다.
+ */
 const Badge = ({ children, variant = 'neutral', size = 'sm', pill = false, className = '', ...props }) => {
   const base = 'inline-flex items-center border font-medium';
   const radius = pill ? 'rounded-full' : 'rounded-md';

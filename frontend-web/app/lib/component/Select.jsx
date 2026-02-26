@@ -6,6 +6,7 @@
  */
 import { forwardRef, useCallback, useEffect, useId, useMemo, useState } from 'react'
 import { getBoundValue, setBoundValue, buildCtx, fireValueHandlers } from '../binding'
+import { COMMON_COMPONENT_LANG_KO } from '@/app/common/i18n/lang.ko'
 
 const STATUS_PRESETS = {
   default: {
@@ -17,20 +18,20 @@ const STATUS_PRESETS = {
     select:
       'border border-green-400 focus:ring-green-500 focus:border-green-500',
     message: 'text-green-600',
-    defaultMessage: '선택이 저장되었습니다.',
+    defaultMessage: COMMON_COMPONENT_LANG_KO.select.saved,
     ariaLive: 'polite',
   },
   warning: {
     select:
       'border border-yellow-400 focus:ring-yellow-500 focus:border-yellow-500',
     message: 'text-yellow-700',
-    defaultMessage: '추가 확인이 필요합니다.',
+    defaultMessage: COMMON_COMPONENT_LANG_KO.select.needsConfirm,
     ariaLive: 'polite',
   },
   error: {
     select: 'border border-red-400 focus:ring-red-500 focus:border-red-500',
     message: 'text-red-600',
-    defaultMessage: '유효하지 않은 값입니다.',
+    defaultMessage: COMMON_COMPONENT_LANG_KO.select.invalidValue,
     ariaLive: 'assertive',
   },
   info: {
@@ -42,14 +43,14 @@ const STATUS_PRESETS = {
     select:
       'border border-blue-300 focus:ring-blue-500 focus:border-blue-500 pr-9',
     message: 'text-blue-600',
-    defaultMessage: '불러오는 중…',
+    defaultMessage: COMMON_COMPONENT_LANG_KO.select.loading,
     ariaLive: 'polite',
   },
   empty: {
     select:
       'border border-gray-300 bg-white text-gray-500 focus:ring-blue-400 focus:border-blue-400',
     message: 'text-gray-500',
-    defaultMessage: '표시할 항목이 없습니다.',
+    defaultMessage: COMMON_COMPONENT_LANG_KO.select.noItems,
     ariaLive: 'assertive',
   },
   disabled: {
@@ -196,7 +197,7 @@ const Select = forwardRef((props, ref) => {
   const messageText =
     statusMessage ??
     statusMeta.defaultMessage ??
-    (normalizedStatus === 'disabled' ? '사용할 수 없는 상태입니다.' : '')
+    (normalizedStatus === 'disabled' ? COMMON_COMPONENT_LANG_KO.select.disabled : '')
 
   const isPlaceholderSelected =
     placeholderOption &&
@@ -329,4 +330,7 @@ const Select = forwardRef((props, ref) => {
 
 Select.displayName = 'Select'
 
+/**
+ * @description Select export를 노출한다.
+ */
 export default Select

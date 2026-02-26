@@ -6,15 +6,16 @@
  */
 import Icon from './Icon';
 import Button from './Button';
+import { COMMON_COMPONENT_LANG_KO } from '@/app/common/i18n/lang.ko';
 
 const Confirm = ({
-    title = '확인',
+    title = COMMON_COMPONENT_LANG_KO.confirm.title,
     text,
     type = 'info',
     onConfirm,
     onCancel,
-    confirmText = '확인',
-    cancelText = '취소'
+    confirmText = COMMON_COMPONENT_LANG_KO.confirm.confirmText,
+    cancelText = COMMON_COMPONENT_LANG_KO.confirm.cancelText
 }) => {
     const displayText = typeof text === 'string' ? text.replaceAll('\\n', '\n') : text;
     const styles = {
@@ -38,21 +39,19 @@ const Confirm = ({
         }
     };
 
-    const currentStyle = styles[type];
-
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-500/70">
             <div className={`
-                w-[400px] rounded-lg shadow-lg border ${currentStyle.borderColor}
-                ${currentStyle.bgColor} backdrop-blur-sm
+                w-[calc(100vw-2rem)] max-w-md rounded-lg shadow-lg border ${styles[type]?.borderColor || styles.info.borderColor}
+                ${styles[type]?.bgColor || styles.info.bgColor} backdrop-blur-sm
                 animate-fade-in-up
             `}>
                 <div className="p-6">
                     <div className="flex items-start mb-4">
                         <Icon
-                            icon={currentStyle.icon}
+                            icon={styles[type]?.icon || styles.info.icon}
                             size="1.5em"
-                            className={`mr-3 mt-0.5 ${currentStyle.iconColor}`}
+                            className={`mr-3 mt-0.5 ${styles[type]?.iconColor || styles.info.iconColor}`}
                         />
                         <div className="flex-1">
                             <h3 className="text-lg font-semibold text-gray-900 mb-1">
@@ -85,4 +84,7 @@ const Confirm = ({
     );
 };
 
+/**
+ * @description Confirm export를 노출한다.
+ */
 export default Confirm; 

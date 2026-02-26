@@ -10,6 +10,7 @@
 import { forwardRef, useEffect, useRef, useState, useMemo } from 'react';
 import { getBoundValue, setBoundValue, buildCtx, fireValueHandlers } from '../binding';
 import Icon from './Icon';
+import { COMMON_COMPONENT_LANG_KO } from '@/app/common/i18n/lang.ko';
 
 const pad2 = (numberValue) => String(numberValue).padStart(2, '0');
 const fmtISO = (yearValue, monthValue, dayValue) => `${yearValue}-${pad2(monthValue)}-${pad2(dayValue)}`;
@@ -89,9 +90,9 @@ const DateInput = forwardRef(({
   const inputRef = useRef(null);
   const rootRef = useRef(null);
 
-  const minDate = useMemo(() => parseISO(min), [min]);
-  const maxDate = useMemo(() => parseISO(max), [max]);
-  const selectedDate = useMemo(() => parseISO(value), [value]);
+  const minDate = parseISO(min);
+  const maxDate = parseISO(max);
+  const selectedDate = parseISO(value);
   const today = useMemo(() => new Date(), []);
   const [viewYear, setViewYear] = useState(() => (selectedDate?.getFullYear() ?? today.getFullYear()));
   const [viewMonth, setViewMonth] = useState(() => (selectedDate?.getMonth() ?? today.getMonth())); // 0-11
@@ -141,8 +142,8 @@ const DateInput = forwardRef(({
 
   useEffect(() => {
     if (!open) return;
-    const handler = (e) => { if (rootRef.current && !rootRef.current.contains(e.target)) setOpen(false); };
-    const esc = (e) => { if (e.key === 'Escape') setOpen(false); };
+    const handler = (event) => { if (rootRef.current && !rootRef.current.contains(event.target)) setOpen(false); };
+    const esc = (keyboardEvent) => { if (keyboardEvent.key === 'Escape') setOpen(false); };
     document.addEventListener('mousedown', handler);
     document.addEventListener('keydown', esc);
     return () => { document.removeEventListener('mousedown', handler); document.removeEventListener('keydown', esc); };
@@ -159,18 +160,18 @@ const DateInput = forwardRef(({
         min={min}
         max={max}
         placeholder={placeholder}
-        onChange={(e) => setText(e.target.value)}
-        onKeyDown={(e) => {
-          if (e.key === 'Enter') {
-            const dt = parseISO(e.currentTarget.value);
-            if (dt) commit(fmtISO(dt.getFullYear(), dt.getMonth() + 1, dt.getDate()), e);
+        onChange={(event) => setText(event.target.value)}
+        onKeyDown={(event) => {
+          if (event.key === 'Enter') {
+            const dt = parseISO(event.currentTarget.value);
+            if (dt) commit(fmtISO(dt.getFullYear(), dt.getMonth() + 1, dt.getDate()), event);
             else setText(value);
             setOpen(false);
           }
         }}
-        onBlur={(e) => {
-          const dt = parseISO(e.target.value);
-          if (dt) commit(fmtISO(dt.getFullYear(), dt.getMonth() + 1, dt.getDate()), e);
+        onBlur={(event) => {
+          const dt = parseISO(event.target.value);
+          if (dt) commit(fmtISO(dt.getFullYear(), dt.getMonth() + 1, dt.getDate()), event);
           else setText(value);
         }}
         disabled={disabled}
@@ -183,9 +184,9 @@ const DateInput = forwardRef(({
       <button
         type="button"
         className="absolute inset-y-0 right-2 my-auto h-6 w-6 rounded hover:bg-gray-100 text-gray-500 flex items-center justify-center"
-        onClick={() => setOpen((v) => !v)}
+        onClick={() => setOpen((previousOpen) => !previousOpen)}
         tabIndex={-1}
-        aria-label="open date picker"
+        aria-label={COMMON_COMPONENT_LANG_KO.dateInput.openDatePicker}
         disabled={disabled || readOnly}
       >
         <Icon icon="md:MdCalendarToday" className="w-5 h-5" />
@@ -193,16 +194,16 @@ const DateInput = forwardRef(({
       {open && (
         <div role="dialog" aria-modal="false" className="absolute z-10 mt-1 w-64 rounded-lg border border-gray-200 bg-white shadow-lg p-3">
           <div className="flex items-center justify-between mb-2">
-            <button className="p-1 rounded hover:bg-gray-100" onClick={() => changeMonth(-1)} aria-label="prev month">
+            <button className="p-1 rounded hover:bg-gray-100" onClick={() => changeMonth(-1)} aria-label={COMMON_COMPONENT_LANG_KO.dateInput.prevMonth}>
               <Icon icon="md:MdChevronLeft" className="w-5 h-5" />
             </button>
-            <div className="text-sm font-medium">{viewYear}년 {viewMonth + 1}월</div>
-            <button className="p-1 rounded hover:bg-gray-100" onClick={() => changeMonth(+1)} aria-label="next month">
+            <div className="text-sm font-medium">{viewYear}{COMMON_COMPONENT_LANG_KO.dateInput.yearSuffix} {viewMonth + 1}{COMMON_COMPONENT_LANG_KO.dateInput.monthSuffix}</div>
+            <button className="p-1 rounded hover:bg-gray-100" onClick={() => changeMonth(+1)} aria-label={COMMON_COMPONENT_LANG_KO.dateInput.nextMonth}>
               <Icon icon="md:MdChevronRight" className="w-5 h-5" />
             </button>
           </div>
           <div className="grid grid-cols-7 gap-1 text-center text-xs text-gray-500 mb-1">
-            {['일','월','화','수','목','금','토'].map((d) => (<div key={d}>{d}</div>))}
+            {COMMON_COMPONENT_LANG_KO.dateInput.weekdaysShort.map((dayLabel) => (<div key={dayLabel}>{dayLabel}</div>))}
           </div>
           <div className="grid grid-cols-7 gap-1">
             {monthGrid.map(({ dayDate, iso, inMonth, disabled: isDisabled }) => {
@@ -239,4 +240,7 @@ const DateInput = forwardRef(({
 
 DateInput.displayName = 'DateInput';
 
+/**
+ * @description DateInput export를 노출한다.
+ */
 export default DateInput;

@@ -71,4 +71,7 @@ const Tooltip = forwardRef(({ content, placement = 'top', delay = 150, disabled 
 
 Tooltip.displayName = 'Tooltip';
 
+/**
+ * @description Tooltip export를 노출한다.
+ */
 export default Tooltip;

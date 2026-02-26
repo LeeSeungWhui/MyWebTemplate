@@ -19,6 +19,7 @@ import {
   buildCtx,
   fireValueHandlers,
 } from '../binding'
+import { COMMON_COMPONENT_LANG_KO } from '@/app/common/i18n/lang.ko'
 
 const STATUS_PRESETS = {
   default: {
@@ -31,21 +32,21 @@ const STATUS_PRESETS = {
     button:
       'border border-green-400 focus:ring-green-500 focus:border-green-500 bg-white text-gray-900',
     message: 'text-green-600',
-    defaultMessage: '선택이 저장되었습니다.',
+    defaultMessage: COMMON_COMPONENT_LANG_KO.combobox.saved,
     ariaLive: 'polite',
   },
   warning: {
     button:
       'border border-yellow-400 focus:ring-yellow-500 focus:border-yellow-500 bg-white text-gray-900',
     message: 'text-yellow-700',
-    defaultMessage: '추가 확인이 필요합니다.',
+    defaultMessage: COMMON_COMPONENT_LANG_KO.combobox.needsConfirm,
     ariaLive: 'polite',
   },
   error: {
     button:
       'border border-red-400 focus:ring-red-500 focus:border-red-500 bg-white text-gray-900',
     message: 'text-red-600',
-    defaultMessage: '유효하지 않은 값입니다.',
+    defaultMessage: COMMON_COMPONENT_LANG_KO.combobox.invalidValue,
     ariaLive: 'assertive',
   },
   info: {
@@ -58,14 +59,14 @@ const STATUS_PRESETS = {
     button:
       'border border-blue-300 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 pr-9',
     message: 'text-blue-600',
-    defaultMessage: '불러오는 중…',
+    defaultMessage: COMMON_COMPONENT_LANG_KO.combobox.loading,
     ariaLive: 'polite',
   },
   empty: {
     button:
       'border border-gray-300 bg-white text-gray-500 focus:ring-blue-400 focus:border-blue-400',
     message: 'text-gray-500',
-    defaultMessage: '표시할 항목이 없습니다.',
+    defaultMessage: COMMON_COMPONENT_LANG_KO.combobox.noItems,
     ariaLive: 'assertive',
   },
   disabled: {
@@ -112,8 +113,8 @@ const getChosung = (str) => {
   return out
 }
 
-const normalize = (s) =>
-  String(s ?? '')
+const normalize = (inputText) =>
+  String(inputText ?? '')
     .toLowerCase()
     .replace(/\s+/g, '')
 
@@ -156,18 +157,18 @@ const Combobox = forwardRef((props, ref) => {
     defaultValue = '',
     onChange,
     onValueChange,
-    placeholder = '선택하세요',
+    placeholder = COMMON_COMPONENT_LANG_KO.combobox.placeholder,
     className = '',
     disabled = false,
     id,
     filterable = true,
-    noResultsText = '결과 없음',
+    noResultsText = COMMON_COMPONENT_LANG_KO.combobox.noResults,
     multi = false,
     multiSummary = false,
-    summaryText = '{count}개 선택',
+    summaryText = COMMON_COMPONENT_LANG_KO.combobox.summaryText,
     showSelectAll = false,
-    selectAllText = '전체 선택',
-    clearAllText = '전체 해제',
+    selectAllText = COMMON_COMPONENT_LANG_KO.combobox.selectAllText,
+    clearAllText = COMMON_COMPONENT_LANG_KO.combobox.clearAllText,
     status: statusProp,
     statusMessage,
     assistiveText,
@@ -263,7 +264,7 @@ const Combobox = forwardRef((props, ref) => {
   const messageText =
     statusMessage ??
     statusMeta.defaultMessage ??
-    (normalizedStatus === 'disabled' ? '사용할 수 없는 상태입니다.' : '')
+    (normalizedStatus === 'disabled' ? COMMON_COMPONENT_LANG_KO.combobox.disabled : '')
 
   const messageId =
     messageText || assistiveText
@@ -459,14 +460,13 @@ const Combobox = forwardRef((props, ref) => {
           <span>
             {(() => {
               if (multi) {
-                const count = valueSet.size
-                if (count === 0) {
+                if (valueSet.size === 0) {
                   return placeholderOption?.label || placeholder
                 }
                 if (multiSummary) {
                   return (
                     <span className="inline-flex items-center rounded-full bg-blue-50 text-blue-700 text-xs font-medium px-2 py-0.5">
-                      {summaryText.replace('{count}', String(count))}
+                      {summaryText.replace('{count}', String(valueSet.size))}
                     </span>
                   )
                 }
@@ -527,7 +527,7 @@ const Combobox = forwardRef((props, ref) => {
                     )
                 }}
               >
-                {allSelected ? '해제' : '전체'}
+                {allSelected ? COMMON_COMPONENT_LANG_KO.combobox.toggleClear : COMMON_COMPONENT_LANG_KO.combobox.toggleAll}
               </button>
             </div>
           )}
@@ -536,7 +536,7 @@ const Combobox = forwardRef((props, ref) => {
               <input
                 autoFocus
                 className="w-full px-2 py-1 text-sm rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="검색..."
+                placeholder={COMMON_COMPONENT_LANG_KO.combobox.searchPlaceholder}
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
               />
@@ -598,4 +598,7 @@ const Combobox = forwardRef((props, ref) => {
 
 Combobox.displayName = 'Combobox'
 
+/**
+ * @description Combobox export를 노출한다.
+ */
 export default Combobox

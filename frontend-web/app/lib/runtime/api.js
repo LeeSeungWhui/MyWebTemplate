@@ -43,23 +43,23 @@ function toBffPath(path) {
   return `${BFF_PREFIX}${normalizedPath.startsWith("/") ? normalizedPath : `/${normalizedPath}`}`;
 }
 
-function isBodyLike(v) {
+function isBodyLike(value) {
   return (
-    typeof v === "string" ||
-    (typeof FormData !== "undefined" && v instanceof FormData) ||
-    (typeof Blob !== "undefined" && v instanceof Blob) ||
-    (typeof ArrayBuffer !== "undefined" && v instanceof ArrayBuffer)
+    typeof value === "string" ||
+    (typeof FormData !== "undefined" && value instanceof FormData) ||
+    (typeof Blob !== "undefined" && value instanceof Blob) ||
+    (typeof ArrayBuffer !== "undefined" && value instanceof ArrayBuffer)
   );
 }
 
-function isFormBody(v) {
-  return typeof FormData !== "undefined" && v instanceof FormData;
+function isFormBody(value) {
+  return typeof FormData !== "undefined" && value instanceof FormData;
 }
 
-function isBinaryBody(v) {
+function isBinaryBody(value) {
   return (
-    (typeof Blob !== "undefined" && v instanceof Blob) ||
-    (typeof ArrayBuffer !== "undefined" && v instanceof ArrayBuffer)
+    (typeof Blob !== "undefined" && value instanceof Blob) ||
+    (typeof ArrayBuffer !== "undefined" && value instanceof ArrayBuffer)
   );
 }
 
@@ -89,31 +89,31 @@ function normalizeArgs(path, a2, a3) {
   // - api*(path, body, 'authless')
   // - api*(path, body, { authless: boolean })
   // - api*(path, initLike, 'authless' | options)
-  const isInitLike = (v) => {
-    if (!v || typeof v !== "object") return false;
-    if (isBodyLike(v)) return false;
-    const keys = Object.keys(v);
+  const isInitLike = (value) => {
+    if (!value || typeof value !== "object") return false;
+    if (isBodyLike(value)) return false;
+    const keys = Object.keys(value);
     return (
-      "method" in v ||
-      "headers" in v ||
-      "body" in v ||
-      "authless" in v ||
+      "method" in value ||
+      "headers" in value ||
+      "body" in value ||
+      "authless" in value ||
       keys.length === 0
     );
   };
-  const isLegacyOptionOnlyInit = (v) => {
-    if (!v || typeof v !== "object") return false;
-    if (isBodyLike(v)) return false;
-    const keys = Object.keys(v);
+  const isLegacyOptionOnlyInit = (value) => {
+    if (!value || typeof value !== "object") return false;
+    if (isBodyLike(value)) return false;
+    const keys = Object.keys(value);
     if (!keys.length) return false;
     return keys.every((key) => key === "csrf" || key === "auth");
   };
 
   let init = {};
   let options = {};
-  const applyMode = (m) => {
-    if (!m) return;
-    if (m === "authless") options.authless = true;
+  const applyMode = (mode) => {
+    if (!mode) return;
+    if (mode === "authless") options.authless = true;
   };
 
   if (typeof a2 === "string") applyMode(a2);
@@ -216,7 +216,6 @@ export async function apiRequest(path, initOrBody = {}, modeOrOptions) {
   const headersIn = init.headers || {};
   const absoluteUrl = isAbsoluteUrl(path);
   const authless = !!options?.authless;
-  const bodyIn = init.body;
   const resolveFrontendOrigin = () => {
     const envOrigin =
       process.env.APP_FRONTEND_ORIGIN ||
@@ -238,7 +237,7 @@ export async function apiRequest(path, initOrBody = {}, modeOrOptions) {
       method !== "HEAD" &&
       !hasHeader(baseHeaders, "content-type")
     ) {
-      if (!(isFormBody(bodyIn) || isBinaryBody(bodyIn))) {
+      if (!(isFormBody(init.body) || isBinaryBody(init.body))) {
         baseHeaders["Content-Type"] = "application/json";
       }
     }
@@ -270,7 +269,7 @@ export async function apiRequest(path, initOrBody = {}, modeOrOptions) {
     method !== "HEAD" &&
     !hasHeader(headers, "content-type")
   ) {
-    if (!(isFormBody(bodyIn) || isBinaryBody(bodyIn))) {
+    if (!(isFormBody(init.body) || isBinaryBody(init.body))) {
       headers["Content-Type"] = "application/json";
     }
   }

@@ -110,7 +110,7 @@ const NumberInput = forwardRef(({
         onMouseDown={() => startHold(-step)}
         onMouseUp={stopHold}
         onMouseLeave={stopHold}
-        onClick={(e) => { if (heldStartedRef.current) { e.preventDefault(); heldStartedRef.current = false; return; } changeBy(-step); }}
+        onClick={(event) => { if (heldStartedRef.current) { event.preventDefault(); heldStartedRef.current = false; return; } changeBy(-step); }}
         disabled={disabled || readOnly}
         aria-label="decrement"
       >
@@ -125,19 +125,19 @@ const NumberInput = forwardRef(({
         pattern="[0-9.-]*"
         placeholder={placeholder}
         value={value}
-        onChange={(e) => {
-          const nextInputValue = e.target.value;
+        onChange={(event) => {
+          const nextInputValue = event.target.value;
           if (nextInputValue === '' || /^-?\d*(?:\.\d*)?$/.test(nextInputValue)) {
             if (!isPropControlled && !isData) setInner(nextInputValue);
           }
         }}
-        onKeyDown={(e) => {
-          if (e.key === 'ArrowUp') { e.preventDefault(); changeBy(+step); }
-          if (e.key === 'ArrowDown') { e.preventDefault(); changeBy(-step); }
-          if (e.key === 'PageUp') { e.preventDefault(); changeBy(+step * 10); }
-          if (e.key === 'PageDown') { e.preventDefault(); changeBy(-step * 10); }
+        onKeyDown={(event) => {
+          if (event.key === 'ArrowUp') { event.preventDefault(); changeBy(+step); }
+          if (event.key === 'ArrowDown') { event.preventDefault(); changeBy(-step); }
+          if (event.key === 'PageUp') { event.preventDefault(); changeBy(+step * 10); }
+          if (event.key === 'PageDown') { event.preventDefault(); changeBy(-step * 10); }
         }}
-        onBlur={(e) => commit(e.target.value, e)}
+        onBlur={(event) => commit(event.target.value, event)}
         className={`${baseCls} ${stateCls} flex-1`.trim()}
         disabled={disabled}
         readOnly={readOnly}
@@ -153,7 +153,7 @@ const NumberInput = forwardRef(({
         onMouseDown={() => startHold(+step)}
         onMouseUp={stopHold}
         onMouseLeave={stopHold}
-        onClick={(e) => { if (heldStartedRef.current) { e.preventDefault(); heldStartedRef.current = false; return; } changeBy(+step); }}
+        onClick={(event) => { if (heldStartedRef.current) { event.preventDefault(); heldStartedRef.current = false; return; } changeBy(+step); }}
         disabled={disabled || readOnly}
         aria-label="increment"
       >
@@ -165,4 +165,7 @@ const NumberInput = forwardRef(({
 
 NumberInput.displayName = 'NumberInput';
 
+/**
+ * @description NumberInput export를 노출한다.
+ */
 export default NumberInput;

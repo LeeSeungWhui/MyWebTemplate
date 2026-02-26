@@ -5,7 +5,11 @@
  * 설명: Loading UI 컴포넌트 구현
  */
 import Icon from './Icon';
+import { COMMON_COMPONENT_LANG_KO } from '@/app/common/i18n/lang.ko';
 
+/**
+ * @description Loading export를 노출한다.
+ */
 const Loading = () => {
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-500/70 backdrop-blur-sm">
@@ -16,7 +20,7 @@ const Loading = () => {
                     className="animate-spin text-blue-500"
                 />
                 <span className="mt-3 text-sm font-medium text-gray-600">
-                    처리중...
+                    {COMMON_COMPONENT_LANG_KO.loading.processingText}
                 </span>
             </div>
         </div>

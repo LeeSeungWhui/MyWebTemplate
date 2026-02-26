@@ -24,4 +24,7 @@ export function useSwr(
   return useSwrLib(key, fetcher, { revalidateOnFocus: false, ...swr });
 }
 
+/**
+ * @description useSwr export를 노출한다.
+ */
 export default useSwr;

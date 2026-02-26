@@ -6,9 +6,10 @@
  */
 import Icon from './Icon';
 import Button from './Button';
+import { COMMON_COMPONENT_LANG_KO } from '@/app/common/i18n/lang.ko';
 
 const Alert = ({
-    title = '알림',  // 제목 (옵션)
+    title = COMMON_COMPONENT_LANG_KO.alert.title,  // 제목 (옵션)
     text,           // 필수 메시지
     type = 'info',  // info, success, warning, error
     onClick        // 확인 버튼 클릭 핸들러
@@ -41,22 +42,21 @@ const Alert = ({
         }
     };
 
-    const currentStyle = styles[type];
     const displayText = typeof text === 'string' ? text.replaceAll('\\n', '\n') : text;
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-500/70">
             <div className={`
-                min-w-[400px] max-w-[500px] rounded-lg shadow-lg border ${currentStyle.borderColor}
-                ${currentStyle.bgColor} backdrop-blur-sm
+                w-[calc(100vw-2rem)] max-w-xl rounded-lg shadow-lg border ${styles[type]?.borderColor || styles.info.borderColor}
+                ${styles[type]?.bgColor || styles.info.bgColor} backdrop-blur-sm
                 animate-fade-in-up
             `}>
                 <div className="p-6">
                     <div className="flex items-start mb-4">
                         <Icon
-                            icon={currentStyle.icon}
+                            icon={styles[type]?.icon || styles.info.icon}
                             size="1.5em"
-                            className={`mr-3 mt-0.5 ${currentStyle.iconColor}`}
+                            className={`mr-3 mt-0.5 ${styles[type]?.iconColor || styles.info.iconColor}`}
                         />
                         <div className="flex-1">
                             <h3 className="text-lg font-semibold text-gray-900 mb-1">
@@ -72,7 +72,7 @@ const Alert = ({
                             onClick={onClick}
                             className="min-w-[80px]"
                         >
-                            확인
+                            {COMMON_COMPONENT_LANG_KO.alert.confirmText}
                         </Button>
                     </div>
                 </div>
@@ -81,4 +81,7 @@ const Alert = ({
     );
 };
 
+/**
+ * @description Alert export를 노출한다.
+ */
 export default Alert; 

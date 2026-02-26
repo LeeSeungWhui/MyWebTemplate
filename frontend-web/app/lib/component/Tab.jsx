@@ -89,4 +89,7 @@ const Tab = ({
 // TabItem을 Tab의 static property로 추가
 Tab.Item = TabItem;
 
+/**
+ * @description Tab export를 노출한다.
+ */
 export default Tab;

@@ -45,9 +45,9 @@ const Radiobox = forwardRef(({
         }
     }, [isDataObjControlled, dataObj, dataKeyName, value]);
 
-    const handleChange = (e) => {
-        e.stopPropagation();
-        const newChecked = e.target.checked;
+    const handleChange = (event) => {
+        event.stopPropagation();
+        const newChecked = event.target.checked;
 
         if (!isControlled) {
             setInternalChecked(newChecked);
@@ -59,14 +59,14 @@ const Radiobox = forwardRef(({
 
         const ctx = buildCtx({ dataKey: dataKeyName, dataObj, source: 'user', dirty: true, valid: null });
         if (newChecked) {
-            try { e.target.value = value; } catch (_) { /* ignore */ }
+            try { event.target.value = value; } catch (_) { /* ignore */ }
         }
         fireValueHandlers({
             onChange,
             onValueChange,
             value: newChecked ? value : undefined,
             ctx,
-            event: e,
+            event,
         });
     };
 
@@ -105,4 +105,7 @@ const Radiobox = forwardRef(({
 
 Radiobox.displayName = 'Radiobox';
 
+/**
+ * @description Radiobox export를 노출한다.
+ */
 export default Radiobox; 

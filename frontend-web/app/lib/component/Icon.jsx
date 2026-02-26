@@ -36,15 +36,14 @@ const Icon = forwardRef(({
 }, ref) => {
     // icon 형식: "md:Home" 또는 "MdHome" 형식 지원
     const [prefix, name] = icon.includes(':') ? icon.split(':') : [icon.substring(0, 2).toLowerCase(), icon];
-    const IconSet = iconSets[prefix];
-
-    if (!IconSet) {
+    if (!iconSets[prefix]) {
         console.warn(`Icon set "${prefix}" not found`);
         return null;
     }
 
     // 아이콘 이름으로 컴포넌트 찾기
-    const IconComponent = IconSet[name] || IconSet[`${prefix.toUpperCase()}${name}`];
+    const IconComponent =
+      iconSets[prefix][name] || iconSets[prefix][`${prefix.toUpperCase()}${name}`];
 
     if (!IconComponent) {
         console.warn(`Icon "${name}" not found in set "${prefix}"`);
@@ -69,4 +68,7 @@ const Icon = forwardRef(({
 
 Icon.displayName = 'Icon';
 
+/**
+ * @description Icon export를 노출한다.
+ */
 export default Icon; 

@@ -43,9 +43,9 @@ const Checkbox = forwardRef(({
         }
     }, [isDataObjControlled, dataObj, dataKeyName]);
 
-    const handleChange = (e) => {
-        e.stopPropagation();
-        const newChecked = e.target.checked;
+    const handleChange = (event) => {
+        event.stopPropagation();
+        const newChecked = event.target.checked;
 
         if (!isControlled) {
             setInternalChecked(newChecked);
@@ -56,7 +56,7 @@ const Checkbox = forwardRef(({
         }
 
         const ctx = buildCtx({ dataKey: dataKeyName, dataObj, source: 'user', dirty: true, valid: null });
-        fireValueHandlers({ onChange, onValueChange, value: newChecked, ctx, event: e });
+        fireValueHandlers({ onChange, onValueChange, value: newChecked, ctx, event });
     };
 
     const getCheckedState = () => {
@@ -98,4 +98,7 @@ const Checkbox = forwardRef(({
 
 Checkbox.displayName = 'Checkbox';
 
+/**
+ * @description Checkbox export를 노출한다.
+ */
 export default Checkbox; 

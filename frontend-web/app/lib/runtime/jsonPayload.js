@@ -40,15 +40,14 @@ export const sanitizeJsonString = (text) => {
 
   const skipWhitespace = (input, start) => {
     for (let i = start; i < input.length; i += 1) {
-      const ch = input[i];
-      if (ch === " " || ch === "\t" || ch === "\r" || ch === "\n") continue;
-      return { ch, index: i };
+      if (input[i] === " " || input[i] === "\t" || input[i] === "\r" || input[i] === "\n") continue;
+      return { ch: input[i], index: i };
     }
     return { ch: "", index: input.length };
   };
 
   for (let idx = 0; idx < source.length; idx += 1) {
-    const ch = source[idx];
+    const ch = source.charAt(idx);
 
     if (inString) {
       if (escapeNext) {
@@ -107,7 +106,7 @@ export const sanitizeJsonString = (text) => {
 
     if (ch === '"') {
       inString = true;
-      const top = stack[stack.length - 1];
+      const top = stack.at(-1);
       stringMode =
         top && top.type === "object" && top.expectKey ? "key" : "value";
       sanitized += '"';
@@ -210,9 +209,9 @@ export const normalizeNestedJsonFields = (payload, options = {}) => {
 
   keys.forEach((key) => {
     if (!Object.prototype.hasOwnProperty.call(payload, key)) return;
-    const value = payload[key];
-    if (typeof value !== "string") return;
-    const trimmed = value.trim();
+    const payloadValue = Reflect.get(payload, key);
+    if (typeof payloadValue !== "string") return;
+    const trimmed = payloadValue.trim();
     if (!trimmed) return;
     const parsed = parseJsonPayload(trimmed, { context: `Nested:${key}` });
     if (parsed && typeof parsed === "object") {

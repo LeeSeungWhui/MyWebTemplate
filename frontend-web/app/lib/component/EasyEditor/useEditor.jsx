@@ -18,6 +18,7 @@ import TextAlign from '@tiptap/extension-text-align';
 import { Extension } from '@tiptap/core';
 import { getBoundValue, setBoundValue, buildCtx, fireValueHandlers } from '../../binding';
 import { deepCloneValue, safeJsonParse } from '@/app/lib/runtime/json';
+import { COMMON_COMPONENT_LANG_KO } from '@/app/common/i18n/lang.ko';
 
 const EMPTY_EXTENSIONS = [];
 
@@ -121,7 +122,7 @@ export function useEasyEditor({
   value,
   onChange,
   onValueChange,
-  placeholder = '내용을 입력하세요',
+  placeholder = COMMON_COMPONENT_LANG_KO.easyEditor.placeholder,
   readOnly = false,
   serialization = 'json',
   extensions,
@@ -229,4 +230,7 @@ export function useEasyEditor({
   return { editor };
 }
 
+/**
+ * @description useEasyEditor export를 노출한다.
+ */
 export default useEasyEditor;

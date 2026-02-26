@@ -5,10 +5,11 @@
  * 설명: Empty UI 컴포넌트 구현
  */
 import Icon from './Icon';
+import { COMMON_COMPONENT_LANG_KO } from '@/app/common/i18n/lang.ko';
 
 const Empty = ({
   icon = 'md:MdInbox',
-  title = '데이터가 없습니다',
+  title = COMMON_COMPONENT_LANG_KO.empty.titleNoData,
   description,
   className = '',
   children,
@@ -28,5 +29,7 @@ const Empty = ({
   );
 };
 
+/**
+ * @description Empty export를 노출한다.
+ */
 export default Empty;
-

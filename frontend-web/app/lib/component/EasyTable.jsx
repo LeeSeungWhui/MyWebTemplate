@@ -1,16 +1,12 @@
 /**
  * 파일명: EasyTable.jsx
  * 작성자: LSH
- * 갱신일: 2025-09-13
- * 설명: Table UI 컴포넌트 구현
+ * 갱신일: 2026-02-26
+ * 설명: 테이블/카드형 데이터 뷰 컴포넌트 구현
  */
-/**
- * EasyTable.jsx
- * Lightweight, flexible data Table/Card component with controlled/uncontrolled pagination
- * - Decoupled from project-specific Checkbox/Icon
- * - Supports array or EasyList-like datasets
- */
-import { forwardRef, useEffect, useMemo, useRef, useState } from 'react';
+import { forwardRef, useEffect, useMemo, useState } from 'react';
+import Pagination from './Pagination';
+import { COMMON_COMPONENT_LANG_KO } from '@/app/common/i18n/lang.ko';
 
 const isListLike = (list) => !!list && (typeof list.size === 'function' || Array.isArray(list));
 const listSize = (list) => {
@@ -36,87 +32,14 @@ const defaultRowKey = (row, idx) => {
   return idx;
 };
 
-const clamp = (n, min, max) => Math.max(min, Math.min(n, max));
+const clamp = (value, min, max) => Math.max(min, Math.min(value, max));
 
-const Arrow = ({ dir, className = '' }) => {
-  let rotate = '';
-  if (dir === 'left') rotate = 'rotate-180';
-  else if (dir === 'up') rotate = '-rotate-90';
-  else if (dir === 'down') rotate = 'rotate-90';
-  return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" className={`${rotate} ${className}`} aria-hidden>
-      <path d="M5.5 3L10 8L5.5 13" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-};
-
-const DoubleArrow = ({ dir = 'right', className = '' }) => {
-  const rotate = dir === 'left' ? 'rotate-180' : '';
-  return (
-    <svg width="18" height="16" viewBox="0 0 18 16" fill="none" xmlns="http://www.w3.org/2000/svg" className={`${rotate} ${className}`} aria-hidden>
-      <path d="M3.5 3L8 8L3.5 13" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-      <path d="M9.5 3L14 8L9.5 13" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  );
-};
-
-const Pagination = ({ page, pageCount, onChange, maxButtons = 7, className = '' }) => {
-  // build range with edges + ellipsis
-  const tokens = [];
-  const add = (t) => tokens.push(t);
-  const addPages = (s, e) => { for (let i = s; i <= e; i++) add(i); };
-
-  if (pageCount <= maxButtons) {
-    addPages(1, pageCount);
-  } else {
-    const windowSize = Math.max(3, maxButtons - 2); // reserve edges
-    let start = Math.max(2, page - Math.floor((windowSize - 1) / 2));
-    let end = Math.min(pageCount - 1, start + windowSize - 1);
-    start = Math.max(2, Math.min(start, end - windowSize + 1));
-    add(1);
-    if (start > 2) add('…');
-    addPages(start, end);
-    if (end < pageCount - 1) add('…');
-    add(pageCount);
-  }
-
-  const btnBase = 'rounded-full w-8 h-8 flex items-center justify-center text-sm transition-colors';
-  const navBase = 'rounded-full w-8 h-8 flex items-center justify-center text-gray-600 hover:text-gray-800 disabled:opacity-40 disabled:cursor-not-allowed';
-  const selected = 'bg-blue-100 text-blue-700 font-semibold ring-1 ring-blue-300';
-  const normal = 'text-gray-700 hover:bg-gray-100';
-
-  return (
-    <div className={`inline-flex items-center gap-1 ${className}`} role="navigation" aria-label="Pagination">
-      <button className={navBase} onClick={() => onChange(1)} disabled={page === 1} aria-label="First page">
-        <DoubleArrow dir="left" />
-      </button>
-      <button className={navBase} onClick={() => onChange(page - 1)} disabled={page === 1} aria-label="Previous page">
-        <Arrow dir="left" />
-      </button>
-      {tokens.map((t, idx) => (
-        typeof t === 'number' ? (
-          <button
-            key={t}
-            className={`${btnBase} ${t === page ? selected : normal}`}
-            aria-current={t === page ? 'page' : undefined}
-            onClick={() => onChange(t)}
-          >
-            {t}
-          </button>
-        ) : (
-          <span key={`ellipsis-${idx}`} className="px-2 text-gray-400 select-none">…</span>
-        )
-      ))}
-      <button className={navBase} onClick={() => onChange(page + 1)} disabled={page === pageCount} aria-label="Next page">
-        <Arrow dir="right" />
-      </button>
-      <button className={navBase} onClick={() => onChange(pageCount)} disabled={page === pageCount} aria-label="Last page">
-        <DoubleArrow dir="right" />
-      </button>
-    </div>
-  );
-};
-
+/**
+ * @description 테이블/카드 UI와 페이지네이션을 제공하는 데이터 컴포넌트.
+ * @param {Object} props
+ * @param {React.Ref<HTMLDivElement>} ref
+ * @returns {JSX.Element}
+ */
 const EasyTable = forwardRef(function EasyTable(
   {
     // data & columns
@@ -130,7 +53,7 @@ const EasyTable = forwardRef(function EasyTable(
     cellClassName = '',
     rowsClassName = '', // container for rows (e.g., 'space-y-2')
     preserveRowSpace = true,
-    empty = '데이터가 없습니다.',
+    empty = COMMON_COMPONENT_LANG_KO.easyTable.empty,
     loading = false,
     // interactions
     onRowClick,
@@ -319,7 +242,7 @@ const EasyTable = forwardRef(function EasyTable(
           </div>
         );
       })}
-      {Array.from({ length: fillerCount }).map((_, fillerIdx) => (
+      {Array.from({ length: fillerCount }).map((unusedItem, fillerIdx) => (
         <div
           key={`filler-${fillerIdx}`}
           role="presentation"
@@ -350,7 +273,7 @@ const EasyTable = forwardRef(function EasyTable(
         return (
           <div key={keyVal} className="w-full">
             {typeof renderCard === 'function' ? renderCard(row, globalIdx) : (
-              <div className="border rounded p-4">No renderCard provided</div>
+              <div className="border rounded p-4">{COMMON_COMPONENT_LANG_KO.easyTable.noRenderCardProvided}</div>
             )}
           </div>
         );
@@ -416,4 +339,7 @@ const EasyTable = forwardRef(function EasyTable(
 
 EasyTable.displayName = 'EasyTable';
 
+/**
+ * @description EasyTable 컴포넌트 엔트리를 export 한다.
+ */
 export default EasyTable;

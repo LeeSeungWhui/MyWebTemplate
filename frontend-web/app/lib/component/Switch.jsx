@@ -7,7 +7,7 @@
 import { useState, forwardRef, useEffect } from 'react';
 import { getBoundValue, setBoundValue, buildCtx, fireValueHandlers } from '../binding';
 
-const truthy = (v) => [true, 'Y', 'y', '1', 1].includes(v) || v === true;
+const truthy = (value) => [true, 'Y', 'y', '1', 1].includes(value) || value === true;
 
 const Switch = forwardRef(({ 
   label,
@@ -45,9 +45,9 @@ const Switch = forwardRef(({
     return internalChecked;
   };
 
-  const handleChange = (e) => {
-    e.stopPropagation();
-    const newChecked = e.target.checked;
+  const handleChange = (event) => {
+    event.stopPropagation();
+    const newChecked = event.target.checked;
 
     if (!isControlled) setInternalChecked(newChecked);
     if (isDataObj) {
@@ -55,7 +55,7 @@ const Switch = forwardRef(({
     }
 
     const ctx = buildCtx({ dataKey, dataObj, source: 'user', dirty: true, valid: null });
-    fireValueHandlers({ onChange, onValueChange, value: newChecked, ctx, event: e });
+    fireValueHandlers({ onChange, onValueChange, value: newChecked, ctx, event });
   };
 
   const checked = getCheckedState();
@@ -92,4 +92,7 @@ const Switch = forwardRef(({
 
 Switch.displayName = 'Switch';
 
+/**
+ * @description Switch export를 노출한다.
+ */
 export default Switch;

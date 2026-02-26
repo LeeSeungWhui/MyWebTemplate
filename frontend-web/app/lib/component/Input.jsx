@@ -12,6 +12,15 @@ import {
   buildCtx,
   fireValueHandlers,
 } from "../binding";
+import { COMMON_COMPONENT_LANG_KO } from "@/app/common/i18n/lang.ko";
+
+const MASK_TOKEN_RE = /[#Aa?*]/;
+
+const toInputValue = (value) => {
+  if (value === null || value === undefined) return "";
+  if (typeof value === "string") return value;
+  return String(value);
+};
 
 /**
  * Input - 필터/마스크 지원 입력 컴포넌트
@@ -44,9 +53,7 @@ const Input = forwardRef(
     const isBoundControlled = !!(dataObj && dataKey);
     const isPropControlled =
       !isBoundControlled && typeof propValue !== "undefined";
-    const isControlled = isBoundControlled || isPropControlled;
     const [showPassword, setShowPassword] = useState(false);
-    const [isComposing, setIsComposing] = useState(false);
     const [draftValue, setDraftValue] = useState(undefined);
     const [innerValue, setInnerValue] = useState(
       () => propValue ?? defaultValue ?? ""
@@ -60,44 +67,42 @@ const Input = forwardRef(
       default: "border-gray-300 focus:ring-blue-500 focus:border-blue-500",
       error: "border-red-300 focus:ring-red-500 focus:border-red-500",
     };
+    const hasStringMask = typeof mask === "string" && mask.trim().length > 0;
+    const hasFunctionMask = typeof mask === "function";
 
-    const applyMask = (value, mask) => {
+    const applyMask = (value, maskPattern) => {
       // 마스크에서 실제 입력 가능한 문자 개수 계산
-      const maxLength = mask.replace(/[^#A-Za-z?*]/g, "").length;
+      const maxLength = maskPattern.replace(/[^#A-Za-z?*]/g, "").length;
 
       // 마스크 패턴에 맞지 않는 문자 먼저 제거
       let cleanValue = "";
       let maskPosition = 0;
 
       for (let i = 0; i < value.length && cleanValue.length < maxLength; i++) {
-        const char = value[i];
-
         // 마스크의 다음 입력 위치 찾기
         while (
-          maskPosition < mask.length &&
-          !["#", "A", "a", "?", "*"].includes(mask[maskPosition])
+          maskPosition < maskPattern.length &&
+          !MASK_TOKEN_RE.test(maskPattern[maskPosition])
         ) {
           maskPosition++;
         }
 
-        if (maskPosition >= mask.length) break;
+        if (maskPosition >= maskPattern.length) break;
 
-        const maskChar = mask[maskPosition];
-
-        if (maskChar === "#" && /\d/.test(char)) {
-          cleanValue += char;
+        if (maskPattern[maskPosition] === "#" && /\d/.test(value[i])) {
+          cleanValue += value[i];
           maskPosition++;
-        } else if (maskChar === "A" && /[a-zA-Z]/.test(char)) {
-          cleanValue += char.toUpperCase();
+        } else if (maskPattern[maskPosition] === "A" && /[a-zA-Z]/.test(value[i])) {
+          cleanValue += value[i].toUpperCase();
           maskPosition++;
-        } else if (maskChar === "a" && /[a-zA-Z]/.test(char)) {
-          cleanValue += char.toLowerCase();
+        } else if (maskPattern[maskPosition] === "a" && /[a-zA-Z]/.test(value[i])) {
+          cleanValue += value[i].toLowerCase();
           maskPosition++;
-        } else if (maskChar === "?" && /[a-zA-Z]/.test(char)) {
-          cleanValue += char;
+        } else if (maskPattern[maskPosition] === "?" && /[a-zA-Z]/.test(value[i])) {
+          cleanValue += value[i];
           maskPosition++;
-        } else if (maskChar === "*") {
-          cleanValue += char;
+        } else if (maskPattern[maskPosition] === "*") {
+          cleanValue += value[i];
           maskPosition++;
         }
       }
@@ -106,14 +111,16 @@ const Input = forwardRef(
       let result = "";
       let valueIndex = 0;
 
-      for (let i = 0; i < mask.length && valueIndex < cleanValue.length; i++) {
-        const maskChar = mask[i];
-
-        if (["#", "A", "a", "?", "*"].includes(maskChar)) {
+      for (
+        let i = 0;
+        i < maskPattern.length && valueIndex < cleanValue.length;
+        i++
+      ) {
+        if (MASK_TOKEN_RE.test(maskPattern[i])) {
           result += cleanValue[valueIndex];
           valueIndex++;
         } else {
-          result += maskChar;
+          result += maskPattern[i];
         }
       }
 
@@ -131,7 +138,9 @@ const Input = forwardRef(
         const regex = new RegExp(`[^${filter}]`, "g");
         value = value.replace(regex, "");
       }
-      if (mask) {
+      if (hasFunctionMask) {
+        value = toInputValue(mask(value));
+      } else if (hasStringMask) {
         value = applyMask(value, mask);
       }
       if (
@@ -164,7 +173,7 @@ const Input = forwardRef(
         const cls = allowHangulDraft ? `${filter}ㄱ-ㅎㅏ-ㅣ가-힣` : filter;
         if (!new RegExp(`^[${cls}]*$`).test(draftText)) return false;
       }
-      if (mask) {
+      if (hasStringMask) {
         if (HANGUL_RE.test(draftText)) return false; // 마스크 존재 시 한글 금지 가정
       }
       if (type === "number" && !/^[0-9.\-]*$/.test(draftText)) return false;
@@ -178,9 +187,9 @@ const Input = forwardRef(
           : innerValue ?? "";
 
     // 마스크/필터/number가 있을 때 입력 직전 1차 필터링
-    const handleBeforeInput = (e) => {
-      if (!filter && !mask && type !== "number") return;
-      const data = e.data;
+    const handleBeforeInput = (event) => {
+      if (!filter && !hasStringMask && type !== "number") return;
+      const data = event.data;
 
       // NOTE: 조합(insertCompositionText)은 onCompositionUpdate/Change에서 정밀 처리한다.
       // beforeinput 단계에서는 data가 없을 수 있으므로 무조건 차단하지 않는다.
@@ -190,44 +199,49 @@ const Input = forwardRef(
         if (filter) {
           const allow = new RegExp(`^[${filter}]+$`);
           if (!allow.test(data)) {
-            e.preventDefault();
+            event.preventDefault();
             return;
           }
         }
 
         // 마스크: 다음 슬롯 토큰을 계산해 토큰 유형과 입력 문자를 즉시 검증
-        if (mask) {
-          const isDigit = (c) => /\d/.test(c);
-          const isAlpha = (c) => /[a-zA-Z]/.test(c);
-          const isSlot = (ch) =>
-            ch === "#" || ch === "A" || ch === "a" || ch === "?" || ch === "*";
-          const nextMaskToken = (m, raw) => {
+        if (hasStringMask) {
+          const isDigit = (inputChar) => /\d/.test(inputChar);
+          const isAlpha = (inputChar) => /[a-zA-Z]/.test(inputChar);
+          const nextMaskToken = (maskPattern, rawText) => {
             let maskPos = 0;
             // consume existing raw according to mask
-            for (let i = 0; i < raw.length; i++) {
-              while (maskPos < m.length && !isSlot(m[maskPos])) maskPos++;
-              if (maskPos >= m.length) break;
-              const slotToken = m[maskPos];
-              const ch = raw[i];
+            for (let i = 0; i < rawText.length; i++) {
+              while (maskPos < maskPattern.length && !MASK_TOKEN_RE.test(maskPattern[maskPos])) {
+                maskPos++;
+              }
+              if (maskPos >= maskPattern.length) break;
               let ok = false;
-              if (slotToken === "#") ok = isDigit(ch);
-              else if (slotToken === "A" || slotToken === "a" || slotToken === "?") ok = isAlpha(ch);
-              else if (slotToken === "*") ok = true;
+              if (maskPattern[maskPos] === "#") ok = isDigit(rawText[i]);
+              else if (
+                maskPattern[maskPos] === "A" ||
+                maskPattern[maskPos] === "a" ||
+                maskPattern[maskPos] === "?"
+              ) {
+                ok = isAlpha(rawText[i]);
+              }
+              else if (maskPattern[maskPos] === "*") ok = true;
               if (ok) maskPos++;
             }
-            while (maskPos < m.length && !isSlot(m[maskPos])) maskPos++;
-            return maskPos < m.length ? m[maskPos] : null;
+            while (maskPos < maskPattern.length && !MASK_TOKEN_RE.test(maskPattern[maskPos])) {
+              maskPos++;
+            }
+            return maskPos < maskPattern.length ? maskPattern[maskPos] : null;
           };
-          const token = nextMaskToken(mask, e.currentTarget.value || "");
+          const token = nextMaskToken(mask, event.currentTarget.value || "");
           if (token) {
-            const ch = data[0];
             let ok = true;
-            if (token === "#") ok = /\d/.test(ch);
+            if (token === "#") ok = /\d/.test(data[0]);
             else if (token === "A" || token === "a" || token === "?")
-              ok = /[a-zA-Z]/.test(ch);
+              ok = /[a-zA-Z]/.test(data[0]);
             else if (token === "*") ok = true;
             if (!ok) {
-              e.preventDefault();
+              event.preventDefault();
               return;
             }
           }
@@ -236,7 +250,7 @@ const Input = forwardRef(
         // 숫자 타입: 숫자/점/부호만 허용 (붙여넣기 포함)
         if (type === "number") {
           if (!/^[0-9.\-]+$/.test(data)) {
-            e.preventDefault();
+            event.preventDefault();
             return;
           }
         }
@@ -247,48 +261,48 @@ const Input = forwardRef(
      * handleKeyDown - 키다운 단계에서 허용되지 않은 문자를 즉시 차단
      * @date 2025-02-14
      */
-    const handleKeyDown = (e) => {
-      if (!filter && !mask && type !== "number") return;
-      if (e.isComposing || e.nativeEvent.isComposing) return;
-      const key = e.key;
+    const handleKeyDown = (event) => {
+      if (!filter && !hasStringMask && type !== "number") return;
+      if (event.isComposing || event.nativeEvent.isComposing) return;
+      const key = event.key;
       if (key.length !== 1) return; // 제어 키는 허용
 
       if (filter) {
         const allow = new RegExp(`^[${filter}]+$`);
         if (!allow.test(key)) {
-          e.preventDefault();
+          event.preventDefault();
           return;
         }
       }
 
-      if (mask) {
+      if (hasStringMask) {
         const hangul = /[\u1100-\u11FF\u3130-\u318F\uAC00-\uD7A3]/;
         if (hangul.test(key)) {
-          e.preventDefault();
+          event.preventDefault();
           return;
         }
       }
 
       if (type === "number") {
         if (!/^[0-9.\-]$/.test(key)) {
-          e.preventDefault();
+          event.preventDefault();
           return;
         }
       }
     };
 
-    const handleChange = (e) => {
-      const composing = e.nativeEvent.isComposing || composingRef.current;
-      const raw = e.target.value;
+    const handleChange = (event) => {
+      const composing = event.nativeEvent.isComposing || composingRef.current;
+      const raw = event.target.value;
 
       // IME(한글 등) 조합 중에는 value를 커밋하지 않는다.
       // 조합 중에 커밋/DOM value를 만지면 자모 분리 현상이 발생할 수 있다.
       if (composing) {
-        if (filter || mask || type === "number") {
+        if (filter || hasStringMask || type === "number") {
           // 제약이 있을 때, 허용되지 않는 조합 문자열은 화면에 반영하지 않음
           if (!isAllowedDraft(raw)) {
             const last = getCommitted();
-            if (e.target.value !== last) e.target.value = last; // DOM 즉시 되돌리기
+            if (event.target.value !== last) event.target.value = last; // DOM 즉시 되돌리기
             return;
           }
         }
@@ -299,7 +313,7 @@ const Input = forwardRef(
       const committed = commitValue(raw);
       if (typeof committed !== "undefined") {
         try {
-          e.target.value = committed;
+          event.target.value = committed;
         } catch (_) {
           /* ignore readonly target */
         }
@@ -316,7 +330,7 @@ const Input = forwardRef(
         onValueChange,
         value: committed,
         ctx,
-        event: e,
+        event,
       });
     };
 
@@ -346,34 +360,32 @@ const Input = forwardRef(
           }
           pattern={type === "number" ? "[0-9]*" : undefined}
           inputMode={type === "number" ? "decimal" : undefined}
-          placeholder={placeholder || mask}
+          placeholder={placeholder || (hasStringMask ? mask : undefined)}
           value={draftValue ?? getCommitted()}
           onKeyDown={handleKeyDown}
           onBeforeInput={handleBeforeInput}
           onChange={handleChange}
           onCompositionStart={() => {
             composingRef.current = true;
-            setIsComposing(true);
           }}
-          onCompositionUpdate={(e) => {
-            if (filter || mask || type === "number") {
-              const current = e.currentTarget.value;
+          onCompositionUpdate={(event) => {
+            if (filter || hasStringMask || type === "number") {
+              const current = event.currentTarget.value;
               const next = current; // 최신 값은 이미 브라우저가 합성 반영한 상태
               if (!isAllowedDraft(next)) {
-                e.preventDefault?.();
+                event.preventDefault?.();
                 const last = getCommitted();
-                if (e.currentTarget.value !== last)
-                  e.currentTarget.value = last;
+                if (event.currentTarget.value !== last)
+                  event.currentTarget.value = last;
               }
             }
           }}
-          onCompositionEnd={(e) => {
+          onCompositionEnd={(event) => {
             composingRef.current = false;
-            setIsComposing(false);
-            const committed = commitValue(e.target.value);
+            const committed = commitValue(event.target.value);
             if (typeof committed !== "undefined") {
               try {
-                e.target.value = committed;
+                event.target.value = committed;
               } catch (_) {
                 /* ignore */
               }
@@ -390,15 +402,15 @@ const Input = forwardRef(
               onValueChange,
               value: committed,
               ctx,
-              event: e,
+              event,
             });
           }}
-          onBlur={(e) => {
+          onBlur={(event) => {
             // Ensure final sanitize on blur in case some IME didn't fire compositionend properly
-            const committed = commitValue(e.target.value);
+            const committed = commitValue(event.target.value);
             if (typeof committed !== "undefined") {
               try {
-                e.target.value = committed;
+                event.target.value = committed;
               } catch (_) {
                 /* ignore */
               }
@@ -415,7 +427,7 @@ const Input = forwardRef(
               onValueChange,
               value: committed,
               ctx,
-              event: e,
+              event,
             });
           }}
           className={`
@@ -437,7 +449,11 @@ const Input = forwardRef(
             type="button"
             onClick={() => setShowPassword(!showPassword)}
             className="absolute right-3 top-1/2 transform -translate-y-1/2"
-            aria-label={showPassword ? "비밀번호 숨기기" : "비밀번호 보기"}
+            aria-label={
+              showPassword
+                ? COMMON_COMPONENT_LANG_KO.input.hidePassword
+                : COMMON_COMPONENT_LANG_KO.input.showPassword
+            }
             aria-pressed={showPassword}
           >
             <Icon
@@ -453,4 +469,7 @@ const Input = forwardRef(
 
 Input.displayName = "Input";
 
+/**
+ * @description Input export를 노출한다.
+ */
 export default Input;

@@ -108,8 +108,9 @@ const Modal = forwardRef(({
         }
         return () => {
             document.body.style.overflow = '';
-            const el = lastFocusedRef.current;
-            if (el && typeof el.focus === 'function') { try { el.focus(); } catch {} }
+            if (lastFocusedRef.current && typeof lastFocusedRef.current.focus === 'function') {
+                try { lastFocusedRef.current.focus(); } catch {}
+            }
         };
     }, [isOpen]);
 
@@ -122,8 +123,8 @@ const Modal = forwardRef(({
 
     // ESC 키 이벤트 처리
     useEffect(() => {
-        const handleKeyDown = (e) => {
-            if (closeOnEsc && e.key === 'Escape') {
+        const handleKeyDown = (keyboardEvent) => {
+            if (closeOnEsc && keyboardEvent.key === 'Escape') {
                 onClose?.();
                 setPosition(null);  // ESC로 닫을 때도 position 초기화
             }
@@ -136,21 +137,19 @@ const Modal = forwardRef(({
     }, [isOpen, closeOnEsc, onClose]);
 
     // 드래그 시작
-    const handleMouseDown = (e) => {
+    const handleMouseDown = (event) => {
         if (!draggable) return;
-
-        const modalElement = modalRef.current;
-        if (!modalElement) return;
+        if (!modalRef.current) return;
 
         // 헤더 영역에서만 드래그 가능하도록
-        const isHeader = e.target.closest('.modal-header');
+        const isHeader = event.target.closest('.modal-header');
         if (!isHeader) return;
 
-        const rect = modalElement.getBoundingClientRect();
+        const rect = modalRef.current.getBoundingClientRect();
         dragRef.current = {
             isDragging: true,
-            startX: e.clientX - rect.left,
-            startY: e.clientY - rect.top
+            startX: event.clientX - rect.left,
+            startY: event.clientY - rect.top
         };
 
         document.body.style.userSelect = 'none';
@@ -158,17 +157,15 @@ const Modal = forwardRef(({
     };
 
     // 드래그 중
-    const handleMouseMove = (e) => {
+    const handleMouseMove = (event) => {
         if (!dragRef.current.isDragging) return;
+        if (!modalRef.current) return;
 
-        const modalElement = modalRef.current;
-        if (!modalElement) return;
-
-        const newX = e.clientX - dragRef.current.startX;
-        const newY = e.clientY - dragRef.current.startY;
+        const newX = event.clientX - dragRef.current.startX;
+        const newY = event.clientY - dragRef.current.startY;
 
         // 화면 밖으로 나가지 않도록 제한
-        const rect = modalElement.getBoundingClientRect();
+        const rect = modalRef.current.getBoundingClientRect();
         const maxX = window.innerWidth - rect.width;
         const maxY = window.innerHeight - rect.height;
 
@@ -196,8 +193,8 @@ const Modal = forwardRef(({
         }
     }, [draggable]);
 
-    const handleBackdropClick = (e) => {
-        if (closeOnBackdrop && e.target === e.currentTarget) {
+    const handleBackdropClick = (event) => {
+        if (closeOnBackdrop && event.target === event.currentTarget) {
             onClose?.();
             setPosition(null);  // 백드롭 클릭으로 닫을 때도 position 초기화
         }
@@ -257,4 +254,7 @@ Modal.Body = Body;
 Modal.Footer = Footer;
 Modal.displayName = 'Modal';
 
+/**
+ * @description Modal export를 노출한다.
+ */
 export default Modal; 

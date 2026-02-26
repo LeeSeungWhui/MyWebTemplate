@@ -27,6 +27,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Card from "./Card";
 import Skeleton from "./Skeleton";
 import Empty from "./Empty";
+import { COMMON_COMPONENT_LANG_KO } from "@/app/common/i18n/lang.ko";
 
 const palette = [
   "#2563eb",
@@ -89,7 +90,7 @@ const EasyChart = ({
   loading = false,
   status,
   errorText,
-  empty = "표시할 데이터가 없습니다.",
+  empty = COMMON_COMPONENT_LANG_KO.easyChart.empty,
   hideLegend = false,
   legendFontSize = 12,
   pieLabelFontSize = 12,
@@ -117,7 +118,7 @@ const EasyChart = ({
       .filter((item) => item.key);
   }, [seriesSource, type]);
 
-  const resolvedData = useMemo(() => toArray(dataSource), [dataSource]);
+  const resolvedData = toArray(dataSource);
 
   const hasSeries = resolvedSeries.length > 0;
   const chartType = resolvedSeries[0]?.type || type;
@@ -136,11 +137,11 @@ const EasyChart = ({
 
   useEffect(() => {
     if (!isClient) return undefined;
-    const hostEl = chartHostRef.current;
-    if (!hostEl) return undefined;
+    if (!chartHostRef.current) return undefined;
 
     const updateHostSize = () => {
-      const rect = hostEl.getBoundingClientRect();
+      if (!chartHostRef.current) return;
+      const rect = chartHostRef.current.getBoundingClientRect();
       const nextSize = {
         width: Math.round(rect.width || 0),
         height: Math.round(rect.height || 0),
@@ -165,7 +166,7 @@ const EasyChart = ({
     const observer = new ResizeObserver(() => {
       updateHostSize();
     });
-    observer.observe(hostEl);
+    observer.observe(chartHostRef.current);
     return () => observer.disconnect();
   }, [isClient, height, isPie, isDonut]);
 
@@ -241,7 +242,7 @@ const EasyChart = ({
           role="alert"
         >
           {errorText ||
-            "데이터를 불러오지 못했습니다. 잠시 후 다시 시도해 주세요."}
+            COMMON_COMPONENT_LANG_KO.easyChart.loadFailed}
         </div>
       );
     }
@@ -251,7 +252,7 @@ const EasyChart = ({
           className="rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700"
           role="status"
         >
-          시리즈 설정이 필요합니다. dataKey와 라벨을 전달해 주세요.
+          {COMMON_COMPONENT_LANG_KO.easyChart.seriesRequired}
         </div>
       );
     }
@@ -274,16 +275,17 @@ const EasyChart = ({
             className="rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700"
             role="status"
           >
-            시리즈 설정이 필요합니다. dataKey와 라벨을 전달해 주세요.
+            {COMMON_COMPONENT_LANG_KO.easyChart.seriesRequired}
           </div>
         );
       }
-      const renderPieLabel = ({ name, value, percent, x, y }) => {
+      const renderPieLabel = (pieLabelProps) => {
+        const { name, value, percent, x: xCoord, y: yCoord } = pieLabelProps;
         const pct = Math.round((percent || 0) * 100);
         return (
           <text
-            x={x}
-            y={y}
+            x={xCoord}
+            y={yCoord}
             fill="#374151"
             fontSize={pieLabelFontSize}
             textAnchor="middle"
@@ -418,4 +420,7 @@ const EasyChart = ({
   );
 };
 
+/**
+ * @description EasyChart export를 노출한다.
+ */
 export default EasyChart;
