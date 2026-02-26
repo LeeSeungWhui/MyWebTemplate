@@ -11,6 +11,9 @@ import { useSharedStore } from './SharedStore'
 
 // Hydrates shared store from SSR-provided initial data.
 // Pass userJson (e.g., { userId, name }) and/or sharedPatch (partial shared object).
+/**
+ * @description SharedHydrator export를 노출한다.
+ */
 const SharedHydrator = ({ userJson, sharedPatch, config }) => {
   const { setUserJson, setUser, setShared, setConfig } = useSharedStore()
   useEffect(() => {

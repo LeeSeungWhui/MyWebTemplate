@@ -28,56 +28,52 @@ import LANG_KO from "./lang.ko";
 
 const CHART_HEIGHT = 180;
 const DONUT_HEIGHT = 180;
-const { view: viewText } = LANG_KO;
-const STATUS_LABELS = viewText.statusLabelMap;
 const STATUS_ORDER = ["ready", "pending", "running", "done", "failed"];
 
-const monthKey = (iso) => {
-  if (!iso) return viewText.unknown;
-  const date = new Date(iso);
-  if (Number.isNaN(date.getTime())) return viewText.unknown;
-  const month = date.getMonth() + 1;
-  return `${month}${viewText.monthSuffix}`;
-};
-
-const formatCurrency = (value) => {
-  const num = Number(value || 0);
-  if (Number.isNaN(num)) return "0";
-  return num.toLocaleString("ko-KR");
-};
-
-const resolveErrorText = (errorKey) => {
-  if (errorKey === DASHBOARD_ERROR_KEY.ENDPOINT_MISSING) {
-    return viewText.error.endpointMissing;
-  }
-  if (errorKey === DASHBOARD_ERROR_KEY.INIT_FETCH_FAILED) {
-    return viewText.error.fetchFailed;
-  }
-  return null;
-};
-
-const createTasksPath = ({ status }) => {
-  const params = new URLSearchParams();
-  if (status && STATUS_LABELS[status]) params.set("status", status);
-  return params.toString()
-    ? `/dashboard/tasks?${params.toString()}`
-    : "/dashboard/tasks";
-};
-
-const normalizeErrorState = (value) => {
-  if (!value) return null;
-  if (typeof value === "string") return { key: value };
-  if (typeof value === "object") {
-    return {
-      key: value.key || "FETCH_FAILED",
-      code: value.code,
-      requestId: value.requestId,
-    };
-  }
-  return { key: "FETCH_FAILED" };
-};
-
+/**
+ * @description DashboardView export를 노출한다.
+ */
 const DashboardView = ({ statList, dataList, initialError }) => {
+  const monthKey = (iso) => {
+    if (!iso) return LANG_KO.view.unknown;
+    const date = new Date(iso);
+    if (Number.isNaN(date.getTime())) return LANG_KO.view.unknown;
+    const month = date.getMonth() + 1;
+    return `${month}${LANG_KO.view.monthSuffix}`;
+  };
+  const formatCurrency = (value) => {
+    const num = Number(value || 0);
+    if (Number.isNaN(num)) return "0";
+    return num.toLocaleString("ko-KR");
+  };
+  const resolveErrorText = (errorKey) => {
+    if (errorKey === DASHBOARD_ERROR_KEY.ENDPOINT_MISSING) {
+      return LANG_KO.view.error.endpointMissing;
+    }
+    if (errorKey === DASHBOARD_ERROR_KEY.INIT_FETCH_FAILED) {
+      return LANG_KO.view.error.fetchFailed;
+    }
+    return null;
+  };
+  const createTasksPath = ({ status }) => {
+    const params = new URLSearchParams();
+    if (status && LANG_KO.view.statusLabelMap[status]) params.set("status", status);
+    return params.toString()
+      ? `/dashboard/tasks?${params.toString()}`
+      : "/dashboard/tasks";
+  };
+  const normalizeErrorState = (value) => {
+    if (!value) return null;
+    if (typeof value === "string") return { key: value };
+    if (typeof value === "object") {
+      return {
+        key: value.key || "FETCH_FAILED",
+        code: value.code,
+        requestId: value.requestId,
+      };
+    }
+    return { key: "FETCH_FAILED" };
+  };
   const router = useRouter();
   const statsList = useEasyList(statList || []);
   const tableList = useEasyList(dataList || []);
@@ -115,7 +111,7 @@ const DashboardView = ({ statList, dataList, initialError }) => {
       statsList.copy(statsRes?.result?.byStatus || []);
       tableList.copy(normalizedItems);
     } catch (err) {
-      console.error(viewText.error.fetchFailed, err);
+      console.error(LANG_KO.view.error.fetchFailed, err);
       ui.error = toErrorState(err, DASHBOARD_ERROR_KEY.INIT_FETCH_FAILED);
     } finally {
       ui.isLoading = false;
@@ -140,19 +136,19 @@ const DashboardView = ({ statList, dataList, initialError }) => {
     const activeCount = runningCount + pendingCount;
     return [
       {
-        label: viewText.stat.totalCount,
+        label: LANG_KO.view.stat.totalCount,
         value: totalCount.toLocaleString("ko-KR"),
         delta: null,
         deltaType: "neutral",
       },
       {
-        label: viewText.stat.totalAmount,
+        label: LANG_KO.view.stat.totalAmount,
         value: `${formatCurrency(totalAmount)}`,
         delta: null,
         deltaType: "neutral",
       },
       {
-        label: viewText.stat.activeCount,
+        label: LANG_KO.view.stat.activeCount,
         value: activeCount.toLocaleString("ko-KR"),
         delta: null,
         deltaType: "neutral",
@@ -163,7 +159,7 @@ const DashboardView = ({ statList, dataList, initialError }) => {
   const donutData = useMemo(() => {
     const byStatus = statsList.toJSON();
     return byStatus.map((row) => ({
-      label: STATUS_LABELS[row.status] || row.status || viewText.unknown,
+      label: LANG_KO.view.statusLabelMap[row.status] || row.status || LANG_KO.view.unknown,
       value: row.count ?? 0,
     }));
   }, [statsList]);
@@ -175,7 +171,7 @@ const DashboardView = ({ statList, dataList, initialError }) => {
     );
     return STATUS_ORDER.map((status) => ({
       status,
-      label: STATUS_LABELS[status],
+      label: LANG_KO.view.statusLabelMap[status],
       count: byStatusMap.get(status) || 0,
       href: createTasksPath({ status }),
     }));
@@ -203,7 +199,7 @@ const DashboardView = ({ statList, dataList, initialError }) => {
       {errorText ? (
         <section role="region" aria-labelledby="dashboard-error-heading">
           <h2 id="dashboard-error-heading" className="sr-only">
-            {viewText.error.sectionAriaLabel}
+            {LANG_KO.view.error.sectionAriaLabel}
           </h2>
           <div
             className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
@@ -228,7 +224,7 @@ const DashboardView = ({ statList, dataList, initialError }) => {
         className="grid gap-3 md:grid-cols-3"
       >
         <h2 id="dashboard-summary-heading" className="sr-only">
-          {viewText.chart.summaryAriaLabel}
+          {LANG_KO.view.chart.summaryAriaLabel}
         </h2>
         {ui.isLoading
           ? Array.from({ length: 3 }).map((_, idx) => (
@@ -251,22 +247,22 @@ const DashboardView = ({ statList, dataList, initialError }) => {
         className="grid gap-3 md:grid-cols-2"
       >
         <h2 id="dashboard-chart-heading" className="sr-only">
-          {viewText.chart.chartAriaLabel}
+          {LANG_KO.view.chart.chartAriaLabel}
         </h2>
         <EasyChart
-          title={viewText.chart.trendTitle}
+          title={LANG_KO.view.chart.trendTitle}
           dataList={lineData}
           loading={ui.isLoading}
           seriesList={[
             {
               seriesId: "count",
-              seriesNm: viewText.chart.seriesCount,
+              seriesNm: LANG_KO.view.chart.seriesCount,
               dataKey: "count",
               color: "#2563eb",
             },
             {
               seriesId: "amount",
-              seriesNm: viewText.chart.seriesAmount,
+              seriesNm: LANG_KO.view.chart.seriesAmount,
               dataKey: "amount",
               color: "#10b981",
             },
@@ -279,13 +275,13 @@ const DashboardView = ({ statList, dataList, initialError }) => {
         />
 
         <EasyChart
-          title={viewText.chart.statusTitle}
+          title={LANG_KO.view.chart.statusTitle}
           dataList={donutData}
           loading={ui.isLoading}
           seriesList={[
             {
               seriesId: "value",
-              seriesNm: viewText.chart.seriesCount,
+              seriesNm: LANG_KO.view.chart.seriesCount,
               dataKey: "value",
               type: "donut",
             },
@@ -301,16 +297,16 @@ const DashboardView = ({ statList, dataList, initialError }) => {
 
       <section role="region" aria-labelledby="dashboard-table-heading">
         <h2 id="dashboard-table-heading" className="sr-only">
-          {viewText.chart.tableAriaLabel}
+          {LANG_KO.view.chart.tableAriaLabel}
         </h2>
-        <Card title={viewText.card.quickTitle} className="mb-3">
+        <Card title={LANG_KO.view.card.quickTitle} className="mb-3">
           <div className="flex flex-wrap items-center gap-2">
             <Button
               size="sm"
               variant="secondary"
               onClick={() => router.push("/dashboard/tasks")}
             >
-              {viewText.action.allTasks}
+              {LANG_KO.view.action.allTasks}
             </Button>
             {statusQuickList.map((item) => (
               <Button
@@ -319,16 +315,16 @@ const DashboardView = ({ statList, dataList, initialError }) => {
                 variant="secondary"
                 onClick={() => router.push(item.href)}
               >
-                {item.label} {item.count.toLocaleString("ko-KR")}{viewText.action.countSuffix}
+                {item.label} {item.count.toLocaleString("ko-KR")}{LANG_KO.view.action.countSuffix}
               </Button>
             ))}
           </div>
         </Card>
         <Card
-          title={viewText.card.recentTitle}
+          title={LANG_KO.view.card.recentTitle}
           actions={
             <Button size="sm" variant="secondary" onClick={() => router.push("/dashboard/tasks")}>
-              {viewText.action.viewAll}
+              {LANG_KO.view.action.viewAll}
             </Button>
           }
         >
@@ -338,7 +334,7 @@ const DashboardView = ({ statList, dataList, initialError }) => {
             columns={[
               {
                 key: "title",
-                header: viewText.table.titleHeader,
+                header: LANG_KO.view.table.titleHeader,
                 render: (row) => (
                   <Link
                     href={createTasksPath({ status: row?.status })}
@@ -348,12 +344,12 @@ const DashboardView = ({ statList, dataList, initialError }) => {
                   </Link>
                 ),
               },
-              { key: "status", header: viewText.table.statusHeader },
-              { key: "amount", header: viewText.table.amountHeader },
-              { key: "createdAt", header: viewText.table.createdAtHeader },
+              { key: "status", header: LANG_KO.view.table.statusHeader },
+              { key: "amount", header: LANG_KO.view.table.amountHeader },
+              { key: "createdAt", header: LANG_KO.view.table.createdAtHeader },
             ]}
             pageSize={4}
-            empty={ui.error ? viewText.table.emptyWhenError : viewText.table.emptyDefault}
+            empty={ui.error ? LANG_KO.view.table.emptyWhenError : LANG_KO.view.table.emptyDefault}
           />
         </Card>
       </section>

@@ -8,7 +8,7 @@
 
 import { useEffect, useCallback } from 'react'
 import { usePathname } from "next/navigation";
-import { useSharedStore } from './common/store/SharedStore'
+import { useGlobalUi } from './common/store/SharedStore'
 import Loading from '@/app/lib/component/Loading'
 import Alert from '@/app/lib/component/Alert'
 import Confirm from '@/app/lib/component/Confirm'
@@ -31,6 +31,9 @@ const resolvePublicContentClassName = (pathname) => {
   return "mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 lg:px-8";
 };
 
+/**
+ * @description AppShell export를 노출한다.
+ */
 const AppShell = ({ children }) => {
   const pathname = usePathname();
   const {
@@ -38,7 +41,7 @@ const AppShell = ({ children }) => {
     alert, hideAlert,
     confirm, hideConfirm,
     toast, hideToast,
-  } = useSharedStore()
+  } = useGlobalUi()
   const usePublicShell = isPublicShellPath(pathname);
   const publicContentClassName = resolvePublicContentClassName(pathname);
 

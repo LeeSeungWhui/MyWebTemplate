@@ -8,6 +8,7 @@
 import Link from "next/link";
 import { useMemo } from "react";
 import { getBoundValue } from "@/app/lib/binding";
+import { COMMON_COMPONENT_LANG_KO } from "@/app/common/i18n/lang.ko";
 
 const isListLike = (list) =>
   !!list && (typeof list.size === "function" || Array.isArray(list));
@@ -40,14 +41,23 @@ const Footer = ({
   logo,
   className = "",
 }) => {
+  const currentYear = new Date().getFullYear();
+  const defaultText = COMMON_COMPONENT_LANG_KO.footer.defaultTextTemplate.replace(
+    "{year}",
+    String(currentYear),
+  );
   const resolvedText =
     (textObj && textKey ? getBoundValue(textObj, textKey) : null) ??
-    "© 2025 MyWebTemplate";
+    defaultText;
 
   const resolvedLinks = useMemo(() => {
     return toArray(linkList).map((item) => ({
       key: item.linkId ?? item.id ?? item.href ?? item.linkNm ?? item.label,
-      label: item.linkNm ?? item.label ?? item.text ?? "링크",
+      label:
+        item.linkNm ??
+        item.label ??
+        item.text ??
+        COMMON_COMPONENT_LANG_KO.footer.defaultLinkLabel,
       href: item.href,
       active: !!item.active,
     }));
@@ -91,4 +101,7 @@ const Footer = ({
   );
 };
 
+/**
+ * @description Footer export를 노출한다.
+ */
 export default Footer;

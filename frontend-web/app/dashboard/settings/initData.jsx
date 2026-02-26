@@ -28,10 +28,9 @@ const pickQueryValue = (searchParams, key) => {
   if (typeof searchParams.get === "function") {
     return String(searchParams.get(key) || "");
   }
-  const rawValue = searchParams[key];
-  if (Array.isArray(rawValue)) return String(rawValue[0] || "");
-  if (rawValue == null) return "";
-  return String(rawValue);
+  if (Array.isArray(searchParams[key])) return String(searchParams[key][0] || "");
+  if (searchParams[key] == null) return "";
+  return String(searchParams[key]);
 };
 
 /**

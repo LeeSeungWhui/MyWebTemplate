@@ -32,8 +32,6 @@ import {
 import LANG_KO from "./lang.ko";
 
 const PAGE_SIZE = 10;
-const { view: viewText } = LANG_KO;
-const STATUS_LABELS = viewText.statusLabelMap;
 
 const STATUS_BADGE_VARIANT = {
   ready: "neutral",
@@ -45,51 +43,48 @@ const STATUS_BADGE_VARIANT = {
 
 const STATUS_FORM_LIST = STATUS_FILTER_LIST.filter((item) => item.value);
 
-const toTagList = (value) => {
-  if (Array.isArray(value)) return value.filter(Boolean).map(String);
-  if (typeof value !== "string" || !value.trim()) return [];
-  const parsedValue = safeJsonParse(value, null);
-  if (Array.isArray(parsedValue)) return parsedValue.filter(Boolean).map(String);
-  return value
-    .split(",")
-    .map((tag) => tag.trim())
-    .filter(Boolean);
-};
-
-const toTagText = (value) => toTagList(value).join(", ");
-
-const toCurrencyText = (value) => {
-  const amount = Number(value || 0);
-  if (Number.isNaN(amount)) return viewText.misc.currencyZero;
-  return amount.toLocaleString("ko-KR");
-};
-
-const toDateText = (value) => {
-  if (!value) return viewText.misc.dateUnknown;
-  const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return viewText.misc.dateUnknown;
-  return date.toISOString().slice(0, 10);
-};
-
-const toPathWithId = (templatePath, id) => String(templatePath || "").replace(":id", String(id));
-
-const toApiError = (error, fallbackMessage) => ({
-  message: error?.message || fallbackMessage,
-  requestId: error?.requestId,
-});
-
-const createDefaultForm = () => ({
-  title: "",
-  status: "ready",
-  amount: 0,
-  tags: "",
-  description: "",
-});
-
+/**
+ * @description TasksView export를 노출한다.
+ */
 const TasksView = ({ initialFilter = {} }) => {
   const router = useRouter();
   const pathname = usePathname();
   const { showToast, showConfirm } = useGlobalUi();
+  const toTagList = (value) => {
+    if (Array.isArray(value)) return value.filter(Boolean).map(String);
+    if (typeof value !== "string" || !value.trim()) return [];
+    const parsedValue = safeJsonParse(value, null);
+    if (Array.isArray(parsedValue)) return parsedValue.filter(Boolean).map(String);
+    return value
+      .split(",")
+      .map((tag) => tag.trim())
+      .filter(Boolean);
+  };
+  const toTagText = (value) => toTagList(value).join(", ");
+  const toCurrencyText = (value) => {
+    const amount = Number(value || 0);
+    if (Number.isNaN(amount)) return LANG_KO.view.misc.currencyZero;
+    return amount.toLocaleString("ko-KR");
+  };
+  const toDateText = (value) => {
+    if (!value) return LANG_KO.view.misc.dateUnknown;
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return LANG_KO.view.misc.dateUnknown;
+    return date.toISOString().slice(0, 10);
+  };
+  const toPathWithId = (templatePath, id) =>
+    String(templatePath || "").replace(":id", String(id));
+  const toApiError = (error, fallbackMessage) => ({
+    message: error?.message || fallbackMessage,
+    requestId: error?.requestId,
+  });
+  const createDefaultForm = () => ({
+    title: "",
+    status: "ready",
+    amount: 0,
+    tags: "",
+    description: "",
+  });
   const ui = EasyObj(
     useMemo(
       () => ({
@@ -141,7 +136,7 @@ const TasksView = ({ initialFilter = {} }) => {
     syncQuery = true,
   } = {}) => {
     if (!hasListEndpoint) {
-      ui.error = { message: viewText.error.listEndpointMissing };
+      ui.error = { message: LANG_KO.view.error.listEndpointMissing };
       ui.rows = [];
       ui.totalCount = 0;
       ui.isLoading = false;
@@ -186,10 +181,10 @@ const TasksView = ({ initialFilter = {} }) => {
         });
       }
     } catch (err) {
-      console.error(viewText.error.listLoadFailed, err);
+      console.error(LANG_KO.view.error.listLoadFailed, err);
       ui.rows = [];
       ui.totalCount = 0;
-      ui.error = toApiError(err, viewText.error.listLoadFailed);
+      ui.error = toApiError(err, LANG_KO.view.error.listLoadFailed);
     } finally {
       ui.isLoading = false;
     }
@@ -205,7 +200,7 @@ const TasksView = ({ initialFilter = {} }) => {
 
   const openEditDrawer = async (id) => {
     if (!id || !hasDetailEndpoint) {
-      showToast(viewText.error.detailEndpointMissing, { type: "error" });
+      showToast(LANG_KO.view.error.detailEndpointMissing, { type: "error" });
       return;
     }
     ui.drawerMode = "edit";
@@ -224,8 +219,8 @@ const TasksView = ({ initialFilter = {} }) => {
         description: detail?.description || "",
       };
     } catch (err) {
-      console.error(viewText.error.detailLoadFailed, err);
-      showToast(err?.message || viewText.error.detailLoadFailed, { type: "error" });
+      console.error(LANG_KO.view.error.detailLoadFailed, err);
+      showToast(err?.message || LANG_KO.view.error.detailLoadFailed, { type: "error" });
       ui.isDrawerOpen = false;
     } finally {
       ui.isDrawerLoading = false;
@@ -241,19 +236,19 @@ const TasksView = ({ initialFilter = {} }) => {
   const saveTask = async () => {
     const title = String(ui.form.title || "").trim();
     if (!title) {
-      showToast(viewText.validation.titleRequired, { type: "warning" });
+      showToast(LANG_KO.view.validation.titleRequired, { type: "warning" });
       return;
     }
-    if (!STATUS_LABELS[ui.form.status]) {
-      showToast(viewText.validation.invalidStatus, { type: "warning" });
+    if (!LANG_KO.view.statusLabelMap[ui.form.status]) {
+      showToast(LANG_KO.view.validation.invalidStatus, { type: "warning" });
       return;
     }
     if (ui.drawerMode === "create" && !hasCreateEndpoint) {
-      showToast(viewText.error.createEndpointMissing, { type: "error" });
+      showToast(LANG_KO.view.error.createEndpointMissing, { type: "error" });
       return;
     }
     if (ui.drawerMode === "edit" && (!ui.editingId || !hasUpdateEndpoint)) {
-      showToast(viewText.error.updateEndpointMissing, { type: "error" });
+      showToast(LANG_KO.view.error.updateEndpointMissing, { type: "error" });
       return;
     }
 
@@ -273,7 +268,7 @@ const TasksView = ({ initialFilter = {} }) => {
     ui.isSaving = true;
     try {
       await apiJSON(path, { method, body: payload });
-      showToast(isCreate ? viewText.toast.savedCreated : viewText.toast.savedUpdated, {
+      showToast(isCreate ? LANG_KO.view.toast.savedCreated : LANG_KO.view.toast.savedUpdated, {
         type: "success",
       });
       ui.isDrawerOpen = false;
@@ -284,9 +279,9 @@ const TasksView = ({ initialFilter = {} }) => {
         nextPage: isCreate ? 1 : ui.page,
       });
     } catch (err) {
-      console.error(viewText.error.saveFailed, err);
-      showToast(err?.message || viewText.error.saveFailed, { type: "error" });
-      ui.error = toApiError(err, viewText.error.saveFailed);
+      console.error(LANG_KO.view.error.saveFailed, err);
+      showToast(err?.message || LANG_KO.view.error.saveFailed, { type: "error" });
+      ui.error = toApiError(err, LANG_KO.view.error.saveFailed);
     } finally {
       ui.isSaving = false;
     }
@@ -294,20 +289,20 @@ const TasksView = ({ initialFilter = {} }) => {
 
   const removeTask = async (row) => {
     if (!hasRemoveEndpoint) {
-      showToast(viewText.error.removeEndpointMissing, { type: "error" });
+      showToast(LANG_KO.view.error.removeEndpointMissing, { type: "error" });
       return;
     }
-    const confirmed = await showConfirm(viewText.confirm.removeText, {
-      title: viewText.confirm.removeTitle,
+    const confirmed = await showConfirm(LANG_KO.view.confirm.removeText, {
+      title: LANG_KO.view.confirm.removeTitle,
       type: "warning",
-      confirmText: viewText.confirm.confirmText,
-      cancelText: viewText.confirm.cancelText,
+      confirmText: LANG_KO.view.confirm.confirmText,
+      cancelText: LANG_KO.view.confirm.cancelText,
     });
     if (!confirmed) return;
 
     try {
       await apiJSON(toPathWithId(endPoints.remove, row?.id), { method: "DELETE" });
-      showToast(viewText.toast.removed, { type: "success" });
+      showToast(LANG_KO.view.toast.removed, { type: "success" });
       const nextPage = ui.page > 1 && ui.rows.length === 1 ? ui.page - 1 : ui.page;
       await loadTasks({
         nextKeyword: ui.keyword,
@@ -316,9 +311,9 @@ const TasksView = ({ initialFilter = {} }) => {
         nextPage,
       });
     } catch (err) {
-      console.error(viewText.error.removeFailed, err);
-      showToast(err?.message || viewText.error.removeFailed, { type: "error" });
-      ui.error = toApiError(err, viewText.error.removeFailed);
+      console.error(LANG_KO.view.error.removeFailed, err);
+      showToast(err?.message || LANG_KO.view.error.removeFailed, { type: "error" });
+      ui.error = toApiError(err, LANG_KO.view.error.removeFailed);
     }
   };
 
@@ -336,7 +331,7 @@ const TasksView = ({ initialFilter = {} }) => {
     () => [
       {
         key: "title",
-        header: viewText.table.titleHeader,
+        header: LANG_KO.view.table.titleHeader,
         align: "left",
         width: "2fr",
         render: (row) => (
@@ -351,29 +346,29 @@ const TasksView = ({ initialFilter = {} }) => {
       },
       {
         key: "status",
-        header: viewText.table.statusHeader,
+        header: LANG_KO.view.table.statusHeader,
         width: 140,
         render: (row) => (
           <Badge variant={STATUS_BADGE_VARIANT[row?.status] || "neutral"} pill>
-            {STATUS_LABELS[row?.status] || row?.status || viewText.misc.noData}
+            {LANG_KO.view.statusLabelMap[row?.status] || row?.status || LANG_KO.view.misc.noData}
           </Badge>
         ),
       },
       {
         key: "amount",
-        header: viewText.table.amountHeader,
+        header: LANG_KO.view.table.amountHeader,
         width: 140,
         align: "right",
         render: (row) => toCurrencyText(row?.amount),
       },
       {
         key: "tags",
-        header: viewText.table.tagsHeader,
+        header: LANG_KO.view.table.tagsHeader,
         align: "left",
         width: "2fr",
         render: (row) => {
           const tagList = toTagList(row?.tags);
-          if (!tagList.length) return <span className="text-gray-400">{viewText.misc.dateUnknown}</span>;
+          if (!tagList.length) return <span className="text-gray-400">{LANG_KO.view.misc.dateUnknown}</span>;
           return (
             <div className="flex flex-wrap gap-1">
               {tagList.map((tag) => (
@@ -387,21 +382,21 @@ const TasksView = ({ initialFilter = {} }) => {
       },
       {
         key: "createdAt",
-        header: viewText.table.createdAtHeader,
+        header: LANG_KO.view.table.createdAtHeader,
         width: 140,
         render: (row) => toDateText(row?.createdAt),
       },
       {
         key: "actions",
-        header: viewText.table.actionsHeader,
+        header: LANG_KO.view.table.actionsHeader,
         width: 180,
         render: (row) => (
           <div className="flex items-center justify-center gap-2">
             <Button size="sm" variant="secondary" onClick={() => openEditDrawer(row?.id)}>
-              {viewText.action.editButton}
+              {LANG_KO.view.action.editButton}
             </Button>
             <Button size="sm" variant="danger" onClick={() => removeTask(row)}>
-              {viewText.action.removeButton}
+              {LANG_KO.view.action.removeButton}
             </Button>
           </div>
         ),
@@ -415,7 +410,7 @@ const TasksView = ({ initialFilter = {} }) => {
   return (
     <div className="space-y-3">
       {ui.error?.message ? (
-        <section aria-label={viewText.error.listLoadFailed}>
+        <section aria-label={LANG_KO.view.error.listLoadFailed}>
           <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700" role="alert">
             <div>{ui.error.message}</div>
             {ui.error.requestId ? (
@@ -426,10 +421,10 @@ const TasksView = ({ initialFilter = {} }) => {
       ) : null}
 
       <Card
-        title={viewText.card.managementTitle}
+        title={LANG_KO.view.card.managementTitle}
         actions={
           <Button onClick={openCreateDrawer} variant="primary" className="w-full sm:w-auto">
-            {viewText.card.quickCreateButton}
+            {LANG_KO.view.card.quickCreateButton}
           </Button>
         }
       >
@@ -440,7 +435,7 @@ const TasksView = ({ initialFilter = {} }) => {
               onChange={(event) => {
                 ui.keyword = event.target.value;
               }}
-              placeholder={viewText.search.keywordPlaceholder}
+              placeholder={LANG_KO.view.search.keywordPlaceholder}
             />
           </div>
           <div className="w-full md:w-48">
@@ -473,7 +468,7 @@ const TasksView = ({ initialFilter = {} }) => {
             loading={ui.isLoading}
             className="w-full sm:w-auto"
           >
-            {viewText.search.searchButton}
+            {LANG_KO.view.search.searchButton}
           </Button>
           <Button
             variant="secondary"
@@ -491,23 +486,23 @@ const TasksView = ({ initialFilter = {} }) => {
             disabled={ui.isLoading}
             className="w-full sm:w-auto"
           >
-            {viewText.search.resetButton}
+            {LANG_KO.view.search.resetButton}
           </Button>
         </div>
       </Card>
 
-      <Card title={viewText.card.tableTitle}>
+      <Card title={LANG_KO.view.card.tableTitle}>
         <EasyTable
           data={ui.rows}
           loading={ui.isLoading}
           columns={tableColumns}
           pageSize={PAGE_SIZE}
-          empty={viewText.table.emptyFallback}
+          empty={LANG_KO.view.table.emptyFallback}
           rowKey={(row, idx) => row?.id ?? idx}
         />
         <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div className="text-sm text-gray-600">
-            {`총 ${ui.totalCount.toLocaleString("ko-KR")}${viewText.action.totalCountSuffix}`}
+            {`총 ${ui.totalCount.toLocaleString("ko-KR")}${LANG_KO.view.action.totalCountSuffix}`}
           </div>
           <Pagination
             page={ui.page}
@@ -528,34 +523,34 @@ const TasksView = ({ initialFilter = {} }) => {
         <div className="p-5 space-y-4">
           <div>
             <h3 className="text-lg font-semibold text-gray-900">
-              {ui.drawerMode === "create" ? viewText.drawer.createTitle : viewText.drawer.editTitle}
+              {ui.drawerMode === "create" ? LANG_KO.view.drawer.createTitle : LANG_KO.view.drawer.editTitle}
             </h3>
             <p className="mt-1 text-sm text-gray-500">
               {ui.drawerMode === "create"
-                ? viewText.drawer.createSubtitle
-                : `${viewText.drawer.editSubtitlePrefix}${ui.editingId || viewText.misc.dateUnknown}`}
+                ? LANG_KO.view.drawer.createSubtitle
+                : `${LANG_KO.view.drawer.editSubtitlePrefix}${ui.editingId || LANG_KO.view.misc.dateUnknown}`}
             </p>
           </div>
 
           {ui.isDrawerLoading ? (
             <div className="rounded-md border border-gray-200 bg-gray-50 px-4 py-6 text-sm text-gray-600">
-              {viewText.misc.drawerLoading}
+              {LANG_KO.view.misc.drawerLoading}
             </div>
           ) : (
             <div className="space-y-3">
               <label className="block space-y-1">
-                <span className="text-sm font-medium text-gray-700">{viewText.drawer.titleLabel}</span>
+                <span className="text-sm font-medium text-gray-700">{LANG_KO.view.drawer.titleLabel}</span>
                 <Input
                   value={ui.form.title}
                   onChange={(event) => {
                     ui.form.title = event.target.value;
                   }}
-                  placeholder={viewText.drawer.titlePlaceholder}
+                  placeholder={LANG_KO.view.drawer.titlePlaceholder}
                 />
               </label>
 
               <label className="block space-y-1">
-                <span className="text-sm font-medium text-gray-700">{viewText.drawer.statusLabel}</span>
+                <span className="text-sm font-medium text-gray-700">{LANG_KO.view.drawer.statusLabel}</span>
                 <Select
                   value={ui.form.status}
                   onChange={(event) => {
@@ -566,7 +561,7 @@ const TasksView = ({ initialFilter = {} }) => {
               </label>
 
               <label className="block space-y-1">
-                <span className="text-sm font-medium text-gray-700">{viewText.drawer.amountLabel}</span>
+                <span className="text-sm font-medium text-gray-700">{LANG_KO.view.drawer.amountLabel}</span>
                 <NumberInput
                   value={ui.form.amount}
                   min={0}
@@ -578,25 +573,25 @@ const TasksView = ({ initialFilter = {} }) => {
               </label>
 
               <label className="block space-y-1">
-                <span className="text-sm font-medium text-gray-700">{viewText.drawer.tagsLabel}</span>
+                <span className="text-sm font-medium text-gray-700">{LANG_KO.view.drawer.tagsLabel}</span>
                 <Input
                   value={ui.form.tags}
                   onChange={(event) => {
                     ui.form.tags = event.target.value;
                   }}
-                  placeholder={viewText.drawer.tagsPlaceholder}
+                  placeholder={LANG_KO.view.drawer.tagsPlaceholder}
                 />
               </label>
 
               <label className="block space-y-1">
-                <span className="text-sm font-medium text-gray-700">{viewText.drawer.descriptionLabel}</span>
+                <span className="text-sm font-medium text-gray-700">{LANG_KO.view.drawer.descriptionLabel}</span>
                 <Textarea
                   rows={5}
                   value={ui.form.description}
                   onChange={(event) => {
                     ui.form.description = event.target.value;
                   }}
-                  placeholder={viewText.drawer.descriptionPlaceholder}
+                  placeholder={LANG_KO.view.drawer.descriptionPlaceholder}
                 />
               </label>
             </div>
@@ -604,10 +599,10 @@ const TasksView = ({ initialFilter = {} }) => {
 
           <div className="pt-2 flex flex-col-reverse gap-2 sm:flex-row sm:items-center sm:justify-end">
             <Button variant="secondary" onClick={closeDrawer} disabled={ui.isSaving} className="w-full sm:w-auto">
-              {viewText.drawer.cancelButton}
+              {LANG_KO.view.drawer.cancelButton}
             </Button>
             <Button onClick={saveTask} loading={ui.isSaving || ui.isDrawerLoading} className="w-full sm:w-auto">
-              {viewText.drawer.saveButton}
+              {LANG_KO.view.drawer.saveButton}
             </Button>
           </div>
         </div>

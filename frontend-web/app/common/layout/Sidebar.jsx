@@ -12,6 +12,7 @@ import { usePathname } from "next/navigation";
 import Icon from "@/app/lib/component/Icon";
 import { getBoundValue, setBoundValue } from "@/app/lib/binding";
 import EasyObj from "@/app/lib/dataset/EasyObj";
+import { COMMON_COMPONENT_LANG_KO } from "@/app/common/i18n/lang.ko";
 
 const isListLike = (list) =>
   !!list && (typeof list.size === "function" || Array.isArray(list));
@@ -76,7 +77,7 @@ const Sidebar = ({
   const resolvedItems = useMemo(() => {
     return toArray(menuList).map((item) => ({
       key: item.menuId ?? item.key ?? item.id ?? item.menuNm,
-      label: item.menuNm ?? item.label ?? "메뉴",
+      label: item.menuNm ?? item.label ?? COMMON_COMPONENT_LANG_KO.sidebar.defaultMenuLabel,
       href: item.href,
       active: !!item.active,
       icon: item.icon,
@@ -92,7 +93,7 @@ const Sidebar = ({
       const list = acc.get(menuId) || [];
       list.push({
         key: cur.subMenuId ?? cur.subMenuNm ?? cur.menuId,
-        label: cur.subMenuNm ?? cur.label ?? "하위메뉴",
+        label: cur.subMenuNm ?? cur.label ?? COMMON_COMPONENT_LANG_KO.sidebar.defaultSubMenuLabel,
         href: cur.href,
         active: !!cur.active,
         icon: cur.icon,
@@ -222,8 +223,7 @@ const Sidebar = ({
   };
 
   useEffect(() => {
-    const prev = ui.expanded;
-    const next = { ...prev };
+    const next = { ...ui.expanded };
     let changed = false;
     resolvedItems.forEach((item) => {
       const key = item.key || item.label || item.href;
@@ -263,7 +263,11 @@ const Sidebar = ({
       <button
         type="button"
         onClick={toggleCollapsed}
-        aria-label={isMini ? "사이드바 펼치기" : "사이드바 접기"}
+        aria-label={
+          isMini
+            ? COMMON_COMPONENT_LANG_KO.sidebar.expandAriaLabel
+            : COMMON_COMPONENT_LANG_KO.sidebar.collapseAriaLabel
+        }
         className="absolute -right-3 top-1/2 -translate-y-1/2 hidden h-8 w-8 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-600 shadow-sm hover:bg-gray-50 lg:flex"
       >
         <Icon
@@ -275,7 +279,7 @@ const Sidebar = ({
       <button
         type="button"
         onClick={onClose}
-        aria-label="사이드바 닫기"
+        aria-label={COMMON_COMPONENT_LANG_KO.sidebar.closeAriaLabel}
         className="absolute right-2 top-2 rounded-md p-2 text-gray-500 hover:bg-gray-100 lg:hidden"
       >
         <Icon icon="ri:RiCloseLine" size="1.1em" />
@@ -283,7 +287,7 @@ const Sidebar = ({
 
       <nav
         className="flex-1 overflow-y-auto px-3 py-4"
-        aria-label="사이드바 메뉴"
+        aria-label={COMMON_COMPONENT_LANG_KO.sidebar.menuAriaLabel}
       >
         <ul className="space-y-1">
           {resolvedItems.map((item) => {
@@ -292,6 +296,8 @@ const Sidebar = ({
             const active = isItemActive(item, children);
             const hasChildren = children.length > 0;
             const isOpenGroup = ui.expanded[key] || false;
+            const childListClassName = isOpenGroup ? "mt-1 space-y-1" : "hidden";
+            const childListPaddingClassName = isMini ? "" : "pl-3";
 
             const content = (
               <div className="flex w-full items-center gap-3">
@@ -334,8 +340,8 @@ const Sidebar = ({
                     </button>
                     <ul
                       id={`${key}-children-${isMini ? "mini" : "full"}`}
-                      className={`${isOpenGroup ? "mt-1 space-y-1" : "hidden"} ${isMini ? "" : "pl-3"}`}
-                      aria-label={`${item.label} 하위 메뉴`}
+                      className={`${childListClassName} ${childListPaddingClassName}`}
+                      aria-label={`${item.label} ${COMMON_COMPONENT_LANG_KO.sidebar.subMenuAriaSuffix}`}
                     >
                       {children.map((child) => {
                         const childKey = child.key || child.label || child.href;
@@ -437,7 +443,7 @@ const Sidebar = ({
       />
       <aside
         className={`fixed bottom-0 left-0 top-16 z-40 flex h-auto flex-none flex-col overflow-visible border-r border-gray-200 bg-white shadow-sm lg:static lg:top-auto lg:bottom-auto lg:left-auto lg:min-h-full ${isOpen ? "" : "pointer-events-none"} ${className}`.trim()}
-        aria-label="사이드바 내비게이션"
+        aria-label={COMMON_COMPONENT_LANG_KO.sidebar.navigationAriaLabel}
         style={drawerStyle}
       >
         {renderContent(ui.collapsed)}
@@ -446,4 +452,7 @@ const Sidebar = ({
   );
 };
 
+/**
+ * @description Sidebar export를 노출한다.
+ */
 export default Sidebar;

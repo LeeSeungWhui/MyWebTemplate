@@ -18,6 +18,9 @@ export const metadata = {
   },
 };
 
+/**
+ * @description SignupPage export를 노출한다.
+ */
 const SignupPage = async () => {
   return <SignupView />;
 };

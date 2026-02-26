@@ -11,19 +11,10 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Icon from "@/app/lib/component/Icon";
 import EasyObj from "@/app/lib/dataset/EasyObj";
+import { COMMON_COMPONENT_LANG_KO } from "@/app/common/i18n/lang.ko";
 
-const DEMO_MENU_LIST = [
-  { href: "/sample", label: "샘플 허브" },
-  { href: "/sample/dashboard", label: "샘플 대시보드" },
-  { href: "/sample/crud", label: "CRUD 관리" },
-  { href: "/sample/form", label: "복합 폼" },
-  { href: "/sample/admin", label: "관리자 화면" },
-];
-
-const PUBLIC_MENU_LIST = [
-  { href: "/component", label: "컴포넌트" },
-  { href: "/sample/portfolio", label: "포트폴리오" },
-];
+const DEMO_MENU_LIST = COMMON_COMPONENT_LANG_KO.publicLayout.demoMenuList;
+const PUBLIC_MENU_LIST = COMMON_COMPONENT_LANG_KO.publicLayout.publicMenuList;
 
 const isDemoPath = (pathname) => {
   const pathText = String(pathname || "");
@@ -86,7 +77,7 @@ const PublicGnb = () => {
   const demoMenuRef = useRef(null);
   const demoMenuPinnedRef = useRef(false);
 
-  const isDemoActive = useMemo(() => isDemoPath(pathname), [pathname]);
+  const isDemoActive = isDemoPath(pathname);
 
   const closeDemoMenu = useCallback(() => {
     demoMenuPinnedRef.current = false;
@@ -136,7 +127,7 @@ const PublicGnb = () => {
           <button
             type="button"
             className="inline-flex h-10 w-10 items-center justify-center rounded-md border border-gray-200 text-gray-700 md:hidden"
-            aria-label="모바일 메뉴 열기"
+            aria-label={COMMON_COMPONENT_LANG_KO.publicLayout.mobileMenuOpenAriaLabel}
             onClick={() => {
               ui.mobileOpen = !ui.mobileOpen;
             }}
@@ -175,7 +166,7 @@ const PublicGnb = () => {
               aria-expanded={ui.demoMenuOpen}
               onClick={handleToggleDemoMenu}
             >
-              샘플
+              {COMMON_COMPONENT_LANG_KO.publicLayout.demoMenuLabel}
               <Icon icon="ri:RiArrowDownSLine" />
             </button>
             <div
@@ -185,7 +176,7 @@ const PublicGnb = () => {
                   : "invisible pointer-events-none opacity-0"
               }`}
               role="menu"
-              aria-label="샘플 메뉴"
+              aria-label={COMMON_COMPONENT_LANG_KO.publicLayout.demoMenuAriaLabel}
             >
               {DEMO_MENU_LIST.map((menuItem) => {
                 const menuActive = isActiveMenu(pathname, menuItem.href);
@@ -224,7 +215,7 @@ const PublicGnb = () => {
         <div className="border-t border-gray-200 bg-white px-4 py-4 md:hidden">
           <div className="space-y-1">
             <p className="px-2 py-1 text-xs font-semibold tracking-wide text-gray-500">
-              샘플
+              {COMMON_COMPONENT_LANG_KO.publicLayout.demoMenuLabel}
             </p>
             {DEMO_MENU_LIST.map((menuItem) => (
               <Link

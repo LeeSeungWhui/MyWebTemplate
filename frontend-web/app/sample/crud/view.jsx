@@ -24,39 +24,27 @@ import { useDemoSharedState } from "@/app/sample/demoSharedState";
 import EasyObj from "@/app/lib/dataset/EasyObj";
 import LANG_KO from "./lang.ko";
 
-const { view: viewText } = LANG_KO;
-const STATUS_LABEL_MAP = viewText.statusLabelMap;
-const STATUS_BADGE_VARIANT_MAP = viewText.statusBadgeVariantMap;
-
-const createDefaultForm = () => ({
-  title: "",
-  status: "ready",
-  owner: "",
-  amount: 0,
-  description: "",
-  attachmentName: "",
-});
-
-const toTodayText = () => {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, "0");
-  const day = String(now.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
-};
-
-const toAmountText = (amount) => {
-  const numericAmount = Number(amount || 0);
-  if (Number.isNaN(numericAmount)) return "0";
-  return numericAmount.toLocaleString("ko-KR");
-};
-
 /**
  * @description 공개 CRUD 샘플 화면을 렌더링한다.
  * @param {{ mode: Object, initRows: Array }} props
  */
 const CrudDemoView = (props) => {
   const { initRows = [] } = props;
+  const createDefaultForm = () => ({
+    title: "",
+    status: "ready",
+    owner: "",
+    amount: 0,
+    description: "",
+    attachmentName: "",
+  });
+  const toTodayText = () => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, "0");
+    const day = String(now.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
   const ui = EasyObj(
     useMemo(
       () => ({
@@ -135,7 +123,7 @@ const CrudDemoView = (props) => {
                 }
                 ui.selectedIdList = filteredRows.map((rowItem) => rowItem.id);
               }}
-              aria-label={viewText.table.selectAllAriaLabel}
+              aria-label={LANG_KO.view.table.selectAllAriaLabel}
             />
           </div>
         ),
@@ -146,64 +134,63 @@ const CrudDemoView = (props) => {
               checked={selectedIdSet.has(rowItem.id)}
               onChange={(event) => {
                 const checked = Boolean(event?.target?.checked);
-                const previousList = ui.selectedIdList;
                 if (checked) {
-                  ui.selectedIdList = Array.from(new Set([...previousList, rowItem.id]));
+                  ui.selectedIdList = Array.from(new Set([...ui.selectedIdList, rowItem.id]));
                   return;
                 }
-                ui.selectedIdList = previousList.filter(
+                ui.selectedIdList = ui.selectedIdList.filter(
                   (previousId) => previousId !== rowItem.id,
                 );
               }}
-              aria-label={`${viewText.table.rowSelectAriaLabelPrefix} ${rowItem.id}`}
+              aria-label={`${LANG_KO.view.table.rowSelectAriaLabelPrefix} ${rowItem.id}`}
             />
           </div>
         ),
       },
       {
         key: "id",
-        header: viewText.table.idHeader,
+        header: LANG_KO.view.table.idHeader,
         width: 80,
       },
       {
         key: "title",
-        header: viewText.table.titleHeader,
+        header: LANG_KO.view.table.titleHeader,
         align: "left",
         width: "2fr",
       },
       {
         key: "status",
-        header: viewText.table.statusHeader,
+        header: LANG_KO.view.table.statusHeader,
         width: 120,
         render: (rowItem) => (
           <Badge
-            variant={STATUS_BADGE_VARIANT_MAP[rowItem?.status] || "neutral"}
+            variant={LANG_KO.view.statusBadgeVariantMap[rowItem?.status] || "neutral"}
             pill
           >
-            {STATUS_LABEL_MAP[rowItem?.status] || rowItem?.status}
+            {LANG_KO.view.statusLabelMap[rowItem?.status] || rowItem?.status}
           </Badge>
         ),
       },
       {
         key: "owner",
-        header: viewText.table.ownerHeader,
+        header: LANG_KO.view.table.ownerHeader,
         width: 120,
       },
       {
         key: "amount",
-        header: viewText.table.amountHeader,
+        header: LANG_KO.view.table.amountHeader,
         width: 140,
         render: (rowItem) =>
           Number(rowItem?.amount || 0).toLocaleString("ko-KR"),
       },
       {
         key: "createdAt",
-        header: viewText.table.createdAtHeader,
+        header: LANG_KO.view.table.createdAtHeader,
         width: 120,
       },
       {
         key: "actions",
-        header: viewText.table.actionsHeader,
+        header: LANG_KO.view.table.actionsHeader,
         width: 180,
         render: (rowItem) => (
           <div className="flex items-center justify-center gap-2">
@@ -227,19 +214,19 @@ const CrudDemoView = (props) => {
                 ui.formError = "";
               }}
             >
-              {viewText.action.edit}
+              {LANG_KO.view.action.edit}
             </Button>
             <Button
               size="sm"
               variant="danger"
               onClick={async () => {
                 const confirmed = await showConfirm(
-                  viewText.confirm.removeOne,
+                  LANG_KO.view.confirm.removeOne,
                   {
-                    title: viewText.confirm.removeOneTitle,
+                    title: LANG_KO.view.confirm.removeOneTitle,
                     type: "warning",
-                    confirmText: viewText.confirm.confirmText,
-                    cancelText: viewText.confirm.cancelText,
+                    confirmText: LANG_KO.view.confirm.confirmText,
+                    cancelText: LANG_KO.view.confirm.cancelText,
                   },
                 );
                 if (!confirmed) return;
@@ -249,10 +236,10 @@ const CrudDemoView = (props) => {
                 ui.selectedIdList = ui.selectedIdList.filter(
                   (selectedId) => selectedId !== rowItem.id,
                 );
-                showToast(viewText.toast.removedRow, { type: "success" });
+                showToast(LANG_KO.view.toast.removedRow, { type: "success" });
               }}
             >
-              {viewText.action.remove}
+              {LANG_KO.view.action.remove}
             </Button>
           </div>
         ),
@@ -282,7 +269,7 @@ const CrudDemoView = (props) => {
 
   const validateAndSearch = () => {
     if (ui.fromDate && ui.toDate && ui.fromDate > ui.toDate) {
-      showToast(viewText.validation.dateRangeInvalid, { type: "error" });
+      showToast(LANG_KO.view.validation.dateRangeInvalid, { type: "error" });
       return;
     }
     ui.appliedFilter = {
@@ -310,15 +297,15 @@ const CrudDemoView = (props) => {
   const saveDrawer = () => {
     const title = String(ui.form.title || "").trim();
     if (!title) {
-      ui.formError = viewText.validation.titleRequired;
-      showToast(viewText.validation.titleRequiredToast, { type: "warning" });
+      ui.formError = LANG_KO.view.validation.titleRequired;
+      showToast(LANG_KO.view.validation.titleRequiredToast, { type: "warning" });
       return;
     }
     const owner = String(ui.form.owner || "").trim();
     const nextRow = {
       title,
       status: ui.form.status || "ready",
-      owner: owner || viewText.validation.ownerFallback,
+      owner: owner || LANG_KO.view.validation.ownerFallback,
       amount: Number(ui.form.amount || 0),
       description: String(ui.form.description || "").trim(),
       attachmentName: String(ui.form.attachmentName || ""),
@@ -333,7 +320,7 @@ const CrudDemoView = (props) => {
         },
         ...prevRows,
       ]);
-      showToast(viewText.toast.createdRow, { type: "success" });
+      showToast(LANG_KO.view.toast.createdRow, { type: "success" });
     } else {
       const editingId = ui.drawerState.editingId;
       setRowList((prevRows) =>
@@ -346,23 +333,23 @@ const CrudDemoView = (props) => {
             : prevRow,
         ),
       );
-      showToast(viewText.toast.updatedRow, { type: "success" });
+      showToast(LANG_KO.view.toast.updatedRow, { type: "success" });
     }
     closeDrawer();
   };
 
   const removeSelectedRows = async () => {
     if (ui.selectedIdList.length === 0) {
-      showToast(viewText.validation.noSelection, { type: "info" });
+      showToast(LANG_KO.view.validation.noSelection, { type: "info" });
       return;
     }
     const confirmed = await showConfirm(
-      `선택된 ${ui.selectedIdList.length}${viewText.confirm.removeManyTextSuffix}`,
+      `선택된 ${ui.selectedIdList.length}${LANG_KO.view.confirm.removeManyTextSuffix}`,
       {
-        title: viewText.confirm.removeManyTitle,
+        title: LANG_KO.view.confirm.removeManyTitle,
         type: "warning",
-        confirmText: viewText.confirm.confirmText,
-        cancelText: viewText.confirm.cancelText,
+        confirmText: LANG_KO.view.confirm.confirmText,
+        cancelText: LANG_KO.view.confirm.cancelText,
       },
     );
     if (!confirmed) return;
@@ -370,20 +357,20 @@ const CrudDemoView = (props) => {
       prevRows.filter((rowItem) => !selectedIdSet.has(rowItem.id)),
     );
     ui.selectedIdList = [];
-    showToast(viewText.toast.removedSelectedRows, { type: "success" });
+    showToast(LANG_KO.view.toast.removedSelectedRows, { type: "success" });
   };
 
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
       <section className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900">{viewText.section.title}</h1>
+        <h1 className="text-3xl font-bold text-gray-900">{LANG_KO.view.section.title}</h1>
         <p className="mt-2 text-sm text-gray-600">
-          {viewText.section.subtitle}
+          {LANG_KO.view.section.subtitle}
         </p>
       </section>
 
       <Card
-        title={viewText.card.filterTitle}
+        title={LANG_KO.view.card.filterTitle}
         actions={
           <div className="flex flex-wrap gap-2 sm:justify-end">
             <Button
@@ -391,14 +378,14 @@ const CrudDemoView = (props) => {
               onClick={removeSelectedRows}
               className="w-full sm:w-auto"
             >
-              {viewText.action.removeSelected}
+              {LANG_KO.view.action.removeSelected}
             </Button>
             <Button
               variant="primary"
               onClick={openCreateDrawer}
               className="w-full sm:w-auto"
             >
-              {viewText.action.openCreate}
+              {LANG_KO.view.action.openCreate}
             </Button>
           </div>
         }
@@ -410,7 +397,7 @@ const CrudDemoView = (props) => {
               onChange={(event) => {
                 ui.keyword = event.target.value;
               }}
-              placeholder={viewText.input.searchPlaceholder}
+              placeholder={LANG_KO.view.input.searchPlaceholder}
             />
           </div>
           <div>
@@ -427,39 +414,39 @@ const CrudDemoView = (props) => {
             onChange={(event) => {
               ui.fromDate = event?.target?.value || "";
             }}
-            placeholder={viewText.input.fromDatePlaceholder}
+            placeholder={LANG_KO.view.input.fromDatePlaceholder}
           />
           <DateInput
             value={ui.toDate}
             onChange={(event) => {
               ui.toDate = event?.target?.value || "";
             }}
-            placeholder={viewText.input.toDatePlaceholder}
+            placeholder={LANG_KO.view.input.toDatePlaceholder}
           />
           <Button
             variant="primary"
             onClick={validateAndSearch}
             className="w-full sm:w-auto"
           >
-            {viewText.action.search}
+            {LANG_KO.view.action.search}
           </Button>
           <Button
             variant="secondary"
             onClick={resetFilter}
             className="w-full sm:w-auto"
           >
-            {viewText.action.reset}
+            {LANG_KO.view.action.reset}
           </Button>
         </div>
       </Card>
 
-      <Card title={viewText.card.tableTitle} className="mt-4">
+      <Card title={LANG_KO.view.card.tableTitle} className="mt-4">
         <EasyTable
           loading={ui.isLoading}
           data={filteredRows}
           columns={tableColumns}
           pageSize={5}
-          empty={viewText.table.empty}
+          empty={LANG_KO.view.table.empty}
           rowKey={(rowItem, rowIndex) => rowItem?.id ?? rowIndex}
         />
       </Card>
@@ -474,12 +461,12 @@ const CrudDemoView = (props) => {
         <div className="space-y-4 p-5">
           <div>
             <h2 className="text-xl font-semibold text-gray-900">
-              {ui.drawerState.mode === "create" ? viewText.drawer.createTitle : viewText.drawer.editTitle}
+              {ui.drawerState.mode === "create" ? LANG_KO.view.drawer.createTitle : LANG_KO.view.drawer.editTitle}
             </h2>
             <p className="mt-1 text-sm text-gray-500">
               {ui.drawerState.mode === "create"
-                ? viewText.drawer.createDescription
-                : `${viewText.drawer.editDescriptionPrefix}${ui.drawerState.editingId || "-"}`}
+                ? LANG_KO.view.drawer.createDescription
+                : `${LANG_KO.view.drawer.editDescriptionPrefix}${ui.drawerState.editingId || "-"}`}
             </p>
           </div>
 
@@ -490,18 +477,18 @@ const CrudDemoView = (props) => {
           ) : null}
 
           <label className="block space-y-1">
-            <span className="text-sm font-medium text-gray-700">{viewText.drawer.titleLabel}</span>
+            <span className="text-sm font-medium text-gray-700">{LANG_KO.view.drawer.titleLabel}</span>
             <Input
               value={ui.form.title}
               onChange={(event) => {
                 ui.form.title = event.target.value;
               }}
-              placeholder={viewText.input.titlePlaceholder}
+              placeholder={LANG_KO.view.input.titlePlaceholder}
             />
           </label>
 
           <label className="block space-y-1">
-            <span className="text-sm font-medium text-gray-700">{viewText.drawer.statusLabel}</span>
+            <span className="text-sm font-medium text-gray-700">{LANG_KO.view.drawer.statusLabel}</span>
             <Select
               value={ui.form.status}
               onChange={(event) => {
@@ -512,18 +499,18 @@ const CrudDemoView = (props) => {
           </label>
 
           <label className="block space-y-1">
-            <span className="text-sm font-medium text-gray-700">{viewText.drawer.ownerLabel}</span>
+            <span className="text-sm font-medium text-gray-700">{LANG_KO.view.drawer.ownerLabel}</span>
             <Input
               value={ui.form.owner}
               onChange={(event) => {
                 ui.form.owner = event.target.value;
               }}
-              placeholder={viewText.input.ownerPlaceholder}
+              placeholder={LANG_KO.view.input.ownerPlaceholder}
             />
           </label>
 
           <label className="block space-y-1">
-            <span className="text-sm font-medium text-gray-700">{viewText.drawer.amountLabel}</span>
+            <span className="text-sm font-medium text-gray-700">{LANG_KO.view.drawer.amountLabel}</span>
             <NumberInput
               value={ui.form.amount}
               min={0}
@@ -535,19 +522,19 @@ const CrudDemoView = (props) => {
           </label>
 
           <label className="block space-y-1">
-            <span className="text-sm font-medium text-gray-700">{viewText.drawer.descriptionLabel}</span>
+            <span className="text-sm font-medium text-gray-700">{LANG_KO.view.drawer.descriptionLabel}</span>
             <Textarea
               rows={4}
               value={ui.form.description}
               onChange={(event) => {
                 ui.form.description = event.target.value;
               }}
-              placeholder={viewText.input.descriptionPlaceholder}
+              placeholder={LANG_KO.view.input.descriptionPlaceholder}
             />
           </label>
 
           <label className="block space-y-1">
-            <span className="text-sm font-medium text-gray-700">{viewText.drawer.attachmentLabel}</span>
+            <span className="text-sm font-medium text-gray-700">{LANG_KO.view.drawer.attachmentLabel}</span>
             <input
               type="file"
               className="block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700"
@@ -563,9 +550,9 @@ const CrudDemoView = (props) => {
 
           <div className="flex flex-col-reverse gap-2 pt-2 sm:flex-row sm:items-center sm:justify-end">
             <Button variant="secondary" onClick={closeDrawer} className="w-full sm:w-auto">
-              {viewText.action.cancel}
+              {LANG_KO.view.action.cancel}
             </Button>
-            <Button onClick={saveDrawer} className="w-full sm:w-auto">{viewText.action.save}</Button>
+            <Button onClick={saveDrawer} className="w-full sm:w-auto">{LANG_KO.view.action.save}</Button>
           </div>
         </div>
       </Drawer>

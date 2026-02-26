@@ -26,6 +26,9 @@ export const metadata = {
   },
 };
 
+/**
+ * @description DashboardPage export를 노출한다.
+ */
 const DashboardPage = async () => {
   const initialData = await buildDashboardInitialData({
     mode: PAGE_MODE.MODE,

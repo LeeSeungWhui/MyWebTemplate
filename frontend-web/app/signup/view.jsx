@@ -19,8 +19,10 @@ import LANG_KO from "./lang.ko";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+/**
+ * @description SignupView export를 노출한다.
+ */
 const SignupView = () => {
-  const viewText = LANG_KO.view;
   const signupObj = EasyObj(useMemo(() => createSignupFormModel(), []));
   const ui = EasyObj(
     useMemo(
@@ -68,26 +70,26 @@ const SignupView = () => {
     signupObj.email = email;
 
     if (!name || name.length < 2) {
-      signupObj.errors.name = viewText.validation.nameMinLength;
+      signupObj.errors.name = LANG_KO.view.validation.nameMinLength;
       issues.push({ ref: nameRef, message: signupObj.errors.name });
     }
     if (!email || !EMAIL_RE.test(email)) {
-      signupObj.errors.email = viewText.validation.emailInvalid;
+      signupObj.errors.email = LANG_KO.view.validation.emailInvalid;
       issues.push({ ref: emailRef, message: signupObj.errors.email });
     }
     if (!password || password.length < 8) {
-      signupObj.errors.password = viewText.validation.passwordMinLength;
+      signupObj.errors.password = LANG_KO.view.validation.passwordMinLength;
       issues.push({ ref: passwordRef, message: signupObj.errors.password });
     }
     if (passwordConfirm !== password) {
-      signupObj.errors.passwordConfirm = viewText.validation.passwordConfirmMismatch;
+      signupObj.errors.passwordConfirm = LANG_KO.view.validation.passwordConfirmMismatch;
       issues.push({
         ref: passwordConfirmRef,
         message: signupObj.errors.passwordConfirm,
       });
     }
     if (!agreeTerms) {
-      signupObj.errors.agreeTerms = viewText.validation.agreeTermsRequired;
+      signupObj.errors.agreeTerms = LANG_KO.view.validation.agreeTermsRequired;
       issues.push({ ref: agreeTermsRef, message: signupObj.errors.agreeTerms });
     }
 
@@ -113,20 +115,20 @@ const SignupView = () => {
           password: String(signupObj.password || ""),
         },
       });
-      showToast(viewText.toast.signupDone, { type: "success" });
+      showToast(LANG_KO.view.toast.signupDone, { type: "success" });
       window.location.assign("/login?signup=done");
     } catch (error) {
       if (error?.code === "AUTH_409_USER_EXISTS") {
-        signupObj.errors.email = viewText.error.userExists;
+        signupObj.errors.email = LANG_KO.view.error.userExists;
         ui.formError = signupObj.errors.email;
         focusOnError(emailRef);
         return;
       }
       if (error?.code === "AUTH_422_INVALID_INPUT") {
-        ui.formError = viewText.error.invalidInput;
+        ui.formError = LANG_KO.view.error.invalidInput;
       } else {
         const requestIdText = error?.requestId ? ` (requestId: ${error.requestId})` : "";
-        ui.formError = `${error?.message || viewText.error.signupFailed}${requestIdText}`;
+        ui.formError = `${error?.message || LANG_KO.view.error.signupFailed}${requestIdText}`;
       }
       focusOnError(errorSummaryRef);
     } finally {
@@ -138,9 +140,9 @@ const SignupView = () => {
     <main className="min-h-screen flex items-center justify-center bg-gray-50 p-4 sm:p-6">
       <section className="w-full max-w-xl rounded-2xl bg-white p-6 shadow-xl sm:p-10">
         <div className="mb-8 text-center">
-          <h1 className="text-3xl font-semibold text-gray-900">{viewText.form.title}</h1>
+          <h1 className="text-3xl font-semibold text-gray-900">{LANG_KO.view.form.title}</h1>
           <p className="mt-2 text-sm text-gray-600">
-            {viewText.form.subtitle}
+            {LANG_KO.view.form.subtitle}
           </p>
         </div>
 
@@ -159,7 +161,7 @@ const SignupView = () => {
 
           <div>
             <label htmlFor="signup-name" className="block text-sm font-medium text-gray-700">
-              {viewText.form.nameLabel}
+              {LANG_KO.view.form.nameLabel}
             </label>
             <div className="mt-2">
               <Input
@@ -167,7 +169,7 @@ const SignupView = () => {
                 dataObj={signupObj}
                 dataKey="name"
                 ref={nameRef}
-                placeholder={viewText.form.namePlaceholder}
+                placeholder={LANG_KO.view.form.namePlaceholder}
                 error={signupObj.errors.name}
               />
               {signupObj.errors.name ? (
@@ -178,7 +180,7 @@ const SignupView = () => {
 
           <div>
             <label htmlFor="signup-email" className="block text-sm font-medium text-gray-700">
-              {viewText.form.emailLabel}
+              {LANG_KO.view.form.emailLabel}
             </label>
             <div className="mt-2">
               <Input
@@ -187,7 +189,7 @@ const SignupView = () => {
                 dataObj={signupObj}
                 dataKey="email"
                 ref={emailRef}
-                placeholder={viewText.form.emailPlaceholder}
+                placeholder={LANG_KO.view.form.emailPlaceholder}
                 error={signupObj.errors.email}
               />
               {signupObj.errors.email ? (
@@ -198,7 +200,7 @@ const SignupView = () => {
 
           <div>
             <label htmlFor="signup-password" className="block text-sm font-medium text-gray-700">
-              {viewText.form.passwordLabel}
+              {LANG_KO.view.form.passwordLabel}
             </label>
             <div className="mt-2">
               <Input
@@ -207,7 +209,7 @@ const SignupView = () => {
                 dataObj={signupObj}
                 dataKey="password"
                 ref={passwordRef}
-                placeholder={viewText.form.passwordPlaceholder}
+                placeholder={LANG_KO.view.form.passwordPlaceholder}
                 error={signupObj.errors.password}
               />
               {signupObj.errors.password ? (
@@ -218,7 +220,7 @@ const SignupView = () => {
 
           <div>
             <label htmlFor="signup-password-confirm" className="block text-sm font-medium text-gray-700">
-              {viewText.form.passwordConfirmLabel}
+              {LANG_KO.view.form.passwordConfirmLabel}
             </label>
             <div className="mt-2">
               <Input
@@ -227,7 +229,7 @@ const SignupView = () => {
                 dataObj={signupObj}
                 dataKey="passwordConfirm"
                 ref={passwordConfirmRef}
-                placeholder={viewText.form.passwordConfirmPlaceholder}
+                placeholder={LANG_KO.view.form.passwordConfirmPlaceholder}
                 error={signupObj.errors.passwordConfirm}
               />
               {signupObj.errors.passwordConfirm ? (
@@ -240,7 +242,7 @@ const SignupView = () => {
             <Checkbox
               dataObj={signupObj}
               dataKey="agreeTerms"
-              label={viewText.form.agreeTermsLabel}
+              label={LANG_KO.view.form.agreeTermsLabel}
               ref={agreeTermsRef}
             />
             {signupObj.errors.agreeTerms ? (
@@ -249,14 +251,14 @@ const SignupView = () => {
           </div>
 
           <Button type="submit" variant="primary" size="lg" className="w-full" loading={ui.pending}>
-            {viewText.form.submitLabel}
+            {LANG_KO.view.form.submitLabel}
           </Button>
         </form>
 
         <div className="mt-6 text-center text-sm text-gray-600">
-          {`${viewText.form.loginGuidePrefix} `}{" "}
+          {`${LANG_KO.view.form.loginGuidePrefix} `}{" "}
           <Link href="/login" className="font-medium text-blue-600 hover:text-blue-500">
-            {viewText.form.loginLinkLabel}
+            {LANG_KO.view.form.loginLinkLabel}
           </Link>
         </div>
       </section>

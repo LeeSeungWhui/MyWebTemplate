@@ -7,7 +7,7 @@
  */
 
 import { useCallback, useEffect } from "react";
-import { useSharedStore } from "@/app/common/store/SharedStore";
+import { useSharedData } from "@/app/common/store/SharedStore";
 import { deepCloneValue } from "@/app/lib/runtime/json";
 
 const cloneValue = (value) => {
@@ -25,8 +25,8 @@ const cloneValue = (value) => {
  */
 export const useDemoSharedState = (params) => {
   const { stateKey, initialValue } = params;
-  const sharedValue = useSharedStore((state) => state.shared?.[stateKey]);
-  const setShared = useSharedStore((state) => state.setShared);
+  const { shared, setShared } = useSharedData();
+  const sharedValue = shared?.[stateKey];
 
   useEffect(() => {
     /**
@@ -43,18 +43,17 @@ export const useDemoSharedState = (params) => {
        * @description 현재 공유 상태를 기준으로 다음 상태를 계산해 저장한다.
        * @updated 2026-02-23
        */
-      const currentShared = useSharedStore.getState()?.shared || {};
       const currentValue =
-        currentShared[stateKey] === undefined
+        sharedValue === undefined
           ? cloneValue(initialValue)
-          : currentShared[stateKey];
+          : sharedValue;
       const nextValue =
         typeof nextValueOrUpdater === "function"
           ? nextValueOrUpdater(currentValue)
           : nextValueOrUpdater;
       setShared({ [stateKey]: cloneValue(nextValue) });
     },
-    [initialValue, setShared, stateKey],
+    [initialValue, setShared, sharedValue, stateKey],
   );
 
   const resetValue = useCallback(() => {

@@ -18,6 +18,9 @@ export const metadata = {
   },
 };
 
+/**
+ * @description ForgotPasswordPage export를 노출한다.
+ */
 const ForgotPasswordPage = async () => {
   return <ForgotPasswordView />;
 };

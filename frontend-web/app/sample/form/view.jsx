@@ -26,21 +26,19 @@ const STEP_LIST = LANG_KO.view.stepList.map((item) => ({ ...item }));
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-const createStepOneErrorModel = () => ({
-  name: "",
-  email: "",
-  phone: "",
-  category: "",
-  startDate: "",
-  endDate: "",
-  budgetRange: "",
-});
-
 /**
  * @description 공개 복합 폼 샘플 화면을 렌더링한다.
  */
 const FormDemoView = () => {
-  const viewText = LANG_KO.view;
+  const createStepOneErrorModel = () => ({
+    name: "",
+    email: "",
+    phone: "",
+    category: "",
+    startDate: "",
+    endDate: "",
+    budgetRange: "",
+  });
   const ui = EasyObj(
     useMemo(
       () => ({
@@ -63,30 +61,30 @@ const FormDemoView = () => {
 
   const summaryRows = useMemo(
     () => [
-      { label: viewText.summaryLabel.name, value: ui.form.name || "-" },
-      { label: viewText.summaryLabel.email, value: ui.form.email || "-" },
-      { label: viewText.summaryLabel.phone, value: ui.form.phone || "-" },
+      { label: LANG_KO.view.summaryLabel.name, value: ui.form.name || "-" },
+      { label: LANG_KO.view.summaryLabel.email, value: ui.form.email || "-" },
+      { label: LANG_KO.view.summaryLabel.phone, value: ui.form.phone || "-" },
       {
-        label: viewText.summaryLabel.category,
+        label: LANG_KO.view.summaryLabel.category,
         value:
           CATEGORY_OPTION_LIST.find(
             (categoryItem) => categoryItem.value === ui.form.category,
           )?.text || "-",
       },
-      { label: viewText.summaryLabel.period, value: `${ui.form.startDate || "-"} ~ ${ui.form.endDate || "-"}` },
-      { label: viewText.summaryLabel.budgetRange, value: ui.form.budgetRange || "-" },
+      { label: LANG_KO.view.summaryLabel.period, value: `${ui.form.startDate || "-"} ~ ${ui.form.endDate || "-"}` },
+      { label: LANG_KO.view.summaryLabel.budgetRange, value: ui.form.budgetRange || "-" },
       {
-        label: viewText.summaryLabel.features,
+        label: LANG_KO.view.summaryLabel.features,
         value:
           ui.form.selectedFeatures.length > 0
             ? ui.form.selectedFeatures.join(", ")
             : "-",
       },
-      { label: viewText.summaryLabel.requirement, value: ui.form.requirement || "-" },
-      { label: viewText.summaryLabel.referenceUrl, value: ui.form.referenceUrl || "-" },
-      { label: viewText.summaryLabel.attachmentName, value: ui.form.attachmentName || "-" },
+      { label: LANG_KO.view.summaryLabel.requirement, value: ui.form.requirement || "-" },
+      { label: LANG_KO.view.summaryLabel.referenceUrl, value: ui.form.referenceUrl || "-" },
+      { label: LANG_KO.view.summaryLabel.attachmentName, value: ui.form.attachmentName || "-" },
     ],
-    [ui.form, viewText.summaryLabel],
+    [ui.form],
   );
   const stepOneErrorIds = {
     name: ui.stepOneErrors.name ? "demo-form-name-error" : undefined,
@@ -116,23 +114,23 @@ const FormDemoView = () => {
     const endDate = String(ui.form.endDate || "").trim();
     const budgetRange = String(ui.form.budgetRange || "").trim();
 
-    if (!name) nextErrors.name = viewText.validation.nameRequired;
+    if (!name) nextErrors.name = LANG_KO.view.validation.nameRequired;
     if (!email || !EMAIL_RE.test(email)) {
-      nextErrors.email = viewText.validation.emailInvalid;
+      nextErrors.email = LANG_KO.view.validation.emailInvalid;
     }
-    if (!phone) nextErrors.phone = viewText.validation.phoneRequired;
-    if (!category) nextErrors.category = viewText.validation.categoryRequired;
-    if (!startDate) nextErrors.startDate = viewText.validation.startDateRequired;
-    if (!endDate) nextErrors.endDate = viewText.validation.endDateRequired;
-    if (!budgetRange) nextErrors.budgetRange = viewText.validation.budgetRangeRequired;
+    if (!phone) nextErrors.phone = LANG_KO.view.validation.phoneRequired;
+    if (!category) nextErrors.category = LANG_KO.view.validation.categoryRequired;
+    if (!startDate) nextErrors.startDate = LANG_KO.view.validation.startDateRequired;
+    if (!endDate) nextErrors.endDate = LANG_KO.view.validation.endDateRequired;
+    if (!budgetRange) nextErrors.budgetRange = LANG_KO.view.validation.budgetRangeRequired;
     if (startDate && endDate && startDate > endDate) {
-      nextErrors.endDate = viewText.validation.endDateAfterStartDate;
+      nextErrors.endDate = LANG_KO.view.validation.endDateAfterStartDate;
     }
 
     const hasError = Object.values(nextErrors).some(Boolean);
     ui.stepOneErrors = nextErrors;
     if (hasError) {
-      showToast(viewText.validation.requiredFieldToast, { type: "error" });
+      showToast(LANG_KO.view.validation.requiredFieldToast, { type: "error" });
       return false;
     }
     return true;
@@ -152,9 +150,9 @@ const FormDemoView = () => {
   return (
     <div className="mx-auto w-full max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
       <section className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900">{viewText.page.title}</h1>
+        <h1 className="text-3xl font-bold text-gray-900">{LANG_KO.view.page.title}</h1>
         <p className="mt-2 text-sm text-gray-600">
-          {viewText.page.subtitle}
+          {LANG_KO.view.page.subtitle}
         </p>
       </section>
 
@@ -174,22 +172,22 @@ const FormDemoView = () => {
       </ol>
 
       {ui.isLoading ? (
-        <Card title={viewText.page.loadingCardTitle}>
-          <p className="text-sm text-gray-600">{viewText.page.loadingCardBody}</p>
+        <Card title={LANG_KO.view.page.loadingCardTitle}>
+          <p className="text-sm text-gray-600">{LANG_KO.view.page.loadingCardBody}</p>
         </Card>
       ) : null}
 
       {ui.step === 1 ? (
-        <Card title={viewText.card.step1Title}>
+        <Card title={LANG_KO.view.card.step1Title}>
           <div className="grid gap-3 md:grid-cols-2">
             <label className="block space-y-1">
-              <span className="text-sm font-medium text-gray-700">{viewText.summaryLabel.name}</span>
+              <span className="text-sm font-medium text-gray-700">{LANG_KO.view.summaryLabel.name}</span>
               <Input
                 value={ui.form.name}
                 onChange={(event) => {
                   ui.form.name = event.target.value;
                 }}
-                placeholder={viewText.input.namePlaceholder}
+                placeholder={LANG_KO.view.input.namePlaceholder}
                 error={ui.stepOneErrors.name}
                 aria-describedby={stepOneErrorIds.name}
               />
@@ -201,13 +199,13 @@ const FormDemoView = () => {
             </label>
 
             <label className="block space-y-1">
-              <span className="text-sm font-medium text-gray-700">{viewText.summaryLabel.email}</span>
+              <span className="text-sm font-medium text-gray-700">{LANG_KO.view.summaryLabel.email}</span>
               <Input
                 value={ui.form.email}
                 onChange={(event) => {
                   ui.form.email = event.target.value;
                 }}
-                placeholder={viewText.input.emailPlaceholder}
+                placeholder={LANG_KO.view.input.emailPlaceholder}
                 type="email"
                 error={ui.stepOneErrors.email}
                 aria-describedby={stepOneErrorIds.email}
@@ -220,13 +218,13 @@ const FormDemoView = () => {
             </label>
 
             <label className="block space-y-1">
-              <span className="text-sm font-medium text-gray-700">{viewText.summaryLabel.phone}</span>
+              <span className="text-sm font-medium text-gray-700">{LANG_KO.view.summaryLabel.phone}</span>
               <Input
                 value={ui.form.phone}
                 onChange={(event) => {
                   ui.form.phone = event.target.value;
                 }}
-                placeholder={viewText.input.phonePlaceholder}
+                placeholder={LANG_KO.view.input.phonePlaceholder}
                 error={ui.stepOneErrors.phone}
                 aria-describedby={stepOneErrorIds.phone}
               />
@@ -238,7 +236,7 @@ const FormDemoView = () => {
             </label>
 
             <label className="block space-y-1">
-              <span className="text-sm font-medium text-gray-700">{viewText.summaryLabel.category}</span>
+              <span className="text-sm font-medium text-gray-700">{LANG_KO.view.summaryLabel.category}</span>
               <Select
                 value={ui.form.category}
                 onChange={(event) => {
@@ -256,7 +254,7 @@ const FormDemoView = () => {
             </label>
 
             <label className="block space-y-1">
-              <span className="text-sm font-medium text-gray-700">{viewText.summaryLabel.startDate}</span>
+              <span className="text-sm font-medium text-gray-700">{LANG_KO.view.summaryLabel.startDate}</span>
               <Input
                 value={ui.form.startDate}
                 onChange={(event) => {
@@ -274,7 +272,7 @@ const FormDemoView = () => {
             </label>
 
             <label className="block space-y-1">
-              <span className="text-sm font-medium text-gray-700">{viewText.summaryLabel.endDate}</span>
+              <span className="text-sm font-medium text-gray-700">{LANG_KO.view.summaryLabel.endDate}</span>
               <Input
                 value={ui.form.endDate}
                 onChange={(event) => {
@@ -292,13 +290,13 @@ const FormDemoView = () => {
             </label>
 
             <label className="block space-y-1 md:col-span-2">
-              <span className="text-sm font-medium text-gray-700">{viewText.summaryLabel.budgetRange}</span>
+              <span className="text-sm font-medium text-gray-700">{LANG_KO.view.summaryLabel.budgetRange}</span>
               <Input
                 value={ui.form.budgetRange}
                 onChange={(event) => {
                   ui.form.budgetRange = event.target.value;
                 }}
-                placeholder={viewText.input.budgetRangePlaceholder}
+                placeholder={LANG_KO.view.input.budgetRangePlaceholder}
                 error={ui.stepOneErrors.budgetRange}
                 aria-describedby={stepOneErrorIds.budgetRange}
               />
@@ -313,22 +311,22 @@ const FormDemoView = () => {
       ) : null}
 
       {ui.step === 2 ? (
-        <Card title={viewText.card.step2Title}>
+        <Card title={LANG_KO.view.card.step2Title}>
           <div className="space-y-3">
             <label className="block space-y-1">
-              <span className="text-sm font-medium text-gray-700">{viewText.summaryLabel.requirement}</span>
+              <span className="text-sm font-medium text-gray-700">{LANG_KO.view.summaryLabel.requirement}</span>
               <Textarea
                 value={ui.form.requirement}
                 onChange={(event) => {
                   ui.form.requirement = event.target.value;
                 }}
-                placeholder={viewText.input.requirementPlaceholder}
+                placeholder={LANG_KO.view.input.requirementPlaceholder}
                 rows={5}
               />
             </label>
 
             <div className="space-y-1">
-              <span className="text-sm font-medium text-gray-700">{viewText.summaryLabel.features}</span>
+              <span className="text-sm font-medium text-gray-700">{LANG_KO.view.summaryLabel.features}</span>
               <div className="flex flex-wrap gap-2">
                 {FEATURE_CHECK_LIST.map((featureItem) => {
                   const selected = ui.form.selectedFeatures.includes(featureItem.label);
@@ -346,18 +344,18 @@ const FormDemoView = () => {
             </div>
 
             <label className="block space-y-1">
-              <span className="text-sm font-medium text-gray-700">{viewText.summaryLabel.referenceUrl}</span>
+              <span className="text-sm font-medium text-gray-700">{LANG_KO.view.summaryLabel.referenceUrl}</span>
               <Input
                 value={ui.form.referenceUrl}
                 onChange={(event) => {
                   ui.form.referenceUrl = event.target.value;
                 }}
-                placeholder={viewText.input.referenceUrlPlaceholder}
+                placeholder={LANG_KO.view.input.referenceUrlPlaceholder}
               />
             </label>
 
             <label className="block space-y-1">
-              <span className="text-sm font-medium text-gray-700">{viewText.summaryLabel.attachmentName}</span>
+              <span className="text-sm font-medium text-gray-700">{LANG_KO.view.summaryLabel.attachmentName}</span>
               <input
                 type="file"
               className="block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700"
@@ -375,7 +373,7 @@ const FormDemoView = () => {
       ) : null}
 
       {ui.step === 3 ? (
-        <Card title={viewText.card.step3Title}>
+        <Card title={LANG_KO.view.card.step3Title}>
           <ul className="space-y-2 text-sm text-gray-700">
             {summaryRows.map((summaryItem) => (
               <li
@@ -397,7 +395,7 @@ const FormDemoView = () => {
           disabled={ui.step === 1}
           className="w-full sm:w-auto"
         >
-          {viewText.action.prev}
+          {LANG_KO.view.action.prev}
         </Button>
         {ui.step < 3 ? (
           <Button
@@ -412,20 +410,20 @@ const FormDemoView = () => {
               moveStep(ui.step + 1);
             }}
           >
-            {viewText.action.next}
+            {LANG_KO.view.action.next}
           </Button>
         ) : (
           <Button
             variant="primary"
             className="w-full sm:w-auto"
             onClick={() => {
-              showToast(viewText.action.submitSuccessToast, { type: "success" });
+              showToast(LANG_KO.view.action.submitSuccessToast, { type: "success" });
               ui.form = createDefaultForm();
               resetStepOneErrors();
               ui.step = 1;
             }}
           >
-            {viewText.action.submit}
+            {LANG_KO.view.action.submit}
           </Button>
         )}
       </div>

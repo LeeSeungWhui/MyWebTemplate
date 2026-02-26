@@ -15,6 +15,9 @@ export const metadata = {
   description: LANG_KO.page.metadataDescription,
 };
 
+/**
+ * @description PortfolioPage export를 노출한다.
+ */
 const PortfolioPage = () => {
   return <PortfolioView content={PAGE_CONTENT} publicPath={PAGE_MODE.PUBLIC_PATH} />;
 };

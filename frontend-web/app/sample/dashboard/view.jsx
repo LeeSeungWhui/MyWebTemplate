@@ -15,90 +15,6 @@ import Stat from "@/app/lib/component/Stat";
 import { useDemoSharedState } from "@/app/sample/demoSharedState";
 import LANG_KO from "./lang.ko";
 
-const { view: viewText } = LANG_KO;
-const STATUS_LABEL_MAP = viewText.statusLabelMap;
-
-const STATUS_ORDER = ["ready", "pending", "running", "done", "failed"];
-
-const formatCurrency = (value) => {
-  const num = Number(value || 0);
-  if (Number.isNaN(num)) return "0";
-  return num.toLocaleString("ko-KR");
-};
-
-const toStatusSummaryList = (rowList) => {
-  /**
-   * @description CRUD 샘플 행 목록으로 상태 집계를 생성한다.
-   * @updated 2026-02-23
-   */
-  return STATUS_ORDER.map((statusCode) => {
-    const filteredRows = rowList.filter(
-      (rowItem) => String(rowItem?.status || "") === statusCode,
-    );
-    return {
-      status: statusCode,
-      count: filteredRows.length,
-      amountSum: filteredRows.reduce(
-        (total, rowItem) => total + Number(rowItem?.amount || 0),
-        0,
-      ),
-    };
-  });
-};
-
-const toMonthlyTrendList = (rowList) => {
-  /**
-   * @description CRUD 샘플 행 목록으로 월별 추이 데이터를 생성한다.
-   * @updated 2026-02-23
-   */
-  const monthlyMap = {};
-  rowList.forEach((rowItem) => {
-    const createdAt = String(rowItem?.createdAt || "");
-    const matched = createdAt.match(/^(\d{4})-(\d{2})-\d{2}$/);
-    if (!matched) return;
-    const key = `${matched[1]}-${matched[2]}`;
-    const prevValue = monthlyMap[key] || { count: 0, amount: 0 };
-    monthlyMap[key] = {
-      count: prevValue.count + 1,
-      amount: prevValue.amount + Number(rowItem?.amount || 0),
-    };
-  });
-  return Object.keys(monthlyMap)
-    .sort()
-    .map((monthKey) => {
-      const monthNo = Number(monthKey.split("-")[1] || 0);
-      const monthlyValue = monthlyMap[monthKey] || { count: 0, amount: 0 };
-      return {
-        label: `${monthNo}${viewText.monthSuffix}`,
-        count: monthlyValue.count,
-        amount: monthlyValue.amount,
-      };
-    });
-};
-
-const toRecentTaskList = (rowList) => {
-  /**
-   * @description CRUD 샘플 행 목록으로 최근 업무 상위 5건을 구성한다.
-   * @updated 2026-02-23
-   */
-  return [...rowList]
-    .sort((rowA, rowB) => {
-      const dateA = String(rowA?.createdAt || "");
-      const dateB = String(rowB?.createdAt || "");
-      if (dateA === dateB) {
-        return Number(rowB?.id || 0) - Number(rowA?.id || 0);
-      }
-      return dateA < dateB ? 1 : -1;
-    })
-    .slice(0, 5)
-    .map((rowItem) => ({
-      title: rowItem?.title || "-",
-      status: rowItem?.status || "ready",
-      amount: Number(rowItem?.amount || 0),
-      createdAt: rowItem?.createdAt || "-",
-    }));
-};
-
 /**
  * @description 공개 샘플 대시보드 화면을 렌더링한다.
  * @param {{ initRows:Array, ctaList:Array }} props
@@ -108,13 +24,89 @@ const DemoDashboardView = (props) => {
     initRows = [],
     ctaList = [],
   } = props;
+  const statusOrder = ["ready", "pending", "running", "done", "failed"];
+  const formatCurrency = (value) => {
+    const num = Number(value || 0);
+    if (Number.isNaN(num)) return "0";
+    return num.toLocaleString("ko-KR");
+  };
+  const toStatusSummaryList = (rowList) => {
+    /**
+     * @description CRUD 샘플 행 목록으로 상태 집계를 생성한다.
+     * @updated 2026-02-23
+     */
+    return statusOrder.map((statusCode) => {
+      const filteredRows = rowList.filter(
+        (rowItem) => String(rowItem?.status || "") === statusCode,
+      );
+      return {
+        status: statusCode,
+        count: filteredRows.length,
+        amountSum: filteredRows.reduce(
+          (total, rowItem) => total + Number(rowItem?.amount || 0),
+          0,
+        ),
+      };
+    });
+  };
+  const toMonthlyTrendList = (rowList) => {
+    /**
+     * @description CRUD 샘플 행 목록으로 월별 추이 데이터를 생성한다.
+     * @updated 2026-02-23
+     */
+    const monthlyMap = {};
+    rowList.forEach((rowItem) => {
+      const createdAt = String(rowItem?.createdAt || "");
+      const matched = createdAt.match(/^(\d{4})-(\d{2})-\d{2}$/);
+      if (!matched) return;
+      const key = `${matched[1]}-${matched[2]}`;
+      const prevValue = monthlyMap[key] || { count: 0, amount: 0 };
+      monthlyMap[key] = {
+        count: prevValue.count + 1,
+        amount: prevValue.amount + Number(rowItem?.amount || 0),
+      };
+    });
+    return Object.keys(monthlyMap)
+      .sort()
+      .map((monthKey) => {
+        const monthNo = Number(monthKey.split("-")[1] || 0);
+        const monthlyValue = monthlyMap[monthKey] || { count: 0, amount: 0 };
+        return {
+          label: `${monthNo}${LANG_KO.view.monthSuffix}`,
+          count: monthlyValue.count,
+          amount: monthlyValue.amount,
+        };
+      });
+  };
+  const toRecentTaskList = (rowList) => {
+    /**
+     * @description CRUD 샘플 행 목록으로 최근 업무 상위 5건을 구성한다.
+     * @updated 2026-02-23
+     */
+    return [...rowList]
+      .sort((rowA, rowB) => {
+        const dateA = String(rowA?.createdAt || "");
+        const dateB = String(rowB?.createdAt || "");
+        if (dateA === dateB) {
+          return Number(rowB?.id || 0) - Number(rowA?.id || 0);
+        }
+        return dateA < dateB ? 1 : -1;
+      })
+      .slice(0, 5)
+      .map((rowItem) => ({
+        title: rowItem?.title || "-",
+        status: rowItem?.status || "ready",
+        amount: Number(rowItem?.amount || 0),
+        createdAt: rowItem?.createdAt || "-",
+      }));
+  };
   const { value: rowList } = useDemoSharedState({
     stateKey: "demoCrudRows",
     initialValue: initRows,
   });
-  const summaryList = useMemo(() => toStatusSummaryList(rowList), [rowList]);
-  const trendList = useMemo(() => toMonthlyTrendList(rowList), [rowList]);
-  const recentList = useMemo(() => toRecentTaskList(rowList), [rowList]);
+  const summaryList = toStatusSummaryList(rowList);
+  const trendList = toMonthlyTrendList(rowList);
+  const recentList = toRecentTaskList(rowList);
 
   const statCardList = useMemo(() => {
     const totalCount = summaryList.reduce(
@@ -134,17 +126,17 @@ const DemoDashboardView = (props) => {
     }, 0);
     return [
       {
-        label: viewText.statLabel.totalCount,
+        label: LANG_KO.view.statLabel.totalCount,
         value: totalCount.toLocaleString("ko-KR"),
         deltaType: "neutral",
       },
       {
-        label: viewText.statLabel.totalAmount,
+        label: LANG_KO.view.statLabel.totalAmount,
         value: formatCurrency(totalAmount),
         deltaType: "neutral",
       },
       {
-        label: viewText.statLabel.activePending,
+        label: LANG_KO.view.statLabel.activePending,
         value: activeCount.toLocaleString("ko-KR"),
         deltaType: "neutral",
       },
@@ -154,7 +146,7 @@ const DemoDashboardView = (props) => {
   const donutData = useMemo(
     () =>
       summaryList.map((item) => ({
-        label: STATUS_LABEL_MAP[item?.status] || item?.status || viewText.unknown,
+        label: LANG_KO.view.statusLabelMap[item?.status] || item?.status || LANG_KO.view.unknown,
         value: Number(item?.count || 0),
       })),
     [summaryList],
@@ -162,21 +154,21 @@ const DemoDashboardView = (props) => {
 
   const tableColumns = useMemo(
     () => [
-      { key: "title", header: viewText.table.titleHeader, align: "left", width: "2fr" },
+      { key: "title", header: LANG_KO.view.table.titleHeader, align: "left", width: "2fr" },
       {
         key: "status",
-        header: viewText.table.statusHeader,
+        header: LANG_KO.view.table.statusHeader,
         width: 120,
         render: (rowItem) =>
-          STATUS_LABEL_MAP[rowItem?.status] || rowItem?.status || "-",
+          LANG_KO.view.statusLabelMap[rowItem?.status] || rowItem?.status || "-",
       },
       {
         key: "amount",
-        header: viewText.table.amountHeader,
+        header: LANG_KO.view.table.amountHeader,
         width: 140,
         render: (rowItem) => formatCurrency(rowItem?.amount),
       },
-      { key: "createdAt", header: viewText.table.createdAtHeader, width: 120 },
+      { key: "createdAt", header: LANG_KO.view.table.createdAtHeader, width: 120 },
     ],
     [],
   );
@@ -191,18 +183,18 @@ const DemoDashboardView = (props) => {
 
       <section className="grid gap-3 md:grid-cols-2">
         <EasyChart
-          title={viewText.chart.trendTitle}
+          title={LANG_KO.view.chart.trendTitle}
           dataList={trendList}
           seriesList={[
             {
               seriesId: "count",
-              seriesNm: viewText.chart.seriesCount,
+              seriesNm: LANG_KO.view.chart.seriesCount,
               dataKey: "count",
               color: "#2563eb",
             },
             {
               seriesId: "amount",
-              seriesNm: viewText.chart.seriesAmount,
+              seriesNm: LANG_KO.view.chart.seriesAmount,
               dataKey: "amount",
               color: "#10b981",
             },
@@ -213,12 +205,12 @@ const DemoDashboardView = (props) => {
           legendFontSize={12}
         />
         <EasyChart
-          title={viewText.chart.statusTitle}
+          title={LANG_KO.view.chart.statusTitle}
           dataList={donutData}
           seriesList={[
             {
               seriesId: "value",
-              seriesNm: viewText.chart.seriesCount,
+              seriesNm: LANG_KO.view.chart.seriesCount,
               dataKey: "value",
               type: "donut",
             },
@@ -233,14 +225,14 @@ const DemoDashboardView = (props) => {
 
       <section>
         <Card
-          title={viewText.card.recentTitle}
-          subtitle={viewText.card.recentSubtitle}
+          title={LANG_KO.view.card.recentTitle}
+          subtitle={LANG_KO.view.card.recentSubtitle}
         >
           <EasyTable
             data={recentList}
             columns={tableColumns}
             pageSize={5}
-            empty={viewText.table.empty}
+            empty={LANG_KO.view.table.empty}
             rowKey={(rowItem, rowIndex) => rowItem?.title ?? rowIndex}
           />
           <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:flex-wrap">

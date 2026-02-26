@@ -109,7 +109,16 @@ export const LANG_KO = {
       default: "공개 샘플 > CRUD 관리",
     },
     helperText: "샘플 화면을 체험할 수 있어요.",
+    brandName: "MyWebTemplate",
+    footerLinkList: [
+      { linkId: "demo", linkNm: "샘플 허브", href: "/sample" },
+      { linkId: "component", linkNm: "컴포넌트", href: "/component" },
+      { linkId: "portfolio", linkNm: "포트폴리오", href: "/sample/portfolio" },
+    ],
   },
 };
 
+/**
+ * @description LANG_KO export를 노출한다.
+ */
 export default LANG_KO;

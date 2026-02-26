@@ -96,7 +96,24 @@ export const LANG_KO = {
     },
     tasksAllStatus: "전체 상태",
     welcomeText: "어서오세요.",
+    brandName: "MyWebTemplate",
+    layoutAction: {
+      goHome: "홈으로",
+      logout: "로그아웃",
+      logoutSuccessToast: "로그아웃에 성공했습니다.",
+      logoutFailToast: "로그아웃에 실패했습니다.",
+    },
+    footerLinkList: [
+      { linkId: "crud", linkNm: "CRUD 샘플", href: "/sample/crud" },
+      { linkId: "form", linkNm: "복합 폼 샘플", href: "/sample/form" },
+      { linkId: "admin", linkNm: "관리자 화면 샘플", href: "/sample/admin" },
+      { linkId: "component", linkNm: "컴포넌트 문서", href: "/component" },
+      { linkId: "portfolio", linkNm: "포트폴리오", href: "/sample/portfolio" },
+    ],
   },
 };
 
+/**
+ * @description LANG_KO export를 노출한다.
+ */
 export default LANG_KO;

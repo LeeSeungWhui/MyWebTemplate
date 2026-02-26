@@ -24,6 +24,9 @@ export const metadata = {
   },
 }
 
+/**
+ * @description Page export를 노출한다.
+ */
 const Page = async () => {
   const init = await apiJSON(SESSION_PATH, { method: 'GET' }).catch(() => null)
   // Read next-hint from httpOnly cookie set by middleware (hidden from URL)

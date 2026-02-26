@@ -20,6 +20,9 @@ export const metadata = {
   },
 };
 
+/**
+ * @description SettingsPage export를 노출한다.
+ */
 const SettingsPage = async () => {
   return <SettingsView />;
 };

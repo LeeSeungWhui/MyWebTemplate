@@ -12,6 +12,7 @@ import { usePathname } from "next/navigation";
 import Button from "@/app/lib/component/Button";
 import Icon from "@/app/lib/component/Icon";
 import EasyObj from "@/app/lib/dataset/EasyObj";
+import { COMMON_COMPONENT_LANG_KO } from "@/app/common/i18n/lang.ko";
 
 const isListLike = (list) =>
   !!list && (typeof list.size === "function" || Array.isArray(list));
@@ -58,7 +59,11 @@ const Header = ({
   const resolvedMenus = useMemo(() => {
     return toArray(menuList).map((item) => ({
       key: item.menuId ?? item.key ?? item.id ?? item.menuNm,
-      label: item.menuNm ?? item.label ?? item.title ?? "메뉴",
+      label:
+        item.menuNm ??
+        item.label ??
+        item.title ??
+        COMMON_COMPONENT_LANG_KO.header.defaultMenuLabel,
       href: item.href,
       active: !!item.active,
       icon: item.icon,
@@ -72,7 +77,11 @@ const Header = ({
       const list = acc.get(menuId) || [];
       list.push({
         key: cur.subMenuId ?? cur.subMenuNm ?? cur.subMenuCode ?? cur.menuId,
-        label: cur.subMenuNm ?? cur.label ?? cur.title ?? "하위메뉴",
+        label:
+          cur.subMenuNm ??
+          cur.label ??
+          cur.title ??
+          COMMON_COMPONENT_LANG_KO.header.defaultSubMenuLabel,
         href: cur.href,
         active: !!cur.active,
         icon: cur.icon,
@@ -161,7 +170,7 @@ const Header = ({
             <Button
               variant="ghost"
               size="sm"
-              aria-label="사이드바 토글"
+              aria-label={COMMON_COMPONENT_LANG_KO.header.toggleSidebarAriaLabel}
               onClick={onToggleSidebar}
               className="px-2 py-1 text-gray-700"
             >
@@ -183,7 +192,7 @@ const Header = ({
         <nav
           ref={navRef}
           className="hidden items-center gap-2 md:flex"
-          aria-label="주요 메뉴"
+          aria-label={COMMON_COMPONENT_LANG_KO.header.primaryMenuAriaLabel}
         >
           {resolvedMenus.map((item) => {
             const children = subMenuMap.get(item.key) || [];
@@ -212,7 +221,7 @@ const Header = ({
                       isOpen ? "block" : "hidden"
                     }`}
                     role="menu"
-                    aria-label={`${item.label} 하위 메뉴`}
+                    aria-label={`${item.label} ${COMMON_COMPONENT_LANG_KO.header.subMenuAriaSuffix}`}
                   >
                     <ul className="py-1">
                       {children.map((child) => {
@@ -315,4 +324,7 @@ const Header = ({
   );
 };
 
+/**
+ * @description Header export를 노출한다.
+ */
 export default Header;

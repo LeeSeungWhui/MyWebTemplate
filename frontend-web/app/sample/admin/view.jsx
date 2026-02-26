@@ -27,23 +27,18 @@ import {
 } from "./initData";
 import LANG_KO from "./lang.ko";
 
-const { view: viewText } = LANG_KO;
-const ROLE_LABEL_MAP = viewText.roleLabelMap;
-
 const ROLE_BADGE_VARIANT_MAP = {
   admin: "primary",
   editor: "warning",
   user: "neutral",
 };
 
-const STATUS_LABEL_MAP = viewText.statusLabelMap;
-
 const STATUS_BADGE_VARIANT_MAP = {
   active: "success",
   inactive: "neutral",
 };
 
-const ROLE_PERMISSION_LIST = viewText.rolePermissionList.map((item) => ({ ...item }));
+const ROLE_PERMISSION_LIST = LANG_KO.view.rolePermissionList.map((item) => ({ ...item }));
 
 const ROLE_PERMISSION_MAP = {
   admin: {
@@ -69,26 +64,7 @@ const ROLE_PERMISSION_MAP = {
   },
 };
 
-const SYSTEM_DEFAULT = { ...viewText.systemDefault };
-
-const createDefaultUserForm = () => ({
-  name: "",
-  email: "",
-  role: "user",
-  status: "active",
-  notifyEmail: false,
-  notifySms: false,
-  notifyPush: false,
-  profileImageName: "",
-});
-
-const toTodayText = () => {
-  const now = new Date();
-  const year = now.getFullYear();
-  const month = String(now.getMonth() + 1).padStart(2, "0");
-  const day = String(now.getDate()).padStart(2, "0");
-  return `${year}-${month}-${day}`;
-};
+const SYSTEM_DEFAULT = { ...LANG_KO.view.systemDefault };
 
 /**
  * @description 공개 관리자 화면 샘플를 렌더링한다.
@@ -96,6 +72,23 @@ const toTodayText = () => {
  */
 const AdminDemoView = (props) => {
   const { initRows = [] } = props;
+  const createDefaultUserForm = () => ({
+    name: "",
+    email: "",
+    role: "user",
+    status: "active",
+    notifyEmail: false,
+    notifySms: false,
+    notifyPush: false,
+    profileImageName: "",
+  });
+  const toTodayText = () => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, "0");
+    const day = String(now.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
   const ui = EasyObj(
     useMemo(
       () => ({
@@ -135,7 +128,7 @@ const AdminDemoView = (props) => {
     const normalizedKeyword = ui.keyword.trim().toLowerCase();
     if (!normalizedKeyword) return rows;
     return rows.filter((rowItem) => {
-      const targetText = `${rowItem.name} ${rowItem.email} ${ROLE_LABEL_MAP[rowItem.role] || ""}`.toLowerCase();
+      const targetText = `${rowItem.name} ${rowItem.email} ${LANG_KO.view.roleLabelMap[rowItem.role] || ""}`.toLowerCase();
       return targetText.includes(normalizedKeyword);
     });
   }, [ui.keyword, rows]);
@@ -144,7 +137,7 @@ const AdminDemoView = (props) => {
     () => [
       {
         key: "profile",
-        header: viewText.table.profileHeader,
+        header: LANG_KO.view.table.profileHeader,
         width: 90,
         render: (rowItem) => (
           <div className="flex items-center justify-center">
@@ -154,32 +147,32 @@ const AdminDemoView = (props) => {
           </div>
         ),
       },
-      { key: "name", header: viewText.table.nameHeader, width: 120 },
-      { key: "email", header: viewText.table.emailHeader, align: "left", width: "2fr" },
+      { key: "name", header: LANG_KO.view.table.nameHeader, width: 120 },
+      { key: "email", header: LANG_KO.view.table.emailHeader, align: "left", width: "2fr" },
       {
         key: "role",
-        header: viewText.table.roleHeader,
+        header: LANG_KO.view.table.roleHeader,
         width: 130,
         render: (rowItem) => (
           <Badge variant={ROLE_BADGE_VARIANT_MAP[rowItem?.role] || "neutral"} pill>
-            {ROLE_LABEL_MAP[rowItem?.role] || rowItem?.role}
+            {LANG_KO.view.roleLabelMap[rowItem?.role] || rowItem?.role}
           </Badge>
         ),
       },
       {
         key: "status",
-        header: viewText.table.statusHeader,
+        header: LANG_KO.view.table.statusHeader,
         width: 100,
         render: (rowItem) => (
           <Badge variant={STATUS_BADGE_VARIANT_MAP[rowItem?.status] || "neutral"} pill>
-            {STATUS_LABEL_MAP[rowItem?.status] || rowItem?.status}
+            {LANG_KO.view.statusLabelMap[rowItem?.status] || rowItem?.status}
           </Badge>
         ),
       },
-      { key: "createdAt", header: viewText.table.createdAtHeader, width: 120 },
+      { key: "createdAt", header: LANG_KO.view.table.createdAtHeader, width: 120 },
       {
         key: "actions",
-        header: viewText.table.actionsHeader,
+        header: LANG_KO.view.table.actionsHeader,
         width: 120,
         render: (rowItem) => (
           <Button
@@ -204,7 +197,7 @@ const AdminDemoView = (props) => {
               ui.formError = "";
             }}
           >
-            {viewText.users.editButton}
+            {LANG_KO.view.users.editButton}
           </Button>
         ),
       },
@@ -235,11 +228,11 @@ const AdminDemoView = (props) => {
     const name = String(ui.userForm.name || "").trim();
     const email = String(ui.userForm.email || "").trim();
     if (!name) {
-      ui.formError = viewText.users.nameRequired;
+      ui.formError = LANG_KO.view.users.nameRequired;
       return;
     }
     if (!email) {
-      ui.formError = viewText.users.emailRequired;
+      ui.formError = LANG_KO.view.users.emailRequired;
       return;
     }
     if (ui.drawerState.mode === "create") {
@@ -259,7 +252,7 @@ const AdminDemoView = (props) => {
         },
         ...prevRows,
       ]);
-      showToast(viewText.users.saveCreatedToast, { type: "success" });
+      showToast(LANG_KO.view.users.saveCreatedToast, { type: "success" });
     } else {
       setRows((prevRows) =>
         prevRows.map((prevRow) =>
@@ -276,7 +269,7 @@ const AdminDemoView = (props) => {
             : prevRow,
         ),
       );
-      showToast(viewText.users.saveUpdatedToast, { type: "success" });
+      showToast(LANG_KO.view.users.saveUpdatedToast, { type: "success" });
     }
     closeDrawer();
   };
@@ -284,19 +277,19 @@ const AdminDemoView = (props) => {
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
       <section className="mb-6">
-        <h1 className="text-3xl font-bold text-gray-900">{viewText.section.title}</h1>
+        <h1 className="text-3xl font-bold text-gray-900">{LANG_KO.view.section.title}</h1>
         <p className="mt-2 text-sm text-gray-600">
-          {viewText.section.subtitle}
+          {LANG_KO.view.section.subtitle}
         </p>
       </section>
 
       {ui.isLoading ? (
-        <Card title={viewText.card.loadingTitle}>
-          <p className="text-sm text-gray-600">{viewText.card.loadingBody}</p>
+        <Card title={LANG_KO.view.card.loadingTitle}>
+          <p className="text-sm text-gray-600">{LANG_KO.view.card.loadingBody}</p>
         </Card>
       ) : null}
 
-      <Card title={viewText.card.panelTitle}>
+      <Card title={LANG_KO.view.card.panelTitle}>
         <Tab
           tabIndex={ui.tabIndex}
           onChange={(event) => {
@@ -312,7 +305,7 @@ const AdminDemoView = (props) => {
                     onChange={(event) => {
                       ui.keyword = event.target.value;
                     }}
-                    placeholder={viewText.users.searchPlaceholder}
+                    placeholder={LANG_KO.view.users.searchPlaceholder}
                   />
                 </div>
                 <Button
@@ -322,14 +315,14 @@ const AdminDemoView = (props) => {
                   }}
                   className="w-full sm:w-auto"
                 >
-                  {viewText.users.resetButton}
+                  {LANG_KO.view.users.resetButton}
                 </Button>
                 <Button
                   variant="primary"
                   onClick={openCreateDrawer}
                   className="w-full sm:w-auto"
                 >
-                  {viewText.users.addButton}
+                  {LANG_KO.view.users.addButton}
                 </Button>
               </div>
               <EasyTable
@@ -337,7 +330,7 @@ const AdminDemoView = (props) => {
                 columns={tableColumns}
                 loading={ui.isLoading}
                 pageSize={5}
-                empty={viewText.table.empty}
+                empty={LANG_KO.view.table.empty}
                 rowKey={(rowItem, rowIndex) => rowItem?.id ?? rowIndex}
               />
             </div>
@@ -374,7 +367,7 @@ const AdminDemoView = (props) => {
           <Tab.Item title={TAB_LIST[2].label}>
             <div className="grid gap-3 md:grid-cols-2">
               <label className="block space-y-1">
-                <span className="text-sm font-medium text-gray-700">{viewText.settings.siteNameLabel}</span>
+                <span className="text-sm font-medium text-gray-700">{LANG_KO.view.settings.siteNameLabel}</span>
                 <Input
                   value={systemSetting.siteName}
                   onChange={(event) =>
@@ -387,7 +380,7 @@ const AdminDemoView = (props) => {
               </label>
 
               <label className="block space-y-1">
-                <span className="text-sm font-medium text-gray-700">{viewText.settings.adminEmailLabel}</span>
+                <span className="text-sm font-medium text-gray-700">{LANG_KO.view.settings.adminEmailLabel}</span>
                 <Input
                   value={systemSetting.adminEmail}
                   onChange={(event) =>
@@ -401,7 +394,7 @@ const AdminDemoView = (props) => {
               </label>
 
               <label className="block space-y-1">
-                <span className="text-sm font-medium text-gray-700">{viewText.settings.sessionTimeoutLabel}</span>
+                <span className="text-sm font-medium text-gray-700">{LANG_KO.view.settings.sessionTimeoutLabel}</span>
                 <Input
                   value={String(systemSetting.sessionTimeout)}
                   onChange={(event) =>
@@ -415,7 +408,7 @@ const AdminDemoView = (props) => {
               </label>
 
               <label className="block space-y-1">
-                <span className="text-sm font-medium text-gray-700">{viewText.settings.maxUploadLabel}</span>
+                <span className="text-sm font-medium text-gray-700">{LANG_KO.view.settings.maxUploadLabel}</span>
                 <Input
                   value={String(systemSetting.maxUploadMb)}
                   onChange={(event) =>
@@ -439,7 +432,7 @@ const AdminDemoView = (props) => {
                       }))
                     }
                   />
-                  {viewText.settings.maintenanceModeLabel}
+                  {LANG_KO.view.settings.maintenanceModeLabel}
                 </label>
               </div>
             </div>
@@ -448,12 +441,12 @@ const AdminDemoView = (props) => {
                 variant="primary"
                 className="w-full sm:w-auto"
                 onClick={() =>
-                  showToast(viewText.settings.saveToast, {
+                  showToast(LANG_KO.view.settings.saveToast, {
                     type: "success",
                   })
                 }
               >
-                {viewText.settings.saveButton}
+                {LANG_KO.view.settings.saveButton}
               </Button>
             </div>
           </Tab.Item>
@@ -470,12 +463,12 @@ const AdminDemoView = (props) => {
         <div className="space-y-4 p-5">
           <div>
             <h2 className="text-xl font-semibold text-gray-900">
-              {ui.drawerState.mode === "create" ? viewText.drawer.createTitle : viewText.drawer.editTitle}
+              {ui.drawerState.mode === "create" ? LANG_KO.view.drawer.createTitle : LANG_KO.view.drawer.editTitle}
             </h2>
             <p className="mt-1 text-sm text-gray-500">
               {ui.drawerState.mode === "create"
-                ? viewText.drawer.createSubtitle
-                : `${viewText.drawer.editSubtitlePrefix}${ui.drawerState.editingId || "-"}`}
+                ? LANG_KO.view.drawer.createSubtitle
+                : `${LANG_KO.view.drawer.editSubtitlePrefix}${ui.drawerState.editingId || "-"}`}
             </p>
           </div>
 
@@ -486,7 +479,7 @@ const AdminDemoView = (props) => {
           ) : null}
 
           <label className="block space-y-1">
-            <span className="text-sm font-medium text-gray-700">{viewText.drawer.profileImageLabel}</span>
+            <span className="text-sm font-medium text-gray-700">{LANG_KO.view.drawer.profileImageLabel}</span>
             <input
               type="file"
               className="block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700"
@@ -501,31 +494,31 @@ const AdminDemoView = (props) => {
           </label>
 
           <label className="block space-y-1">
-            <span className="text-sm font-medium text-gray-700">{viewText.drawer.nameLabel}</span>
+            <span className="text-sm font-medium text-gray-700">{LANG_KO.view.drawer.nameLabel}</span>
             <Input
               value={ui.userForm.name}
               onChange={(event) => {
                 ui.userForm.name = event.target.value;
               }}
-              placeholder={viewText.drawer.namePlaceholder}
+              placeholder={LANG_KO.view.drawer.namePlaceholder}
             />
           </label>
 
           <label className="block space-y-1">
-            <span className="text-sm font-medium text-gray-700">{viewText.drawer.emailLabel}</span>
+            <span className="text-sm font-medium text-gray-700">{LANG_KO.view.drawer.emailLabel}</span>
             <Input
               value={ui.userForm.email}
               readOnly={ui.drawerState.mode === "edit"}
               onChange={(event) => {
                 ui.userForm.email = event.target.value;
               }}
-              placeholder={viewText.drawer.emailPlaceholder}
+              placeholder={LANG_KO.view.drawer.emailPlaceholder}
               type="email"
             />
           </label>
 
           <label className="block space-y-1">
-            <span className="text-sm font-medium text-gray-700">{viewText.drawer.roleLabel}</span>
+            <span className="text-sm font-medium text-gray-700">{LANG_KO.view.drawer.roleLabel}</span>
             <Select
               value={ui.userForm.role}
               onChange={(event) => {
@@ -536,7 +529,7 @@ const AdminDemoView = (props) => {
           </label>
 
           <label className="block space-y-1">
-            <span className="text-sm font-medium text-gray-700">{viewText.drawer.statusLabel}</span>
+            <span className="text-sm font-medium text-gray-700">{LANG_KO.view.drawer.statusLabel}</span>
             <Select
               value={ui.userForm.status}
               onChange={(event) => {
@@ -547,24 +540,24 @@ const AdminDemoView = (props) => {
           </label>
 
           <div className="space-y-2">
-            <span className="text-sm font-medium text-gray-700">{viewText.drawer.notifyLabel}</span>
+            <span className="text-sm font-medium text-gray-700">{LANG_KO.view.drawer.notifyLabel}</span>
             <div className="flex flex-wrap gap-4">
               <Switch
-                label={viewText.drawer.notifyEmailLabel}
+                label={LANG_KO.view.drawer.notifyEmailLabel}
                 checked={Boolean(ui.userForm.notifyEmail)}
                 onChange={(event) => {
                   ui.userForm.notifyEmail = Boolean(event?.target?.checked);
                 }}
               />
               <Switch
-                label={viewText.drawer.notifySmsLabel}
+                label={LANG_KO.view.drawer.notifySmsLabel}
                 checked={Boolean(ui.userForm.notifySms)}
                 onChange={(event) => {
                   ui.userForm.notifySms = Boolean(event?.target?.checked);
                 }}
               />
               <Switch
-                label={viewText.drawer.notifyPushLabel}
+                label={LANG_KO.view.drawer.notifyPushLabel}
                 checked={Boolean(ui.userForm.notifyPush)}
                 onChange={(event) => {
                   ui.userForm.notifyPush = Boolean(event?.target?.checked);
@@ -575,9 +568,9 @@ const AdminDemoView = (props) => {
 
           <div className="flex flex-col-reverse gap-2 pt-2 sm:flex-row sm:items-center sm:justify-end">
             <Button variant="secondary" onClick={closeDrawer} className="w-full sm:w-auto">
-              {viewText.drawer.cancelButton}
+              {LANG_KO.view.drawer.cancelButton}
             </Button>
-            <Button onClick={saveUser} className="w-full sm:w-auto">{viewText.drawer.saveButton}</Button>
+            <Button onClick={saveUser} className="w-full sm:w-auto">{LANG_KO.view.drawer.saveButton}</Button>
           </div>
         </div>
       </Drawer>

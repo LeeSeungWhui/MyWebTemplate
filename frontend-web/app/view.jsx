@@ -22,7 +22,6 @@ import LANG_KO from "@/app/lang.ko";
  * @description 루트 랜딩 페이지를 렌더링한다.
  */
 const HomeView = () => {
-  const { view: viewText } = LANG_KO;
   return (
     <>
       <section className="overflow-hidden rounded-3xl bg-gradient-to-br from-[#1e3a5f] to-[#312e81] px-6 py-10 text-white shadow-xl sm:px-10 sm:py-14">
@@ -52,8 +51,8 @@ const HomeView = () => {
 
           <div className="mx-auto w-full max-w-sm rotate-2 rounded-2xl border border-white/20 bg-white/10 p-4 shadow-2xl">
             <div className="rounded-xl bg-white p-4 text-gray-900">
-              <p className="text-xs font-semibold text-blue-600">{viewText.previewBadge}</p>
-              <p className="mt-2 text-sm font-semibold">{viewText.previewTitle}</p>
+              <p className="text-xs font-semibold text-blue-600">{LANG_KO.view.previewBadge}</p>
+              <p className="mt-2 text-sm font-semibold">{LANG_KO.view.previewTitle}</p>
               <div className="relative mt-4 overflow-hidden rounded-lg border border-gray-200">
                 <Image
                   src={LANDING_HERO.previewImage.src}
@@ -70,7 +69,7 @@ const HomeView = () => {
       </section>
 
       <section className="mt-10">
-        <h2 className="text-2xl font-bold text-gray-900">{viewText.section.services}</h2>
+        <h2 className="text-2xl font-bold text-gray-900">{LANG_KO.view.section.services}</h2>
         <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {LANDING_SERVICE_LIST.map((serviceItem) => (
             <article
@@ -95,7 +94,7 @@ const HomeView = () => {
       </section>
 
       <section className="mt-10">
-        <h2 className="text-2xl font-bold text-gray-900">{viewText.section.gallery}</h2>
+        <h2 className="text-2xl font-bold text-gray-900">{LANG_KO.view.section.gallery}</h2>
         <div className="mt-5 grid gap-4 md:grid-cols-3">
           {LANDING_GALLERY_LIST.map((galleryItem) => (
             <Link
@@ -124,7 +123,7 @@ const HomeView = () => {
       </section>
 
       <section className="mt-10">
-        <h2 className="text-2xl font-bold text-gray-900">{viewText.section.stack}</h2>
+        <h2 className="text-2xl font-bold text-gray-900">{LANG_KO.view.section.stack}</h2>
         <div className="mt-5 flex flex-wrap gap-2">
           {LANDING_STACK_LIST.map((stackName) => (
             <span

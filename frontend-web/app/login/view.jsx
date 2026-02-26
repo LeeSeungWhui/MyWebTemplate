@@ -21,16 +21,17 @@ import LANG_KO from "./lang.ko";
 const MIN_USERNAME_LENGTH = 3;
 const MIN_PASSWORD_LENGTH = 8;
 
-const sanitizeRedirect = (candidate) => {
-  if (!candidate || typeof candidate !== "string") return null;
-  if (!candidate.startsWith("/")) return null;
-  if (candidate.startsWith("//")) return null;
-  if (/^https?:/i.test(candidate)) return null;
-  return candidate;
-};
-
+/**
+ * @description Client export를 노출한다.
+ */
 const Client = ({ mode, init, nextHint, authReason }) => {
-  const viewText = LANG_KO.view;
+  const sanitizeRedirect = (candidate) => {
+    if (!candidate || typeof candidate !== "string") return null;
+    if (!candidate.startsWith("/")) return null;
+    if (candidate.startsWith("//")) return null;
+    if (/^https?:/i.test(candidate)) return null;
+    return candidate;
+  };
   const loginObj = EasyObj(useMemo(() => createLoginFormModel(), []));
   const ui = EasyObj(
     useMemo(
@@ -60,20 +61,20 @@ const Client = ({ mode, init, nextHint, authReason }) => {
     if (!authReason) return;
     const message = authReason?.message
       ? String(authReason.message)
-      : viewText.toast.sessionExpired;
+      : LANG_KO.view.toast.sessionExpired;
     const metaParts = [];
     if (authReason?.code) metaParts.push(`code: ${authReason.code}`);
     if (authReason?.requestId) metaParts.push(`requestId: ${authReason.requestId}`);
     const metaText = metaParts.length ? ` (${metaParts.join(", ")})` : "";
     showToast(`${message}${metaText}`, { type: "error", duration: 5000 });
-  }, [authReason, showToast, viewText.toast.sessionExpired]);
+  }, [authReason, showToast, LANG_KO.view.toast.sessionExpired]);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
     const currentUrl = new URL(window.location.href);
     const signupStatus = currentUrl.searchParams.get("signup");
     if (signupStatus !== "done") return;
-    showToast(viewText.toast.signupDone, {
+    showToast(LANG_KO.view.toast.signupDone, {
       type: "success",
       duration: 4000,
     });
@@ -83,7 +84,7 @@ const Client = ({ mode, init, nextHint, authReason }) => {
       ? `${currentUrl.pathname}?${nextSearch}`
       : currentUrl.pathname;
     window.history.replaceState({}, "", nextUrl);
-  }, [showToast, viewText.toast.signupDone]);
+  }, [showToast, LANG_KO.view.toast.signupDone]);
 
   const resetErrors = () => {
     loginObj.errors.email = "";
@@ -101,24 +102,24 @@ const Client = ({ mode, init, nextHint, authReason }) => {
   const resolveBackendError = (error) => {
     const code = error?.code;
     if (code === "AUTH_429_RATE_LIMIT") {
-      return { message: viewText.error.tooManyAttempts };
+      return { message: LANG_KO.view.error.tooManyAttempts };
     }
     if (code === "AUTH_422_INVALID_INPUT") {
-      return { message: viewText.error.invalidInput };
+      return { message: LANG_KO.view.error.invalidInput };
     }
     if (code === "AUTH_401_INVALID") {
       return {
-        message: viewText.error.invalidCredential,
+        message: LANG_KO.view.error.invalidCredential,
         field: "password",
       };
     }
     if (error?.statusCode === 401) {
-      return { message: viewText.toast.sessionExpired };
+      return { message: LANG_KO.view.toast.sessionExpired };
     }
     if (error?.message) {
       return { message: error.message };
     }
-    return { message: viewText.error.loginFailed };
+    return { message: LANG_KO.view.error.loginFailed };
   };
 
   const validateForm = () => {
@@ -131,34 +132,34 @@ const Client = ({ mode, init, nextHint, authReason }) => {
     loginObj.email = email;
 
     if (!email) {
-      loginObj.errors.email = viewText.validation.emailRequired;
+      loginObj.errors.email = LANG_KO.view.validation.emailRequired;
       issues.push({ ref: emailRef, summary: loginObj.errors.email });
     } else if (email.length < MIN_USERNAME_LENGTH) {
-      loginObj.errors.email = viewText.validation.emailMinLength;
+      loginObj.errors.email = LANG_KO.view.validation.emailMinLength;
       issues.push({ ref: emailRef, summary: loginObj.errors.email });
     } else if (!/\S+@\S+\.\S+/.test(email)) {
-      loginObj.errors.email = viewText.validation.emailInvalid;
+      loginObj.errors.email = LANG_KO.view.validation.emailInvalid;
       issues.push({ ref: emailRef, summary: loginObj.errors.email });
     }
 
     if (!password) {
-      loginObj.errors.password = viewText.validation.passwordRequired;
+      loginObj.errors.password = LANG_KO.view.validation.passwordRequired;
       issues.push({ ref: passwordRef, summary: loginObj.errors.password });
     } else if (password.length < MIN_PASSWORD_LENGTH) {
-      loginObj.errors.password = viewText.validation.passwordMinLength;
+      loginObj.errors.password = LANG_KO.view.validation.passwordMinLength;
       issues.push({ ref: passwordRef, summary: loginObj.errors.password });
     }
 
     if (issues.length) {
-      ui.formError = issues[0].summary || viewText.error.invalidInput;
+      ui.formError = issues[0].summary || LANG_KO.view.error.invalidInput;
       focusOnError(issues[0].ref);
       return false;
     }
     return true;
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async (event) => {
+    event.preventDefault();
     if (!validateForm()) return;
 
     ui.pending = true;
@@ -213,24 +214,24 @@ const Client = ({ mode, init, nextHint, authReason }) => {
     <main className="min-h-screen flex items-center justify-center bg-gray-50 p-4 sm:p-6">
       <div className="flex w-full max-w-5xl mx-4 shadow-xl rounded-2xl overflow-hidden bg-white">
         <aside className="hidden w-2/5 flex-col items-center justify-center space-y-4 bg-gradient-to-br from-[#1e3a5f] to-[#312e81] p-12 text-white lg:flex">
-          <h1 className="text-3xl font-bold">{viewText.side.title}</h1>
+          <h1 className="text-3xl font-bold">{LANG_KO.view.side.title}</h1>
           <p className="max-w-xs text-center text-sm text-white/80">
-            {viewText.side.subtitle}
+            {LANG_KO.view.side.subtitle}
           </p>
           <ul className="w-full max-w-xs list-inside list-disc space-y-1 text-left text-sm text-white/90">
-            <li>{viewText.side.pointList[0]}</li>
-            <li>{viewText.side.pointList[1]}</li>
-            <li>{viewText.side.pointList[2]}</li>
+            <li>{LANG_KO.view.side.pointList[0]}</li>
+            <li>{LANG_KO.view.side.pointList[1]}</li>
+            <li>{LANG_KO.view.side.pointList[2]}</li>
           </ul>
         </aside>
 
         <section className="w-full p-6 sm:p-10 md:p-16 lg:w-3/5">
           <div className="text-center mb-8">
             <h2 className="text-3xl font-semibold text-gray-900 mb-2">
-              {viewText.form.title}
+              {LANG_KO.view.form.title}
             </h2>
             <p className="text-sm text-gray-600">
-              {viewText.form.subtitle}
+              {LANG_KO.view.form.subtitle}
             </p>
           </div>
 
@@ -251,7 +252,7 @@ const Client = ({ mode, init, nextHint, authReason }) => {
                 htmlFor="login-email"
                 className="block text-sm font-medium text-gray-700"
               >
-                {viewText.form.emailLabel}
+                {LANG_KO.view.form.emailLabel}
               </label>
               <div className="mt-2">
                 <Input
@@ -261,7 +262,7 @@ const Client = ({ mode, init, nextHint, authReason }) => {
                   dataObj={loginObj}
                   dataKey="email"
                   ref={emailRef}
-                  placeholder={viewText.form.emailPlaceholder}
+                  placeholder={LANG_KO.view.form.emailPlaceholder}
                   aria-describedby={emailErrorId}
                   error={loginObj.errors.email}
                 />
@@ -278,7 +279,7 @@ const Client = ({ mode, init, nextHint, authReason }) => {
                 htmlFor="login-password"
                 className="block text-sm font-medium text-gray-700"
               >
-                {viewText.form.passwordLabel}
+                {LANG_KO.view.form.passwordLabel}
               </label>
               <div className="mt-2">
                 <Input
@@ -289,7 +290,7 @@ const Client = ({ mode, init, nextHint, authReason }) => {
                   dataObj={loginObj}
                   dataKey="password"
                   ref={passwordRef}
-                  placeholder={viewText.form.passwordPlaceholder}
+                  placeholder={LANG_KO.view.form.passwordPlaceholder}
                   aria-describedby={passwordErrorId}
                   error={loginObj.errors.password}
                 />
@@ -305,13 +306,13 @@ const Client = ({ mode, init, nextHint, authReason }) => {
               <Checkbox
                 dataObj={loginObj}
                 dataKey="rememberMe"
-                label={viewText.form.rememberMeLabel}
+                label={LANG_KO.view.form.rememberMeLabel}
               />
               <Link
                 href="/forgot-password"
                 className="text-sm font-medium text-blue-600 hover:text-blue-500"
               >
-                {viewText.form.forgotPasswordLabel}
+                {LANG_KO.view.form.forgotPasswordLabel}
               </Link>
             </div>
 
@@ -322,16 +323,16 @@ const Client = ({ mode, init, nextHint, authReason }) => {
               className="w-full"
               loading={ui.pending}
             >
-              {viewText.form.submitLabel}
+              {LANG_KO.view.form.submitLabel}
             </Button>
 
             <div className="text-center text-sm text-gray-600">
-              {`${viewText.form.signupGuidePrefix} `}{" "}
+              {`${LANG_KO.view.form.signupGuidePrefix} `}{" "}
               <Link
                 href="/signup"
                 className="font-medium text-blue-600 hover:text-blue-500"
               >
-                {viewText.form.signupLinkLabel}
+                {LANG_KO.view.form.signupLinkLabel}
               </Link>
             </div>
           </form>

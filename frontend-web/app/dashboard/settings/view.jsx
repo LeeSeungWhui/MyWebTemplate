@@ -27,25 +27,23 @@ import {
 import LANG_KO from "./lang.ko";
 import EasyObj from "@/app/lib/dataset/EasyObj";
 
-const { view: viewText } = LANG_KO;
-const ROLE_BADGE_VARIANT = viewText.roleBadge;
-
-const toApiError = (error, fallbackMessage) => ({
-  message: error?.message || fallbackMessage,
-  requestId: error?.requestId,
-});
-
-const createDefaultProfile = () => ({
-  userId: "",
-  userNm: "",
-  userEml: "",
-  roleCd: "user",
-  notifyEmail: false,
-  notifySms: false,
-  notifyPush: false,
-});
-
+/**
+ * @description SettingsView export를 노출한다.
+ */
 const SettingsView = () => {
+  const toApiError = (error, fallbackMessage) => ({
+    message: error?.message || fallbackMessage,
+    requestId: error?.requestId,
+  });
+  const createDefaultProfile = () => ({
+    userId: "",
+    userNm: "",
+    userEml: "",
+    roleCd: "user",
+    notifyEmail: false,
+    notifySms: false,
+    notifyPush: false,
+  });
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -76,7 +74,7 @@ const SettingsView = () => {
 
   const loadProfile = async () => {
     if (!hasProfileEndpoint) {
-      ui.error = { message: viewText.error.profileEndpointMissing };
+      ui.error = { message: LANG_KO.view.error.profileEndpointMissing };
       ui.isLoadingProfile = false;
       return;
     }
@@ -95,8 +93,8 @@ const SettingsView = () => {
         notifyPush: Boolean(next?.notifyPush),
       };
     } catch (err) {
-      console.error(viewText.error.profileLoadFailed, err);
-      ui.error = toApiError(err, viewText.error.profileLoadFailed);
+      console.error(LANG_KO.view.error.profileLoadFailed, err);
+      ui.error = toApiError(err, LANG_KO.view.error.profileLoadFailed);
     } finally {
       ui.isLoadingProfile = false;
     }
@@ -128,11 +126,11 @@ const SettingsView = () => {
 
   const saveProfile = async () => {
     if (!hasProfileEndpoint) {
-      showToast(viewText.error.profileEndpointMissing, { type: "error" });
+      showToast(LANG_KO.view.error.profileEndpointMissing, { type: "error" });
       return;
     }
     if (String(ui.profile.userNm || "").trim().length < 2) {
-      showToast(viewText.validation.nameMinLength, { type: "warning" });
+      showToast(LANG_KO.view.validation.nameMinLength, { type: "warning" });
       return;
     }
     ui.isSavingProfile = true;
@@ -155,11 +153,11 @@ const SettingsView = () => {
         notifySms: Boolean(next?.notifySms),
         notifyPush: Boolean(next?.notifyPush),
       };
-      showToast(viewText.toast.profileSaved, { type: "success" });
+      showToast(LANG_KO.view.toast.profileSaved, { type: "success" });
     } catch (err) {
-      console.error(viewText.error.profileSaveFailed, err);
-      ui.error = toApiError(err, viewText.error.profileSaveFailed);
-      showToast(err?.message || viewText.error.profileSaveFailed, { type: "error" });
+      console.error(LANG_KO.view.error.profileSaveFailed, err);
+      ui.error = toApiError(err, LANG_KO.view.error.profileSaveFailed);
+      showToast(err?.message || LANG_KO.view.error.profileSaveFailed, { type: "error" });
     } finally {
       ui.isSavingProfile = false;
     }
@@ -169,7 +167,7 @@ const SettingsView = () => {
     ui.isSavingSystem = true;
     try {
       await new Promise((resolve) => setTimeout(resolve, 200));
-      showToast(viewText.toast.systemSaved, { type: "success" });
+      showToast(LANG_KO.view.toast.systemSaved, { type: "success" });
     } finally {
       ui.isSavingSystem = false;
     }
@@ -178,7 +176,7 @@ const SettingsView = () => {
   return (
     <div className="space-y-3">
       {ui.error?.message ? (
-        <section aria-label={viewText.error.profileLoadFailed}>
+        <section aria-label={LANG_KO.view.error.profileLoadFailed}>
           <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700" role="alert">
             <div>{ui.error.message}</div>
             {ui.error.requestId ? (
@@ -188,64 +186,64 @@ const SettingsView = () => {
         </section>
       ) : null}
 
-      <Card title={viewText.card.title}>
+      <Card title={LANG_KO.view.card.title}>
         <Tab
           key={`settings-tab-${ui.activeTabIndex}`}
           tabIndex={ui.activeTabIndex}
           onValueChange={handleTabChange}
         >
-          <Tab.Item title={viewText.tab.profile}>
+          <Tab.Item title={LANG_KO.view.tab.profile}>
             <div className="space-y-3">
               {ui.isLoadingProfile ? (
                 <div className="rounded-md border border-gray-200 bg-gray-50 px-4 py-6 text-sm text-gray-600">
-                  {viewText.profile.loading}
+                  {LANG_KO.view.profile.loading}
                 </div>
               ) : (
                 <>
                   <label className="block space-y-1">
-                    <span className="text-sm font-medium text-gray-700">{viewText.profile.nameLabel}</span>
+                    <span className="text-sm font-medium text-gray-700">{LANG_KO.view.profile.nameLabel}</span>
                     <Input
                       value={ui.profile.userNm}
                       onChange={(event) => {
                         ui.profile.userNm = event.target.value;
                       }}
-                      placeholder={viewText.profile.namePlaceholder}
+                      placeholder={LANG_KO.view.profile.namePlaceholder}
                     />
                   </label>
 
                   <label className="block space-y-1">
-                    <span className="text-sm font-medium text-gray-700">{viewText.profile.emailLabel}</span>
+                    <span className="text-sm font-medium text-gray-700">{LANG_KO.view.profile.emailLabel}</span>
                     <Input value={ui.profile.userEml} readOnly />
                   </label>
 
                   <div className="space-y-1">
-                    <span className="text-sm font-medium text-gray-700">{viewText.profile.roleLabel}</span>
+                    <span className="text-sm font-medium text-gray-700">{LANG_KO.view.profile.roleLabel}</span>
                     <div>
-                      <Badge variant={ROLE_BADGE_VARIANT[ui.profile.roleCd] || "neutral"} pill>
+                      <Badge variant={LANG_KO.view.roleBadge[ui.profile.roleCd] || "neutral"} pill>
                         {ui.profile.roleCd || "user"}
                       </Badge>
                     </div>
                   </div>
 
                   <div className="space-y-2">
-                    <span className="text-sm font-medium text-gray-700">{viewText.profile.notifyLabel}</span>
+                    <span className="text-sm font-medium text-gray-700">{LANG_KO.view.profile.notifyLabel}</span>
                     <div className="flex flex-wrap gap-4">
                       <Switch
-                        label={viewText.profile.notifyEmailLabel}
+                        label={LANG_KO.view.profile.notifyEmailLabel}
                         checked={Boolean(ui.profile.notifyEmail)}
                         onChange={(event) => {
                           ui.profile.notifyEmail = event.target.checked;
                         }}
                       />
                       <Switch
-                        label={viewText.profile.notifySmsLabel}
+                        label={LANG_KO.view.profile.notifySmsLabel}
                         checked={Boolean(ui.profile.notifySms)}
                         onChange={(event) => {
                           ui.profile.notifySms = event.target.checked;
                         }}
                       />
                       <Switch
-                        label={viewText.profile.notifyPushLabel}
+                        label={LANG_KO.view.profile.notifyPushLabel}
                         checked={Boolean(ui.profile.notifyPush)}
                         onChange={(event) => {
                           ui.profile.notifyPush = event.target.checked;
@@ -258,16 +256,16 @@ const SettingsView = () => {
 
               <div className="pt-2">
                 <Button onClick={saveProfile} loading={ui.isSavingProfile || ui.isLoadingProfile} className="w-full sm:w-auto">
-                  {viewText.profile.saveButton}
+                  {LANG_KO.view.profile.saveButton}
                 </Button>
               </div>
             </div>
           </Tab.Item>
 
-          <Tab.Item title={viewText.tab.system}>
+          <Tab.Item title={LANG_KO.view.tab.system}>
             <div className="space-y-3">
               <label className="block space-y-1">
-                <span className="text-sm font-medium text-gray-700">{viewText.system.siteNameLabel}</span>
+                <span className="text-sm font-medium text-gray-700">{LANG_KO.view.system.siteNameLabel}</span>
                 <Input
                   value={ui.systemSetting.siteName}
                   onChange={(event) => {
@@ -277,9 +275,9 @@ const SettingsView = () => {
               </label>
 
               <div className="space-y-1">
-                <span className="text-sm font-medium text-gray-700">{viewText.system.maintenanceModeLabel}</span>
+                <span className="text-sm font-medium text-gray-700">{LANG_KO.view.system.maintenanceModeLabel}</span>
                 <Switch
-                  label={ui.systemSetting.maintenanceMode ? viewText.system.maintenanceActive : viewText.system.maintenanceInactive}
+                  label={ui.systemSetting.maintenanceMode ? LANG_KO.view.system.maintenanceActive : LANG_KO.view.system.maintenanceInactive}
                   checked={Boolean(ui.systemSetting.maintenanceMode)}
                   onChange={(event) => {
                     ui.systemSetting.maintenanceMode = event.target.checked;
@@ -288,7 +286,7 @@ const SettingsView = () => {
               </div>
 
               <label className="block space-y-1">
-                <span className="text-sm font-medium text-gray-700">{viewText.system.sessionTimeoutLabel}</span>
+                <span className="text-sm font-medium text-gray-700">{LANG_KO.view.system.sessionTimeoutLabel}</span>
                 <NumberInput
                   value={ui.systemSetting.sessionTimeoutMinutes}
                   min={5}
@@ -302,7 +300,7 @@ const SettingsView = () => {
               </label>
 
               <label className="block space-y-1">
-                <span className="text-sm font-medium text-gray-700">{viewText.system.maxUploadLabel}</span>
+                <span className="text-sm font-medium text-gray-700">{LANG_KO.view.system.maxUploadLabel}</span>
                 <NumberInput
                   value={ui.systemSetting.maxUploadMb}
                   min={1}
@@ -315,7 +313,7 @@ const SettingsView = () => {
 
               <div className="pt-2">
                 <Button onClick={saveSystemSetting} loading={ui.isSavingSystem} className="w-full sm:w-auto">
-                  {viewText.system.saveButton}
+                  {LANG_KO.view.system.saveButton}
                 </Button>
               </div>
             </div>

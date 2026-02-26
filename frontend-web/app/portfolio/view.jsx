@@ -8,6 +8,9 @@
 
 import DemoPortfolioView from "../sample/portfolio/view";
 
+/**
+ * @description PortfolioView export를 노출한다.
+ */
 const PortfolioView = ({ content, publicPath }) => {
   return (
     <div data-public-path={publicPath}>

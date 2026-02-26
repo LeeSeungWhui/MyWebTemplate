@@ -16,8 +16,10 @@ import LANG_KO from "./lang.ko";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+/**
+ * @description ForgotPasswordView export를 노출한다.
+ */
 const ForgotPasswordView = () => {
-  const viewText = LANG_KO.view;
   const formObj = EasyObj(useMemo(() => createForgotPasswordFormModel(), []));
   const ui = EasyObj(
     useMemo(
@@ -49,7 +51,7 @@ const ForgotPasswordView = () => {
     const email = String(formObj.email || "").trim().toLowerCase();
     formObj.email = email;
     if (!email || !EMAIL_RE.test(email)) {
-      formObj.errors.email = viewText.validation.emailInvalid;
+      formObj.errors.email = LANG_KO.view.validation.emailInvalid;
       ui.formError = formObj.errors.email;
       focusOnError(emailRef);
       return false;
@@ -66,7 +68,7 @@ const ForgotPasswordView = () => {
       await new Promise((resolve) => setTimeout(resolve, 300));
       ui.submitted = true;
     } catch {
-      ui.formError = viewText.error.requestFailed;
+      ui.formError = LANG_KO.view.error.requestFailed;
       focusOnError(errorSummaryRef);
     } finally {
       ui.pending = false;
@@ -77,15 +79,15 @@ const ForgotPasswordView = () => {
     <main className="min-h-screen flex items-center justify-center bg-gray-50 p-6">
       <section className="w-full max-w-xl rounded-2xl bg-white p-10 shadow-xl">
         <div className="mb-8 text-center">
-          <h1 className="text-3xl font-semibold text-gray-900">{viewText.form.title}</h1>
+          <h1 className="text-3xl font-semibold text-gray-900">{LANG_KO.view.form.title}</h1>
           <p className="mt-2 text-sm text-gray-600">
-            {viewText.form.subtitle}
+            {LANG_KO.view.form.subtitle}
           </p>
         </div>
 
         {ui.submitted ? (
           <div className="rounded-md border border-green-200 bg-green-50 p-4 text-sm text-green-700">
-            {viewText.form.submittedMessage}
+            {LANG_KO.view.form.submittedMessage}
           </div>
         ) : null}
 
@@ -104,7 +106,7 @@ const ForgotPasswordView = () => {
 
           <div>
             <label htmlFor="forgot-email" className="block text-sm font-medium text-gray-700">
-              {viewText.form.emailLabel}
+              {LANG_KO.view.form.emailLabel}
             </label>
             <div className="mt-2">
               <Input
@@ -113,7 +115,7 @@ const ForgotPasswordView = () => {
                 dataObj={formObj}
                 dataKey="email"
                 ref={emailRef}
-                placeholder={viewText.form.emailPlaceholder}
+                placeholder={LANG_KO.view.form.emailPlaceholder}
                 error={formObj.errors.email}
               />
               {formObj.errors.email ? (
@@ -123,13 +125,13 @@ const ForgotPasswordView = () => {
           </div>
 
           <Button type="submit" variant="primary" size="lg" className="w-full" loading={ui.pending}>
-            {viewText.form.submitLabel}
+            {LANG_KO.view.form.submitLabel}
           </Button>
         </form>
 
         <div className="mt-6 text-center text-sm text-gray-600">
           <Link href="/login" className="font-medium text-blue-600 hover:text-blue-500">
-            {viewText.form.backToLoginLabel}
+            {LANG_KO.view.form.backToLoginLabel}
           </Link>
         </div>
       </section>

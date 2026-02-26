@@ -6,12 +6,9 @@
  */
 
 import Link from "next/link";
+import { COMMON_COMPONENT_LANG_KO } from "@/app/common/i18n/lang.ko";
 
-const FOOTER_LINK_LIST = [
-  { href: "/sample", label: "샘플 허브" },
-  { href: "/component", label: "컴포넌트" },
-  { href: "/sample/portfolio", label: "포트폴리오" },
-];
+const FOOTER_LINK_LIST = COMMON_COMPONENT_LANG_KO.publicLayout.footerLinkList;
 
 /**
  * @description 공개 페이지 공통 푸터를 렌더링한다.

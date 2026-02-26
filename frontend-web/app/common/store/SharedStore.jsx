@@ -26,7 +26,7 @@ export const useSharedStore = create((set, get) => ({
     const nextCounter = Math.max(0, (s.loadingCounter || 0) + delta);
     return { loadingCounter: nextCounter, isLoading: nextCounter > 0 };
   }),
-  setLoading: (v) => set({ isLoading: !!v, loadingCounter: v ? 1 : 0 }),
+  setLoading: (nextLoading) => set({ isLoading: !!nextLoading, loadingCounter: nextLoading ? 1 : 0 }),
 
   // 알림
   alert: { show: false, title: '', message: '', type: 'info', onClick: undefined, onFocus: undefined },

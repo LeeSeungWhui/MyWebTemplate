@@ -147,4 +147,7 @@ export const LANG_KO = {
   },
 };
 
+/**
+ * @description LANG_KO export를 노출한다.
+ */
 export default LANG_KO;

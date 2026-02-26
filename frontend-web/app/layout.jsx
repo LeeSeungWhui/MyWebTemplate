@@ -25,6 +25,9 @@ export const metadata = {
   description: "FastAPI + Next.js 기반의 인증/컴포넌트/대시보드 템플릿",
 };
 
+/**
+ * @description RootLayout export를 노출한다.
+ */
 const RootLayout = async ({ children }) => {
   const config = await loadFrontendConfig()
   return (

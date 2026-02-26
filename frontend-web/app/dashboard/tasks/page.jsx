@@ -21,6 +21,9 @@ export const metadata = {
   },
 };
 
+/**
+ * @description TasksPage export를 노출한다.
+ */
 const TasksPage = async ({ searchParams }) => {
   const resolvedSearchParams = await searchParams;
   const initialFilter = normalizeTasksQuery(resolvedSearchParams);
