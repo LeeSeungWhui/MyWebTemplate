@@ -4,15 +4,11 @@
  * 갱신일: 2025-09-13
  * 설명: EasyTable 컴포넌트 예제
  */
-/**
- * 파일명: TableExamples.jsx
- * EasyTable 컴포넌트 사용 예제 모음
- */
 import * as Lib from '@/app/lib';
 import { useMemo, useState } from 'react';
 
 /**
- * @description  인덱스 기준 권한 라벨을 반환한다. 입력/출력 계약을 함께 명시
+ * @description 인덱스 기준 권한 라벨을 반환. 입력/출력 계약을 함께 명시
  * @returns {"Admin"|"Editor"|"Viewer"}
  * @updated 2026-02-27
  */
@@ -23,7 +19,7 @@ const roleLabelByIndex = (index) => {
 };
 
 /**
- * @description  TableExamples 구성 데이터를 반환한다. 입력/출력 계약을 함께 명시
+ * @description TableExamples 구성 데이터를 반환. 입력/출력 계약을 함께 명시
  * @returns {Array<{ component: JSX.Element, code: string }>}
  * @updated 2026-02-24
  */

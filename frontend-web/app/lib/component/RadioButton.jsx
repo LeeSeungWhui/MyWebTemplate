@@ -7,6 +7,11 @@
 import { useState, useEffect, forwardRef } from 'react';
 import { getBoundValue, setBoundValue, buildCtx, fireValueHandlers } from '../binding';
 
+/**
+ * @description 렌더링 및 상호작용 처리
+ * 처리 규칙: 전달된 props와 바인딩 값을 기준으로 UI 상태를 계산하고 변경 이벤트를 상위로 전달한다.
+ * @updated 2026-02-27
+ */
 const RadioButton = forwardRef(({
     children,
     name,
@@ -21,6 +26,7 @@ const RadioButton = forwardRef(({
     color = "primary",
     ...props
 }, ref) => {
+
     const isControlled = propChecked !== undefined;
     const isDataObjControlled = dataObj && (dataKey || name);
 
@@ -75,7 +81,7 @@ const RadioButton = forwardRef(({
     };
 
     /**
-     * @description  controlled/dataObj/internal 우선순위로 현재 선택 상태를 계산한다. 입력/출력 계약을 함께 명시
+     * @description controlled/dataObj/internal 우선순위로 현재 선택 상태를 계산. 입력/출력 계약을 함께 명시
      * @returns {boolean}
      * @updated 2026-02-27
      */
@@ -139,7 +145,7 @@ const RadioButton = forwardRef(({
 RadioButton.displayName = 'RadioButton';
 
 /**
- * @description RadioButton 컴포넌트를 기본 export
+ * @description 를 기본 export
  * @returns {React.ComponentType} RadioButton 컴포넌트
  */
 export default RadioButton; 

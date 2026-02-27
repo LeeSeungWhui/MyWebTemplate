@@ -20,7 +20,7 @@ const isListLike = (list) =>
   !!list && (typeof list.size === "function" || Array.isArray(list));
 
 /**
- * @description  EasyList/배열 입력을 안전한 배열 형태로 정규화한다. 입력/출력 계약을 함께 명시
+ * @description EasyList/배열 입력을 안전한 배열 형태로 정규화. 입력/출력 계약을 함께 명시
  * @param {unknown} list
  * @returns {Array<unknown>} 렌더링 가능한 배열
  * @updated 2026-02-27
@@ -117,7 +117,7 @@ const Footer = ({
 };
 
 /**
- * @description Footer 컴포넌트를 외부에서 재사용할 수 있도록 기본 export
+ * @description 를 외부에서 재사용할 수 있도록 기본 export
  * @returns {React.ComponentType} Footer 컴포넌트
  */
 export default Footer;

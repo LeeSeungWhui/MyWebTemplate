@@ -63,7 +63,7 @@ const defaultRowKey = (row, idx) => {
 const clamp = (value, min, max) => Math.max(min, Math.min(value, max));
 
 /**
- * @description 테이블/카드 UI와 페이지네이션을 제공하는 데이터 렌더링 컴포넌트다.
+ * @description 테이블/카드 UI와 페이지네이션을 제공하는 데이터 렌더링 컴포넌트.
  * 처리 규칙: variant/status/page 관련 props 조합으로 table/card/status 패널/페이지네이션 노출을 제어한다.
  * @param {Object} props
  * @param {React.Ref<HTMLDivElement>} ref

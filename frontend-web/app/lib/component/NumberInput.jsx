@@ -6,7 +6,7 @@
  */
 // 파일명: NumberInput.jsx
 // 갱신일: 2025-09-09
-// 한글설명: 설명 Purpose: Numeric input with step controls and EasyObj binding support
+// 한글설명: 설명 동작 설명
 import { forwardRef, useEffect, useRef, useState } from 'react';
 import Icon from './Icon';
 import { getBoundValue, setBoundValue, buildCtx, fireValueHandlers } from '../binding';
@@ -33,6 +33,11 @@ const parseNum = (rawValue) => {
   return Number.isFinite(parsedNumber) ? parsedNumber : '';
 };
 
+/**
+ * @description 렌더링 및 상호작용 처리
+ * 처리 규칙: 전달된 props와 바인딩 값을 기준으로 UI 상태를 계산하고 변경 이벤트를 상위로 전달한다.
+ * @updated 2026-02-27
+ */
 const NumberInput = forwardRef(({ 
   dataObj,
   dataKey,
@@ -50,6 +55,7 @@ const NumberInput = forwardRef(({
   id,
   ...props
 }, ref) => {
+
   const isPropControlled = propValue !== undefined;
   const isData = !!(dataObj && dataKey);
 
@@ -57,7 +63,7 @@ const NumberInput = forwardRef(({
   const inputRef = useRef(null);
 
   /**
-   * @description  현재 값을 prop/dataObj/local state 우선순위로 조회한다. 입력/출력 계약을 함께 명시
+   * @description 현재 값을 prop/dataObj/local state 우선순위로 조회. 입력/출력 계약을 함께 명시
    * 처리 규칙: controlled > EasyObj 바인딩 > 내부 상태 순으로 fallback 한다.
    * @updated 2026-02-27
    */
@@ -68,7 +74,7 @@ const NumberInput = forwardRef(({
   };
 
   useEffect(() => {
-    // 한글설명: 설명 sync on external change
+    // 한글설명: 설명 동작 설명
   }, [propValue, dataObj, dataKey]);
 
   /**
@@ -99,9 +105,9 @@ const NumberInput = forwardRef(({
     commit(next);
   };
 
-  // 한글설명: 설명 long-press support for step buttons (no double increment)
+  // 한글설명: 설명 동작 설명
   const holdRef = useRef(null);       // interval
-  const holdTimerRef = useRef(null);  // 한글설명: 설명 delay before repeat
+  const holdTimerRef = useRef(null);  // 한글설명: 설명 동작 설명
   const heldStartedRef = useRef(false);
 
   /**
@@ -121,7 +127,7 @@ const NumberInput = forwardRef(({
   };
 
   /**
-   * @description long-press 관련 타이머와 interval을 모두 정리
+   * @description press 관련 타이머와 interval을 모두 정리
    * 부작용: holdRef/holdTimerRef를 null로 초기화한다.
    * @updated 2026-02-27
    */

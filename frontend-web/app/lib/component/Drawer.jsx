@@ -4,10 +4,6 @@
  * 갱신일: 2025-09-13
  * 설명: Drawer UI 컴포넌트 구현
  */
-/**
- * 파일명: Drawer.jsx
- * 한글설명: 설명 Side-mounted sliding panel component (Tailwind only)
- */
 import { forwardRef, useEffect } from 'react';
 
 const sides = {
@@ -29,6 +25,11 @@ const sides = {
   }
 };
 
+/**
+ * @description 렌더링 및 열림 상태 전환 처리
+ * 처리 규칙: 열림 상태에 따라 위치/사이즈/접힘 버튼 UI를 계산하고 외부 닫기 이벤트를 전파.
+ * @updated 2026-02-27
+ */
 const Drawer = forwardRef(function Drawer(
   {
     isOpen = false,
@@ -43,11 +44,13 @@ const Drawer = forwardRef(function Drawer(
     children,
     ...props
   },
+
   ref
 ) {
+
   const conf = sides[side] || sides.right;
 
-  // 한글설명: 설명 ESC to close + lock body scroll while visible
+  // 한글설명: 설명 동작 설명
   useEffect(() => {
     if (!isOpen) return undefined;
 
@@ -70,8 +73,8 @@ const Drawer = forwardRef(function Drawer(
     };
   }, [isOpen, closeOnEsc, onClose]);
 
-  // 한글설명: 설명 size: number or numeric string -> px width/height depending on side
-  // 한글설명: 설명 non-numeric string -> treated as className (tailwind etc.)
+  // 한글설명: 설명 동작 설명
+  // 한글설명: 설명 동작 설명
   let numericSize = null;
   let sizeCls = '';
   if (size != null) {
@@ -85,7 +88,7 @@ const Drawer = forwardRef(function Drawer(
       if (numericText && !Number.isNaN(numericCandidate)) {
         numericSize = numericCandidate;
       } else {
-        sizeCls = size; // 한글설명: 설명 assume classes like 'w-96' or 'h-80'
+        sizeCls = size; // 한글설명: 설명 동작 설명
       }
     }
   }
@@ -96,7 +99,7 @@ const Drawer = forwardRef(function Drawer(
   }
   const transformCls = isOpen ? conf.transform.open : conf.transform.closed;
 
-  // 한글설명: 설명 Emphasize the corner where the handle lives
+  // 한글설명: 설명 동작 설명
   let cornerBoost = '';
   if (collapseButton) {
     if (side === 'right') cornerBoost = 'rounded-l-2xl';
@@ -105,14 +108,14 @@ const Drawer = forwardRef(function Drawer(
     else cornerBoost = 'rounded-t-2xl';
   }
 
-  // 한글설명: 설명 Handle placement at edge center (inside panel)
+  // 한글설명: 설명 동작 설명
   const handlePos = {
     right: 'absolute left-1 top-1/2 -translate-y-1/2',
     left: 'absolute right-1 top-1/2 -translate-y-1/2',
     top: 'absolute bottom-1 left-1/2 -translate-x-1/2',
     bottom: 'absolute top-1 left-1/2 -translate-x-1/2'
   };
-  // 한글설명: 설명 Handle sizing/shape per side (tab-like)
+  // 한글설명: 설명 동작 설명
   const handleShape = {
     right: 'h-16 w-7 rounded-r-lg border-l',
     left: 'h-16 w-7 rounded-l-lg border-r',
@@ -121,7 +124,7 @@ const Drawer = forwardRef(function Drawer(
   };
   const handleBase = 'bg-gray-100/90 hover:bg-gray-200 text-gray-500 border-gray-200 shadow-sm flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-blue-500/30';
   const arrowRotate = { right: '', left: 'rotate-180', top: '-rotate-90', bottom: 'rotate-90' };
-  // 한글설명: 설명 Add edge padding so the button does not overlap content
+  // 한글설명: 설명 동작 설명
   let contentPad = '';
   if (collapseButton) {
     if (side === 'right') contentPad = 'pl-10';
@@ -178,7 +181,7 @@ const Drawer = forwardRef(function Drawer(
             className={`${handleBase} ${handleShape[side]} ${handlePos[side]} z-10`}
             onClick={() => onClose?.()}
           >
-            {/* 한글설명: 설명 inline SVG arrow to avoid encoding issues */}
+            {/* 한글설명: 설명 동작 설명 */}
             <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg" className={arrowRotate[side]} aria-hidden>
               <path d="M4 2L8 6L4 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
@@ -192,7 +195,7 @@ const Drawer = forwardRef(function Drawer(
 Drawer.displayName = 'Drawer';
 
 /**
- * @description Drawer 컴포넌트를 기본 export
+ * @description 를 기본 export
  * @returns {React.ComponentType} Drawer 컴포넌트
  */
 export default Drawer;

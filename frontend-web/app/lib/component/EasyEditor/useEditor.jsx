@@ -52,7 +52,7 @@ const FontSize = Extension.create({
 });
 
 /**
- * @description  TipTap JSON 스키마의 기본 빈 문서 구조를 생성한다. 입력/출력 계약을 함께 명시
+ * @description TipTap JSON 스키마의 기본 빈 문서 구조를 생성. 입력/출력 계약을 함께 명시
  * 반환값: paragraph 1개를 가진 최소 doc 객체.
  * @updated 2026-02-27
  */
@@ -67,7 +67,7 @@ const createEmptyDoc = () => ({
 });
 
 /**
- * @description  EasyObj 래퍼 값에서 raw object를 꺼내거나 원본 값을 그대로 반환한다. 입력/출력 계약을 함께 명시
+ * @description EasyObj 래퍼 값에서 raw object를 꺼내거나 원본 값을 그대로 반환. 입력/출력 계약을 함께 명시
  * 처리 규칙: `__rawObject` 필드가 있으면 해당 값을 우선 사용한다.
  * @updated 2026-02-27
  */
@@ -88,7 +88,7 @@ const serialise = (editor, format) => {
 };
 
 /**
- * @description  외부 입력 값을 에디터 setContent 가능한 형태로 정규화한다. 입력/출력 계약을 함께 명시
+ * @description 외부 입력 값을 에디터 setContent 가능한 형태로 정규화. 입력/출력 계약을 함께 명시
  * 실패 동작: JSON 파싱/복제 실패 시 빈 문서(createEmptyDoc)로 대체한다.
  * @updated 2026-02-27
  */
@@ -117,7 +117,7 @@ const normaliseExternalValue = (value, format) => {
 };
 
 /**
- * @description  값 변경 감지를 위해 직렬화 가능한 fingerprint 문자열을 생성한다. 입력/출력 계약을 함께 명시
+ * @description 값 변경 감지를 위해 직렬화 가능한 fingerprint 문자열을 생성. 입력/출력 계약을 함께 명시
  * 처리 규칙: html/text는 문자열화, json은 JSON.stringify 실패 시 빈 문서 기준 문자열을 사용한다.
  * @updated 2026-02-27
  */
@@ -132,7 +132,7 @@ const fingerprint = (value, format) => {
 };
 
 /**
- * @description  바인딩 저장 전에 값을 안전하게 복제/정규화한다. 입력/출력 계약을 함께 명시
+ * @description 바인딩 저장 전에 값을 안전하게 복제/정규화. 입력/출력 계약을 함께 명시
  * 반환값: html/text는 문자열, json은 deep clone된 문서 객체.
  * @updated 2026-02-27
  */
@@ -143,7 +143,7 @@ const cloneForStorage = (value, format) => {
 };
 
 /**
- * @description  EasyEditor 상태를 바인딩/동기화하는 훅을 반환한다. 입력/출력 계약을 함께 명시
+ * @description EasyEditor 상태를 바인딩/동기화하는 훅을 반환. 입력/출력 계약을 함께 명시
  * 처리 규칙: bound 모드에서는 dataObj[dataKey]와 동기화하고, unbound 모드에서는 onChange/onValueChange 콜백으로 전달한다.
  * @updated 2026-02-24
  */

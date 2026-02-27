@@ -6,28 +6,28 @@
  */
 // 파일명: DateInput.jsx
 // 갱신일: 2025-09-09
-// 한글설명: 설명 Purpose: Simple date input with EasyObj binding
+// 한글설명: 설명 동작 설명
 import { forwardRef, useEffect, useRef, useState, useMemo } from 'react';
 import { getBoundValue, setBoundValue, buildCtx, fireValueHandlers } from '../binding';
 import Icon from './Icon';
 import { COMMON_COMPONENT_LANG_KO } from '@/app/common/i18n/lang.ko';
 
 /**
- * @description 월/일 숫자 두 자리 문자열 정규화.
+ * @description 월/일 숫자 두 자리 문자열 정규화
  * 처리 규칙: 1자리 숫자는 앞에 0을 붙이고, 2자리 이상은 원문을 유지한다.
  * @updated 2026-02-27
  */
 const pad2 = (numberValue) => String(numberValue).padStart(2, '0');
 
 /**
- * @description 연/월/일 숫자 YYYY-MM-DD 문자열 결합.
+ * @description 연/월/일 숫자 YYYY-MM-DD 문자열 결합
  * 반환값: DateInput 내부 비교와 바인딩에 사용하는 ISO 날짜 문자열.
  * @updated 2026-02-27
  */
 const fmtISO = (yearValue, monthValue, dayValue) => `${yearValue}-${pad2(monthValue)}-${pad2(dayValue)}`;
 
 /**
- * @description  YYYY-MM-DD 텍스트를 Date 객체로 변환한다. 입력/출력 계약을 함께 명시
+ * @description MM-DD 텍스트를 Date 객체로 변환. 입력/출력 계약을 함께 명시
  * 실패 동작: 형식/유효 날짜가 아니면 null을 반환한다.
  * @updated 2026-02-27
  */
@@ -63,6 +63,11 @@ const sameDay = (firstDate, secondDate) => {
   );
 };
 
+/**
+ * @description 렌더링 및 상호작용 처리
+ * 처리 규칙: 전달된 props와 바인딩 값을 기준으로 UI 상태를 계산하고 변경 이벤트를 상위로 전달한다.
+ * @updated 2026-02-27
+ */
 const DateInput = forwardRef(({ 
   dataObj,
   dataKey,
@@ -79,6 +84,7 @@ const DateInput = forwardRef(({
   id,
   ...props
 }, ref) => {
+
   const isPropControlled = propValue !== undefined;
   const isData = !!(dataObj && dataKey);
 
@@ -87,7 +93,7 @@ const DateInput = forwardRef(({
   const [open, setOpen] = useState(false);
   
   /**
-   * @description 외부 소스(prop/dataObj/local state) 우선순위 기반 현재 값 조회.
+   * @description 외부 소스(prop/dataObj/local state) 우선순위 기반 현재 값 조회
    * 처리 규칙: controlled > EasyObj 바인딩 > 내부 상태 순으로 fallback 한다.
    * @updated 2026-02-27
    */
@@ -181,14 +187,14 @@ const DateInput = forwardRef(({
     if (!open) return;
 
     /**
-     * @description 컴포넌트 외부 클릭 시 달력 패널 닫기.
+     * @description 컴포넌트 외부 클릭 시 달력 패널 닫기
      * 처리 규칙: rootRef 영역 바깥 mouse down 이벤트에서만 open=false로 전환한다.
      * @updated 2026-02-27
      */
     const handler = (event) => { if (rootRef.current && !rootRef.current.contains(event.target)) setOpen(false); };
 
     /**
-     * @description Escape 키 입력으로 달력 패널 닫기.
+     * @description Escape 키 입력으로 달력 패널 닫기
      * 처리 규칙: key 값이 Escape일 때만 close 동작을 수행한다.
      * @updated 2026-02-27
      */

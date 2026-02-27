@@ -5,14 +5,14 @@
  * 설명: Icon UI 컴포넌트 구현
  */
 import { forwardRef } from 'react';
-import * as AiIcons from 'react-icons/ai';  // 한글설명: 설명 Ant Design Icons
+import * as AiIcons from 'react-icons/ai';  // 한글설명: 설명 동작 설명
 import * as BiIcons from 'react-icons/bi';  // Boxicons
-import * as BsIcons from 'react-icons/bs';  // 한글설명: 설명 Bootstrap Icons
-import * as FiIcons from 'react-icons/fi';  // 한글설명: 설명 Feather Icons
+import * as BsIcons from 'react-icons/bs';  // 한글설명: 설명 동작 설명
+import * as FiIcons from 'react-icons/fi';  // 한글설명: 설명 동작 설명
 import * as HiIcons from 'react-icons/hi';  // Heroicons
 import * as IoIcons from 'react-icons/io5'; // Ionicons 5
-import * as MdIcons from 'react-icons/md';  // 한글설명: 설명 Material Design Icons
-import * as RiIcons from 'react-icons/ri';  // 한글설명: 설명 Remix Icons
+import * as MdIcons from 'react-icons/md';  // 한글설명: 설명 동작 설명
+import * as RiIcons from 'react-icons/ri';  // 한글설명: 설명 동작 설명
 
 const iconSets = {
     ai: AiIcons,
@@ -25,6 +25,11 @@ const iconSets = {
     ri: RiIcons,
 };
 
+/**
+ * @description 렌더링 및 상호작용 처리
+ * 처리 규칙: 전달된 props와 바인딩 값을 기준으로 UI 상태를 계산하고 변경 이벤트를 상위로 전달한다.
+ * @updated 2026-02-27
+ */
 const Icon = forwardRef(({
     icon,
     size = "1em",
@@ -34,6 +39,7 @@ const Icon = forwardRef(({
     decorative = true,
     ...props
 }, ref) => {
+
     // icon 형식: "md:Home" 또는 "MdHome" 형식 지원
     const [prefix, name] = icon.includes(':') ? icon.split(':') : [icon.substring(0, 2).toLowerCase(), icon];
     if (!iconSets[prefix]) {

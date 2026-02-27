@@ -28,13 +28,13 @@ import LANG_KO from "./lang.ko";
 import EasyObj from "@/app/lib/dataset/EasyObj";
 
 /**
- * @description  설정 페이지의 프로필/시스템 탭 UI를 렌더링한다. 입력/출력 계약을 함께 명시
+ * @description 설정 페이지의 프로필/시스템 탭 UI를 렌더링. 입력/출력 계약을 함께 명시
  * 처리 규칙: 프로필 API 응답은 profileMeObj에 복사하고 탭 상태는 query `tab`과 양방향 동기화한다.
  */
 const SettingsView = () => {
 
   /**
-   * @description  API 예외 객체를 화면 표시용 에러 메타로 정규화한다. 입력/출력 계약을 함께 명시
+   * @description API 예외 객체를 화면 표시용 에러 메타로 정규화. 입력/출력 계약을 함께 명시
    * 반환값: message/requestId 필드를 갖는 단순 객체.
    * @updated 2026-02-27
    */
@@ -44,7 +44,7 @@ const SettingsView = () => {
   });
 
   /**
-   * @description  프로필 폼의 기본 모델을 생성한다. 입력/출력 계약을 함께 명시
+   * @description 프로필 폼의 기본 모델을 생성. 입력/출력 계약을 함께 명시
    * 반환값: 화면 초기 렌더와 재초기화에 쓰는 user profile 기본값.
    * @updated 2026-02-27
    */

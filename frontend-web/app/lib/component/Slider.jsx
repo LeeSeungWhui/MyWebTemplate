@@ -4,5 +4,5 @@
  * 갱신일: 2025-09-13
  * 설명: Slider UI 컴포넌트 구현
  */
-// 한글설명: 설명 Deprecated file: keep as alias for backward compatibility
+// 한글설명: 설명 동작 설명
 export { default } from './Drawer';

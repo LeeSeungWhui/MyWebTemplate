@@ -27,13 +27,13 @@ const STEP_LIST = LANG_KO.view.stepList.map((item) => ({ ...item }));
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 /**
- * @description  공개 복합 폼 샘플 화면을 렌더링한다. 입력/출력 계약을 함께 명시
+ * @description 공개 복합 폼 샘플 화면을 렌더링. 입력/출력 계약을 함께 명시
  * 처리 규칙: 단계별(step1~3) 입력/검증/요약 상태를 하나의 EasyObj(ui)에서 관리한다.
  */
 const FormDemoView = () => {
 
   /**
-   * @description  1단계 입력 검증 에러 모델의 기본값을 생성한다. 입력/출력 계약을 함께 명시
+   * @description 1단계 입력 검증 에러 모델의 기본값을 생성. 입력/출력 계약을 함께 명시
    * 반환값: 각 필드 에러 메시지를 빈 문자열로 초기화한 객체.
    * @updated 2026-02-27
    */
@@ -100,7 +100,7 @@ const FormDemoView = () => {
   };
 
   /**
-   * @description 요청된 단계 번호를 허용 범위(1~3)로 보정해 현재 단계를 변경
+   * @description 요청된 단계 번호를 허용 범위(1. 3)로 보정해 현재 단계를 변경
    * 처리 규칙: 범위를 벗어난 입력은 min/max 경계값으로 clamp 한다.
    * @updated 2026-02-27
    */

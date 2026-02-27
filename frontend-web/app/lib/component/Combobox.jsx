@@ -13,12 +13,14 @@ import {
   useRef,
   useState,
 } from 'react'
+
 import {
   getBoundValue,
   setBoundValue,
   buildCtx,
   fireValueHandlers,
 } from '../binding'
+
 import { COMMON_COMPONENT_LANG_KO } from '@/app/common/i18n/lang.ko'
 
 const STATUS_PRESETS = {
@@ -102,7 +104,7 @@ const H_BASE = 0xac00
 const H_LAST = 0xd7a3
 
 /**
- * @description 한글 문자열을 초성 검색 가능한 비교 문자열로 바꾸는 변환 유틸.
+ * @description 한글 문자열을 초성 검색 가능한 비교 문자열로 바꾸는 변환 유틸
  * 처리 규칙: 완성형 한글은 초성 배열로 치환하고, 비한글 문자는 원문을 유지한다.
  * @updated 2026-02-27
  */
@@ -120,7 +122,7 @@ const getChosung = (str) => {
 }
 
 /**
- * @description 검색 비교용 문자열 정규화 유틸(소문자/무공백).
+ * @description 검색 비교용 문자열 정규화 유틸(소문자/무공백)
  * 반환값: null/undefined 입력도 안전하게 처리한 비교용 문자열.
  * @updated 2026-02-27
  */
@@ -130,7 +132,7 @@ const normalize = (inputText) =>
     .replace(/\s+/g, '')
 
 /**
- * @description 입력 옵션 목록을 콤보박스 내부 표준 스키마로 맞추는 매퍼.
+ * @description 입력 옵션 목록을 콤보박스 내부 표준 스키마로 맞추는 매퍼
  * 처리 규칙: iterable만 허용하고 value/label/selected/placeholder/raw 필드를 생성한다.
  * @updated 2026-02-27
  */
@@ -167,8 +169,12 @@ function useEasySubscription(model, handler) {
   }, [model, handler])
 }
 
-const Combobox = forwardRef((props, ref) => {
-  const {
+/**
+ * @description 렌더링 및 상호작용 처리
+ * 처리 규칙: 전달된 props와 바인딩 값을 기준으로 UI 상태를 계산하고 변경 이벤트를 상위로 전달한다.
+ * @updated 2026-02-27
+ */
+const Combobox = forwardRef(({
     dataList = [],
     valueKey = 'value',
     textKey = 'text',
@@ -196,7 +202,7 @@ const Combobox = forwardRef((props, ref) => {
     error,
     'aria-describedby': ariaDescribedByProp,
     ...rest
-  } = props
+  }, ref) => {
 
   const reactId = useId()
   const buttonId = id || `combobox-${reactId}`
@@ -315,7 +321,7 @@ const Combobox = forwardRef((props, ref) => {
     (nextSet) => {
 
       /**
-       * @description 개별 옵션 selected 값을 nextSet 기준으로 동기화하는 내부 updater.
+       * @description 개별 옵션 selected 값을 nextSet 기준으로 동기화하는 내부 updater
        * 부작용: 원본 item.selected 값을 직접 갱신한다.
        * @updated 2026-02-27
        */
@@ -348,7 +354,7 @@ const Combobox = forwardRef((props, ref) => {
     if (!open) return
 
     /**
-     * @description 컴포넌트 외부 클릭 시 드롭다운 닫기.
+     * @description 컴포넌트 외부 클릭 시 드롭다운 닫기
      * 처리 규칙: rootRef 바깥 mousedown 이벤트에서만 close를 수행한다.
      * @updated 2026-02-27
      */
@@ -359,7 +365,7 @@ const Combobox = forwardRef((props, ref) => {
     }
 
     /**
-     * @description Escape 키 입력으로 드롭다운 닫기.
+     * @description Escape 키 입력으로 드롭다운 닫기
      * 처리 규칙: key 값이 Escape일 때 open=false를 반영한다.
      * @updated 2026-02-27
      */
@@ -466,7 +472,7 @@ const Combobox = forwardRef((props, ref) => {
   }
 
   /**
-   * @description 옵션 클릭 이벤트를 단일/다중 선택 모델에 맞춰 반영하는 입력 핸들러.
+   * @description 옵션 클릭 이벤트를 단일/다중 선택 모델에 맞춰 반영하는 입력 핸들러
    * 처리 규칙: multi 모드면 토글 집합을 만들고, 단일 모드면 즉시 선택 후 패널을 닫는다.
    * @updated 2026-02-27
    */

@@ -62,7 +62,7 @@ const STATUS_PRESETS = {
 }
 
 /**
- * @description  입력 옵션 목록을 Select 내부 표준 구조로 정규화한다. 입력/출력 계약을 함께 명시
+ * @description 입력 옵션 목록을 Select 내부 표준 구조로 정규화. 입력/출력 계약을 함께 명시
  * 반환값: `{key,value,label,placeholder,selected,raw}` 형태의 옵션 배열.
  * @updated 2026-02-27
  */
@@ -93,8 +93,12 @@ function useEasySubscription(model, handler) {
   }, [model, handler])
 }
 
-const Select = forwardRef((props, ref) => {
-  const {
+/**
+ * @description 렌더링 및 상호작용 처리
+ * 처리 규칙: 전달된 props와 바인딩 값을 기준으로 UI 상태를 계산하고 변경 이벤트를 상위로 전달한다.
+ * @updated 2026-02-27
+ */
+const Select = forwardRef(({
     dataList = [],
     valueKey = 'value',
     textKey = 'text',
@@ -114,7 +118,7 @@ const Select = forwardRef((props, ref) => {
     error,
     'aria-describedby': ariaDescribedByProp,
     ...rest
-  } = props
+  }, ref) => {
 
   const isControlled = valueProp !== undefined
   const reactId = useId()
@@ -148,12 +152,12 @@ const Select = forwardRef((props, ref) => {
   const [innerValue, setInnerValue] = useState(() => deriveValueFromSources())
   const currentValue = isControlled ? String(valueProp ?? '') : innerValue
 
-  // 한글설명: 설명 Sync EasyList selection flags with the resolved value
+  // 한글설명: 설명 동작 설명
   useEffect(() => {
     const normalized = String(currentValue ?? '')
 
     /**
-     * @description  현재 값과 일치하는 항목의 selected 플래그를 재계산한다. 입력/출력 계약을 함께 명시
+     * @description 현재 값과 일치하는 항목의 selected 플래그를 재계산. 입력/출력 계약을 함께 명시
      * 부작용: item.selected 값을 직접 갱신한다.
      * @updated 2026-02-27
      */
@@ -170,14 +174,14 @@ const Select = forwardRef((props, ref) => {
     }
   }, [dataList, valueKey, currentValue])
 
-  // 한글설명: 설명 Update inner value when external sources change
+  // 한글설명: 설명 동작 설명
   useEffect(() => {
     if (isControlled) return
     const next = deriveValueFromSources()
     setInnerValue((prev) => (prev === next ? prev : next))
   }, [deriveValueFromSources, isControlled])
 
-  // 한글설명: 설명 Subscribe to EasyObj/EasyList updates so that external mutations reflect immediately
+  // 한글설명: 설명 동작 설명
   useEasySubscription(
     dataObj,
     useCallback(

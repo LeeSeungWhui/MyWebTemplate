@@ -2,7 +2,7 @@
 파일명: backend/service/CommonService.py
 작성자: LSH
 갱신일: 2026-02-24
-설명: 공통(헬스체크 및 레디니스) 서비스 로직.
+설명: 공통(헬스체크 및 레디니스) 서비스 로직
 """
 
 import asyncio
@@ -18,7 +18,7 @@ startedAt = datetime.now(timezone.utc)
 
 def versionInfo() -> Dict[str, str]:
     """
-    설명: 버전/시작 시각 메타 정보를 반환한다. 호출 맥락의 제약을 기준으로 동작 기준을 확정
+    설명: 버전/시작 시각 메타 정보를 반환. 호출 맥락의 제약을 기준으로 동작 기준을 확정
     반환값: version/gitSha/startedAt를 포함한 진단용 메타 dict를 반환한다.
     갱신일: 2026-02-24
     """
@@ -33,7 +33,7 @@ def versionInfo() -> Dict[str, str]:
 
 async def healthz(_: Dict | None = None) -> Dict[str, str | int | bool]:
     """
-    설명: 프로세스 기동 상태와 업타임 정보를 반환한다. 호출 맥락의 제약을 기준으로 동작 기준을 확정
+    설명: 프로세스 기동 상태와 업타임 정보를 반환. 호출 맥락의 제약을 기준으로 동작 기준을 확정
     처리 규칙: 현재 UTC 시각 기준으로 startedAt과의 차이를 계산해 uptimeSeconds를 만든다.
     반환값: ok/version/gitSha/startedAt/uptimeSeconds를 포함한 헬스 payload dict.
     갱신일: 2026-02-28

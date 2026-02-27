@@ -27,7 +27,7 @@ const SORT_LABEL_MAP = new Map(
 );
 
 /**
- * @description searchParams에서 키 값을 문자열로 안전 조회.
+ * @description searchParams에서 키 값을 문자열로 안전 조회
  * 처리 규칙: URLSearchParams.get, 배열, 단일값 순으로 읽고 없으면 빈 문자열을 반환한다.
  * @updated 2026-02-27
  */
@@ -65,7 +65,7 @@ const resolveRouteKey = (pathname) => {
 };
 
 /**
- * @description  상태 필터 목록으로 tasks 서브메뉴 배열을 생성한다. 입력/출력 계약을 함께 명시
+ * @description 상태 필터 목록으로 tasks 서브메뉴 배열을 생성. 입력/출력 계약을 함께 명시
  * 처리 규칙: 빈 status는 전체 메뉴로 취급하고, 나머지는 status query href를 구성한다.
  * @updated 2026-02-27
  */
@@ -135,7 +135,7 @@ const resolveTasksSubtitle = ({ keyword, status, sort, page }) => {
 };
 
 /**
- * @description  현재 대시보드 경로/쿼리 기준으로 헤더/사이드바 메타를 계산한다. 입력/출력 계약을 함께 명시
+ * @description 현재 대시보드 경로/쿼리 기준으로 헤더/사이드바 메타를 계산. 입력/출력 계약을 함께 명시
  * @param {Object} params
  * @param {string} params.pathname 현재 pathname
  * @param {URLSearchParams|Object} params.searchParams 현재 search params

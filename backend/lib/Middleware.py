@@ -2,7 +2,7 @@
 파일명: backend/lib/Middleware.py
 작성자: LSH
 갱신일: 2026-02-25
-설명: 요청ID 전파 및 구조적 접근 로그 미들웨어.
+설명: 요청ID 전파 및 구조적 접근 로그 미들웨어
 """
 
 import asyncio
@@ -37,7 +37,7 @@ async def writeUserAccessLogSafely(
     clientIp: str | None,
 ) -> None:
     """
-    설명: 요청 종료 후 사용자 접근 로그를 비차단 방식으로 적재하는 보호 래퍼.
+    설명: 요청 종료 후 사용자 접근 로그를 비차단 방식으로 적재하는 보호 래퍼
     처리 규칙: writeUserAccessLog 호출 인자를 그대로 전달하고, 본 요청 응답 흐름을 우선한다.
     실패 동작: 로그 적재 예외는 삼키고 API 응답/이벤트 루프를 중단시키지 않는다.
     부작용: user_access_log 저장 시도가 발생할 수 있다.
@@ -61,7 +61,7 @@ async def writeUserAccessLogSafely(
 
 def parsePositiveInt(rawValue: object) -> int | None:
     """
-    설명: 양의 정수 값만 파싱해서 반환한다. 호출 맥락의 제약을 기준으로 동작 기준을 확정
+    설명: 양의 정수 값만 파싱해서 반환. 호출 맥락의 제약을 기준으로 동작 기준을 확정
     반환값: 1 이상 정수면 해당 값, 그 외 입력은 None.
     갱신일: 2026-02-22
     """
@@ -78,7 +78,7 @@ def parsePositiveInt(rawValue: object) -> int | None:
 
 def getSqlWarnThresholdFromConfig() -> int | None:
     """
-    설명: config.ini 기반 SQL 경고 임계치(sql_warn_threshold) 조회.
+    설명: config. ini 기반 SQL 경고 임계치(sql_warn_threshold) 조회
     우선순위 섹션: OBSERVABILITY > SERVER > DATABASE > DATABASE_*
     갱신일: 2026-02-22
     """
@@ -108,7 +108,7 @@ def getSqlWarnThresholdFromConfig() -> int | None:
 
 def getSqlWarnThreshold() -> int:
     """
-    설명: 요청당 SQL 경고 임계치(환경변수 SQL_WARN_THRESHOLD) 조회.
+    설명: 요청당 SQL 경고 임계치(환경변수 SQL_WARN_THRESHOLD) 조회
     처리 규칙: env 우선, 없으면 config, 둘 다 없으면 기본값 30을 사용한다.
     갱신일: 2026-02-22
     """
@@ -154,7 +154,7 @@ def resolveClientIp(request: Request) -> str | None:
 
 def resolveAuthUsername(request: Request) -> str | None:
     """
-    설명: 인증 의존성에서 주입한 request.state.authUsername 값을 조회한다. 호출 맥락의 제약을 기준으로 동작 기준을 확정
+    설명: 인증 의존성에서 주입한 request. state. authUsername 값을 조회. 호출 맥락의 제약을 기준으로 동작 기준을 확정
     반환값: 공백 제거 후 유효 문자열 username 또는 None.
     갱신일: 2026-02-22
     """
@@ -191,13 +191,13 @@ def maskClientIpForLog(clientIp: str | None) -> str | None:
 
 class RequestLogMiddleware(BaseHTTPMiddleware):
     """
-    설명: X-Request-Id 생성/전파 및 구조적 JSON 접근 로그 기록.
+    설명: Request-Id 생성/전파 및 구조적 JSON 접근 로그 기록
     갱신일: 2025-11-12
     """
 
     async def dispatch(self, request: Request, callNext: Callable[[Request], Awaitable[StarletteResponse]]) -> StarletteResponse:
         """
-        설명: 요청 처리 시간/상태/경로 등을 수집하여 INFO 레벨로 로그 출력.
+        설명: 요청 처리 시간/상태/경로 등을 수집하여 INFO 레벨로 로그 출력
         부작용: X-Request-Id 헤더 주입, 구조적 access 로그 기록, 인증 사용자 접근로그 백그라운드 적재를 수행한다.
         갱신일: 2025-11-12
         """

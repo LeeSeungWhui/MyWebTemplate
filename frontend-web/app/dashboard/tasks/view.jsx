@@ -45,7 +45,7 @@ const STATUS_BADGE_VARIANT = {
 const STATUS_FORM_LIST = STATUS_FILTER_LIST.filter((item) => item.value);
 
 /**
- * @description  업무 관리 페이지의 CSR 뷰를 렌더링한다. 입력/출력 계약을 함께 명시
+ * @description 업무 관리 페이지의 CSR 뷰를 렌더링. 입력/출력 계약을 함께 명시
  * 처리 규칙: 목록 조회/드로어 CRUD/브라우저 쿼리 동기화를 단일 컴포넌트에서 제어한다.
  */
 const TasksView = ({ initialFilter = {} }) => {
@@ -55,7 +55,7 @@ const TasksView = ({ initialFilter = {} }) => {
   const { showToast, showConfirm } = useGlobalUi();
 
   /**
-   * @description  tags 입력값을 문자열 배열로 정규화한다. 입력/출력 계약을 함께 명시
+   * @description tags 입력값을 문자열 배열로 정규화. 입력/출력 계약을 함께 명시
    * 처리 규칙: 배열/JSON 문자열/쉼표 문자열 입력을 모두 `string[]` 포맷으로 통일한다.
    * @updated 2026-02-27
    */
@@ -71,14 +71,14 @@ const TasksView = ({ initialFilter = {} }) => {
   };
 
   /**
-   * @description  tags 값을 화면 표시용 문자열로 변환한다. 입력/출력 계약을 함께 명시
+   * @description tags 값을 화면 표시용 문자열로 변환. 입력/출력 계약을 함께 명시
    * 처리 규칙: 내부적으로 toTagList를 호출한 뒤 `, ` 구분자로 join한다.
    * @updated 2026-02-27
    */
   const toTagText = (value) => toTagList(value).join(", ");
 
   /**
-   * @description  금액 값을 로케일 통화 문자열로 변환한다. 입력/출력 계약을 함께 명시
+   * @description 금액 값을 로케일 통화 문자열로 변환. 입력/출력 계약을 함께 명시
    * 처리 규칙: 숫자 변환 실패 시 0원 문구를 반환하고, 정상 값은 `ko-KR` 포맷으로 반환한다.
    * @updated 2026-02-27
    */
@@ -109,7 +109,7 @@ const TasksView = ({ initialFilter = {} }) => {
     String(templatePath || "").replace(":id", String(id));
 
   /**
-   * @description  API 예외를 UI 표시용 에러 객체로 정규화한다. 입력/출력 계약을 함께 명시
+   * @description API 예외를 UI 표시용 에러 객체로 정규화. 입력/출력 계약을 함께 명시
    * 처리 규칙: 에러 message/requestId를 우선 사용하고 없으면 fallbackMessage를 message로 사용한다.
    * @updated 2026-02-27
    */
@@ -119,7 +119,7 @@ const TasksView = ({ initialFilter = {} }) => {
   });
 
   /**
-   * @description  드로어 폼의 초기값 모델을 생성한다. 입력/출력 계약을 함께 명시
+   * @description 드로어 폼의 초기값 모델을 생성. 입력/출력 계약을 함께 명시
    * 처리 규칙: 생성/수정 공통 폼 필드를 기본 상태값으로 구성해 반환한다.
    * @updated 2026-02-27
    */
@@ -247,7 +247,7 @@ const TasksView = ({ initialFilter = {} }) => {
   };
 
   /**
-   * @description 신규 생성 모드로 드로어를 연다.
+   * @description 신규 생성 모드 드로어 열기
    * 처리 규칙: drawerMode/editingId/form/isDrawerLoading을 생성 상태로 초기화한다.
    * @updated 2026-02-27
    */
@@ -295,7 +295,7 @@ const TasksView = ({ initialFilter = {} }) => {
   };
 
   /**
-   * @description 드로어 닫기.
+   * @description 드로어 닫기
    * 처리 규칙: 저장 중(isSaving=true)에는 닫기를 막고, 그 외에는 드로어 상태를 초기화한다.
    * @updated 2026-02-27
    */
@@ -306,7 +306,7 @@ const TasksView = ({ initialFilter = {} }) => {
   };
 
   /**
-   * @description 생성/수정 폼 검증 후 저장 API 요청 전송.
+   * @description 생성/수정 폼 검증 후 저장 API 요청 전송
    * 처리 규칙: 필수값 검증 실패 시 즉시 중단하고, 성공 시 toast/목록 재조회/드로어 닫기를 수행한다.
    * @updated 2026-02-27
    */

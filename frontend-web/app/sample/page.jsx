@@ -19,7 +19,7 @@ export const runtime = "nodejs";
 export const revalidate = 0;
 
 /**
- * @description  공개 샘플 허브 페이지를 렌더링한다. 입력/출력 계약을 함께 명시
+ * @description 공개 샘플 허브 페이지를 렌더링. 입력/출력 계약을 함께 명시
  * @returns {JSX.Element}
  */
 const DemoHubPage = () => {

@@ -34,7 +34,7 @@ const isObject = (value) => typeof value === 'object' && value !== null;
 const isNumericKey = (key) => typeof key === 'string' && /^\d+$/.test(key);
 
 /**
- * @description  key 입력을 경로 세그먼트 배열로 정규화한다. 입력/출력 계약을 함께 명시
+ * @description key 입력을 경로 세그먼트 배열로 정규화. 입력/출력 계약을 함께 명시
  * 처리 규칙: number/string/array/symbol 케이스를 공통 배열 포맷으로 변환한다.
  * @updated 2026-02-27
  */
@@ -64,7 +64,7 @@ const isNativeFileLike = (value) => {
 };
 
 /**
- * @description  리스트 데이터의 깊은 복사본을 생성한다. 입력/출력 계약을 함께 명시
+ * @description 리스트 데이터의 깊은 복사본을 생성. 입력/출력 계약을 함께 명시
  * 처리 규칙: primitive와 파일류 객체는 원본을 유지하고, 배열/일반 객체만 재귀 복사한다.
  * @updated 2026-02-27
  */
@@ -77,14 +77,14 @@ const deepCopy = (value) => {
 };
 
 /**
- * @description 세그먼트 배열을 점(`.`) 경로 문자열로 변환
+ * @description 세그먼트 배열을 점(`. `) 경로 문자열로 변환
  * 처리 규칙: symbol 세그먼트는 문자열 경로에서 제외한다.
  * @updated 2026-02-27
  */
 const toPathString = (segments) => segments.filter((segment) => typeof segment !== 'symbol').join('.');
 
 /**
- * @description  EasyList 프록시 상태 모델을 생성한다. 입력/출력 계약을 함께 명시
+ * @description EasyList 프록시 상태 모델을 생성. 입력/출력 계약을 함께 명시
  * 처리 규칙: raw 리스트와 proxy 매핑을 유지하고 변경 시 렌더/구독 이벤트를 트리거한다.
  * @updated 2026-02-27
  */
@@ -124,7 +124,7 @@ function useEasyList(initialData = []) {
     };
 
     /**
-     * @description  지정 경로의 현재 값을 조회한다. 입력/출력 계약을 함께 명시
+     * @description 지정 경로의 현재 값을 조회. 입력/출력 계약을 함께 명시
      * 처리 규칙: 경로 중간 값이 null/undefined면 즉시 undefined를 반환한다.
      * @updated 2026-02-27
      */
@@ -153,7 +153,7 @@ function useEasyList(initialData = []) {
     };
 
     /**
-     * @description  경로 위치에 값을 대입하고 이전 값을 반환한다. 입력/출력 계약을 함께 명시
+     * @description 경로 위치에 값을 대입하고 이전 값을 반환. 입력/출력 계약을 함께 명시
      * 처리 규칙: 루트 대입은 rootRef를 교체하고, 하위 경로 대입은 중간 컨테이너를 자동 생성한다.
      * @updated 2026-02-27
      */
@@ -214,7 +214,7 @@ function useEasyList(initialData = []) {
     };
 
     /**
-     * @description 기준 경로와 key 결합 기반 최종 경로 생성.
+     * @description 기준 경로와 key 결합 기반 최종 경로 생성
      * 처리 규칙: key를 세그먼트 배열로 변환한 뒤 basePath 뒤에 이어붙인다.
      * @updated 2026-02-27
      */
@@ -270,7 +270,7 @@ function useEasyList(initialData = []) {
             try {
                 listener(detail);
             } catch {
-                // 한글설명: 설명 swallow listener errors
+                // 한글설명: 설명 동작 설명
             }
         });
     };
@@ -405,7 +405,7 @@ function useEasyList(initialData = []) {
     };
 
     /**
-     * @description  raw 객체에 대한 프록시를 조회하거나 생성한다. 입력/출력 계약을 함께 명시
+     * @description raw 객체에 대한 프록시를 조회하거나 생성. 입력/출력 계약을 함께 명시
      * 처리 규칙: WeakMap 캐시를 우선 사용하고, handler에서 리스트 조작(push/pop/splice 등)을 EasyList 규약으로 통합한다.
      * @updated 2026-02-27
      */

@@ -19,7 +19,7 @@ export const metadata = {
 };
 
 /**
- * @description  비밀번호 찾기 서버 엔트리에서 화면 컴포넌트를 반환한다. 입력/출력 계약을 함께 명시
+ * @description 비밀번호 찾기 서버 엔트리에서 화면 컴포넌트를 반환. 입력/출력 계약을 함께 명시
  * @returns {Promise<JSX.Element>}
  */
 const ForgotPasswordPage = async () => {

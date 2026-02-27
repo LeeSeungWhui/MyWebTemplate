@@ -14,7 +14,7 @@ const flowItemClassName =
   "relative rounded-xl border border-blue-100 bg-white px-4 py-4 text-center shadow-sm";
 
 /**
- * @description  공개 포트폴리오 콘텐츠를 시각 섹션으로 구성해 렌더링한다. 입력/출력 계약을 함께 명시
+ * @description 공개 포트폴리오 콘텐츠를 시각 섹션으로 구성해 렌더링. 입력/출력 계약을 함께 명시
  * @param {{ content: any }} props
  * @returns {JSX.Element}
  */

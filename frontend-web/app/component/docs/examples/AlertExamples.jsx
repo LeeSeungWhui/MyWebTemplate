@@ -10,7 +10,7 @@ import { useRef } from 'react';
 import { useGlobalUi } from '@/app/common/store/SharedStore';
 
 /**
- * @description  BasicAlert 컴포넌트를 렌더링한다. 입력/출력 계약을 함께 명시
+ * @description 를 렌더링. 입력/출력 계약을 함께 명시
  * 반환값: 기본 showAlert 호출 버튼 예제 JSX.
  * @updated 2026-02-27
  */
@@ -20,7 +20,7 @@ const BasicAlert = () => {
 };
 
 /**
- * @description  AlertVariants 컴포넌트를 렌더링한다. 입력/출력 계약을 함께 명시
+ * @description 를 렌더링. 입력/출력 계약을 함께 명시
  * 반환값: info/success/warning/error 타입별 Alert 호출 버튼 묶음 JSX.
  * @updated 2026-02-27
  */
@@ -37,7 +37,7 @@ const AlertVariants = () => {
 };
 
 /**
- * @description  AlertCallback 컴포넌트를 렌더링한다. 입력/출력 계약을 함께 명시
+ * @description 를 렌더링. 입력/출력 계약을 함께 명시
  * 반환값: 알림 닫힘 후 onClick 콜백 동작을 보여주는 JSX.
  * @updated 2026-02-27
  */
@@ -60,7 +60,7 @@ const AlertCallback = () => {
 };
 
 /**
- * @description  AlertFocusAfter 컴포넌트를 렌더링한다. 입력/출력 계약을 함께 명시
+ * @description 를 렌더링. 입력/출력 계약을 함께 명시
  * 반환값: alert 닫힘 이후 지정 ref로 포커스를 이동하는 데모 JSX.
  * @updated 2026-02-27
  */
@@ -87,7 +87,7 @@ const AlertFocusAfter = () => {
 };
 
 /**
- * @description  AlertExamples 구성 데이터를 반환한다. 입력/출력 계약을 함께 명시
+ * @description AlertExamples 구성 데이터를 반환. 입력/출력 계약을 함께 명시
  * 반환값: 문서 렌더러가 순회하는 예제 섹션 배열(component/description/code).
  * @updated 2026-02-24
  */

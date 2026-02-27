@@ -17,7 +17,7 @@ import { COMMON_COMPONENT_LANG_KO } from "@/app/common/i18n/lang.ko";
 const MASK_TOKEN_RE = /[#Aa?*]/;
 
 /**
- * @description  입력값을 input value 문자열로 정규화한다. 입력/출력 계약을 함께 명시
+ * @description 입력값을 input value 문자열로 정규화. 입력/출력 계약을 함께 명시
  * 처리 규칙: null/undefined는 빈 문자열로, 그 외 값은 문자열로 변환해 반환한다.
  * @updated 2026-02-27
  */
@@ -28,8 +28,9 @@ const toInputValue = (value) => {
 };
 
 /**
- * Input - 필터/마스크 지원 입력 컴포넌트
- * @date 2026-02-23
+ * @description 렌더링 및 필터/마스크 기반 입력 동기화 처리
+ * 처리 규칙: 바인딩/controlled/uncontrolled 모드에 따라 값을 확정하고 변경 이벤트를 상위에 전파.
+ * @updated 2026-02-27
  */
 const Input = forwardRef(
   (
@@ -53,8 +54,10 @@ const Input = forwardRef(
       togglePassword,
       ...rest
     },
+
     ref
   ) => {
+
     const isBoundControlled = !!(dataObj && dataKey);
     const isPropControlled =
       !isBoundControlled && typeof propValue !== "undefined";
@@ -76,7 +79,7 @@ const Input = forwardRef(
     const hasFunctionMask = typeof mask === "function";
 
     /**
-     * @description  마스크 패턴에 맞춰 입력 문자열을 변환한다. 입력/출력 계약을 함께 명시
+     * @description 마스크 패턴에 맞춰 입력 문자열을 변환. 입력/출력 계약을 함께 명시
      * 처리 규칙: 토큰(`#,A,a,?,*`) 기준으로 허용 문자만 소비하고 최종 마스크 문자열을 구성한다.
      * @updated 2026-02-27
      */
@@ -167,7 +170,7 @@ const Input = forwardRef(
           `^-?\\d{0,${maxDigits ?? 2}}(\\.\\d{0,${maxDecimals ?? 2}})?$`
         );
         if (!regex.test(value)) {
-          return; // 한글설명: 설명 reject invalid numeric pattern
+          return; // 한글설명: 설명 동작 설명
         }
       }
       if (isBoundControlled) {
@@ -202,7 +205,7 @@ const Input = forwardRef(
     };
 
     /**
-     * @description  현재 확정(committed) 입력값을 조회한다. 입력/출력 계약을 함께 명시
+     * @description 현재 확정(committed) 입력값을 조회. 입력/출력 계약을 함께 명시
      * 처리 규칙: bound > prop-controlled > inner state 순서로 값 소스를 선택한다.
      * @updated 2026-02-27
      */
@@ -255,13 +258,13 @@ const Input = forwardRef(
           const isAlpha = (inputChar) => /[a-zA-Z]/.test(inputChar);
 
           /**
-           * @description  현재 raw 입력 기준으로 다음 마스크 토큰을 계산한다. 입력/출력 계약을 함께 명시
+           * @description 현재 raw 입력 기준으로 다음 마스크 토큰을 계산. 입력/출력 계약을 함께 명시
            * 처리 규칙: 기존 raw를 토큰 규칙대로 소비한 뒤 다음 입력 가능한 토큰 문자(또는 null)를 반환한다.
            * @updated 2026-02-27
            */
           const nextMaskToken = (maskPattern, rawText) => {
             let maskPos = 0;
-            // 한글설명: 설명 consume existing raw according to mask
+            // 한글설명: 설명 동작 설명
             for (let i = 0; i < rawText.length; i++) {
               while (maskPos < maskPattern.length && !MASK_TOKEN_RE.test(maskPattern[maskPos])) {
                 maskPos++;
@@ -310,7 +313,7 @@ const Input = forwardRef(
     };
 
     /**
-     * handleKeyDown - 키다운 단계에서 허용되지 않은 문자를 즉시 차단
+     * 키다운 단계에서 허용되지 않은 문자를 즉시 차단
      * @date 2025-02-14
      * @description keydown 단계에서 단일 문자 입력 허용 여부를 점검
      * 처리 규칙: 조합 중 입력은 통과시키고, filter/mask/number 규칙 위반 키는 즉시 차단한다.
@@ -375,7 +378,7 @@ const Input = forwardRef(
         try {
           event.target.value = committed;
         } catch (_) {
-          /* 한글설명: 설명 ignore readonly target */
+          /* 한글설명: 설명 동작 설명 */
         }
       }
       const ctx = buildCtx({
@@ -466,7 +469,7 @@ const Input = forwardRef(
             });
           }}
           onBlur={(event) => {
-            // 한글설명: 설명 Ensure final sanitize on blur in case some IME didn't fire compositionend properly
+            // 한글설명: 설명 동작 설명
             const committed = commitValue(event.target.value);
             if (typeof committed !== "undefined") {
               try {
@@ -530,7 +533,7 @@ const Input = forwardRef(
 Input.displayName = "Input";
 
 /**
- * @description Input 컴포넌트 엔트리를 외부에 노출
+ * @description 엔트리를 외부에 노출
  * 처리 규칙: forwardRef로 정의된 Input 컴포넌트를 default export 한다.
  */
 export default Input;

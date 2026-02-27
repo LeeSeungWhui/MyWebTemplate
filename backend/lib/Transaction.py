@@ -2,7 +2,7 @@
 파일명: backend/lib/Transaction.py
 작성자: LSH
 갱신일: 2026-02-24
-설명: 단일/다중 DB 트랜잭션 데코레이터와 예외 처리 유틸.
+설명: 단일/다중 DB 트랜잭션 데코레이터와 예외 처리 유틸
 """
 
 from __future__ import annotations
@@ -62,7 +62,7 @@ def transaction(
     retryOn: Tuple[type[BaseException], ...] = (),
 ):
     """
-    설명: 단일/다중 DB 트랜잭션을 지원하는 데코레이터.
+    설명: 단일/다중 DB 트랜잭션을 지원하는 데코레이터
     인자: dbNames/isolation/timeoutMs(timeout_ms)/retries/retryOn.
     갱신일: 2026-02-26
     """
@@ -85,7 +85,7 @@ def transaction(
 
     def decorator(func):
         """
-        설명: 트랜잭션 옵션을 캡처한 데코레이터를 생성한다. 호출 맥락의 제약을 기준으로 동작 기준을 확정
+        설명: 트랜잭션 옵션을 캡처한 데코레이터를 생성. 호출 맥락의 제약을 기준으로 동작 기준을 확정
         갱신일: 2026-02-26
         """
 
@@ -184,7 +184,7 @@ def transaction(
 
 
 async def sleepBackoff(attempt: int) -> None:
-    """설명: 재시도 간 백오프(최대 0.5초)를 수행. 처리 규칙: attempt 비례 지연(min(0.05*attempt,0.5))을 적용한다. 갱신일: 2025-11-12"""
+    """설명: 재시도 간 백오프(최대 0.5초) 수행 처리 규칙: attempt 비례 지연(min(0.05*attempt,0.5)) 적용. 갱신일: 2025-11-12"""
     try:
         import anyio
 
@@ -194,7 +194,7 @@ async def sleepBackoff(attempt: int) -> None:
 
 
 class Savepoint:
-    """설명: SAVEPOINT 관리용 컨텍스트. 갱신일: 2025-11-12"""
+    """설명: SAVEPOINT 관리용 컨텍스트 갱신일: 2025-11-12"""
 
     def __init__(self, dbName: str, name: str):
         """
@@ -207,7 +207,7 @@ class Savepoint:
 
     @staticmethod
     def validateName(name: str) -> str:
-        """설명: SAVEPOINT 이름을 SQL 식별자 규칙으로 검증. 반환값: 정규화된 savepoint 이름 문자열. 갱신일: 2026-02-22"""
+        """설명: SAVEPOINT 이름을 SQL 식별자 규칙으로 검증 반환값: 정규화된 savepoint 이름 문자열. 갱신일: 2026-02-22"""
         if not isinstance(name, str):
             raise TransactionError("invalid savepoint name")
         normalizedName = name.strip()
@@ -219,7 +219,7 @@ class Savepoint:
 
     async def __aenter__(self):
         """
-        설명: 현재 트랜잭션에 SAVEPOINT를 등록한 뒤 동일 인스턴스를 컨텍스트로 제공.
+        설명: 현재 트랜잭션에 SAVEPOINT를 등록한 뒤 동일 인스턴스를 컨텍스트로 제공
         처리 규칙: 대상 DB가 없으면 예외를 발생시키고, 존재하면 SAVEPOINT SQL을 먼저 실행한다.
         반환값: 현재 SavepointContext 인스턴스(self).
         갱신일: 2025-11-12
@@ -231,7 +231,7 @@ class Savepoint:
 
     async def __aexit__(self, exc_type, exc, tb):
         """
-        설명: 컨텍스트 종료 시점의 예외 유무에 따라 SAVEPOINT 롤백/해제를 분기하는 정리 단계.
+        설명: 컨텍스트 종료 시점의 예외 유무에 따라 SAVEPOINT 롤백/해제를 분기하는 정리 단계
         처리 규칙: 예외가 있으면 ROLLBACK TO SAVEPOINT 후 RELEASE를 보장하고, 예외가 없으면 RELEASE만 수행한다.
         부작용: 현재 트랜잭션 savepoint 상태를 변경한다.
         갱신일: 2025-11-12
@@ -250,10 +250,10 @@ class Savepoint:
 
 
 def savepoint(dbName: str, name: str) -> Savepoint:
-    """설명: 부분 롤백용 SAVEPOINT 컨텍스트를 생성. 반환값: Savepoint 컨텍스트 인스턴스. 갱신일: 2025-11-12"""
+    """설명: 부분 롤백용 SAVEPOINT 컨텍스트를 생성 반환값: Savepoint 컨텍스트 인스턴스. 갱신일: 2025-11-12"""
     return Savepoint(dbName, name)
 
 
 def transactionDefault():
-    """설명: 기본 DB에 대한 transaction() 데코레이터 숏컷. 반환값: primary DB 이름이 바인딩된 transaction 데코레이터. 갱신일: 2025-11-12"""
+    """설명: 기본 DB에 대한 transaction() 데코레이터 숏컷 반환값: primary DB 이름이 바인딩된 transaction 데코레이터. 갱신일: 2025-11-12"""
     return transaction(DB.getPrimaryDbName())

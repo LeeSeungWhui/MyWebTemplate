@@ -14,6 +14,11 @@ import { getBoundValue, setBoundValue, buildCtx, fireValueHandlers } from '../bi
  */
 const truthy = (value) => [true, 'Y', 'y', '1', 1].includes(value) || value === true;
 
+/**
+ * @description 렌더링 및 상호작용 처리
+ * 처리 규칙: 전달된 props와 바인딩 값을 기준으로 UI 상태를 계산하고 변경 이벤트를 상위로 전달한다.
+ * @updated 2026-02-27
+ */
 const Switch = forwardRef(({ 
   label,
   name,
@@ -46,7 +51,7 @@ const Switch = forwardRef(({
   }, [isDataObj, dataObj, dataKey]);
 
   /**
-   * @description  checked 값을 controlled/dataObj/local state 우선순위로 계산한다. 입력/출력 계약을 함께 명시
+   * @description checked 값을 controlled/dataObj/local state 우선순위로 계산. 입력/출력 계약을 함께 명시
    * 처리 규칙: prop checked > bound value > internalChecked 순으로 fallback 한다.
    * @updated 2026-02-27
    */

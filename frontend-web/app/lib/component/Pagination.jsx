@@ -15,7 +15,7 @@ import { COMMON_COMPONENT_LANG_KO } from '@/app/common/i18n/lang.ko';
 const clamp = (value, min, max) => Math.max(min, Math.min(value, max));
 
 /**
- * @description  Arrow 컴포넌트를 렌더링한다. 입력/출력 계약을 함께 명시
+ * @description 를 렌더링. 입력/출력 계약을 함께 명시
  * 반환값: 방향(dir)에 따라 회전이 적용된 단일 화살표 SVG.
  * @updated 2026-02-27
  */
@@ -33,7 +33,7 @@ const Arrow = ({ dir, className = '' }) => {
 };
 
 /**
- * @description  DoubleArrow 컴포넌트를 렌더링한다. 입력/출력 계약을 함께 명시
+ * @description 를 렌더링. 입력/출력 계약을 함께 명시
  * 반환값: 처음/마지막 페이지 이동 버튼에 쓰는 이중 화살표 SVG.
  * @updated 2026-02-27
  */
@@ -49,7 +49,7 @@ const DoubleArrow = ({ dir = 'right', className = '' }) => {
 };
 
 /**
- * @description  페이지 번호/이동 버튼을 렌더링한다. 입력/출력 계약을 함께 명시
+ * @description 페이지 번호/이동 버튼을 렌더링. 입력/출력 계약을 함께 명시
  * @param {Object} props
  * @returns {JSX.Element}
  */
@@ -79,7 +79,7 @@ const Pagination = ({
   const addToken = (token) => tokenList.push(token);
 
   /**
-   * @description startPage~endPage 구간 연속 페이지 번호 tokenList 채움.
+   * @description startPage. endPage 구간 연속 페이지 번호 tokenList 채움
    * 처리 규칙: for 루프로 모든 번호를 순회하며 addToken을 호출한다.
    * @updated 2026-02-27
    */

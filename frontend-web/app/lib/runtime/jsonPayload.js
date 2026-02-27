@@ -5,18 +5,13 @@
  * 설명: 백엔드가 반환하는 JSON 문자열을 보정/정규화하는 공용 유틸
  */
 
-/**
- * JSON 문자열 내 특수문자/개행을 RFC7159 형태로 정규화
- * @param {string} text 원본 응답 텍스트
- * @returns {string} 정규화된 문자열
- */
 const BROKEN_ARRAY_REGEX = /"([A-Za-z0-9_]+)"\s*:\s*](?=\s*[},])/g;
 
 /**
  * 서버가 [] 대신 ]만 내려보내는 경우를 감지해 자동 보정
  * @param {string} text
  * @returns {string}
- * @description 깨진 배열 토큰 교체 기반 파싱 실패 완화.
+ * @description 깨진 배열 토큰 교체 기반 파싱 실패 완화
  * @updated 2026-02-27
  */
 const autofixBrokenArrays = (text) => {
@@ -25,7 +20,7 @@ const autofixBrokenArrays = (text) => {
 };
 
 /**
- * @description  문자열 JSON을 보정 가능한 형태로 정규화한다. 입력/출력 계약을 함께 명시
+ * @description 문자열 JSON을 보정 가능한 형태로 정규화. 입력/출력 계약을 함께 명시
  * @param {string} text
  * @returns {string}
  */

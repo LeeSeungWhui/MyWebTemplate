@@ -66,7 +66,7 @@ export function base64UrlEncodeUtf8(text) {
       return base64.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
     }
   } catch {
-    // 한글설명: 설명 fall through
+    // 한글설명: 설명 동작 설명
   }
   try {
     if (typeof Buffer !== "undefined") {
@@ -102,7 +102,7 @@ export function base64UrlDecodeUtf8(input) {
       return new TextDecoder().decode(bytes);
     }
   } catch {
-    // 한글설명: 설명 fall through
+    // 한글설명: 설명 동작 설명
   }
 
   try {
@@ -126,7 +126,7 @@ function isPlainObject(value) {
 }
 
 /**
- * 설명: auth_reason(base64url JSON)을 안전하게 파싱해 code/requestId/message만 반환한다. 입력/출력 계약을 함께 명시
+ * 설명: auth_reason(base64url JSON) 안전 파싱으로 code/requestId/message만 반환. 입력/출력 계약 명시
  * 갱신일: 2026-01-19
  */
 export function parseAuthReason(encoded, maxLen = AUTH_REASON_MAXLEN) {

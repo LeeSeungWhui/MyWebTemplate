@@ -2,7 +2,7 @@
 파일명: backend/router/ProfileRouter.py
 작성자: LSH
 갱신일: 2026-02-22
-설명: /api/v1/profile/me 조회/수정 API 라우터.
+설명: /api/v1/profile/me 조회/수정 API 라우터
 """
 
 from fastapi import APIRouter, Depends
@@ -58,7 +58,7 @@ def resolveServiceErrorCode(exc: Exception) -> str | None:
 
 def handleProfileError(exc: Exception) -> JSONResponse:
     """
-    설명: 프로필 서비스 예외를 표준 에러 응답(JSONResponse)으로 매핑한다. 호출 맥락의 제약을 기준으로 동작 기준을 확정
+    설명: 프로필 서비스 예외를 표준 에러 응답(JSONResponse)으로 매핑. 호출 맥락의 제약을 기준으로 동작 기준을 확정
     처리 규칙: DB/권한/입력/사용자없음 코드만 상태코드와 code를 고정 매핑한다.
     실패 동작: 매핑되지 않은 예외 코드는 라우터 상위에서 처리되도록 원본 예외를 다시 발생시킨다.
     반환값: 매핑된 JSONResponse.
@@ -91,7 +91,7 @@ def handleProfileError(exc: Exception) -> JSONResponse:
 @router.get("/me")
 async def getMyProfile(user=Depends(getCurrentUser)):
     """
-    설명: 인증 사용자 프로필을 조회한다. 호출 맥락의 제약을 기준으로 동작 기준을 확정
+    설명: 인증 사용자 프로필을 조회. 호출 맥락의 제약을 기준으로 동작 기준을 확정
     실패 동작: 서비스 예외는 handleProfileError에서 표준 코드/상태로 변환한다.
     반환값: successResponse(result=profile) 형태의 JSON 본문을 반환한다.
     갱신일: 2026-02-22

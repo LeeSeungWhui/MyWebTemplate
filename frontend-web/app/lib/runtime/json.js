@@ -5,10 +5,6 @@
  * 설명: JSON 파싱/복사 공통 유틸
  */
 
-/**
- * @description  JSON 문자열을 안전하게 파싱하고 실패 시 fallback을 반환한다. 입력/출력 계약을 함께 명시
- * @updated 2026-02-24
- */
 export const safeJsonParse = (jsonText, fallbackValue = null) => {
   if (typeof jsonText !== "string") return fallbackValue;
   try {
@@ -19,7 +15,7 @@ export const safeJsonParse = (jsonText, fallbackValue = null) => {
 };
 
 /**
- * @description  JSON 호환 객체를 깊은 복사하고 실패 시 fallback을 반환한다. 입력/출력 계약을 함께 명시
+ * @description JSON 호환 객체를 깊은 복사하고 실패 시 fallback을 반환. 입력/출력 계약을 함께 명시
  * @updated 2026-02-24
  */
 export const deepCloneValue = (targetValue, fallbackValue = targetValue) => {
@@ -28,7 +24,7 @@ export const deepCloneValue = (targetValue, fallbackValue = targetValue) => {
     try {
       return globalThis.structuredClone(targetValue);
     } catch (error) {
-      // 한글설명: 설명 fallback path below
+      // 한글설명: 설명 동작 설명
     }
   }
   try {

@@ -16,7 +16,7 @@ import LANG_KO from "./lang.ko";
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 /**
- * @description  비밀번호 찾기 이메일 입력/검증/제출 상태를 관리하는 화면을 렌더링한다. 입력/출력 계약을 함께 명시
+ * @description 비밀번호 찾기 이메일 입력/검증/제출 상태를 관리하는 화면을 렌더링. 입력/출력 계약을 함께 명시
  * 처리 규칙: 유효한 이메일 제출 시 submitted 상태로 전환해 안내 메시지를 노출한다.
  */
 const ForgotPasswordView = () => {
@@ -45,7 +45,7 @@ const ForgotPasswordView = () => {
   };
 
   /**
-   * @description 오류 발생 요소 포커스 이동.
+   * @description 오류 발생 요소 포커스 이동
    * 처리 규칙: ref.current가 있을 때 requestAnimationFrame 타이밍으로 focus를 호출한다.
    * @updated 2026-02-27
    */

@@ -31,7 +31,7 @@ const DONUT_HEIGHT = 180;
 const STATUS_ORDER = ["ready", "pending", "running", "done", "failed"];
 
 /**
- * @description  대시보드 요약 통계/차트/최근 목록 화면을 렌더링한다. 입력/출력 계약을 함께 명시
+ * @description 대시보드 요약 통계/차트/최근 목록 화면을 렌더링. 입력/출력 계약을 함께 명시
  * 처리 규칙: SSR 데이터가 있으면 즉시 사용하고, 없으면 API로 stats/list를 병렬 조회한다.
  */
 const DashboardView = ({ statList, dataList, initialError }) => {
@@ -70,7 +70,7 @@ const DashboardView = ({ statList, dataList, initialError }) => {
   };
 
   /**
-   * @description  에러 키를 사용자 노출 메시지로 매핑한다. 입력/출력 계약을 함께 명시
+   * @description 에러 키를 사용자 노출 메시지로 매핑. 입력/출력 계약을 함께 명시
    * 반환값: 매핑된 메시지 또는 null.
    * @updated 2026-02-27
    */
@@ -99,7 +99,7 @@ const DashboardView = ({ statList, dataList, initialError }) => {
   };
 
   /**
-   * @description  다양한 에러 표현(string/object/null)을 공통 shape로 정규화한다. 입력/출력 계약을 함께 명시
+   * @description 다양한 에러 표현(string/object/null)을 공통 shape로 정규화. 입력/출력 계약을 함께 명시
    * 반환값: `{key, code, requestId}` 구조 또는 null.
    * @updated 2026-02-27
    */

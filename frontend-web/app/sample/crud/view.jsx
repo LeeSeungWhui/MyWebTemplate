@@ -25,14 +25,14 @@ import EasyObj from "@/app/lib/dataset/EasyObj";
 import LANG_KO from "./lang.ko";
 
 /**
- * @description  공개 CRUD 샘플 화면을 렌더링한다. 입력/출력 계약을 함께 명시
+ * @description 공개 CRUD 샘플 화면을 렌더링. 입력/출력 계약을 함께 명시
  * 처리 규칙: 필터/선택/드로어 상태는 EasyObj(ui)로 유지하고 목록 데이터는 shared state로 동기화한다.
  * @param {{ mode: Object, initRows: Array }} props
  */
 const CrudDemoView = ({ initRows = [] }) => {
 
   /**
-   * @description  드로어 폼의 초기값 객체를 생성한다. 입력/출력 계약을 함께 명시
+   * @description 드로어 폼의 초기값 객체를 생성. 입력/출력 계약을 함께 명시
    * 반환값: 생성/수정 모드 전환 시 재사용하는 기본 폼 데이터.
    * @updated 2026-02-27
    */
@@ -46,7 +46,7 @@ const CrudDemoView = ({ initRows = [] }) => {
   });
 
   /**
-   * @description 현재 날짜 YYYY-MM-DD 문자열 생성.
+   * @description 현재 날짜 YYYY-MM-DD 문자열 생성
    * 반환값: 신규 행 createdAt 필드에 저장할 날짜 텍스트.
    * @updated 2026-02-27
    */

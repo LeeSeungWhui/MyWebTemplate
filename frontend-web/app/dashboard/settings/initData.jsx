@@ -24,7 +24,7 @@ export const SETTINGS_TAB = {
 };
 
 /**
- * @description  검색 파라미터에서 문자열 값을 안전하게 조회한다. 입력/출력 계약을 함께 명시
+ * @description 검색 파라미터에서 문자열 값을 안전하게 조회. 입력/출력 계약을 함께 명시
  * @returns {string}
  * @updated 2026-02-27
  */
@@ -50,7 +50,7 @@ export const normalizeSettingsTab = (searchParams) => {
 };
 
 /**
- * @description  탭 키(profile/system)를 Tab 컴포넌트 인덱스(0/1)로 변환한다. 입력/출력 계약을 함께 명시
+ * @description 탭 키(profile/system)를 Tab 컴포넌트 인덱스(0/1)로 변환. 입력/출력 계약을 함께 명시
  * 처리 규칙: system만 1로 매핑하고 나머지는 0으로 처리한다.
  * @returns {number} Tab 컴포넌트에서 사용하는 탭 인덱스
  * @updated 2026-02-27

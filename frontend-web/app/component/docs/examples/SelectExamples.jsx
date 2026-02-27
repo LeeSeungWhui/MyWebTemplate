@@ -8,7 +8,7 @@ import { useState } from 'react'
 import * as Lib from '@/app/lib'
 
 /**
- * @description  SelectExamples 구성 데이터를 반환한다. 입력/출력 계약을 함께 명시
+ * @description SelectExamples 구성 데이터를 반환. 입력/출력 계약을 함께 명시
  * @updated 2026-02-24
  * 처리 규칙: 입력값과 상태를 검증해 UI/데이터 흐름을 안전하게 유지한다.
  */
@@ -29,7 +29,7 @@ export const SelectExamples = () => {
   ])
 
   /**
-   * @description  직무 옵션의 현재 선택 id를 반환한다. 입력/출력 계약을 함께 명시
+   * @description 직무 옵션의 현재 선택 id를 반환. 입력/출력 계약을 함께 명시
    * @returns {string}
    * @updated 2026-02-27
    */

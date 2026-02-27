@@ -93,7 +93,7 @@ export const useSharedStore = create((set, get) => ({
 // 편의 훅: 서버/SSR 경고 방지를 위해 개별 셀렉터로 안정값만 반환
 
 /**
- * @description  사용자 캐시 상태(user)와 setter를 반환한다. 입력/출력 계약을 함께 명시
+ * @description 사용자 캐시 상태(user)와 setter를 반환. 입력/출력 계약을 함께 명시
  * @returns {{ user: any, setUser: Function }}
  */
 export const useUser = () => {
@@ -103,7 +103,7 @@ export const useUser = () => {
 };
 
 /**
- * @description  공용 shared 상태와 patch setter를 반환한다. 입력/출력 계약을 함께 명시
+ * @description 공용 shared 상태와 patch setter를 반환. 입력/출력 계약을 함께 명시
  * @returns {{ shared: Object, setShared: Function }}
  */
 export const useSharedData = () => {
@@ -150,7 +150,7 @@ export const useGlobalUi = () => {
 };
 
 /**
- * 설명: React 훅 컨텍스트 밖에서 안전하게 config 스냅샷을 조회한다. 입력/출력 계약을 함께 명시
+ * 설명: React 훅 컨텍스트 밖에서 안전하게 config 스냅샷 조회. 입력/출력 계약 명시
  * 갱신일: 2026-02-22
  */
 export const getConfigSnapshot = () => {
@@ -160,7 +160,7 @@ export const getConfigSnapshot = () => {
 };
 
 /**
- * 설명: React 훅 컨텍스트 밖에서 전역 UI 액션 스냅샷을 조회한다. 입력/출력 계약을 함께 명시
+ * 설명: React 훅 컨텍스트 밖에서 전역 UI 액션 스냅샷 조회. 입력/출력 계약 명시
  * 갱신일: 2026-02-22
  */
 export const getGlobalUiActionsSnapshot = () => {

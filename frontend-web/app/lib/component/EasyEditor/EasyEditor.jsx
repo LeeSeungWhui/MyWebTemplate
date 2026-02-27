@@ -14,7 +14,7 @@ import useEditorUpload from './useEditorUpload';
 import { COMMON_COMPONENT_LANG_KO } from '@/app/common/i18n/lang.ko';
 
 /**
- * @description  에디터 툴바 버튼의 활성/비활성 스타일과 접근성 속성을 일관되게 렌더링한다. 입력/출력 계약을 함께 명시
+ * @description 에디터 툴바 버튼의 활성/비활성 스타일과 접근성 속성을 일관되게 렌더링. 입력/출력 계약을 함께 명시
  * 처리 규칙: disabled=true면 클릭 핸들러를 연결하지 않고 aria-pressed/aria-disabled를 유지한다.
  * @param {Object} props
  * @returns {JSX.Element}
@@ -76,7 +76,7 @@ const alignments = [
 const EMPTY_EXTENSIONS = [];
 
 /**
- * @description  Tiptap 기반 에디터 본문/툴바/업로드 동작을 통합해 렌더링한다. 입력/출력 계약을 함께 명시
+ * @description Tiptap 기반 에디터 본문/툴바/업로드 동작을 통합해 렌더링. 입력/출력 계약을 함께 명시
  * 처리 규칙: readOnly/HTML 모드 상태에 따라 편집 가능 여부와 툴바 동작을 동기화한다.
  * 부작용: 이미지/파일 업로드 핸들러 호출과 dataObj(onChange/onValueChange) 반영이 발생할 수 있다.
  * @returns {JSX.Element}

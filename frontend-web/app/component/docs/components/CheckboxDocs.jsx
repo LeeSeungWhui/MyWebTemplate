@@ -4,16 +4,12 @@
  * 갱신일: 2025-09-13
  * 설명: Checkbox 컴포넌트 문서
  */
-/**
- * 파일명: CheckboxDocs.jsx
- * 설명: Checkbox 컴포넌트 문서
- */
 import { CheckboxExamples } from '../examples/CheckboxExamples';
 import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';
 
 /**
- * @description  Checkbox 문서 섹션을 구성하고 예제 목록을 렌더링한다. 입력/출력 계약을 함께 명시
+ * @description Checkbox 문서 섹션을 구성하고 예제 목록을 렌더링. 입력/출력 계약을 함께 명시
  * @returns {JSX.Element}
  */
 const CheckboxDocs = () => {

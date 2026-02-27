@@ -2,7 +2,7 @@
 파일명: backend/lib/Logger.py
 작성자: LSH
 갱신일: 2025-09-07
-설명: 콘솔/파일 로거 설정. 포맷은 JSON 라인(ts/level/requestId/msg 등).
+설명: 콘솔/파일 로거 설정. 포맷은 JSON 라인(ts/level/requestId/msg 등)
 """
 
 import json
@@ -31,7 +31,7 @@ logger: logging.Logger = logging.getLogger()
 
 def resolveLogLevel() -> int:
     """
-    설명: 환경변수 LOG_LEVEL 값을 logging 레벨 상수로 변환한다. 호출 맥락의 제약을 기준으로 동작 기준을 확정
+    설명: 환경변수 LOG_LEVEL 값을 logging 레벨 상수로 변환. 호출 맥락의 제약을 기준으로 동작 기준을 확정
     처리 규칙: 미지원 문자열이면 기본 INFO 레벨을 사용한다.
     반환값: logging 모듈의 정수 레벨 상수를 반환한다.
     갱신일: 2026-02-24

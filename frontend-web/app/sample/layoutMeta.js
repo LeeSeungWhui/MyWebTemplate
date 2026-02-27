@@ -11,7 +11,7 @@ const { layoutMeta } = LANG_KO;
 const MENU_TEMPLATE_LIST = layoutMeta.menuList.map((item) => ({ ...item }));
 
 /**
- * @description  공개 샘플 pathname을 메뉴 식별자(routeKey)로 매핑한다. 입력/출력 계약을 함께 명시
+ * @description 공개 샘플 pathname을 메뉴 식별자(routeKey)로 매핑. 입력/출력 계약을 함께 명시
  * 반환값: demo/dashboard/crud/form/admin 중 하나의 routeKey.
  * @updated 2026-02-27
  */
@@ -52,7 +52,7 @@ const resolveSubtitle = (routeKey) => {
 };
 
 /**
- * @description  현재 공개 샘플 경로 기준으로 헤더/사이드바 메타를 계산한다. 입력/출력 계약을 함께 명시
+ * @description 현재 공개 샘플 경로 기준으로 헤더/사이드바 메타를 계산. 입력/출력 계약을 함께 명시
  * @param {string} pathname 현재 pathname
  * @returns {{ title:string, subtitle:string, text:string, menuList:Array }}
  */

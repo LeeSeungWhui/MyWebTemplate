@@ -20,7 +20,7 @@ const LOGOUT_PATH = "/api/v1/auth/logout";
 const ACCESS_COOKIE_NAME = "access_token";
 
 // refresh_token 기반 singleflight(동시 탭/요청 경합 완화)
-// 한글설명: 설명 key: sha256(refresh_token)
+// 한글설명: 설명 동작 설명
 const refreshInflight = new Map();
 
 /**
@@ -94,7 +94,7 @@ function collectSetCookies(res) {
 }
 
 /**
- * @description Set-Cookie 목록에서 지정 쿠키의 값만 추출
+ * @description Cookie 목록에서 지정 쿠키의 값만 추출
  * 처리 규칙: 각 쿠키의 첫 key=value 페어를 파싱해 이름이 일치하는 항목의 값을 반환한다.
  * @updated 2026-02-27
  */
@@ -114,7 +114,7 @@ function extractCookieValueFromSetCookies(setCookies, cookieName) {
 }
 
 /**
- * @description  refresh token을 singleflight key 용 해시로 변환한다. 입력/출력 계약을 함께 명시
+ * @description refresh token을 singleflight key 용 해시로 변환. 입력/출력 계약을 함께 명시
  * 처리 규칙: SHA-256 hex 문자열을 반환하고 해시 실패/무효 입력은 null을 반환한다.
  * @updated 2026-02-27
  */
@@ -194,7 +194,7 @@ async function refreshOnce(req, backendHost, frontendOrigin) {
   if (inflight) return inflight;
 
   /**
-   * @description refresh 엔드포인트 호출과 Set-Cookie/Access 토큰 추출을 수행하는 내부 태스크.
+   * @description refresh 엔드포인트 호출과 Set-Cookie/Access 토큰 추출을 수행하는 내부 태스크
    * 처리 규칙: refresh 응답 성공 + access_token 존재 조건을 모두 만족해야 ok=true를 반환한다.
    * @updated 2026-02-27
    */

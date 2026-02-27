@@ -7,6 +7,11 @@
 import { useState, forwardRef, useEffect, useRef } from 'react';
 import { getBoundValue, setBoundValue, buildCtx, fireValueHandlers } from '../binding';
 
+/**
+ * @description 렌더링 및 상호작용 처리
+ * 처리 규칙: 전달된 props와 바인딩 값을 기준으로 UI 상태를 계산하고 변경 이벤트를 상위로 전달한다.
+ * @updated 2026-02-27
+ */
 const Textarea = forwardRef(({ 
   dataObj,
   dataKey,
@@ -22,6 +27,7 @@ const Textarea = forwardRef(({
   placeholder,
   ...props
 }, ref) => {
+
   const isPropControlled = propValue !== undefined;
   const isData = !!(dataObj && dataKey);
 
@@ -30,7 +36,7 @@ const Textarea = forwardRef(({
   const composingRef = useRef(false);
 
   /**
-   * @description  prop/dataObj/internal 상태 우선순위에 따라 현재 표시값을 계산한다. 입력/출력 계약을 함께 명시
+   * @description prop/dataObj/internal 상태 우선순위에 따라 현재 표시값을 계산. 입력/출력 계약을 함께 명시
    * @returns {string}
    * @updated 2026-02-27
    */
@@ -97,7 +103,7 @@ const Textarea = forwardRef(({
 Textarea.displayName = 'Textarea';
 
 /**
- * @description Textarea 컴포넌트를 기본 export
+ * @description 를 기본 export
  * @returns {React.ComponentType} Textarea 컴포넌트
  */
 export default Textarea;

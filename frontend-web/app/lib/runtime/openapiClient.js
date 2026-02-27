@@ -11,7 +11,7 @@ let cachedOpenApi = null;
 let cachedOpenApiPromise = null;
 
 /**
- * @description `/openapi.json` 스키마를 로드해 openapi-client-axios 인스턴스를 초기화
+ * @description `/openapi. json` 스키마를 로드해 openapi-client-axios 인스턴스를 초기화
  * 실패 동작: 스키마가 객체가 아니거나 라이브러리 로딩 실패 시 Error를 던진다.
  * @updated 2026-02-27
  */
@@ -38,7 +38,7 @@ async function loadOpenApiClient() {
 }
 
 /**
- * @description  OpenAPI 클라이언트를 캐시 기반으로 단일 인스턴스로 반환한다. 입력/출력 계약을 함께 명시
+ * @description OpenAPI 클라이언트를 캐시 기반으로 단일 인스턴스로 반환. 입력/출력 계약을 함께 명시
  * 처리 규칙: 초기 로딩 중에는 Promise 캐시를 공유해 중복 초기화를 방지한다.
  * @updated 2026-02-27
  */
@@ -81,7 +81,7 @@ function buildQueryString(params) {
 }
 
 /**
- * @description 기존 URL과 query string 병합 기반 최종 요청 URL 생성.
+ * @description 기존 URL과 query string 병합 기반 최종 요청 URL 생성
  * 반환값: 파라미터가 없으면 원본 URL, 있으면 `?` 또는 `&`가 반영된 URL.
  * @updated 2026-02-27
  */

@@ -8,15 +8,21 @@ import { forwardRef, useEffect } from 'react';
 import Icon from '../Icon';
 import styles from './Toast.module.css';
 
+/**
+ * @description 렌더링 및 상호작용 처리
+ * 처리 규칙: 전달된 props와 바인딩 값을 기준으로 UI 상태를 계산하고 변경 이벤트를 상위로 전달한다.
+ * @updated 2026-02-27
+ */
 const Toast = forwardRef(({
     message,
-    type = 'info',  // 한글설명: 설명 info, success, warning, error
-    position = 'bottom-center',  // 한글설명: 설명 top-left, top-center, top-right, bottom-left, bottom-center, bottom-right
+    type = 'info',  // 한글설명: 설명 동작 설명
+    position = 'bottom-center',  // 한글설명: 설명 동작 설명
     isExiting = false,
     onClose,
     className = '',
     ...props
 }, ref) => {
+
     const types = {
         info: {
             icon: 'ri:RiInformationLine',
@@ -119,7 +125,7 @@ const Toast = forwardRef(({
 Toast.displayName = 'Toast';
 
 /**
- * @description Toast 컴포넌트를 기본 export
+ * @description 를 기본 export
  * @returns {React.ComponentType} Toast 컴포넌트
  */
 export default Toast; 

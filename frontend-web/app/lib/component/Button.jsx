@@ -7,6 +7,11 @@
 import { forwardRef } from 'react';
 import Icon from './Icon';
 
+/**
+ * @description 렌더링 및 상호작용 처리
+ * 처리 규칙: 전달된 props와 바인딩 값을 기준으로 UI 상태를 계산하고 변경 이벤트를 상위로 전달한다.
+ * @updated 2026-02-27
+ */
 const Button = forwardRef(({
     children,
     type = 'button',
@@ -17,14 +22,15 @@ const Button = forwardRef(({
     iconPosition = 'left',
     disabled = false,
     loading = false,
-    status, // 한글설명: 설명 'idle' | 'loading' | 'error' | 'success'
+    status, // 한글설명: 설명 동작 설명
     ...props
 }, ref) => {
+
     const baseStyle = "inline-flex items-center justify-center font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors";
 
     const variants = {
         primary: "bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500",
-        // 한글설명: 설명 inverse of primary: blue text, white background, blue border
+        // 한글설명: 설명 동작 설명
         secondary: "border border-blue-600 text-blue-600 bg-white hover:bg-blue-50 focus:ring-blue-500",
         outline: "border border-gray-300 text-gray-700 bg-white hover:bg-gray-50 focus:ring-blue-500",
         danger: "bg-red-600 text-white hover:bg-red-700 focus:ring-red-500",

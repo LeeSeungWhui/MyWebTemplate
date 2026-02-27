@@ -9,7 +9,7 @@ import useSwrLib from "swr";
 import { apiJSON } from "@/app/lib/runtime/api";
 
 /**
- * @description  apiJSON 기반 SWR fetcher를 구성한다. 입력/출력 계약을 함께 명시
+ * @description apiJSON 기반 SWR fetcher를 구성. 입력/출력 계약을 함께 명시
  * @param {string|string[]|null} key
  * @param {string} path
  * @param {Object} [options]

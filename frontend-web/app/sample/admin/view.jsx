@@ -67,14 +67,14 @@ const ROLE_PERMISSION_MAP = {
   const SYSTEM_DEFAULT = { ...LANG_KO.view.systemDefault };
 
 /**
- * @description  공개 관리자 화면 샘플를 렌더링한다. 입력/출력 계약을 함께 명시
+ * @description 공개 관리자 화면 샘플를 렌더링. 입력/출력 계약을 함께 명시
  * 처리 규칙: 사용자 탭은 목록/드로어 CRUD를, 시스템 탭은 설정 토글 상태를 EasyObj 기반으로 유지한다.
  * @param {{ mode: Object, initRows: Array }} props
  */
 const AdminDemoView = ({ initRows = [] }) => {
 
   /**
-   * @description  사용자 드로어 폼의 기본 모델을 생성한다. 입력/출력 계약을 함께 명시
+   * @description 사용자 드로어 폼의 기본 모델을 생성. 입력/출력 계약을 함께 명시
    * 반환값: 생성 모드 초기화 시 재사용하는 사용자 폼 기본값 객체.
    * @updated 2026-02-27
    */
@@ -90,7 +90,7 @@ const AdminDemoView = ({ initRows = [] }) => {
   });
 
   /**
-   * @description 현재 날짜의 사용자 생성일 필드용 YYYY-MM-DD 문자열 생성.
+   * @description 현재 날짜의 사용자 생성일 필드용 YYYY-MM-DD 문자열 생성
    * 반환값: 신규 사용자 createdAt 값으로 쓰는 날짜 텍스트.
    * @updated 2026-02-27
    */

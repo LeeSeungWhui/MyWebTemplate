@@ -36,7 +36,7 @@ const ALLOWED_STATUS = new Set(
 const ALLOWED_SORT = new Set(SORT_FILTER_LIST.map((item) => item.value));
 
 /**
- * @description  쿼리 파라미터 원본 값을 문자열로 정규화한다. 입력/출력 계약을 함께 명시
+ * @description 쿼리 파라미터 원본 값을 문자열로 정규화. 입력/출력 계약을 함께 명시
  * @param {unknown} rawValue
  * @returns {string} 첫 값 기준 문자열
  * @updated 2026-02-27
@@ -62,7 +62,7 @@ const toPositiveInt = (rawValue, defaultValue = 1) => {
 };
 
 /**
- * @description  URL 검색 파라미터를 업무 목록 필터 모델(keyword/status/sort/page)로 정규화한다. 입력/출력 계약을 함께 명시
+ * @description URL 검색 파라미터를 업무 목록 필터 모델(keyword/status/sort/page)로 정규화. 입력/출력 계약을 함께 명시
  * 처리 규칙: 허용 목록 밖 status/sort는 기본값("", DEFAULT_SORT)으로 보정한다.
  * @returns {{ keyword: string, status: string, sort: string, page: number }} 목록 조회 필터 모델
  * @updated 2026-02-27

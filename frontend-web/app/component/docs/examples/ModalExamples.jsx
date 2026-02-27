@@ -9,7 +9,7 @@ import * as Lib from '@/app/lib';
 import { useState } from 'react';
 
 /**
- * @description  ModalExamples 구성 데이터를 반환한다. 입력/출력 계약을 함께 명시
+ * @description ModalExamples 구성 데이터를 반환. 입력/출력 계약을 함께 명시
  * @returns {Array<{ component: JSX.Element, code: string }>}
  * @updated 2026-02-24
  */

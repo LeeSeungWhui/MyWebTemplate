@@ -203,7 +203,7 @@ const Select = forwardRef((props, ref) => {
           enabled={!disabled}
           selectedValue={currentValue}
           onValueChange={(val, idx) => {
-            // 한글설명: 설명 ignore placeholder selection when disabled
+            // 한글설명: 설명 동작 설명
             handleSelect(val);
           }}
           style={[

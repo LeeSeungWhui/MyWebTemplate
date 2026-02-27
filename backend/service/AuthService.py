@@ -2,7 +2,7 @@
 파일명: backend/service/AuthService.py
 작성자: LSH
 갱신일: 2026-02-25
-설명: 인증 도메인 서비스. 비즈니스 로직만 포함한다(HTTP/세션은 라우터 책임).
+설명: 인증 도메인 서비스. 비즈니스 로직만 포함한다(HTTP/세션은 라우터 책임)
 """
 
 import uuid
@@ -41,9 +41,9 @@ tokenStateStoreReady = False
 tokenStateStoreWarned = False
 
 # 인메모리 폴백 스토어(DB 저장소 사용 불가 시 사용)
-# key: refresh jti, value: expiresAtMs(refresh exp 기반 TTL)
+# 키는 refresh jti, 값은 refresh 만료 기준 ms TTL
 revokedRefreshJtiStore: dict[str, int] = {}
-# key: 이전 refresh jti, value: {"expiresAtMs": int, "tokenPayload": dict}
+# 키는 이전 refresh jti, 값은 expiresAtMs/tokenPayload 객체
 refreshGraceStore: dict[str, dict[str, Any]] = {}
 
 
@@ -65,7 +65,7 @@ def _toBool(rawValue: object, defaultValue: bool = False) -> bool:
 
 def _getRuntimeMode() -> str:
     """
-    설명: 인증 분기에서 사용하는 서버 런타임 모드 식별자 계산 규칙.
+    설명: 인증 분기에서 사용하는 서버 런타임 모드 식별자 계산 규칙
     처리 규칙: SERVER.runtime 설정값을 우선 사용하고, 비어 있으면 ENV 환경변수를 대체 사용한다.
     반환값: 공백 제거/대문자화가 적용된 런타임 문자열.
     갱신일: 2026-02-24
@@ -84,7 +84,7 @@ def _getRuntimeMode() -> str:
 
 def allowMemoryTokenStateFallback() -> bool:
     """
-    설명: 토큰 상태 저장소 DB 장애 시 인메모리 폴백 허용 여부 결정 규칙.
+    설명: 토큰 상태 저장소 DB 장애 시 인메모리 폴백 허용 여부 결정 규칙
     우선순위: AUTH_ALLOW_MEMORY_TOKEN_STATE > runtime(TEST/CI)
     갱신일: 2026-02-24
     """
@@ -97,7 +97,7 @@ def allowMemoryTokenStateFallback() -> bool:
 
 def tokenStateStoreUnavailableError(reason: str) -> RuntimeError:
     """
-    설명: 토큰 상태 저장소 미가용 상황을 RuntimeError로 래핑하는 헬퍼.
+    설명: 토큰 상태 저장소 미가용 상황을 RuntimeError로 래핑하는 헬퍼
     반환값: 원인(reason)이 포함된 RuntimeError 인스턴스.
     갱신일: 2026-02-24
     """
@@ -107,7 +107,7 @@ def tokenStateStoreUnavailableError(reason: str) -> RuntimeError:
 
 def _getTokenStateStoreDbManager():
     """
-    설명: 토큰 상태 저장에 사용할 DB 매니저 조회 헬퍼.
+    설명: 토큰 상태 저장에 사용할 DB 매니저 조회 헬퍼
     반환값: DB 매니저 또는 None.
     갱신일: 2026-02-24
     """
@@ -119,7 +119,7 @@ def _getTokenStateStoreDbManager():
 
 async def ensureTokenStateStore() -> bool:
     """
-    설명: 리프레시 토큰 상태 저장소(DB)의 사용 가능 여부를 점검한다(필요 시 테이블 생성 DDL 포함).
+    설명: 리프레시 토큰 상태 저장소(DB)의 사용 가능 여부를 점검(필요 시 테이블 생성 DDL 포함)
     반환값: DB 저장소 준비 완료면 True, 인메모리 폴백 경로면 False, 비허용 장애는 예외를 발생시킨다.
     갱신일: 2026-02-26
     """
@@ -178,7 +178,7 @@ async def cleanupTokenStateStore(nowMs: int) -> bool:
 
 async def getTokenStateEntry(stateType: str, tokenJti: str) -> dict[str, Any] | None:
     """
-    설명: DB 토큰 상태 조회 결과를 expiresAtMs/tokenPayload 구조로 복원하는 로직.
+    설명: DB 토큰 상태 조회 결과를 expiresAtMs/tokenPayload 구조로 복원하는 로직
     반환값: expiresAtMs/tokenPayload를 포함한 상태 dict 또는 None.
     갱신일: 2026-02-24
     """
@@ -300,7 +300,7 @@ def cleanupRefreshGraceStore(nowMs: int) -> None:
 
 def cleanupRevokedRefreshJtiStore(nowMs: int) -> None:
     """
-    설명: revoked refresh jti store에서 만료된 항목을 제거한다(TTL).
+    설명: revoked refresh jti store에서 만료된 항목을 제거(TTL)
     부작용: 전역 revokedRefreshJtiStore를 직접 갱신한다.
     갱신일: 2026-01-18
     """
@@ -320,7 +320,7 @@ def cleanupRevokedRefreshJtiStore(nowMs: int) -> None:
 
 def _nowMs() -> int:
     """
-    설명: 인증 감사/토큰 TTL 계산에 공통으로 쓰는 UTC epoch(ms) 생성 헬퍼.
+    설명: 인증 감사/토큰 TTL 계산에 공통으로 쓰는 UTC epoch(ms) 생성 헬퍼
     처리 규칙: 시스템 현재 시각을 timezone.utc 기준으로 계산한다.
     반환값: 밀리초 단위 Unix epoch 정수.
     갱신일: 2026-02-24
@@ -330,7 +330,7 @@ def _nowMs() -> int:
 
 def auditLog(event: str, username: str | None, success: bool, meta: dict[str, Any] | None = None) -> None:
     """
-    설명: 로그인/리프레시/로그아웃 등 인증 이벤트 감사 로그 기록.
+    설명: 로그인/리프레시/로그아웃 등 인증 이벤트 감사 로그 기록
     부작용: 구조화된 JSON 로그를 남기며, 로깅 실패는 인증 흐름을 차단하지 않는다.
     갱신일: 2025-12-03
     """
@@ -357,7 +357,7 @@ def auditLog(event: str, username: str | None, success: bool, meta: dict[str, An
 
 def _extractExpMs(payload: dict[str, Any], nowMs: int) -> int:
     """
-    설명: JWT payload의 exp를 ms로 변환한다. 없으면 refreshExpire 설정으로 추정
+    설명: JWT payload의 exp를 ms로 변환. 없으면 refreshExpire 설정으로 추정
     반환값: 밀리초 단위 만료 시각(expMs).
     갱신일: 2026-01-18
     """
@@ -376,7 +376,7 @@ def _extractExpMs(payload: dict[str, Any], nowMs: int) -> int:
 
 async def me(user):
     """
-    설명: 인증 컨텍스트 사용자 객체를 API 응답용 최소 payload로 매핑하는 로직.
+    설명: 인증 컨텍스트 사용자 객체를 API 응답용 최소 payload로 매핑하는 로직
     반환값: username 필드를 포함한 사용자 식별 payload dict.
     갱신일: 2026-02-25
     """
@@ -385,7 +385,7 @@ async def me(user):
 
 async def login(payload: dict, rememberMe: bool = False) -> dict | None:
     """
-    설명: 로그인 요청의 자격 증명 검증과 토큰 발급/감사로그 기록을 묶은 오케스트레이션.
+    설명: 로그인 요청의 자격 증명 검증과 토큰 발급/감사로그 기록을 묶은 오케스트레이션
     반환값: 인증 성공 시 user/token dict, 실패 시 None.
     갱신일: 2026-02-22
     """
@@ -406,7 +406,7 @@ async def login(payload: dict, rememberMe: bool = False) -> dict | None:
 
 def hashPasswordPbkdf2(plain: str, iterations: int = 260000) -> str:
     """
-    설명: 평문 비밀번호를 저장 규격(pbkdf2$...) 문자열로 인코딩하는 해시 유틸.
+    설명: 평문 비밀번호를 저장 규격(pbkdf2$. ) 문자열로 인코딩하는 해시 유틸
     반환값: `pbkdf2$iterations$salt$hash` 형식의 저장용 해시 문자열.
     갱신일: 2026-02-22
     """
@@ -468,7 +468,7 @@ def isDuplicateTokenStateConstraintError(error: Exception) -> bool:
 
 async def signup(payload: dict) -> tuple[dict | None, str | None]:
     """
-    설명: 회원가입 입력 검증, 중복 확인, 계정 생성, 결과 코드 매핑까지 처리하는 흐름.
+    설명: 회원가입 입력 검증, 중복 확인, 계정 생성, 결과 코드 매핑까지 처리하는 흐름
     반환값: (성공 결과 dict, None) 또는 (None, 에러코드).
     갱신일: 2026-02-22
     """
@@ -534,7 +534,7 @@ async def signup(payload: dict) -> tuple[dict | None, str | None]:
 
 def session(payload: dict) -> dict:
     """
-    설명: 세션 조회 원본 payload를 authenticated 중심 표준 결과 형태로 정규화하는 매퍼.
+    설명: 세션 조회 원본 payload를 authenticated 중심 표준 결과 형태로 정규화하는 매퍼
     반환값: authenticated/userId/name 필드를 갖는 세션 결과 dict.
     갱신일: 2026-02-22
     """
@@ -549,7 +549,7 @@ def session(payload: dict) -> dict:
 
 def csrf(_: dict | None = None) -> dict:
     """
-    설명: 프런트 초기 연동용 임시 CSRF 응답 payload 생성 유틸.
+    설명: 프런트 초기 연동용 임시 CSRF 응답 payload 생성 유틸
     반환값: uuid 기반 csrf 토큰 dict.
     갱신일: 2026-02-22
     """
@@ -669,7 +669,7 @@ async def revokeRefreshToken(refreshToken: str | None) -> None:
 
 def verifyPassword(plain: str, stored: str) -> bool:
     """
-    설명: 저장 해시 규격(pbkdf2/bcrypt)에 맞춰 평문 비밀번호 일치 여부를 판정하는 검증기.
+    설명: 저장 해시 규격(pbkdf2/bcrypt)에 맞춰 평문 비밀번호 일치 여부를 판정하는 검증기
     반환값: 해시 검증 성공 여부(boolean).
     갱신일: 2026-02-22
     """
@@ -696,7 +696,7 @@ def verifyPassword(plain: str, stored: str) -> bool:
 
 async def authenticateUser(payload: dict) -> tuple[dict | None, str | None]:
     """
-    설명: 로그인 payload에서 자격 증명 확인 후 사용자 도메인 객체를 조회하는 인증 단계.
+    설명: 로그인 payload에서 자격 증명 확인 후 사용자 도메인 객체를 조회하는 인증 단계
     반환값: (인증 사용자 dict, username) 또는 (None, None).
     갱신일: 2026-02-22
     """
@@ -720,7 +720,7 @@ async def authenticateUser(payload: dict) -> tuple[dict | None, str | None]:
 
 def decodeRefreshTokenPayload(refreshToken: str) -> dict[str, Any] | None:
     """
-    설명: 리프레시 토큰을 디코드해 페이로드를 반환한다. typ이 refresh가 아니면 None.
+    설명: 리프레시 토큰을 디코드해 페이로드를 반환. typ이 refresh가 아니면 None
     반환값: 유효한 refresh 토큰 payload dict 또는 None.
     갱신일: 2025-12-03
     """
@@ -739,7 +739,7 @@ def decodeRefreshTokenPayload(refreshToken: str) -> dict[str, Any] | None:
 
 def issueTokens(username: str, remember: bool = False) -> dict:
     """
-    설명: 사용자/remember 조건을 반영한 Access/Refresh 토큰 페이로드 구성 로직.
+    설명: 사용자/remember 조건을 반영한 Access/Refresh 토큰 페이로드 구성 로직
     반환값: access/refresh 토큰 문자열과 만료 정보를 포함한 dict.
     갱신일: 2026-02-22
     """

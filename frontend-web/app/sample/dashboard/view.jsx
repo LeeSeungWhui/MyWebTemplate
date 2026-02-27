@@ -16,7 +16,7 @@ import { useDemoSharedState } from "@/app/sample/demoSharedState";
 import LANG_KO from "./lang.ko";
 
 /**
- * @description  공개 샘플 대시보드 화면을 렌더링한다. 입력/출력 계약을 함께 명시
+ * @description 공개 샘플 대시보드 화면을 렌더링. 입력/출력 계약을 함께 명시
  * 처리 규칙: CRUD shared state를 기반으로 통계/차트/최근 목록 파생 데이터를 계산해 표시한다.
  * @param {{ initRows:Array, ctaList:Array }} props
  */
@@ -28,7 +28,7 @@ const DemoDashboardView = ({
   const statusOrder = ["ready", "pending", "running", "done", "failed"];
 
   /**
-   * @description  금액 숫자를 로케일 포맷 문자열로 변환한다. 입력/출력 계약을 함께 명시
+   * @description 금액 숫자를 로케일 포맷 문자열로 변환. 입력/출력 계약을 함께 명시
    * 반환값: NaN이면 0 텍스트, 정상값이면 locale 기반 숫자 문자열.
    * @updated 2026-02-27
    */
@@ -39,7 +39,7 @@ const DemoDashboardView = ({
   };
 
   /**
-   * @description  행 목록을 상태별 건수/합계 금액 요약 배열로 변환한다. 입력/출력 계약을 함께 명시
+   * @description 행 목록을 상태별 건수/합계 금액 요약 배열로 변환. 입력/출력 계약을 함께 명시
    * 반환값: statusOrder 순서가 보장된 `{status,count,amountSum}` 리스트.
    * @updated 2026-02-27
    */
@@ -64,7 +64,7 @@ const DemoDashboardView = ({
   };
 
   /**
-   * @description  행 목록에서 월별 건수/금액 추이 데이터를 생성한다. 입력/출력 계약을 함께 명시
+   * @description 행 목록에서 월별 건수/금액 추이 데이터를 생성. 입력/출력 계약을 함께 명시
    * 처리 규칙: `YYYY-MM` 키로 집계 후 월 오름차순 정렬해 `n월` 라벨로 변환한다.
    * @updated 2026-02-27
    */
@@ -99,7 +99,7 @@ const DemoDashboardView = ({
   };
 
   /**
-   * @description 최근 생성일 기준 상위 5건 업무 목록 표 데이터 생성.
+   * @description 최근 생성일 기준 상위 5건 업무 목록 표 데이터 생성
    * 처리 규칙: createdAt 내림차순, 동률 시 id 내림차순으로 정렬한다.
    * @updated 2026-02-27
    */

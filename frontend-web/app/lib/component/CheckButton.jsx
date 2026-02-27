@@ -7,6 +7,11 @@
 import React, { useState, useEffect } from 'react';
 import { getBoundValue, setBoundValue, buildCtx, fireValueHandlers } from '../binding';
 
+/**
+ * @description 렌더링 및 상호작용 처리
+ * 처리 규칙: 전달된 props와 바인딩 값을 기준으로 UI 상태를 계산하고 변경 이벤트를 상위로 전달한다.
+ * @updated 2026-02-27
+ */
 const CheckButton = React.forwardRef(({
     children,
     name,
@@ -20,6 +25,7 @@ const CheckButton = React.forwardRef(({
     color = "primary",
     ...props
 }, ref) => {
+
     const isControlled = propChecked !== undefined;
     const isDataObjControlled = dataObj && (dataKey || name);
 
@@ -60,7 +66,7 @@ const CheckButton = React.forwardRef(({
         }
 
         const ctx = buildCtx({ dataKey: dataKeyName, dataObj, source: 'user', dirty: true, valid: null });
-        try { event.target.value = newChecked; } catch (_) { /* 한글설명: 설명 ignore read-only */ }
+        try { event.target.value = newChecked; } catch (_) { /* 한글설명: 설명 동작 설명 */ }
         fireValueHandlers({
             onChange,
             onValueChange,
@@ -71,7 +77,7 @@ const CheckButton = React.forwardRef(({
     };
 
     /**
-     * @description  controlled/dataObj/internal 우선순위로 현재 체크 상태를 계산한다. 입력/출력 계약을 함께 명시
+     * @description controlled/dataObj/internal 우선순위로 현재 체크 상태를 계산. 입력/출력 계약을 함께 명시
      * @returns {boolean}
      * @updated 2026-02-27
      */
@@ -125,7 +131,7 @@ const CheckButton = React.forwardRef(({
 CheckButton.displayName = 'CheckButton';
 
 /**
- * @description CheckButton 컴포넌트를 기본 export
+ * @description 를 기본 export
  * @returns {React.ComponentType} CheckButton 컴포넌트
  */
 export default CheckButton;

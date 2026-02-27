@@ -14,7 +14,7 @@ import CodeBlock from '../shared/CodeBlock';
  */
 
 /**
- * @description  Stat 문서 섹션을 구성하고 예제 목록을 렌더링한다. 입력/출력 계약을 함께 명시
+ * @description Stat 문서 섹션을 구성하고 예제 목록을 렌더링. 입력/출력 계약을 함께 명시
  * @returns {JSX.Element}
  */
 const StatDocs = () => {

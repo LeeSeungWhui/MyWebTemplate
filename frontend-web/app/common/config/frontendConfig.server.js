@@ -10,13 +10,13 @@ import { safeJsonParse } from "@/app/lib/runtime/json";
 let cachedConfig = null
 
 /**
- * @description  서버 런타임 여부를 반환한다. 입력/출력 계약을 함께 명시
+ * @description 서버 런타임 여부를 반환. 입력/출력 계약을 함께 명시
  * @returns {boolean}
  */
 const isServerRuntime = () => typeof window === 'undefined'
 
 /**
- * 설명: config.ini 파일을 읽어 JSON 객체로 변환한다. 입력/출력 계약을 함께 명시
+ * 설명: config.ini 파일을 읽어 JSON 객체로 변환. 입력/출력 계약 명시
  * 우선순위: config.ini > config_prod.ini > config_dev.ini (env 변수 미사용)
  */
 export async function loadFrontendConfig() {
@@ -60,8 +60,8 @@ export async function loadFrontendConfig() {
 }
 
 /**
- * 설명: INI 문자열을 객체로 변환한다. 입력/출력 계약을 함께 명시
- * 섹션([SECTION])은 객체 키가 되고, 섹션 밖 키는 최상위에 매핑한다.
+ * 설명: INI 문자열을 객체로 변환. 입력/출력 계약 명시
+ * 섹션([SECTION])은 객체 키, 섹션 밖 키는 최상위 매핑
  */
 export function parseIni(iniText) {
   const result = {}
@@ -88,12 +88,12 @@ export function parseIni(iniText) {
 }
 
 /**
- * 설명: INI 값 문자열을 타입에 맞게 변환한다. 입력/출력 계약을 함께 명시
- * true/false, 숫자, JSON 객체/배열 포맷을 자동 변환하고 실패 시 문자열로 유지한다.
+ * 설명: INI 값 문자열을 타입에 맞게 변환. 입력/출력 계약 명시
+ * true/false, 숫자, JSON 객체/배열 포맷 자동 변환, 실패 시 문자열 유지
  */
 function coerceValue(valueRaw) {
   if (valueRaw === '') return ''
-  // 한글설명: 설명 Strip wrapping quotes if present (e.g., 'DEV' or "DEV")
+  // 한글설명: 설명 동작 설명
   if ((valueRaw.startsWith("'") && valueRaw.endsWith("'")) || (valueRaw.startsWith('"') && valueRaw.endsWith('"'))) {
     const inner = valueRaw.slice(1, -1)
     return coerceValue(inner)

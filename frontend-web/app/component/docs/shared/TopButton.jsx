@@ -8,7 +8,7 @@ import { useState, useEffect } from 'react';
 import * as Lib from '@/app/lib';
 
 /**
- * @description  문서 페이지 우하단에 스크롤-투-탑 버튼을 표시하는 TopButton 컴포넌트를 렌더링한다. 입력/출력 계약을 함께 명시
+ * @description 문서 페이지 우하단에 스크롤-투-탑 버튼을 표시하는 TopButton 컴포넌트를 렌더링. 입력/출력 계약을 함께 명시
  * 처리 규칙: 스크롤 위치가 300px를 넘을 때만 버튼을 노출한다.
  */
 const TopButton = () => {
@@ -34,7 +34,7 @@ const TopButton = () => {
     }, []);
 
     /**
-     * @description 클릭 시 페이지 부드러운 최상단 이동.
+     * @description 클릭 시 페이지 부드러운 최상단 이동
      * 부작용: window.scrollTo({top:0, behavior:'smooth'})가 실행된다.
      * @updated 2026-02-27
      */

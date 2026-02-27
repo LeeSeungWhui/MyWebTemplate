@@ -29,7 +29,7 @@ const isPublicShellPath = (pathname) => {
 };
 
 /**
- * @description  퍼블릭 셸 본문 영역에 적용할 컨테이너 클래스 문자열을 계산한다. 입력/출력 계약을 함께 명시
+ * @description 퍼블릭 셸 본문 영역에 적용할 컨테이너 클래스 문자열을 계산. 입력/출력 계약을 함께 명시
  * 처리 규칙: `/sample/portfolio`는 상하 여백을 크게, 그 외 경로는 기본 여백을 사용한다.
  * @updated 2026-02-27
  */
@@ -42,7 +42,7 @@ const resolvePublicContentClassName = (pathname) => {
 };
 
 /**
- * @description  로딩/알림/확인/토스트 오버레이와 퍼블릭 셸 분기를 관리하는 AppShell 컴포넌트를 렌더링한다. 입력/출력 계약을 함께 명시
+ * @description 로딩/알림/확인/토스트 오버레이와 퍼블릭 셸 분기를 관리하는 AppShell 컴포넌트를 렌더링. 입력/출력 계약을 함께 명시
  * 처리 규칙: 퍼블릭 경로는 Header/Footer를 감싸고, 그 외 경로는 children만 그대로 노출한다.
  */
 const AppShell = ({ children }) => {
@@ -64,12 +64,12 @@ const AppShell = ({ children }) => {
       onClick?.()
     } finally {
       hideAlert()
-      // 한글설명: 설명 move focus after the alert is closed/unmounted
+      // 한글설명: 설명 동작 설명
       setTimeout(() => onFocus?.(), 0)
     }
   }, [alert, hideAlert])
 
-  // 한글설명: 설명 auto-hide toast after duration if set
+  // 한글설명: 설명 동작 설명
   useEffect(() => {
     if (toast?.show && (toast.duration ?? 3000) !== Infinity) {
       const toastTimer = setTimeout(() => hideToast(), toast.duration ?? 3000)
@@ -77,7 +77,7 @@ const AppShell = ({ children }) => {
     }
   }, [toast?.show, toast?.duration, hideToast])
 
-  // 한글설명: 설명 removed: focusing on show caused premature focus shift
+  // 한글설명: 설명 동작 설명
 
   const onConfirmClose = useCallback((ok) => {
     const onFocus = confirm && typeof confirm.onFocus === 'function' ? confirm.onFocus : null

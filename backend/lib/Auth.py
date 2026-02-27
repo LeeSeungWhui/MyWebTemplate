@@ -2,7 +2,7 @@
 파일명: backend/lib/Auth.py
 작성자: LSH
 갱신일: 2026-01-18
-설명: JWT 발급/검증과 인증 공통 설정.
+설명: JWT 발급/검증과 인증 공통 설정
 """
 
 from datetime import datetime, timedelta, timezone
@@ -100,7 +100,7 @@ def isStrongAuthSecret(secretKey: str | None) -> bool:
 
 def bindAuthUsernameToRequestState(request: Request, username: str | None) -> None:
     """
-    설명: 인증된 사용자 식별자를 request.state에 바인딩한다(미들웨어 접근 로그용).
+    설명: 인증된 사용자 식별자를 request. state에 바인딩한다(미들웨어 접근 로그용)
     부작용: request.state.authUsername 속성이 설정된다.
     갱신일: 2026-02-22
     """
@@ -112,7 +112,7 @@ def bindAuthUsernameToRequestState(request: Request, username: str | None) -> No
 
 def createAccessToken(data: dict, *, tokenType: str = "access", expireMinutes: int | None = None) -> Token:
     """
-    설명: 페이로드에 만료(exp)를 추가해 JWT 액세스/리프레시 토큰 생성.
+    설명: 페이로드에 만료(exp)를 추가해 JWT 액세스/리프레시 토큰 생성
     반환값: 인코딩된 JWT와 expiresIn 값을 포함한 Token 모델.
     갱신일: 2026-02-26
     """
@@ -142,7 +142,7 @@ def createAccessToken(data: dict, *, tokenType: str = "access", expireMinutes: i
 
 def createRefreshToken(data: dict) -> Token:
     """
-    설명: 리프레시 토큰을 생성한다. 호출 맥락의 제약을 기준으로 동작 기준을 확정
+    설명: 리프레시 토큰을 생성. 호출 맥락의 제약을 기준으로 동작 기준을 확정
     반환값: typ=refresh와 refresh 만료시간이 반영된 Token 모델.
     갱신일: 2026-02-24
     """
@@ -155,7 +155,7 @@ def createRefreshToken(data: dict) -> Token:
 
 async def getCurrentUser(request: Request, token: str | None = Depends(oauth2Scheme)):
     """
-    설명: Bearer 토큰을 검증하고 인증된 사용자 식별자를 반환.
+    설명: Bearer 토큰을 검증하고 인증된 사용자 식별자를 반환
     갱신일: 2026-02-26
     처리 규칙: 입력값을 검증하고 실패 시 예외/기본값 경로로 수렴한다.
     """

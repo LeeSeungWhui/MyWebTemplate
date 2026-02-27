@@ -21,7 +21,7 @@ const cloneValue = (value) => {
 };
 
 /**
- * @description  샘플 공용 상태를 읽고 쓰는 훅을 반환한다. 입력/출력 계약을 함께 명시
+ * @description 샘플 공용 상태를 읽고 쓰는 훅을 반환. 입력/출력 계약을 함께 명시
  * @param {{ stateKey: string, initialValue: any }} params
  * @returns {{ value: any, setValue: (nextValueOrUpdater: any) => void, resetValue: () => void, isInitialized: boolean }}
  */
@@ -32,7 +32,7 @@ export const useDemoSharedState = ({ stateKey, initialValue }) => {
 
   useEffect(() => {
     /**
-     * @description 공유 상태가 비어있으면 초기값으로 1회 채운다.
+     * @description 공유 상태 미존재 시 초기값 1회 채움
      * @updated 2026-02-23
      */
     if (sharedValue !== undefined) return;
@@ -60,7 +60,7 @@ export const useDemoSharedState = ({ stateKey, initialValue }) => {
 
   const resetValue = useCallback(() => {
     /**
-     * @description 공유 상태를 초기값으로 되돌린다.
+     * @description 공유 상태 초기값 복원
      * @updated 2026-02-23
      */
     setShared({ [stateKey]: cloneValue(initialValue) });

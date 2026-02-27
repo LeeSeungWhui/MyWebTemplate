@@ -53,7 +53,7 @@ function isAbsoluteUrl(input) {
 }
 
 /**
- * @description  애플리케이션 경로를 BFF 프록시 경로로 정규화한다. 입력/출력 계약을 함께 명시
+ * @description 애플리케이션 경로를 BFF 프록시 경로로 정규화. 입력/출력 계약을 함께 명시
  * 처리 규칙: 이미 `/api/bff`로 시작하면 유지하고, 아니면 prefix를 붙여 반환한다.
  * @updated 2026-02-27
  */
@@ -106,14 +106,14 @@ function isBinaryBody(value) {
 function serializeBody(input) {
   if (input == null) return undefined;
   if (isBodyLike(input)) return input;
-  // 한글설명: 설명 EasyObj/EasyList proxies expose toJSON; JSON.stringify will respect it.
-  // 한글설명: 설명 Also supports plain objects/arrays directly.
+  // 한글설명: 설명 동작 설명
+  // 한글설명: 설명 동작 설명
   try {
     return typeof input === "string" ? input : JSON.stringify(input);
   } catch {
-    // 한글설명: 설명 Fallback: attempt structured clone via toJSON where possible
+    // 한글설명: 설명 동작 설명
     try {
-      // 한글설명: 설명 This will call toJSON on proxies and drop unsupported values
+      // 한글설명: 설명 동작 설명
       return JSON.stringify(JSON.parse(JSON.stringify(input)));
     } catch {
       return JSON.stringify({});
@@ -122,18 +122,18 @@ function serializeBody(input) {
 }
 
 /**
- * @description  api 호출 인자 오버로딩 패턴을 단일 포맷으로 정규화한다. 입력/출력 계약을 함께 명시
+ * @description api 호출 인자 오버로딩 패턴을 단일 포맷으로 정규화. 입력/출력 계약을 함께 명시
  * 처리 규칙: `(path, init|body, mode|options)` 입력을 `{ path, init, options }` 형태로 통일한다.
  * @updated 2026-02-27
  */
 function normalizeArgs(path, a2, a3) {
-  // 한글설명: 설명 Supports overloading:
-  // 한글설명: 설명 - api*(path)
-  // 한글설명: 설명 - api*(path, init)
-  // 한글설명: 설명 - api*(path, body)
-  // 한글설명: 설명 - api*(path, body, 'authless')
-  // 한글설명: 설명 - api*(path, body, { authless: boolean })
-  // 한글설명: 설명 - api*(path, initLike, 'authless' | options)
+  // 한글설명: 설명 동작 설명
+  // 한글설명: 설명 동작 설명
+  // 한글설명: 설명 동작 설명
+  // 한글설명: 설명 동작 설명
+  // 한글설명: 설명 동작 설명
+  // 한글설명: 설명 동작 설명
+  // 한글설명: 설명 동작 설명
 
   /**
    * @description 값이 RequestInit 유사 객체인지 판별
@@ -221,7 +221,7 @@ function hasHeader(headers, name) {
  * 응답 본문을 안전하게 텍스트로 변환
  * @param {Response} response fetch Response 객체
  * @returns {Promise<string>} 본문 텍스트
- * @description Response 본문 안전 텍스트 조회.
+ * @description Response 본문 안전 텍스트 조회
  * 처리 규칙: 빈 본문 상태코드(204/205/304)는 즉시 빈 문자열을 반환하고 읽기 실패도 빈 문자열로 수렴한다.
  * @updated 2026-02-27
  */
@@ -239,7 +239,7 @@ async function readResponseText(response) {
  * 백엔드 JSON 문자열을 보정/정규화
  * @param {Response} response fetch Response
  * @returns {Promise<object|null>} 파싱 결과
- * @description  응답 JSON 문자열을 파싱하고 중첩 JSON 문자열 필드를 정규화한다. 입력/출력 계약을 함께 명시
+ * @description 응답 JSON 문자열을 파싱하고 중첩 JSON 문자열 필드를 정규화. 입력/출력 계약을 함께 명시
  * 처리 규칙: 파싱 실패 시 SyntaxError를 던지고 원문 텍스트를 `cause`에 보관한다.
  * @updated 2026-02-27
  */
@@ -267,7 +267,7 @@ function isPlainObject(value) {
 }
 
 /**
- * @description  API 실패 응답을 표준 ApiError 객체로 변환한다. 입력/출력 계약을 함께 명시
+ * @description API 실패 응답을 표준 ApiError 객체로 변환. 입력/출력 계약을 함께 명시
  * 처리 규칙: body의 message/code/requestId를 우선 사용하고, 없으면 상태코드 기반 기본 메시지를 구성한다.
  * @updated 2026-02-27
  */
@@ -288,7 +288,7 @@ function createApiError(path, response, body) {
 }
 
 /**
- * @description  SSR/CSR 공통 규약으로 Request 기반 API 응답(Response)을 반환한다. 입력/출력 계약을 함께 명시
+ * @description SSR/CSR 공통 규약으로 Request 기반 API 응답(Response)을 반환. 입력/출력 계약을 함께 명시
  * @param {string} path
  * @param {Object} [initOrBody]
  * @param {string|Object} [modeOrOptions]
@@ -348,7 +348,7 @@ export async function apiRequest(path, initOrBody = {}, modeOrOptions) {
       : new URL(toBffPath(path), resolveFrontendOrigin());
 
     /**
-     * @description SSR fetch 호출 지연 실행 함수 래핑.
+     * @description SSR fetch 호출 지연 실행 함수 래핑
      * 처리 규칙: targetUrl/requestInit 스냅샷을 사용해 단일 fetch 요청을 수행한다.
      * @updated 2026-02-27
      */
@@ -356,7 +356,7 @@ export async function apiRequest(path, initOrBody = {}, modeOrOptions) {
     return doFetch();
   }
 
-  // 한글설명: 설명 Client: delegate to CSR helpers with refresh-once logic
+  // 한글설명: 설명 동작 설명
   const targetUrl = absoluteUrl ? path : toBffPath(path);
   const headers = { ...headersIn };
 
@@ -373,7 +373,7 @@ export async function apiRequest(path, initOrBody = {}, modeOrOptions) {
   }
 
   /**
-   * @description CSR fetch 요청 초기값 구성 후 네트워크 요청 전송.
+   * @description CSR fetch 요청 초기값 구성 후 네트워크 요청 전송
    * 처리 규칙: 비-GET/HEAD 메서드에서 body 미지정 시 `"{}"`를 기본 body로 사용한다.
    * @updated 2026-02-27
    */
@@ -442,7 +442,7 @@ export async function apiJSON(path, initOrBody = {}, modeOrOptions) {
 }
 
 /**
- * @description GET 메서드 JSON API 래퍼를 제공
+ * @description JSON API 래퍼를 제공
  * 처리 규칙: init에 method를 강제로 `GET`으로 주입해 `apiJSON`으로 위임한다.
  * @returns {Promise<any>} JSON 응답 페이로드
  */
@@ -452,7 +452,7 @@ export function apiGet(path, init = {}) {
 }
 
 /**
- * @description POST 메서드 JSON API 래퍼를 제공
+ * @description JSON API 래퍼를 제공
  * 처리 규칙: 전달 body를 포함해 method=`POST`로 고정한 뒤 `apiJSON`으로 위임한다.
  * @returns {Promise<any>} JSON 응답 페이로드
  */
@@ -462,7 +462,7 @@ export function apiPost(path, body, init = {}) {
 }
 
 /**
- * @description PUT 메서드 JSON API 래퍼를 제공
+ * @description JSON API 래퍼를 제공
  * 처리 규칙: 전달 body를 포함해 method=`PUT`으로 고정한 뒤 `apiJSON`으로 위임한다.
  * @returns {Promise<any>} JSON 응답 페이로드
  */
@@ -472,7 +472,7 @@ export function apiPut(path, body, init = {}) {
 }
 
 /**
- * @description PATCH 메서드 JSON API 래퍼를 제공
+ * @description JSON API 래퍼를 제공
  * 처리 규칙: 전달 body를 포함해 method=`PATCH`로 고정한 뒤 `apiJSON`으로 위임한다.
  * @returns {Promise<any>} JSON 응답 페이로드
  */
@@ -482,7 +482,7 @@ export function apiPatch(path, body, init = {}) {
 }
 
 /**
- * @description DELETE 메서드 JSON API 래퍼를 제공
+ * @description JSON API 래퍼를 제공
  * 처리 규칙: 전달 body를 포함해 method=`DELETE`로 고정한 뒤 `apiJSON`으로 위임한다.
  * @returns {Promise<any>} JSON 응답 페이로드
  */

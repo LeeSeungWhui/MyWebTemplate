@@ -9,7 +9,7 @@ import * as Lib from '@/app/lib';
 import { useGlobalUi } from '@/app/common/store/SharedStore';
 
 /**
- * @description  전역 로딩을 2초간 표시하는 버튼을 렌더링한다. 입력/출력 계약을 함께 명시
+ * @description 전역 로딩을 2초간 표시하는 버튼을 렌더링. 입력/출력 계약을 함께 명시
  * @returns {JSX.Element}
  * @updated 2026-02-27
  */
@@ -28,7 +28,7 @@ const ShowGlobalLoading = () => {
 };
 
 /**
- * @description  LoadingExamples 구성 데이터를 반환한다. 입력/출력 계약을 함께 명시
+ * @description LoadingExamples 구성 데이터를 반환. 입력/출력 계약을 함께 명시
  * @updated 2026-02-24
  * 처리 규칙: 입력값과 상태를 검증해 UI/데이터 흐름을 안전하게 유지한다.
  */

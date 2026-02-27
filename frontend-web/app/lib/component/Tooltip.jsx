@@ -14,17 +14,19 @@ const placements = {
 };
 
 /**
- * 툴팁 본체
- * 갱신일: 2025-09-13
+ * @description 렌더링 및 hover/click 트리거 표시 제어
+ * 처리 규칙: trigger 모드와 지연 시간(delay)에 따라 open 상태를 관리하고 접근성 속성을 동기화.
+ * @updated 2026-02-27
  */
 const Tooltip = forwardRef(({ content, placement = 'top', delay = 150, disabled = false, trigger = 'hover', className = '', children, textDirection = 'lr' }, ref) => {
+
   const [open, setOpen] = useState(false);
   const id = useId();
   const timer = useRef(null);
   const rootRef = useRef(null);
 
   /**
-   * @description 지연 시간(delay) 이후 툴팁 표시 상태를 연다.
+   * @description 지연 시간(delay) 이후 툴팁 표시 상태 열기
    * 처리 규칙: disabled=true면 중단하고, 기존 타이머는 clear 후 새 타이머를 등록한다.
    * @updated 2026-02-27
    */

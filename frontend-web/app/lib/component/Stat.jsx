@@ -4,10 +4,6 @@
  * 갱신일: 2025-09-13
  * 설명: Stat UI 컴포넌트 구현
  */
-/**
- * 파일명: Stat.jsx
- * 설명: 간단 KPI 지표 카드
- */
 import React from 'react';
 import { COMMON_COMPONENT_LANG_KO } from '@/app/common/i18n/lang.ko';
 
@@ -23,8 +19,8 @@ const Stat = ({
   label,
   value,
   delta,
-  deltaType = 'neutral', // 한글설명: 설명 'up' | 'down' | 'neutral'
-  icon, // 한글설명: 설명 optional ReactNode
+  deltaType = 'neutral', // 한글설명: 설명 동작 설명
+  icon, // 한글설명: 설명 동작 설명
   helpText,
   className = '',
 }) => {

@@ -20,14 +20,14 @@ const DEFAULT_FILE_FIELD = 'file';
 const isNonEmptyString = (value) => typeof value === 'string' && value.trim() !== '';
 
 /**
- * @description  값을 trim된 문자열 또는 null로 정규화한다. 입력/출력 계약을 함께 명시
+ * @description 값을 trim된 문자열 또는 null로 정규화. 입력/출력 계약을 함께 명시
  * 처리 규칙: 비어 있지 않은 문자열만 반환하고 그 외 타입은 null로 처리한다.
  * @updated 2026-02-27
  */
 const toStringOrNull = (value) => (isNonEmptyString(value) ? value.trim() : null);
 
 /**
- * @description 업로드 응답 래퍼(result/data) 재귀 언래핑 기반 실제 payload 획득.
+ * @description 업로드 응답 래퍼(result/data) 재귀 언래핑 기반 실제 payload 획득
  * 반환값: 더 이상 래핑 키가 없는 원본 payload 객체/값.
  * @updated 2026-02-27
  */
@@ -139,7 +139,7 @@ const toAttachmentDescriptor = (payload, fallbackName) => {
 };
 
 /**
- * @description  업로드 URL/필드명/변환 함수를 조합해 단일 파일 업로더를 생성한다. 입력/출력 계약을 함께 명시
+ * @description 업로드 URL/필드명/변환 함수를 조합해 단일 파일 업로더를 생성. 입력/출력 계약을 함께 명시
  * 처리 규칙: uploadUrl이 없으면 no-op 업로더(null 반환)를 제공한다.
  * @updated 2026-02-27
  */
@@ -159,7 +159,7 @@ const createUploader = (uploadUrl, fieldName, transform) => {
 };
 
 /**
- * @description  useEditorUpload 구성 데이터를 반환한다. 입력/출력 계약을 함께 명시
+ * @description useEditorUpload 구성 데이터를 반환. 입력/출력 계약을 함께 명시
  * 반환값: EasyEditor에서 사용하는 uploadImage/uploadFile/alertElement API 집합.
  * @updated 2026-02-24
  */

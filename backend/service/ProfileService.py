@@ -2,7 +2,7 @@
 파일명: backend/service/ProfileService.py
 작성자: LSH
 갱신일: 2026-02-22
-설명: 프로필 조회/수정 서비스 로직.
+설명: 프로필 조회/수정 서비스 로직
 """
 
 from typing import Any, Dict
@@ -28,7 +28,7 @@ def ensureDbManager():
 
 def normalizeUserNm(rawValue: Any) -> str:
     """
-    설명: userNm 입력값을 검증/정규화한다. 호출 맥락의 제약을 기준으로 동작 기준을 확정
+    설명: userNm 입력값을 검증/정규화. 호출 맥락의 제약을 기준으로 동작 기준을 확정
     반환값: 좌우 공백이 제거된 사용자 이름 문자열(길이 2~80).
     갱신일: 2026-02-22
     """
@@ -42,7 +42,7 @@ def normalizeUserNm(rawValue: Any) -> str:
 
 def normalizeNotifyValue(rawValue: Any) -> bool:
     """
-    설명: 알림 설정값을 bool로 정규화한다. 호출 맥락의 제약을 기준으로 동작 기준을 확정
+    설명: 알림 설정값을 bool로 정규화. 호출 맥락의 제약을 기준으로 동작 기준을 확정
     처리 규칙: bool은 그대로 사용하고 None/빈문자열은 False로 간주한다.
     갱신일: 2026-02-22
     """
@@ -67,7 +67,7 @@ def ensureUserId(user: Any) -> str:
 
 def loadNotifyState(userId: str) -> Dict[str, bool]:
     """
-    설명: v1 알림설정(비영속 메모리)을 조회한다. 호출 맥락의 제약을 기준으로 동작 기준을 확정
+    설명: v1 알림설정(비영속 메모리)을 조회. 호출 맥락의 제약을 기준으로 동작 기준을 확정
     반환값: notifyEmail/notifySms/notifyPush 기본값이 보장된 dict.
     갱신일: 2026-02-22
     """
@@ -96,7 +96,7 @@ def saveNotifyState(userId: str, payload: Dict[str, Any]) -> Dict[str, bool]:
 
 async def getMyProfile(user: Any) -> Dict[str, Any]:
     """
-    설명: 현재 인증 사용자 프로필을 조회한다. 호출 맥락의 제약을 기준으로 동작 기준을 확정
+    설명: 현재 인증 사용자 프로필을 조회. 호출 맥락의 제약을 기준으로 동작 기준을 확정
     반환값: DB 프로필(camelCase) + notify 상태가 병합된 dict.
     갱신일: 2026-02-22
     """

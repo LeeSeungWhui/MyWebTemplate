@@ -2,7 +2,7 @@
 파일명: backend/server.py
 작성자: LSH
 갱신일: 2025-11-12
-설명: FastAPI 서버 기동, DB/CORS/라우터 전체 초기화 담당.
+설명: FastAPI 서버 기동, DB/CORS/라우터 전체 초기화 담당
 """
 
 import importlib
@@ -81,7 +81,7 @@ def buildNetworkDbUrl(
     password: str,
 ) -> str:
     """
-    설명: mysql/postgresql 접속에 사용하는 DSN 문자열 조합 유틸(계정 정보 URL 인코딩 포함).
+    설명: mysql/postgresql 접속에 사용하는 DSN 문자열 조합 유틸(계정 정보 URL 인코딩 포함)
     처리 규칙: 사용자명/비밀번호는 encodeDsnUserInfo로 선인코딩해 특수문자 충돌을 방지한다.
     반환값: databases 라이브러리가 사용하는 접속 URL 문자열을 반환한다.
     갱신일: 2026-02-24
@@ -351,7 +351,7 @@ logger.info("router load done")
 @app.exception_handler(Exception)
 async def globalExceptionHandler(request: Request, exc: Exception):
     """
-    설명: 처리되지 않은 예외를 표준 에러 응답(JSON)으로 변환한다. 호출 맥락의 제약을 기준으로 동작 기준을 확정
+    설명: 처리되지 않은 예외를 표준 에러 응답(JSON)으로 변환. 호출 맥락의 제약을 기준으로 동작 기준을 확정
     갱신일: 2026-02-24
     """
     try:
@@ -394,7 +394,7 @@ def sanitizeValidationErrors(errors: object) -> list[dict]:
 @app.exception_handler(RequestValidationError)
 async def requestValidationExceptionHandler(request: Request, exc: RequestValidationError):
     """
-    설명: 요청 바디/파라미터 검증 실패를 표준 422 응답으로 변환한다. 호출 맥락의 제약을 기준으로 동작 기준을 확정
+    설명: 요청 바디/파라미터 검증 실패를 표준 422 응답으로 변환. 호출 맥락의 제약을 기준으로 동작 기준을 확정
     갱신일: 2026-02-24
     """
     return JSONResponse(

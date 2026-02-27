@@ -8,7 +8,7 @@
 import DemoLayoutClient from "./DemoLayoutClient";
 
 /**
- * @description  공개 샘플 하위 페이지 공통 레이아웃을 렌더링한다. 입력/출력 계약을 함께 명시
+ * @description 공개 샘플 하위 페이지 공통 레이아웃을 렌더링. 입력/출력 계약을 함께 명시
  * @param {{ children: React.ReactNode }} props
  * @returns {JSX.Element}
  */

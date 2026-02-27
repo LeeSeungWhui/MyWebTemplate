@@ -6,7 +6,7 @@
  */
 // 파일명: binding.js
 // 갱신일: 2025-09-09
-// 한글설명: 설명 Purpose: Common helpers for data binding (EasyObj/EasyList) and change context
+// 한글설명: 설명 동작 설명
 
 /**
  * @description 입력 객체가 EasyObj/EasyList 프록시 래퍼인지 판별
@@ -23,15 +23,15 @@ const isProxyLike = (obj) => obj && typeof obj === 'object' && (obj.__isProxy ||
 const getRaw = (obj) => (obj && obj.__rawObject) ? obj.__rawObject : obj;
 
 /**
- * @description 바인딩 객체에서 key 경로 값 조회.
+ * @description 바인딩 객체에서 key 경로 값 조회
  * 처리 규칙: dataObj.get 우선 사용, 없으면 `a.b.c` dotted path를 순회한다.
  * @updated 2026-02-24
  */
 export function getBoundValue(dataObj, dataKey) {
   if (!dataObj || !dataKey) return undefined;
-  // 한글설명: 설명 Prefer explicit getter if provided
+  // 한글설명: 설명 동작 설명
   if (typeof dataObj.get === 'function') return dataObj.get(dataKey);
-  // 한글설명: 설명 Dotted path support
+  // 한글설명: 설명 동작 설명
   const parts = String(dataKey).split('.');
   let cur = dataObj;
   for (const segment of parts) {
@@ -42,7 +42,7 @@ export function getBoundValue(dataObj, dataKey) {
 }
 
 /**
- * @description  바인딩 객체의 key 경로 값을 설정한다. 입력/출력 계약을 함께 명시
+ * @description 바인딩 객체의 key 경로 값을 설정. 입력/출력 계약을 함께 명시
  * 부작용: 경로 중간 노드가 없으면 객체를 생성하고 마지막 키에 값을 대입한다.
  * @updated 2026-02-24
  */
@@ -64,7 +64,7 @@ export function setBoundValue(dataObj, dataKey, value, options = {}) {
 }
 
 /**
- * @description  값 변경 컨텍스트를 구성한다. 입력/출력 계약을 함께 명시
+ * @description 값 변경 컨텍스트를 구성. 입력/출력 계약을 함께 명시
  * 반환값: `{ dataKey, modelType, dirty, valid, source }` 형태의 공통 ctx 객체.
  * @updated 2026-02-24
  */
@@ -87,7 +87,7 @@ export function buildCtx({ dataKey, dataObj, source = 'user', valid = null, dirt
  */
 export function fireValueHandlers({ onChange, onValueChange, value, ctx, event }) {
 
-  // 한글설명: 설명 Back-compat: if consumer provided onChange expecting event, pass event with detail
+  // 한글설명: 설명 동작 설명
   if (event) {
     try {
       if (!Object.prototype.hasOwnProperty.call(event, 'detail') || event.detail == null) {
@@ -100,7 +100,7 @@ export function fireValueHandlers({ onChange, onValueChange, value, ctx, event }
       try {
         event.detail = { value, ctx };
       } catch (_) {
-        // 한글설명: 설명 readonly detail; ignore
+        // 한글설명: 설명 동작 설명
       }
     }
   }

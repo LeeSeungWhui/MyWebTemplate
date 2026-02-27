@@ -7,7 +7,7 @@
 import * as Lib from '@/app/lib';
 
 /**
- * @description  EasyObj 예제 컴포넌트를 렌더링한다. 입력/출력 계약을 함께 명시
+ * @description EasyObj 예제 컴포넌트를 렌더링. 입력/출력 계약을 함께 명시
  * @returns {JSX.Element}
  * @updated 2026-02-27
  */
@@ -49,7 +49,7 @@ const EasyObjExample = () => {
 };
 
 /**
- * @description  EasyList 예제 컴포넌트를 렌더링한다. 입력/출력 계약을 함께 명시
+ * @description EasyList 예제 컴포넌트를 렌더링. 입력/출력 계약을 함께 명시
  * @returns {JSX.Element}
  * @updated 2026-02-27
  */
@@ -85,7 +85,7 @@ const EasyListExample = () => {
 };
 
 /**
- * @description  DataClassExamples 구성 데이터를 반환한다. 입력/출력 계약을 함께 명시
+ * @description DataClassExamples 구성 데이터를 반환. 입력/출력 계약을 함께 명시
  * @updated 2026-02-24
  * 처리 규칙: 입력값과 상태를 검증해 UI/데이터 흐름을 안전하게 유지한다.
  */

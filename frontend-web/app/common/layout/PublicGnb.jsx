@@ -36,7 +36,7 @@ const isDemoPath = (pathname) => {
 };
 
 /**
- * @description  메뉴 href가 현재 pathname과 활성 매칭되는지 계산한다. 입력/출력 계약을 함께 명시
+ * @description 메뉴 href가 현재 pathname과 활성 매칭되는지 계산. 입력/출력 계약을 함께 명시
  * 처리 규칙: 루트(`/`)와 샘플 루트(`/sample`)는 정확 일치, 그 외는 하위 경로 prefix까지 허용한다.
  * @updated 2026-02-27
  */
@@ -86,7 +86,7 @@ const getDropdownItemClassName = (active) =>
   ].join(" ");
 
 /**
- * @description  공개 페이지에서 사용하는 상단 GNB를 렌더링한다. 입력/출력 계약을 함께 명시
+ * @description 공개 페이지에서 사용하는 상단 GNB를 렌더링. 입력/출력 계약을 함께 명시
  * 처리 규칙: 데스크톱은 hover+pin 드롭다운, 모바일은 토글 드로어 메뉴 구조를 사용한다.
  */
 const PublicGnb = () => {
@@ -122,7 +122,7 @@ const PublicGnb = () => {
   useEffect(() => {
 
     /**
-     * @description 데모 메뉴 영역 바깥 포인터 입력에서 드롭다운 닫기.
+     * @description 데모 메뉴 영역 바깥 포인터 입력에서 드롭다운 닫기
      * 처리 규칙: demoMenuRef 외부 pointerdown 이벤트만 close 대상으로 본다.
      * @updated 2026-02-27
      */
@@ -135,7 +135,7 @@ const PublicGnb = () => {
     };
 
     /**
-     * @description Escape 키 입력으로 데모 드롭다운 닫기.
+     * @description Escape 키 입력으로 데모 드롭다운 닫기
      * 처리 규칙: key 값이 Escape일 때 closeDemoMenu를 호출한다.
      * @updated 2026-02-27
      */

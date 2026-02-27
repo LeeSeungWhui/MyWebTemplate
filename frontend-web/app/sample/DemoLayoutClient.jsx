@@ -30,7 +30,7 @@ const isBypassLayoutPath = (pathname) => {
 };
 
 /**
- * @description  공개 샘플 페이지 공통 레이아웃을 렌더링한다. 입력/출력 계약을 함께 명시
+ * @description 공개 샘플 페이지 공통 레이아웃을 렌더링. 입력/출력 계약을 함께 명시
  * 처리 규칙: 포트폴리오 경로는 레이아웃을 우회하고, 그 외에는 Header/Sidebar/Footer 셸을 적용한다.
  * @param {{ children: React.ReactNode }} props
  */

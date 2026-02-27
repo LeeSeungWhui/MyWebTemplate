@@ -8,7 +8,7 @@ import { useState } from 'react';
 import { getBoundValue, setBoundValue, buildCtx, fireValueHandlers } from '../binding';
 
 /**
- * @description  Tab 자식 슬롯의 title 메타를 유지하면서 콘텐츠 노드만 반환한다. 입력/출력 계약을 함께 명시
+ * @description Tab 자식 슬롯의 title 메타를 유지하면서 콘텐츠 노드만 반환. 입력/출력 계약을 함께 명시
  * @param {{ title: string, children: React.ReactNode }} props
  * @returns {React.ReactNode}
  * @updated 2026-02-27
@@ -19,7 +19,7 @@ const TabItem = ({ title, children }) => {
 };
 
 /**
- * @description  탭 목록 렌더링과 활성 탭 상태 전파를 담당한다. 입력/출력 계약을 함께 명시
+ * @description 탭 목록 렌더링과 활성 탭 상태 전파를 담당. 입력/출력 계약을 함께 명시
  * 처리 규칙: dataObj/dataKey가 주어지면 controlled 모드로 동작하고, 없으면 내부 state를 사용한다.
  * 부작용: 탭 변경 시 setBoundValue/fireValueHandlers를 통해 외부 바인딩/콜백이 호출될 수 있다.
  * @param {Object} props
@@ -82,7 +82,7 @@ const Tab = ({
 
     return (
         <div className={`flex flex-col ${className}`}>
-            {/* 한글설명: 설명 Tab Headers */}
+            {/* 한글설명: 설명 동작 설명 */}
             <div className="flex border-b border-gray-200">
                 {items.map((item, index) => (
                     <button
@@ -101,7 +101,7 @@ const Tab = ({
                 ))}
             </div>
 
-            {/* 한글설명: 설명 Tab Content */}
+            {/* 한글설명: 설명 동작 설명 */}
             <div className="py-4">
                 {items[currentTab]}
             </div>
@@ -109,11 +109,11 @@ const Tab = ({
     );
 };
 
-// TabItem을 Tab의 static property로 추가
+// 한글설명: 설명 동작 설명
 Tab.Item = TabItem;
 
 /**
- * @description Tab 컴포넌트를 기본 export
+ * @description 를 기본 export
  * @returns {React.ComponentType} Tab 컴포넌트
  */
 export default Tab;

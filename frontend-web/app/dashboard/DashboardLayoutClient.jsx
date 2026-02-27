@@ -21,7 +21,7 @@ import EasyObj from "@/app/lib/dataset/EasyObj";
 import LANG_KO from "./lang.ko";
 
 /**
- * @description  대시보드 하위 경로 공통 레이아웃을 렌더링한다. 입력/출력 계약을 함께 명시
+ * @description 대시보드 하위 경로 공통 레이아웃을 렌더링. 입력/출력 계약을 함께 명시
  * 처리 규칙: pathname/searchParams 기반 layoutMeta를 계산해 Header/Sidebar/Footer 공통 셸을 구성한다.
  * @param {{ children: React.ReactNode }} props
  */
@@ -43,7 +43,7 @@ const DashboardLayoutClient = ({ children }) => {
   const currentYear = new Date().getFullYear();
 
   /**
-   * @description 홈 버튼 클릭 시 루트 경로(`/`) 이동.
+   * @description 홈 버튼 클릭 시 루트 경로(`/`) 이동
    * 부작용: Next router push가 실행된다.
    * @updated 2026-02-27
    */
