@@ -8,17 +8,40 @@ import { forwardRef, useEffect, useMemo, useState } from 'react';
 import Pagination from './Pagination';
 import { COMMON_COMPONENT_LANG_KO } from '@/app/common/i18n/lang.ko';
 
+/**
+ * @description 입력 데이터가 배열 또는 EasyList 형태인지 판별한다.
+ * 처리 규칙: `Array.isArray` 또는 `size()` 메서드 보유 여부로 list-like 타입을 판정한다.
+ * @updated 2026-02-27
+ */
 const isListLike = (list) => !!list && (typeof list.size === 'function' || Array.isArray(list));
+
+/**
+ * @description list-like 데이터의 전체 길이를 계산한다.
+ * 처리 규칙: 배열은 length, EasyList는 size() 결과를 사용하고 그 외 값은 0으로 처리한다.
+ * @updated 2026-02-27
+ */
 const listSize = (list) => {
   if (Array.isArray(list)) return list.length;
   if (typeof list?.size === 'function') return list.size();
   return 0;
 };
+
+/**
+ * @description list-like 데이터에서 인덱스 값을 조회한다.
+ * 처리 규칙: 배열은 인덱스 접근, EasyList는 get(idx)를 호출하고 미지원 타입은 undefined를 반환한다.
+ * @updated 2026-02-27
+ */
 const listGet = (list, idx) => {
   if (Array.isArray(list)) return list[idx];
   if (typeof list?.get === 'function') return list.get(idx);
   return undefined;
 };
+
+/**
+ * @description 기본 행 키(rowKey)를 계산한다.
+ * 처리 규칙: row.id/row.key 우선, 없으면 행 인덱스를 fallback key로 사용한다.
+ * @updated 2026-02-27
+ */
 const defaultRowKey = (row, idx) => {
   if (row && typeof row === 'object') {
     if (typeof row.get === 'function') {
@@ -32,10 +55,16 @@ const defaultRowKey = (row, idx) => {
   return idx;
 };
 
+/**
+ * @description 숫자 값을 지정 범위로 제한한다.
+ * 처리 규칙: value를 min/max 경계 안으로 잘라낸 값을 반환한다.
+ * @updated 2026-02-27
+ */
 const clamp = (value, min, max) => Math.max(min, Math.min(value, max));
 
 /**
- * @description 테이블/카드 UI와 페이지네이션을 제공하는 데이터 컴포넌트.
+ * @description 테이블/카드 UI와 페이지네이션을 제공하는 데이터 렌더링 컴포넌트다.
+ * 처리 규칙: variant/status/page 관련 props 조합으로 table/card/status 패널/페이지네이션 노출을 제어한다.
  * @param {Object} props
  * @param {React.Ref<HTMLDivElement>} ref
  * @returns {JSX.Element}
@@ -77,6 +106,7 @@ const EasyTable = forwardRef(function EasyTable(
     status,
     errorText,
   },
+
   ref
 ) {
   // 초기 페이지 계산
@@ -85,11 +115,11 @@ const EasyTable = forwardRef(function EasyTable(
   const [pageState, setPageState] = useState(initPage);
   const page = typeof pageProp === 'number' ? pageProp : pageState;
 
-  const size = useMemo(() => {
-    if (totalProp != null) return totalProp;
-    if (isListLike(data)) return listSize(data);
-    return 0;
-  }, [data, totalProp]);
+  const size = totalProp != null
+    ? totalProp
+    : isListLike(data)
+      ? listSize(data)
+      : 0;
   const effectivePageSize = Math.max(1, pageSize);
   const pageCount = Math.max(1, Math.ceil(size / effectivePageSize));
 
@@ -148,18 +178,23 @@ const EasyTable = forwardRef(function EasyTable(
     return { start, end };
   }, [page, effectivePageSize, size]);
 
-  const rows = useMemo(() => {
+  const rows = [];
+  if (isListLike(data)) {
     const { start, end } = sliceRange;
-    if (!isListLike(data)) return [];
-    const out = [];
-    for (let i = start; i < end; i++) out.push(listGet(data, i));
-    return out;
-  }, [data, sliceRange]);
+    for (let i = start; i < end; i += 1) {
+      rows.push(listGet(data, i));
+    }
+  }
 
   const fillerCount = preserveRowSpace && variant === 'table'
     ? Math.max(0, effectivePageSize - rows.length)
     : 0;
 
+  /**
+   * @description 컬럼 width 입력을 CSS width 문자열로 정규화한다.
+   * 처리 규칙: number는 px 문자열로 변환하고, null/빈값은 null을 반환한다.
+   * @updated 2026-02-27
+   */
   const normalizeWidth = (width) => {
     if (width == null || width === '') return null;
     if (typeof width === 'number' && Number.isFinite(width)) return `${width}px`;
@@ -190,6 +225,11 @@ const EasyTable = forwardRef(function EasyTable(
     </div>
   );
 
+  /**
+   * @description 단일 셀의 렌더링 값을 계산한다.
+   * 처리 규칙: col.render 우선, 없으면 col.key 기반으로 row/get 조회를 수행한다.
+   * @updated 2026-02-27
+   */
   const renderCell = (col, row, rowIdx) => {
     if (typeof col.render === 'function') return col.render(row, rowIdx);
     if (col.key == null) return null;
@@ -197,6 +237,11 @@ const EasyTable = forwardRef(function EasyTable(
     return row?.[col.key];
   };
 
+  /**
+   * @description 최종 row key 값을 결정한다.
+   * 처리 규칙: 함수형 rowKey > 문자열 rowKey > defaultRowKey 순서로 우선순위를 적용한다.
+   * @updated 2026-02-27
+   */
   const resolveRowKey = (row, globalIdx) => {
     if (typeof rowKey === 'function') return rowKey(row, globalIdx);
     if (typeof rowKey === 'string') {
@@ -206,6 +251,11 @@ const EasyTable = forwardRef(function EasyTable(
     return defaultRowKey(row, globalIdx);
   };
 
+  /**
+   * @description 페이지 변경 이벤트를 다룬다.
+   * 처리 규칙: 목표 페이지를 clamp한 뒤 controlled 모드는 onPageChange 위임, uncontrolled 모드는 내부 state를 갱신한다.
+   * @updated 2026-02-27
+   */
   const onChangePage = (next) => {
     const target = clamp(next, 1, pageCount);
     if (typeof pageProp === 'number') {
@@ -287,6 +337,11 @@ const EasyTable = forwardRef(function EasyTable(
     </div>
   );
 
+  /**
+   * @description 현재 표시 상태(loading/error/empty/idle)를 계산한다.
+   * 처리 규칙: status prop이 있으면 우선 사용하고, 없으면 loading/rows 길이 기준으로 상태를 추론한다.
+   * @updated 2026-02-27
+   */
   const resolveStatus = () => {
     if (status != null) return status;
     if (loading) return 'loading';
@@ -298,6 +353,12 @@ const EasyTable = forwardRef(function EasyTable(
   const isBusy = effStatus === 'loading';
   const isError = effStatus === 'error';
   const isEmpty = effStatus === 'empty' && !isError && !isBusy;
+
+  /**
+   * @description 상태별 안내 패널(loading/error/empty)을 렌더링한다.
+   * 처리 규칙: 상태에 맞는 접근성 role과 메시지를 반환하고, idle 상태에서는 null을 반환한다.
+   * @updated 2026-02-27
+   */
   const renderStatusPanel = () => {
     if (isBusy) {
       return (
@@ -318,6 +379,7 @@ const EasyTable = forwardRef(function EasyTable(
     }
     return null;
   };
+
   const statusPanel = renderStatusPanel();
 
   return (
@@ -340,6 +402,7 @@ const EasyTable = forwardRef(function EasyTable(
 EasyTable.displayName = 'EasyTable';
 
 /**
- * @description EasyTable 컴포넌트 엔트리를 export 한다.
+ * @description EasyTable 컴포넌트 엔트리를 외부에 노출한다.
+ * 처리 규칙: forwardRef로 생성된 EasyTable 인스턴스를 default export 한다.
  */
 export default EasyTable;

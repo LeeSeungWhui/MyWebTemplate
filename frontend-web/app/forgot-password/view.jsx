@@ -6,39 +6,49 @@
  * 설명: 비밀번호 찾기 페이지 클라이언트 뷰
  */
 
-import { useMemo, useRef } from "react";
+import { useRef } from "react";
 import EasyObj from "@/app/lib/dataset/EasyObj";
 import Button from "@/app/lib/component/Button";
 import Input from "@/app/lib/component/Input";
 import Link from "next/link";
-import { createForgotPasswordFormModel } from "./initData";
 import LANG_KO from "./lang.ko";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 /**
- * @description ForgotPasswordView export를 노출한다.
+ * @description 비밀번호 찾기 이메일 입력/검증/제출 상태를 관리하는 화면을 렌더링한다.
+ * 처리 규칙: 유효한 이메일 제출 시 submitted 상태로 전환해 안내 메시지를 노출한다.
  */
 const ForgotPasswordView = () => {
-  const formObj = EasyObj(useMemo(() => createForgotPasswordFormModel(), []));
-  const ui = EasyObj(
-    useMemo(
-      () => ({
-        pending: false,
-        submitted: false,
-        formError: "",
-      }),
-      [],
-    ),
-  );
+  const formObj = EasyObj({
+    email: "",
+    errors: {
+      email: "",
+    },
+  });
+  const ui = EasyObj({
+    pending: false,
+    submitted: false,
+    formError: "",
+  });
   const emailRef = useRef(null);
   const errorSummaryRef = useRef(null);
 
+  /**
+   * @description 이메일 필드 에러와 폼 공통 에러 메시지를 초기화한다.
+   * 부작용: formObj.errors.email, ui.formError 값을 빈 문자열로 덮어쓴다.
+   * @updated 2026-02-27
+   */
   const resetErrors = () => {
     formObj.errors.email = "";
     ui.formError = "";
   };
 
+  /**
+   * @description 오류가 발생한 요소로 포커스를 이동시킨다.
+   * 처리 규칙: ref.current가 있을 때 requestAnimationFrame 타이밍으로 focus를 호출한다.
+   * @updated 2026-02-27
+   */
   const focusOnError = (ref) => {
     if (!ref || !ref.current) return;
     requestAnimationFrame(() => {
@@ -46,6 +56,11 @@ const ForgotPasswordView = () => {
     });
   };
 
+  /**
+   * @description 이메일 입력값을 trim/lowercase 후 형식을 점검한다.
+   * 실패 동작: 형식 불일치 시 에러 메시지 설정 후 이메일 입력으로 포커스를 이동하고 false를 반환한다.
+   * @updated 2026-02-27
+   */
   const validate = () => {
     resetErrors();
     const email = String(formObj.email || "").trim().toLowerCase();
@@ -59,6 +74,11 @@ const ForgotPasswordView = () => {
     return true;
   };
 
+  /**
+   * @description 비밀번호 찾기 요청 제출 흐름을 진행한다.
+   * 실패 동작: 비동기 처리 실패 시 ui.formError를 노출하고 에러 요약 영역으로 포커스를 이동한다.
+   * @updated 2026-02-27
+   */
   const handleSubmit = async (event) => {
     event.preventDefault();
     if (!validate()) return;

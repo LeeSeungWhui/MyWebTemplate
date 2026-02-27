@@ -18,6 +18,7 @@ import LANG_KO from "./lang.ko";
 
 /**
  * @description 공개 샘플 허브 화면을 렌더링한다.
+ * @returns {JSX.Element}
  */
 const DemoHubView = () => {
   return (

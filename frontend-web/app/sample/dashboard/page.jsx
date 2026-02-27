@@ -20,6 +20,7 @@ export const metadata = {
 
 /**
  * @description 공개 샘플 대시보드 페이지를 렌더링한다.
+ * @returns {JSX.Element}
  */
 const DemoDashboardPage = () => {
   return (

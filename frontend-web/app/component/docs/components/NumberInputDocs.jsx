@@ -13,7 +13,8 @@ import CodeBlock from '../shared/CodeBlock';
 import { NumberInputExamples } from '../examples/NumberInputExamples';
 
 /**
- * @description NumberInputDocs export를 노출한다.
+ * @description NumberInput 문서 섹션을 구성하고 예제 목록을 렌더링한다.
+ * @returns {JSX.Element}
  */
 const NumberInputDocs = () => {
   const examples = NumberInputExamples();

@@ -14,8 +14,19 @@ import Icon from "@/app/lib/component/Icon";
 import EasyObj from "@/app/lib/dataset/EasyObj";
 import { COMMON_COMPONENT_LANG_KO } from "@/app/common/i18n/lang.ko";
 
+/**
+ * @description 값이 배열 또는 EasyList 형태인지 판별한다.
+ * 처리 규칙: 배열이거나 `size()` 메서드를 보유한 경우 list-like로 간주한다.
+ * @updated 2026-02-27
+ */
 const isListLike = (list) =>
   !!list && (typeof list.size === "function" || Array.isArray(list));
+
+/**
+ * @description menu/subMenu 입력을 순회 가능한 배열로 정규화한다.
+ * 처리 규칙: 배열은 그대로 사용하고 EasyList는 size/get으로 풀어 배열로 변환한다.
+ * @updated 2026-02-27
+ */
 const toArray = (list) => {
   if (Array.isArray(list)) return list;
   if (isListLike(list)) {
@@ -28,7 +39,8 @@ const toArray = (list) => {
 };
 
 /**
- * @description 햄버거/메뉴/텍스트를 포함한 상단 헤더(EasyList 기반)
+ * @description 햄버거/메뉴/텍스트를 포함한 상단 헤더 컴포넌트다(EasyList 기반).
+ * 처리 규칙: 메뉴 활성/서브메뉴 펼침/외부 클릭 닫기 상태를 통합 관리한다.
  * @param {Object} props
  * @param {string} props.title 헤더 타이틀
  * @param {string} [props.subtitle] 타이틀 보조 설명
@@ -53,7 +65,7 @@ const Header = ({
   children,
   className = "",
 }) => {
-  const ui = EasyObj(useMemo(() => ({ openMenu: null }), []));
+  const ui = EasyObj({ openMenu: null });
   const navRef = useRef(null);
   const pathname = usePathname();
   const resolvedMenus = useMemo(() => {
@@ -102,15 +114,27 @@ const Header = ({
   }, [resolvedMenus, subMenuMap]);
 
   useEffect(() => {
+
+    /**
+     * @description 네비게이션 바깥 영역 클릭 시 열린 메뉴를 닫는다.
+     * 처리 규칙: pointerdown 이벤트 target이 navRef 외부면 `ui.openMenu`를 null로 초기화한다.
+     * @updated 2026-02-27
+     */
     const handleOutside = (evt) => {
       if (navRef.current && !navRef.current.contains(evt.target)) {
         ui.openMenu = null;
       }
     };
+
     document.addEventListener("pointerdown", handleOutside);
     return () => document.removeEventListener("pointerdown", handleOutside);
   }, [ui]);
 
+  /**
+   * @description href가 현재 pathname과 활성 매칭되는지 판정한다.
+   * 처리 규칙: 완전 일치 또는 하위 경로(prefix/) 일치를 활성으로 처리한다.
+   * @updated 2026-02-27
+   */
   const isPathActive = (href) => {
     if (!href || !pathname) {
       return false;
@@ -124,6 +148,11 @@ const Header = ({
     return false;
   };
 
+  /**
+   * @description 하위 메뉴 항목의 활성 상태를 계산한다.
+   * 처리 규칙: child.active 우선, 명시 active가 없을 때만 pathname 매칭으로 활성 여부를 추론한다.
+   * @updated 2026-02-27
+   */
   const isChildActive = (child) => {
     if (child.active) {
       return true;
@@ -134,6 +163,11 @@ const Header = ({
     return isPathActive(child.href);
   };
 
+  /**
+   * @description 상위 메뉴 항목의 활성 상태를 계산한다.
+   * 처리 규칙: item.active 우선, child 활성 여부를 반영하고 명시 active가 없을 때만 경로 매칭을 사용한다.
+   * @updated 2026-02-27
+   */
   const isItemActive = (item, children = []) => {
     if (item.active) {
       return true;
@@ -147,11 +181,21 @@ const Header = ({
     return isPathActive(item.href);
   };
 
+  /**
+   * @description 서브메뉴 선택 이벤트를 반영한다.
+   * 처리 규칙: item.onClick이 있으면 호출하고 선택 후 openMenu를 닫는다.
+   * @updated 2026-02-27
+   */
   const handleMenuSelect = (item) => {
     if (typeof item.onClick === "function") item.onClick();
     ui.openMenu = null;
   };
 
+  /**
+   * @description 메뉴 버튼 상태별 className 문자열을 생성한다.
+   * 처리 규칙: active=true면 강조 스타일, false면 hover 중심 기본 스타일을 반환한다.
+   * @updated 2026-02-27
+   */
   const menuButtonClass = (isActive) =>
     [
       "inline-flex items-center gap-2 rounded-md border border-transparent px-3 py-2 text-sm font-medium transition-colors",
@@ -163,6 +207,7 @@ const Header = ({
   return (
     <header
       className={`border-b border-gray-200 bg-white shadow-sm ${className}`.trim()}
+
     >
       <div className="flex min-h-16 items-center justify-between gap-2 px-3 sm:gap-3 sm:px-4">
         <div className="flex min-w-0 items-center gap-2 sm:gap-3">
@@ -313,7 +358,7 @@ const Header = ({
         <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
           {actions}
           {text ? (
-            <div className="hidden max-w-[16rem] items-center gap-2 truncate text-sm text-gray-700 sm:flex">
+            <div className="hidden max-w-[256px] items-center gap-2 truncate text-sm text-gray-700 sm:flex">
               {text}
             </div>
           ) : null}
@@ -325,6 +370,7 @@ const Header = ({
 };
 
 /**
- * @description Header export를 노출한다.
+ * @description Header 컴포넌트 엔트리를 외부에 노출한다.
+ * 처리 규칙: 상태 로직이 결합된 Header 컴포넌트를 default export 한다.
  */
 export default Header;

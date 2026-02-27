@@ -10,6 +10,9 @@
 /**
  * 공통 스텁 헬퍼
  * @param {string} method - 호출된 메서드 이름
+ * @description 서버 런타임에서 canvas API 호출을 즉시 예외로 차단한다.
+ * 실패 동작: 항상 Error를 throw한다.
+ * @updated 2026-02-27
  */
 const stub = (method = 'canvas') => {
   throw new Error(`canvas stub: ${method} is not available in this environment.`);
@@ -18,6 +21,8 @@ const stub = (method = 'canvas') => {
 /**
  * 캔버스 생성 시도 차단
  * @returns {never}
+ * @description createCanvas 호출 경로를 stub으로 연결한다.
+ * @updated 2026-02-27
  */
 const createCanvas = (...args) => {
   stub('createCanvas');
@@ -27,6 +32,8 @@ const createCanvas = (...args) => {
 /**
  * 이미지 로드 시도 차단
  * @returns {Promise<never>}
+ * @description loadImage 호출 경로를 stub으로 연결한다.
+ * @updated 2026-02-27
  */
 const loadImage = async (...args) => {
   stub('loadImage');
@@ -36,6 +43,8 @@ const loadImage = async (...args) => {
 /**
  * 폰트 등록 시도 차단
  * @returns {never}
+ * @description registerFont 호출 경로를 stub으로 연결한다.
+ * @updated 2026-02-27
  */
 const registerFont = (...args) => {
   stub('registerFont');

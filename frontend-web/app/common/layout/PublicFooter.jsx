@@ -12,6 +12,7 @@ const FOOTER_LINK_LIST = COMMON_COMPONENT_LANG_KO.publicLayout.footerLinkList;
 
 /**
  * @description 공개 페이지 공통 푸터를 렌더링한다.
+ * @returns {JSX.Element}
  */
 const PublicFooter = () => {
   return (

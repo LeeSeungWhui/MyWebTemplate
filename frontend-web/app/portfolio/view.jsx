@@ -9,9 +9,12 @@
 import DemoPortfolioView from "../sample/portfolio/view";
 
 /**
- * @description PortfolioView export를 노출한다.
+ * @description 샘플 포트폴리오 뷰를 래핑하고 공개 경로 식별용 data 속성을 주입한다.
+ * @param {{ content: any, publicPath?: string }} props
+ * @returns {JSX.Element}
  */
 const PortfolioView = ({ content, publicPath }) => {
+
   return (
     <div data-public-path={publicPath}>
       <DemoPortfolioView content={content} />

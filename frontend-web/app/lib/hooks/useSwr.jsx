@@ -19,8 +19,16 @@ export function useSwr(
   key,
   path,
   { method = "GET", body, fetchInit = {}, swr = {} } = {},
+
 ) {
+
+  /**
+   * @description path/method/body를 고정한 apiJSON 호출 함수를 만들어 SWR fetcher로 사용한다.
+   * @returns {Promise<any>}
+   * @updated 2026-02-27
+   */
   const fetcher = () => apiJSON(path, { method, body, ...fetchInit });
+
   return useSwrLib(key, fetcher, { revalidateOnFocus: false, ...swr });
 }
 

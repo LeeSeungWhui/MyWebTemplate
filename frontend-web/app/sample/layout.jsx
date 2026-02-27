@@ -10,6 +10,7 @@ import DemoLayoutClient from "./DemoLayoutClient";
 /**
  * @description 공개 샘플 하위 페이지 공통 레이아웃을 렌더링한다.
  * @param {{ children: React.ReactNode }} props
+ * @returns {JSX.Element}
  */
 const DemoLayout = (props) => {
   const { children } = props;

@@ -58,6 +58,11 @@ const Toast = forwardRef(({
     const slideInAnimation = isTopPosition ? styles.slideDown : styles.slideUp;
     const slideOutAnimation = isTopPosition ? styles.slideUpExit : styles.slideDownExit;
 
+    /**
+     * @description 닫기 버튼 클릭 시 상위 onClose를 통해 토스트 제거 흐름을 트리거한다.
+     * @returns {void}
+     * @updated 2026-02-27
+     */
     const handleClose = () => {
         onClose?.();
     };
@@ -79,7 +84,7 @@ const Toast = forwardRef(({
                 fixed z-50 
                 ${positions[position] || positions['bottom-center']}
                 flex items-center
-                w-[calc(100vw-2rem)] max-w-md
+                w-[calc(100vw-32px)] max-w-md
                 px-4 py-3
                 rounded-lg shadow-lg
                 border ${(types[type] || types.info).borderColor}
@@ -114,6 +119,7 @@ const Toast = forwardRef(({
 Toast.displayName = 'Toast';
 
 /**
- * @description Toast export를 노출한다.
+ * @description Toast 컴포넌트를 기본 export한다.
+ * @returns {React.ComponentType} Toast 컴포넌트
  */
 export default Toast; 

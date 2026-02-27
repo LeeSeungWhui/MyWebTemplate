@@ -37,7 +37,7 @@ export function safeDecodeURIComponent(value) {
 }
 
 /**
- * 설명: base64url 문자열인지(길이/문자셋) 검증한다.
+ * 설명: base64url 문자셋/길이 규칙을 확인해 허용 가능한 토큰만 통과시킨다.
  * 갱신일: 2026-01-19
  */
 export function sanitizeBase64Url(value, maxLen = AUTH_REASON_MAXLEN) {
@@ -113,6 +113,10 @@ export function base64UrlDecodeUtf8(input) {
   return null;
 }
 
+/**
+ * 설명: null/배열을 제외한 plain object 여부를 판별한다.
+ * 갱신일: 2026-02-27
+ */
 function isPlainObject(value) {
   if (!value || typeof value !== "object") return false;
   if (Array.isArray(value)) return false;

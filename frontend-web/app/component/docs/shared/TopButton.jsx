@@ -8,12 +8,19 @@ import { useState, useEffect } from 'react';
 import * as Lib from '@/app/lib';
 
 /**
- * @description TopButton export를 노출한다.
+ * @description 문서 페이지 우하단에 스크롤-투-탑 버튼을 표시하는 TopButton 컴포넌트를 렌더링한다.
+ * 처리 규칙: 스크롤 위치가 300px를 넘을 때만 버튼을 노출한다.
  */
 const TopButton = () => {
     const [isVisible, setIsVisible] = useState(false);
 
     useEffect(() => {
+
+        /**
+         * @description 현재 스크롤 위치 기준으로 버튼 표시 상태를 갱신한다.
+         * 처리 규칙: `window.scrollY > 300`이면 true, 아니면 false를 설정한다.
+         * @updated 2026-02-27
+         */
         const toggleVisibility = () => {
             if (window.scrollY > 300) {
                 setIsVisible(true);
@@ -26,6 +33,11 @@ const TopButton = () => {
         return () => window.removeEventListener('scroll', toggleVisibility);
     }, []);
 
+    /**
+     * @description 클릭 시 페이지를 부드럽게 최상단으로 이동시킨다.
+     * 부작용: window.scrollTo({top:0, behavior:'smooth'})가 실행된다.
+     * @updated 2026-02-27
+     */
     const scrollToTop = () => {
         window.scrollTo({
             top: 0,

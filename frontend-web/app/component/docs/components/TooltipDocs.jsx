@@ -12,8 +12,10 @@ import { TooltipExamples } from '../examples/TooltipExamples';
  * Tooltip 문서 섹션
  * @date 2025-09-13
  */
+
 /**
- * @description TooltipDocs export를 노출한다.
+ * @description Tooltip 문서 섹션을 구성하고 예제 목록을 렌더링한다.
+ * @returns {JSX.Element}
  */
 const TooltipDocs = () => {
   const examples = TooltipExamples();

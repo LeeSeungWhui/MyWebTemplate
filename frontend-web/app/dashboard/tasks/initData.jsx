@@ -35,6 +35,12 @@ const ALLOWED_STATUS = new Set(
 );
 const ALLOWED_SORT = new Set(SORT_FILTER_LIST.map((item) => item.value));
 
+/**
+ * @description 쿼리 파라미터 원본 값을 문자열로 정규화한다.
+ * @param {unknown} rawValue
+ * @returns {string} 첫 값 기준 문자열
+ * @updated 2026-02-27
+ */
 const pickQueryValue = (rawValue) => {
   if (Array.isArray(rawValue)) return String(rawValue[0] || "");
   if (typeof rawValue === "string") return rawValue;
@@ -42,6 +48,13 @@ const pickQueryValue = (rawValue) => {
   return String(rawValue);
 };
 
+/**
+ * @description 페이지 번호처럼 양의 정수만 허용하고 실패 시 기본값으로 보정한다.
+ * @param {unknown} rawValue
+ * @param {number} [defaultValue=1]
+ * @returns {number} 1 이상 정수
+ * @updated 2026-02-27
+ */
 const toPositiveInt = (rawValue, defaultValue = 1) => {
   const parsed = Number.parseInt(String(rawValue || ""), 10);
   if (!Number.isFinite(parsed) || parsed < 1) return defaultValue;
@@ -49,8 +62,10 @@ const toPositiveInt = (rawValue, defaultValue = 1) => {
 };
 
 /**
- * @description normalizeTasksQuery 구성 데이터를 반환한다.
- * @updated 2026-02-24
+ * @description URL 검색 파라미터를 업무 목록 필터 모델(keyword/status/sort/page)로 정규화한다.
+ * 처리 규칙: 허용 목록 밖 status/sort는 기본값("", DEFAULT_SORT)으로 보정한다.
+ * @returns {{ keyword: string, status: string, sort: string, page: number }} 목록 조회 필터 모델
+ * @updated 2026-02-27
  */
 export const normalizeTasksQuery = (searchParams) => {
   const params = searchParams || {};
@@ -72,12 +87,19 @@ export const normalizeTasksQuery = (searchParams) => {
   };
 };
 
-export const buildTasksQueryString = ({
-  keyword = "",
-  status = "",
-  sort = DEFAULT_SORT,
-  page = 1,
-} = {}) => {
+/**
+ * @description 업무 목록 필터 모델을 URL query string으로 직렬화한다.
+ * 처리 규칙: 기본값과 동일한 sort/page는 query에서 생략해 URL 노이즈를 줄인다.
+ * @returns {string} 목록 조회에 사용할 query string
+ * @updated 2026-02-27
+ */
+export const buildTasksQueryString = (options = {}) => {
+  const {
+    keyword = "",
+    status = "",
+    sort = DEFAULT_SORT,
+    page = 1,
+  } = options;
   const params = new URLSearchParams();
   const keywordText = String(keyword || "").trim();
   const statusText = String(status || "").trim().toLowerCase();

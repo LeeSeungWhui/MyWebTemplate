@@ -29,6 +29,11 @@ const Textarea = forwardRef(({
   const [draftValue, setDraftValue] = useState(undefined);
   const composingRef = useRef(false);
 
+  /**
+   * @description prop/dataObj/internal 상태 우선순위에 따라 현재 표시값을 계산한다.
+   * @returns {string}
+   * @updated 2026-02-27
+   */
   const getExternalValue = () => {
     if (isPropControlled) return propValue ?? '';
     if (isData) return getBoundValue(dataObj, dataKey) ?? '';
@@ -43,6 +48,13 @@ const Textarea = forwardRef(({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [propValue, dataObj, dataKey, draftValue]);
 
+  /**
+   * @description 입력값을 저장소(dataObj 또는 내부 state)에 반영하고 상위 폼 동기화를 유지한다.
+   * @param {string} raw
+   * @param {React.SyntheticEvent | undefined} event
+   * @returns {void}
+   * @updated 2026-02-27
+   */
   const commit = (raw, event) => {
     if (isData) setBoundValue(dataObj, dataKey, raw);
     if (!isPropControlled && !isData) setInnerValue(raw);
@@ -85,6 +97,7 @@ const Textarea = forwardRef(({
 Textarea.displayName = 'Textarea';
 
 /**
- * @description Textarea export를 노출한다.
+ * @description Textarea 컴포넌트를 기본 export한다.
+ * @returns {React.ComponentType} Textarea 컴포넌트
  */
 export default Textarea;

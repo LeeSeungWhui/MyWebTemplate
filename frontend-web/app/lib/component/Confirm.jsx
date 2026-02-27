@@ -42,7 +42,7 @@ const Confirm = ({
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-500/70">
             <div className={`
-                w-[calc(100vw-2rem)] max-w-md rounded-lg shadow-lg border ${styles[type]?.borderColor || styles.info.borderColor}
+                w-[calc(100vw-32px)] max-w-md rounded-lg shadow-lg border ${styles[type]?.borderColor || styles.info.borderColor}
                 ${styles[type]?.bgColor || styles.info.bgColor} backdrop-blur-sm
                 animate-fade-in-up
             `}>

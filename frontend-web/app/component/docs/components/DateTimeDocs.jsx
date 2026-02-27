@@ -14,7 +14,8 @@ import { DateInputExamples } from '../examples/DateInputExamples';
 import { TimeInputExamples } from '../examples/TimeInputExamples';
 
 /**
- * @description DateTimeDocs export를 노출한다.
+ * @description DateInput/TimeInput 문서 섹션을 구성하고 예제 목록을 렌더링한다.
+ * @returns {JSX.Element}
  */
 const DateTimeDocs = () => {
   const dateEx = DateInputExamples();

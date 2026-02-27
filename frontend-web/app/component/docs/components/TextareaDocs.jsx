@@ -13,7 +13,8 @@ import CodeBlock from '../shared/CodeBlock';
 import { TextareaExamples } from '../examples/TextareaExamples';
 
 /**
- * @description TextareaDocs export를 노출한다.
+ * @description Textarea 문서 섹션을 구성하고 예제 목록을 렌더링한다.
+ * @returns {JSX.Element}
  */
 const TextareaDocs = () => {
   const examples = TextareaExamples();

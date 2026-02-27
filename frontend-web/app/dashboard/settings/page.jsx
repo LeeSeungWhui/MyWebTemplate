@@ -21,7 +21,8 @@ export const metadata = {
 };
 
 /**
- * @description SettingsPage export를 노출한다.
+ * @description 설정 화면 서버 엔트리에서 SettingsView를 반환한다.
+ * @returns {Promise<JSX.Element>}
  */
 const SettingsPage = async () => {
   return <SettingsView />;

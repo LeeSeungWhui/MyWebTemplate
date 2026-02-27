@@ -64,14 +64,21 @@ const ROLE_PERMISSION_MAP = {
   },
 };
 
-const SYSTEM_DEFAULT = { ...LANG_KO.view.systemDefault };
+  const SYSTEM_DEFAULT = { ...LANG_KO.view.systemDefault };
 
 /**
  * @description 공개 관리자 화면 샘플를 렌더링한다.
+ * 처리 규칙: 사용자 탭은 목록/드로어 CRUD를, 시스템 탭은 설정 토글 상태를 EasyObj 기반으로 유지한다.
  * @param {{ mode: Object, initRows: Array }} props
  */
 const AdminDemoView = (props) => {
   const { initRows = [] } = props;
+
+  /**
+   * @description 사용자 드로어 폼의 기본 모델을 생성한다.
+   * 반환값: 생성 모드 초기화 시 재사용하는 사용자 폼 기본값 객체.
+   * @updated 2026-02-27
+   */
   const createDefaultUserForm = () => ({
     name: "",
     email: "",
@@ -82,6 +89,12 @@ const AdminDemoView = (props) => {
     notifyPush: false,
     profileImageName: "",
   });
+
+  /**
+   * @description 현재 날짜를 사용자 생성일 필드용 YYYY-MM-DD 문자열로 만든다.
+   * 반환값: 신규 사용자 createdAt 값으로 쓰는 날짜 텍스트.
+   * @updated 2026-02-27
+   */
   const toTodayText = () => {
     const now = new Date();
     const year = now.getFullYear();
@@ -89,23 +102,19 @@ const AdminDemoView = (props) => {
     const day = String(now.getDate()).padStart(2, "0");
     return `${year}-${month}-${day}`;
   };
-  const ui = EasyObj(
-    useMemo(
-      () => ({
-        isLoading: true,
-        tabIndex: 0,
-        keyword: "",
-        drawerState: {
-          isOpen: false,
-          mode: "create",
-          editingId: null,
-        },
-        userForm: createDefaultUserForm(),
-        formError: "",
-      }),
-      [],
-    ),
-  );
+
+  const ui = EasyObj({
+    isLoading: true,
+    tabIndex: 0,
+    keyword: "",
+    drawerState: {
+      isOpen: false,
+      mode: "create",
+      editingId: null,
+    },
+    userForm: createDefaultUserForm(),
+    formError: "",
+  });
   const { value: rows, setValue: setRows } = useDemoSharedState({
     stateKey: "demoAdminUsers",
     initialValue: initRows,
@@ -133,78 +142,80 @@ const AdminDemoView = (props) => {
     });
   }, [ui.keyword, rows]);
 
-  const tableColumns = useMemo(
-    () => [
-      {
-        key: "profile",
-        header: LANG_KO.view.table.profileHeader,
-        width: 90,
-        render: (rowItem) => (
-          <div className="flex items-center justify-center">
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100 text-xs font-semibold text-blue-700">
-              {String(rowItem?.name || "?").slice(0, 1)}
-            </div>
+  const tableColumns = [
+    {
+      key: "profile",
+      header: LANG_KO.view.table.profileHeader,
+      width: 90,
+      render: (rowItem) => (
+        <div className="flex items-center justify-center">
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100 text-xs font-semibold text-blue-700">
+            {String(rowItem?.name || "?").slice(0, 1)}
           </div>
-        ),
-      },
-      { key: "name", header: LANG_KO.view.table.nameHeader, width: 120 },
-      { key: "email", header: LANG_KO.view.table.emailHeader, align: "left", width: "2fr" },
-      {
-        key: "role",
-        header: LANG_KO.view.table.roleHeader,
-        width: 130,
-        render: (rowItem) => (
-          <Badge variant={ROLE_BADGE_VARIANT_MAP[rowItem?.role] || "neutral"} pill>
-            {LANG_KO.view.roleLabelMap[rowItem?.role] || rowItem?.role}
-          </Badge>
-        ),
-      },
-      {
-        key: "status",
-        header: LANG_KO.view.table.statusHeader,
-        width: 100,
-        render: (rowItem) => (
-          <Badge variant={STATUS_BADGE_VARIANT_MAP[rowItem?.status] || "neutral"} pill>
-            {LANG_KO.view.statusLabelMap[rowItem?.status] || rowItem?.status}
-          </Badge>
-        ),
-      },
-      { key: "createdAt", header: LANG_KO.view.table.createdAtHeader, width: 120 },
-      {
-        key: "actions",
-        header: LANG_KO.view.table.actionsHeader,
-        width: 120,
-        render: (rowItem) => (
-          <Button
-            size="sm"
-            variant="secondary"
-            onClick={() => {
-              ui.drawerState = {
-                isOpen: true,
-                mode: "edit",
-                editingId: rowItem.id,
-              };
-              ui.userForm = {
-                name: rowItem.name || "",
-                email: rowItem.email || "",
-                role: rowItem.role || "user",
-                status: rowItem.status || "active",
-                notifyEmail: Boolean(rowItem.notifyEmail),
-                notifySms: Boolean(rowItem.notifySms),
-                notifyPush: Boolean(rowItem.notifyPush),
-                profileImageName: "",
-              };
-              ui.formError = "";
-            }}
-          >
-            {LANG_KO.view.users.editButton}
-          </Button>
-        ),
-      },
-    ],
-    [],
-  );
+        </div>
+      ),
+    },
+    { key: "name", header: LANG_KO.view.table.nameHeader, width: 120 },
+    { key: "email", header: LANG_KO.view.table.emailHeader, align: "left", width: "2fr" },
+    {
+      key: "role",
+      header: LANG_KO.view.table.roleHeader,
+      width: 130,
+      render: (rowItem) => (
+        <Badge variant={ROLE_BADGE_VARIANT_MAP[rowItem?.role] || "neutral"} pill>
+          {LANG_KO.view.roleLabelMap[rowItem?.role] || rowItem?.role}
+        </Badge>
+      ),
+    },
+    {
+      key: "status",
+      header: LANG_KO.view.table.statusHeader,
+      width: 100,
+      render: (rowItem) => (
+        <Badge variant={STATUS_BADGE_VARIANT_MAP[rowItem?.status] || "neutral"} pill>
+          {LANG_KO.view.statusLabelMap[rowItem?.status] || rowItem?.status}
+        </Badge>
+      ),
+    },
+    { key: "createdAt", header: LANG_KO.view.table.createdAtHeader, width: 120 },
+    {
+      key: "actions",
+      header: LANG_KO.view.table.actionsHeader,
+      width: 120,
+      render: (rowItem) => (
+        <Button
+          size="sm"
+          variant="secondary"
+          onClick={() => {
+            ui.drawerState = {
+              isOpen: true,
+              mode: "edit",
+              editingId: rowItem.id,
+            };
+            ui.userForm = {
+              name: rowItem.name || "",
+              email: rowItem.email || "",
+              role: rowItem.role || "user",
+              status: rowItem.status || LANG_KO.view.misc.defaultStatusCode,
+              notifyEmail: Boolean(rowItem.notifyEmail),
+              notifySms: Boolean(rowItem.notifySms),
+              notifyPush: Boolean(rowItem.notifyPush),
+              profileImageName: "",
+            };
+            ui.formError = "";
+          }}
+        >
+          {LANG_KO.view.users.editButton}
+        </Button>
+      ),
+    },
+  ];
 
+  /**
+   * @description 생성 모드 드로어를 열고 폼/에러 상태를 초기화한다.
+   * 부작용: ui.drawerState, ui.userForm, ui.formError 값을 덮어쓴다.
+   * @updated 2026-02-27
+   */
   const openCreateDrawer = () => {
     ui.drawerState = {
       isOpen: true,
@@ -215,6 +226,11 @@ const AdminDemoView = (props) => {
     ui.formError = "";
   };
 
+  /**
+   * @description 사용자 편집 드로어를 닫고 에러 문구를 정리한다.
+   * 부작용: ui.drawerState.isOpen=false, ui.formError=''로 변경된다.
+   * @updated 2026-02-27
+   */
   const closeDrawer = () => {
     ui.drawerState = {
       isOpen: false,
@@ -224,6 +240,11 @@ const AdminDemoView = (props) => {
     ui.formError = "";
   };
 
+  /**
+   * @description 사용자 폼 유효성을 확인한 뒤 생성/수정 모드에 맞춰 목록 데이터를 저장한다.
+   * 실패 동작: name/email 누락 시 ui.formError를 설정하고 저장을 중단한다.
+   * @updated 2026-02-27
+   */
   const saveUser = () => {
     const name = String(ui.userForm.name || "").trim();
     const email = String(ui.userForm.email || "").trim();

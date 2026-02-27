@@ -13,7 +13,8 @@ import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';
 
 /**
- * @description ButtonDocs export를 노출한다.
+ * @description Button 문서 섹션을 구성하고 예제 목록을 렌더링한다.
+ * @returns {JSX.Element}
  */
 const ButtonDocs = () => {
     const examples = ButtonExamples();  // 컴포넌트 실행

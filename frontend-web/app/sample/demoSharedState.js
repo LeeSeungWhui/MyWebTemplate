@@ -10,11 +10,12 @@ import { useCallback, useEffect } from "react";
 import { useSharedData } from "@/app/common/store/SharedStore";
 import { deepCloneValue } from "@/app/lib/runtime/json";
 
+/**
+ * @description 샘플 상태 값을 안전하게 깊은 복사한다.
+ * @returns {any}
+ * @updated 2026-02-27
+ */
 const cloneValue = (value) => {
-  /**
-   * @description 샘플 상태 값을 안전하게 깊은 복사한다.
-   * @updated 2026-02-23
-  */
   if (value == null) return value;
   return deepCloneValue(value, value);
 };
@@ -22,6 +23,7 @@ const cloneValue = (value) => {
 /**
  * @description 샘플 공용 상태를 읽고 쓰는 훅을 반환한다.
  * @param {{ stateKey: string, initialValue: any }} params
+ * @returns {{ value: any, setValue: (nextValueOrUpdater: any) => void, resetValue: () => void, isInitialized: boolean }}
  */
 export const useDemoSharedState = (params) => {
   const { stateKey, initialValue } = params;

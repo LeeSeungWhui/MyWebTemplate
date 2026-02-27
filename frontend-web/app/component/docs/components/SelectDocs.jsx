@@ -13,7 +13,8 @@ import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';
 
 /**
- * @description SelectDocs export를 노출한다.
+ * @description Select 문서 섹션을 구성하고 예제 목록을 렌더링한다.
+ * @returns {JSX.Element}
  */
 const SelectDocs = () => {
     const examples = SelectExamples();

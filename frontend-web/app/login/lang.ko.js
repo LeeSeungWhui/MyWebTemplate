@@ -13,6 +13,8 @@ export const LANG_KO = {
     toast: {
       sessionExpired: "세션이 만료되었습니다. 다시 로그인해 주세요.",
       signupDone: "회원가입이 완료되었습니다. 로그인해 주세요.",
+      codeLabel: "code",
+      requestIdLabel: "requestId",
     },
     error: {
       tooManyAttempts: "로그인 시도가 너무 많습니다. 잠시 후 다시 시도해 주세요.",

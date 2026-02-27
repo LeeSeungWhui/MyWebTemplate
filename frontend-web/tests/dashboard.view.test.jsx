@@ -5,7 +5,7 @@
  * 설명: 대시보드 뷰 에러/빈상태 렌더링 테스트
  */
 
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { vi } from "vitest";
 
 const pushMock = vi.fn();
@@ -101,6 +101,113 @@ describe("dashboard view", () => {
     });
     expect(screen.getByText("requestId: rid-dashboard-fetch")).toBeInTheDocument();
     expect(screen.getByText("code: DASHBOARD_FETCH_FAIL")).toBeInTheDocument();
+  });
+
+  test("CSR fetch 지연 중에는 loading을 표시하고 완료 후 목록을 렌더링한다", async () => {
+    let resolveStats;
+    let resolveList;
+    apiJSON
+      .mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            resolveStats = resolve;
+          }),
+      )
+      .mockImplementationOnce(
+        () =>
+          new Promise((resolve) => {
+            resolveList = resolve;
+          }),
+      );
+
+    render(
+      <DashboardView
+        statList={[]}
+        dataList={[]}
+        initialError={null}
+      />,
+    );
+
+    expect(screen.getByText("loading")).toBeInTheDocument();
+
+    await act(async () => {
+      resolveStats({
+        result: { byStatus: [{ status: "ready", count: 1, amountSum: 1000 }] },
+      });
+      resolveList({
+        result: {
+          items: [
+            {
+              id: 1,
+              title: "지연 테스트",
+              status: "ready",
+              amount: 1000,
+              createdAt: "2026-02-23T00:00:00.000Z",
+            },
+          ],
+        },
+      });
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText("1 rows")).toBeInTheDocument();
+    });
+    expect(screen.queryByText("loading")).not.toBeInTheDocument();
+  });
+
+  test("타임아웃 실패 이후 재마운트하면 정상 응답으로 복구된다", async () => {
+    const timeoutError = new Error("timeout");
+    timeoutError.code = "DASHBOARD_TIMEOUT";
+    timeoutError.requestId = "rid-dashboard-timeout";
+
+    apiJSON
+      .mockRejectedValueOnce(timeoutError)
+      .mockRejectedValueOnce(timeoutError);
+
+    const firstRender = render(
+      <DashboardView
+        statList={[]}
+        dataList={[]}
+        initialError={null}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText("대시보드 데이터를 불러오지 못했습니다.")).toBeInTheDocument();
+    });
+    firstRender.unmount();
+
+    apiJSON.mockReset();
+    apiJSON
+      .mockResolvedValueOnce({
+        result: { byStatus: [{ status: "ready", count: 1, amountSum: 1000 }] },
+      })
+      .mockResolvedValueOnce({
+        result: {
+          items: [
+            {
+              id: 1,
+              title: "복구 테스트",
+              status: "ready",
+              amount: 1000,
+              createdAt: "2026-02-23T00:00:00.000Z",
+            },
+          ],
+        },
+      });
+
+    render(
+      <DashboardView
+        statList={[]}
+        dataList={[]}
+        initialError={null}
+      />,
+    );
+
+    await waitFor(() => {
+      expect(screen.getByText("1 rows")).toBeInTheDocument();
+    });
+    expect(screen.queryByText("대시보드 데이터를 불러오지 못했습니다.")).not.toBeInTheDocument();
   });
 
   test("목록 0건이면 빈 상태 메시지를 표시한다", async () => {

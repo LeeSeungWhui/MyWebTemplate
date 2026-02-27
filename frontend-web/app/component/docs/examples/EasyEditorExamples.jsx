@@ -6,6 +6,11 @@
  */
 import * as Lib from '@/app/lib';
 
+/**
+ * @description HTML 문자열을 요약 텍스트로 변환한다.
+ * @returns {string}
+ * @updated 2026-02-27
+ */
 const summariseHtml = (value) => {
   const text = typeof value === 'string'
     ? value

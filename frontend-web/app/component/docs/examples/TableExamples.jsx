@@ -11,6 +11,11 @@
 import * as Lib from '@/app/lib';
 import { useMemo, useState } from 'react';
 
+/**
+ * @description 인덱스 기준 권한 라벨을 반환한다.
+ * @returns {"Admin"|"Editor"|"Viewer"}
+ * @updated 2026-02-27
+ */
 const roleLabelByIndex = (index) => {
   if (index % 3 === 0) return 'Admin';
   if (index % 3 === 1) return 'Editor';
@@ -19,6 +24,7 @@ const roleLabelByIndex = (index) => {
 
 /**
  * @description TableExamples 구성 데이터를 반환한다.
+ * @returns {Array<{ component: JSX.Element, code: string }>}
  * @updated 2026-02-24
  */
 export const TableExamples = () => {

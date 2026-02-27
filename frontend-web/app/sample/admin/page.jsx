@@ -16,6 +16,7 @@ export const metadata = {
 
 /**
  * @description 공개 관리자 화면 샘플 페이지를 렌더링한다.
+ * @returns {JSX.Element}
  */
 const AdminDemoPage = () => {
   return <AdminDemoView mode={PAGE_MODE} initRows={USER_ROW_LIST} />;

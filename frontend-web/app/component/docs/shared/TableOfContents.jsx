@@ -262,7 +262,8 @@ const tocItems = [
 ];
 
 /**
- * @description TableOfContents export를 노출한다.
+ * @description 컴포넌트 문서 목차 트리를 렌더링하고 섹션 앵커 링크를 제공한다.
+ * @returns {JSX.Element}
  */
 const TableOfContents = () => {
   return (

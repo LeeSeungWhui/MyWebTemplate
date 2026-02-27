@@ -45,6 +45,7 @@ export const LANG_KO = {
       removeEndpointMissing: "삭제 API 경로가 설정되지 않았습니다.",
       saveFailed: "업무 저장에 실패했습니다.",
       removeFailed: "업무 삭제에 실패했습니다.",
+      requestIdLabel: "requestId",
     },
     validation: {
       titleRequired: "제목은 필수입니다.",
@@ -110,6 +111,7 @@ export const LANG_KO = {
       currencyZero: "0",
       dateUnknown: "-",
       drawerLoading: "상세 데이터를 불러오는 중...",
+      defaultStatusCode: "ready",
     },
   },
 };

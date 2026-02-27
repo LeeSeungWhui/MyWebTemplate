@@ -13,7 +13,8 @@ import CodeBlock from '../shared/CodeBlock';
 import { SwitchExamples } from '../examples/SwitchExamples';
 
 /**
- * @description SwitchDocs export를 노출한다.
+ * @description Switch 문서 섹션을 구성하고 예제 목록을 렌더링한다.
+ * @returns {JSX.Element}
  */
 const SwitchDocs = () => {
   const examples = SwitchExamples();

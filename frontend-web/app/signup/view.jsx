@@ -6,7 +6,7 @@
  * 설명: 회원가입 페이지 클라이언트 뷰
  */
 
-import { useMemo, useRef } from "react";
+import { useRef } from "react";
 import EasyObj from "@/app/lib/dataset/EasyObj";
 import Button from "@/app/lib/component/Button";
 import Checkbox from "@/app/lib/component/Checkbox";
@@ -14,25 +14,34 @@ import Input from "@/app/lib/component/Input";
 import Link from "next/link";
 import { apiJSON } from "@/app/lib/runtime/api";
 import { useGlobalUi } from "@/app/common/store/SharedStore";
-import { SIGNUP_PATH, createSignupFormModel } from "./initData";
+import { SIGNUP_PATH } from "./initData";
 import LANG_KO from "./lang.ko";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 /**
- * @description SignupView export를 노출한다.
+ * @description 회원가입 입력 검증/제출/에러 포커스 이동을 담당하는 화면을 렌더링한다.
+ * 처리 규칙: 가입 성공 시 성공 토스트 표시 후 `/login?signup=done`으로 이동한다.
  */
 const SignupView = () => {
-  const signupObj = EasyObj(useMemo(() => createSignupFormModel(), []));
-  const ui = EasyObj(
-    useMemo(
-      () => ({
-        pending: false,
-        formError: "",
-      }),
-      [],
-    ),
-  );
+  const signupObj = EasyObj({
+    name: "",
+    email: "",
+    password: "",
+    passwordConfirm: "",
+    agreeTerms: false,
+    errors: {
+      name: "",
+      email: "",
+      password: "",
+      passwordConfirm: "",
+      agreeTerms: "",
+    },
+  });
+  const ui = EasyObj({
+    pending: false,
+    formError: "",
+  });
   const nameRef = useRef(null);
   const emailRef = useRef(null);
   const passwordRef = useRef(null);
@@ -41,6 +50,11 @@ const SignupView = () => {
   const errorSummaryRef = useRef(null);
   const { showToast } = useGlobalUi();
 
+  /**
+   * @description 모든 필드 에러와 폼 공통 에러 메시지를 초기화한다.
+   * 부작용: signupObj.errors 전 필드와 ui.formError가 빈 문자열로 변경된다.
+   * @updated 2026-02-27
+   */
   const resetErrors = () => {
     signupObj.errors.name = "";
     signupObj.errors.email = "";
@@ -50,6 +64,11 @@ const SignupView = () => {
     ui.formError = "";
   };
 
+  /**
+   * @description 검증 실패한 첫 입력 요소로 포커스를 이동시킨다.
+   * 처리 규칙: ref.current가 있을 때 requestAnimationFrame으로 focus를 실행한다.
+   * @updated 2026-02-27
+   */
   const focusOnError = (ref) => {
     if (!ref || !ref.current) return;
     requestAnimationFrame(() => {
@@ -57,6 +76,11 @@ const SignupView = () => {
     });
   };
 
+  /**
+   * @description 이름/이메일/비밀번호/약관 동의 조건을 검증하고 에러 상태를 설정한다.
+   * 실패 동작: 첫 오류 메시지를 ui.formError에 기록하고 해당 필드로 포커스를 이동한 뒤 false를 반환한다.
+   * @updated 2026-02-27
+   */
   const validateForm = () => {
     resetErrors();
     const issues = [];
@@ -101,6 +125,11 @@ const SignupView = () => {
     return true;
   };
 
+  /**
+   * @description 회원가입 API 요청을 전송하고 결과에 맞는 후속 동작을 반영한다.
+   * 실패 동작: 코드별 에러 메시지를 필드/폼에 반영하고 오류 요약 영역으로 포커스를 이동한다.
+   * @updated 2026-02-27
+   */
   const handleSubmit = async (event) => {
     event.preventDefault();
     if (!validateForm()) return;
@@ -127,7 +156,9 @@ const SignupView = () => {
       if (error?.code === "AUTH_422_INVALID_INPUT") {
         ui.formError = LANG_KO.view.error.invalidInput;
       } else {
-        const requestIdText = error?.requestId ? ` (requestId: ${error.requestId})` : "";
+        const requestIdText = error?.requestId
+          ? ` (${LANG_KO.view.error.requestIdLabel}: ${error.requestId})`
+          : "";
         ui.formError = `${error?.message || LANG_KO.view.error.signupFailed}${requestIdText}`;
       }
       focusOnError(errorSummaryRef);

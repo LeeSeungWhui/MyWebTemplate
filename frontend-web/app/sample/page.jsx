@@ -20,6 +20,7 @@ export const revalidate = 0;
 
 /**
  * @description 공개 샘플 허브 페이지를 렌더링한다.
+ * @returns {JSX.Element}
  */
 const DemoHubPage = () => {
   return <DemoHubView mode={PAGE_MODE} />;

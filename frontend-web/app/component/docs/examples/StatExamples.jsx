@@ -10,8 +10,10 @@ import * as Lib from '@/app/lib';
  * Stat 예시 목록을 반환
  * @date 2025-09-13
  */
+
 /**
  * @description StatExamples 구성 데이터를 반환한다.
+ * @returns {Array<{ component: JSX.Element, code: string }>}
  * @updated 2026-02-24
  */
 export const StatExamples = () => {
@@ -40,4 +42,3 @@ export const StatExamples = () => {
   ];
   return examples;
 };
-

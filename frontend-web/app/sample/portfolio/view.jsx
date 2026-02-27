@@ -14,9 +14,12 @@ const flowItemClassName =
   "relative rounded-xl border border-blue-100 bg-white px-4 py-4 text-center shadow-sm";
 
 /**
- * @description PortfolioView export를 노출한다.
+ * @description 공개 포트폴리오 콘텐츠를 시각 섹션으로 구성해 렌더링한다.
+ * @param {{ content: any }} props
+ * @returns {JSX.Element}
  */
 const PortfolioView = ({ content }) => {
+
   return (
     <>
       <section className="overflow-hidden rounded-3xl bg-gradient-to-br from-[#1e3a5f] to-[#312e81] px-6 py-10 text-white shadow-xl sm:px-10">

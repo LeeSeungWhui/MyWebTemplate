@@ -28,8 +28,15 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 /**
  * @description 공개 복합 폼 샘플 화면을 렌더링한다.
+ * 처리 규칙: 단계별(step1~3) 입력/검증/요약 상태를 하나의 EasyObj(ui)에서 관리한다.
  */
 const FormDemoView = () => {
+
+  /**
+   * @description 1단계 입력 검증 에러 모델의 기본값을 생성한다.
+   * 반환값: 각 필드 에러 메시지를 빈 문자열로 초기화한 객체.
+   * @updated 2026-02-27
+   */
   const createStepOneErrorModel = () => ({
     name: "",
     email: "",
@@ -39,17 +46,13 @@ const FormDemoView = () => {
     endDate: "",
     budgetRange: "",
   });
-  const ui = EasyObj(
-    useMemo(
-      () => ({
-        isLoading: true,
-        step: 1,
-        form: createDefaultForm(),
-        stepOneErrors: createStepOneErrorModel(),
-      }),
-      [],
-    ),
-  );
+
+  const ui = EasyObj({
+    isLoading: true,
+    step: 1,
+    form: createDefaultForm(),
+    stepOneErrors: createStepOneErrorModel(),
+  });
   const { showToast } = useGlobalUi();
 
   useEffect(() => {
@@ -96,14 +99,29 @@ const FormDemoView = () => {
     budgetRange: ui.stepOneErrors.budgetRange ? "demo-form-budget-range-error" : undefined,
   };
 
+  /**
+   * @description 요청된 단계 번호를 허용 범위(1~3)로 보정해 현재 단계를 변경한다.
+   * 처리 규칙: 범위를 벗어난 입력은 min/max 경계값으로 clamp 한다.
+   * @updated 2026-02-27
+   */
   const moveStep = (nextStep) => {
     ui.step = Math.min(3, Math.max(1, nextStep));
   };
 
+  /**
+   * @description 1단계 필드 에러 메시지를 모두 초기화한다.
+   * 부작용: ui.stepOneErrors를 새 기본 모델로 교체한다.
+   * @updated 2026-02-27
+   */
   const resetStepOneErrors = () => {
     ui.stepOneErrors = createStepOneErrorModel();
   };
 
+  /**
+   * @description 1단계 필수값/형식/기간 규칙을 검증하고 에러 상태를 반영한다.
+   * 실패 동작: 하나라도 실패하면 ui.stepOneErrors를 갱신하고 에러 토스트를 띄운 뒤 false를 반환한다.
+   * @updated 2026-02-27
+   */
   const validateStepOne = () => {
     const nextErrors = createStepOneErrorModel();
     const name = String(ui.form.name || "").trim();
@@ -136,6 +154,11 @@ const FormDemoView = () => {
     return true;
   };
 
+  /**
+   * @description 기능 선택 체크 상태를 토글해 selectedFeatures 목록을 갱신한다.
+   * 처리 규칙: 이미 선택된 라벨은 제거하고, 미선택 라벨은 배열 끝에 추가한다.
+   * @updated 2026-02-27
+   */
   const toggleFeature = (label) => {
     const exists = ui.form.selectedFeatures.includes(label);
     if (exists) {

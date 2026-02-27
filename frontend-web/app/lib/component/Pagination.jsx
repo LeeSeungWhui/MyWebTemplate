@@ -7,9 +7,20 @@
 import React from 'react';
 import { COMMON_COMPONENT_LANG_KO } from '@/app/common/i18n/lang.ko';
 
+/**
+ * @description 페이지 번호를 최소/최대 범위로 보정한다.
+ * 반환값: min~max 사이로 제한된 정수 값.
+ * @updated 2026-02-27
+ */
 const clamp = (value, min, max) => Math.max(min, Math.min(value, max));
 
+/**
+ * @description Arrow 컴포넌트를 렌더링한다.
+ * 반환값: 방향(dir)에 따라 회전이 적용된 단일 화살표 SVG.
+ * @updated 2026-02-27
+ */
 const Arrow = ({ dir, className = '' }) => {
+
   let rotate = '';
   if (dir === 'left') rotate = 'rotate-180';
   else if (dir === 'up') rotate = '-rotate-90';
@@ -21,7 +32,13 @@ const Arrow = ({ dir, className = '' }) => {
   );
 };
 
+/**
+ * @description DoubleArrow 컴포넌트를 렌더링한다.
+ * 반환값: 처음/마지막 페이지 이동 버튼에 쓰는 이중 화살표 SVG.
+ * @updated 2026-02-27
+ */
 const DoubleArrow = ({ dir = 'right', className = '' }) => {
+
   const rotate = dir === 'left' ? 'rotate-180' : '';
   return (
     <svg width="18" height="16" viewBox="0 0 18 16" fill="none" xmlns="http://www.w3.org/2000/svg" className={`${rotate} ${className}`} aria-hidden>
@@ -44,10 +61,28 @@ const Pagination = ({
   className = '',
   showEdges = true,
 }) => {
+
+  /**
+   * @description 페이지 변경 콜백 호출 전에 범위 보정을 적용한다.
+   * 처리 규칙: nextPage를 clamp(1~pageCount)한 뒤 onChange를 호출한다.
+   * @updated 2026-02-27
+   */
   const safeChange = (nextPage) => onChange?.(clamp(nextPage, 1, pageCount));
 
   const tokenList = [];
+
+  /**
+   * @description 페이지 토큰(숫자 또는 ellipsis)을 렌더링 버퍼에 추가한다.
+   * 부작용: tokenList 배열 길이가 증가한다.
+   * @updated 2026-02-27
+   */
   const addToken = (token) => tokenList.push(token);
+
+  /**
+   * @description startPage~endPage 구간의 연속 페이지 번호를 tokenList에 채운다.
+   * 처리 규칙: for 루프로 모든 번호를 순회하며 addToken을 호출한다.
+   * @updated 2026-02-27
+   */
   const addPages = (startPage, endPage) => {
     for (let pageNo = startPage; pageNo <= endPage; pageNo += 1) {
       addToken(pageNo);
@@ -112,6 +147,7 @@ const Pagination = ({
 };
 
 /**
- * @description Pagination 컴포넌트 엔트리를 export 한다.
+ * @description 접근성 라벨과 페이지 윈도우 계산을 포함한 Pagination 컴포넌트를 외부에 노출한다.
+ * 반환값: Pagination 컴포넌트 export.
  */
 export default Pagination;

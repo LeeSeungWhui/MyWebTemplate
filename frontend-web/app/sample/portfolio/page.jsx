@@ -16,6 +16,7 @@ export const metadata = {
 
 /**
  * @description 공개 샘플 경로에서 포트폴리오 페이지를 렌더링한다.
+ * @returns {JSX.Element}
  */
 const DemoPortfolioPage = () => {
   return <PortfolioView content={PAGE_CONTENT} />;

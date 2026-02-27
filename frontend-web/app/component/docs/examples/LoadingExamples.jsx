@@ -8,6 +8,11 @@
 import * as Lib from '@/app/lib';
 import { useGlobalUi } from '@/app/common/store/SharedStore';
 
+/**
+ * @description 전역 로딩을 2초간 표시하는 버튼을 렌더링한다.
+ * @returns {JSX.Element}
+ * @updated 2026-02-27
+ */
 const ShowGlobalLoading = () => {
   const { setLoading } = useGlobalUi();
   return (
@@ -48,4 +53,3 @@ const { setLoading } = useGlobalUi();
     }
   ];
 };
-

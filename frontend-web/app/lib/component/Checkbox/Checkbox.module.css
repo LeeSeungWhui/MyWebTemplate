@@ -1,7 +1,7 @@
 .wrapper {
     display: inline-flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: 8px;
     cursor: pointer;
 }
 
@@ -12,10 +12,10 @@
 
 .checkbox {
     appearance: none;
-    width: 1rem;
-    height: 1rem;
+    width: 16px;
+    height: 16px;
     border: 2px solid #d1d5db;
-    border-radius: 0.25rem;
+    border-radius: 4px;
     background-color: white;
     cursor: inherit;
     position: relative;

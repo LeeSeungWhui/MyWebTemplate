@@ -17,6 +17,7 @@ export const LANG_KO = {
       userExists: "이미 사용 중인 이메일입니다.",
       invalidInput: "입력값을 다시 확인해주세요.",
       signupFailed: "회원가입에 실패했습니다.",
+      requestIdLabel: "requestId",
     },
     validation: {
       nameMinLength: "이름은 2자 이상 입력해주세요.",

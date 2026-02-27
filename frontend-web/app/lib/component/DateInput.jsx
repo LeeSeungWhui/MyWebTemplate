@@ -12,8 +12,25 @@ import { getBoundValue, setBoundValue, buildCtx, fireValueHandlers } from '../bi
 import Icon from './Icon';
 import { COMMON_COMPONENT_LANG_KO } from '@/app/common/i18n/lang.ko';
 
+/**
+ * @description 월/일 숫자를 두 자리 문자열로 맞춘다.
+ * 처리 규칙: 1자리 숫자는 앞에 0을 붙이고, 2자리 이상은 원문을 유지한다.
+ * @updated 2026-02-27
+ */
 const pad2 = (numberValue) => String(numberValue).padStart(2, '0');
+
+/**
+ * @description 연/월/일 숫자를 YYYY-MM-DD 문자열로 합친다.
+ * 반환값: DateInput 내부 비교와 바인딩에 사용하는 ISO 날짜 문자열.
+ * @updated 2026-02-27
+ */
 const fmtISO = (yearValue, monthValue, dayValue) => `${yearValue}-${pad2(monthValue)}-${pad2(dayValue)}`;
+
+/**
+ * @description YYYY-MM-DD 텍스트를 Date 객체로 변환한다.
+ * 실패 동작: 형식/유효 날짜가 아니면 null을 반환한다.
+ * @updated 2026-02-27
+ */
 const parseISO = (isoText) => {
   if (!isoText || typeof isoText !== 'string') return null;
   const parsedMatch = isoText.match(/^([0-9]{4})-([0-9]{2})-([0-9]{2})$/);
@@ -32,6 +49,11 @@ const parseISO = (isoText) => {
   return parsedDate;
 };
 
+/**
+ * @description 두 Date가 같은 연/월/일인지 비교한다.
+ * 반환값: 같은 날짜면 true, 하나라도 다르면 false.
+ * @updated 2026-02-27
+ */
 const sameDay = (firstDate, secondDate) => {
   if (!firstDate || !secondDate) return false;
   return (
@@ -64,6 +86,11 @@ const DateInput = forwardRef(({
   const [text, setText] = useState(() => (propValue ?? (isData ? getBoundValue(dataObj, dataKey) : inner) ?? ''));
   const [open, setOpen] = useState(false);
   
+  /**
+   * @description 외부 소스(prop/dataObj/local state) 우선순위로 현재 값을 읽는다.
+   * 처리 규칙: controlled > EasyObj 바인딩 > 내부 상태 순으로 fallback 한다.
+   * @updated 2026-02-27
+   */
   const getExternal = () => {
     if (isPropControlled) return propValue ?? '';
     if (isData) return getBoundValue(dataObj, dataKey) ?? '';
@@ -74,6 +101,11 @@ const DateInput = forwardRef(({
     setText(getExternal());
   }, [propValue, dataObj, dataKey]);
 
+  /**
+   * @description 확정된 날짜 문자열을 상태/바인딩/이벤트 핸들러에 동기화한다.
+   * 부작용: text, inner, dataObj[dataKey] 및 onChange/onValueChange 호출에 영향을 준다.
+   * @updated 2026-02-27
+   */
   const commit = (raw, event) => {
     setText(raw);
     if (!isPropControlled && !isData) setInner(raw);
@@ -97,6 +129,11 @@ const DateInput = forwardRef(({
   const [viewYear, setViewYear] = useState(() => (selectedDate?.getFullYear() ?? today.getFullYear()));
   const [viewMonth, setViewMonth] = useState(() => (selectedDate?.getMonth() ?? today.getMonth())); // 0-11
 
+  /**
+   * @description 달력 헤더의 연/월 표시를 전달된 delta만큼 이동한다.
+   * 처리 규칙: month 범위(0~11)를 넘으면 year를 함께 보정한다.
+   * @updated 2026-02-27
+   */
   const changeMonth = (delta) => {
     let nextYear = viewYear;
     let nextMonth = viewMonth + delta;
@@ -142,8 +179,21 @@ const DateInput = forwardRef(({
 
   useEffect(() => {
     if (!open) return;
+
+    /**
+     * @description 컴포넌트 외부 클릭 시 달력 패널을 닫는다.
+     * 처리 규칙: rootRef 영역 바깥 mouse down 이벤트에서만 open=false로 전환한다.
+     * @updated 2026-02-27
+     */
     const handler = (event) => { if (rootRef.current && !rootRef.current.contains(event.target)) setOpen(false); };
+
+    /**
+     * @description Escape 키 입력으로 달력 패널을 닫는다.
+     * 처리 규칙: key 값이 Escape일 때만 close 동작을 수행한다.
+     * @updated 2026-02-27
+     */
     const esc = (keyboardEvent) => { if (keyboardEvent.key === 'Escape') setOpen(false); };
+
     document.addEventListener('mousedown', handler);
     document.addEventListener('keydown', esc);
     return () => { document.removeEventListener('mousedown', handler); document.removeEventListener('keydown', esc); };

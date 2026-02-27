@@ -6,7 +6,7 @@
  * 설명: 공개 페이지 공통 GNB(샘플 드롭다운/모바일 드로어 포함)
  */
 
-import { useCallback, useEffect, useMemo, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Icon from "@/app/lib/component/Icon";
@@ -16,6 +16,11 @@ import { COMMON_COMPONENT_LANG_KO } from "@/app/common/i18n/lang.ko";
 const DEMO_MENU_LIST = COMMON_COMPONENT_LANG_KO.publicLayout.demoMenuList;
 const PUBLIC_MENU_LIST = COMMON_COMPONENT_LANG_KO.publicLayout.publicMenuList;
 
+/**
+ * @description 현재 경로가 데모 드롭다운 그룹에 해당하는지 판별한다.
+ * 반환값: `/sample` 하위(단, `/sample/portfolio` 제외)면 true.
+ * @updated 2026-02-27
+ */
 const isDemoPath = (pathname) => {
   const pathText = String(pathname || "");
   if (pathText === "/sample") {
@@ -30,6 +35,11 @@ const isDemoPath = (pathname) => {
   return true;
 };
 
+/**
+ * @description 메뉴 href가 현재 pathname과 활성 매칭되는지 계산한다.
+ * 처리 규칙: 루트(`/`)와 샘플 루트(`/sample`)는 정확 일치, 그 외는 하위 경로 prefix까지 허용한다.
+ * @updated 2026-02-27
+ */
 const isActiveMenu = (pathname, href) => {
   if (href === "/sample") {
     return pathname === "/sample";
@@ -38,6 +48,11 @@ const isActiveMenu = (pathname, href) => {
   return pathname === href || pathname.startsWith(`${href}/`);
 };
 
+/**
+ * @description 상단 메뉴 항목의 active 상태에 맞는 클래스를 조합한다.
+ * 반환값: hover/active 시각 상태가 포함된 className 문자열.
+ * @updated 2026-02-27
+ */
 const getTopMenuClassName = (active) =>
   [
     "inline-flex items-center rounded-md px-3 py-2 text-sm font-medium transition-colors",
@@ -46,6 +61,11 @@ const getTopMenuClassName = (active) =>
       : "text-gray-700 hover:bg-gray-100 hover:text-blue-600",
   ].join(" ");
 
+/**
+ * @description 데모 드롭다운 버튼의 active 상태 클래스를 조합한다.
+ * 반환값: 드롭다운 트리거 버튼용 className 문자열.
+ * @updated 2026-02-27
+ */
 const getDemoButtonClassName = (active) =>
   [
     "inline-flex items-center gap-1 rounded-md px-3 py-2 text-sm font-medium transition-colors",
@@ -54,6 +74,11 @@ const getDemoButtonClassName = (active) =>
       : "text-gray-700 hover:bg-gray-100 hover:text-blue-600",
   ].join(" ");
 
+/**
+ * @description 드롭다운 항목의 활성 상태에 맞는 텍스트/배경 클래스를 조합한다.
+ * 반환값: 활성/비활성 스타일이 반영된 className 문자열.
+ * @updated 2026-02-27
+ */
 const getDropdownItemClassName = (active) =>
   [
     "block rounded-md px-3 py-2 text-sm transition-colors",
@@ -62,18 +87,14 @@ const getDropdownItemClassName = (active) =>
 
 /**
  * @description 공개 페이지에서 사용하는 상단 GNB를 렌더링한다.
+ * 처리 규칙: 데스크톱은 hover+pin 드롭다운, 모바일은 토글 드로어 메뉴 구조를 사용한다.
  */
 const PublicGnb = () => {
   const pathname = usePathname() || "/";
-  const ui = EasyObj(
-    useMemo(
-      () => ({
-        mobileOpen: false,
-        demoMenuOpen: false,
-      }),
-      [],
-    ),
-  );
+  const ui = EasyObj({
+    mobileOpen: false,
+    demoMenuOpen: false,
+  });
   const demoMenuRef = useRef(null);
   const demoMenuPinnedRef = useRef(false);
 
@@ -84,6 +105,11 @@ const PublicGnb = () => {
     ui.demoMenuOpen = false;
   }, [ui]);
 
+  /**
+   * @description 데모 메뉴 버튼 클릭 시 pinned/open 상태를 토글한다.
+   * 처리 규칙: 이미 pin된 상태에서 재클릭하면 닫고, 그 외에는 pin=true/open=true로 유지한다.
+   * @updated 2026-02-27
+   */
   const handleToggleDemoMenu = () => {
     if (ui.demoMenuOpen && demoMenuPinnedRef.current) {
       closeDemoMenu();
@@ -94,6 +120,12 @@ const PublicGnb = () => {
   };
 
   useEffect(() => {
+
+    /**
+     * @description 데모 메뉴 영역 바깥 포인터 입력에서 드롭다운을 닫는다.
+     * 처리 규칙: demoMenuRef 외부 pointerdown 이벤트만 close 대상으로 본다.
+     * @updated 2026-02-27
+     */
     const handleClickOutside = (event) => {
       const target = event.target;
       if (!demoMenuRef.current || demoMenuRef.current.contains(target)) {
@@ -102,6 +134,11 @@ const PublicGnb = () => {
       closeDemoMenu();
     };
 
+    /**
+     * @description Escape 키 입력으로 데모 드롭다운을 닫는다.
+     * 처리 규칙: key 값이 Escape일 때 closeDemoMenu를 호출한다.
+     * @updated 2026-02-27
+     */
     const handleEscape = (event) => {
       if (event.key === "Escape") {
         closeDemoMenu();

@@ -18,8 +18,18 @@ import { COMMON_COMPONENT_LANG_KO } from '@/app/common/i18n/lang.ko';
 const Viewer = dynamic(() => import('@react-pdf-viewer/core').then((m) => m.Viewer), { ssr: false });
 const Worker = dynamic(() => import('@react-pdf-viewer/core').then((m) => m.Worker), { ssr: false });
 
+/**
+ * @description 값이 Blob/File 계열 객체인지 판별한다.
+ * 처리 규칙: object 타입이면서 `instanceof Blob|File`인 경우만 true를 반환한다.
+ * @updated 2026-02-27
+ */
 const isBlobLike = (value) => value && typeof value === 'object' && (value instanceof Blob || value instanceof File);
 
+/**
+ * @description src 입력을 Viewer가 읽을 수 있는 URL 문자열로 변환한다.
+ * 처리 규칙: string은 그대로, ArrayBuffer/Blob/File은 `URL.createObjectURL`로 변환한다.
+ * @updated 2026-02-27
+ */
 const toObjectUrl = (src) => {
   if (!src) return null;
   if (typeof src === 'string') return src;
@@ -30,12 +40,22 @@ const toObjectUrl = (src) => {
   return null;
 };
 
+/**
+ * @description 문서 상태 기본값 객체를 생성한다.
+ * 처리 규칙: currentPage/totalPages/zoom 기본 필드를 초기 페이지 기준으로 구성해 반환한다.
+ * @updated 2026-02-27
+ */
 const initialDocumentState = (initialPage = 1) => ({
   currentPage: initialPage,
   totalPages: 0,
   zoom: 1,
 });
 
+/**
+ * @description 초기 페이지 번호를 안전한 정수로 정규화한다.
+ * 처리 규칙: 숫자가 아니거나 NaN이면 1, 1 미만 값은 1로 보정한다.
+ * @updated 2026-02-27
+ */
 const normalizeInitialPage = (page) => {
   if (typeof page !== 'number' || Number.isNaN(page)) return 1;
   return page < 1 ? 1 : Math.floor(page);
@@ -90,6 +110,11 @@ const PdfViewer = ({
     setDocumentState(initialDocumentState(normalizedInitialPage));
   }, [objectUrl, normalizedInitialPage]);
 
+  /**
+   * @description 현재 PDF 뷰어 상태를 접근성 안내 문구로 생성한다.
+   * 처리 규칙: error/source/loading/ready 상태 우선순위로 분기해 aria-live용 문자열을 반환한다.
+   * @updated 2026-02-27
+   */
   const describeDocumentStatus = () => {
     if (viewerError) return COMMON_COMPONENT_LANG_KO.pdfViewer.loadFailedStatus;
     if (!objectUrl) return COMMON_COMPONENT_LANG_KO.pdfViewer.sourceUnavailableStatus;
@@ -103,6 +128,11 @@ const PdfViewer = ({
     return COMMON_COMPONENT_LANG_KO.pdfViewer.readyStatus;
   };
 
+  /**
+   * @description 문서 로드 성공 이벤트를 반영한다.
+   * 처리 규칙: loading을 해제하고 totalPages를 업데이트한 뒤 외부 onLoad 콜백을 호출한다.
+   * @updated 2026-02-27
+   */
   const handleDocumentLoad = (event) => {
     setIsLoading(false);
     setDocumentState((prev) => ({
@@ -112,12 +142,22 @@ const PdfViewer = ({
     onLoad?.(event);
   };
 
+  /**
+   * @description 문서 로드 실패 이벤트를 반영한다.
+   * 처리 규칙: loading을 해제하고 viewerError를 저장한 뒤 외부 onError 콜백을 호출한다.
+   * @updated 2026-02-27
+   */
   const handleDocumentLoadFailed = (event) => {
     setIsLoading(false);
     setViewerError(event?.error ?? event);
     onError?.(event);
   };
 
+  /**
+   * @description 페이지 변경 이벤트를 상태에 반영한다.
+   * 처리 규칙: currentPage를 1-based로 보정해 저장하고 totalPages도 함께 동기화한다.
+   * @updated 2026-02-27
+   */
   const handlePageChange = (event) => {
     setDocumentState((prev) => ({
       ...prev,
@@ -126,6 +166,11 @@ const PdfViewer = ({
     }));
   };
 
+  /**
+   * @description 확대/축소 이벤트를 상태에 반영한다.
+   * 처리 규칙: 유효한 scale 값이 있을 때만 zoom 상태를 갱신한다.
+   * @updated 2026-02-27
+   */
   const handleZoom = (event) => {
     if (!event?.scale) return;
     setDocumentState((prev) => ({
@@ -134,6 +179,11 @@ const PdfViewer = ({
     }));
   };
 
+  /**
+   * @description 에러 객체에서 HTTP 상태코드를 추출한다.
+   * 처리 규칙: `status` 우선, 없으면 `statusCode`를 확인하고 둘 다 없으면 null을 반환한다.
+   * @updated 2026-02-27
+   */
   const errorStatusCode = (() => {
     const { status, statusCode } = viewerError ?? {};
     if (typeof status === 'number') return status;
@@ -141,6 +191,11 @@ const PdfViewer = ({
     return null;
   })();
 
+  /**
+   * @description 에러 객체를 사용자 표시용 메시지로 변환한다.
+   * 처리 규칙: string > message > name 순서로 fallback 하며 모두 없으면 기본 문구를 반환한다.
+   * @updated 2026-02-27
+   */
   const errorMessage = (() => {
     if (!viewerError) return null;
     if (typeof viewerError === 'string') return viewerError;
@@ -227,6 +282,7 @@ const PdfViewer = ({
 };
 
 /**
- * @description PdfViewer export를 노출한다.
+ * @description PdfViewer 컴포넌트 엔트리를 외부에 노출한다.
+ * 처리 규칙: 상태/이벤트 핸들러가 연결된 PdfViewer 컴포넌트를 default export 한다.
  */
 export default PdfViewer;

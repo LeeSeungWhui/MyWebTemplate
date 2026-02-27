@@ -125,6 +125,9 @@ export const LANG_KO = {
       saveButton: "저장",
       saveToast: "설정이 저장되었습니다",
     },
+    misc: {
+      defaultStatusCode: "active",
+    },
     drawer: {
       createTitle: "사용자 추가",
       editTitle: "사용자 수정",

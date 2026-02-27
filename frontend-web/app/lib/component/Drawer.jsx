@@ -50,9 +50,17 @@ const Drawer = forwardRef(function Drawer(
   // 한글설명: ESC to close + lock body scroll while visible
   useEffect(() => {
     if (!isOpen) return undefined;
+
+    /**
+     * @description Esc 입력을 감지해 closeOnEsc 옵션이 켜진 경우 패널을 닫힘 상태로 전환한다.
+     * @param {KeyboardEvent} keyboardEvent
+     * @returns {void}
+     * @updated 2026-02-27
+     */
     const onKey = (keyboardEvent) => {
       if (closeOnEsc && keyboardEvent.key === 'Escape') onClose?.();
     };
+
     document.addEventListener('keydown', onKey);
     const prev = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
@@ -122,6 +130,12 @@ const Drawer = forwardRef(function Drawer(
     else contentPad = 'pt-10';
   }
 
+  /**
+   * @description forwardRef가 함수형/객체형인 경우를 모두 지원해 패널 DOM 참조를 전달한다.
+   * @param {HTMLElement | null} el
+   * @returns {void}
+   * @updated 2026-02-27
+   */
   const assignRef = (el) => {
     if (typeof ref === 'function') ref(el);
     else if (ref) ref.current = el;
@@ -178,6 +192,7 @@ const Drawer = forwardRef(function Drawer(
 Drawer.displayName = 'Drawer';
 
 /**
- * @description Drawer export를 노출한다.
+ * @description Drawer 컴포넌트를 기본 export한다.
+ * @returns {React.ComponentType} Drawer 컴포넌트
  */
 export default Drawer;

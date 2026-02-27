@@ -8,6 +8,7 @@ import * as Lib from '@/app/lib';
 
 /**
  * @description IconExamples 구성 데이터를 반환한다.
+ * @returns {Array<{ component: JSX.Element, code: string }>}
  * @updated 2026-02-24
  */
 export const IconExamples = () => {

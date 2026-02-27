@@ -26,18 +26,31 @@ import LANG_KO from "./lang.ko";
 
 /**
  * @description 공개 CRUD 샘플 화면을 렌더링한다.
+ * 처리 규칙: 필터/선택/드로어 상태는 EasyObj(ui)로 유지하고 목록 데이터는 shared state로 동기화한다.
  * @param {{ mode: Object, initRows: Array }} props
  */
 const CrudDemoView = (props) => {
   const { initRows = [] } = props;
+
+  /**
+   * @description 드로어 폼의 초기값 객체를 생성한다.
+   * 반환값: 생성/수정 모드 전환 시 재사용하는 기본 폼 데이터.
+   * @updated 2026-02-27
+   */
   const createDefaultForm = () => ({
     title: "",
-    status: "ready",
+    status: LANG_KO.view.misc.defaultStatusCode,
     owner: "",
     amount: 0,
     description: "",
     attachmentName: "",
   });
+
+  /**
+   * @description 현재 날짜를 YYYY-MM-DD 문자열로 만든다.
+   * 반환값: 신규 행 createdAt 필드에 저장할 날짜 텍스트.
+   * @updated 2026-02-27
+   */
   const toTodayText = () => {
     const now = new Date();
     const year = now.getFullYear();
@@ -45,32 +58,28 @@ const CrudDemoView = (props) => {
     const day = String(now.getDate()).padStart(2, "0");
     return `${year}-${month}-${day}`;
   };
-  const ui = EasyObj(
-    useMemo(
-      () => ({
-        isLoading: true,
-        keyword: "",
-        status: "",
-        fromDate: "",
-        toDate: "",
-        appliedFilter: {
-          keyword: "",
-          status: "",
-          fromDate: "",
-          toDate: "",
-        },
-        selectedIdList: [],
-        drawerState: {
-          isOpen: false,
-          mode: "create",
-          editingId: null,
-        },
-        form: createDefaultForm(),
-        formError: "",
-      }),
-      [],
-    ),
-  );
+
+  const ui = EasyObj({
+    isLoading: true,
+    keyword: "",
+    status: "",
+    fromDate: "",
+    toDate: "",
+    appliedFilter: {
+      keyword: "",
+      status: "",
+      fromDate: "",
+      toDate: "",
+    },
+    selectedIdList: [],
+    drawerState: {
+      isOpen: false,
+      mode: "create",
+      editingId: null,
+    },
+    form: createDefaultForm(),
+    formError: "",
+  });
   const { value: rowList, setValue: setRowList } = useDemoSharedState({
     stateKey: "demoCrudRows",
     initialValue: initRows,
@@ -107,147 +116,149 @@ const CrudDemoView = (props) => {
     filteredRows.length > 0 &&
     filteredRows.every((rowItem) => selectedIdSet.has(rowItem.id));
 
-  const tableColumns = useMemo(
-    () => [
-      {
-        key: "selected",
-        header: (
-          <div className="flex items-center justify-center">
-            <Checkbox
-              checked={allRowSelected}
-              onChange={(event) => {
-                const checked = Boolean(event?.target?.checked);
-                if (!checked) {
-                  ui.selectedIdList = [];
-                  return;
-                }
-                ui.selectedIdList = filteredRows.map((rowItem) => rowItem.id);
-              }}
-              aria-label={LANG_KO.view.table.selectAllAriaLabel}
-            />
-          </div>
-        ),
-        width: 70,
-        render: (rowItem) => (
-          <div className="flex items-center justify-center">
-            <Checkbox
-              checked={selectedIdSet.has(rowItem.id)}
-              onChange={(event) => {
-                const checked = Boolean(event?.target?.checked);
-                if (checked) {
-                  ui.selectedIdList = Array.from(new Set([...ui.selectedIdList, rowItem.id]));
-                  return;
-                }
-                ui.selectedIdList = ui.selectedIdList.filter(
-                  (previousId) => previousId !== rowItem.id,
-                );
-              }}
-              aria-label={`${LANG_KO.view.table.rowSelectAriaLabelPrefix} ${rowItem.id}`}
-            />
-          </div>
-        ),
-      },
-      {
-        key: "id",
-        header: LANG_KO.view.table.idHeader,
-        width: 80,
-      },
-      {
-        key: "title",
-        header: LANG_KO.view.table.titleHeader,
-        align: "left",
-        width: "2fr",
-      },
-      {
-        key: "status",
-        header: LANG_KO.view.table.statusHeader,
-        width: 120,
-        render: (rowItem) => (
-          <Badge
-            variant={LANG_KO.view.statusBadgeVariantMap[rowItem?.status] || "neutral"}
-            pill
+  const tableColumns = [
+    {
+      key: "selected",
+      header: (
+        <div className="flex items-center justify-center">
+          <Checkbox
+            checked={allRowSelected}
+            onChange={(event) => {
+              const checked = Boolean(event?.target?.checked);
+              if (!checked) {
+                ui.selectedIdList = [];
+                return;
+              }
+              ui.selectedIdList = filteredRows.map((rowItem) => rowItem.id);
+            }}
+            aria-label={LANG_KO.view.table.selectAllAriaLabel}
+          />
+        </div>
+      ),
+      width: 70,
+      render: (rowItem) => (
+        <div className="flex items-center justify-center">
+          <Checkbox
+            checked={selectedIdSet.has(rowItem.id)}
+            onChange={(event) => {
+              const checked = Boolean(event?.target?.checked);
+              if (checked) {
+                ui.selectedIdList = Array.from(new Set([...ui.selectedIdList, rowItem.id]));
+                return;
+              }
+              ui.selectedIdList = ui.selectedIdList.filter(
+                (previousId) => previousId !== rowItem.id,
+              );
+            }}
+            aria-label={`${LANG_KO.view.table.rowSelectAriaLabelPrefix} ${rowItem.id}`}
+          />
+        </div>
+      ),
+    },
+    {
+      key: "id",
+      header: LANG_KO.view.table.idHeader,
+      width: 80,
+    },
+    {
+      key: "title",
+      header: LANG_KO.view.table.titleHeader,
+      align: "left",
+      width: "2fr",
+    },
+    {
+      key: "status",
+      header: LANG_KO.view.table.statusHeader,
+      width: 120,
+      render: (rowItem) => (
+        <Badge
+          variant={LANG_KO.view.statusBadgeVariantMap[rowItem?.status] || "neutral"}
+          pill
+        >
+          {LANG_KO.view.statusLabelMap[rowItem?.status] || rowItem?.status}
+        </Badge>
+      ),
+    },
+    {
+      key: "owner",
+      header: LANG_KO.view.table.ownerHeader,
+      width: 120,
+    },
+    {
+      key: "amount",
+      header: LANG_KO.view.table.amountHeader,
+      width: 140,
+      render: (rowItem) =>
+        Number(rowItem?.amount || 0).toLocaleString("ko-KR"),
+    },
+    {
+      key: "createdAt",
+      header: LANG_KO.view.table.createdAtHeader,
+      width: 120,
+    },
+    {
+      key: "actions",
+      header: LANG_KO.view.table.actionsHeader,
+      width: 180,
+      render: (rowItem) => (
+        <div className="flex items-center justify-center gap-2">
+          <Button
+            size="sm"
+            variant="secondary"
+            onClick={() => {
+              ui.drawerState = {
+                isOpen: true,
+                mode: "edit",
+                editingId: rowItem.id,
+              };
+              ui.form = {
+                title: rowItem.title || "",
+                status: rowItem.status || LANG_KO.view.misc.defaultStatusCode,
+                owner: rowItem.owner || "",
+                amount: Number(rowItem.amount || 0),
+                description: rowItem.description || "",
+                attachmentName: rowItem.attachmentName || "",
+              };
+              ui.formError = "";
+            }}
           >
-            {LANG_KO.view.statusLabelMap[rowItem?.status] || rowItem?.status}
-          </Badge>
-        ),
-      },
-      {
-        key: "owner",
-        header: LANG_KO.view.table.ownerHeader,
-        width: 120,
-      },
-      {
-        key: "amount",
-        header: LANG_KO.view.table.amountHeader,
-        width: 140,
-        render: (rowItem) =>
-          Number(rowItem?.amount || 0).toLocaleString("ko-KR"),
-      },
-      {
-        key: "createdAt",
-        header: LANG_KO.view.table.createdAtHeader,
-        width: 120,
-      },
-      {
-        key: "actions",
-        header: LANG_KO.view.table.actionsHeader,
-        width: 180,
-        render: (rowItem) => (
-          <div className="flex items-center justify-center gap-2">
-            <Button
-              size="sm"
-              variant="secondary"
-              onClick={() => {
-                ui.drawerState = {
-                  isOpen: true,
-                  mode: "edit",
-                  editingId: rowItem.id,
-                };
-                ui.form = {
-                  title: rowItem.title || "",
-                  status: rowItem.status || "ready",
-                  owner: rowItem.owner || "",
-                  amount: Number(rowItem.amount || 0),
-                  description: rowItem.description || "",
-                  attachmentName: rowItem.attachmentName || "",
-                };
-                ui.formError = "";
-              }}
-            >
-              {LANG_KO.view.action.edit}
-            </Button>
-            <Button
-              size="sm"
-              variant="danger"
-              onClick={async () => {
-                const confirmed = await showConfirm(
-                  LANG_KO.view.confirm.removeOne,
-                  {
-                    title: LANG_KO.view.confirm.removeOneTitle,
-                    type: "warning",
-                    confirmText: LANG_KO.view.confirm.confirmText,
-                    cancelText: LANG_KO.view.confirm.cancelText,
-                  },
-                );
-                if (!confirmed) return;
-                setRowList((prevRows) =>
-                  prevRows.filter((prevRow) => prevRow.id !== rowItem.id),
-                );
-                ui.selectedIdList = ui.selectedIdList.filter(
-                  (selectedId) => selectedId !== rowItem.id,
-                );
-                showToast(LANG_KO.view.toast.removedRow, { type: "success" });
-              }}
-            >
-              {LANG_KO.view.action.remove}
-            </Button>
-          </div>
-        ),
-      },
-    ],
-    [allRowSelected, filteredRows, selectedIdSet, showConfirm, showToast],
-  );
+            {LANG_KO.view.action.edit}
+          </Button>
+          <Button
+            size="sm"
+            variant="danger"
+            onClick={async () => {
+              const confirmed = await showConfirm(
+                LANG_KO.view.confirm.removeOne,
+                {
+                  title: LANG_KO.view.confirm.removeOneTitle,
+                  type: "warning",
+                  confirmText: LANG_KO.view.confirm.confirmText,
+                  cancelText: LANG_KO.view.confirm.cancelText,
+                },
+              );
+              if (!confirmed) return;
+              setRowList((prevRows) =>
+                prevRows.filter((prevRow) => prevRow.id !== rowItem.id),
+              );
+              ui.selectedIdList = ui.selectedIdList.filter(
+                (selectedId) => selectedId !== rowItem.id,
+              );
+              showToast(LANG_KO.view.toast.removedRow, { type: "success" });
+            }}
+          >
+            {LANG_KO.view.action.remove}
+          </Button>
+        </div>
+      ),
+    },
+  ];
 
+  /**
+   * @description 생성 모드로 드로어를 열고 폼/오류 상태를 초기화한다.
+   * 부작용: ui.drawerState, ui.form, ui.formError 값을 덮어쓴다.
+   * @updated 2026-02-27
+   */
   const openCreateDrawer = () => {
     ui.drawerState = {
       isOpen: true,
@@ -258,6 +269,11 @@ const CrudDemoView = (props) => {
     ui.formError = "";
   };
 
+  /**
+   * @description 드로어를 닫고 에러 문구를 정리한다.
+   * 부작용: ui.drawerState.isOpen=false 및 ui.formError 초기화가 반영된다.
+   * @updated 2026-02-27
+   */
   const closeDrawer = () => {
     ui.drawerState = {
       isOpen: false,
@@ -267,6 +283,11 @@ const CrudDemoView = (props) => {
     ui.formError = "";
   };
 
+  /**
+   * @description 검색 조건의 날짜 범위를 검증한 뒤 적용 필터를 확정한다.
+   * 실패 동작: fromDate > toDate인 경우 토스트만 표시하고 appliedFilter를 바꾸지 않는다.
+   * @updated 2026-02-27
+   */
   const validateAndSearch = () => {
     if (ui.fromDate && ui.toDate && ui.fromDate > ui.toDate) {
       showToast(LANG_KO.view.validation.dateRangeInvalid, { type: "error" });
@@ -280,6 +301,11 @@ const CrudDemoView = (props) => {
     };
   };
 
+  /**
+   * @description 검색 입력값과 적용 필터, 선택 체크 상태를 모두 초기화한다.
+   * 부작용: ui.keyword/ui.status/ui.fromDate/ui.toDate/ui.appliedFilter/ui.selectedIdList가 리셋된다.
+   * @updated 2026-02-27
+   */
   const resetFilter = () => {
     ui.keyword = "";
     ui.status = "";
@@ -294,6 +320,11 @@ const CrudDemoView = (props) => {
     ui.selectedIdList = [];
   };
 
+  /**
+   * @description 드로어 폼을 검증한 뒤 생성/수정 모드에 맞춰 목록 데이터를 저장한다.
+   * 실패 동작: 제목이 비어 있으면 저장을 중단하고 경고 토스트와 formError를 노출한다.
+   * @updated 2026-02-27
+   */
   const saveDrawer = () => {
     const title = String(ui.form.title || "").trim();
     if (!title) {
@@ -304,7 +335,7 @@ const CrudDemoView = (props) => {
     const owner = String(ui.form.owner || "").trim();
     const nextRow = {
       title,
-      status: ui.form.status || "ready",
+      status: ui.form.status || LANG_KO.view.misc.defaultStatusCode,
       owner: owner || LANG_KO.view.validation.ownerFallback,
       amount: Number(ui.form.amount || 0),
       description: String(ui.form.description || "").trim(),
@@ -338,6 +369,11 @@ const CrudDemoView = (props) => {
     closeDrawer();
   };
 
+  /**
+   * @description 선택된 행들을 확인 팝업 승인 후 일괄 삭제한다.
+   * 처리 규칙: 선택이 없으면 안내 토스트만 표시하고, 승인된 경우에만 rowList를 필터링한다.
+   * @updated 2026-02-27
+   */
   const removeSelectedRows = async () => {
     if (ui.selectedIdList.length === 0) {
       showToast(LANG_KO.view.validation.noSelection, { type: "info" });

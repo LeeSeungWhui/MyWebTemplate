@@ -17,13 +17,13 @@ export const useSharedStore = create((set, get) => ({
   config: {},
   setConfig: (config) => set({ config: config && typeof config === 'object' ? config : {} }),
   shared: {},
-  setShared: (patch) => set((s) => ({ shared: { ...s.shared, ...(patch || {}) } })),
+  setShared: (patch) => set((storeState) => ({ shared: { ...storeState.shared, ...(patch || {}) } })),
 
   // 로딩
   loadingCounter: 0,
   isLoading: false,
-  updateLoading: (delta = 0) => set((s) => {
-    const nextCounter = Math.max(0, (s.loadingCounter || 0) + delta);
+  updateLoading: (delta = 0) => set((storeState) => {
+    const nextCounter = Math.max(0, (storeState.loadingCounter || 0) + delta);
     return { loadingCounter: nextCounter, isLoading: nextCounter > 0 };
   }),
   setLoading: (nextLoading) => set({ isLoading: !!nextLoading, loadingCounter: nextLoading ? 1 : 0 }),
@@ -91,13 +91,14 @@ export const useSharedStore = create((set, get) => ({
 }));
 
 // 편의 훅: 서버/SSR 경고 방지를 위해 개별 셀렉터로 안정값만 반환
+
 /**
  * @description 사용자 캐시 상태(user)와 setter를 반환한다.
  * @returns {{ user: any, setUser: Function }}
  */
 export const useUser = () => {
-  const user = useSharedStore((s) => s.user);
-  const setUser = useSharedStore((s) => s.setUser);
+  const user = useSharedStore((storeState) => storeState.user);
+  const setUser = useSharedStore((storeState) => storeState.setUser);
   return { user, setUser };
 };
 
@@ -106,8 +107,8 @@ export const useUser = () => {
  * @returns {{ shared: Object, setShared: Function }}
  */
 export const useSharedData = () => {
-  const shared = useSharedStore((s) => s.shared);
-  const setShared = useSharedStore((s) => s.setShared);
+  const shared = useSharedStore((storeState) => storeState.shared);
+  const setShared = useSharedStore((storeState) => storeState.setShared);
   return { shared, setShared };
 };
 
@@ -116,21 +117,21 @@ export const useSharedData = () => {
  * @returns {Object}
  */
 export const useGlobalUi = () => {
-  const isLoading = useSharedStore((s) => s.isLoading);
-  const setLoading = useSharedStore((s) => s.setLoading);
-  const updateLoading = useSharedStore((s) => s.updateLoading);
+  const isLoading = useSharedStore((storeState) => storeState.isLoading);
+  const setLoading = useSharedStore((storeState) => storeState.setLoading);
+  const updateLoading = useSharedStore((storeState) => storeState.updateLoading);
 
-  const alert = useSharedStore((s) => s.alert);
-  const showAlert = useSharedStore((s) => s.showAlert);
-  const hideAlert = useSharedStore((s) => s.hideAlert);
+  const alert = useSharedStore((storeState) => storeState.alert);
+  const showAlert = useSharedStore((storeState) => storeState.showAlert);
+  const hideAlert = useSharedStore((storeState) => storeState.hideAlert);
 
-  const confirm = useSharedStore((s) => s.confirm);
-  const showConfirm = useSharedStore((s) => s.showConfirm);
-  const hideConfirm = useSharedStore((s) => s.hideConfirm);
+  const confirm = useSharedStore((storeState) => storeState.confirm);
+  const showConfirm = useSharedStore((storeState) => storeState.showConfirm);
+  const hideConfirm = useSharedStore((storeState) => storeState.hideConfirm);
 
-  const toast = useSharedStore((s) => s.toast);
-  const showToast = useSharedStore((s) => s.showToast);
-  const hideToast = useSharedStore((s) => s.hideToast);
+  const toast = useSharedStore((storeState) => storeState.toast);
+  const showToast = useSharedStore((storeState) => storeState.showToast);
+  const hideToast = useSharedStore((storeState) => storeState.hideToast);
 
   return {
     isLoading,

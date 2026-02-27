@@ -45,6 +45,12 @@ const Radiobox = forwardRef(({
         }
     }, [isDataObjControlled, dataObj, dataKeyName, value]);
 
+    /**
+     * @description 라디오 변경 이벤트를 처리하고 dataObj/콜백에 선택값을 반영한다.
+     * @param {React.ChangeEvent<HTMLInputElement>} event
+     * @returns {void}
+     * @updated 2026-02-27
+     */
     const handleChange = (event) => {
         event.stopPropagation();
         const newChecked = event.target.checked;
@@ -70,6 +76,11 @@ const Radiobox = forwardRef(({
         });
     };
 
+    /**
+     * @description controlled/dataObj/internal 우선순위에 맞춰 선택 상태를 계산한다.
+     * @returns {boolean}
+     * @updated 2026-02-27
+     */
     const getCheckedState = () => {
         if (isControlled) return propChecked;
         if (isDataObjControlled) return getBoundValue(dataObj, dataKeyName) === value;
@@ -106,6 +117,7 @@ const Radiobox = forwardRef(({
 Radiobox.displayName = 'Radiobox';
 
 /**
- * @description Radiobox export를 노출한다.
+ * @description Radiobox 컴포넌트를 기본 export한다.
+ * @returns {React.ComponentType} Radiobox 컴포넌트
  */
 export default Radiobox; 

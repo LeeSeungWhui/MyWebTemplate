@@ -12,6 +12,11 @@ import { getBoundValue, setBoundValue, buildCtx, fireValueHandlers } from '../bi
 import Icon from './Icon';
 import { COMMON_COMPONENT_LANG_KO } from '@/app/common/i18n/lang.ko';
 
+/**
+ * @description 시/분 숫자를 두 자리 문자열로 맞춘다.
+ * 처리 규칙: 1자리 값은 앞에 0을 붙여 HH:mm 포맷 정합성을 유지한다.
+ * @updated 2026-02-27
+ */
 const pad2 = (numberValue) => String(numberValue).padStart(2, '0');
 
 const TimeInput = forwardRef(({ 
@@ -31,6 +36,7 @@ const TimeInput = forwardRef(({
   id,
   ...props
 }, ref) => {
+
   const isPropControlled = propValue !== undefined;
   const isData = !!(dataObj && dataKey);
 
@@ -38,6 +44,11 @@ const TimeInput = forwardRef(({
   const [text, setText] = useState(() => (propValue ?? (isData ? getBoundValue(dataObj, dataKey) : inner) ?? ''));
   const [open, setOpen] = useState(false);
 
+  /**
+   * @description 외부 값(prop/dataObj/local state) 우선순위에 따라 현재 시간을 조회한다.
+   * 처리 규칙: controlled > EasyObj 바인딩 > 내부 상태 순으로 fallback 한다.
+   * @updated 2026-02-27
+   */
   const getExternal = () => {
     if (isPropControlled) return propValue ?? '';
     if (isData) return getBoundValue(dataObj, dataKey) ?? '';
@@ -56,6 +67,11 @@ const TimeInput = forwardRef(({
     setText(inner ?? '');
   }, [propValue, dataObj, dataKey, inner, isData, isPropControlled]);
 
+  /**
+   * @description 확정된 시간 문자열을 상태/바인딩/이벤트 핸들러에 반영한다.
+   * 부작용: text, inner, dataObj[dataKey], onChange/onValueChange 호출 값이 갱신된다.
+   * @updated 2026-02-27
+   */
   const commit = (raw, event) => {
     setText(raw);
     if (!isPropControlled && !isData) setInner(raw);
@@ -85,8 +101,21 @@ const TimeInput = forwardRef(({
 
   useEffect(() => {
     if (!open) return;
+
+    /**
+     * @description 컴포넌트 외부 클릭 시 시간 옵션 패널을 닫는다.
+     * 처리 규칙: rootRef 외부 mousedown 이벤트에서만 open=false를 반영한다.
+     * @updated 2026-02-27
+     */
     const handler = (event) => { if (rootRef.current && !rootRef.current.contains(event.target)) setOpen(false); };
+
+    /**
+     * @description Escape 키 입력으로 시간 옵션 패널을 닫는다.
+     * 처리 규칙: key 값이 Escape일 때만 close 동작을 적용한다.
+     * @updated 2026-02-27
+     */
     const esc = (keyboardEvent) => { if (keyboardEvent.key === 'Escape') setOpen(false); };
+
     document.addEventListener('mousedown', handler);
     document.addEventListener('keydown', esc);
     return () => { document.removeEventListener('mousedown', handler); document.removeEventListener('keydown', esc); };
@@ -160,6 +189,7 @@ const TimeInput = forwardRef(({
 TimeInput.displayName = 'TimeInput';
 
 /**
- * @description TimeInput export를 노출한다.
+ * @description 수동 입력과 옵션 선택을 지원하는 TimeInput 컴포넌트를 외부에 노출한다.
+ * 반환값: TimeInput 컴포넌트 export.
  */
 export default TimeInput;

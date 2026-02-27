@@ -5,6 +5,7 @@
  * 설명: Skeleton UI 컴포넌트 구현
  */
 const Skeleton = ({ className = '', variant = 'rect', lines = 1, circleSize = 40, ...props }) => {
+
   const base = 'bg-gray-200/70 animate-pulse';
   if (variant === 'text') {
     return (
@@ -22,4 +23,3 @@ const Skeleton = ({ className = '', variant = 'rect', lines = 1, circleSize = 40
 };
 
 export default Skeleton;
-

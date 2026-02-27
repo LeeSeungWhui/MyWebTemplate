@@ -6,7 +6,7 @@
  * 설명: 업무 관리 클라이언트 뷰(CSR API 연동 CRUD)
  */
 
-import { useEffect, useMemo } from "react";
+import { useEffect } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useGlobalUi } from "@/app/common/store/SharedStore";
 import Badge from "@/app/lib/component/Badge";
@@ -22,6 +22,7 @@ import Textarea from "@/app/lib/component/Textarea";
 import { apiJSON } from "@/app/lib/runtime/api";
 import { safeJsonParse } from "@/app/lib/runtime/json";
 import EasyObj from "@/app/lib/dataset/EasyObj";
+import { useEasyList } from "@/app/lib/dataset/EasyList";
 import {
   buildTasksQueryString,
   DEFAULT_SORT,
@@ -44,12 +45,20 @@ const STATUS_BADGE_VARIANT = {
 const STATUS_FORM_LIST = STATUS_FILTER_LIST.filter((item) => item.value);
 
 /**
- * @description TasksView export를 노출한다.
+ * @description 업무 관리 페이지의 CSR 뷰를 렌더링한다.
+ * 처리 규칙: 목록 조회/드로어 CRUD/브라우저 쿼리 동기화를 단일 컴포넌트에서 제어한다.
  */
 const TasksView = ({ initialFilter = {} }) => {
+
   const router = useRouter();
   const pathname = usePathname();
   const { showToast, showConfirm } = useGlobalUi();
+
+  /**
+   * @description tags 입력값을 문자열 배열로 정규화한다.
+   * 처리 규칙: 배열/JSON 문자열/쉼표 문자열 입력을 모두 `string[]` 포맷으로 통일한다.
+   * @updated 2026-02-27
+   */
   const toTagList = (value) => {
     if (Array.isArray(value)) return value.filter(Boolean).map(String);
     if (typeof value !== "string" || !value.trim()) return [];
@@ -60,24 +69,60 @@ const TasksView = ({ initialFilter = {} }) => {
       .map((tag) => tag.trim())
       .filter(Boolean);
   };
+
+  /**
+   * @description tags 값을 화면 표시용 문자열로 변환한다.
+   * 처리 규칙: 내부적으로 toTagList를 호출한 뒤 `, ` 구분자로 join한다.
+   * @updated 2026-02-27
+   */
   const toTagText = (value) => toTagList(value).join(", ");
+
+  /**
+   * @description 금액 값을 로케일 통화 문자열로 변환한다.
+   * 처리 규칙: 숫자 변환 실패 시 0원 문구를 반환하고, 정상 값은 `ko-KR` 포맷으로 반환한다.
+   * @updated 2026-02-27
+   */
   const toCurrencyText = (value) => {
     const amount = Number(value || 0);
     if (Number.isNaN(amount)) return LANG_KO.view.misc.currencyZero;
     return amount.toLocaleString("ko-KR");
   };
+
+  /**
+   * @description 날짜 값을 `YYYY-MM-DD` 문자열로 변환한다.
+   * 처리 규칙: 값이 없거나 Date 파싱 실패면 `dateUnknown` 문구를 반환한다.
+   * @updated 2026-02-27
+   */
   const toDateText = (value) => {
     if (!value) return LANG_KO.view.misc.dateUnknown;
     const date = new Date(value);
     if (Number.isNaN(date.getTime())) return LANG_KO.view.misc.dateUnknown;
     return date.toISOString().slice(0, 10);
   };
+
+  /**
+   * @description 템플릿 경로의 `:id` 플레이스홀더를 실제 ID로 치환한다.
+   * 처리 규칙: path/id를 문자열로 변환한 뒤 첫 `:id` 토큰을 치환해 반환한다.
+   * @updated 2026-02-27
+   */
   const toPathWithId = (templatePath, id) =>
     String(templatePath || "").replace(":id", String(id));
+
+  /**
+   * @description API 예외를 UI 표시용 에러 객체로 정규화한다.
+   * 처리 규칙: 에러 message/requestId를 우선 사용하고 없으면 fallbackMessage를 message로 사용한다.
+   * @updated 2026-02-27
+   */
   const toApiError = (error, fallbackMessage) => ({
     message: error?.message || fallbackMessage,
     requestId: error?.requestId,
   });
+
+  /**
+   * @description 드로어 폼의 초기값 모델을 생성한다.
+   * 처리 규칙: 생성/수정 공통 폼 필드를 기본 상태값으로 구성해 반환한다.
+   * @updated 2026-02-27
+   */
   const createDefaultForm = () => ({
     title: "",
     status: "ready",
@@ -85,30 +130,27 @@ const TasksView = ({ initialFilter = {} }) => {
     tags: "",
     description: "",
   });
-  const ui = EasyObj(
-    useMemo(
-      () => ({
-        keyword: String(initialFilter?.keyword || ""),
-        status: String(initialFilter?.status || ""),
-        sort: String(initialFilter?.sort || DEFAULT_SORT),
-        page:
-          Number.isFinite(initialFilter?.page) && initialFilter.page > 0
-            ? Number(initialFilter.page)
-            : 1,
-        totalCount: 0,
-        rows: [],
-        isLoading: true,
-        isSaving: false,
-        isDrawerLoading: false,
-        error: null,
-        isDrawerOpen: false,
-        drawerMode: "create",
-        editingId: null,
-        form: createDefaultForm(),
-      }),
-      [],
-    ),
-  );
+
+  const ui = EasyObj({
+    keyword: String(initialFilter?.keyword || ""),
+    status: String(initialFilter?.status || ""),
+    sort: String(initialFilter?.sort || DEFAULT_SORT),
+    page:
+      Number.isFinite(initialFilter?.page) && initialFilter.page > 0
+        ? Number(initialFilter.page)
+        : 1,
+    isLoading: true,
+    isSaving: false,
+    isDrawerLoading: false,
+    error: null,
+    isDrawerOpen: false,
+    drawerMode: "create",
+    editingId: null,
+    form: createDefaultForm(),
+  });
+  const taskList = useEasyList([]);
+  const taskMetaObj = EasyObj({ totalCount: 0 });
+  const taskDetailObj = EasyObj({});
   const endPoints = PAGE_MODE.endPoints || {};
   const hasListEndpoint = Boolean(endPoints.list);
   const hasDetailEndpoint = Boolean(endPoints.detail);
@@ -116,7 +158,13 @@ const TasksView = ({ initialFilter = {} }) => {
   const hasUpdateEndpoint = Boolean(endPoints.update);
   const hasRemoveEndpoint = Boolean(endPoints.remove);
 
+  /**
+   * @description 현재 필터/페이지 상태를 브라우저 쿼리스트링과 동기화한다.
+   * 처리 규칙: pathname이 존재할 때만 queryString을 생성하고 `router.replace(..., { scroll: false })`를 호출한다.
+   * @updated 2026-02-27
+   */
   const syncBrowserQuery = ({ nextKeyword, nextStatus, nextSort, nextPage }) => {
+
     if (!pathname) return;
     const queryString = buildTasksQueryString({
       keyword: nextKeyword,
@@ -128,17 +176,24 @@ const TasksView = ({ initialFilter = {} }) => {
     router.replace(href, { scroll: false });
   };
 
-  const loadTasks = async ({
-    nextKeyword = ui.keyword,
-    nextStatus = ui.status,
-    nextSort = ui.sort,
-    nextPage = ui.page,
-    syncQuery = true,
-  } = {}) => {
+  /**
+   * @description 업무 목록 엔드포인트를 호출해 taskList/taskMetaObj와 화면 상태를 동기화한다.
+   * 실패 동작: 엔드포인트 누락/요청 실패 시 ui.error를 설정하고 목록/totalCount를 안전값으로 초기화한다.
+   * 부작용: ui.isLoading/ui.page/ui.sort 상태와 브라우저 query를 갱신할 수 있다.
+   * @updated 2026-02-27
+   */
+  const loadTasks = async (options = {}) => {
+    const {
+      nextKeyword = ui.keyword,
+      nextStatus = ui.status,
+      nextSort = ui.sort,
+      nextPage = ui.page,
+      syncQuery = true,
+    } = options;
     if (!hasListEndpoint) {
       ui.error = { message: LANG_KO.view.error.listEndpointMissing };
-      ui.rows = [];
-      ui.totalCount = 0;
+      taskList.copy([]);
+      taskMetaObj.totalCount = 0;
       ui.isLoading = false;
       return;
     }
@@ -168,8 +223,8 @@ const TasksView = ({ initialFilter = {} }) => {
         : !Number.isNaN(totalFromLegacy)
           ? totalFromLegacy
           : itemList.length;
-      ui.rows = itemList;
-      ui.totalCount = total;
+      taskList.copy(itemList);
+      taskMetaObj.totalCount = total;
       ui.page = nextPage;
       ui.sort = nextSort || DEFAULT_SORT;
       if (syncQuery) {
@@ -182,14 +237,19 @@ const TasksView = ({ initialFilter = {} }) => {
       }
     } catch (err) {
       console.error(LANG_KO.view.error.listLoadFailed, err);
-      ui.rows = [];
-      ui.totalCount = 0;
+      taskList.copy([]);
+      taskMetaObj.totalCount = 0;
       ui.error = toApiError(err, LANG_KO.view.error.listLoadFailed);
     } finally {
       ui.isLoading = false;
     }
   };
 
+  /**
+   * @description 신규 생성 모드로 드로어를 연다.
+   * 처리 규칙: drawerMode/editingId/form/isDrawerLoading을 생성 상태로 초기화한다.
+   * @updated 2026-02-27
+   */
   const openCreateDrawer = () => {
     ui.drawerMode = "create";
     ui.editingId = null;
@@ -198,6 +258,11 @@ const TasksView = ({ initialFilter = {} }) => {
     ui.isDrawerLoading = false;
   };
 
+  /**
+   * @description 수정 모드로 드로어를 열고 상세 데이터를 로드한다.
+   * 처리 규칙: 엔드포인트/ID 검증 후 상세 API를 호출해 form 값을 기존 데이터로 채운다.
+   * @updated 2026-02-27
+   */
   const openEditDrawer = async (id) => {
     if (!id || !hasDetailEndpoint) {
       showToast(LANG_KO.view.error.detailEndpointMissing, { type: "error" });
@@ -211,12 +276,13 @@ const TasksView = ({ initialFilter = {} }) => {
       const detailPath = toPathWithId(endPoints.detail, id);
       const response = await apiJSON(detailPath);
       const detail = response?.result || {};
+      taskDetailObj.copy(detail);
       ui.form = {
-        title: detail?.title || "",
-        status: detail?.status || "ready",
-        amount: Number(detail?.amount || 0),
-        tags: toTagText(detail?.tags),
-        description: detail?.description || "",
+        title: taskDetailObj.title || "",
+        status: taskDetailObj.status || LANG_KO.view.misc.defaultStatusCode,
+        amount: Number(taskDetailObj.amount || 0),
+        tags: toTagText(taskDetailObj.tags),
+        description: taskDetailObj.description || "",
       };
     } catch (err) {
       console.error(LANG_KO.view.error.detailLoadFailed, err);
@@ -227,12 +293,22 @@ const TasksView = ({ initialFilter = {} }) => {
     }
   };
 
+  /**
+   * @description 드로어를 닫는다.
+   * 처리 규칙: 저장 중(isSaving=true)에는 닫기를 막고, 그 외에는 드로어 상태를 초기화한다.
+   * @updated 2026-02-27
+   */
   const closeDrawer = () => {
     if (ui.isSaving) return;
     ui.isDrawerOpen = false;
     ui.isDrawerLoading = false;
   };
 
+  /**
+   * @description 생성/수정 폼을 검증한 뒤 저장 API 요청을 보낸다.
+   * 처리 규칙: 필수값 검증 실패 시 즉시 중단하고, 성공 시 toast/목록 재조회/드로어 닫기를 수행한다.
+   * @updated 2026-02-27
+   */
   const saveTask = async () => {
     const title = String(ui.form.title || "").trim();
     if (!title) {
@@ -287,6 +363,11 @@ const TasksView = ({ initialFilter = {} }) => {
     }
   };
 
+  /**
+   * @description 삭제 확인 후 업무 항목을 제거한다.
+   * 처리 규칙: confirm=true일 때만 삭제 API를 호출하고, 삭제 후 페이지 보정 규칙으로 목록을 재조회한다.
+   * @updated 2026-02-27
+   */
   const removeTask = async (row) => {
     if (!hasRemoveEndpoint) {
       showToast(LANG_KO.view.error.removeEndpointMissing, { type: "error" });
@@ -303,7 +384,7 @@ const TasksView = ({ initialFilter = {} }) => {
     try {
       await apiJSON(toPathWithId(endPoints.remove, row?.id), { method: "DELETE" });
       showToast(LANG_KO.view.toast.removed, { type: "success" });
-      const nextPage = ui.page > 1 && ui.rows.length === 1 ? ui.page - 1 : ui.page;
+      const nextPage = ui.page > 1 && taskList.length === 1 ? ui.page - 1 : ui.page;
       await loadTasks({
         nextKeyword: ui.keyword,
         nextStatus: ui.status,
@@ -327,85 +408,82 @@ const TasksView = ({ initialFilter = {} }) => {
     });
   }, [hasListEndpoint]);
 
-  const tableColumns = useMemo(
-    () => [
-      {
-        key: "title",
-        header: LANG_KO.view.table.titleHeader,
-        align: "left",
-        width: "2fr",
-        render: (row) => (
-          <button
-            type="button"
-            className="text-left text-blue-700 hover:underline"
-            onClick={() => openEditDrawer(row?.id)}
-          >
-            {row?.title || "-"}
-          </button>
-        ),
-      },
-      {
-        key: "status",
-        header: LANG_KO.view.table.statusHeader,
-        width: 140,
-        render: (row) => (
-          <Badge variant={STATUS_BADGE_VARIANT[row?.status] || "neutral"} pill>
-            {LANG_KO.view.statusLabelMap[row?.status] || row?.status || LANG_KO.view.misc.noData}
-          </Badge>
-        ),
-      },
-      {
-        key: "amount",
-        header: LANG_KO.view.table.amountHeader,
-        width: 140,
-        align: "right",
-        render: (row) => toCurrencyText(row?.amount),
-      },
-      {
-        key: "tags",
-        header: LANG_KO.view.table.tagsHeader,
-        align: "left",
-        width: "2fr",
-        render: (row) => {
-          const tagList = toTagList(row?.tags);
-          if (!tagList.length) return <span className="text-gray-400">{LANG_KO.view.misc.dateUnknown}</span>;
-          return (
-            <div className="flex flex-wrap gap-1">
-              {tagList.map((tag) => (
-                <Badge key={`${row?.id || "row"}-${tag}`} variant="outline" pill>
-                  {tag}
-                </Badge>
-              ))}
-            </div>
-          );
-        },
-      },
-      {
-        key: "createdAt",
-        header: LANG_KO.view.table.createdAtHeader,
-        width: 140,
-        render: (row) => toDateText(row?.createdAt),
-      },
-      {
-        key: "actions",
-        header: LANG_KO.view.table.actionsHeader,
-        width: 180,
-        render: (row) => (
-          <div className="flex items-center justify-center gap-2">
-            <Button size="sm" variant="secondary" onClick={() => openEditDrawer(row?.id)}>
-              {LANG_KO.view.action.editButton}
-            </Button>
-            <Button size="sm" variant="danger" onClick={() => removeTask(row)}>
-              {LANG_KO.view.action.removeButton}
-            </Button>
+  const tableColumns = [
+    {
+      key: "title",
+      header: LANG_KO.view.table.titleHeader,
+      align: "left",
+      width: "2fr",
+      render: (row) => (
+        <button
+          type="button"
+          className="text-left text-blue-700 hover:underline"
+          onClick={() => openEditDrawer(row?.id)}
+        >
+          {row?.title || "-"}
+        </button>
+      ),
+    },
+    {
+      key: "status",
+      header: LANG_KO.view.table.statusHeader,
+      width: 140,
+      render: (row) => (
+        <Badge variant={STATUS_BADGE_VARIANT[row?.status] || "neutral"} pill>
+          {LANG_KO.view.statusLabelMap[row?.status] || row?.status || LANG_KO.view.misc.noData}
+        </Badge>
+      ),
+    },
+    {
+      key: "amount",
+      header: LANG_KO.view.table.amountHeader,
+      width: 140,
+      align: "right",
+      render: (row) => toCurrencyText(row?.amount),
+    },
+    {
+      key: "tags",
+      header: LANG_KO.view.table.tagsHeader,
+      align: "left",
+      width: "2fr",
+      render: (row) => {
+        const tagList = toTagList(row?.tags);
+        if (!tagList.length) return <span className="text-gray-400">{LANG_KO.view.misc.dateUnknown}</span>;
+        return (
+          <div className="flex flex-wrap gap-1">
+            {tagList.map((tag) => (
+              <Badge key={`${row?.id || "row"}-${tag}`} variant="outline" pill>
+                {tag}
+              </Badge>
+            ))}
           </div>
-        ),
+        );
       },
-    ],
-    [ui.rows, ui.keyword, ui.status, ui.page]
-  );
+    },
+    {
+      key: "createdAt",
+      header: LANG_KO.view.table.createdAtHeader,
+      width: 140,
+      render: (row) => toDateText(row?.createdAt),
+    },
+    {
+      key: "actions",
+      header: LANG_KO.view.table.actionsHeader,
+      width: 180,
+      render: (row) => (
+        <div className="flex items-center justify-center gap-2">
+          <Button size="sm" variant="secondary" onClick={() => openEditDrawer(row?.id)}>
+            {LANG_KO.view.action.editButton}
+          </Button>
+          <Button size="sm" variant="danger" onClick={() => removeTask(row)}>
+            {LANG_KO.view.action.removeButton}
+          </Button>
+        </div>
+      ),
+    },
+  ];
 
-  const pageCount = Math.max(1, Math.ceil(ui.totalCount / PAGE_SIZE));
+  const pageCount = Math.max(1, Math.ceil(taskMetaObj.totalCount / PAGE_SIZE));
 
   return (
     <div className="space-y-3">
@@ -414,7 +492,9 @@ const TasksView = ({ initialFilter = {} }) => {
           <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700" role="alert">
             <div>{ui.error.message}</div>
             {ui.error.requestId ? (
-              <div className="mt-1 text-xs text-red-700/80">requestId: {ui.error.requestId}</div>
+              <div className="mt-1 text-xs text-red-700/80">
+                {LANG_KO.view.error.requestIdLabel}: {ui.error.requestId}
+              </div>
             ) : null}
           </div>
         </section>
@@ -493,7 +573,7 @@ const TasksView = ({ initialFilter = {} }) => {
 
       <Card title={LANG_KO.view.card.tableTitle}>
         <EasyTable
-          data={ui.rows}
+          data={taskList}
           loading={ui.isLoading}
           columns={tableColumns}
           pageSize={PAGE_SIZE}
@@ -502,7 +582,7 @@ const TasksView = ({ initialFilter = {} }) => {
         />
         <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div className="text-sm text-gray-600">
-            {`총 ${ui.totalCount.toLocaleString("ko-KR")}${LANG_KO.view.action.totalCountSuffix}`}
+            {`총 ${taskMetaObj.totalCount.toLocaleString("ko-KR")}${LANG_KO.view.action.totalCountSuffix}`}
           </div>
           <Pagination
             page={ui.page}

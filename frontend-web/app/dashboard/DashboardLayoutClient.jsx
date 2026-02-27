@@ -6,7 +6,7 @@
  * 설명: 대시보드 레이아웃 클라이언트 컴포넌트
  */
 
-import { useEffect, useMemo } from "react";
+import { useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import Header from "@/app/common/layout/Header";
@@ -22,19 +22,15 @@ import LANG_KO from "./lang.ko";
 
 /**
  * @description 대시보드 하위 경로 공통 레이아웃을 렌더링한다.
+ * 처리 규칙: pathname/searchParams 기반 layoutMeta를 계산해 Header/Sidebar/Footer 공통 셸을 구성한다.
  * @param {{ children: React.ReactNode }} props
  */
 const DashboardLayoutClient = (props) => {
   const { children } = props;
-  const ui = EasyObj(
-    useMemo(
-      () => ({
-        sidebarOpen: false,
-        isDesktopViewport: false,
-      }),
-      [],
-    ),
-  );
+  const ui = EasyObj({
+    sidebarOpen: false,
+    isDesktopViewport: false,
+  });
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -46,6 +42,11 @@ const DashboardLayoutClient = (props) => {
   });
   const currentYear = new Date().getFullYear();
 
+  /**
+   * @description 홈 버튼 클릭 시 루트 경로(`/`)로 이동시킨다.
+   * 부작용: Next router push가 실행된다.
+   * @updated 2026-02-27
+   */
   const handleGoHome = () => {
     router.push("/");
   };
@@ -55,6 +56,12 @@ const DashboardLayoutClient = (props) => {
       return undefined;
     }
     const mediaQuery = window.matchMedia("(min-width: 1024px)");
+
+    /**
+     * @description 뷰포트 크기에 맞춰 데스크톱 여부와 사이드바 열림 상태를 동기화한다.
+     * 처리 규칙: 1024px 이상이면 sidebarOpen=true, 미만이면 false로 맞춘다.
+     * @updated 2026-02-27
+     */
     const syncViewport = () => {
       ui.isDesktopViewport = mediaQuery.matches;
       ui.sidebarOpen = mediaQuery.matches;
@@ -71,6 +78,11 @@ const DashboardLayoutClient = (props) => {
     }
   }, [pathname, searchParams?.toString(), ui.isDesktopViewport]);
 
+  /**
+   * @description 로그아웃 API 호출 후 사용자 상태를 비우고 로그인 페이지로 이동한다.
+   * 실패 동작: API 실패 시 에러 토스트를 노출하고 로딩 상태를 finally에서 해제한다.
+   * @updated 2026-02-27
+   */
   const handleLogout = async () => {
     setLoading(true);
     try {

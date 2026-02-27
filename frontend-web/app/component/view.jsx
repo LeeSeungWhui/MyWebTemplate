@@ -6,7 +6,7 @@
  * 설명: 컴포넌트 문서 페이지 클라이언트 뷰
  */
 
-import { useEffect, useMemo } from "react";
+import { useEffect } from "react";
 import EasyObj from "@/app/lib/dataset/EasyObj";
 import TableOfContents from "./docs/shared/TableOfContents";
 import TopButton from "./docs/shared/TopButton";
@@ -46,17 +46,28 @@ import PdfViewerDocs from "./docs/components/PdfViewerDocs";
 import LANG_KO from "./lang.ko";
 
 /**
- * @description ComponentsView export를 노출한다.
+ * @description 컴포넌트 문서 허브를 렌더링하고 모바일 TOC 열림 상태를 제어한다.
+ * @param {{ pageMode?: string }} props
+ * @returns {JSX.Element} 문서 허브 화면
  */
 const ComponentsView = ({ pageMode = "CSR" }) => {
-  const ui = EasyObj(useMemo(() => ({ mobileTocOpen: false }), []));
+
+  const ui = EasyObj({ mobileTocOpen: false });
 
   useEffect(() => {
+
+    /**
+     * @description ESC 키 입력 시 모바일 TOC를 닫아 오버레이를 해제한다.
+     * @param {KeyboardEvent} event
+     * @returns {void}
+     * @updated 2026-02-27
+     */
     const handleEscape = (event) => {
       if (event.key === "Escape") {
         ui.mobileTocOpen = false;
       }
     };
+
     document.addEventListener("keydown", handleEscape);
     return () => document.removeEventListener("keydown", handleEscape);
   }, [ui]);

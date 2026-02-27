@@ -16,6 +16,8 @@ const BROKEN_ARRAY_REGEX = /"([A-Za-z0-9_]+)"\s*:\s*](?=\s*[},])/g;
  * 서버가 [] 대신 ]만 내려보내는 경우를 감지해 자동 보정
  * @param {string} text
  * @returns {string}
+ * @description 깨진 배열 토큰(`": ]`)을 정상 배열 표기(`": []`)로 교체해 파싱 실패를 줄인다.
+ * @updated 2026-02-27
  */
 const autofixBrokenArrays = (text) => {
   if (!text || typeof text !== "string") return text;
@@ -38,6 +40,13 @@ export const sanitizeJsonString = (text) => {
   let escapeNext = false;
   let stringMode = "value";
 
+  /**
+   * @description start 인덱스 이후 첫 비공백 문자와 위치를 반환해 문자열 종료 판단에 사용한다.
+   * @param {string} input
+   * @param {number} start
+   * @returns {{ ch: string, index: number }}
+   * @updated 2026-02-27
+   */
   const skipWhitespace = (input, start) => {
     for (let i = start; i < input.length; i += 1) {
       if (input[i] === " " || input[i] === "\t" || input[i] === "\r" || input[i] === "\n") continue;
@@ -171,6 +180,7 @@ export const sanitizeJsonString = (text) => {
  * @returns {object|null} 파싱된 객체 또는 null
  */
 export const parseJsonPayload = (rawText, options = {}) => {
+
   if (!rawText) return null;
   const { context = "API", logger = console } = options;
   try {
@@ -204,6 +214,7 @@ const JSON_STRING_KEYS = ["result", "data", "payload"];
  * @returns {object|null} 정규화된 객체
  */
 export const normalizeNestedJsonFields = (payload, options = {}) => {
+
   if (!payload || typeof payload !== "object") return payload;
   const { keys = JSON_STRING_KEYS } = options;
 

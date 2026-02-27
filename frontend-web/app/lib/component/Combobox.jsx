@@ -100,6 +100,12 @@ const CHO = [
 ]
 const H_BASE = 0xac00
 const H_LAST = 0xd7a3
+
+/**
+ * @description 한글 문자열을 초성 검색용 문자열로 변환한다.
+ * 처리 규칙: 완성형 한글은 초성 배열로 치환하고, 비한글 문자는 원문을 유지한다.
+ * @updated 2026-02-27
+ */
 const getChosung = (str) => {
   if (!str) return ''
   let out = ''
@@ -113,11 +119,21 @@ const getChosung = (str) => {
   return out
 }
 
+/**
+ * @description 검색 비교를 위해 문자열을 소문자/무공백 형태로 정규화한다.
+ * 반환값: null/undefined 입력도 안전하게 처리한 비교용 문자열.
+ * @updated 2026-02-27
+ */
 const normalize = (inputText) =>
   String(inputText ?? '')
     .toLowerCase()
     .replace(/\s+/g, '')
 
+/**
+ * @description 입력 옵션 목록을 콤보박스 내부 표준 구조로 변환한다.
+ * 처리 규칙: iterable만 허용하고 value/label/selected/placeholder/raw 필드를 생성한다.
+ * @updated 2026-02-27
+ */
 const normalizeOptions = (dataList = [], valueKey, textKey) => {
   if (!Array.isArray(dataList) && typeof dataList?.[Symbol.iterator] !== 'function') {
     return []
@@ -138,6 +154,11 @@ const normalizeOptions = (dataList = [], valueKey, textKey) => {
   })
 }
 
+/**
+ * @description EasyObj/EasyList subscribe API를 React effect로 연결한다.
+ * 처리 규칙: subscribe 함수가 있으면 등록하고, effect cleanup에서 unsubscribe를 보장한다.
+ * @updated 2026-02-27
+ */
 function useEasySubscription(model, handler) {
   useEffect(() => {
     if (!model || typeof model.subscribe !== 'function') return undefined
@@ -292,6 +313,12 @@ const Combobox = forwardRef((props, ref) => {
 
   const syncDataListSelection = useCallback(
     (nextSet) => {
+
+      /**
+       * @description 개별 옵션의 selected 값을 nextSet 기준으로 재계산한다.
+       * 부작용: 원본 item.selected 값을 직접 갱신한다.
+       * @updated 2026-02-27
+       */
       const updater = (item) => {
         const key = Array.isArray(item?.[valueKey])
           ? item?.[valueKey].map((v) => String(v))
@@ -302,6 +329,7 @@ const Combobox = forwardRef((props, ref) => {
         if (item.selected !== shouldSelect) item.selected = shouldSelect
         return item
       }
+
       if (typeof dataList?.forAll === 'function') {
         dataList.forAll(updater)
       } else if (Array.isArray(dataList)) {
@@ -318,14 +346,27 @@ const Combobox = forwardRef((props, ref) => {
 
   useEffect(() => {
     if (!open) return
+
+    /**
+     * @description 컴포넌트 외부 클릭 시 드롭다운을 닫는다.
+     * 처리 규칙: rootRef 바깥 mousedown 이벤트에서만 close를 수행한다.
+     * @updated 2026-02-27
+     */
     const onMouseDown = (event) => {
       if (rootRef.current && !rootRef.current.contains(event.target)) {
         setOpen(false)
       }
     }
+
+    /**
+     * @description Escape 키 입력으로 드롭다운을 닫는다.
+     * 처리 규칙: key 값이 Escape일 때 open=false를 반영한다.
+     * @updated 2026-02-27
+     */
     const onKeyDown = (event) => {
       if (event.key === 'Escape') setOpen(false)
     }
+
     document.addEventListener('mousedown', onMouseDown)
     document.addEventListener('keydown', onKeyDown)
     return () => {
@@ -384,6 +425,11 @@ const Combobox = forwardRef((props, ref) => {
     }, [deriveBoundValue, isControlled]),
   )
 
+  /**
+   * @description 선택 결과를 정규화하고 내부 상태/바인딩/핸들러 호출을 동기화한다.
+   * 부작용: innerValue, dataObj[dataKey], onChange/onValueChange에 반영된다.
+   * @updated 2026-02-27
+   */
   const commit = (next, event) => {
     const normalized = multi
       ? Array.from(new Set(Array.isArray(next) ? next.map((v) => String(v)) : []))
@@ -415,6 +461,11 @@ const Combobox = forwardRef((props, ref) => {
     })
   }
 
+  /**
+   * @description 옵션 클릭 시 단일/다중 모드에 맞게 다음 선택값을 계산한다.
+   * 처리 규칙: multi 모드면 토글 집합을 만들고, 단일 모드면 즉시 선택 후 패널을 닫는다.
+   * @updated 2026-02-27
+   */
   const handleSelect = (option) => {
     if (multi) {
       const next = new Set(valueSet)

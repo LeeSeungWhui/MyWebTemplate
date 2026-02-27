@@ -16,6 +16,7 @@ export const metadata = {
 
 /**
  * @description 공개 CRUD 샘플 페이지를 렌더링한다.
+ * @returns {JSX.Element}
  */
 const CrudDemoPage = () => {
   return <CrudDemoView mode={PAGE_MODE} initRows={DEMO_DATA_LIST} />;

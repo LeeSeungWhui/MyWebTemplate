@@ -10,8 +10,10 @@ import DashboardLayoutClient from "./DashboardLayoutClient";
 /**
  * @description 대시보드 하위 페이지 공통 레이아웃을 렌더링한다.
  * @param {{ children: React.ReactNode }} props
+ * @returns {JSX.Element}
  */
 const DashboardLayout = ({ children }) => {
+
   return <DashboardLayoutClient>{children}</DashboardLayoutClient>;
 };
 

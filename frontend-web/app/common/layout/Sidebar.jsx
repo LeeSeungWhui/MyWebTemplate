@@ -14,8 +14,19 @@ import { getBoundValue, setBoundValue } from "@/app/lib/binding";
 import EasyObj from "@/app/lib/dataset/EasyObj";
 import { COMMON_COMPONENT_LANG_KO } from "@/app/common/i18n/lang.ko";
 
+/**
+ * @description 값이 배열 또는 EasyList 형태인지 판별한다.
+ * 처리 규칙: 배열이거나 `size()` 메서드를 보유한 경우 list-like로 간주한다.
+ * @updated 2026-02-27
+ */
 const isListLike = (list) =>
   !!list && (typeof list.size === "function" || Array.isArray(list));
+
+/**
+ * @description menu/subMenu 입력을 순회 가능한 배열로 정규화한다.
+ * 처리 규칙: 배열은 그대로 사용하고 EasyList는 size/get으로 풀어 배열로 변환한다.
+ * @updated 2026-02-27
+ */
 const toArray = (list) => {
   if (Array.isArray(list)) return list;
   if (isListLike(list)) {
@@ -28,7 +39,8 @@ const toArray = (list) => {
 };
 
 /**
- * @description 햄버거/접힘/하위 메뉴 토글을 지원하는 공용 사이드바
+ * @description 햄버거/접힘/하위 메뉴 토글을 지원하는 공용 사이드바 컴포넌트.
+ * 처리 규칙: 메뉴 활성 상태, 접힘 상태, 그룹 펼침 상태를 통합 관리해 데스크톱/모바일 UI를 동기화한다.
  * @param {Object} props
  * @param {Array|Object} [props.menuList] EasyList 또는 배열 { menuId, menuNm, href?, active?, icon?, badge? }
  * @param {Array|Object} [props.subMenuList] EasyList 또는 배열 { menuId, subMenuId, subMenuNm, href?, active?, icon?, badge? }
@@ -56,21 +68,16 @@ const Sidebar = ({
   const TRANSITION_MS = 180;
   const initialCollapsed =
     dataObj && collapsedKey ? !!getBoundValue(dataObj, collapsedKey) : false;
-  const ui = EasyObj(
-    useMemo(
-      () => ({
-        collapsed: initialCollapsed,
-        renderWidth: isOpen
-          ? initialCollapsed
-            ? COLLAPSED_WIDTH
-            : EXPANDED_WIDTH
-          : 0,
-        translateX: isOpen ? 0 : -EXPANDED_WIDTH,
-        expanded: {},
-      }),
-      [],
-    ),
-  );
+  const ui = EasyObj({
+    collapsed: initialCollapsed,
+    renderWidth: isOpen
+      ? initialCollapsed
+        ? COLLAPSED_WIDTH
+        : EXPANDED_WIDTH
+      : 0,
+    translateX: isOpen ? 0 : -EXPANDED_WIDTH,
+    expanded: {},
+  });
   const isFirstRenderRef = useRef(true);
   const pathname = usePathname();
 
@@ -120,6 +127,11 @@ const Sidebar = ({
     ui.collapsed = !!getBoundValue(dataObj, collapsedKey);
   }, [dataObj, collapsedKey, ui]);
 
+  /**
+   * @description 사이드바 접힘 상태를 토글한다.
+   * 처리 규칙: ui.collapsed를 반전하고 dataObj 바인딩이 있으면 동일 값을 저장한다.
+   * @updated 2026-02-27
+   */
   const toggleCollapsed = () => {
     const next = !ui.collapsed;
     ui.collapsed = next;
@@ -182,10 +194,21 @@ const Sidebar = ({
     transform: `translateX(${ui.translateX}px)`,
     transition: `transform ${TRANSITION_MS}ms ease`,
   };
+
+  /**
+   * @description 하위 메뉴 그룹의 펼침 상태를 토글한다.
+   * 처리 규칙: `ui.expanded[key]` 값을 반전해 그룹별 open/close를 제어한다.
+   * @updated 2026-02-27
+   */
   const toggleGroup = (key) => {
     ui.expanded = { ...ui.expanded, [key]: !ui.expanded[key] };
   };
 
+  /**
+   * @description href가 현재 pathname과 활성 매칭되는지 판정한다.
+   * 처리 규칙: 완전 일치 또는 하위 경로(prefix/) 일치를 활성으로 처리한다.
+   * @updated 2026-02-27
+   */
   const isPathActive = (href) => {
     if (!href || !pathname) {
       return false;
@@ -199,6 +222,11 @@ const Sidebar = ({
     return false;
   };
 
+  /**
+   * @description 하위 메뉴 항목의 활성 상태를 계산한다.
+   * 처리 규칙: child.active 우선, 명시 active가 없을 때만 pathname 매칭으로 활성 여부를 추론한다.
+   * @updated 2026-02-27
+   */
   const isChildActive = (child) => {
     if (child.active) {
       return true;
@@ -209,6 +237,11 @@ const Sidebar = ({
     return isPathActive(child.href);
   };
 
+  /**
+   * @description 상위 메뉴 항목의 활성 상태를 계산한다.
+   * 처리 규칙: item.active 우선, child 활성 여부를 반영하고 명시 active가 없을 때만 경로 매칭을 사용한다.
+   * @updated 2026-02-27
+   */
   const isItemActive = (item, children = []) => {
     if (item.active) {
       return true;
@@ -240,6 +273,11 @@ const Sidebar = ({
     }
   }, [resolvedItems, pathname, subMenuMap, ui]);
 
+  /**
+   * @description 메뉴 항목의 상태별 className 문자열을 생성한다.
+   * 처리 규칙: active=true면 강조 스타일, false면 hover 중심 기본 스타일을 반환한다.
+   * @updated 2026-02-27
+   */
   const navItemClass = (active) =>
     [
       "group flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors",
@@ -248,6 +286,11 @@ const Sidebar = ({
         : "text-gray-700 hover:bg-gray-50",
     ].join(" ");
 
+  /**
+   * @description 사이드바 본문 UI를 미니/확장 모드에 맞게 렌더링한다.
+   * 처리 규칙: logo/토글 버튼/메뉴 목록/하위 메뉴를 isMini 상태에 따라 조건부로 구성한다.
+   * @updated 2026-02-27
+   */
   const renderContent = (isMini) => (
     <>
       {logo ? (
@@ -453,6 +496,7 @@ const Sidebar = ({
 };
 
 /**
- * @description Sidebar export를 노출한다.
+ * @description Sidebar 컴포넌트 엔트리를 외부에 노출한다.
+ * 처리 규칙: 상태 로직이 연결된 Sidebar 컴포넌트를 default export 한다.
  */
 export default Sidebar;

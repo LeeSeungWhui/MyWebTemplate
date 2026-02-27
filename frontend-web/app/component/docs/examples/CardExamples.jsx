@@ -8,6 +8,11 @@
 import * as Lib from '@/app/lib';
 import { useGlobalUi } from '@/app/common/store/SharedStore';
 
+/**
+ * @description 액션 버튼이 포함된 카드 예시를 렌더링한다.
+ * @returns {JSX.Element}
+ * @updated 2026-02-27
+ */
 const ActionCard = () => {
   const { showAlert } = useGlobalUi();
   return (
@@ -27,6 +32,7 @@ const ActionCard = () => {
 
 /**
  * @description CardExamples 구성 데이터를 반환한다.
+ * @returns {Array<{ component: JSX.Element, code: string }>}
  * @updated 2026-02-24
  */
 export const CardExamples = () => {
@@ -75,4 +81,3 @@ export const CardExamples = () => {
     }
   ];
 };
-

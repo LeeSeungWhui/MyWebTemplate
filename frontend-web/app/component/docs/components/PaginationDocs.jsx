@@ -12,8 +12,10 @@ import CodeBlock from '../shared/CodeBlock';
  * Pagination 문서 섹션
  * @date 2025-09-13
  */
+
 /**
- * @description PaginationDocs export를 노출한다.
+ * @description Pagination 문서 섹션을 구성하고 예제 목록을 렌더링한다.
+ * @returns {JSX.Element}
  */
 const PaginationDocs = () => {
   const examples = PaginationExamples();

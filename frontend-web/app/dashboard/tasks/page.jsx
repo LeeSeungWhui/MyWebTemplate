@@ -22,9 +22,11 @@ export const metadata = {
 };
 
 /**
- * @description TasksPage export를 노출한다.
+ * @description URL 검색 파라미터를 정규화해 업무 목록 초기 필터로 전달한다.
+ * @returns {Promise<JSX.Element>}
  */
 const TasksPage = async ({ searchParams }) => {
+
   const resolvedSearchParams = await searchParams;
   const initialFilter = normalizeTasksQuery(resolvedSearchParams);
   return <TasksView initialFilter={initialFilter} />;

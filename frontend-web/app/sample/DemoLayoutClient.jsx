@@ -7,7 +7,7 @@
  */
 
 import Link from "next/link";
-import { useEffect, useMemo } from "react";
+import { useEffect } from "react";
 import { usePathname } from "next/navigation";
 import Header from "@/app/common/layout/Header";
 import Sidebar from "@/app/common/layout/Sidebar";
@@ -17,6 +17,11 @@ import { resolveDemoLayoutMeta } from "./layoutMeta";
 import EasyObj from "@/app/lib/dataset/EasyObj";
 import LANG_KO from "./lang.ko";
 
+/**
+ * @description 현재 경로가 샘플 공통 레이아웃을 우회해야 하는 경로인지 판별한다.
+ * 반환값: `/sample/portfolio` 경로면 true, 그 외는 false.
+ * @updated 2026-02-27
+ */
 const isBypassLayoutPath = (pathname) => {
   const pathText = String(pathname || "");
   if (!pathText) return false;
@@ -26,19 +31,15 @@ const isBypassLayoutPath = (pathname) => {
 
 /**
  * @description 공개 샘플 페이지 공통 레이아웃을 렌더링한다.
+ * 처리 규칙: 포트폴리오 경로는 레이아웃을 우회하고, 그 외에는 Header/Sidebar/Footer 셸을 적용한다.
  * @param {{ children: React.ReactNode }} props
  */
 const DemoLayoutClient = (props) => {
   const { children } = props;
-  const ui = EasyObj(
-    useMemo(
-      () => ({
-        sidebarOpen: false,
-        isDesktopViewport: false,
-      }),
-      [],
-    ),
-  );
+  const ui = EasyObj({
+    sidebarOpen: false,
+    isDesktopViewport: false,
+  });
   const pathname = usePathname();
   const shouldBypassLayout = isBypassLayoutPath(pathname);
   const layoutMeta = resolveDemoLayoutMeta(pathname);
@@ -49,6 +50,12 @@ const DemoLayoutClient = (props) => {
       return undefined;
     }
     const mediaQuery = window.matchMedia("(min-width: 1024px)");
+
+    /**
+     * @description 뷰포트 크기에 맞춰 데스크톱 여부와 사이드바 열림 상태를 동기화한다.
+     * 처리 규칙: 1024px 이상이면 sidebarOpen=true, 미만이면 false로 맞춘다.
+     * @updated 2026-02-27
+     */
     const syncViewport = () => {
       ui.isDesktopViewport = mediaQuery.matches;
       ui.sidebarOpen = mediaQuery.matches;

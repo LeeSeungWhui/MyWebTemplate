@@ -7,7 +7,14 @@
 import { useState } from 'react';
 import { getBoundValue, setBoundValue, buildCtx, fireValueHandlers } from '../binding';
 
+/**
+ * @description Tab 자식 슬롯의 title 메타를 유지하면서 콘텐츠 노드만 반환한다.
+ * @param {{ title: string, children: React.ReactNode }} props
+ * @returns {React.ReactNode}
+ * @updated 2026-02-27
+ */
 const TabItem = ({ title, children }) => {
+
     return children;
 };
 
@@ -32,6 +39,13 @@ const Tab = ({
     // children이 없거나 배열이 아닐 경우 처리
     const items = Array.isArray(children) ? children : [children].filter(Boolean);
 
+    /**
+     * @description 탭 인덱스를 변경하고 dataObj/콜백으로 변경 이벤트를 전파한다.
+     * @param {number} index
+     * @param {React.MouseEvent<HTMLButtonElement> | undefined} event
+     * @returns {void}
+     * @updated 2026-02-27
+     */
     const handleTabChange = (index, event) => {
         if (isControlled) {
             setBoundValue(dataObj, dataKey, index, { source: 'user' });
@@ -90,6 +104,7 @@ const Tab = ({
 Tab.Item = TabItem;
 
 /**
- * @description Tab export를 노출한다.
+ * @description Tab 컴포넌트를 기본 export한다.
+ * @returns {React.ComponentType} Tab 컴포넌트
  */
 export default Tab;

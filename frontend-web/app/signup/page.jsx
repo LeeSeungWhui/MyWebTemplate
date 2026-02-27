@@ -19,7 +19,8 @@ export const metadata = {
 };
 
 /**
- * @description SignupPage export를 노출한다.
+ * @description 회원가입 서버 엔트리에서 SignupView를 반환한다.
+ * @returns {Promise<JSX.Element>}
  */
 const SignupPage = async () => {
   return <SignupView />;

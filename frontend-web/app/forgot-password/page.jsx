@@ -19,7 +19,8 @@ export const metadata = {
 };
 
 /**
- * @description ForgotPasswordPage export를 노출한다.
+ * @description 비밀번호 찾기 서버 엔트리에서 화면 컴포넌트를 반환한다.
+ * @returns {Promise<JSX.Element>}
  */
 const ForgotPasswordPage = async () => {
   return <ForgotPasswordView />;

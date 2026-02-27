@@ -13,7 +13,8 @@ import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';
 
 /**
- * @description IconDocs export를 노출한다.
+ * @description Icon 문서 섹션을 구성하고 예제/아이콘셋 링크를 렌더링한다.
+ * @returns {JSX.Element}
  */
 const IconDocs = () => {
     const examples = IconExamples();

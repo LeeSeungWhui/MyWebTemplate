@@ -19,9 +19,11 @@ const sizes = {
 };
 
 /**
- * @description Badge export를 노출한다.
+ * @description variant/size/pill 조합으로 뱃지 스타일을 계산해 텍스트 라벨을 렌더링한다.
+ * @returns {JSX.Element}
  */
 const Badge = ({ children, variant = 'neutral', size = 'sm', pill = false, className = '', ...props }) => {
+
   const base = 'inline-flex items-center border font-medium';
   const radius = pill ? 'rounded-full' : 'rounded-md';
   const cls = `${base} ${radius} ${variants[variant] || variants.neutral} ${sizes[size] || sizes.sm} ${className}`.trim();
@@ -31,4 +33,3 @@ const Badge = ({ children, variant = 'neutral', size = 'sm', pill = false, class
 };
 
 export default Badge;
-

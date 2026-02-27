@@ -7,6 +7,11 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { COMMON_COMPONENT_LANG_KO } from '@/app/common/i18n/lang.ko';
 
+/**
+ * @description 전달된 목록을 순회 가능한 배열로 정규화한다.
+ * 처리 규칙: EasyList(forAll), 배열, iterable 순으로 변환을 시도하고 실패 시 빈 배열을 반환한다.
+ * @updated 2026-02-27
+ */
 const toArray = (list) => {
   if (!list) return [];
   if (Array.isArray(list)) return list;
@@ -22,6 +27,11 @@ const toArray = (list) => {
   }
 };
 
+/**
+ * @description 메뉴의 side/align 조합을 Tailwind 포지션 클래스로 변환한다.
+ * 반환값: 드롭다운 패널 위치를 제어하는 className 문자열.
+ * @updated 2026-02-27
+ */
 const resolvePositionClass = (side, align) => {
   let sideClassName = '';
   if (side === 'bottom') sideClassName = 'top-full mt-2';
@@ -34,6 +44,11 @@ const resolvePositionClass = (side, align) => {
   return `${sideClassName} ${alignClassName}`.trim();
 };
 
+/**
+ * @description 버튼 variant에 맞는 스타일 클래스를 선택한다.
+ * 처리 규칙: filled/text/outlined(기본) 분기로 고정 클래스 셋을 반환한다.
+ * @updated 2026-02-27
+ */
 const resolveVariantClass = (variant) => {
   if (variant === 'filled') {
     return 'bg-gray-50 border border-transparent hover:bg-gray-100 shadow-inner';
@@ -44,7 +59,13 @@ const resolveVariantClass = (variant) => {
   return 'bg-white border border-gray-300 hover:bg-gray-50 shadow-sm';
 };
 
+/**
+ * @description 선택 상태를 기반으로 트리거에 표시할 라벨 문자열을 계산한다.
+ * 반환값: 단일 라벨, 다중 선택 개수 라벨, 또는 null.
+ * @updated 2026-02-27
+ */
 const resolveSelectedLabel = ({ multiSelect, selectedItem, selectedItems, labelKey }) => {
+
   if (!multiSelect) {
     if (!selectedItem) return null;
     if (selectedItem?.get) return selectedItem.get(labelKey);
@@ -63,7 +84,13 @@ const resolveSelectedLabel = ({ multiSelect, selectedItem, selectedItems, labelK
   return null;
 };
 
+/**
+ * @description 옵션 행의 선택/비활성 상태에 맞는 텍스트 클래스를 고른다.
+ * 처리 규칙: disabled > selected > default 순으로 우선 적용한다.
+ * @updated 2026-02-27
+ */
 const resolveItemLabelClassName = ({ disabledItem, selected, selectedItemClassName }) => {
+
   if (disabledItem) return 'text-gray-400';
   if (selected) return selectedItemClassName;
   return 'text-gray-800';
@@ -104,6 +131,12 @@ const Dropdown = ({
 }) => {
   const [openState, setOpenState] = useState(defaultOpen);
   const open = typeof openProp === 'boolean' ? openProp : openState;
+
+  /**
+   * @description controlled 여부에 맞춰 open 상태를 갱신한다.
+   * 처리 규칙: open prop이 있으면 onOpenChange 콜백만 호출하고, 아니면 내부 state를 변경한다.
+   * @updated 2026-02-27
+   */
   const setOpen = (nextOpen) => {
     if (typeof openProp === 'boolean') {
       onOpenChange?.(nextOpen);
@@ -111,11 +144,17 @@ const Dropdown = ({
     }
     setOpenState(nextOpen);
   };
+
   const data = toArray(dataList);
   const [activeIdx, setActiveIdx] = useState(-1);
   const rootRef = useRef(null);
   const effectiveCloseOnSelect = multiSelect ? false : closeOnSelect;
 
+  /**
+   * @description 항목 선택을 반영하고 목록 모델(selected)과 외부 콜백을 동기화한다.
+   * 부작용: dataList 각 항목의 selected 값, onSelect 호출, closeOnSelect 동작에 영향을 준다.
+   * @updated 2026-02-27
+   */
   const handleItemActivate = (item) => {
     if (!item) return;
     const value = item?.get ? item.get(valueKey) : item?.[valueKey];
@@ -157,6 +196,11 @@ const Dropdown = ({
   useEffect(() => {
     if (!open) return undefined;
 
+    /**
+     * @description 열려 있는 메뉴에서 키보드 내비게이션 동작을 반영한다.
+     * 처리 규칙: Escape 닫기, ArrowUp/Down 포커스 이동, Enter 선택을 적용한다.
+     * @updated 2026-02-27
+     */
     const onKey = (event) => {
       if (event.key === 'Escape') {
         setOpen(false);
@@ -176,6 +220,11 @@ const Dropdown = ({
       }
     };
 
+    /**
+     * @description 드롭다운 바깥 영역 클릭 시 메뉴를 닫는다.
+     * 처리 규칙: rootRef 외부 mousedown 이벤트에서만 open=false를 반영한다.
+     * @updated 2026-02-27
+     */
     const onClickOutside = (event) => {
       if (rootRef.current && !rootRef.current.contains(event.target)) setOpen(false);
     };

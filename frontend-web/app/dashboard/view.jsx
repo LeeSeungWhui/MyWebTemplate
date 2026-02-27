@@ -6,7 +6,7 @@
  * 설명: 대시보드 클라이언트 뷰
  */
 
-import { useEffect, useMemo } from "react";
+import { useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEasyList } from "@/app/lib/dataset/EasyList";
@@ -31,9 +31,16 @@ const DONUT_HEIGHT = 180;
 const STATUS_ORDER = ["ready", "pending", "running", "done", "failed"];
 
 /**
- * @description DashboardView export를 노출한다.
+ * @description 대시보드 요약 통계/차트/최근 목록 화면을 렌더링한다.
+ * 처리 규칙: SSR 데이터가 있으면 즉시 사용하고, 없으면 API로 stats/list를 병렬 조회한다.
  */
 const DashboardView = ({ statList, dataList, initialError }) => {
+
+  /**
+   * @description 날짜 문자열에서 월 라벨(`n월`)을 계산한다.
+   * 실패 동작: 비어 있거나 파싱 실패한 입력은 unknown 라벨을 반환한다.
+   * @updated 2026-02-27
+   */
   const monthKey = (iso) => {
     if (!iso) return LANG_KO.view.unknown;
     const date = new Date(iso);
@@ -41,11 +48,32 @@ const DashboardView = ({ statList, dataList, initialError }) => {
     const month = date.getMonth() + 1;
     return `${month}${LANG_KO.view.monthSuffix}`;
   };
-  const formatCurrency = (value) => {
+
+  /**
+   * @description 숫자 값을 로케일 기준 문자열로 포맷한다.
+   * 반환값: NaN 입력은 0 텍스트를 반환하고, 정상 입력은 locale 문자열을 반환한다.
+   * @updated 2026-02-27
+   */
+  const formatNumber = (value) => {
     const num = Number(value || 0);
-    if (Number.isNaN(num)) return "0";
-    return num.toLocaleString("ko-KR");
+    if (Number.isNaN(num)) return LANG_KO.view.number.zeroText;
+    return num.toLocaleString(LANG_KO.view.number.locale);
   };
+
+  /**
+   * @description 금액 숫자를 통계 카드용 문자열로 포맷한다.
+   * 처리 규칙: 현재는 formatNumber 정책을 동일하게 재사용한다.
+   * @updated 2026-02-27
+   */
+  const formatCurrency = (value) => {
+    return formatNumber(value);
+  };
+
+  /**
+   * @description 에러 키를 사용자 노출 메시지로 매핑한다.
+   * 반환값: 매핑된 메시지 또는 null.
+   * @updated 2026-02-27
+   */
   const resolveErrorText = (errorKey) => {
     if (errorKey === DASHBOARD_ERROR_KEY.ENDPOINT_MISSING) {
       return LANG_KO.view.error.endpointMissing;
@@ -55,13 +83,26 @@ const DashboardView = ({ statList, dataList, initialError }) => {
     }
     return null;
   };
+
+  /**
+   * @description 상태 필터를 포함한 `/dashboard/tasks` 이동 경로를 생성한다.
+   * 반환값: status query 포함 여부가 반영된 href 문자열.
+   * @updated 2026-02-27
+   */
   const createTasksPath = ({ status }) => {
+
     const params = new URLSearchParams();
     if (status && LANG_KO.view.statusLabelMap[status]) params.set("status", status);
     return params.toString()
       ? `/dashboard/tasks?${params.toString()}`
       : "/dashboard/tasks";
   };
+
+  /**
+   * @description 다양한 에러 표현(string/object/null)을 공통 shape로 정규화한다.
+   * 반환값: `{key, code, requestId}` 구조 또는 null.
+   * @updated 2026-02-27
+   */
   const normalizeErrorState = (value) => {
     if (!value) return null;
     if (typeof value === "string") return { key: value };
@@ -74,22 +115,23 @@ const DashboardView = ({ statList, dataList, initialError }) => {
     }
     return { key: "FETCH_FAILED" };
   };
+
   const router = useRouter();
   const statsList = useEasyList(statList || []);
-  const tableList = useEasyList(dataList || []);
-  const ui = EasyObj(
-    useMemo(
-      () => ({
-        isLoading:
-          !isSsrMode(PAGE_MODE.MODE) || !statList?.length || !dataList?.length,
-        error: normalizeErrorState(initialError),
-      }),
-      [],
-    ),
-  );
+  const dashboardDataList = useEasyList(dataList || []);
+  const ui = EasyObj({
+    isLoading:
+      !isSsrMode(PAGE_MODE.MODE) || !statList?.length || !dataList?.length,
+    error: normalizeErrorState(initialError),
+  });
   const endpoints = PAGE_MODE.endPoints || {};
   const hasEndpoint = Boolean(endpoints.stats && endpoints.list);
 
+  /**
+   * @description 대시보드 API(stats/list)를 조회하고 EasyList 모델을 동기화한다.
+   * 실패 동작: 조회 실패 시 ui.error에 표준 에러 상태를 저장하고 로딩을 종료한다.
+   * @updated 2026-02-27
+   */
   const fetchDashboard = async () => {
     if (!hasEndpoint) {
       ui.error = toErrorState(null, DASHBOARD_ERROR_KEY.ENDPOINT_MISSING);
@@ -109,7 +151,7 @@ const DashboardView = ({ statList, dataList, initialError }) => {
           ? listResult.items
           : [];
       statsList.copy(statsRes?.result?.byStatus || []);
-      tableList.copy(normalizedItems);
+      dashboardDataList.copy(normalizedItems);
     } catch (err) {
       console.error(LANG_KO.view.error.fetchFailed, err);
       ui.error = toErrorState(err, DASHBOARD_ERROR_KEY.INIT_FETCH_FAILED);
@@ -120,75 +162,70 @@ const DashboardView = ({ statList, dataList, initialError }) => {
 
   useEffect(() => {
     const hasSsrData = statList?.length && dataList?.length;
-    if (isSsrMode(PAGE_MODE.MODE) && hasSsrData) return;
+    if (isSsrMode(PAGE_MODE.MODE) && hasSsrData) {
+      statsList.copy(statList || []);
+      dashboardDataList.copy(dataList || []);
+      ui.isLoading = false;
+      return;
+    }
     fetchDashboard();
   }, [statList, dataList, hasEndpoint]);
 
-  const statCards = useMemo(() => {
-    const byStatus = statsList.toJSON();
-    const totalCount = byStatus.reduce((acc, row) => acc + (row.count ?? 0), 0);
-    const totalAmount = byStatus.reduce(
-      (acc, row) => acc + Number(row.amountSum ?? 0),
-      0
-    );
-    const runningCount = byStatus.find((row) => row.status === "running")?.count ?? 0;
-    const pendingCount = byStatus.find((row) => row.status === "pending")?.count ?? 0;
-    const activeCount = runningCount + pendingCount;
-    return [
-      {
-        label: LANG_KO.view.stat.totalCount,
-        value: totalCount.toLocaleString("ko-KR"),
-        delta: null,
-        deltaType: "neutral",
-      },
-      {
-        label: LANG_KO.view.stat.totalAmount,
-        value: `${formatCurrency(totalAmount)}`,
-        delta: null,
-        deltaType: "neutral",
-      },
-      {
-        label: LANG_KO.view.stat.activeCount,
-        value: activeCount.toLocaleString("ko-KR"),
-        delta: null,
-        deltaType: "neutral",
-      },
-    ];
-  }, [statsList]);
+  const byStatus = statsList.toJSON();
+  const totalCount = byStatus.reduce((acc, row) => acc + (row.count ?? 0), 0);
+  const totalAmount = byStatus.reduce(
+    (acc, row) => acc + Number(row.amountSum ?? 0),
+    0
+  );
+  const runningCount = byStatus.find((row) => row.status === "running")?.count ?? 0;
+  const pendingCount = byStatus.find((row) => row.status === "pending")?.count ?? 0;
+  const activeCount = runningCount + pendingCount;
+  const statCards = [
+    {
+      label: LANG_KO.view.stat.totalCount,
+      value: formatNumber(totalCount),
+      delta: null,
+      deltaType: "neutral",
+    },
+    {
+      label: LANG_KO.view.stat.totalAmount,
+      value: `${formatCurrency(totalAmount)}`,
+      delta: null,
+      deltaType: "neutral",
+    },
+    {
+      label: LANG_KO.view.stat.activeCount,
+      value: formatNumber(activeCount),
+      delta: null,
+      deltaType: "neutral",
+    },
+  ];
 
-  const donutData = useMemo(() => {
-    const byStatus = statsList.toJSON();
-    return byStatus.map((row) => ({
-      label: LANG_KO.view.statusLabelMap[row.status] || row.status || LANG_KO.view.unknown,
-      value: row.count ?? 0,
-    }));
-  }, [statsList]);
+  const donutData = byStatus.map((row) => ({
+    label: LANG_KO.view.statusLabelMap[row.status] || row.status || LANG_KO.view.unknown,
+    value: row.count ?? 0,
+  }));
 
-  const statusQuickList = useMemo(() => {
-    const byStatus = statsList.toJSON();
-    const byStatusMap = new Map(
-      byStatus.map((row) => [String(row.status || ""), Number(row.count || 0)])
-    );
-    return STATUS_ORDER.map((status) => ({
-      status,
-      label: LANG_KO.view.statusLabelMap[status],
-      count: byStatusMap.get(status) || 0,
-      href: createTasksPath({ status }),
-    }));
-  }, [statsList]);
+  const byStatusMap = new Map(
+    byStatus.map((row) => [String(row.status || ""), Number(row.count || 0)])
+  );
+  const statusQuickList = STATUS_ORDER.map((status) => ({
+    status,
+    label: LANG_KO.view.statusLabelMap[status],
+    count: byStatusMap.get(status) || 0,
+    href: createTasksPath({ status }),
+  }));
 
-  const lineData = useMemo(() => {
-    const items = tableList.toJSON();
-    const byMonth = new Map();
-    items.forEach((item) => {
-      const key = monthKey(item.createdAt);
-      const bucket = byMonth.get(key) || { label: key, count: 0, amount: 0 };
-      bucket.count += 1;
-      bucket.amount += Number(item.amount || 0);
-      byMonth.set(key, bucket);
-    });
-    return Array.from(byMonth.values());
-  }, [tableList]);
+  const items = dashboardDataList.toJSON();
+  const byMonth = new Map();
+  items.forEach((item) => {
+    const key = monthKey(item.createdAt);
+    const bucket = byMonth.get(key) || { label: key, count: 0, amount: 0 };
+    bucket.count += 1;
+    bucket.amount += Number(item.amount || 0);
+    byMonth.set(key, bucket);
+  });
+  const lineData = Array.from(byMonth.values());
 
   const legendFontSize = 12;
   const errorText = resolveErrorText(ui.error?.key);
@@ -208,11 +245,13 @@ const DashboardView = ({ statList, dataList, initialError }) => {
             <div>{errorText}</div>
             {ui.error?.requestId ? (
               <div className="mt-1 text-xs text-red-700/80">
-                requestId: {ui.error.requestId}
+                {LANG_KO.view.error.requestIdLabel}: {ui.error.requestId}
               </div>
             ) : null}
             {ui.error?.code ? (
-              <div className="mt-1 text-xs text-red-700/80">code: {ui.error.code}</div>
+              <div className="mt-1 text-xs text-red-700/80">
+                {LANG_KO.view.error.codeLabel}: {ui.error.code}
+              </div>
             ) : null}
           </div>
         </section>
@@ -315,7 +354,8 @@ const DashboardView = ({ statList, dataList, initialError }) => {
                 variant="secondary"
                 onClick={() => router.push(item.href)}
               >
-                {item.label} {item.count.toLocaleString("ko-KR")}{LANG_KO.view.action.countSuffix}
+                {item.label} {formatNumber(item.count)}
+                {LANG_KO.view.action.countSuffix}
               </Button>
             ))}
           </div>
@@ -329,7 +369,7 @@ const DashboardView = ({ statList, dataList, initialError }) => {
           }
         >
           <EasyTable
-            data={tableList}
+            data={dashboardDataList}
             loading={ui.isLoading}
             columns={[
               {

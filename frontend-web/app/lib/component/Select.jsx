@@ -61,6 +61,11 @@ const STATUS_PRESETS = {
   },
 }
 
+/**
+ * @description 입력 옵션 목록을 Select 내부 표준 구조로 정규화한다.
+ * 반환값: `{key,value,label,placeholder,selected,raw}` 형태의 옵션 배열.
+ * @updated 2026-02-27
+ */
 const normalizeOptions = (dataList = [], valueKey, textKey) => {
   if (!Array.isArray(dataList) && typeof dataList?.[Symbol.iterator] !== 'function') {
     return []
@@ -75,6 +80,11 @@ const normalizeOptions = (dataList = [], valueKey, textKey) => {
   }))
 }
 
+/**
+ * @description EasyObj/EasyList subscribe API를 React effect 수명주기에 연결한다.
+ * 처리 규칙: subscribe가 있으면 등록하고 cleanup에서 unsubscribe를 호출한다.
+ * @updated 2026-02-27
+ */
 function useEasySubscription(model, handler) {
   useEffect(() => {
     if (!model || typeof model.subscribe !== 'function') return undefined
@@ -141,11 +151,18 @@ const Select = forwardRef((props, ref) => {
   // 한글설명: Sync EasyList selection flags with the resolved value
   useEffect(() => {
     const normalized = String(currentValue ?? '')
+
+    /**
+     * @description 현재 값과 일치하는 항목의 selected 플래그를 재계산한다.
+     * 부작용: item.selected 값을 직접 갱신한다.
+     * @updated 2026-02-27
+     */
     const updater = (item) => {
       const nextSelected = String(item?.[valueKey] ?? '') === normalized
       if (item.selected !== nextSelected) item.selected = nextSelected
       return item
     }
+
     if (typeof dataList?.forAll === 'function') {
       dataList.forAll(updater)
     } else if (Array.isArray(dataList)) {
@@ -210,6 +227,11 @@ const Select = forwardRef((props, ref) => {
   const ariaDescribedBy =
     [ariaDescribedByProp, messageId].filter(Boolean).join(' ') || undefined
 
+  /**
+   * @description 선택 변경 이벤트를 상태/바인딩/핸들러 규약으로 동기화한다.
+   * 처리 규칙: 내부 값 업데이트 후 dataList selected 플래그, dataObj[dataKey], fireValueHandlers 순서로 반영한다.
+   * @updated 2026-02-27
+   */
   const handleChange = (event) => {
     const nextValue = event.target.value
     if (!isControlled) setInnerValue(nextValue)

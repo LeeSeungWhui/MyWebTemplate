@@ -40,8 +40,20 @@ const palette = [
 ];
 const defaultMargin = { top: 12, right: 20, left: 10, bottom: 12 };
 const donutMargin = { top: 36, right: 16, bottom: 24, left: 16 };
+
+/**
+ * @description 입력 데이터가 EasyList/배열처럼 순회 가능한 구조인지 판별한다.
+ * 반환값: size API 또는 배열 타입이면 true.
+ * @updated 2026-02-27
+ */
 const isListLike = (list) =>
   !!list && (typeof list.size === "function" || Array.isArray(list));
+
+/**
+ * @description 배열 또는 EasyList류 데이터를 실제 배열로 변환한다.
+ * 처리 규칙: 배열은 그대로 반환하고, list-like는 size/get 기반으로 새 배열을 구성한다.
+ * @updated 2026-02-27
+ */
 const toArray = (list) => {
   if (Array.isArray(list)) return list;
   if (isListLike(list)) {
@@ -139,6 +151,11 @@ const EasyChart = ({
     if (!isClient) return undefined;
     if (!chartHostRef.current) return undefined;
 
+    /**
+     * @description 차트 호스트 DOM 크기를 읽어 내부 width/height 상태를 동기화한다.
+     * 처리 규칙: 이전 크기와 동일하면 상태 갱신을 생략해 불필요한 렌더를 방지한다.
+     * @updated 2026-02-27
+     */
     const updateHostSize = () => {
       if (!chartHostRef.current) return;
       const rect = chartHostRef.current.getBoundingClientRect();
@@ -179,6 +196,11 @@ const EasyChart = ({
           ? AreaChart
           : LineChart;
 
+  /**
+   * @description resolvedSeries 정의를 Recharts 시리즈 컴포넌트(Line/Bar/Area)로 변환한다.
+   * 반환값: 현재 차트 타입과 시리즈 옵션이 반영된 JSX 배열 또는 null.
+   * @updated 2026-02-27
+   */
   const renderSeries = () => {
     if (!hasSeries) return null;
     return resolvedSeries.map((s, idx) => {
@@ -226,6 +248,11 @@ const EasyChart = ({
     });
   };
 
+  /**
+   * @description 로딩/에러/빈상태/차트 본문 분기 로직에 따라 카드 본문을 렌더링한다.
+   * 처리 규칙: loading > error > no-series > empty > chart 순으로 우선순위를 적용한다.
+   * @updated 2026-02-27
+   */
   const renderBody = () => {
     if (isLoading) {
       return (
@@ -279,6 +306,12 @@ const EasyChart = ({
           </div>
         );
       }
+
+      /**
+       * @description 파이/도넛 섹터 라벨 텍스트(`이름 값 (퍼센트)`)를 렌더링한다.
+       * 반환값: 중앙 정렬된 `<text>` SVG 노드.
+       * @updated 2026-02-27
+       */
       const renderPieLabel = (pieLabelProps) => {
         const { name, value, percent, x: xCoord, y: yCoord } = pieLabelProps;
         const pct = Math.round((percent || 0) * 100);
@@ -421,6 +454,7 @@ const EasyChart = ({
 };
 
 /**
- * @description EasyChart export를 노출한다.
+ * @description Card 래퍼와 상태 분기(loading/error/empty)를 포함한 EasyChart 컴포넌트를 외부에 노출한다.
+ * 반환값: EasyChart 컴포넌트 export.
  */
 export default EasyChart;

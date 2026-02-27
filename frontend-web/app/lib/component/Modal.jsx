@@ -8,7 +8,13 @@ import { forwardRef, useEffect, useRef, useState } from 'react';
 import Icon from './Icon';
 import React from 'react';
 
+/**
+ * @description Header 컴포넌트를 렌더링한다.
+ * 처리 규칙: onClose가 있으면 우측 닫기 버튼을 노출하고 draggable이면 헤더에 drag 커서를 적용한다.
+ * @updated 2026-02-27
+ */
 const Header = ({ className = '', children, onClose, draggable = false, ...props }) => {
+
     return (
         <div
             className={`
@@ -37,7 +43,13 @@ const Header = ({ className = '', children, onClose, draggable = false, ...props
     );
 };
 
+/**
+ * @description Body 컴포넌트를 렌더링한다.
+ * 반환값: 스크롤 가능한 본문 컨테이너 JSX.
+ * @updated 2026-02-27
+ */
 const Body = ({ className = '', children, ...props }) => {
+
     return (
         <div
             className={`
@@ -52,7 +64,13 @@ const Body = ({ className = '', children, ...props }) => {
     );
 };
 
+/**
+ * @description Footer 컴포넌트를 렌더링한다.
+ * 반환값: 액션 버튼 영역을 감싸는 하단 컨테이너 JSX.
+ * @updated 2026-02-27
+ */
 const Footer = ({ className = '', children, ...props }) => {
+
     return (
         <div
             className={`
@@ -123,7 +141,13 @@ const Modal = forwardRef(({
 
     // ESC 키 이벤트 처리
     useEffect(() => {
-        const handleKeyDown = (keyboardEvent) => {
+
+    /**
+     * @description ESC 키 입력으로 모달을 닫고 드래그 위치를 초기화한다.
+     * 처리 규칙: closeOnEsc=true 이고 key가 Escape일 때만 동작한다.
+     * @updated 2026-02-27
+     */
+    const handleKeyDown = (keyboardEvent) => {
             if (closeOnEsc && keyboardEvent.key === 'Escape') {
                 onClose?.();
                 setPosition(null);  // ESC로 닫을 때도 position 초기화
@@ -137,6 +161,12 @@ const Modal = forwardRef(({
     }, [isOpen, closeOnEsc, onClose]);
 
     // 드래그 시작
+
+    /**
+     * @description 헤더 영역 마우스 다운에서 드래그 시작 좌표를 기록한다.
+     * 처리 규칙: draggable=true 이고 target이 `.modal-header`일 때만 dragging 상태로 전환한다.
+     * @updated 2026-02-27
+     */
     const handleMouseDown = (event) => {
         if (!draggable) return;
         if (!modalRef.current) return;
@@ -157,6 +187,12 @@ const Modal = forwardRef(({
     };
 
     // 드래그 중
+
+    /**
+     * @description 드래그 중인 모달 위치를 마우스 좌표에 맞춰 업데이트한다.
+     * 처리 규칙: 화면 경계(0~viewport-size) 안으로 x/y를 clamp 한다.
+     * @updated 2026-02-27
+     */
     const handleMouseMove = (event) => {
         if (!dragRef.current.isDragging) return;
         if (!modalRef.current) return;
@@ -176,6 +212,12 @@ const Modal = forwardRef(({
     };
 
     // 드래그 종료
+
+    /**
+     * @description 드래그 상태를 종료하고 텍스트 선택 잠금을 해제한다.
+     * 부작용: dragRef.current.isDragging=false, body.userSelect=''로 복구한다.
+     * @updated 2026-02-27
+     */
     const handleMouseUp = () => {
         dragRef.current.isDragging = false;
         document.body.style.userSelect = '';
@@ -193,6 +235,11 @@ const Modal = forwardRef(({
         }
     }, [draggable]);
 
+    /**
+     * @description 백드롭 직접 클릭 시 모달을 닫고 위치 상태를 초기화한다.
+     * 처리 규칙: closeOnBackdrop=true 이고 event.target===event.currentTarget 조건에서만 닫는다.
+     * @updated 2026-02-27
+     */
     const handleBackdropClick = (event) => {
         if (closeOnBackdrop && event.target === event.currentTarget) {
             onClose?.();
@@ -255,6 +302,7 @@ Modal.Footer = Footer;
 Modal.displayName = 'Modal';
 
 /**
- * @description Modal export를 노출한다.
+ * @description 헤더/본문/푸터 슬롯을 제공하는 공통 Modal 컴포넌트를 외부에 노출한다.
+ * 반환값: Modal 컴포넌트 export.
  */
 export default Modal; 

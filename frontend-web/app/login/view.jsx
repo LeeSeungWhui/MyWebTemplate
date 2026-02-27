@@ -6,14 +6,14 @@
  * 설명: 로그인 페이지 클라이언트 뷰
  */
 
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useRef } from "react";
 import EasyObj from "@/app/lib/dataset/EasyObj";
 import Button from "@/app/lib/component/Button";
 import Input from "@/app/lib/component/Input";
 import Checkbox from "@/app/lib/component/Checkbox";
 import { apiJSON } from "@/app/lib/runtime/api";
 import useSwr from "@/app/lib/hooks/useSwr";
-import { SESSION_PATH, createLoginFormModel } from "./initData";
+import { SESSION_PATH } from "./initData";
 import Link from "next/link";
 import { useGlobalUi } from "@/app/common/store/SharedStore";
 import LANG_KO from "./lang.ko";
@@ -22,9 +22,16 @@ const MIN_USERNAME_LENGTH = 3;
 const MIN_PASSWORD_LENGTH = 8;
 
 /**
- * @description Client export를 노출한다.
+ * @description 로그인 폼 검증/제출 및 세션 상태 기반 리다이렉트를 담당하는 페이지 뷰를 렌더링한다.
+ * 처리 규칙: 로그인 성공 시 nextHint(안전 경로) 또는 `/dashboard`로 이동한다.
  */
 const Client = ({ mode, init, nextHint, authReason }) => {
+
+  /**
+   * @description 로그인 후 이동할 리다이렉트 경로를 안전한 내부 경로로 제한한다.
+   * 처리 규칙: 절대 URL/프로토콜/`//` 경로를 차단하고 `/`로 시작하는 내부 경로만 허용한다.
+   * @updated 2026-02-27
+   */
   const sanitizeRedirect = (candidate) => {
     if (!candidate || typeof candidate !== "string") return null;
     if (!candidate.startsWith("/")) return null;
@@ -32,16 +39,20 @@ const Client = ({ mode, init, nextHint, authReason }) => {
     if (/^https?:/i.test(candidate)) return null;
     return candidate;
   };
-  const loginObj = EasyObj(useMemo(() => createLoginFormModel(), []));
-  const ui = EasyObj(
-    useMemo(
-      () => ({
-        pending: false,
-        formError: "",
-      }),
-      [],
-    ),
-  );
+
+  const loginObj = EasyObj({
+    email: "",
+    password: "",
+    rememberMe: false,
+    errors: {
+      email: "",
+      password: "",
+    },
+  });
+  const ui = EasyObj({
+    pending: false,
+    formError: "",
+  });
   const emailRef = useRef(null);
   const passwordRef = useRef(null);
   const errorSummaryRef = useRef(null);
@@ -63,8 +74,10 @@ const Client = ({ mode, init, nextHint, authReason }) => {
       ? String(authReason.message)
       : LANG_KO.view.toast.sessionExpired;
     const metaParts = [];
-    if (authReason?.code) metaParts.push(`code: ${authReason.code}`);
-    if (authReason?.requestId) metaParts.push(`requestId: ${authReason.requestId}`);
+    if (authReason?.code) metaParts.push(`${LANG_KO.view.toast.codeLabel}: ${authReason.code}`);
+    if (authReason?.requestId) {
+      metaParts.push(`${LANG_KO.view.toast.requestIdLabel}: ${authReason.requestId}`);
+    }
     const metaText = metaParts.length ? ` (${metaParts.join(", ")})` : "";
     showToast(`${message}${metaText}`, { type: "error", duration: 5000 });
   }, [authReason, showToast, LANG_KO.view.toast.sessionExpired]);
@@ -86,12 +99,22 @@ const Client = ({ mode, init, nextHint, authReason }) => {
     window.history.replaceState({}, "", nextUrl);
   }, [showToast, LANG_KO.view.toast.signupDone]);
 
+  /**
+   * @description 필드 에러와 폼 공통 에러 메시지를 초기화한다.
+   * 부작용: loginObj.errors(email/password)와 ui.formError를 빈 문자열로 덮어쓴다.
+   * @updated 2026-02-27
+   */
   const resetErrors = () => {
     loginObj.errors.email = "";
     loginObj.errors.password = "";
     ui.formError = "";
   };
 
+  /**
+   * @description 오류가 난 입력 요소로 포커스를 이동시킨다.
+   * 처리 규칙: ref.current가 있을 때 requestAnimationFrame 타이밍으로 focus를 호출한다.
+   * @updated 2026-02-27
+   */
   const focusOnError = (ref) => {
     if (!ref || !ref.current) return;
     requestAnimationFrame(() => {
@@ -99,15 +122,19 @@ const Client = ({ mode, init, nextHint, authReason }) => {
     });
   };
 
+  /**
+   * @description 백엔드 에러 코드를 사용자 메시지/포커스 대상 필드로 매핑한다.
+   * 반환값: `{ message, field? }` 형태의 에러 표시 메타.
+   * @updated 2026-02-27
+   */
   const resolveBackendError = (error) => {
-    const code = error?.code;
-    if (code === "AUTH_429_RATE_LIMIT") {
+    if (error?.code === "AUTH_429_RATE_LIMIT") {
       return { message: LANG_KO.view.error.tooManyAttempts };
     }
-    if (code === "AUTH_422_INVALID_INPUT") {
+    if (error?.code === "AUTH_422_INVALID_INPUT") {
       return { message: LANG_KO.view.error.invalidInput };
     }
-    if (code === "AUTH_401_INVALID") {
+    if (error?.code === "AUTH_401_INVALID") {
       return {
         message: LANG_KO.view.error.invalidCredential,
         field: "password",
@@ -122,6 +149,11 @@ const Client = ({ mode, init, nextHint, authReason }) => {
     return { message: LANG_KO.view.error.loginFailed };
   };
 
+  /**
+   * @description 로그인 폼 입력값을 검증하고 첫 오류를 화면에 노출한다.
+   * 실패 동작: 규칙 위반 시 ui.formError 설정 후 해당 입력 필드로 포커스를 이동하고 false를 반환한다.
+   * @updated 2026-02-27
+   */
   const validateForm = () => {
     resetErrors();
     const issues = [];
@@ -158,6 +190,11 @@ const Client = ({ mode, init, nextHint, authReason }) => {
     return true;
   };
 
+  /**
+   * @description 로그인 제출 요청을 보내고 성공/실패 분기를 적용한다.
+   * 실패 동작: API 예외 시 resolveBackendError 결과를 필드/폼 에러로 반영하고 pending 상태를 해제한다.
+   * @updated 2026-02-27
+   */
   const handleSubmit = async (event) => {
     event.preventDefault();
     if (!validateForm()) return;

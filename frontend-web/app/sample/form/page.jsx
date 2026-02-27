@@ -16,6 +16,7 @@ export const metadata = {
 
 /**
  * @description 공개 복합 폼 샘플 페이지를 렌더링한다.
+ * @returns {JSX.Element}
  */
 const FormDemoPage = () => {
   return <FormDemoView mode={PAGE_MODE} />;

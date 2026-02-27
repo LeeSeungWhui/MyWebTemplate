@@ -10,6 +10,11 @@ import LANG_KO from "./lang.ko";
 const { layoutMeta } = LANG_KO;
 const MENU_TEMPLATE_LIST = layoutMeta.menuList.map((item) => ({ ...item }));
 
+/**
+ * @description 공개 샘플 pathname을 메뉴 식별자(routeKey)로 매핑한다.
+ * 반환값: demo/dashboard/crud/form/admin 중 하나의 routeKey.
+ * @updated 2026-02-27
+ */
 const resolveRouteKey = (pathname) => {
   const pathText = String(pathname || "");
   if (pathText === "/sample") return "demo";
@@ -20,6 +25,11 @@ const resolveRouteKey = (pathname) => {
   return "demo";
 };
 
+/**
+ * @description routeKey에 대응하는 샘플 레이아웃 타이틀을 선택한다.
+ * 반환값: routeKey별 제목 문자열(미일치 시 default).
+ * @updated 2026-02-27
+ */
 const resolveTitle = (routeKey) => {
   if (routeKey === "demo") return layoutMeta.title.demo;
   if (routeKey === "dashboard") return layoutMeta.title.dashboard;
@@ -28,6 +38,11 @@ const resolveTitle = (routeKey) => {
   return layoutMeta.title.default;
 };
 
+/**
+ * @description routeKey에 대응하는 샘플 레이아웃 서브타이틀을 선택한다.
+ * 반환값: routeKey별 설명 문자열(미일치 시 default).
+ * @updated 2026-02-27
+ */
 const resolveSubtitle = (routeKey) => {
   if (routeKey === "demo") return layoutMeta.subtitle.demo;
   if (routeKey === "dashboard") return layoutMeta.subtitle.dashboard;

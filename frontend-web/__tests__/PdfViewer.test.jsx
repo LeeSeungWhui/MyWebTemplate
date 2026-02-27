@@ -9,6 +9,7 @@ import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import PdfViewer from '../app/lib/component/PdfViewer/PdfViewer.jsx';
+import { COMMON_COMPONENT_LANG_KO } from '../app/common/i18n/lang.ko';
 
 const defaultLayoutPluginMock = vi.hoisted(() => vi.fn(() => ({ name: 'default-layout-plugin' })));
 
@@ -85,25 +86,25 @@ describe('PdfViewer', () => {
     render(<PdfViewer src="document.pdf" withToolbar={false} />);
 
     await waitFor(() => {
-      const region = screen.getByRole('document', { name: 'PDF viewer' });
+      const region = screen.getByRole('document', { name: COMMON_COMPONENT_LANG_KO.pdfViewer.ariaLabel });
       expect(region).toHaveAttribute('data-page', '1');
       expect(region).toHaveAttribute('data-page-count', '3');
       expect(region).toHaveAttribute('data-zoom', '1.25');
     });
 
     await waitFor(() => {
-      expect(screen.queryByText('Loading PDF...')).not.toBeInTheDocument();
+      expect(screen.queryByText(COMMON_COMPONENT_LANG_KO.pdfViewer.loadingText)).not.toBeInTheDocument();
     });
   });
 
   it('shows empty state with status when document fails to load', async () => {
     render(<PdfViewer src="error-document.pdf" withToolbar={false} />);
 
-    const emptyState = await screen.findByText(/Unable to load PDF/);
+    const emptyState = await screen.findByText(new RegExp(COMMON_COMPONENT_LANG_KO.pdfViewer.loadFailedTitle));
     expect(emptyState).toBeInTheDocument();
 
     await waitFor(() => {
-      const viewerRegion = screen.getByRole('document', { name: 'PDF viewer' });
+      const viewerRegion = screen.getByRole('document', { name: COMMON_COMPONENT_LANG_KO.pdfViewer.ariaLabel });
       expect(viewerRegion).toHaveAttribute('aria-busy', 'false');
     });
 

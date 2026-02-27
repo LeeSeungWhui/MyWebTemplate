@@ -12,8 +12,10 @@ import CodeBlock from '../shared/CodeBlock';
  * Stat 문서 섹션
  * @date 2025-09-13
  */
+
 /**
- * @description StatDocs export를 노출한다.
+ * @description Stat 문서 섹션을 구성하고 예제 목록을 렌더링한다.
+ * @returns {JSX.Element}
  */
 const StatDocs = () => {
   const examples = StatExamples();

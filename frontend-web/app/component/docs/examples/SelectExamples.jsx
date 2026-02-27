@@ -27,6 +27,11 @@ export const SelectExamples = () => {
     { id: '', label: '불러오는 중', placeholder: true, selected: true },
   ])
 
+  /**
+   * @description 직무 옵션의 현재 선택 id를 반환한다.
+   * @returns {string}
+   * @updated 2026-02-27
+   */
   const getSelectedJobId = () => {
     const selected = jobOptions.find((item) => item.selected)
     return selected ? String(selected.id) : ''

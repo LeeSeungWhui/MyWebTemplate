@@ -10,8 +10,21 @@ import { useMemo } from "react";
 import { getBoundValue } from "@/app/lib/binding";
 import { COMMON_COMPONENT_LANG_KO } from "@/app/common/i18n/lang.ko";
 
+/**
+ * @description EasyList 호환 객체인지 판별해 링크 목록 변환 분기에 사용한다.
+ * @param {unknown} list
+ * @returns {boolean} size/get 인터페이스를 가진 목록 객체면 true
+ * @updated 2026-02-27
+ */
 const isListLike = (list) =>
   !!list && (typeof list.size === "function" || Array.isArray(list));
+
+/**
+ * @description EasyList/배열 입력을 안전한 배열 형태로 정규화한다.
+ * @param {unknown} list
+ * @returns {Array<unknown>} 렌더링 가능한 배열
+ * @updated 2026-02-27
+ */
 const toArray = (list) => {
   if (Array.isArray(list)) return list;
   if (isListLike(list)) {
@@ -102,6 +115,7 @@ const Footer = ({
 };
 
 /**
- * @description Footer export를 노출한다.
+ * @description Footer 컴포넌트를 외부에서 재사용할 수 있도록 기본 export한다.
+ * @returns {React.ComponentType} Footer 컴포넌트
  */
 export default Footer;

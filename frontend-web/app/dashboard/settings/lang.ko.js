@@ -27,6 +27,7 @@ export const LANG_KO = {
       profileEndpointMissing: "프로필 API 경로가 설정되지 않았습니다.",
       profileLoadFailed: "프로필 정보를 불러오지 못했습니다.",
       profileSaveFailed: "프로필 저장에 실패했습니다.",
+      requestIdLabel: "requestId",
     },
     validation: {
       nameMinLength: "이름은 2자 이상 입력해주세요.",

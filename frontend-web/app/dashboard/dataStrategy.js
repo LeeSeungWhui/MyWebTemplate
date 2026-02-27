@@ -47,6 +47,7 @@ export async function buildDashboardInitialData({
   endPoints,
   fetcher,
 }) {
+
   const endpoints = endPoints || {};
   const hasRequiredEndpoints = Boolean(endpoints.stats && endpoints.list);
   if (!hasRequiredEndpoints) {

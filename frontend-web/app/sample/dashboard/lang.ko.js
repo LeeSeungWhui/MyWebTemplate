@@ -55,6 +55,13 @@ export const LANG_KO = {
       recentTitle: "최근 업무",
       recentSubtitle: "공개 샘플 대시보드는 읽기 전용으로 제공합니다.",
     },
+    number: {
+      locale: "ko-KR",
+      zeroText: "0",
+    },
+    misc: {
+      defaultStatusCode: "ready",
+    },
   },
 };
 

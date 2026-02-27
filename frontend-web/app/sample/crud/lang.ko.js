@@ -229,6 +229,9 @@ export const LANG_KO = {
       updatedRow: "업무가 수정되었습니다.",
       removedSelectedRows: "선택 항목이 삭제되었습니다.",
     },
+    misc: {
+      defaultStatusCode: "ready",
+    },
   },
 };
 

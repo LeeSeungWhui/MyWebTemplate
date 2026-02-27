@@ -20,6 +20,7 @@ import LANG_KO from "@/app/lang.ko";
 
 /**
  * @description 루트 랜딩 페이지를 렌더링한다.
+ * @returns {JSX.Element}
  */
 const HomeView = () => {
   return (

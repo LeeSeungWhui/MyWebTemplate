@@ -61,6 +61,7 @@ export const EasyChartExamples = () => [
   actions={<Button size="sm">내보내기</Button>}
 />`,
   },
+
   {
     anchor: "easychart-bar",
     description: "단일 바 차트",

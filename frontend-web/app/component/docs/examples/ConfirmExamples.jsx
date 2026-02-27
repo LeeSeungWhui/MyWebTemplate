@@ -9,6 +9,11 @@ import * as Lib from '@/app/lib';
 import { useRef } from 'react';
 import { useGlobalUi } from '@/app/common/store/SharedStore';
 
+/**
+ * @description BasicConfirm 컴포넌트를 렌더링한다.
+ * @returns {JSX.Element}
+ * @updated 2026-02-27
+ */
 const BasicConfirm = () => {
   const { showConfirm, showAlert } = useGlobalUi();
   return (
@@ -24,6 +29,11 @@ const BasicConfirm = () => {
   );
 };
 
+/**
+ * @description ConfirmVariants 컴포넌트를 렌더링한다.
+ * @returns {JSX.Element}
+ * @updated 2026-02-27
+ */
 const ConfirmVariants = () => {
   const { showConfirm } = useGlobalUi();
   return (
@@ -56,6 +66,11 @@ const ConfirmVariants = () => {
   );
 };
 
+/**
+ * @description ConfirmCallbacks 컴포넌트를 렌더링한다.
+ * @returns {JSX.Element}
+ * @updated 2026-02-27
+ */
 const ConfirmCallbacks = () => {
   const { showConfirm, showAlert } = useGlobalUi();
   return (
@@ -76,6 +91,11 @@ const ConfirmCallbacks = () => {
   );
 };
 
+/**
+ * @description ConfirmFocus 컴포넌트를 렌더링한다.
+ * @returns {JSX.Element}
+ * @updated 2026-02-27
+ */
 const ConfirmFocus = () => {
   const { showConfirm } = useGlobalUi();
   const inputRef = useRef(null);
@@ -180,4 +200,3 @@ const inputRef = useRef(null);
     }
   ];
 };
-

@@ -10,6 +10,7 @@ import { useState } from 'react';
 
 /**
  * @description ModalExamples 구성 데이터를 반환한다.
+ * @returns {Array<{ component: JSX.Element, code: string }>}
  * @updated 2026-02-24
  */
 export const ModalExamples = () => {
@@ -314,7 +315,7 @@ const [currentSize, setCurrentSize] = useState('md');
                             isOpen={isOpen}
                             onClose={() => setIsOpen(false)}
                             top="20px"
-                            left="calc(100% - 20px - 32rem)"
+                            left="calc(100% - 20px - 512px)"
                             draggable
                         >
                             <Lib.Modal.Header onClose={() => setIsOpen(false)}>
@@ -336,7 +337,7 @@ const [currentSize, setCurrentSize] = useState('md');
     isOpen={isOpen}
     onClose={() => setIsOpen(false)}
     top="20px"
-    left="calc(100% - 20px - 32rem)"
+    left="calc(100% - 20px - 512px)"
     draggable
 >
     <Lib.Modal.Header onClose={() => setIsOpen(false)}>

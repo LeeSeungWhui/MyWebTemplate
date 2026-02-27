@@ -6,23 +6,3 @@
  */
 
 export const SIGNUP_PATH = "/api/v1/auth/signup";
-
-/**
- * @description createSignupFormModel 구성 데이터를 반환한다.
- * @updated 2026-02-24
- */
-export const createSignupFormModel = () => ({
-  name: "",
-  email: "",
-  password: "",
-  passwordConfirm: "",
-  agreeTerms: false,
-  errors: {
-    name: "",
-    email: "",
-    password: "",
-    passwordConfirm: "",
-    agreeTerms: "",
-  },
-});
-

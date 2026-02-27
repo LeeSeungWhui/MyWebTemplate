@@ -9,6 +9,10 @@ import { safeJsonParse } from "@/app/lib/runtime/json";
 
 let cachedConfig = null
 
+/**
+ * @description 서버 런타임 여부를 반환한다.
+ * @returns {boolean}
+ */
 const isServerRuntime = () => typeof window === 'undefined'
 
 /**

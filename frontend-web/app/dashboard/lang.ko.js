@@ -24,6 +24,12 @@ export const LANG_KO = {
       endpointMissing: "엔드포인트가 설정되지 않았습니다.",
       fetchFailed: "대시보드 데이터를 불러오지 못했습니다.",
       sectionAriaLabel: "오류 안내",
+      requestIdLabel: "requestId",
+      codeLabel: "code",
+    },
+    number: {
+      locale: "ko-KR",
+      zeroText: "0",
     },
     stat: {
       totalCount: "전체 건수",
