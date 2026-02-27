@@ -22,7 +22,7 @@ const EMPTY_BODY_STATUS = new Set([204, 205, 304]);
 const LOGIN_PATH = "/login";
 
 /**
- * @description 현재 실행 환경이 서버 런타임인지 판별한다.
+ * @description 현재 실행 환경이 서버 런타임인지 판별
  * 처리 규칙: `window` 전역이 없으면 서버 환경으로 간주한다.
  * @updated 2026-02-27
  */
@@ -31,7 +31,7 @@ function isServer() {
 }
 
 /**
- * @description 테스트 실행 환경 여부를 확인한다.
+ * @description 테스트 실행 환경 여부를 확인
  * 처리 규칙: `VITEST` 또는 `NODE_ENV=test` 플래그를 우선 읽고 예외 발생 시 false를 반환한다.
  * @updated 2026-02-27
  */
@@ -44,7 +44,7 @@ function isTestEnv() {
 }
 
 /**
- * @description 입력 경로가 절대 URL인지 판별한다.
+ * @description 입력 경로가 절대 URL인지 판별
  * 처리 규칙: 문자열이면서 `http://` 또는 `https://` 프리픽스를 가지면 true를 반환한다.
  * @updated 2026-02-27
  */
@@ -53,7 +53,7 @@ function isAbsoluteUrl(input) {
 }
 
 /**
- * @description 애플리케이션 경로를 BFF 프록시 경로로 정규화한다.
+ * @description  애플리케이션 경로를 BFF 프록시 경로로 정규화한다. 입력/출력 계약을 함께 명시
  * 처리 규칙: 이미 `/api/bff`로 시작하면 유지하고, 아니면 prefix를 붙여 반환한다.
  * @updated 2026-02-27
  */
@@ -64,7 +64,7 @@ function toBffPath(path) {
 }
 
 /**
- * @description Request body로 직접 전달 가능한 타입인지 검사한다.
+ * @description Request body로 직접 전달 가능한 타입인지 검사
  * 처리 규칙: string/FormData/Blob/ArrayBuffer 타입을 body-like 값으로 인정한다.
  * @updated 2026-02-27
  */
@@ -78,7 +78,7 @@ function isBodyLike(value) {
 }
 
 /**
- * @description body 값이 FormData인지 판별한다.
+ * @description body 값이 FormData인지 판별
  * 처리 규칙: 브라우저 환경에서 `instanceof FormData`일 때만 true를 반환한다.
  * @updated 2026-02-27
  */
@@ -87,7 +87,7 @@ function isFormBody(value) {
 }
 
 /**
- * @description body 값이 바이너리 타입인지 판별한다.
+ * @description body 값이 바이너리 타입인지 판별
  * 처리 규칙: `Blob` 또는 `ArrayBuffer` 인스턴스면 true를 반환한다.
  * @updated 2026-02-27
  */
@@ -99,7 +99,7 @@ function isBinaryBody(value) {
 }
 
 /**
- * @description 요청 body 입력을 전송 가능한 값으로 직렬화한다.
+ * @description 요청 body 입력을 전송 가능한 값으로 직렬화
  * 처리 규칙: body-like 값은 그대로 사용하고, 일반 객체는 JSON 문자열로 변환한다.
  * @updated 2026-02-27
  */
@@ -122,7 +122,7 @@ function serializeBody(input) {
 }
 
 /**
- * @description api 호출 인자 오버로딩 패턴을 단일 포맷으로 정규화한다.
+ * @description  api 호출 인자 오버로딩 패턴을 단일 포맷으로 정규화한다. 입력/출력 계약을 함께 명시
  * 처리 규칙: `(path, init|body, mode|options)` 입력을 `{ path, init, options }` 형태로 통일한다.
  * @updated 2026-02-27
  */
@@ -136,7 +136,7 @@ function normalizeArgs(path, a2, a3) {
   // 한글설명: - api*(path, initLike, 'authless' | options)
 
   /**
-   * @description 값이 RequestInit 유사 객체인지 판별한다.
+   * @description 값이 RequestInit 유사 객체인지 판별
    * 처리 규칙: body-like 값은 제외하고, method/headers/body/authless 키 보유 여부로 판별한다.
    * @updated 2026-02-27
    */
@@ -154,7 +154,7 @@ function normalizeArgs(path, a2, a3) {
   };
 
   /**
-   * @description 구형 옵션 전용 init 객체인지 판별한다.
+   * @description 구형 옵션 전용 init 객체인지 판별
    * 처리 규칙: body-like 값이 아니고 키가 `csrf`/`auth` 조합으로만 구성되면 true를 반환한다.
    * @updated 2026-02-27
    */
@@ -170,7 +170,7 @@ function normalizeArgs(path, a2, a3) {
   let options = {};
 
   /**
-   * @description 모드 문자열을 options 객체에 반영한다.
+   * @description 모드 문자열을 options 객체에 반영
    * 처리 규칙: 현재는 `authless` 모드만 해석해 `options.authless=true`로 설정한다.
    * @updated 2026-02-27
    */
@@ -203,7 +203,7 @@ function normalizeArgs(path, a2, a3) {
 }
 
 /**
- * @description 헤더 집합에 대상 헤더가 존재하는지 검사한다.
+ * @description 헤더 집합에 대상 헤더가 존재하는지 검사
  * 처리 규칙: `Headers` 인스턴스와 plain object 양쪽을 지원하며 키 비교는 소문자로 수행한다.
  * @updated 2026-02-27
  */
@@ -239,7 +239,7 @@ async function readResponseText(response) {
  * 백엔드 JSON 문자열을 보정/정규화
  * @param {Response} response fetch Response
  * @returns {Promise<object|null>} 파싱 결과
- * @description 응답 JSON 문자열을 파싱하고 중첩 JSON 문자열 필드를 정규화한다.
+ * @description  응답 JSON 문자열을 파싱하고 중첩 JSON 문자열 필드를 정규화한다. 입력/출력 계약을 함께 명시
  * 처리 규칙: 파싱 실패 시 SyntaxError를 던지고 원문 텍스트를 `cause`에 보관한다.
  * @updated 2026-02-27
  */
@@ -256,7 +256,7 @@ async function parseJsonResponseBody(response) {
 }
 
 /**
- * @description 값이 배열이 아닌 일반 객체인지 판별한다.
+ * @description 값이 배열이 아닌 일반 객체인지 판별
  * 처리 규칙: null/array를 제외한 object 타입만 true를 반환한다.
  * @updated 2026-02-27
  */
@@ -267,7 +267,7 @@ function isPlainObject(value) {
 }
 
 /**
- * @description API 실패 응답을 표준 ApiError 객체로 변환한다.
+ * @description  API 실패 응답을 표준 ApiError 객체로 변환한다. 입력/출력 계약을 함께 명시
  * 처리 규칙: body의 message/code/requestId를 우선 사용하고, 없으면 상태코드 기반 기본 메시지를 구성한다.
  * @updated 2026-02-27
  */
@@ -288,7 +288,7 @@ function createApiError(path, response, body) {
 }
 
 /**
- * @description SSR/CSR 공통 규약으로 Request 기반 API 응답(Response)을 반환한다.
+ * @description  SSR/CSR 공통 규약으로 Request 기반 API 응답(Response)을 반환한다. 입력/출력 계약을 함께 명시
  * @param {string} path
  * @param {Object} [initOrBody]
  * @param {string|Object} [modeOrOptions]
@@ -303,7 +303,7 @@ export async function apiRequest(path, initOrBody = {}, modeOrOptions) {
   const authless = !!options?.authless;
 
   /**
-   * @description SSR에서 사용할 프론트엔드 origin을 결정한다.
+   * @description SSR에서 사용할 프론트엔드 origin을 결정
    * 처리 규칙: 환경변수 값을 우선 사용하고 없으면 `http://127.0.0.1:<PORT>` 기본값을 반환한다.
    * @updated 2026-02-27
    */
@@ -421,7 +421,7 @@ export async function apiRequest(path, initOrBody = {}, modeOrOptions) {
 }
 
 /**
- * @description API 응답을 JSON으로 파싱하고 실패 응답을 ApiError로 전환한다.
+ * @description API 응답을 JSON으로 파싱하고 실패 응답을 ApiError로 전환
  * 처리 규칙: HTTP 비정상(`!ok`) 또는 body.status=false 모두 예외로 승격한다.
  * @param {string} path
  * @param {Object} [initOrBody]
@@ -442,7 +442,7 @@ export async function apiJSON(path, initOrBody = {}, modeOrOptions) {
 }
 
 /**
- * @description GET 메서드 JSON API 래퍼를 제공한다.
+ * @description GET 메서드 JSON API 래퍼를 제공
  * 처리 규칙: init에 method를 강제로 `GET`으로 주입해 `apiJSON`으로 위임한다.
  * @returns {Promise<any>} JSON 응답 페이로드
  */
@@ -452,7 +452,7 @@ export function apiGet(path, init = {}) {
 }
 
 /**
- * @description POST 메서드 JSON API 래퍼를 제공한다.
+ * @description POST 메서드 JSON API 래퍼를 제공
  * 처리 규칙: 전달 body를 포함해 method=`POST`로 고정한 뒤 `apiJSON`으로 위임한다.
  * @returns {Promise<any>} JSON 응답 페이로드
  */
@@ -462,7 +462,7 @@ export function apiPost(path, body, init = {}) {
 }
 
 /**
- * @description PUT 메서드 JSON API 래퍼를 제공한다.
+ * @description PUT 메서드 JSON API 래퍼를 제공
  * 처리 규칙: 전달 body를 포함해 method=`PUT`으로 고정한 뒤 `apiJSON`으로 위임한다.
  * @returns {Promise<any>} JSON 응답 페이로드
  */
@@ -472,7 +472,7 @@ export function apiPut(path, body, init = {}) {
 }
 
 /**
- * @description PATCH 메서드 JSON API 래퍼를 제공한다.
+ * @description PATCH 메서드 JSON API 래퍼를 제공
  * 처리 규칙: 전달 body를 포함해 method=`PATCH`로 고정한 뒤 `apiJSON`으로 위임한다.
  * @returns {Promise<any>} JSON 응답 페이로드
  */
@@ -482,7 +482,7 @@ export function apiPatch(path, body, init = {}) {
 }
 
 /**
- * @description DELETE 메서드 JSON API 래퍼를 제공한다.
+ * @description DELETE 메서드 JSON API 래퍼를 제공
  * 처리 규칙: 전달 body를 포함해 method=`DELETE`로 고정한 뒤 `apiJSON`으로 위임한다.
  * @returns {Promise<any>} JSON 응답 페이로드
  */

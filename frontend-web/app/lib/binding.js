@@ -9,14 +9,14 @@
 // 한글설명: Purpose: Common helpers for data binding (EasyObj/EasyList) and change context
 
 /**
- * @description 입력 객체가 EasyObj/EasyList 프록시 래퍼인지 판별한다.
+ * @description 입력 객체가 EasyObj/EasyList 프록시 래퍼인지 판별
  * 반환값: `__isProxy` 또는 `__rawObject` 메타 필드가 있으면 true.
  * @updated 2026-02-27
  */
 const isProxyLike = (obj) => obj && typeof obj === 'object' && (obj.__isProxy || obj.__rawObject);
 
 /**
- * @description 프록시 래퍼 객체에서 원본(raw) 참조를 추출한다.
+ * @description 프록시 래퍼 객체에서 원본(raw) 참조를 추출
  * 반환값: `__rawObject`가 있으면 raw, 없으면 입력 객체 자체.
  * @updated 2026-02-27
  */
@@ -42,7 +42,7 @@ export function getBoundValue(dataObj, dataKey) {
 }
 
 /**
- * @description 바인딩 객체의 key 경로 값을 설정한다.
+ * @description  바인딩 객체의 key 경로 값을 설정한다. 입력/출력 계약을 함께 명시
  * 부작용: 경로 중간 노드가 없으면 객체를 생성하고 마지막 키에 값을 대입한다.
  * @updated 2026-02-24
  */
@@ -64,7 +64,7 @@ export function setBoundValue(dataObj, dataKey, value, options = {}) {
 }
 
 /**
- * @description 값 변경 컨텍스트를 구성한다.
+ * @description  값 변경 컨텍스트를 구성한다. 입력/출력 계약을 함께 명시
  * 반환값: `{ dataKey, modelType, dirty, valid, source }` 형태의 공통 ctx 객체.
  * @updated 2026-02-24
  */
@@ -81,7 +81,7 @@ export function buildCtx({ dataKey, dataObj, source = 'user', valid = null, dirt
 }
 
 /**
- * @description onChange/onValueChange 핸들러에 공통 이벤트 규약을 전달한다.
+ * @description onChange/onValueChange 핸들러에 공통 이벤트 규약을 전달
  * 처리 규칙: event.detail에 value/ctx를 주입하고 onChange(event) → onValueChange(value, ctx) 순으로 호출한다.
  * @updated 2026-02-24
  */
@@ -116,7 +116,7 @@ const bindingUtils = {
 };
 
 /**
- * @description 바인딩 유틸 묶음 객체(bindingUtils)를 default export로 노출한다.
+ * @description 바인딩 유틸 묶음 객체(bindingUtils)를 default export로 노출
  * 반환값: get/set/ctx/handler 함수를 담은 bindingUtils.
  */
 export default bindingUtils

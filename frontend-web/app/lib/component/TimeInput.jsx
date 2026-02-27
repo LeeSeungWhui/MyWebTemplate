@@ -45,7 +45,7 @@ const TimeInput = forwardRef(({
   const [open, setOpen] = useState(false);
 
   /**
-   * @description 외부 값(prop/dataObj/local state) 우선순위에 따라 현재 시간을 조회한다.
+   * @description  외부 값(prop/dataObj/local state) 우선순위에 따라 현재 시간을 조회한다. 입력/출력 계약을 함께 명시
    * 처리 규칙: controlled > EasyObj 바인딩 > 내부 상태 순으로 fallback 한다.
    * @updated 2026-02-27
    */
@@ -68,7 +68,7 @@ const TimeInput = forwardRef(({
   }, [propValue, dataObj, dataKey, inner, isData, isPropControlled]);
 
   /**
-   * @description 확정된 시간 문자열을 상태/바인딩/이벤트 핸들러에 반영한다.
+   * @description 확정된 시간 문자열을 상태/바인딩/이벤트 핸들러에 반영
    * 부작용: text, inner, dataObj[dataKey], onChange/onValueChange 호출 값이 갱신된다.
    * @updated 2026-02-27
    */
@@ -189,7 +189,7 @@ const TimeInput = forwardRef(({
 TimeInput.displayName = 'TimeInput';
 
 /**
- * @description 수동 입력과 옵션 선택을 지원하는 TimeInput 컴포넌트를 외부에 노출한다.
+ * @description 수동 입력과 옵션 선택을 지원하는 TimeInput 컴포넌트를 외부에 노출
  * 반환값: TimeInput 컴포넌트 export.
  */
 export default TimeInput;

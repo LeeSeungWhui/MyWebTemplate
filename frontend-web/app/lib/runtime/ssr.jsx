@@ -10,7 +10,7 @@ export async function buildSSRHeaders(extra = {}) {
   const mod = await import('next/headers')
   const cookieStore = await mod.cookies()
   const headersList = await mod.headers()
-  const cookie = cookieStore.getAll().map((c) => `${c.name}=${c.value}`).join('; ')
+  const cookie = cookieStore.getAll().map((cookieItem) => `${cookieItem.name}=${cookieItem.value}`).join('; ')
   const lang = headersList.get('accept-language') || 'en'
   return {
     'Accept-Language': lang,

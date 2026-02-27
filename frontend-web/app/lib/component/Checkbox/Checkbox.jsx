@@ -44,7 +44,7 @@ const Checkbox = forwardRef(({
     }, [isDataObjControlled, dataObj, dataKeyName]);
 
     /**
-     * @description 체크박스 변경값을 내부 상태와 dataObj에 반영하고 이벤트를 전파한다.
+     * @description 체크박스 변경값을 내부 상태와 dataObj에 반영하고 이벤트를 전파
      * @param {React.ChangeEvent<HTMLInputElement>} event
      * @returns {void}
      * @updated 2026-02-27
@@ -66,7 +66,7 @@ const Checkbox = forwardRef(({
     };
 
     /**
-     * @description controlled/dataObj/internal 우선순위로 렌더링 체크 상태를 결정한다.
+     * @description controlled/dataObj/internal 우선순위로 렌더링 체크 상태를 결정
      * @returns {boolean}
      * @updated 2026-02-27
      */
@@ -110,7 +110,7 @@ const Checkbox = forwardRef(({
 Checkbox.displayName = 'Checkbox';
 
 /**
- * @description Checkbox 컴포넌트를 기본 export한다.
+ * @description Checkbox 컴포넌트를 기본 export
  * @returns {React.ComponentType} Checkbox 컴포넌트
  */
 export default Checkbox; 

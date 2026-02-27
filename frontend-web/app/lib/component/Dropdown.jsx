@@ -8,7 +8,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import { COMMON_COMPONENT_LANG_KO } from '@/app/common/i18n/lang.ko';
 
 /**
- * @description 전달된 목록을 순회 가능한 배열로 정규화한다.
+ * @description  전달된 목록을 순회 가능한 배열로 정규화한다. 입력/출력 계약을 함께 명시
  * 처리 규칙: EasyList(forAll), 배열, iterable 순으로 변환을 시도하고 실패 시 빈 배열을 반환한다.
  * @updated 2026-02-27
  */
@@ -28,7 +28,7 @@ const toArray = (list) => {
 };
 
 /**
- * @description 메뉴의 side/align 조합을 Tailwind 포지션 클래스로 변환한다.
+ * @description  메뉴의 side/align 조합을 Tailwind 포지션 클래스로 변환한다. 입력/출력 계약을 함께 명시
  * 반환값: 드롭다운 패널 위치를 제어하는 className 문자열.
  * @updated 2026-02-27
  */
@@ -45,7 +45,7 @@ const resolvePositionClass = (side, align) => {
 };
 
 /**
- * @description 버튼 variant에 맞는 스타일 클래스를 선택한다.
+ * @description 버튼 variant에 맞는 스타일 클래스를 선택
  * 처리 규칙: filled/text/outlined(기본) 분기로 고정 클래스 셋을 반환한다.
  * @updated 2026-02-27
  */
@@ -60,7 +60,7 @@ const resolveVariantClass = (variant) => {
 };
 
 /**
- * @description 선택 상태를 기반으로 트리거에 표시할 라벨 문자열을 계산한다.
+ * @description  선택 상태를 기반으로 트리거에 표시할 라벨 문자열을 계산한다. 입력/출력 계약을 함께 명시
  * 반환값: 단일 라벨, 다중 선택 개수 라벨, 또는 null.
  * @updated 2026-02-27
  */
@@ -97,7 +97,7 @@ const resolveItemLabelClassName = ({ disabledItem, selected, selectedItemClassNa
 };
 
 /**
- * @description 단일/다중 선택 Dropdown UI를 렌더링한다.
+ * @description  단일/다중 선택 Dropdown UI를 렌더링한다. 입력/출력 계약을 함께 명시
  * @param {Object} props
  * @returns {JSX.Element}
  */
@@ -129,11 +129,12 @@ const Dropdown = ({
   multiSelect = false,
   disabled = false,
 }) => {
+
   const [openState, setOpenState] = useState(defaultOpen);
   const open = typeof openProp === 'boolean' ? openProp : openState;
 
   /**
-   * @description controlled 여부에 맞춰 open 상태를 갱신한다.
+   * @description controlled 여부에 맞춰 open 상태를 갱신
    * 처리 규칙: open prop이 있으면 onOpenChange 콜백만 호출하고, 아니면 내부 state를 변경한다.
    * @updated 2026-02-27
    */
@@ -151,7 +152,7 @@ const Dropdown = ({
   const effectiveCloseOnSelect = multiSelect ? false : closeOnSelect;
 
   /**
-   * @description 항목 선택을 반영하고 목록 모델(selected)과 외부 콜백을 동기화한다.
+   * @description 항목 선택을 반영하고 목록 모델(selected)과 외부 콜백을 동기화
    * 부작용: dataList 각 항목의 selected 값, onSelect 호출, closeOnSelect 동작에 영향을 준다.
    * @updated 2026-02-27
    */
@@ -197,7 +198,7 @@ const Dropdown = ({
     if (!open) return undefined;
 
     /**
-     * @description 열려 있는 메뉴에서 키보드 내비게이션 동작을 반영한다.
+     * @description 열려 있는 메뉴에서 키보드 내비게이션 동작을 반영
      * 처리 규칙: Escape 닫기, ArrowUp/Down 포커스 이동, Enter 선택을 적용한다.
      * @updated 2026-02-27
      */
@@ -340,6 +341,6 @@ const Dropdown = ({
 };
 
 /**
- * @description Dropdown 컴포넌트 엔트리를 export 한다.
+ * @description Dropdown 컴포넌트 엔트리를 export
  */
 export default Dropdown;

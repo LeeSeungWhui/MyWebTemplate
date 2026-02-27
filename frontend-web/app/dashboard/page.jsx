@@ -27,7 +27,7 @@ export const metadata = {
 };
 
 /**
- * @description 대시보드 초기 데이터를 서버에서 조회한 뒤 클라이언트 뷰에 전달한다.
+ * @description 대시보드 초기 데이터를 서버에서 조회한 뒤 클라이언트 뷰에 전달
  * @returns {Promise<JSX.Element>}
  */
 const DashboardPage = async () => {

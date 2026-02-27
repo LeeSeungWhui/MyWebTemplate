@@ -48,7 +48,7 @@ def attachOpenAPI(app: FastAPI, config) -> None:
 
     def patchOpenapi(schema: Dict[str, Any]) -> Dict[str, Any]:
         """
-        설명: OpenAPI 스키마에 보안/응답/파라미터/코드샘플 정책을 패치한다.
+        설명: OpenAPI 스키마에 보안/응답/파라미터/코드샘플 정책을 패치
         처리 규칙: components/paths를 보강하되 예외 발생 시 로그만 남기고 원본 schema를 반환한다.
         반환값: 패치가 적용된 OpenAPI schema dict를 반환한다.
         갱신일: 2026-02-26
@@ -189,7 +189,7 @@ def attachOpenAPI(app: FastAPI, config) -> None:
             # 설정값에서 서버 URL 목록을 구성
             def resolveServers():
                 """
-                설명: 설정 기반 서버 URL 목록을 OpenAPI servers 형식으로 변환한다.
+                설명: 설정 기반 서버 URL 목록을 OpenAPI servers 형식으로 변환
                 갱신일: 2026-02-26
                 """
                 urls = []
@@ -226,7 +226,7 @@ def attachOpenAPI(app: FastAPI, config) -> None:
 
             def ensureJavaScriptCodeSample(operation: Dict[str, Any], source: str) -> None:
                 """
-                설명: operation에 openapi-client-axios JavaScript 예제를 보장한다.
+                설명: operation에 openapi-client-axios JavaScript 예제를 보장
                 갱신일: 2026-02-26
                 """
                 samples = operation.setdefault("x-codeSamples", [])
@@ -248,7 +248,7 @@ def attachOpenAPI(app: FastAPI, config) -> None:
 
             def ensureHeaderRef(operation: Dict[str, Any], refName: str) -> None:
                 """
-                설명: operation 파라미터에 공통 헤더 ref를 중복 없이 추가한다.
+                설명: operation 파라미터에 공통 헤더 ref를 중복 없이 추가
                 갱신일: 2026-02-26
                 """
                 parameters = operation.setdefault("parameters", [])
@@ -408,7 +408,7 @@ def attachOpenAPI(app: FastAPI, config) -> None:
 
     def customOpenapi():
         """
-        설명: FastAPI 기본 스키마 생성 후 patchOpenapi를 적용해 캐시한다.
+        설명: FastAPI 기본 스키마 생성 후 patchOpenapi를 적용해 캐시
         처리 규칙: 이미 캐시(app.openapi_schema)가 있으면 재생성하지 않고 그대로 반환한다.
         반환값: FastAPI에서 사용하는 최종 OpenAPI schema 객체를 반환한다.
         갱신일: 2026-02-26

@@ -8,7 +8,7 @@ import { useState, forwardRef, useEffect } from 'react';
 import { getBoundValue, setBoundValue, buildCtx, fireValueHandlers } from '../binding';
 
 /**
- * @description 다양한 truthy 표현을 boolean true로 해석한다.
+ * @description 다양한 truthy 표현을 boolean true로 해석
  * 반환값: `true/Y/y/1` 계열 값이면 true, 그 외는 false.
  * @updated 2026-02-27
  */
@@ -46,7 +46,7 @@ const Switch = forwardRef(({
   }, [isDataObj, dataObj, dataKey]);
 
   /**
-   * @description checked 값을 controlled/dataObj/local state 우선순위로 계산한다.
+   * @description  checked 값을 controlled/dataObj/local state 우선순위로 계산한다. 입력/출력 계약을 함께 명시
    * 처리 규칙: prop checked > bound value > internalChecked 순으로 fallback 한다.
    * @updated 2026-02-27
    */
@@ -57,7 +57,7 @@ const Switch = forwardRef(({
   };
 
   /**
-   * @description 스위치 토글 이벤트를 상태/바인딩/핸들러 규약으로 동기화한다.
+   * @description 스위치 토글 이벤트를 상태/바인딩/핸들러 규약으로 동기화
    * 부작용: internalChecked, dataObj[dataKey], onChange/onValueChange 호출 값이 함께 갱신된다.
    * @updated 2026-02-27
    */
@@ -109,7 +109,7 @@ const Switch = forwardRef(({
 Switch.displayName = 'Switch';
 
 /**
- * @description on/off 토글과 바인딩 연동을 지원하는 Switch 컴포넌트를 외부에 노출한다.
+ * @description on/off 토글과 바인딩 연동을 지원하는 Switch 컴포넌트를 외부에 노출
  * 반환값: Switch 컴포넌트 export.
  */
 export default Switch;

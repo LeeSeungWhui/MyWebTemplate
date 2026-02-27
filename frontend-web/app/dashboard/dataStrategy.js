@@ -11,7 +11,7 @@ export const DASHBOARD_ERROR_KEY = {
 };
 
 /**
- * @description 페이지 MODE 문자열이 SSR인지 판별한다.
+ * @description 페이지 MODE 문자열이 SSR인지 판별
  * @param {string} mode
  * @returns {boolean}
  */
@@ -20,7 +20,7 @@ export function isSsrMode(mode) {
 }
 
 /**
- * @description 에러 객체를 공통 에러 상태 포맷으로 정규화한다.
+ * @description  에러 객체를 공통 에러 상태 포맷으로 정규화한다. 입력/출력 계약을 함께 명시
  * @param {Error|Object|null} err
  * @param {string} key
  * @returns {{ key: string, code: (string | undefined), requestId: (string | undefined) }}
@@ -35,7 +35,7 @@ export function toErrorState(err, key) {
 }
 
 /**
- * @description MODE/엔드포인트 규칙에 따라 대시보드 초기 데이터를 생성한다.
+ * @description  MODE/엔드포인트 규칙에 따라 대시보드 초기 데이터를 생성한다. 입력/출력 계약을 함께 명시
  * @param {Object} params
  * @param {string} params.mode
  * @param {Object} params.endPoints

@@ -46,7 +46,7 @@ import PdfViewerDocs from "./docs/components/PdfViewerDocs";
 import LANG_KO from "./lang.ko";
 
 /**
- * @description 컴포넌트 문서 허브를 렌더링하고 모바일 TOC 열림 상태를 제어한다.
+ * @description 컴포넌트 문서 허브를 렌더링하고 모바일 TOC 열림 상태를 제어
  * @param {{ pageMode?: string }} props
  * @returns {JSX.Element} 문서 허브 화면
  */
@@ -57,7 +57,7 @@ const ComponentsView = ({ pageMode = "CSR" }) => {
   useEffect(() => {
 
     /**
-     * @description ESC 키 입력 시 모바일 TOC를 닫아 오버레이를 해제한다.
+     * @description ESC 키 입력 시 모바일 TOC를 닫아 오버레이를 해제
      * @param {KeyboardEvent} event
      * @returns {void}
      * @updated 2026-02-27

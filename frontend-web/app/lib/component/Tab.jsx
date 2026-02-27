@@ -8,7 +8,7 @@ import { useState } from 'react';
 import { getBoundValue, setBoundValue, buildCtx, fireValueHandlers } from '../binding';
 
 /**
- * @description Tab 자식 슬롯의 title 메타를 유지하면서 콘텐츠 노드만 반환한다.
+ * @description  Tab 자식 슬롯의 title 메타를 유지하면서 콘텐츠 노드만 반환한다. 입력/출력 계약을 함께 명시
  * @param {{ title: string, children: React.ReactNode }} props
  * @returns {React.ReactNode}
  * @updated 2026-02-27
@@ -18,6 +18,14 @@ const TabItem = ({ title, children }) => {
     return children;
 };
 
+/**
+ * @description  탭 목록 렌더링과 활성 탭 상태 전파를 담당한다. 입력/출력 계약을 함께 명시
+ * 처리 규칙: dataObj/dataKey가 주어지면 controlled 모드로 동작하고, 없으면 내부 state를 사용한다.
+ * 부작용: 탭 변경 시 setBoundValue/fireValueHandlers를 통해 외부 바인딩/콜백이 호출될 수 있다.
+ * @param {Object} props
+ * @returns {JSX.Element}
+ * @updated 2026-02-28
+ */
 const Tab = ({
     dataObj,
     dataKey,
@@ -27,6 +35,7 @@ const Tab = ({
     className = '',
     children
 }) => {
+
     // controlled/uncontrolled 처리
     const isControlled = dataObj && typeof dataKey !== 'undefined' && dataKey !== null;
     const [internalTab, setInternalTab] = useState(tabIndex || 0);
@@ -40,7 +49,7 @@ const Tab = ({
     const items = Array.isArray(children) ? children : [children].filter(Boolean);
 
     /**
-     * @description 탭 인덱스를 변경하고 dataObj/콜백으로 변경 이벤트를 전파한다.
+     * @description 탭 인덱스를 변경하고 dataObj/콜백으로 변경 이벤트를 전파
      * @param {number} index
      * @param {React.MouseEvent<HTMLButtonElement> | undefined} event
      * @returns {void}
@@ -104,7 +113,7 @@ const Tab = ({
 Tab.Item = TabItem;
 
 /**
- * @description Tab 컴포넌트를 기본 export한다.
+ * @description Tab 컴포넌트를 기본 export
  * @returns {React.ComponentType} Tab 컴포넌트
  */
 export default Tab;

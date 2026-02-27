@@ -17,7 +17,7 @@ const DEMO_MENU_LIST = COMMON_COMPONENT_LANG_KO.publicLayout.demoMenuList;
 const PUBLIC_MENU_LIST = COMMON_COMPONENT_LANG_KO.publicLayout.publicMenuList;
 
 /**
- * @description 현재 경로가 데모 드롭다운 그룹에 해당하는지 판별한다.
+ * @description 현재 경로가 데모 드롭다운 그룹에 해당하는지 판별
  * 반환값: `/sample` 하위(단, `/sample/portfolio` 제외)면 true.
  * @updated 2026-02-27
  */
@@ -36,7 +36,7 @@ const isDemoPath = (pathname) => {
 };
 
 /**
- * @description 메뉴 href가 현재 pathname과 활성 매칭되는지 계산한다.
+ * @description  메뉴 href가 현재 pathname과 활성 매칭되는지 계산한다. 입력/출력 계약을 함께 명시
  * 처리 규칙: 루트(`/`)와 샘플 루트(`/sample`)는 정확 일치, 그 외는 하위 경로 prefix까지 허용한다.
  * @updated 2026-02-27
  */
@@ -49,7 +49,7 @@ const isActiveMenu = (pathname, href) => {
 };
 
 /**
- * @description 상단 메뉴 항목의 active 상태에 맞는 클래스를 조합한다.
+ * @description 상단 메뉴 항목의 active 상태에 맞는 클래스를 조합
  * 반환값: hover/active 시각 상태가 포함된 className 문자열.
  * @updated 2026-02-27
  */
@@ -62,7 +62,7 @@ const getTopMenuClassName = (active) =>
   ].join(" ");
 
 /**
- * @description 데모 드롭다운 버튼의 active 상태 클래스를 조합한다.
+ * @description 데모 드롭다운 버튼의 active 상태 클래스를 조합
  * 반환값: 드롭다운 트리거 버튼용 className 문자열.
  * @updated 2026-02-27
  */
@@ -75,7 +75,7 @@ const getDemoButtonClassName = (active) =>
   ].join(" ");
 
 /**
- * @description 드롭다운 항목의 활성 상태에 맞는 텍스트/배경 클래스를 조합한다.
+ * @description 드롭다운 항목의 활성 상태에 맞는 텍스트/배경 클래스를 조합
  * 반환값: 활성/비활성 스타일이 반영된 className 문자열.
  * @updated 2026-02-27
  */
@@ -86,7 +86,7 @@ const getDropdownItemClassName = (active) =>
   ].join(" ");
 
 /**
- * @description 공개 페이지에서 사용하는 상단 GNB를 렌더링한다.
+ * @description  공개 페이지에서 사용하는 상단 GNB를 렌더링한다. 입력/출력 계약을 함께 명시
  * 처리 규칙: 데스크톱은 hover+pin 드롭다운, 모바일은 토글 드로어 메뉴 구조를 사용한다.
  */
 const PublicGnb = () => {
@@ -106,7 +106,7 @@ const PublicGnb = () => {
   }, [ui]);
 
   /**
-   * @description 데모 메뉴 버튼 클릭 시 pinned/open 상태를 토글한다.
+   * @description 데모 메뉴 버튼 클릭 시 pinned/open 상태를 토글
    * 처리 규칙: 이미 pin된 상태에서 재클릭하면 닫고, 그 외에는 pin=true/open=true로 유지한다.
    * @updated 2026-02-27
    */

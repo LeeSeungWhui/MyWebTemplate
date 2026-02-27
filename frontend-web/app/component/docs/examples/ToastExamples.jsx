@@ -9,7 +9,7 @@ import * as Lib from '@/app/lib';
 import { useGlobalUi } from '@/app/common/store/SharedStore';
 
 /**
- * @description ToastBasic 컴포넌트를 렌더링한다.
+ * @description  ToastBasic 컴포넌트를 렌더링한다. 입력/출력 계약을 함께 명시
  * 반환값: 기본 toast 호출 버튼 예제 JSX.
  * @updated 2026-02-27
  */
@@ -19,7 +19,7 @@ const ToastBasic = () => {
 };
 
 /**
- * @description ToastTypes 컴포넌트를 렌더링한다.
+ * @description  ToastTypes 컴포넌트를 렌더링한다. 입력/출력 계약을 함께 명시
  * 반환값: info/success/warning/error 타입 토스트 버튼 그룹 JSX.
  * @updated 2026-02-27
  */
@@ -36,7 +36,7 @@ const ToastTypes = () => {
 };
 
 /**
- * @description ToastPositions 컴포넌트를 렌더링한다.
+ * @description  ToastPositions 컴포넌트를 렌더링한다. 입력/출력 계약을 함께 명시
  * 반환값: top/bottom 위치별 토스트 표시 버튼 그룹 JSX.
  * @updated 2026-02-27
  */
@@ -55,7 +55,7 @@ const ToastPositions = () => {
 };
 
 /**
- * @description ToastDurations 컴포넌트를 렌더링한다.
+ * @description  ToastDurations 컴포넌트를 렌더링한다. 입력/출력 계약을 함께 명시
  * 반환값: 유지 시간(duration) 옵션별 토스트 버튼 그룹 JSX.
  * @updated 2026-02-27
  */
@@ -71,7 +71,7 @@ const ToastDurations = () => {
 };
 
 /**
- * @description ToastExamples 구성 데이터를 반환한다.
+ * @description  ToastExamples 구성 데이터를 반환한다. 입력/출력 계약을 함께 명시
  * 반환값: 문서 렌더러에서 사용하는 토스트 예제 배열(component/description/code).
  * @updated 2026-02-24
  */

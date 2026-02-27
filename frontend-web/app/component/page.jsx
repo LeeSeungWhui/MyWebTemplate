@@ -8,7 +8,7 @@ import ComponentsView from "./view";
 import { PAGE_MODE } from "./initData";
 
 /**
- * @description 컴포넌트 문서 화면을 서버 엔트리에서 반환한다.
+ * @description  컴포넌트 문서 화면을 서버 엔트리에서 반환한다. 입력/출력 계약을 함께 명시
  * @returns {JSX.Element}
  */
 const ComponentsPage = () => {

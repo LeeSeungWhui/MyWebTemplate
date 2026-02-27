@@ -26,7 +26,7 @@ class TransactionError(Exception):
 
 def findUnsupportedTransactionOption(options: dict[str, object], error: TypeError) -> str | None:
     """
-    설명: TypeError 메시지에서 미지원 트랜잭션 옵션 키를 추출한다.
+    설명: TypeError 메시지에서 미지원 트랜잭션 옵션 키를 추출
     갱신일: 2026-02-26
     """
     if not options:
@@ -85,14 +85,14 @@ def transaction(
 
     def decorator(func):
         """
-        설명: 트랜잭션 옵션을 캡처한 데코레이터를 생성한다.
+        설명: 트랜잭션 옵션을 캡처한 데코레이터를 생성한다. 호출 맥락의 제약을 기준으로 동작 기준을 확정
         갱신일: 2026-02-26
         """
 
         @wraps(func)
         async def wrapper(*args, **kwargs):
             """
-            설명: 대상 함수 실행 경로에 트랜잭션/재시도 정책을 적용한다.
+            설명: 대상 함수 실행 경로에 트랜잭션/재시도 정책을 적용
             실패 동작: 예외 발생 시 롤백 로그를 남기고 retryOn/retries 조건에 따라 재시도 후 최종 예외를 재전파한다.
             갱신일: 2026-02-26
             """
@@ -198,7 +198,7 @@ class Savepoint:
 
     def __init__(self, dbName: str, name: str):
         """
-        설명: 대상 DB와 savepoint 이름을 검증해 보관한다.
+        설명: 대상 DB와 savepoint 이름을 검증해 보관
         부작용: self.dbName/self.name 속성이 초기화된다.
         갱신일: 2026-02-27
         """
@@ -218,14 +218,24 @@ class Savepoint:
         return normalizedName
 
     async def __aenter__(self):
-        """설명: savepoint를 생성하고 self를 반환. 갱신일: 2025-11-12"""
+        """
+        설명: 현재 트랜잭션에 SAVEPOINT를 등록한 뒤 동일 인스턴스를 컨텍스트로 제공.
+        처리 규칙: 대상 DB가 없으면 예외를 발생시키고, 존재하면 SAVEPOINT SQL을 먼저 실행한다.
+        반환값: 현재 SavepointContext 인스턴스(self).
+        갱신일: 2025-11-12
+        """
         if self.dbName not in dbManagers:
             raise TransactionError(f"database not found: {self.dbName}")
         await dbManagers[self.dbName].execute(f"SAVEPOINT {self.name}")
         return self
 
     async def __aexit__(self, exc_type, exc, tb):
-        """설명: 예외 여부에 따라 롤백/해제를 수행. 갱신일: 2025-11-12"""
+        """
+        설명: 컨텍스트 종료 시점의 예외 유무에 따라 SAVEPOINT 롤백/해제를 분기하는 정리 단계.
+        처리 규칙: 예외가 있으면 ROLLBACK TO SAVEPOINT 후 RELEASE를 보장하고, 예외가 없으면 RELEASE만 수행한다.
+        부작용: 현재 트랜잭션 savepoint 상태를 변경한다.
+        갱신일: 2025-11-12
+        """
         if exc:
             # 부분 작업을 롤백한 뒤 savepoint 해제
             try:

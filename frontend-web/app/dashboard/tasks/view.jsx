@@ -45,7 +45,7 @@ const STATUS_BADGE_VARIANT = {
 const STATUS_FORM_LIST = STATUS_FILTER_LIST.filter((item) => item.value);
 
 /**
- * @description 업무 관리 페이지의 CSR 뷰를 렌더링한다.
+ * @description  업무 관리 페이지의 CSR 뷰를 렌더링한다. 입력/출력 계약을 함께 명시
  * 처리 규칙: 목록 조회/드로어 CRUD/브라우저 쿼리 동기화를 단일 컴포넌트에서 제어한다.
  */
 const TasksView = ({ initialFilter = {} }) => {
@@ -55,7 +55,7 @@ const TasksView = ({ initialFilter = {} }) => {
   const { showToast, showConfirm } = useGlobalUi();
 
   /**
-   * @description tags 입력값을 문자열 배열로 정규화한다.
+   * @description  tags 입력값을 문자열 배열로 정규화한다. 입력/출력 계약을 함께 명시
    * 처리 규칙: 배열/JSON 문자열/쉼표 문자열 입력을 모두 `string[]` 포맷으로 통일한다.
    * @updated 2026-02-27
    */
@@ -71,14 +71,14 @@ const TasksView = ({ initialFilter = {} }) => {
   };
 
   /**
-   * @description tags 값을 화면 표시용 문자열로 변환한다.
+   * @description  tags 값을 화면 표시용 문자열로 변환한다. 입력/출력 계약을 함께 명시
    * 처리 규칙: 내부적으로 toTagList를 호출한 뒤 `, ` 구분자로 join한다.
    * @updated 2026-02-27
    */
   const toTagText = (value) => toTagList(value).join(", ");
 
   /**
-   * @description 금액 값을 로케일 통화 문자열로 변환한다.
+   * @description  금액 값을 로케일 통화 문자열로 변환한다. 입력/출력 계약을 함께 명시
    * 처리 규칙: 숫자 변환 실패 시 0원 문구를 반환하고, 정상 값은 `ko-KR` 포맷으로 반환한다.
    * @updated 2026-02-27
    */
@@ -89,7 +89,7 @@ const TasksView = ({ initialFilter = {} }) => {
   };
 
   /**
-   * @description 날짜 값을 `YYYY-MM-DD` 문자열로 변환한다.
+   * @description 날짜 값을 `YYYY-MM-DD` 문자열로 변환
    * 처리 규칙: 값이 없거나 Date 파싱 실패면 `dateUnknown` 문구를 반환한다.
    * @updated 2026-02-27
    */
@@ -101,7 +101,7 @@ const TasksView = ({ initialFilter = {} }) => {
   };
 
   /**
-   * @description 템플릿 경로의 `:id` 플레이스홀더를 실제 ID로 치환한다.
+   * @description 템플릿 경로의 `:id` 플레이스홀더를 실제 ID로 치환
    * 처리 규칙: path/id를 문자열로 변환한 뒤 첫 `:id` 토큰을 치환해 반환한다.
    * @updated 2026-02-27
    */
@@ -109,7 +109,7 @@ const TasksView = ({ initialFilter = {} }) => {
     String(templatePath || "").replace(":id", String(id));
 
   /**
-   * @description API 예외를 UI 표시용 에러 객체로 정규화한다.
+   * @description  API 예외를 UI 표시용 에러 객체로 정규화한다. 입력/출력 계약을 함께 명시
    * 처리 규칙: 에러 message/requestId를 우선 사용하고 없으면 fallbackMessage를 message로 사용한다.
    * @updated 2026-02-27
    */
@@ -119,7 +119,7 @@ const TasksView = ({ initialFilter = {} }) => {
   });
 
   /**
-   * @description 드로어 폼의 초기값 모델을 생성한다.
+   * @description  드로어 폼의 초기값 모델을 생성한다. 입력/출력 계약을 함께 명시
    * 처리 규칙: 생성/수정 공통 폼 필드를 기본 상태값으로 구성해 반환한다.
    * @updated 2026-02-27
    */
@@ -159,7 +159,7 @@ const TasksView = ({ initialFilter = {} }) => {
   const hasRemoveEndpoint = Boolean(endPoints.remove);
 
   /**
-   * @description 현재 필터/페이지 상태를 브라우저 쿼리스트링과 동기화한다.
+   * @description 현재 필터/페이지 상태를 브라우저 쿼리스트링과 동기화
    * 처리 규칙: pathname이 존재할 때만 queryString을 생성하고 `router.replace(..., { scroll: false })`를 호출한다.
    * @updated 2026-02-27
    */
@@ -177,12 +177,13 @@ const TasksView = ({ initialFilter = {} }) => {
   };
 
   /**
-   * @description 업무 목록 엔드포인트를 호출해 taskList/taskMetaObj와 화면 상태를 동기화한다.
+   * @description 업무 목록 엔드포인트를 호출해 taskList/taskMetaObj와 화면 상태를 동기화
    * 실패 동작: 엔드포인트 누락/요청 실패 시 ui.error를 설정하고 목록/totalCount를 안전값으로 초기화한다.
    * 부작용: ui.isLoading/ui.page/ui.sort 상태와 브라우저 query를 갱신할 수 있다.
    * @updated 2026-02-27
    */
   const loadTasks = async (options = {}) => {
+
     const {
       nextKeyword = ui.keyword,
       nextStatus = ui.status,
@@ -259,7 +260,7 @@ const TasksView = ({ initialFilter = {} }) => {
   };
 
   /**
-   * @description 수정 모드로 드로어를 열고 상세 데이터를 로드한다.
+   * @description 수정 모드로 드로어를 열고 상세 데이터를 로드
    * 처리 규칙: 엔드포인트/ID 검증 후 상세 API를 호출해 form 값을 기존 데이터로 채운다.
    * @updated 2026-02-27
    */
@@ -364,7 +365,7 @@ const TasksView = ({ initialFilter = {} }) => {
   };
 
   /**
-   * @description 삭제 확인 후 업무 항목을 제거한다.
+   * @description 삭제 확인 후 업무 항목을 제거
    * 처리 규칙: confirm=true일 때만 삭제 API를 호출하고, 삭제 후 페이지 보정 규칙으로 목록을 재조회한다.
    * @updated 2026-02-27
    */

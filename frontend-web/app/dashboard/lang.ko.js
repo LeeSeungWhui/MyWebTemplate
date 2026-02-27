@@ -120,6 +120,6 @@ export const LANG_KO = {
 };
 
 /**
- * @description LANG_KO export를 노출한다.
+ * @description LANG_KO export를 노출
  */
 export default LANG_KO;

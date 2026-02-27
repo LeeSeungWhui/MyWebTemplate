@@ -2,7 +2,7 @@
  * 파일명: useEasyUpload.jsx
  * 작성자: LSH
  * 갱신일: 2026-02-22
- * 설명: 파일 업로드 유틸. BFF/백엔드 호스트를 자동 해석해 FormData 업로드를 수행한다.
+ * 설명: 파일 업로드 유틸. BFF/백엔드 호스트를 자동 해석해 FormData 업로드를 수행
  */
 
 import { getGlobalUiActionsSnapshot } from "@/app/common/store/SharedStore";
@@ -23,7 +23,7 @@ const DEFAULT_OPTIONS = {
 };
 
 /**
- * @description 업로드 실패 응답에서 사용자 노출용 메시지를 추출한다.
+ * @description 업로드 실패 응답에서 사용자 노출용 메시지를 추출
  * 처리 규칙: text가 비어 있으면 상태코드 메시지를 만들고, JSON이면 message/result 필드를 우선 사용한다.
  * @updated 2026-02-27
  */
@@ -40,7 +40,7 @@ const normalizeErrorMessage = async (response) => {
 };
 
 /**
- * @description 업로드 URL을 절대/상대/BFF 규칙에 맞게 정규화한다.
+ * @description  업로드 URL을 절대/상대/BFF 규칙에 맞게 정규화한다. 입력/출력 계약을 함께 명시
  * 처리 규칙: 절대 URL과 `/api/bff/`는 그대로 두고, 나머지 상대경로는 backendHost를 접두한다.
  * @updated 2026-02-27
  */
@@ -64,7 +64,7 @@ const resolveUploadUrl = (url) => {
 };
 
 /**
- * @description File/FileList/ArrayLike 입력을 업로드 가능한 파일 배열로 변환한다.
+ * @description  File/FileList/ArrayLike 입력을 업로드 가능한 파일 배열로 변환한다. 입력/출력 계약을 함께 명시
  * 반환값: 유효 파일만 포함된 배열(입력이 비어 있으면 빈 배열).
  * @updated 2026-02-27
  */
@@ -89,7 +89,7 @@ const toArray = (filesInput) => {
 };
 
 /**
- * @description FormData 기반 파일 업로드를 수행하고 공통 응답 형식으로 정규화한다.
+ * @description  FormData 기반 파일 업로드를 수행하고 공통 응답 형식으로 정규화한다. 입력/출력 계약을 함께 명시
  * 처리 규칙: fetch 실패/비정상 응답 시 공통 Alert를 표시하고 Error를 던진다.
  * @param {File|Blob|File[]|FileList|ArrayLike<File>|null} filesInput
  * @param {Object} [options]

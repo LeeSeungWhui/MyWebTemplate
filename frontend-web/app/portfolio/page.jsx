@@ -16,7 +16,7 @@ export const metadata = {
 };
 
 /**
- * @description 레거시 공개 경로에서 포트폴리오 콘텐츠를 재사용 뷰로 전달한다.
+ * @description 레거시 공개 경로에서 포트폴리오 콘텐츠를 재사용 뷰로 전달
  * @returns {JSX.Element}
  */
 const PortfolioPage = () => {

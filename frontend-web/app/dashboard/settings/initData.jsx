@@ -24,7 +24,7 @@ export const SETTINGS_TAB = {
 };
 
 /**
- * @description 검색 파라미터에서 문자열 값을 안전하게 조회한다.
+ * @description  검색 파라미터에서 문자열 값을 안전하게 조회한다. 입력/출력 계약을 함께 명시
  * @returns {string}
  * @updated 2026-02-27
  */
@@ -39,7 +39,7 @@ const pickQueryValue = (searchParams, key) => {
 };
 
 /**
- * @description 검색 파라미터의 `tab` 값을 설정 화면 탭 키(profile/system)로 정규화한다.
+ * @description 검색 파라미터의 `tab` 값을 설정 화면 탭 키(profile/system)로 정규화
  * 처리 규칙: 미지원 값이거나 비어 있으면 PROFILE 탭으로 기본 보정한다.
  * @returns {string} SETTINGS_TAB.PROFILE 또는 SETTINGS_TAB.SYSTEM
  * @updated 2026-02-27
@@ -50,7 +50,7 @@ export const normalizeSettingsTab = (searchParams) => {
 };
 
 /**
- * @description 탭 키(profile/system)를 Tab 컴포넌트 인덱스(0/1)로 변환한다.
+ * @description  탭 키(profile/system)를 Tab 컴포넌트 인덱스(0/1)로 변환한다. 입력/출력 계약을 함께 명시
  * 처리 규칙: system만 1로 매핑하고 나머지는 0으로 처리한다.
  * @returns {number} Tab 컴포넌트에서 사용하는 탭 인덱스
  * @updated 2026-02-27
@@ -60,7 +60,7 @@ export const toSettingsTabIndex = (tab) => {
 };
 
 /**
- * @description 탭 인덱스를 URL query(`tab`) 값으로 직렬화한다.
+ * @description 탭 인덱스를 URL query(`tab`) 값으로 직렬화
  * 처리 규칙: 기본 탭(0)은 빈 문자열을 반환해 URL에서 query를 제거한다.
  * @returns {string} query `tab` 값(system) 또는 빈 문자열
  * @updated 2026-02-27

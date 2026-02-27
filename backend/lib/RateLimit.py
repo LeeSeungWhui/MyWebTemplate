@@ -28,7 +28,7 @@ class RateLimiter:
 
     def __init__(self, limit: int = 5, windowSec: int = 60, sweepEvery: int = 256):
         """
-        설명: 제한 횟수/윈도우/청소 주기를 초기화한다.
+        설명: 제한 횟수/윈도우/청소 주기를 초기화
         처리 규칙: sweepEvery는 최소 1로 보정하고 내부 store/hitCount를 초기화한다.
         부작용: 인메모리 카운터 상태를 새로 생성한다.
         갱신일: 2026-02-27
@@ -40,12 +40,16 @@ class RateLimiter:
         self.hitCount = 0
 
     def now(self):
-        """설명: monotonic 초 단위를 반환. 갱신일: 2025-11-12"""
+        """
+        설명: 시스템 시계 변경 영향 없이 윈도우 계산에 쓰는 monotonic 타임스탬프 제공.
+        반환값: rate-limit 윈도우 계산에 사용하는 monotonic float 초 값.
+        갱신일: 2025-11-12
+        """
         return time.monotonic()
 
     def sweepExpired(self, nowSec: float) -> None:
         """
-        설명: 윈도우를 벗어난 키를 일괄 정리해 메모리 증가를 완화한다.
+        설명: 윈도우를 벗어난 키를 일괄 정리해 메모리 증가를 완화
         처리 규칙: 각 키의 오래된 타임스탬프를 제거하고 비어 있는 키는 store에서 제거한다.
         부작용: self.store 내부 상태를 직접 변경한다.
         갱신일: 2026-02-24
@@ -61,7 +65,7 @@ class RateLimiter:
 
     def hit(self, key: str, *, commit: bool = True):
         """
-        설명: 주어진 키로 속도 제한을 검사한다.
+        설명: 주어진 키로 속도 제한을 검사
         - commit=True: 검사 + 히트 기록(윈도우 내 카운트 증가)
         - commit=False: 검사만 수행(카운트 증가 없음)
         갱신일: 2026-01-15
@@ -93,7 +97,7 @@ globalRateLimiter = RateLimiter(limit=int(os.getenv("AUTH_RATE_LIMIT", "5")), wi
 
 def resolveClientIp(request: Request) -> str:
     """
-    설명: 요청의 클라이언트 IP를 최대한 정확히 추정한다.
+    설명: 요청의 클라이언트 IP를 최대한 정확히 추정
     - 기본: request.client.host
     - 프록시 뒤: TRUST_PROXY_HEADERS=true 일 때 X-Forwarded-For 첫 IP를 사용
     갱신일: 2026-01-15
@@ -110,7 +114,7 @@ def resolveClientIp(request: Request) -> str:
 
 def checkRateLimit(request: Request, username: Optional[str] = None, *, commit: bool = True) -> Optional[JSONResponse]:
     """
-    설명: IP/사용자별 속도 제한을 검사한다.
+    설명: IP/사용자별 속도 제한을 검사
     처리 규칙: 키(ip:{ip}, user:{username})를 순회해 하나라도 초과면 즉시 429를 반환한다.
     반환값: 제한 초과 시 Retry-After/no-store 헤더가 포함된 JSONResponse, 통과 시 None을 반환한다.
     갱신일: 2026-01-15

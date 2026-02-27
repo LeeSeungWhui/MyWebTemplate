@@ -90,6 +90,6 @@ const Button = forwardRef(({
 Button.displayName = 'Button';
 
 /**
- * @description Button export를 노출한다.
+ * @description Button export를 노출
  */
 export default Button;

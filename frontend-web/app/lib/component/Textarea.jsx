@@ -30,7 +30,7 @@ const Textarea = forwardRef(({
   const composingRef = useRef(false);
 
   /**
-   * @description prop/dataObj/internal 상태 우선순위에 따라 현재 표시값을 계산한다.
+   * @description  prop/dataObj/internal 상태 우선순위에 따라 현재 표시값을 계산한다. 입력/출력 계약을 함께 명시
    * @returns {string}
    * @updated 2026-02-27
    */
@@ -49,7 +49,7 @@ const Textarea = forwardRef(({
   }, [propValue, dataObj, dataKey, draftValue]);
 
   /**
-   * @description 입력값을 저장소(dataObj 또는 내부 state)에 반영하고 상위 폼 동기화를 유지한다.
+   * @description 입력값을 저장소(dataObj 또는 내부 state)에 반영하고 상위 폼 동기화를 유지
    * @param {string} raw
    * @param {React.SyntheticEvent | undefined} event
    * @returns {void}
@@ -97,7 +97,7 @@ const Textarea = forwardRef(({
 Textarea.displayName = 'Textarea';
 
 /**
- * @description Textarea 컴포넌트를 기본 export한다.
+ * @description Textarea 컴포넌트를 기본 export
  * @returns {React.ComponentType} Textarea 컴포넌트
  */
 export default Textarea;

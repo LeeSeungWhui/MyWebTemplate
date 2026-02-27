@@ -8,6 +8,14 @@ import Icon from './Icon';
 import Button from './Button';
 import { COMMON_COMPONENT_LANG_KO } from '@/app/common/i18n/lang.ko';
 
+/**
+ * @description 확인/취소 액션이 필요한 시나리오를 위한 이중 버튼 확인 모달 컴포넌트.
+ * 처리 규칙: type(info/warning/danger)에 따라 아이콘/색상 테마를 바꿔 위험도를 시각화한다.
+ * 부작용: 확인/취소 클릭 시 onConfirm/onCancel 콜백이 실행될 수 있다.
+ * @param {Object} props
+ * @returns {JSX.Element}
+ * @updated 2026-02-28
+ */
 const Confirm = ({
     title = COMMON_COMPONENT_LANG_KO.confirm.title,
     text,
@@ -17,6 +25,7 @@ const Confirm = ({
     confirmText = COMMON_COMPONENT_LANG_KO.confirm.confirmText,
     cancelText = COMMON_COMPONENT_LANG_KO.confirm.cancelText
 }) => {
+
     const displayText = typeof text === 'string' ? text.replaceAll('\\n', '\n') : text;
     const styles = {
         info: {
@@ -85,6 +94,6 @@ const Confirm = ({
 };
 
 /**
- * @description Confirm export를 노출한다.
+ * @description Confirm export를 노출
  */
 export default Confirm; 

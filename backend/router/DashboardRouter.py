@@ -2,7 +2,7 @@
 파일명: backend/router/DashboardRouter.py
 작성자: LSH
 갱신일: 2026-02-22
-설명: 대시보드용 T_DATA 목록/상세/CRUD/집계 API. 토큰 인증 후 서비스 계층을 통해 처리한다.
+설명: 대시보드용 T_DATA 목록/상세/CRUD/집계 API. 토큰 인증 후 서비스 계층을 통해 처리
 """
 
 from fastapi import APIRouter, Depends
@@ -34,7 +34,7 @@ class DashboardUpdatePayload(BaseModel):
 
 def toModelDict(model: BaseModel, *, excludeNone: bool = False) -> dict:
     """
-    설명: Pydantic v1/v2 호환으로 payload dict를 추출한다.
+    설명: Pydantic v1/v2 호환으로 payload dict를 추출
     반환값: model_dump(dict) 결과를 표준 dict로 통일한 값.
     갱신일: 2026-02-22
     """
@@ -49,7 +49,9 @@ def toModelDict(model: BaseModel, *, excludeNone: bool = False) -> dict:
 
 def resolveServiceErrorCode(exc: Exception) -> str | None:
     """
-    설명: 서비스 예외에서 표준 코드 문자열을 추출한다.
+    설명: 서비스 예외 객체에서 표준 코드 문자열(code/args[0])을 꺼내는 헬퍼.
+    처리 규칙: code 속성이 우선이며, 없으면 첫 번째 args 문자열을 사용한다.
+    반환값: 공백 제거된 코드 문자열 또는 None.
     갱신일: 2026-02-27
     """
     codeValue = getattr(exc, "code", None)
@@ -64,7 +66,9 @@ def resolveServiceErrorCode(exc: Exception) -> str | None:
 
 def handleDashboardError(exc: Exception) -> JSONResponse:
     """
-    설명: 대시보드 API 공통 예외를 표준 응답으로 변환한다.
+    설명: 대시보드 서비스 코드(DB_NOT_READY/422/404/500)를 HTTP 에러 응답으로 매핑하는 변환기.
+    처리 규칙: 정의된 코드만 고정 매핑하고, 미정의 예외는 상위 핸들러로 재전파한다.
+    반환값: 매핑된 JSONResponse.
     갱신일: 2026-02-22
     """
     errorCode = resolveServiceErrorCode(exc)
@@ -103,7 +107,8 @@ async def listDataTemplates(
     user=Depends(getCurrentUser),
 ):
     """
-    설명: 업무 목록을 검색/필터/페이지네이션 조건으로 조회한다.
+    설명: 목록 쿼리 파라미터를 서비스로 위임하고 응답 본문(meta 포함)으로 직렬화하는 라우터.
+    실패 동작: 서비스 예외는 handleDashboardError에서 코드별 HTTP 응답으로 변환한다.
     갱신일: 2026-02-22
     """
     try:
@@ -135,7 +140,7 @@ async def listDataTemplates(
 @router.get("/stats")
 async def dataTemplateStats(user=Depends(getCurrentUser)):
     """
-    설명: 업무 상태별 집계를 조회한다.
+    설명: 상태별 집계 서비스 결과를 successResponse로 노출하는 통계 조회 엔드포인트.
     반환값: 상태별 count/amount 집계 리스트를 담은 successResponse.
     갱신일: 2026-02-22
     """
@@ -149,7 +154,7 @@ async def dataTemplateStats(user=Depends(getCurrentUser)):
 @router.get("/{dataId}")
 async def getDataTemplateDetail(dataId: int, user=Depends(getCurrentUser)):
     """
-    설명: 업무 상세를 조회한다.
+    설명: 단건 상세 서비스 결과를 successResponse로 감싸 반환하는 조회 엔드포인트.
     반환값: dataId에 해당하는 단건 상세를 담은 successResponse.
     갱신일: 2026-02-22
     """
@@ -163,7 +168,7 @@ async def getDataTemplateDetail(dataId: int, user=Depends(getCurrentUser)):
 @router.post("")
 async def createDataTemplate(payload: DashboardCreatePayload, user=Depends(getCurrentUser)):
     """
-    설명: 업무를 신규 등록한다.
+    설명: 생성 payload를 서비스 입력으로 변환해 신규 등록 결과를 반환하는 생성 엔드포인트.
     반환값: 생성된 엔티티를 포함한 201(successResponse, message=created).
     갱신일: 2026-02-22
     """
@@ -177,7 +182,7 @@ async def createDataTemplate(payload: DashboardCreatePayload, user=Depends(getCu
 @router.put("/{dataId}")
 async def updateDataTemplate(dataId: int, payload: DashboardUpdatePayload, user=Depends(getCurrentUser)):
     """
-    설명: 업무를 수정한다.
+    설명: 부분 수정 payload(excludeNone)를 서비스에 위임해 수정 결과를 반환하는 엔드포인트.
     반환값: 수정 완료 엔티티를 포함한 successResponse(message=updated).
     갱신일: 2026-02-22
     """
@@ -191,7 +196,7 @@ async def updateDataTemplate(dataId: int, payload: DashboardUpdatePayload, user=
 @router.delete("/{dataId}")
 async def deleteDataTemplate(dataId: int, user=Depends(getCurrentUser)):
     """
-    설명: 업무를 삭제한다.
+    설명: 삭제 서비스 호출 결과를 successResponse(message=deleted)로 직렬화하는 엔드포인트.
     반환값: 삭제 결과 정보를 담은 successResponse(message=deleted).
     갱신일: 2026-02-22
     """

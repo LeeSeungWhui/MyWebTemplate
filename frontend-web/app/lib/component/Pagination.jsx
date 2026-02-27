@@ -8,14 +8,14 @@ import React from 'react';
 import { COMMON_COMPONENT_LANG_KO } from '@/app/common/i18n/lang.ko';
 
 /**
- * @description 페이지 번호를 최소/최대 범위로 보정한다.
+ * @description 페이지 번호를 최소/최대 범위로 보정
  * 반환값: min~max 사이로 제한된 정수 값.
  * @updated 2026-02-27
  */
 const clamp = (value, min, max) => Math.max(min, Math.min(value, max));
 
 /**
- * @description Arrow 컴포넌트를 렌더링한다.
+ * @description  Arrow 컴포넌트를 렌더링한다. 입력/출력 계약을 함께 명시
  * 반환값: 방향(dir)에 따라 회전이 적용된 단일 화살표 SVG.
  * @updated 2026-02-27
  */
@@ -33,7 +33,7 @@ const Arrow = ({ dir, className = '' }) => {
 };
 
 /**
- * @description DoubleArrow 컴포넌트를 렌더링한다.
+ * @description  DoubleArrow 컴포넌트를 렌더링한다. 입력/출력 계약을 함께 명시
  * 반환값: 처음/마지막 페이지 이동 버튼에 쓰는 이중 화살표 SVG.
  * @updated 2026-02-27
  */
@@ -49,7 +49,7 @@ const DoubleArrow = ({ dir = 'right', className = '' }) => {
 };
 
 /**
- * @description 페이지 번호/이동 버튼을 렌더링한다.
+ * @description  페이지 번호/이동 버튼을 렌더링한다. 입력/출력 계약을 함께 명시
  * @param {Object} props
  * @returns {JSX.Element}
  */
@@ -63,7 +63,7 @@ const Pagination = ({
 }) => {
 
   /**
-   * @description 페이지 변경 콜백 호출 전에 범위 보정을 적용한다.
+   * @description 페이지 변경 콜백 호출 전에 범위 보정을 적용
    * 처리 규칙: nextPage를 clamp(1~pageCount)한 뒤 onChange를 호출한다.
    * @updated 2026-02-27
    */
@@ -72,7 +72,7 @@ const Pagination = ({
   const tokenList = [];
 
   /**
-   * @description 페이지 토큰(숫자 또는 ellipsis)을 렌더링 버퍼에 추가한다.
+   * @description 페이지 토큰(숫자 또는 ellipsis)을 렌더링 버퍼에 추가
    * 부작용: tokenList 배열 길이가 증가한다.
    * @updated 2026-02-27
    */
@@ -147,7 +147,7 @@ const Pagination = ({
 };
 
 /**
- * @description 접근성 라벨과 페이지 윈도우 계산을 포함한 Pagination 컴포넌트를 외부에 노출한다.
+ * @description 접근성 라벨과 페이지 윈도우 계산을 포함한 Pagination 컴포넌트를 외부에 노출
  * 반환값: Pagination 컴포넌트 export.
  */
 export default Pagination;

@@ -12,7 +12,7 @@ import Icon from './Icon';
 import { getBoundValue, setBoundValue, buildCtx, fireValueHandlers } from '../binding';
 
 /**
- * @description 숫자 값을 min/max 범위 안으로 보정한다.
+ * @description 숫자 값을 min/max 범위 안으로 보정
  * 반환값: 범위를 벗어나면 경계값(min/max), 아니면 원래 숫자.
  * @updated 2026-02-27
  */
@@ -23,7 +23,7 @@ const clamp = (numberValue, min, max) => {
 };
 
 /**
- * @description 사용자 입력 문자열을 숫자로 파싱한다.
+ * @description 사용자 입력 문자열을 숫자로 파싱
  * 실패 동작: 빈값/NaN 입력은 빈 문자열을 반환한다.
  * @updated 2026-02-27
  */
@@ -57,7 +57,7 @@ const NumberInput = forwardRef(({
   const inputRef = useRef(null);
 
   /**
-   * @description 현재 값을 prop/dataObj/local state 우선순위로 조회한다.
+   * @description  현재 값을 prop/dataObj/local state 우선순위로 조회한다. 입력/출력 계약을 함께 명시
    * 처리 규칙: controlled > EasyObj 바인딩 > 내부 상태 순으로 fallback 한다.
    * @updated 2026-02-27
    */
@@ -72,7 +72,7 @@ const NumberInput = forwardRef(({
   }, [propValue, dataObj, dataKey]);
 
   /**
-   * @description 입력값을 정규화해 상태/바인딩/핸들러로 확정 반영한다.
+   * @description 입력값을 정규화해 상태/바인딩/핸들러로 확정 반영
    * 부작용: inner, dataObj[dataKey], onChange/onValueChange 이벤트 값이 함께 갱신된다.
    * @updated 2026-02-27
    */
@@ -87,7 +87,7 @@ const NumberInput = forwardRef(({
   };
 
   /**
-   * @description step 증감(delta)으로 숫자 값을 변경한다.
+   * @description step 증감(delta)으로 숫자 값을 변경
    * 처리 규칙: disabled/readOnly면 중단하고, 그 외에는 clamp 후 commit을 호출한다.
    * @updated 2026-02-27
    */
@@ -105,7 +105,7 @@ const NumberInput = forwardRef(({
   const heldStartedRef = useRef(false);
 
   /**
-   * @description 증감 버튼 long-press 반복 입력을 시작한다.
+   * @description 증감 버튼 long-press 반복 입력을 시작
    * 처리 규칙: 300ms 지연 후 120ms 간격 반복 호출로 연속 증감을 수행한다.
    * @updated 2026-02-27
    */
@@ -121,7 +121,7 @@ const NumberInput = forwardRef(({
   };
 
   /**
-   * @description long-press 관련 타이머와 interval을 모두 정리한다.
+   * @description long-press 관련 타이머와 interval을 모두 정리
    * 부작용: holdRef/holdTimerRef를 null로 초기화한다.
    * @updated 2026-02-27
    */
@@ -203,7 +203,7 @@ const NumberInput = forwardRef(({
 NumberInput.displayName = 'NumberInput';
 
 /**
- * @description 숫자 입력/step 증감/바인딩 동기화 기능을 가진 NumberInput 컴포넌트를 외부에 노출한다.
+ * @description 숫자 입력/step 증감/바인딩 동기화 기능을 가진 NumberInput 컴포넌트를 외부에 노출
  * 반환값: NumberInput 컴포넌트 export.
  */
 export default NumberInput;

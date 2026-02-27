@@ -17,7 +17,7 @@ import { COMMON_COMPONENT_LANG_KO } from "@/app/common/i18n/lang.ko";
 const MASK_TOKEN_RE = /[#Aa?*]/;
 
 /**
- * @description 입력값을 input value 문자열로 정규화한다.
+ * @description  입력값을 input value 문자열로 정규화한다. 입력/출력 계약을 함께 명시
  * 처리 규칙: null/undefined는 빈 문자열로, 그 외 값은 문자열로 변환해 반환한다.
  * @updated 2026-02-27
  */
@@ -76,7 +76,7 @@ const Input = forwardRef(
     const hasFunctionMask = typeof mask === "function";
 
     /**
-     * @description 마스크 패턴에 맞춰 입력 문자열을 변환한다.
+     * @description  마스크 패턴에 맞춰 입력 문자열을 변환한다. 입력/출력 계약을 함께 명시
      * 처리 규칙: 토큰(`#,A,a,?,*`) 기준으로 허용 문자만 소비하고 최종 마스크 문자열을 구성한다.
      * @updated 2026-02-27
      */
@@ -143,7 +143,7 @@ const Input = forwardRef(
     }, [isPropControlled, propValue]);
 
     /**
-     * @description 입력값을 필터/마스크 규칙으로 정제해 실제 상태에 커밋한다.
+     * @description 입력값을 필터/마스크 규칙으로 정제해 실제 상태에 커밋
      * 처리 규칙: bound/prop/uncontrolled 모드별로 쓰기 위치를 분기하고 커밋 성공 시 정제값을 반환한다.
      * @updated 2026-02-27
      */
@@ -184,7 +184,7 @@ const Input = forwardRef(
     // 조합 중 임시 문자열 허용 여부 판단
 
     /**
-     * @description 조합 중 draft 문자열이 허용 규칙을 만족하는지 판별한다.
+     * @description 조합 중 draft 문자열이 허용 규칙을 만족하는지 판별
      * 처리 규칙: filter/mask/number 타입 제약을 순차 검증해 허용 여부를 boolean으로 반환한다.
      * @updated 2026-02-27
      */
@@ -202,7 +202,7 @@ const Input = forwardRef(
     };
 
     /**
-     * @description 현재 확정(committed) 입력값을 조회한다.
+     * @description  현재 확정(committed) 입력값을 조회한다. 입력/출력 계약을 함께 명시
      * 처리 규칙: bound > prop-controlled > inner state 순서로 값 소스를 선택한다.
      * @updated 2026-02-27
      */
@@ -216,7 +216,7 @@ const Input = forwardRef(
     // 마스크/필터/number가 있을 때 입력 직전 1차 필터링
 
     /**
-     * @description beforeinput 단계에서 허용되지 않은 문자를 선차단한다.
+     * @description beforeinput 단계에서 허용되지 않은 문자를 선차단
      * 처리 규칙: filter/mask/number 규칙 위반 입력은 `preventDefault()`로 즉시 차단한다.
      * @updated 2026-02-27
      */
@@ -241,21 +241,21 @@ const Input = forwardRef(
         if (hasStringMask) {
 
           /**
-           * @description 단일 문자가 숫자인지 판별한다.
+           * @description 단일 문자가 숫자인지 판별
            * 처리 규칙: 정규식 `\\d` 일치 여부를 반환한다.
            * @updated 2026-02-27
            */
           const isDigit = (inputChar) => /\d/.test(inputChar);
 
           /**
-           * @description 단일 문자가 영문자인지 판별한다.
+           * @description 단일 문자가 영문자인지 판별
            * 처리 규칙: 정규식 `[a-zA-Z]` 일치 여부를 반환한다.
            * @updated 2026-02-27
            */
           const isAlpha = (inputChar) => /[a-zA-Z]/.test(inputChar);
 
           /**
-           * @description 현재 raw 입력 기준으로 다음 마스크 토큰을 계산한다.
+           * @description  현재 raw 입력 기준으로 다음 마스크 토큰을 계산한다. 입력/출력 계약을 함께 명시
            * 처리 규칙: 기존 raw를 토큰 규칙대로 소비한 뒤 다음 입력 가능한 토큰 문자(또는 null)를 반환한다.
            * @updated 2026-02-27
            */
@@ -312,7 +312,7 @@ const Input = forwardRef(
     /**
      * handleKeyDown - 키다운 단계에서 허용되지 않은 문자를 즉시 차단
      * @date 2025-02-14
-     * @description keydown 단계에서 단일 문자 입력 허용 여부를 점검한다.
+     * @description keydown 단계에서 단일 문자 입력 허용 여부를 점검
      * 처리 규칙: 조합 중 입력은 통과시키고, filter/mask/number 규칙 위반 키는 즉시 차단한다.
      * @updated 2026-02-27
      */
@@ -347,7 +347,7 @@ const Input = forwardRef(
     };
 
     /**
-     * @description change 이벤트에서 조합 상태를 고려해 입력값을 커밋한다.
+     * @description change 이벤트에서 조합 상태를 고려해 입력값을 커밋
      * 처리 규칙: 조합 중에는 draft만 유지하고, 조합 종료 후에는 commitValue 결과를 상태/핸들러로 전파한다.
      * @updated 2026-02-27
      */
@@ -530,7 +530,7 @@ const Input = forwardRef(
 Input.displayName = "Input";
 
 /**
- * @description Input 컴포넌트 엔트리를 외부에 노출한다.
+ * @description Input 컴포넌트 엔트리를 외부에 노출
  * 처리 규칙: forwardRef로 정의된 Input 컴포넌트를 default export 한다.
  */
 export default Input;

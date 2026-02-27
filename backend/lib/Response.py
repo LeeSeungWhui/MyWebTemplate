@@ -23,7 +23,7 @@ class StandardResponse(BaseModel):
 
 def dumpModel(model: BaseModel) -> Dict[str, Any]:
     """
-    설명: Pydantic v1/v2 호환으로 dict를 반환한다.
+    설명: Pydantic v1/v2 호환으로 dict를 반환한다. 호출 맥락의 제약을 기준으로 동작 기준을 확정
     갱신일: 2026-01-18
     """
     dumpFn = getattr(model, "model_dump", None)

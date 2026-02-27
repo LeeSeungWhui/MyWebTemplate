@@ -16,7 +16,7 @@ nameMark = "-- name:"
 
 def parseSqlFile(filePath: str) -> List[Tuple[str, str]]:
     """
-    설명: 단일 SQL 파일을 name/sql 쌍 목록으로 파싱한다.
+    설명: 단일 SQL 파일을 name/sql 쌍 목록으로 파싱
     제약: 파일 내 중복 금지 / UTF-8.
     갱신일: 2025-11-12
     """
@@ -58,7 +58,7 @@ def parseSqlFile(filePath: str) -> List[Tuple[str, str]]:
 
 def scanSqlQueries(folderPath: str) -> Tuple[Dict[str, str], Dict[str, str], Dict[str, Set[str]]]:
     """
-    설명: 폴더를 스캔해 쿼리/파일 매핑을 구성한다.
+    설명: 폴더를 스캔해 쿼리/파일 매핑을 구성한다. 호출 맥락의 제약을 기준으로 동작 기준을 확정
     제약: 파일 간 중복 발견 시 예외.
     갱신일: 2025-11-12
     """
@@ -97,6 +97,7 @@ def loadSqlQueries(folderPath: str) -> Dict[str, str]:
     """
     설명: scanSqlQueries 결과 중 쿼리 dict만 반환.
     갱신일: 2025-11-12
+    처리 규칙: 입력값을 검증하고 실패 시 예외/기본값 경로로 수렴한다.
     """
     queries, _, _ = scanSqlQueries(folderPath)
     return queries

@@ -13,7 +13,7 @@ import { useSharedStore } from './SharedStore'
 // 한글설명: Pass userJson (e.g., { userId, name }) and/or sharedPatch (partial shared object).
 
 /**
- * @description SSR에서 주입된 user/shared/config 값을 공용 store에 1회 하이드레이션한다.
+ * @description SSR에서 주입된 user/shared/config 값을 공용 store에 1회 하이드레이션
  * @param {Object} props
  * @param {any} [props.userJson]
  * @param {object} [props.sharedPatch]

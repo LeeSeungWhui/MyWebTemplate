@@ -19,7 +19,7 @@ const sizes = {
 };
 
 /**
- * @description variant/size/pill 조합으로 뱃지 스타일을 계산해 텍스트 라벨을 렌더링한다.
+ * @description  variant/size/pill 조합으로 뱃지 스타일을 계산해 텍스트 라벨을 렌더링한다. 입력/출력 계약을 함께 명시
  * @returns {JSX.Element}
  */
 const Badge = ({ children, variant = 'neutral', size = 'sm', pill = false, className = '', ...props }) => {

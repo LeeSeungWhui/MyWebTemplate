@@ -2,13 +2,13 @@
  * 파일명: getBackendHost.client.js
  * 작성자: LSH
  * 갱신일: 2026-02-22
- * 설명: 클라이언트 컨텍스트에서 백엔드 호스트를 조회한다.
+ * 설명: 클라이언트 컨텍스트에서 백엔드 호스트를 조회
  */
 
 import { getConfigSnapshot } from '@/app/common/store/SharedStore'
 
 /**
- * @description config 스냅샷에서 백엔드 호스트를 우선순위로 해석한다.
+ * @description config 스냅샷에서 백엔드 호스트를 우선순위로 해석
  * @returns {string}
  */
 export function getBackendHost() {

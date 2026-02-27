@@ -42,7 +42,7 @@ const defaultMargin = { top: 12, right: 20, left: 10, bottom: 12 };
 const donutMargin = { top: 36, right: 16, bottom: 24, left: 16 };
 
 /**
- * @description 입력 데이터가 EasyList/배열처럼 순회 가능한 구조인지 판별한다.
+ * @description 입력 데이터가 EasyList/배열처럼 순회 가능한 구조인지 판별
  * 반환값: size API 또는 배열 타입이면 true.
  * @updated 2026-02-27
  */
@@ -50,7 +50,7 @@ const isListLike = (list) =>
   !!list && (typeof list.size === "function" || Array.isArray(list));
 
 /**
- * @description 배열 또는 EasyList류 데이터를 실제 배열로 변환한다.
+ * @description 배열 또는 EasyList류 입력을 실제 배열로 평탄화하는 데이터 어댑터.
  * 처리 규칙: 배열은 그대로 반환하고, list-like는 size/get 기반으로 새 배열을 구성한다.
  * @updated 2026-02-27
  */
@@ -58,7 +58,7 @@ const toArray = (list) => {
   if (Array.isArray(list)) return list;
   if (isListLike(list)) {
     const size = typeof list.size === "function" ? list.size() : 0;
-    return Array.from({ length: size }, (_, idx) =>
+    return Array.from({ length: size }, (unusedItem, idx) =>
       typeof list.get === "function" ? list.get(idx) : undefined,
     );
   }
@@ -66,27 +66,11 @@ const toArray = (list) => {
 };
 
 /**
- * @description 카드 스타일을 유지한 Recharts 래퍼
+ * @description 카드 스타일을 유지한 Recharts 래퍼 컴포넌트.
  * @param {Object} props
- * @param {string} [props.title] 카드 타이틀
- * @param {string} [props.subtitle] 카드 서브 타이틀
- * @param {Array|Object} [props.dataList] EasyList/배열 차트 데이터
- * @param {string} [props.xKey] X축 데이터 키
- * @param {Array|Object} [props.seriesList] EasyList/배열 시리즈 { seriesId|key|dataKey, seriesNm|label|name, color, type, stackId, strokeWidth, dot }
- * @param {string} [props.type] 기본 시리즈 타입(line|bar|area)
- * @param {number} [props.height] 차트 높이(px)
- * @param {React.ReactNode} [props.actions] 카드 우측 액션 영역
- * @param {boolean} [props.loading] 로딩 여부
- * @param {string} [props.status] 상태값(loading|error|empty) - loading과 병행 시 loading 우선
- * @param {string} [props.errorText] 에러 메시지
- * @param {React.ReactNode|string} [props.empty] 빈 상태 메시지/노드
- * @param {boolean} [props.hideLegend] 범례 숨김 여부
- * @param {number} [props.legendFontSize=12] 범례 폰트 크기(px)
- * @param {number} [props.pieLabelFontSize=12] 파이/도넛 라벨 폰트 크기(px)
- * @param {Function} [props.xLabelFormatter] X축 라벨 포맷터
- * @param {Function} [props.yLabelFormatter] Y축 라벨 포맷터
- * @param {string} [props.className] 카드 추가 클래스
- * @param {Object} [props.cardProps] Card에 전달할 추가 prop
+ * 처리 규칙: 데이터/시리즈 입력을 정규화하고 loading/error/empty 상태 우선순위로 본문 UI를 분기한다.
+ * @returns {JSX.Element}
+ * @updated 2026-02-28
  */
 const EasyChart = ({
   title,
@@ -111,6 +95,7 @@ const EasyChart = ({
   className = "",
   cardProps = {},
 }) => {
+
   const [isClient, setIsClient] = useState(false);
   const chartHostRef = useRef(null);
   const [hostSize, setHostSize] = useState({ width: 0, height: 0 });
@@ -139,7 +124,7 @@ const EasyChart = ({
   const isEmpty = resolvedData.length === 0 || status === "empty";
   const isLoading = loading || status === "loading";
   const isError = status === "error";
-  const useComposed = resolvedSeries.some((s) => s.type && s.type !== type);
+  const useComposed = resolvedSeries.some((seriesItem) => seriesItem.type && seriesItem.type !== type);
   const pieValueKey = resolvedSeries[0]?.key;
   const hasHostSize = hostSize.width > 0 && hostSize.height > 0;
 
@@ -152,7 +137,7 @@ const EasyChart = ({
     if (!chartHostRef.current) return undefined;
 
     /**
-     * @description 차트 호스트 DOM 크기를 읽어 내부 width/height 상태를 동기화한다.
+     * @description 차트 호스트 DOM 크기를 읽어 내부 width/height 상태를 동기화
      * 처리 규칙: 이전 크기와 동일하면 상태 갱신을 생략해 불필요한 렌더를 방지한다.
      * @updated 2026-02-27
      */
@@ -197,33 +182,33 @@ const EasyChart = ({
           : LineChart;
 
   /**
-   * @description resolvedSeries 정의를 Recharts 시리즈 컴포넌트(Line/Bar/Area)로 변환한다.
+   * @description resolvedSeries 정의를 Recharts 시리즈 컴포넌트(Line/Bar/Area)로 치환하는 렌더러.
    * 반환값: 현재 차트 타입과 시리즈 옵션이 반영된 JSX 배열 또는 null.
    * @updated 2026-02-27
    */
   const renderSeries = () => {
     if (!hasSeries) return null;
-    return resolvedSeries.map((s, idx) => {
-      const key = s.key || s.name || `series-${idx}`;
+    return resolvedSeries.map((seriesItem, idx) => {
+      const key = seriesItem.key || seriesItem.name || `series-${idx}`;
       const common = {
-        name: s.name,
-        dataKey: s.key,
-        stroke: s.color,
-        fill: s.color,
-        strokeWidth: s.strokeWidth || 2,
+        name: seriesItem.name,
+        dataKey: seriesItem.key,
+        stroke: seriesItem.color,
+        fill: seriesItem.color,
+        strokeWidth: seriesItem.strokeWidth || 2,
       };
       let targetType = type;
       if (isPie || isDonut) {
         targetType = chartType;
       } else if (useComposed) {
-        targetType = s.type;
+        targetType = seriesItem.type;
       }
       if (targetType === "bar") {
         return (
           <Bar
             key={key}
             {...common}
-            stackId={s.stackId}
+            stackId={seriesItem.stackId}
             radius={[4, 4, 0, 0]}
           />
         );
@@ -241,7 +226,7 @@ const EasyChart = ({
           key={key}
           {...common}
           type="monotone"
-          dot={s.dot ?? false}
+          dot={seriesItem.dot ?? false}
           activeDot={{ r: 4 }}
         />
       );
@@ -249,7 +234,7 @@ const EasyChart = ({
   };
 
   /**
-   * @description 로딩/에러/빈상태/차트 본문 분기 로직에 따라 카드 본문을 렌더링한다.
+   * @description 로딩/에러/빈상태/차트 본문 우선순위에 따라 카드 본문을 결정하는 렌더러.
    * 처리 규칙: loading > error > no-series > empty > chart 순으로 우선순위를 적용한다.
    * @updated 2026-02-27
    */
@@ -308,7 +293,7 @@ const EasyChart = ({
       }
 
       /**
-       * @description 파이/도넛 섹터 라벨 텍스트(`이름 값 (퍼센트)`)를 렌더링한다.
+       * @description 파이/도넛 섹터 라벨 텍스트(`이름 값 (퍼센트)`) 생성 렌더러.
        * 반환값: 중앙 정렬된 `<text>` SVG 노드.
        * @updated 2026-02-27
        */
@@ -369,7 +354,7 @@ const EasyChart = ({
                 labelLine={!isDonut}
                 label={renderPieLabel}
               >
-                {resolvedData.map((_, idx) => (
+                {resolvedData.map((unusedItem, idx) => (
                   <Cell
                     key={`cell-${idx}`}
                     fill={
@@ -454,7 +439,7 @@ const EasyChart = ({
 };
 
 /**
- * @description Card 래퍼와 상태 분기(loading/error/empty)를 포함한 EasyChart 컴포넌트를 외부에 노출한다.
+ * @description Card 래퍼와 상태 분기(loading/error/empty)를 포함한 EasyChart 컴포넌트를 외부에 노출
  * 반환값: EasyChart 컴포넌트 export.
  */
 export default EasyChart;

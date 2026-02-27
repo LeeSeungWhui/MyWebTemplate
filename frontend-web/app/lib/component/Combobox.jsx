@@ -102,7 +102,7 @@ const H_BASE = 0xac00
 const H_LAST = 0xd7a3
 
 /**
- * @description 한글 문자열을 초성 검색용 문자열로 변환한다.
+ * @description 한글 문자열을 초성 검색 가능한 비교 문자열로 바꾸는 변환 유틸.
  * 처리 규칙: 완성형 한글은 초성 배열로 치환하고, 비한글 문자는 원문을 유지한다.
  * @updated 2026-02-27
  */
@@ -120,7 +120,7 @@ const getChosung = (str) => {
 }
 
 /**
- * @description 검색 비교를 위해 문자열을 소문자/무공백 형태로 정규화한다.
+ * @description 검색 비교용 문자열 정규화 유틸(소문자/무공백).
  * 반환값: null/undefined 입력도 안전하게 처리한 비교용 문자열.
  * @updated 2026-02-27
  */
@@ -130,7 +130,7 @@ const normalize = (inputText) =>
     .replace(/\s+/g, '')
 
 /**
- * @description 입력 옵션 목록을 콤보박스 내부 표준 구조로 변환한다.
+ * @description 입력 옵션 목록을 콤보박스 내부 표준 스키마로 맞추는 매퍼.
  * 처리 규칙: iterable만 허용하고 value/label/selected/placeholder/raw 필드를 생성한다.
  * @updated 2026-02-27
  */
@@ -141,7 +141,7 @@ const normalizeOptions = (dataList = [], valueKey, textKey) => {
   return Array.from(dataList).map((item, index) => {
     const rawValue = item?.[valueKey]
     const value = Array.isArray(rawValue)
-      ? rawValue.map((v) => String(v))
+      ? rawValue.map((rawItemValue) => String(rawItemValue))
       : String(rawValue ?? '')
     return {
       key: Object.prototype.hasOwnProperty.call(item, valueKey) ? rawValue : index,
@@ -155,7 +155,7 @@ const normalizeOptions = (dataList = [], valueKey, textKey) => {
 }
 
 /**
- * @description EasyObj/EasyList subscribe API를 React effect로 연결한다.
+ * @description EasyObj/EasyList subscribe API를 React effect로 연결
  * 처리 규칙: subscribe 함수가 있으면 등록하고, effect cleanup에서 unsubscribe를 보장한다.
  * @updated 2026-02-27
  */
@@ -224,14 +224,14 @@ const Combobox = forwardRef((props, ref) => {
       const bound = dataObj && dataKey ? getBoundValue(dataObj, dataKey) : undefined
       if (isControlled) {
         const arr = Array.isArray(valueProp) ? valueProp : []
-        return arr.map((v) => String(v))
+        return arr.map((valueItem) => String(valueItem))
       }
-      if (Array.isArray(bound)) return bound.map((v) => String(v))
-      const selected = selectedFromList
-      if (Array.isArray(selected) && selected.length > 0) {
-        return selected.map((opt) => opt.value)
+      if (Array.isArray(bound)) return bound.map((valueItem) => String(valueItem))
+      const selectedList = Array.isArray(selectedFromList) ? selectedFromList : []
+      if (selectedList.length > 0) {
+        return selectedList.map((opt) => opt.value)
       }
-      if (Array.isArray(defaultValue)) return defaultValue.map((v) => String(v))
+      if (Array.isArray(defaultValue)) return defaultValue.map((valueItem) => String(valueItem))
       return []
     }
     if (isControlled) return String(valueProp ?? '')
@@ -266,7 +266,7 @@ const Combobox = forwardRef((props, ref) => {
   }, [innerValue, isControlled, multi, valueProp])
 
   const valueSet = useMemo(() => {
-    if (multi) return new Set((currentValue || []).map((v) => String(v)))
+    if (multi) return new Set((currentValue || []).map((valueItem) => String(valueItem)))
     return new Set([String(currentValue ?? '')])
   }, [currentValue, multi])
 
@@ -315,13 +315,13 @@ const Combobox = forwardRef((props, ref) => {
     (nextSet) => {
 
       /**
-       * @description 개별 옵션의 selected 값을 nextSet 기준으로 재계산한다.
+       * @description 개별 옵션 selected 값을 nextSet 기준으로 동기화하는 내부 updater.
        * 부작용: 원본 item.selected 값을 직접 갱신한다.
        * @updated 2026-02-27
        */
       const updater = (item) => {
         const key = Array.isArray(item?.[valueKey])
-          ? item?.[valueKey].map((v) => String(v))
+          ? item?.[valueKey].map((valueItem) => String(valueItem))
           : String(item?.[valueKey] ?? '')
         const shouldSelect = Array.isArray(key)
           ? key.every((k) => nextSet.has(k))
@@ -426,14 +426,17 @@ const Combobox = forwardRef((props, ref) => {
   )
 
   /**
-   * @description 선택 결과를 정규화하고 내부 상태/바인딩/핸들러 호출을 동기화한다.
+   * @description 선택 결과를 정규화하고 내부 상태/바인딩/핸들러 호출을 동기화
    * 부작용: innerValue, dataObj[dataKey], onChange/onValueChange에 반영된다.
    * @updated 2026-02-27
    */
   const commit = (next, event) => {
-    const normalized = multi
-      ? Array.from(new Set(Array.isArray(next) ? next.map((v) => String(v)) : []))
-      : String(next ?? '')
+    let normalized = String(next ?? '')
+    if (multi) {
+      normalized = Array.from(
+        new Set(Array.isArray(next) ? next.map((valueItem) => String(valueItem)) : []),
+      )
+    }
     const nextSet = new Set(multi ? normalized : [normalized])
     syncDataListSelection(nextSet)
 
@@ -449,20 +452,21 @@ const Combobox = forwardRef((props, ref) => {
       valid: null,
       dirty: true,
     })
-    const evt = event
-      ? { ...event, target: { ...event.target, value: normalized } }
-      : { target: { value: normalized } }
+    let normalizedEvent = { target: { value: normalized } }
+    if (event) {
+      normalizedEvent = { ...event, target: { ...event.target, value: normalized } }
+    }
     fireValueHandlers({
       onChange,
       onValueChange,
       value: normalized,
       ctx,
-      event: evt,
+      event: normalizedEvent,
     })
   }
 
   /**
-   * @description 옵션 클릭 시 단일/다중 모드에 맞게 다음 선택값을 계산한다.
+   * @description 옵션 클릭 이벤트를 단일/다중 선택 모델에 맞춰 반영하는 입력 핸들러.
    * 처리 규칙: multi 모드면 토글 집합을 만들고, 단일 모드면 즉시 선택 후 패널을 닫는다.
    * @updated 2026-02-27
    */
@@ -521,9 +525,7 @@ const Combobox = forwardRef((props, ref) => {
                     </span>
                   )
                 }
-                const labels = options
-                  .filter((opt) => valueSet.has(String(opt.value)))
-                  .map((opt) => opt.label)
+                const labels = options.filter((opt) => valueSet.has(String(opt.value))).map((opt) => opt.label)
                 return labels.join(', ')
               }
               const selected = options.find((opt) =>
@@ -650,6 +652,6 @@ const Combobox = forwardRef((props, ref) => {
 Combobox.displayName = 'Combobox'
 
 /**
- * @description Combobox export를 노출한다.
+ * @description Combobox export를 노출
  */
 export default Combobox

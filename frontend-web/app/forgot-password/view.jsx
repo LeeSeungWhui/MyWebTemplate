@@ -16,7 +16,7 @@ import LANG_KO from "./lang.ko";
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 /**
- * @description 비밀번호 찾기 이메일 입력/검증/제출 상태를 관리하는 화면을 렌더링한다.
+ * @description  비밀번호 찾기 이메일 입력/검증/제출 상태를 관리하는 화면을 렌더링한다. 입력/출력 계약을 함께 명시
  * 처리 규칙: 유효한 이메일 제출 시 submitted 상태로 전환해 안내 메시지를 노출한다.
  */
 const ForgotPasswordView = () => {
@@ -35,7 +35,7 @@ const ForgotPasswordView = () => {
   const errorSummaryRef = useRef(null);
 
   /**
-   * @description 이메일 필드 에러와 폼 공통 에러 메시지를 초기화한다.
+   * @description 이메일 필드 에러와 폼 공통 에러 메시지를 초기화
    * 부작용: formObj.errors.email, ui.formError 값을 빈 문자열로 덮어쓴다.
    * @updated 2026-02-27
    */
@@ -57,7 +57,7 @@ const ForgotPasswordView = () => {
   };
 
   /**
-   * @description 이메일 입력값을 trim/lowercase 후 형식을 점검한다.
+   * @description 이메일 입력값을 trim/lowercase 후 형식을 점검
    * 실패 동작: 형식 불일치 시 에러 메시지 설정 후 이메일 입력으로 포커스를 이동하고 false를 반환한다.
    * @updated 2026-02-27
    */
@@ -75,7 +75,7 @@ const ForgotPasswordView = () => {
   };
 
   /**
-   * @description 비밀번호 찾기 요청 제출 흐름을 진행한다.
+   * @description 비밀번호 찾기 요청 제출 흐름을 진행
    * 실패 동작: 비동기 처리 실패 시 ui.formError를 노출하고 에러 요약 영역으로 포커스를 이동한다.
    * @updated 2026-02-27
    */

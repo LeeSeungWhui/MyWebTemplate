@@ -7,7 +7,7 @@
 import { useState } from 'react';
 
 /**
- * @description 예시 코드 문자열을 하이라이트 블록으로 보여주고 클릭 복사를 지원한다.
+ * @description 예시 코드 문자열을 하이라이트 블록으로 보여주고 클릭 복사를 지원
  * @param {{ code: string, language?: string }} props
  * @returns {JSX.Element} 코드 블록 UI
  */
@@ -16,7 +16,7 @@ const CodeBlock = ({ code, language = 'jsx' }) => {
     const [copied, setCopied] = useState(false);
 
     /**
-     * @description 현재 코드 문자열을 클립보드에 복사하고 2초간 복사 완료 배지를 표시한다.
+     * @description 현재 코드 문자열을 클립보드에 복사하고 2초간 복사 완료 배지를 표시
      * @returns {void}
      * @updated 2026-02-27
      */

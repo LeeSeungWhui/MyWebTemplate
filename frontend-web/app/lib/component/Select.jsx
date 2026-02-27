@@ -62,7 +62,7 @@ const STATUS_PRESETS = {
 }
 
 /**
- * @description 입력 옵션 목록을 Select 내부 표준 구조로 정규화한다.
+ * @description  입력 옵션 목록을 Select 내부 표준 구조로 정규화한다. 입력/출력 계약을 함께 명시
  * 반환값: `{key,value,label,placeholder,selected,raw}` 형태의 옵션 배열.
  * @updated 2026-02-27
  */
@@ -81,7 +81,7 @@ const normalizeOptions = (dataList = [], valueKey, textKey) => {
 }
 
 /**
- * @description EasyObj/EasyList subscribe API를 React effect 수명주기에 연결한다.
+ * @description EasyObj/EasyList subscribe API를 React effect 수명주기에 연결
  * 처리 규칙: subscribe가 있으면 등록하고 cleanup에서 unsubscribe를 호출한다.
  * @updated 2026-02-27
  */
@@ -153,7 +153,7 @@ const Select = forwardRef((props, ref) => {
     const normalized = String(currentValue ?? '')
 
     /**
-     * @description 현재 값과 일치하는 항목의 selected 플래그를 재계산한다.
+     * @description  현재 값과 일치하는 항목의 selected 플래그를 재계산한다. 입력/출력 계약을 함께 명시
      * 부작용: item.selected 값을 직접 갱신한다.
      * @updated 2026-02-27
      */
@@ -228,7 +228,7 @@ const Select = forwardRef((props, ref) => {
     [ariaDescribedByProp, messageId].filter(Boolean).join(' ') || undefined
 
   /**
-   * @description 선택 변경 이벤트를 상태/바인딩/핸들러 규약으로 동기화한다.
+   * @description 선택 변경 이벤트를 상태/바인딩/핸들러 규약으로 동기화
    * 처리 규칙: 내부 값 업데이트 후 dataList selected 플래그, dataObj[dataKey], fireValueHandlers 순서로 반영한다.
    * @updated 2026-02-27
    */
@@ -353,6 +353,6 @@ const Select = forwardRef((props, ref) => {
 Select.displayName = 'Select'
 
 /**
- * @description Select export를 노출한다.
+ * @description Select export를 노출
  */
 export default Select

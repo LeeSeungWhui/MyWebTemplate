@@ -16,7 +16,7 @@ from typing import Optional
 
 def connect(dbPath: str) -> sqlite3.Connection:
     """
-    설명: SQLite DB 경로로 연결을 생성한다.
+    설명: SQLite DB 경로로 연결을 생성
     갱신일: 2026-02-24
     """
     return sqlite3.connect(dbPath)
@@ -24,7 +24,7 @@ def connect(dbPath: str) -> sqlite3.Connection:
 
 def hashPasswordPbkdf2(plain: str, iterations: int = 260000) -> str:
     """
-    설명: PBKDF2-SHA256 해시 문자열을 생성한다.
+    설명: PBKDF2-SHA256 해시 문자열을 생성
     갱신일: 2026-02-24
     """
     salt = secrets.token_bytes(16)
@@ -38,7 +38,7 @@ def hashPasswordPbkdf2(plain: str, iterations: int = 260000) -> str:
 
 def ensureTable(con: sqlite3.Connection) -> None:
     """
-    설명: T_USER 테이블을 보장하고 레거시 컬럼명을 표준 컬럼명으로 정리한다.
+    설명: T_USER 테이블을 보장하고 레거시 컬럼명을 표준 컬럼명으로 정리
     갱신일: 2026-02-24
     """
     con.execute(
@@ -93,7 +93,7 @@ def seedDemo(
     role: str = "user",
 ) -> None:
     """
-    설명: 데모 사용자 계정이 없으면 1건을 삽입한다.
+    설명: 데모 사용자 계정이 없으면 1건을 삽입
     갱신일: 2026-02-24
     """
     ensureTable(con)

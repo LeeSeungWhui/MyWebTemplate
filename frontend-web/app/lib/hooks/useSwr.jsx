@@ -9,7 +9,7 @@ import useSwrLib from "swr";
 import { apiJSON } from "@/app/lib/runtime/api";
 
 /**
- * @description apiJSON 기반 SWR fetcher를 구성한다.
+ * @description  apiJSON 기반 SWR fetcher를 구성한다. 입력/출력 계약을 함께 명시
  * @param {string|string[]|null} key
  * @param {string} path
  * @param {Object} [options]
@@ -23,7 +23,7 @@ export function useSwr(
 ) {
 
   /**
-   * @description path/method/body를 고정한 apiJSON 호출 함수를 만들어 SWR fetcher로 사용한다.
+   * @description path/method/body를 고정한 apiJSON 호출 함수를 만들어 SWR fetcher로 사용
    * @returns {Promise<any>}
    * @updated 2026-02-27
    */
@@ -33,6 +33,6 @@ export function useSwr(
 }
 
 /**
- * @description useSwr export를 노출한다.
+ * @description useSwr export를 노출
  */
 export default useSwr;

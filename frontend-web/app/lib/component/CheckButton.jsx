@@ -42,7 +42,7 @@ const CheckButton = React.forwardRef(({
     }, [isDataObjControlled, dataObj, dataKeyName]);
 
     /**
-     * @description 버튼 클릭 값을 토글하고 bound 데이터/콜백으로 변경 이벤트를 전파한다.
+     * @description 버튼 클릭 값을 토글하고 bound 데이터/콜백으로 변경 이벤트를 전파
      * @param {React.MouseEvent<HTMLButtonElement>} event
      * @returns {void}
      * @updated 2026-02-27
@@ -71,7 +71,7 @@ const CheckButton = React.forwardRef(({
     };
 
     /**
-     * @description controlled/dataObj/internal 우선순위로 현재 체크 상태를 계산한다.
+     * @description  controlled/dataObj/internal 우선순위로 현재 체크 상태를 계산한다. 입력/출력 계약을 함께 명시
      * @returns {boolean}
      * @updated 2026-02-27
      */
@@ -125,7 +125,7 @@ const CheckButton = React.forwardRef(({
 CheckButton.displayName = 'CheckButton';
 
 /**
- * @description CheckButton 컴포넌트를 기본 export한다.
+ * @description CheckButton 컴포넌트를 기본 export
  * @returns {React.ComponentType} CheckButton 컴포넌트
  */
 export default CheckButton;

@@ -35,7 +35,7 @@ const Tooltip = forwardRef(({ content, placement = 'top', delay = 150, disabled 
   };
 
   /**
-   * @description 툴팁을 즉시 닫고 대기 중인 표시 타이머를 정리한다.
+   * @description 툴팁을 즉시 닫고 대기 중인 표시 타이머를 정리
    * 부작용: open=false, timer.current clearTimeout이 반영된다.
    * @updated 2026-02-27
    */
@@ -47,7 +47,7 @@ const Tooltip = forwardRef(({ content, placement = 'top', delay = 150, disabled 
   useEffect(() => () => clearTimeout(timer.current), []);
 
   /**
-   * @description click 트리거 모드에서 툴팁 열림 상태를 토글한다.
+   * @description click 트리거 모드에서 툴팁 열림 상태를 토글
    * 처리 규칙: disabled=true면 무시하고, 아니면 이전 open 상태를 반전한다.
    * @updated 2026-02-27
    */
@@ -88,7 +88,7 @@ const Tooltip = forwardRef(({ content, placement = 'top', delay = 150, disabled 
 Tooltip.displayName = 'Tooltip';
 
 /**
- * @description hover/click 트리거와 배치 옵션을 지원하는 Tooltip 컴포넌트를 외부에 노출한다.
+ * @description hover/click 트리거와 배치 옵션을 지원하는 Tooltip 컴포넌트를 외부에 노출
  * 반환값: Tooltip 컴포넌트 export.
  */
 export default Tooltip;

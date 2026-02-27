@@ -7,6 +7,14 @@
 import Icon from './Icon';
 import { COMMON_COMPONENT_LANG_KO } from '@/app/common/i18n/lang.ko';
 
+/**
+ * @description 목록/조회 결과가 비어있는 상태를 아이콘/설명/보조 액션으로 안내
+ * 처리 규칙: description/action/children는 값이 있을 때만 조건부로 렌더링한다.
+ * 반환값: 비어 있는 상태 안내용 Empty UI 블록.
+ * @param {Object} props
+ * @returns {JSX.Element}
+ * @updated 2026-02-28
+ */
 const Empty = ({
   icon = 'md:MdInbox',
   title = COMMON_COMPONENT_LANG_KO.empty.titleNoData,
@@ -16,6 +24,7 @@ const Empty = ({
   action,
   ...props
 }) => {
+
   return (
     <div className={`text-center p-8 border border-dashed border-gray-200 rounded-lg bg-white ${className}`.trim()} {...props}>
       <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-gray-50 text-gray-400">
@@ -30,6 +39,6 @@ const Empty = ({
 };
 
 /**
- * @description Empty export를 노출한다.
+ * @description Empty export를 노출
  */
 export default Empty;

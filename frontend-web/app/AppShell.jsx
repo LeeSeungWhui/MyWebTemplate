@@ -17,7 +17,7 @@ import PublicGnb from "@/app/common/layout/PublicGnb";
 import PublicFooter from "@/app/common/layout/PublicFooter";
 
 /**
- * @description 현재 경로가 PublicGnb/PublicFooter를 포함한 퍼블릭 셸 대상인지 판별한다.
+ * @description 현재 경로가 PublicGnb/PublicFooter를 포함한 퍼블릭 셸 대상인지 판별
  * 반환값: 홈(`/`)과 샘플 포트폴리오 경로면 true, 그 외는 false.
  * @updated 2026-02-27
  */
@@ -29,7 +29,7 @@ const isPublicShellPath = (pathname) => {
 };
 
 /**
- * @description 퍼블릭 셸 본문 영역에 적용할 컨테이너 클래스 문자열을 계산한다.
+ * @description  퍼블릭 셸 본문 영역에 적용할 컨테이너 클래스 문자열을 계산한다. 입력/출력 계약을 함께 명시
  * 처리 규칙: `/sample/portfolio`는 상하 여백을 크게, 그 외 경로는 기본 여백을 사용한다.
  * @updated 2026-02-27
  */
@@ -42,7 +42,7 @@ const resolvePublicContentClassName = (pathname) => {
 };
 
 /**
- * @description 로딩/알림/확인/토스트 오버레이와 퍼블릭 셸 분기를 관리하는 AppShell 컴포넌트를 렌더링한다.
+ * @description  로딩/알림/확인/토스트 오버레이와 퍼블릭 셸 분기를 관리하는 AppShell 컴포넌트를 렌더링한다. 입력/출력 계약을 함께 명시
  * 처리 규칙: 퍼블릭 경로는 Header/Footer를 감싸고, 그 외 경로는 children만 그대로 노출한다.
  */
 const AppShell = ({ children }) => {

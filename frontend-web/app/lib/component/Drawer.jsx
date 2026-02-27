@@ -52,7 +52,7 @@ const Drawer = forwardRef(function Drawer(
     if (!isOpen) return undefined;
 
     /**
-     * @description Esc 입력을 감지해 closeOnEsc 옵션이 켜진 경우 패널을 닫힘 상태로 전환한다.
+     * @description Esc 입력을 감지해 closeOnEsc 옵션이 켜진 경우 패널을 닫힘 상태로 전환
      * @param {KeyboardEvent} keyboardEvent
      * @returns {void}
      * @updated 2026-02-27
@@ -131,7 +131,7 @@ const Drawer = forwardRef(function Drawer(
   }
 
   /**
-   * @description forwardRef가 함수형/객체형인 경우를 모두 지원해 패널 DOM 참조를 전달한다.
+   * @description forwardRef가 함수형/객체형인 경우를 모두 지원해 패널 DOM 참조를 전달
    * @param {HTMLElement | null} el
    * @returns {void}
    * @updated 2026-02-27
@@ -192,7 +192,7 @@ const Drawer = forwardRef(function Drawer(
 Drawer.displayName = 'Drawer';
 
 /**
- * @description Drawer 컴포넌트를 기본 export한다.
+ * @description Drawer 컴포넌트를 기본 export
  * @returns {React.ComponentType} Drawer 컴포넌트
  */
 export default Drawer;

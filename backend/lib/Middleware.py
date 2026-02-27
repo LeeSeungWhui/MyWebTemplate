@@ -37,7 +37,10 @@ async def writeUserAccessLogSafely(
     clientIp: str | None,
 ) -> None:
     """
-    설명: 사용자 접근 로그를 백그라운드에서 기록하고 예외를 삼킨다.
+    설명: 요청 종료 후 사용자 접근 로그를 비차단 방식으로 적재하는 보호 래퍼.
+    처리 규칙: writeUserAccessLog 호출 인자를 그대로 전달하고, 본 요청 응답 흐름을 우선한다.
+    실패 동작: 로그 적재 예외는 삼키고 API 응답/이벤트 루프를 중단시키지 않는다.
+    부작용: user_access_log 저장 시도가 발생할 수 있다.
     갱신일: 2026-02-27
     """
     try:
@@ -58,7 +61,7 @@ async def writeUserAccessLogSafely(
 
 def parsePositiveInt(rawValue: object) -> int | None:
     """
-    설명: 양의 정수 값만 파싱해서 반환한다.
+    설명: 양의 정수 값만 파싱해서 반환한다. 호출 맥락의 제약을 기준으로 동작 기준을 확정
     반환값: 1 이상 정수면 해당 값, 그 외 입력은 None.
     갱신일: 2026-02-22
     """
@@ -120,7 +123,7 @@ def getSqlWarnThreshold() -> int:
 
 def resolveClientIp(request: Request) -> str | None:
     """
-    설명: 요청 헤더/소켓 정보를 기반으로 클라이언트 IP를 추정한다.
+    설명: 요청 헤더/소켓 정보를 기반으로 클라이언트 IP를 추정
     우선순위: X-Forwarded-For(첫 IP) > X-Real-IP > request.client.host
     갱신일: 2026-02-22
     """
@@ -151,7 +154,7 @@ def resolveClientIp(request: Request) -> str | None:
 
 def resolveAuthUsername(request: Request) -> str | None:
     """
-    설명: 인증 의존성에서 주입한 request.state.authUsername 값을 조회한다.
+    설명: 인증 의존성에서 주입한 request.state.authUsername 값을 조회한다. 호출 맥락의 제약을 기준으로 동작 기준을 확정
     반환값: 공백 제거 후 유효 문자열 username 또는 None.
     갱신일: 2026-02-22
     """
@@ -166,7 +169,7 @@ def resolveAuthUsername(request: Request) -> str | None:
 
 def maskClientIpForLog(clientIp: str | None) -> str | None:
     """
-    설명: 로그 출력용 클라이언트 IP를 마스킹한다.
+    설명: 로그 출력용 클라이언트 IP를 마스킹
     처리 규칙: IPv4는 마지막 octet을 `*`, IPv6는 앞 4블록만 남기고 나머지는 `*`로 마스킹한다.
     갱신일: 2026-02-22
     """

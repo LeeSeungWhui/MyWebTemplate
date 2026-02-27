@@ -26,7 +26,7 @@ export const metadata = {
 };
 
 /**
- * @description 전역 config를 로드한 뒤 SharedHydrator/AppShell을 포함한 루트 레이아웃을 구성한다.
+ * @description  전역 config를 로드한 뒤 SharedHydrator/AppShell을 포함한 루트 레이아웃을 구성한다. 입력/출력 계약을 함께 명시
  * @returns {Promise<JSX.Element>}
  */
 const RootLayout = async ({ children }) => {

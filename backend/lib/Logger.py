@@ -31,7 +31,7 @@ logger: logging.Logger = logging.getLogger()
 
 def resolveLogLevel() -> int:
     """
-    설명: 환경변수 LOG_LEVEL 값을 logging 레벨 상수로 변환한다.
+    설명: 환경변수 LOG_LEVEL 값을 logging 레벨 상수로 변환한다. 호출 맥락의 제약을 기준으로 동작 기준을 확정
     처리 규칙: 미지원 문자열이면 기본 INFO 레벨을 사용한다.
     반환값: logging 모듈의 정수 레벨 상수를 반환한다.
     갱신일: 2026-02-24
@@ -50,7 +50,7 @@ logger.setLevel(logLevel)
 
 class JsonLineFormatter(logging.Formatter):
     """
-    설명: 로그를 JSON 한 줄로 출력한다.
+    설명: 로그를 JSON 한 줄로 출력
     - msg가 이미 JSON(dict) 문자열이면 병합해 구조 로그를 유지한다.
     - requestId는 ContextVar(getRequestId)에서 보강한다.
     갱신일: 2026-01-15
@@ -58,7 +58,7 @@ class JsonLineFormatter(logging.Formatter):
 
     def format(self, record: logging.LogRecord) -> str:
         """
-        설명: logging 레코드를 JSON 한 줄 문자열로 직렬화한다.
+        설명: logging 레코드를 JSON 한 줄 문자열로 직렬화
         처리 규칙: msg가 JSON 문자열이면 병합하고, 아니면 문자열 msg로 기록한다.
         반환값: requestId/예외 정보가 보강된 JSON 라인 문자열을 반환한다.
         갱신일: 2026-02-24

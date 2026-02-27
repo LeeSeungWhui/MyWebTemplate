@@ -27,7 +27,7 @@ const pad2 = (numberValue) => String(numberValue).padStart(2, '0');
 const fmtISO = (yearValue, monthValue, dayValue) => `${yearValue}-${pad2(monthValue)}-${pad2(dayValue)}`;
 
 /**
- * @description YYYY-MM-DD 텍스트를 Date 객체로 변환한다.
+ * @description  YYYY-MM-DD 텍스트를 Date 객체로 변환한다. 입력/출력 계약을 함께 명시
  * 실패 동작: 형식/유효 날짜가 아니면 null을 반환한다.
  * @updated 2026-02-27
  */
@@ -50,7 +50,7 @@ const parseISO = (isoText) => {
 };
 
 /**
- * @description 두 Date가 같은 연/월/일인지 비교한다.
+ * @description 두 Date가 같은 연/월/일인지 비교
  * 반환값: 같은 날짜면 true, 하나라도 다르면 false.
  * @updated 2026-02-27
  */
@@ -102,7 +102,7 @@ const DateInput = forwardRef(({
   }, [propValue, dataObj, dataKey]);
 
   /**
-   * @description 확정된 날짜 문자열을 상태/바인딩/이벤트 핸들러에 동기화한다.
+   * @description 확정된 날짜 문자열을 상태/바인딩/이벤트 핸들러에 동기화
    * 부작용: text, inner, dataObj[dataKey] 및 onChange/onValueChange 호출에 영향을 준다.
    * @updated 2026-02-27
    */
@@ -130,7 +130,7 @@ const DateInput = forwardRef(({
   const [viewMonth, setViewMonth] = useState(() => (selectedDate?.getMonth() ?? today.getMonth())); // 0-11
 
   /**
-   * @description 달력 헤더의 연/월 표시를 전달된 delta만큼 이동한다.
+   * @description 달력 헤더의 연/월 표시를 전달된 delta만큼 이동
    * 처리 규칙: month 범위(0~11)를 넘으면 year를 함께 보정한다.
    * @updated 2026-02-27
    */
@@ -291,6 +291,6 @@ const DateInput = forwardRef(({
 DateInput.displayName = 'DateInput';
 
 /**
- * @description DateInput export를 노출한다.
+ * @description DateInput export를 노출
  */
 export default DateInput;

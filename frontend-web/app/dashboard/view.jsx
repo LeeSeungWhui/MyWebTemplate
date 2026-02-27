@@ -31,13 +31,13 @@ const DONUT_HEIGHT = 180;
 const STATUS_ORDER = ["ready", "pending", "running", "done", "failed"];
 
 /**
- * @description 대시보드 요약 통계/차트/최근 목록 화면을 렌더링한다.
+ * @description  대시보드 요약 통계/차트/최근 목록 화면을 렌더링한다. 입력/출력 계약을 함께 명시
  * 처리 규칙: SSR 데이터가 있으면 즉시 사용하고, 없으면 API로 stats/list를 병렬 조회한다.
  */
 const DashboardView = ({ statList, dataList, initialError }) => {
 
   /**
-   * @description 날짜 문자열에서 월 라벨(`n월`)을 계산한다.
+   * @description 날짜 문자열에서 월 라벨(`n월`)을 계산
    * 실패 동작: 비어 있거나 파싱 실패한 입력은 unknown 라벨을 반환한다.
    * @updated 2026-02-27
    */
@@ -50,7 +50,7 @@ const DashboardView = ({ statList, dataList, initialError }) => {
   };
 
   /**
-   * @description 숫자 값을 로케일 기준 문자열로 포맷한다.
+   * @description 숫자 값을 로케일 기준 문자열로 포맷
    * 반환값: NaN 입력은 0 텍스트를 반환하고, 정상 입력은 locale 문자열을 반환한다.
    * @updated 2026-02-27
    */
@@ -61,7 +61,7 @@ const DashboardView = ({ statList, dataList, initialError }) => {
   };
 
   /**
-   * @description 금액 숫자를 통계 카드용 문자열로 포맷한다.
+   * @description 금액 숫자를 통계 카드용 문자열로 포맷
    * 처리 규칙: 현재는 formatNumber 정책을 동일하게 재사용한다.
    * @updated 2026-02-27
    */
@@ -70,7 +70,7 @@ const DashboardView = ({ statList, dataList, initialError }) => {
   };
 
   /**
-   * @description 에러 키를 사용자 노출 메시지로 매핑한다.
+   * @description  에러 키를 사용자 노출 메시지로 매핑한다. 입력/출력 계약을 함께 명시
    * 반환값: 매핑된 메시지 또는 null.
    * @updated 2026-02-27
    */
@@ -85,7 +85,7 @@ const DashboardView = ({ statList, dataList, initialError }) => {
   };
 
   /**
-   * @description 상태 필터를 포함한 `/dashboard/tasks` 이동 경로를 생성한다.
+   * @description 상태 필터를 포함한 `/dashboard/tasks` 이동 경로를 생성
    * 반환값: status query 포함 여부가 반영된 href 문자열.
    * @updated 2026-02-27
    */
@@ -99,7 +99,7 @@ const DashboardView = ({ statList, dataList, initialError }) => {
   };
 
   /**
-   * @description 다양한 에러 표현(string/object/null)을 공통 shape로 정규화한다.
+   * @description  다양한 에러 표현(string/object/null)을 공통 shape로 정규화한다. 입력/출력 계약을 함께 명시
    * 반환값: `{key, code, requestId}` 구조 또는 null.
    * @updated 2026-02-27
    */
@@ -128,7 +128,7 @@ const DashboardView = ({ statList, dataList, initialError }) => {
   const hasEndpoint = Boolean(endpoints.stats && endpoints.list);
 
   /**
-   * @description 대시보드 API(stats/list)를 조회하고 EasyList 모델을 동기화한다.
+   * @description 대시보드 API(stats/list)를 조회하고 EasyList 모델을 동기화
    * 실패 동작: 조회 실패 시 ui.error에 표준 에러 상태를 저장하고 로딩을 종료한다.
    * @updated 2026-02-27
    */
@@ -266,7 +266,7 @@ const DashboardView = ({ statList, dataList, initialError }) => {
           {LANG_KO.view.chart.summaryAriaLabel}
         </h2>
         {ui.isLoading
-          ? Array.from({ length: 3 }).map((_, idx) => (
+          ? Array.from({ length: 3 }).map((_item, idx) => (
               <div
                 key={`stat-skeleton-${idx}`}
                 className="border rounded-lg p-4 bg-white shadow-sm"

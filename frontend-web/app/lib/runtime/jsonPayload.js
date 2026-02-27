@@ -25,7 +25,7 @@ const autofixBrokenArrays = (text) => {
 };
 
 /**
- * @description 문자열 JSON을 보정 가능한 형태로 정규화한다.
+ * @description  문자열 JSON을 보정 가능한 형태로 정규화한다. 입력/출력 계약을 함께 명시
  * @param {string} text
  * @returns {string}
  */
@@ -41,7 +41,7 @@ export const sanitizeJsonString = (text) => {
   let stringMode = "value";
 
   /**
-   * @description start 인덱스 이후 첫 비공백 문자와 위치를 반환해 문자열 종료 판단에 사용한다.
+   * @description start 인덱스 이후 첫 비공백 문자와 위치를 반환해 문자열 종료 판단에 사용
    * @param {string} input
    * @param {number} start
    * @returns {{ ch: string, index: number }}
@@ -172,7 +172,7 @@ export const sanitizeJsonString = (text) => {
 };
 
 /**
- * @description JSON 응답을 파싱하되, 실패 시 보정 뒤 재시도한다.
+ * @description JSON 응답을 파싱하되, 실패 시 보정 뒤 재시도
  * @param {string} rawText 서버 응답 텍스트
  * @param {object} [options]
  * @param {string} [options.context='API'] 로깅용 컨텍스트
@@ -207,7 +207,7 @@ export const parseJsonPayload = (rawText, options = {}) => {
 const JSON_STRING_KEYS = ["result", "data", "payload"];
 
 /**
- * @description result/data/payload 문자열 필드를 JSON 객체로 자동 파싱한다.
+ * @description result/data/payload 문자열 필드를 JSON 객체로 자동 파싱
  * @param {object|null} payload 파싱된 초기 객체
  * @param {object} [options]
  * @param {string[]} [options.keys] 파싱 대상 필드 목록

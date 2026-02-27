@@ -8,7 +8,7 @@ import Icon from './Icon';
 import { COMMON_COMPONENT_LANG_KO } from '@/app/common/i18n/lang.ko';
 
 /**
- * @description 전역 오버레이 로딩 스피너와 처리중 문구를 렌더링한다.
+ * @description  전역 오버레이 로딩 스피너와 처리중 문구를 렌더링한다. 입력/출력 계약을 함께 명시
  * @returns {JSX.Element}
  */
 const Loading = () => {

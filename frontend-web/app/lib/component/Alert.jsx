@@ -8,12 +8,21 @@ import Icon from './Icon';
 import Button from './Button';
 import { COMMON_COMPONENT_LANG_KO } from '@/app/common/i18n/lang.ko';
 
+/**
+ * @description 알림 모달을 타입별 아이콘/스타일로 렌더링해 사용자 확인 액션을 받는다.
+ * 처리 규칙: type(info/success/warning/error)에 따라 아이콘과 배경/보더 클래스를 분기한다.
+ * 부작용: 확인 버튼 클릭 시 onClick 콜백이 실행될 수 있다.
+ * @param {Object} props
+ * @returns {JSX.Element}
+ * @updated 2026-02-28
+ */
 const Alert = ({
     title = COMMON_COMPONENT_LANG_KO.alert.title,  // 제목 (옵션)
     text,           // 필수 메시지
     type = 'info',  // 한글설명: info, success, warning, error
     onClick        // 확인 버튼 클릭 핸들러
 }) => {
+
     // 타입별 스타일 및 아이콘 설정
     const styles = {
         info: {
@@ -82,6 +91,6 @@ const Alert = ({
 };
 
 /**
- * @description Alert export를 노출한다.
+ * @description Alert export를 노출
  */
 export default Alert; 

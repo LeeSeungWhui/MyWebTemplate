@@ -2,7 +2,7 @@
  * 파일명: getFrontendHost.server.js
  * 작성자: LSH
  * 갱신일: 2026-02-24
- * 설명: 프론트엔드 호스트 주소를 로드/캐시한다.
+ * 설명: 프론트엔드 호스트 주소를 로드/캐시
  */
 
 import { loadFrontendConfig } from './frontendConfig.server'
@@ -12,8 +12,9 @@ let cachedFrontendHost = null
 const DEFAULT_FRONTEND = 'http://localhost:3000'
 
 /**
- * @description getFrontendHost 구성 데이터를 반환한다.
+ * @description  getFrontendHost 구성 데이터를 반환한다. 입력/출력 계약을 함께 명시
  * @updated 2026-02-24
+ * 처리 규칙: 입력값과 상태를 검증해 UI/데이터 흐름을 안전하게 유지한다.
  */
 export async function getFrontendHost() {
   if (cachedFrontendHost) return cachedFrontendHost

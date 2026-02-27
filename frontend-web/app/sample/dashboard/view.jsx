@@ -16,19 +16,19 @@ import { useDemoSharedState } from "@/app/sample/demoSharedState";
 import LANG_KO from "./lang.ko";
 
 /**
- * @description 공개 샘플 대시보드 화면을 렌더링한다.
+ * @description  공개 샘플 대시보드 화면을 렌더링한다. 입력/출력 계약을 함께 명시
  * 처리 규칙: CRUD shared state를 기반으로 통계/차트/최근 목록 파생 데이터를 계산해 표시한다.
  * @param {{ initRows:Array, ctaList:Array }} props
  */
-const DemoDashboardView = (props) => {
-  const {
-    initRows = [],
-    ctaList = [],
-  } = props;
+const DemoDashboardView = ({
+  initRows = [],
+  ctaList = [],
+}) => {
+
   const statusOrder = ["ready", "pending", "running", "done", "failed"];
 
   /**
-   * @description 금액 숫자를 로케일 포맷 문자열로 변환한다.
+   * @description  금액 숫자를 로케일 포맷 문자열로 변환한다. 입력/출력 계약을 함께 명시
    * 반환값: NaN이면 0 텍스트, 정상값이면 locale 기반 숫자 문자열.
    * @updated 2026-02-27
    */
@@ -39,13 +39,13 @@ const DemoDashboardView = (props) => {
   };
 
   /**
-   * @description 행 목록을 상태별 건수/합계 금액 요약 배열로 변환한다.
+   * @description  행 목록을 상태별 건수/합계 금액 요약 배열로 변환한다. 입력/출력 계약을 함께 명시
    * 반환값: statusOrder 순서가 보장된 `{status,count,amountSum}` 리스트.
    * @updated 2026-02-27
    */
   const toStatusSummaryList = (rowList) => {
     /**
-     * @description CRUD 샘플 행 목록으로 상태 집계를 생성한다.
+     * @description CRUD 샘플 행 목록으로 상태 집계를 생성
      * @updated 2026-02-23
      */
     return statusOrder.map((statusCode) => {
@@ -64,13 +64,13 @@ const DemoDashboardView = (props) => {
   };
 
   /**
-   * @description 행 목록에서 월별 건수/금액 추이 데이터를 생성한다.
+   * @description  행 목록에서 월별 건수/금액 추이 데이터를 생성한다. 입력/출력 계약을 함께 명시
    * 처리 규칙: `YYYY-MM` 키로 집계 후 월 오름차순 정렬해 `n월` 라벨로 변환한다.
    * @updated 2026-02-27
    */
   const toMonthlyTrendList = (rowList) => {
     /**
-     * @description CRUD 샘플 행 목록으로 월별 추이 데이터를 생성한다.
+     * @description CRUD 샘플 행 목록으로 월별 추이 데이터를 생성
      * @updated 2026-02-23
      */
     const monthlyMap = {};
@@ -105,7 +105,7 @@ const DemoDashboardView = (props) => {
    */
   const toRecentTaskList = (rowList) => {
     /**
-     * @description CRUD 샘플 행 목록으로 최근 업무 상위 5건을 구성한다.
+     * @description CRUD 샘플 행 목록으로 최근 업무 상위 5건을 구성
      * @updated 2026-02-23
      */
     return [...rowList]

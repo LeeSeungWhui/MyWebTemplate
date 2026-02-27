@@ -28,13 +28,13 @@ import LANG_KO from "./lang.ko";
 import EasyObj from "@/app/lib/dataset/EasyObj";
 
 /**
- * @description 설정 페이지의 프로필/시스템 탭 UI를 렌더링한다.
+ * @description  설정 페이지의 프로필/시스템 탭 UI를 렌더링한다. 입력/출력 계약을 함께 명시
  * 처리 규칙: 프로필 API 응답은 profileMeObj에 복사하고 탭 상태는 query `tab`과 양방향 동기화한다.
  */
 const SettingsView = () => {
 
   /**
-   * @description API 예외 객체를 화면 표시용 에러 메타로 정규화한다.
+   * @description  API 예외 객체를 화면 표시용 에러 메타로 정규화한다. 입력/출력 계약을 함께 명시
    * 반환값: message/requestId 필드를 갖는 단순 객체.
    * @updated 2026-02-27
    */
@@ -44,7 +44,7 @@ const SettingsView = () => {
   });
 
   /**
-   * @description 프로필 폼의 기본 모델을 생성한다.
+   * @description  프로필 폼의 기본 모델을 생성한다. 입력/출력 계약을 함께 명시
    * 반환값: 화면 초기 렌더와 재초기화에 쓰는 user profile 기본값.
    * @updated 2026-02-27
    */
@@ -82,7 +82,7 @@ const SettingsView = () => {
   }, [searchParams?.toString(), ui]);
 
   /**
-   * @description 프로필 조회 API를 호출해 profileMeObj와 로딩/에러 상태를 갱신한다.
+   * @description 프로필 조회 API를 호출해 profileMeObj와 로딩/에러 상태를 갱신
    * 실패 동작: API 실패 시 ui.error에 message/requestId를 저장하고 로딩을 종료한다.
    * @updated 2026-02-27
    */
@@ -119,7 +119,7 @@ const SettingsView = () => {
   }, [hasProfileEndpoint]);
 
   /**
-   * @description 탭 인덱스를 URL query(`tab`) 값으로 동기화한다.
+   * @description 탭 인덱스를 URL query(`tab`) 값으로 동기화
    * 처리 규칙: 기본 탭은 query를 제거하고, 비기본 탭은 replace(스크롤 유지)로 반영한다.
    * @updated 2026-02-27
    */
@@ -138,7 +138,7 @@ const SettingsView = () => {
   };
 
   /**
-   * @description 탭 변경 이벤트를 받아 상태와 URL 쿼리를 함께 갱신한다.
+   * @description 탭 변경 이벤트를 받아 상태와 URL 쿼리를 함께 갱신
    * 처리 규칙: 허용 인덱스(0/1) 외 값은 0으로 보정한다.
    * @updated 2026-02-27
    */
@@ -149,7 +149,7 @@ const SettingsView = () => {
   };
 
   /**
-   * @description 프로필 저장 요청을 수행하고 성공 시 화면 모델을 서버 응답으로 동기화한다.
+   * @description 프로필 저장 요청을 수행하고 성공 시 화면 모델을 서버 응답으로 동기화
    * 실패 동작: 이름 길이 검증 실패 또는 API 오류 시 토스트와 ui.error를 설정한다.
    * @updated 2026-02-27
    */
@@ -195,7 +195,7 @@ const SettingsView = () => {
   };
 
   /**
-   * @description 시스템 설정 저장 시뮬레이션을 수행하고 저장 상태 표시를 관리한다.
+   * @description 시스템 설정 저장 시뮬레이션을 수행하고 저장 상태 표시를 관리
    * 부작용: ui.isSavingSystem true/false 전환 및 성공 토스트를 발생시킨다.
    * @updated 2026-02-27
    */

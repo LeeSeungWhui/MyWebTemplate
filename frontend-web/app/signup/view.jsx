@@ -20,7 +20,7 @@ import LANG_KO from "./lang.ko";
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 /**
- * @description 회원가입 입력 검증/제출/에러 포커스 이동을 담당하는 화면을 렌더링한다.
+ * @description  회원가입 입력 검증/제출/에러 포커스 이동을 담당하는 화면을 렌더링한다. 입력/출력 계약을 함께 명시
  * 처리 규칙: 가입 성공 시 성공 토스트 표시 후 `/login?signup=done`으로 이동한다.
  */
 const SignupView = () => {
@@ -51,7 +51,7 @@ const SignupView = () => {
   const { showToast } = useGlobalUi();
 
   /**
-   * @description 모든 필드 에러와 폼 공통 에러 메시지를 초기화한다.
+   * @description 모든 필드 에러와 폼 공통 에러 메시지를 초기화
    * 부작용: signupObj.errors 전 필드와 ui.formError가 빈 문자열로 변경된다.
    * @updated 2026-02-27
    */
@@ -77,7 +77,7 @@ const SignupView = () => {
   };
 
   /**
-   * @description 이름/이메일/비밀번호/약관 동의 조건을 검증하고 에러 상태를 설정한다.
+   * @description  이름/이메일/비밀번호/약관 동의 조건을 검증하고 에러 상태를 설정한다. 입력/출력 계약을 함께 명시
    * 실패 동작: 첫 오류 메시지를 ui.formError에 기록하고 해당 필드로 포커스를 이동한 뒤 false를 반환한다.
    * @updated 2026-02-27
    */
@@ -126,7 +126,7 @@ const SignupView = () => {
   };
 
   /**
-   * @description 회원가입 API 요청을 전송하고 결과에 맞는 후속 동작을 반영한다.
+   * @description 회원가입 API 요청을 전송하고 결과에 맞는 후속 동작을 반영
    * 실패 동작: 코드별 에러 메시지를 필드/폼에 반영하고 오류 요약 영역으로 포커스를 이동한다.
    * @updated 2026-02-27
    */

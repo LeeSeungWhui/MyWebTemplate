@@ -14,19 +14,19 @@ import { defaultLayoutPlugin } from '@react-pdf-viewer/default-layout';
 import Empty from '../Empty.jsx';
 import { COMMON_COMPONENT_LANG_KO } from '@/app/common/i18n/lang.ko';
 
-// 한글설명: Viewer/Worker stay client-only to avoid node-canvas crashes under SSR
-const Viewer = dynamic(() => import('@react-pdf-viewer/core').then((m) => m.Viewer), { ssr: false });
-const Worker = dynamic(() => import('@react-pdf-viewer/core').then((m) => m.Worker), { ssr: false });
+// 한글설명: SSR 환경(node-canvas 충돌) 회피를 위해 Viewer/Worker는 클라이언트 전용으로 로드
+const Viewer = dynamic(() => import('@react-pdf-viewer/core').then((moduleExports) => moduleExports.Viewer), { ssr: false });
+const Worker = dynamic(() => import('@react-pdf-viewer/core').then((moduleExports) => moduleExports.Worker), { ssr: false });
 
 /**
- * @description 값이 Blob/File 계열 객체인지 판별한다.
+ * @description 값이 Blob/File 계열 객체인지 판별
  * 처리 규칙: object 타입이면서 `instanceof Blob|File`인 경우만 true를 반환한다.
  * @updated 2026-02-27
  */
 const isBlobLike = (value) => value && typeof value === 'object' && (value instanceof Blob || value instanceof File);
 
 /**
- * @description src 입력을 Viewer가 읽을 수 있는 URL 문자열로 변환한다.
+ * @description src 입력을 Viewer가 읽을 수 있는 URL 문자열로 맞추는 변환 유틸.
  * 처리 규칙: string은 그대로, ArrayBuffer/Blob/File은 `URL.createObjectURL`로 변환한다.
  * @updated 2026-02-27
  */
@@ -41,7 +41,7 @@ const toObjectUrl = (src) => {
 };
 
 /**
- * @description 문서 상태 기본값 객체를 생성한다.
+ * @description 문서 상태 기본값 객체(currentPage/totalPages/zoom) 팩토리.
  * 처리 규칙: currentPage/totalPages/zoom 기본 필드를 초기 페이지 기준으로 구성해 반환한다.
  * @updated 2026-02-27
  */
@@ -52,7 +52,7 @@ const initialDocumentState = (initialPage = 1) => ({
 });
 
 /**
- * @description 초기 페이지 번호를 안전한 정수로 정규화한다.
+ * @description 초기 페이지 번호를 안전한 정수 범위로 보정하는 정규화 유틸.
  * 처리 규칙: 숫자가 아니거나 NaN이면 1, 1 미만 값은 1로 보정한다.
  * @updated 2026-02-27
  */
@@ -61,6 +61,13 @@ const normalizeInitialPage = (page) => {
   return page < 1 ? 1 : Math.floor(page);
 };
 
+/**
+ * @description PDF 파일 소스 렌더링, 로딩 상태, 에러 패널을 통합 제공하는 뷰어 컴포넌트.
+ * 처리 규칙: src/objectUrl/viewerError 상태 조합으로 Viewer/Empty/Loading UI를 배타적으로 노출한다.
+ * @param {Object} props
+ * @returns {JSX.Element}
+ * @updated 2026-02-28
+ */
 const PdfViewer = ({
   src,
   workerSrc = 'https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js',
@@ -72,19 +79,21 @@ const PdfViewer = ({
   onLoad,
   onError,
 }) => {
+
   const normalizedInitialPage = normalizeInitialPage(initialPage);
   const [objectUrl, setObjectUrl] = useState(null);
   const [viewerError, setViewerError] = useState(null);
   const [isLoading, setIsLoading] = useState(Boolean(src));
   const [documentState, setDocumentState] = useState(() => initialDocumentState(normalizedInitialPage));
-  // 한글설명: Initialize toolbar plugin at the top level (not inside another hook)
-  const defaultLayoutPluginInstance = withToolbar
+
+  // 한글설명: 툴바 플러그인은 다른 훅 내부가 아닌 컴포넌트 최상위에서 초기화
+  const defaultLayoutPluginInstance = Boolean(withToolbar)
     ? defaultLayoutPlugin({ renderToolbar: (Toolbar) => <Toolbar /> })
     : null;
 
   const plugins = useMemo(() => (defaultLayoutPluginInstance ? [defaultLayoutPluginInstance] : []), [defaultLayoutPluginInstance]);
 
-  // 한글설명: No dynamic import for plugin; created synchronously above.
+  // 한글설명: 플러그인은 동적 import 없이 위에서 동기 생성
 
   useEffect(() => {
     const nextFileUrl = toObjectUrl(src);
@@ -94,7 +103,7 @@ const PdfViewer = ({
         try {
           URL.revokeObjectURL(nextFileUrl);
         } catch {
-          // 한글설명: Ignore revoke failures
+          // 한글설명: revoke 실패는 화면 동작에 영향 없으므로 무시
         }
       }
     };
@@ -111,7 +120,7 @@ const PdfViewer = ({
   }, [objectUrl, normalizedInitialPage]);
 
   /**
-   * @description 현재 PDF 뷰어 상태를 접근성 안내 문구로 생성한다.
+   * @description 현재 PDF 뷰어 상태를 접근성 안내 문구(aria-live)로 직렬화하는 포매터.
    * 처리 규칙: error/source/loading/ready 상태 우선순위로 분기해 aria-live용 문자열을 반환한다.
    * @updated 2026-02-27
    */
@@ -129,7 +138,7 @@ const PdfViewer = ({
   };
 
   /**
-   * @description 문서 로드 성공 이벤트를 반영한다.
+   * @description 문서 로드 성공 이벤트를 반영
    * 처리 규칙: loading을 해제하고 totalPages를 업데이트한 뒤 외부 onLoad 콜백을 호출한다.
    * @updated 2026-02-27
    */
@@ -143,7 +152,7 @@ const PdfViewer = ({
   };
 
   /**
-   * @description 문서 로드 실패 이벤트를 반영한다.
+   * @description 문서 로드 실패 이벤트를 반영
    * 처리 규칙: loading을 해제하고 viewerError를 저장한 뒤 외부 onError 콜백을 호출한다.
    * @updated 2026-02-27
    */
@@ -154,7 +163,7 @@ const PdfViewer = ({
   };
 
   /**
-   * @description 페이지 변경 이벤트를 상태에 반영한다.
+   * @description 페이지 변경 이벤트를 상태에 반영
    * 처리 규칙: currentPage를 1-based로 보정해 저장하고 totalPages도 함께 동기화한다.
    * @updated 2026-02-27
    */
@@ -167,7 +176,7 @@ const PdfViewer = ({
   };
 
   /**
-   * @description 확대/축소 이벤트를 상태에 반영한다.
+   * @description 확대/축소 이벤트를 상태에 반영
    * 처리 규칙: 유효한 scale 값이 있을 때만 zoom 상태를 갱신한다.
    * @updated 2026-02-27
    */
@@ -180,7 +189,7 @@ const PdfViewer = ({
   };
 
   /**
-   * @description 에러 객체에서 HTTP 상태코드를 추출한다.
+   * @description 에러 객체에서 HTTP 상태코드를 추출
    * 처리 규칙: `status` 우선, 없으면 `statusCode`를 확인하고 둘 다 없으면 null을 반환한다.
    * @updated 2026-02-27
    */
@@ -192,7 +201,7 @@ const PdfViewer = ({
   })();
 
   /**
-   * @description 에러 객체를 사용자 표시용 메시지로 변환한다.
+   * @description 에러 객체를 사용자 표시용 문자열로 직렬화하는 메시지 포매터.
    * 처리 규칙: string > message > name 순서로 fallback 하며 모두 없으면 기본 문구를 반환한다.
    * @updated 2026-02-27
    */
@@ -282,7 +291,7 @@ const PdfViewer = ({
 };
 
 /**
- * @description PdfViewer 컴포넌트 엔트리를 외부에 노출한다.
+ * @description PdfViewer 컴포넌트 엔트리를 외부에 노출
  * 처리 규칙: 상태/이벤트 핸들러가 연결된 PdfViewer 컴포넌트를 default export 한다.
  */
 export default PdfViewer;

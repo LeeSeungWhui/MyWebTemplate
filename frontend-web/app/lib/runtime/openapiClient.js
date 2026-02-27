@@ -2,7 +2,7 @@
  * 파일명: openapiClient.js
  * 작성자: LSH
  * 갱신일: 2026-01-18
- * 설명: OpenAPI 스키마(/openapi.json) 기반 JS 클라이언트 유틸. 실제 요청은 apiRequest/apiJSON에 위임한다.
+ * 설명: OpenAPI 스키마(/openapi.json) 기반 JS 클라이언트 유틸. 실제 요청은 apiRequest/apiJSON에 위임
  */
 
 import { apiJSON, apiRequest } from "@/app/lib/runtime/api";
@@ -11,7 +11,7 @@ let cachedOpenApi = null;
 let cachedOpenApiPromise = null;
 
 /**
- * @description `/openapi.json` 스키마를 로드해 openapi-client-axios 인스턴스를 초기화한다.
+ * @description `/openapi.json` 스키마를 로드해 openapi-client-axios 인스턴스를 초기화
  * 실패 동작: 스키마가 객체가 아니거나 라이브러리 로딩 실패 시 Error를 던진다.
  * @updated 2026-02-27
  */
@@ -38,7 +38,7 @@ async function loadOpenApiClient() {
 }
 
 /**
- * @description OpenAPI 클라이언트를 캐시 기반으로 단일 인스턴스로 반환한다.
+ * @description  OpenAPI 클라이언트를 캐시 기반으로 단일 인스턴스로 반환한다. 입력/출력 계약을 함께 명시
  * 처리 규칙: 초기 로딩 중에는 Promise 캐시를 공유해 중복 초기화를 방지한다.
  * @updated 2026-02-27
  */
@@ -58,7 +58,7 @@ async function getOpenApiClient() {
 }
 
 /**
- * @description query params 객체를 URLSearchParams 문자열로 직렬화한다.
+ * @description query params 객체를 URLSearchParams 문자열로 직렬화
  * 처리 규칙: null/undefined 키는 제외하고 배열 값은 같은 키로 반복 append 한다.
  * @updated 2026-02-27
  */
@@ -93,7 +93,7 @@ function mergeUrlAndParams(url, params) {
 }
 
 /**
- * 설명: OpenAPI operationId 기반 요청을 구성해 fetch(Request) 경로로 위임한다.
+ * 설명: OpenAPI operationId 기반 요청을 구성해 fetch(Request) 경로로 위임
  * 반환값: apiRequest가 반환하는 fetch Response 객체.
  * 갱신일: 2026-01-18
  */

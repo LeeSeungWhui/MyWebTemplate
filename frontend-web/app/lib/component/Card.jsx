@@ -17,6 +17,7 @@ const Card = ({
   id,
   ...props
 }) => {
+
   const headingId = id ? `${id}-title` : undefined;
   return (
     <div
@@ -52,6 +53,6 @@ const Card = ({
 };
 
 /**
- * @description Card export를 노출한다.
+ * @description Card export를 노출
  */
 export default Card;

@@ -25,7 +25,7 @@ export const metadata = {
 }
 
 /**
- * @description 세션/쿠키 기반 초기값을 읽어 로그인 클라이언트 뷰에 전달한다.
+ * @description 세션/쿠키 기반 초기값을 읽어 로그인 클라이언트 뷰에 전달
  * @returns {Promise<JSX.Element>}
  */
 const Page = async () => {

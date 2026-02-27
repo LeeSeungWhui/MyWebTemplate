@@ -15,7 +15,7 @@ export const metadata = {
 };
 
 /**
- * @description 공개 CRUD 샘플 페이지를 렌더링한다.
+ * @description  공개 CRUD 샘플 페이지를 렌더링한다. 입력/출력 계약을 함께 명시
  * @returns {JSX.Element}
  */
 const CrudDemoPage = () => {

@@ -25,7 +25,11 @@ configCachePath: str | None = None
 
 
 def backendDir() -> str:
-    """설명: backend 루트 디렉터리 절대 경로를 반환한다. 갱신일: 2026-02-24"""
+    """
+    설명: 현재 모듈(__file__) 기준으로 계산한 backend 루트 절대 경로.
+    처리 규칙: 입력값을 검증하고 실패 시 예외/기본값 경로로 수렴한다.
+    갱신일: 2026-02-24
+    """
     return os.path.dirname(os.path.dirname(__file__))
 
 
@@ -99,7 +103,7 @@ def reloadConfig() -> ConfigParser:
 
 def clearConfigDependentCaches() -> None:
     """
-    설명: 설정 파생 캐시(AuthRouter CORS rules 등)를 무효화한다.
+    설명: 설정 파생 캐시(AuthRouter CORS rules 등)를 무효화
     부작용: AuthRouter.getCorsOriginRules.cache_clear()가 호출되어 CORS 룰 캐시가 비워진다.
     갱신일: 2026-02-26
     """

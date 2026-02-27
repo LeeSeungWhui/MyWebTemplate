@@ -2,7 +2,7 @@
  * 파일명: route.js
  * 작성자: LSH
  * 갱신일: 2026-01-18
- * 설명: /login 진입 시 refresh_token으로 access_token을 재발급하고 next(=nx)/dashboard로 자동 리다이렉트한다.
+ * 설명: /login 진입 시 refresh_token으로 access_token을 재발급하고 next(=nx)/dashboard로 자동 리다이렉트
  */
 
 import { NextResponse } from "next/server";

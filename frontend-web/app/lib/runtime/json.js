@@ -6,7 +6,7 @@
  */
 
 /**
- * @description JSON 문자열을 안전하게 파싱하고 실패 시 fallback을 반환한다.
+ * @description  JSON 문자열을 안전하게 파싱하고 실패 시 fallback을 반환한다. 입력/출력 계약을 함께 명시
  * @updated 2026-02-24
  */
 export const safeJsonParse = (jsonText, fallbackValue = null) => {
@@ -19,7 +19,7 @@ export const safeJsonParse = (jsonText, fallbackValue = null) => {
 };
 
 /**
- * @description JSON 호환 객체를 깊은 복사하고 실패 시 fallback을 반환한다.
+ * @description  JSON 호환 객체를 깊은 복사하고 실패 시 fallback을 반환한다. 입력/출력 계약을 함께 명시
  * @updated 2026-02-24
  */
 export const deepCloneValue = (targetValue, fallbackValue = targetValue) => {

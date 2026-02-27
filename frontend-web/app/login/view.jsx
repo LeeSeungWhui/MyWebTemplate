@@ -22,13 +22,13 @@ const MIN_USERNAME_LENGTH = 3;
 const MIN_PASSWORD_LENGTH = 8;
 
 /**
- * @description 로그인 폼 검증/제출 및 세션 상태 기반 리다이렉트를 담당하는 페이지 뷰를 렌더링한다.
+ * @description  로그인 폼 검증/제출 및 세션 상태 기반 리다이렉트를 담당하는 페이지 뷰를 렌더링한다. 입력/출력 계약을 함께 명시
  * 처리 규칙: 로그인 성공 시 nextHint(안전 경로) 또는 `/dashboard`로 이동한다.
  */
 const Client = ({ mode, init, nextHint, authReason }) => {
 
   /**
-   * @description 로그인 후 이동할 리다이렉트 경로를 안전한 내부 경로로 제한한다.
+   * @description 로그인 후 이동할 리다이렉트 경로를 안전한 내부 경로로 제한
    * 처리 규칙: 절대 URL/프로토콜/`//` 경로를 차단하고 `/`로 시작하는 내부 경로만 허용한다.
    * @updated 2026-02-27
    */
@@ -100,7 +100,7 @@ const Client = ({ mode, init, nextHint, authReason }) => {
   }, [showToast, LANG_KO.view.toast.signupDone]);
 
   /**
-   * @description 필드 에러와 폼 공통 에러 메시지를 초기화한다.
+   * @description 필드 에러와 폼 공통 에러 메시지를 초기화
    * 부작용: loginObj.errors(email/password)와 ui.formError를 빈 문자열로 덮어쓴다.
    * @updated 2026-02-27
    */
@@ -123,7 +123,7 @@ const Client = ({ mode, init, nextHint, authReason }) => {
   };
 
   /**
-   * @description 백엔드 에러 코드를 사용자 메시지/포커스 대상 필드로 매핑한다.
+   * @description  백엔드 에러 코드를 사용자 메시지/포커스 대상 필드로 매핑한다. 입력/출력 계약을 함께 명시
    * 반환값: `{ message, field? }` 형태의 에러 표시 메타.
    * @updated 2026-02-27
    */
@@ -150,7 +150,7 @@ const Client = ({ mode, init, nextHint, authReason }) => {
   };
 
   /**
-   * @description 로그인 폼 입력값을 검증하고 첫 오류를 화면에 노출한다.
+   * @description 로그인 폼 입력값을 검증하고 첫 오류를 화면에 노출
    * 실패 동작: 규칙 위반 시 ui.formError 설정 후 해당 입력 필드로 포커스를 이동하고 false를 반환한다.
    * @updated 2026-02-27
    */
@@ -191,7 +191,7 @@ const Client = ({ mode, init, nextHint, authReason }) => {
   };
 
   /**
-   * @description 로그인 제출 요청을 보내고 성공/실패 분기를 적용한다.
+   * @description 로그인 제출 요청을 보내고 성공/실패 분기를 적용
    * 실패 동작: API 예외 시 resolveBackendError 결과를 필드/폼 에러로 반영하고 pending 상태를 해제한다.
    * @updated 2026-02-27
    */

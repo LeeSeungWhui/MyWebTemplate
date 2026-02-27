@@ -11,7 +11,7 @@ import { COMMON_COMPONENT_LANG_KO } from "@/app/common/i18n/lang.ko";
 const FOOTER_LINK_LIST = COMMON_COMPONENT_LANG_KO.publicLayout.footerLinkList;
 
 /**
- * @description 공개 페이지 공통 푸터를 렌더링한다.
+ * @description  공개 페이지 공통 푸터를 렌더링한다. 입력/출력 계약을 함께 명시
  * @returns {JSX.Element}
  */
 const PublicFooter = () => {

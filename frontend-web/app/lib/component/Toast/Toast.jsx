@@ -59,7 +59,7 @@ const Toast = forwardRef(({
     const slideOutAnimation = isTopPosition ? styles.slideUpExit : styles.slideDownExit;
 
     /**
-     * @description 닫기 버튼 클릭 시 상위 onClose를 통해 토스트 제거 흐름을 트리거한다.
+     * @description 닫기 버튼 클릭 시 상위 onClose를 통해 토스트 제거 흐름을 트리거
      * @returns {void}
      * @updated 2026-02-27
      */
@@ -119,7 +119,7 @@ const Toast = forwardRef(({
 Toast.displayName = 'Toast';
 
 /**
- * @description Toast 컴포넌트를 기본 export한다.
+ * @description Toast 컴포넌트를 기본 export
  * @returns {React.ComponentType} Toast 컴포넌트
  */
 export default Toast; 

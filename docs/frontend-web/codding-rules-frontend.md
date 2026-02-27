@@ -279,6 +279,17 @@ export const LANG_KO = {
 - 구조 분해 할당도 같은 규칙을 따른다.
   - 여러 필드를 한꺼번에 꺼내는 용도로는 허용하지만,
     - `const { result: resultData } = dataObj;`처럼 이름만 바꾸는 별칭은 지양한다.
+- 함수/컴포넌트 파라미터는 **구조분해 할당을 강제**한다.
+  - 강제 예시
+    - `const PdfViewer = ({ src, initialPage = 1, onLoad }) => { ... };`
+    - `function saveUser({ userId, userNm, notify }) { ... }`
+  - 금지 예시
+    - `const PdfViewer = (props) => { ... }`
+    - `function saveUser(payload) { ... }`
+  - 취지: 호출 계약(필수/선택 파라미터, 기본값)을 선언부에서 바로 읽히게 하기 위함.
+  - 예외: 파라미터가 없는 함수/컴포넌트는 해당 규칙 대상에서 제외한다.
+  - 구조분해 할당이어도 의미 없는 별칭은 지양한다.
+    - 지양 예: `({ result: resultData })` (원본 이름 그대로 써도 되는 경우)
 
 ---
 
@@ -439,6 +450,9 @@ export const LANG_KO = {
 - 가독성을 위해 각 함수/컴포넌트 선언 블록의 위/아래에는 빈 줄을 정확히 1줄씩 둔다.
 - 함수명 재진술형 주석은 금지한다.
   - 금지 예: `validate email 로직을 수행한다.`, `데이터를 처리한다.`, `조회 함수를 실행한다.`
+- `@description`/`설명:` 끝맺음은 명사형으로 작성한다.
+  - 금지 예: `만료 토큰을 제거한다.`, `폼 상태를 초기화합니다.`
+  - 권장 예: `만료 토큰 제거`, `폼 상태 초기화`
 - JSDoc에는 최소 1개 이상의 구체 정보를 반드시 포함한다.
   - 허용 예: 처리 규칙, 실패 동작, 성공 동작, 부작용(어떤 상태를 바꾸는지), 반환값 의미, 서버 재검증/제약 조건
 - `@description` 한 줄만 쓰고 끝내는 패턴은 지양한다.
@@ -446,7 +460,7 @@ export const LANG_KO = {
 
   ```jsx
   /**
-   * @description 이력서 결과 목록을 렌더링하고, 빈 목록이면 Empty 블록을 표시한다.
+   * @description 이력서 결과 목록 렌더링, 빈 목록 시 Empty 블록 표시
    * @param {Object} props
    * @returns {JSX.Element} 결과 목록 또는 빈 상태 UI
    */

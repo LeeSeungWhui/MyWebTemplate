@@ -10,13 +10,13 @@ import { safeJsonParse } from "@/app/lib/runtime/json";
 let cachedConfig = null
 
 /**
- * @description 서버 런타임 여부를 반환한다.
+ * @description  서버 런타임 여부를 반환한다. 입력/출력 계약을 함께 명시
  * @returns {boolean}
  */
 const isServerRuntime = () => typeof window === 'undefined'
 
 /**
- * 설명: config.ini 파일을 읽어 JSON 객체로 변환한다.
+ * 설명: config.ini 파일을 읽어 JSON 객체로 변환한다. 입력/출력 계약을 함께 명시
  * 우선순위: config.ini > config_prod.ini > config_dev.ini (env 변수 미사용)
  */
 export async function loadFrontendConfig() {
@@ -60,7 +60,7 @@ export async function loadFrontendConfig() {
 }
 
 /**
- * 설명: INI 문자열을 객체로 변환한다.
+ * 설명: INI 문자열을 객체로 변환한다. 입력/출력 계약을 함께 명시
  * 섹션([SECTION])은 객체 키가 되고, 섹션 밖 키는 최상위에 매핑한다.
  */
 export function parseIni(iniText) {
@@ -88,7 +88,7 @@ export function parseIni(iniText) {
 }
 
 /**
- * 설명: INI 값 문자열을 타입에 맞게 변환한다.
+ * 설명: INI 값 문자열을 타입에 맞게 변환한다. 입력/출력 계약을 함께 명시
  * true/false, 숫자, JSON 객체/배열 포맷을 자동 변환하고 실패 시 문자열로 유지한다.
  */
 function coerceValue(valueRaw) {

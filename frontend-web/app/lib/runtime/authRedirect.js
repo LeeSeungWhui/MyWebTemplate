@@ -13,7 +13,7 @@ export const AUTH_REASON_QUERY_PARAM = "reason";
 export const AUTH_REASON_MAXLEN = 900;
 
 /**
- * 설명: 내부 경로(절대 경로)만 허용하고, 아니면 fallback을 반환한다.
+ * 설명: 내부 경로(절대 경로)만 허용하고, 아니면 fallback을 반환
  * 갱신일: 2026-01-19
  */
 export function sanitizeInternalPath(candidate, fallback = DEFAULT_NEXT_PATH) {
@@ -24,7 +24,7 @@ export function sanitizeInternalPath(candidate, fallback = DEFAULT_NEXT_PATH) {
 }
 
 /**
- * 설명: cookie/query 값이 URL 인코딩된 경우 안전하게 디코딩한다.
+ * 설명: cookie/query 값이 URL 인코딩된 경우 안전하게 디코딩
  * 갱신일: 2026-01-19
  */
 export function safeDecodeURIComponent(value) {
@@ -96,7 +96,9 @@ export function base64UrlDecodeUtf8(input) {
   try {
     if (typeof atob === "function" && typeof TextDecoder !== "undefined") {
       const binary = atob(padded);
-      const bytes = Uint8Array.from(binary, (c) => c.charCodeAt(0));
+      const bytes = Uint8Array.from(binary, (charValue) =>
+        charValue.charCodeAt(0),
+      );
       return new TextDecoder().decode(bytes);
     }
   } catch {
@@ -114,7 +116,7 @@ export function base64UrlDecodeUtf8(input) {
 }
 
 /**
- * 설명: null/배열을 제외한 plain object 여부를 판별한다.
+ * 설명: null/배열을 제외한 plain object 여부를 판별
  * 갱신일: 2026-02-27
  */
 function isPlainObject(value) {
@@ -124,7 +126,7 @@ function isPlainObject(value) {
 }
 
 /**
- * 설명: auth_reason(base64url JSON)을 안전하게 파싱해 code/requestId/message만 반환한다.
+ * 설명: auth_reason(base64url JSON)을 안전하게 파싱해 code/requestId/message만 반환한다. 입력/출력 계약을 함께 명시
  * 갱신일: 2026-01-19
  */
 export function parseAuthReason(encoded, maxLen = AUTH_REASON_MAXLEN) {

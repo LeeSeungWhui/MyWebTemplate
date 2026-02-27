@@ -11,7 +11,7 @@ from lib.Casing import toCamelCaseKey
 
 def testToCamelCaseKeyVariants():
     """
-    설명: 다양한 입력 키가 예상 camelCase로 변환되는지 검증한다.
+    설명: 다양한 입력 키가 예상 camelCase로 변환되는지 검증
     갱신일: 2026-02-27
     """
     cases = {
@@ -29,7 +29,7 @@ def testToCamelCaseKeyVariants():
 
 def testConvertKeysToCamelCaseNested():
     """
-    설명: dict/list 중첩 구조에서 문자열 키만 재귀적으로 변환되는지 검증한다.
+    설명: dict/list 중첩 구조에서 문자열 키만 재귀적으로 변환되는지 검증
     갱신일: 2026-02-27
     """
     inputValue = {

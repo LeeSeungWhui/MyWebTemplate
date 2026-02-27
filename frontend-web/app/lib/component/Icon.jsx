@@ -69,6 +69,6 @@ const Icon = forwardRef(({
 Icon.displayName = 'Icon';
 
 /**
- * @description Icon export를 노출한다.
+ * @description Icon export를 노출
  */
 export default Icon; 

@@ -11,6 +11,14 @@
 import React from 'react';
 import { COMMON_COMPONENT_LANG_KO } from '@/app/common/i18n/lang.ko';
 
+/**
+ * @description KPI 라벨/값/증감 정보를 카드 형태로 렌더링해 지표 변화를 빠르게 전달
+ * 처리 규칙: deltaType(up/down/neutral)에 따라 증감 prefix와 색상을 분기한다.
+ * 반환값: 단일 지표를 보여주는 Stat 카드 UI.
+ * @param {Object} props
+ * @returns {JSX.Element}
+ * @updated 2026-02-28
+ */
 const Stat = ({
   label,
   value,
@@ -20,6 +28,7 @@ const Stat = ({
   helpText,
   className = '',
 }) => {
+
   let deltaColor = 'text-gray-500';
   let deltaPrefix = '';
   if (deltaType === 'up') {
@@ -47,6 +56,6 @@ const Stat = ({
 };
 
 /**
- * @description Stat export를 노출한다.
+ * @description Stat export를 노출
  */
 export default Stat;

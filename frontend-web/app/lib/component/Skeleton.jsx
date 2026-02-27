@@ -10,7 +10,7 @@ const Skeleton = ({ className = '', variant = 'rect', lines = 1, circleSize = 40
   if (variant === 'text') {
     return (
       <div className={`space-y-2 ${className}`.trim()} {...props}>
-        {Array.from({ length: Math.max(1, lines) }).map((_, i) => (
+        {Array.from({ length: Math.max(1, lines) }).map((_line, i) => (
           <div key={i} className={`${base} h-3 w-full rounded`}></div>
         ))}
       </div>

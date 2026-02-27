@@ -21,12 +21,12 @@ import EasyObj from "@/app/lib/dataset/EasyObj";
 import LANG_KO from "./lang.ko";
 
 /**
- * @description 대시보드 하위 경로 공통 레이아웃을 렌더링한다.
+ * @description  대시보드 하위 경로 공통 레이아웃을 렌더링한다. 입력/출력 계약을 함께 명시
  * 처리 규칙: pathname/searchParams 기반 layoutMeta를 계산해 Header/Sidebar/Footer 공통 셸을 구성한다.
  * @param {{ children: React.ReactNode }} props
  */
-const DashboardLayoutClient = (props) => {
-  const { children } = props;
+const DashboardLayoutClient = ({ children }) => {
+
   const ui = EasyObj({
     sidebarOpen: false,
     isDesktopViewport: false,
@@ -58,7 +58,7 @@ const DashboardLayoutClient = (props) => {
     const mediaQuery = window.matchMedia("(min-width: 1024px)");
 
     /**
-     * @description 뷰포트 크기에 맞춰 데스크톱 여부와 사이드바 열림 상태를 동기화한다.
+     * @description 뷰포트 크기에 맞춰 데스크톱 여부와 사이드바 열림 상태를 동기화
      * 처리 규칙: 1024px 이상이면 sidebarOpen=true, 미만이면 false로 맞춘다.
      * @updated 2026-02-27
      */
@@ -79,7 +79,7 @@ const DashboardLayoutClient = (props) => {
   }, [pathname, searchParams?.toString(), ui.isDesktopViewport]);
 
   /**
-   * @description 로그아웃 API 호출 후 사용자 상태를 비우고 로그인 페이지로 이동한다.
+   * @description 로그아웃 API 호출 후 사용자 상태를 비우고 로그인 페이지로 이동
    * 실패 동작: API 실패 시 에러 토스트를 노출하고 로딩 상태를 finally에서 해제한다.
    * @updated 2026-02-27
    */

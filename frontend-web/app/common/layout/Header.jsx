@@ -15,7 +15,7 @@ import EasyObj from "@/app/lib/dataset/EasyObj";
 import { COMMON_COMPONENT_LANG_KO } from "@/app/common/i18n/lang.ko";
 
 /**
- * @description 값이 배열 또는 EasyList 형태인지 판별한다.
+ * @description 값이 배열 또는 EasyList 형태인지 판별
  * 처리 규칙: 배열이거나 `size()` 메서드를 보유한 경우 list-like로 간주한다.
  * @updated 2026-02-27
  */
@@ -23,7 +23,7 @@ const isListLike = (list) =>
   !!list && (typeof list.size === "function" || Array.isArray(list));
 
 /**
- * @description menu/subMenu 입력을 순회 가능한 배열로 정규화한다.
+ * @description menu/subMenu 입력을 순회 가능한 배열로 맞추는 데이터 정규화 유틸.
  * 처리 규칙: 배열은 그대로 사용하고 EasyList는 size/get으로 풀어 배열로 변환한다.
  * @updated 2026-02-27
  */
@@ -31,7 +31,7 @@ const toArray = (list) => {
   if (Array.isArray(list)) return list;
   if (isListLike(list)) {
     const size = typeof list.size === "function" ? list.size() : 0;
-    return Array.from({ length: size }, (_, idx) =>
+    return Array.from({ length: size }, (unusedItem, idx) =>
       typeof list.get === "function" ? list.get(idx) : undefined,
     );
   }
@@ -39,7 +39,7 @@ const toArray = (list) => {
 };
 
 /**
- * @description 햄버거/메뉴/텍스트를 포함한 상단 헤더 컴포넌트다(EasyList 기반).
+ * @description 햄버거/메뉴/텍스트 영역을 포함한 대시보드 상단 헤더 컴포넌트(EasyList 기반).
  * 처리 규칙: 메뉴 활성/서브메뉴 펼침/외부 클릭 닫기 상태를 통합 관리한다.
  * @param {Object} props
  * @param {string} props.title 헤더 타이틀
@@ -49,8 +49,7 @@ const toArray = (list) => {
  * @param {Function} [props.onToggleSidebar] 사이드바 토글 핸들러(있으면 햄버거 표시)
  * @param {React.ReactNode} [props.logo] 로고 슬롯(img, span 등)
  * @param {React.ReactNode} [props.actions] 우측 액션 영역
- * @param {React.ReactNode} [props.text] 우측 표시 텍스트 영역(사용자명 등)
- * @param {React.ReactNode} [props.children] 텍스트 우측에 배치할 커스텀 슬롯
+ * @param {React.ReactNode} [props.text] 우측 표시 텍스트/커스텀 슬롯 영역(사용자명 등)
  * @param {string} [props.className] 추가 클래스
  */
 const Header = ({
@@ -65,6 +64,7 @@ const Header = ({
   children,
   className = "",
 }) => {
+
   const ui = EasyObj({ openMenu: null });
   const navRef = useRef(null);
   const pathname = usePathname();
@@ -131,7 +131,7 @@ const Header = ({
   }, [ui]);
 
   /**
-   * @description href가 현재 pathname과 활성 매칭되는지 판정한다.
+   * @description href가 현재 pathname과 활성 매칭되는지 판정
    * 처리 규칙: 완전 일치 또는 하위 경로(prefix/) 일치를 활성으로 처리한다.
    * @updated 2026-02-27
    */
@@ -149,7 +149,7 @@ const Header = ({
   };
 
   /**
-   * @description 하위 메뉴 항목의 활성 상태를 계산한다.
+   * @description 하위 메뉴 항목 활성 여부를 판정하는 내부 규칙 함수.
    * 처리 규칙: child.active 우선, 명시 active가 없을 때만 pathname 매칭으로 활성 여부를 추론한다.
    * @updated 2026-02-27
    */
@@ -164,7 +164,7 @@ const Header = ({
   };
 
   /**
-   * @description 상위 메뉴 항목의 활성 상태를 계산한다.
+   * @description 상위 메뉴 항목 활성 여부를 계산하는 내부 규칙 함수.
    * 처리 규칙: item.active 우선, child 활성 여부를 반영하고 명시 active가 없을 때만 경로 매칭을 사용한다.
    * @updated 2026-02-27
    */
@@ -182,7 +182,7 @@ const Header = ({
   };
 
   /**
-   * @description 서브메뉴 선택 이벤트를 반영한다.
+   * @description 서브메뉴 선택 이벤트를 반영
    * 처리 규칙: item.onClick이 있으면 호출하고 선택 후 openMenu를 닫는다.
    * @updated 2026-02-27
    */
@@ -192,7 +192,7 @@ const Header = ({
   };
 
   /**
-   * @description 메뉴 버튼 상태별 className 문자열을 생성한다.
+   * @description 메뉴 버튼 상태별 className 문자열 생성 유틸.
    * 처리 규칙: active=true면 강조 스타일, false면 hover 중심 기본 스타일을 반환한다.
    * @updated 2026-02-27
    */
@@ -370,7 +370,7 @@ const Header = ({
 };
 
 /**
- * @description Header 컴포넌트 엔트리를 외부에 노출한다.
+ * @description Header 컴포넌트 엔트리를 외부에 노출
  * 처리 규칙: 상태 로직이 결합된 Header 컴포넌트를 default export 한다.
  */
 export default Header;

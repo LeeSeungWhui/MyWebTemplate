@@ -42,7 +42,7 @@ const pickQueryValue = (searchParams, key) => {
 };
 
 /**
- * @description 양의 정수 파라미터를 파싱하고 유효하지 않으면 기본값을 사용한다.
+ * @description 양의 정수 파라미터를 파싱하고 유효하지 않으면 기본값을 사용
  * 반환값: 1 이상 정수 또는 defaultValue.
  * @updated 2026-02-27
  */
@@ -53,7 +53,7 @@ const toPositiveInt = (rawValue, defaultValue = 1) => {
 };
 
 /**
- * @description pathname을 dashboard 메뉴 키(`dashboard/tasks/settings`)로 매핑한다.
+ * @description pathname을 dashboard 메뉴 키(`dashboard/tasks/settings`)로 매핑
  * 반환값: 사이드바 활성 메뉴 결정에 사용하는 routeKey 문자열.
  * @updated 2026-02-27
  */
@@ -65,7 +65,7 @@ const resolveRouteKey = (pathname) => {
 };
 
 /**
- * @description 상태 필터 목록으로 tasks 서브메뉴 배열을 생성한다.
+ * @description  상태 필터 목록으로 tasks 서브메뉴 배열을 생성한다. 입력/출력 계약을 함께 명시
  * 처리 규칙: 빈 status는 전체 메뉴로 취급하고, 나머지는 status query href를 구성한다.
  * @updated 2026-02-27
  */
@@ -88,7 +88,7 @@ const buildTasksSubMenuList = ({ status }) => {
 };
 
 /**
- * @description routeKey에 대응하는 페이지 제목 텍스트를 선택한다.
+ * @description routeKey에 대응하는 페이지 제목 텍스트를 선택
  * 반환값: 대시보드/작업/설정 중 하나의 타이틀 문자열.
  * @updated 2026-02-27
  */
@@ -99,7 +99,7 @@ const resolveTitle = (routeKey) => {
 };
 
 /**
- * @description 설정 탭 값(profile/system)에 맞는 서브타이틀 문구를 선택한다.
+ * @description 설정 탭 값(profile/system)에 맞는 서브타이틀 문구를 선택
  * 반환값: system 탭이면 시스템 문구, 그 외에는 프로필 문구.
  * @updated 2026-02-27
  */
@@ -109,7 +109,7 @@ const resolveSettingsSubtitle = (tab) => {
 };
 
 /**
- * @description 작업 목록 필터 상태를 사람이 읽기 쉬운 한 줄 서브타이틀로 합성한다.
+ * @description 작업 목록 필터 상태를 사람이 읽기 쉬운 한 줄 서브타이틀로 합성
  * 처리 규칙: status/sort/keyword/page가 유효할 때만 파트를 추가하고 `·`로 연결한다.
  * @updated 2026-02-27
  */
@@ -135,7 +135,7 @@ const resolveTasksSubtitle = ({ keyword, status, sort, page }) => {
 };
 
 /**
- * @description 현재 대시보드 경로/쿼리 기준으로 헤더/사이드바 메타를 계산한다.
+ * @description  현재 대시보드 경로/쿼리 기준으로 헤더/사이드바 메타를 계산한다. 입력/출력 계약을 함께 명시
  * @param {Object} params
  * @param {string} params.pathname 현재 pathname
  * @param {URLSearchParams|Object} params.searchParams 현재 search params

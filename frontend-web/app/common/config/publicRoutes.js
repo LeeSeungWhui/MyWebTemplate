@@ -43,7 +43,7 @@ function compilePattern(pat) {
 const compiled = publicRoutes.map(compilePattern);
 
 /**
- * 설명: 주어진 pathname이 공개 경로인지 판별한다.
+ * 설명: 주어진 pathname이 공개 경로인지 판별
  * 처리 규칙: 문자열이 아니면 false를 반환하고, 등록된 정규식 패턴 중 하나라도 일치하면 true를 반환한다.
  * 반환값: 공개 경로 여부(boolean)
  */

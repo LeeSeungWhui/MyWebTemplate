@@ -22,7 +22,7 @@ export const metadata = {
 };
 
 /**
- * @description URL 검색 파라미터를 정규화해 업무 목록 초기 필터로 전달한다.
+ * @description URL 검색 파라미터를 정규화해 업무 목록 초기 필터로 전달
  * @returns {Promise<JSX.Element>}
  */
 const TasksPage = async ({ searchParams }) => {

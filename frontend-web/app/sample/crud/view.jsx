@@ -25,15 +25,14 @@ import EasyObj from "@/app/lib/dataset/EasyObj";
 import LANG_KO from "./lang.ko";
 
 /**
- * @description 공개 CRUD 샘플 화면을 렌더링한다.
+ * @description  공개 CRUD 샘플 화면을 렌더링한다. 입력/출력 계약을 함께 명시
  * 처리 규칙: 필터/선택/드로어 상태는 EasyObj(ui)로 유지하고 목록 데이터는 shared state로 동기화한다.
  * @param {{ mode: Object, initRows: Array }} props
  */
-const CrudDemoView = (props) => {
-  const { initRows = [] } = props;
+const CrudDemoView = ({ initRows = [] }) => {
 
   /**
-   * @description 드로어 폼의 초기값 객체를 생성한다.
+   * @description  드로어 폼의 초기값 객체를 생성한다. 입력/출력 계약을 함께 명시
    * 반환값: 생성/수정 모드 전환 시 재사용하는 기본 폼 데이터.
    * @updated 2026-02-27
    */
@@ -255,7 +254,7 @@ const CrudDemoView = (props) => {
   ];
 
   /**
-   * @description 생성 모드로 드로어를 열고 폼/오류 상태를 초기화한다.
+   * @description 생성 모드로 드로어를 열고 폼/오류 상태를 초기화
    * 부작용: ui.drawerState, ui.form, ui.formError 값을 덮어쓴다.
    * @updated 2026-02-27
    */
@@ -270,7 +269,7 @@ const CrudDemoView = (props) => {
   };
 
   /**
-   * @description 드로어를 닫고 에러 문구를 정리한다.
+   * @description 드로어를 닫고 에러 문구를 정리
    * 부작용: ui.drawerState.isOpen=false 및 ui.formError 초기화가 반영된다.
    * @updated 2026-02-27
    */
@@ -284,7 +283,7 @@ const CrudDemoView = (props) => {
   };
 
   /**
-   * @description 검색 조건의 날짜 범위를 검증한 뒤 적용 필터를 확정한다.
+   * @description 검색 조건의 날짜 범위를 검증한 뒤 적용 필터를 확정
    * 실패 동작: fromDate > toDate인 경우 토스트만 표시하고 appliedFilter를 바꾸지 않는다.
    * @updated 2026-02-27
    */
@@ -302,7 +301,7 @@ const CrudDemoView = (props) => {
   };
 
   /**
-   * @description 검색 입력값과 적용 필터, 선택 체크 상태를 모두 초기화한다.
+   * @description 검색 입력값과 적용 필터, 선택 체크 상태를 모두 초기화
    * 부작용: ui.keyword/ui.status/ui.fromDate/ui.toDate/ui.appliedFilter/ui.selectedIdList가 리셋된다.
    * @updated 2026-02-27
    */
@@ -321,7 +320,7 @@ const CrudDemoView = (props) => {
   };
 
   /**
-   * @description 드로어 폼을 검증한 뒤 생성/수정 모드에 맞춰 목록 데이터를 저장한다.
+   * @description 드로어 폼을 검증한 뒤 생성/수정 모드에 맞춰 목록 데이터를 저장
    * 실패 동작: 제목이 비어 있으면 저장을 중단하고 경고 토스트와 formError를 노출한다.
    * @updated 2026-02-27
    */
@@ -370,7 +369,7 @@ const CrudDemoView = (props) => {
   };
 
   /**
-   * @description 선택된 행들을 확인 팝업 승인 후 일괄 삭제한다.
+   * @description 선택된 행들을 확인 팝업 승인 후 일괄 삭제
    * 처리 규칙: 선택이 없으면 안내 토스트만 표시하고, 승인된 경우에만 rowList를 필터링한다.
    * @updated 2026-02-27
    */

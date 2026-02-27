@@ -67,15 +67,14 @@ const ROLE_PERMISSION_MAP = {
   const SYSTEM_DEFAULT = { ...LANG_KO.view.systemDefault };
 
 /**
- * @description 공개 관리자 화면 샘플를 렌더링한다.
+ * @description  공개 관리자 화면 샘플를 렌더링한다. 입력/출력 계약을 함께 명시
  * 처리 규칙: 사용자 탭은 목록/드로어 CRUD를, 시스템 탭은 설정 토글 상태를 EasyObj 기반으로 유지한다.
  * @param {{ mode: Object, initRows: Array }} props
  */
-const AdminDemoView = (props) => {
-  const { initRows = [] } = props;
+const AdminDemoView = ({ initRows = [] }) => {
 
   /**
-   * @description 사용자 드로어 폼의 기본 모델을 생성한다.
+   * @description  사용자 드로어 폼의 기본 모델을 생성한다. 입력/출력 계약을 함께 명시
    * 반환값: 생성 모드 초기화 시 재사용하는 사용자 폼 기본값 객체.
    * @updated 2026-02-27
    */
@@ -212,7 +211,7 @@ const AdminDemoView = (props) => {
   ];
 
   /**
-   * @description 생성 모드 드로어를 열고 폼/에러 상태를 초기화한다.
+   * @description 생성 모드 드로어를 열고 폼/에러 상태를 초기화
    * 부작용: ui.drawerState, ui.userForm, ui.formError 값을 덮어쓴다.
    * @updated 2026-02-27
    */
@@ -227,7 +226,7 @@ const AdminDemoView = (props) => {
   };
 
   /**
-   * @description 사용자 편집 드로어를 닫고 에러 문구를 정리한다.
+   * @description 사용자 편집 드로어를 닫고 에러 문구를 정리
    * 부작용: ui.drawerState.isOpen=false, ui.formError=''로 변경된다.
    * @updated 2026-02-27
    */
@@ -241,7 +240,7 @@ const AdminDemoView = (props) => {
   };
 
   /**
-   * @description 사용자 폼 유효성을 확인한 뒤 생성/수정 모드에 맞춰 목록 데이터를 저장한다.
+   * @description 사용자 폼 유효성을 확인한 뒤 생성/수정 모드에 맞춰 목록 데이터를 저장
    * 실패 동작: name/email 누락 시 ui.formError를 설정하고 저장을 중단한다.
    * @updated 2026-02-27
    */
