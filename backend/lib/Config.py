@@ -30,26 +30,26 @@ def backendDir() -> str:
 
 
 def resolvePath(filename: str) -> str:
-    """설명: 설정 파일 경로를 backend 기준 절대 경로로 해석한다. 갱신일: 2026-02-24"""
+    """설명: 설정 파일 경로를 backend 기준 절대 경로로 해석한다. 반환값: 절대 경로 문자열. 갱신일: 2026-02-24"""
     if os.path.isabs(filename):
         return filename
     return os.path.join(backendDir(), filename)
 
 
 def get(section: str, key: str, default: str | None = None) -> str:
-    """설명: 지정 섹션/키 값을 조회한다. 갱신일: 2025-11-12"""
+    """설명: 지정 섹션/키 값을 조회한다. 반환값: 존재하는 설정값 또는 기본값. 갱신일: 2025-11-12"""
     conf = getConfig()
     sec = conf[section]
     return sec.get(key, default) if default is not None else sec[key]
 
 
 def getAuth(key: str, default: str | None = None) -> str:
-    """설명: AUTH 섹션 키를 조회한다. 갱신일: 2025-11-12"""
+    """설명: AUTH 섹션 키를 조회한다. 반환값: AUTH 섹션의 설정값 또는 기본값. 갱신일: 2025-11-12"""
     return get("AUTH", key, default)
 
 
 def loadConfig(filename: str) -> ConfigParser:
-    """설명: backend 기준 상대경로로 설정 파일을 읽는다. 갱신일: 2025-11-12"""
+    """설명: backend 기준 상대경로로 설정 파일을 읽는다. 반환값: 로드 완료된 ConfigParser 인스턴스. 갱신일: 2025-11-12"""
     if logger:
         try:
             logger.info("config load start")
@@ -71,7 +71,13 @@ def loadConfig(filename: str) -> ConfigParser:
 
 
 def getConfig(path: str | None = None, forceReload: bool = False) -> ConfigParser:
-    """설명: 설정 캐시를 반환하고 필요 시 재로딩한다. 갱신일: 2025-11-12"""
+    """
+    설명: 설정 캐시를 반환하고 forceReload/경로 변경 시 설정 파일을 다시 읽는다.
+    처리 규칙: path 미지정이면 BACKEND_CONFIG 또는 기존 캐시 경로를 우선 사용한다.
+    부작용: 재로딩 시 configCache/configCachePath를 갱신하고 파생 캐시를 무효화한다.
+    반환값: 현재 유효한 ConfigParser 인스턴스.
+    갱신일: 2026-02-28
+    """
     global configCache, configCachePath
 
     # 환경변수 우선
@@ -87,13 +93,14 @@ def getConfig(path: str | None = None, forceReload: bool = False) -> ConfigParse
 
 
 def reloadConfig() -> ConfigParser:
-    """설명: 캐시를 무시하고 설정을 다시 읽는다. 갱신일: 2025-11-12"""
+    """설명: 캐시를 무시하고 설정을 다시 읽는다. 반환값: 최신 설정 ConfigParser 인스턴스. 갱신일: 2025-11-12"""
     return getConfig(forceReload=True)
 
 
 def clearConfigDependentCaches() -> None:
     """
     설명: 설정 파생 캐시(AuthRouter CORS rules 등)를 무효화한다.
+    부작용: AuthRouter.getCorsOriginRules.cache_clear()가 호출되어 CORS 룰 캐시가 비워진다.
     갱신일: 2026-02-26
     """
     module = sys.modules.get("router.AuthRouter") or sys.modules.get("backend.router.AuthRouter")

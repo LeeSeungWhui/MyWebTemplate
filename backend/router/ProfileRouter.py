@@ -26,6 +26,8 @@ class ProfileUpdatePayload(BaseModel):
 def toModelDict(model: BaseModel, *, excludeNone: bool = False) -> dict:
     """
     설명: Pydantic v1/v2 호환으로 payload dict를 추출한다.
+    처리 규칙: model_dump 우선, 미지원 시 dict()로 폴백해 직렬화한다.
+    반환값: 업데이트 서비스에 바로 전달 가능한 plain dict를 반환한다.
     갱신일: 2026-02-22
     """
     dumpFn = getattr(model, "model_dump", None)
@@ -37,12 +39,32 @@ def toModelDict(model: BaseModel, *, excludeNone: bool = False) -> dict:
     return dict(model)
 
 
+def resolveServiceErrorCode(exc: Exception) -> str | None:
+    """
+    설명: 서비스 예외에서 표준 코드 문자열(code/args[0])을 우선순위대로 추출한다.
+    처리 규칙: code 속성이 없으면 첫 번째 args 문자열을 사용하고, 둘 다 없으면 None을 반환한다.
+    반환값: 표준 에러 코드 문자열 또는 None.
+    갱신일: 2026-02-28
+    """
+    codeValue = getattr(exc, "code", None)
+    if isinstance(codeValue, str) and codeValue.strip():
+        return codeValue.strip()
+    if exc.args:
+        firstArg = exc.args[0]
+        if isinstance(firstArg, str) and firstArg.strip():
+            return firstArg.strip()
+    return None
+
+
 def handleProfileError(exc: Exception) -> JSONResponse:
     """
-    설명: 프로필 API 공통 예외를 표준 응답으로 변환한다.
-    갱신일: 2026-02-22
+    설명: 프로필 서비스 예외를 표준 에러 응답(JSONResponse)으로 매핑한다.
+    처리 규칙: DB/권한/입력/사용자없음 코드만 상태코드와 code를 고정 매핑한다.
+    실패 동작: 매핑되지 않은 예외 코드는 라우터 상위에서 처리되도록 원본 예외를 다시 발생시킨다.
+    반환값: 매핑된 JSONResponse.
+    갱신일: 2026-02-28
     """
-    errorCode = str(exc)
+    errorCode = resolveServiceErrorCode(exc)
     if errorCode == "DB_NOT_READY":
         return JSONResponse(
             status_code=503,
@@ -70,6 +92,8 @@ def handleProfileError(exc: Exception) -> JSONResponse:
 async def getMyProfile(user=Depends(getCurrentUser)):
     """
     설명: 인증 사용자 프로필을 조회한다.
+    실패 동작: 서비스 예외는 handleProfileError에서 표준 코드/상태로 변환한다.
+    반환값: successResponse(result=profile) 형태의 JSON 본문을 반환한다.
     갱신일: 2026-02-22
     """
     try:
@@ -83,6 +107,8 @@ async def getMyProfile(user=Depends(getCurrentUser)):
 async def updateMyProfile(payload: ProfileUpdatePayload, user=Depends(getCurrentUser)):
     """
     설명: 인증 사용자 프로필을 수정한다.
+    처리 규칙: None 필드는 제외한 payload만 서비스로 전달한다.
+    실패 동작: 서비스 예외는 handleProfileError에서 공통 에러 응답으로 변환한다.
     갱신일: 2026-02-22
     """
     try:

@@ -1,11 +1,11 @@
 -- name: dashboard.list
-SELECT DATA_NO AS id
-     , DATA_NM AS title
-     , DATA_DESC AS description
-     , STAT_CD AS status
-     , AMT AS amount
-     , TAG_JSON AS tags
-     , REG_DT AS created_at
+SELECT DATA_NO AS ID
+     , DATA_NM AS TITLE
+     , DATA_DESC AS DESCRIPTION
+     , STAT_CD AS STATUS
+     , AMT AS AMOUNT
+     , TAG_JSON AS TAGS
+     , REG_DT AS CREATED_AT
   FROM T_DATA
  WHERE ( :q = ''
          OR LOWER(DATA_NM) LIKE LOWER(:qLike)
@@ -25,7 +25,7 @@ SELECT DATA_NO AS id
 OFFSET :offset;
 
 -- name: dashboard.listCount
-SELECT COUNT(*) AS total_count
+SELECT COUNT(*) AS TOTAL_COUNT
   FROM T_DATA
  WHERE ( :q = ''
          OR LOWER(DATA_NM) LIKE LOWER(:qLike)
@@ -36,13 +36,13 @@ SELECT COUNT(*) AS total_count
        );
 
 -- name: dashboard.detail
-SELECT DATA_NO AS id
-     , DATA_NM AS title
-     , DATA_DESC AS description
-     , STAT_CD AS status
-     , AMT AS amount
-     , TAG_JSON AS tags
-     , REG_DT AS created_at
+SELECT DATA_NO AS ID
+     , DATA_NM AS TITLE
+     , DATA_DESC AS DESCRIPTION
+     , STAT_CD AS STATUS
+     , AMT AS AMOUNT
+     , TAG_JSON AS TAGS
+     , REG_DT AS CREATED_AT
   FROM T_DATA
  WHERE DATA_NO = :id;
 
@@ -62,13 +62,13 @@ VALUES ( :title
        );
 
 -- name: dashboard.findCreatedCandidate
-SELECT DATA_NO AS id
-     , DATA_NM AS title
-     , DATA_DESC AS description
-     , STAT_CD AS status
-     , AMT AS amount
-     , TAG_JSON AS tags
-     , REG_DT AS created_at
+SELECT DATA_NO AS ID
+     , DATA_NM AS TITLE
+     , DATA_DESC AS DESCRIPTION
+     , STAT_CD AS STATUS
+     , AMT AS AMOUNT
+     , TAG_JSON AS TAGS
+     , REG_DT AS CREATED_AT
   FROM T_DATA
  WHERE DATA_NM = :title
    AND COALESCE(DATA_DESC, '') = COALESCE(:description, '')
@@ -93,8 +93,8 @@ DELETE
  WHERE DATA_NO = :id;
 
 -- name: dashboard.statusSummary
-SELECT STAT_CD AS status
-     , COUNT(*) AS count
-     , COALESCE(SUM(AMT), 0) AS amount_sum
+SELECT STAT_CD AS STATUS
+     , COUNT(*) AS COUNT
+     , COALESCE(SUM(AMT), 0) AS AMOUNT_SUM
   FROM T_DATA
  GROUP BY STAT_CD;

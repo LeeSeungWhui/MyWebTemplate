@@ -88,10 +88,12 @@ def transaction(
         설명: 트랜잭션 옵션을 캡처한 데코레이터를 생성한다.
         갱신일: 2026-02-26
         """
+
         @wraps(func)
         async def wrapper(*args, **kwargs):
             """
-            설명: 대상 함수를 트랜잭션/재시도 정책으로 감싸 실행한다.
+            설명: 대상 함수 실행 경로에 트랜잭션/재시도 정책을 적용한다.
+            실패 동작: 예외 발생 시 롤백 로그를 남기고 retryOn/retries 조건에 따라 재시도 후 최종 예외를 재전파한다.
             갱신일: 2026-02-26
             """
             attempt = 0
@@ -182,7 +184,7 @@ def transaction(
 
 
 async def sleepBackoff(attempt: int) -> None:
-    """설명: 재시도 간 백오프(최대 0.5초)를 수행. 갱신일: 2025-11-12"""
+    """설명: 재시도 간 백오프(최대 0.5초)를 수행. 처리 규칙: attempt 비례 지연(min(0.05*attempt,0.5))을 적용한다. 갱신일: 2025-11-12"""
     try:
         import anyio
 
@@ -197,6 +199,7 @@ class Savepoint:
     def __init__(self, dbName: str, name: str):
         """
         설명: 대상 DB와 savepoint 이름을 검증해 보관한다.
+        부작용: self.dbName/self.name 속성이 초기화된다.
         갱신일: 2026-02-27
         """
         self.dbName = dbName
@@ -204,7 +207,7 @@ class Savepoint:
 
     @staticmethod
     def validateName(name: str) -> str:
-        """설명: SAVEPOINT 이름을 SQL 식별자 규칙으로 검증. 갱신일: 2026-02-22"""
+        """설명: SAVEPOINT 이름을 SQL 식별자 규칙으로 검증. 반환값: 정규화된 savepoint 이름 문자열. 갱신일: 2026-02-22"""
         if not isinstance(name, str):
             raise TransactionError("invalid savepoint name")
         normalizedName = name.strip()
@@ -237,10 +240,10 @@ class Savepoint:
 
 
 def savepoint(dbName: str, name: str) -> Savepoint:
-    """설명: 부분 롤백용 SAVEPOINT 컨텍스트를 생성. 갱신일: 2025-11-12"""
+    """설명: 부분 롤백용 SAVEPOINT 컨텍스트를 생성. 반환값: Savepoint 컨텍스트 인스턴스. 갱신일: 2025-11-12"""
     return Savepoint(dbName, name)
 
 
 def transactionDefault():
-    """설명: 기본 DB에 대한 transaction() 데코레이터 숏컷. 갱신일: 2025-11-12"""
+    """설명: 기본 DB에 대한 transaction() 데코레이터 숏컷. 반환값: primary DB 이름이 바인딩된 transaction 데코레이터. 갱신일: 2025-11-12"""
     return transaction(DB.getPrimaryDbName())

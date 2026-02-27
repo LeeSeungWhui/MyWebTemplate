@@ -1,10 +1,10 @@
 -- name: auth.userByUsername
-SELECT USER_NO AS id
-     , USER_ID AS username
-     , USER_PW AS password_hash
-     , USER_NM AS name
-     , USER_EML AS email
-     , ROLE_CD AS role
+SELECT USER_NO AS USER_NO
+     , USER_ID AS USER_ID
+     , USER_PW AS PASSWORD_HASH
+     , USER_NM AS USER_NM
+     , USER_EML AS USER_EML
+     , ROLE_CD AS ROLE_CD
   FROM T_USER
  WHERE USER_ID = :u;
 
@@ -37,10 +37,10 @@ CREATE TABLE IF NOT EXISTS T_TOKEN (
 );
 
 -- name: auth.getTokenState
-SELECT STATE_TP AS stateType
-     , TOKEN_JTI AS tokenJti
-     , EXPIRES_AT_MS AS expiresAtMs
-     , TOKEN_PAYLOAD_JSON AS tokenPayloadJson
+SELECT STATE_TP AS STATE_TYPE
+     , TOKEN_JTI AS TOKEN_JTI
+     , EXPIRES_AT_MS AS EXPIRES_AT_MS
+     , TOKEN_PAYLOAD_JSON AS TOKEN_PAYLOAD_JSON
   FROM T_TOKEN
  WHERE STATE_TP = :stateType
    AND TOKEN_JTI = :tokenJti

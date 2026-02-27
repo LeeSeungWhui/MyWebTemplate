@@ -34,6 +34,8 @@ ipGeoCacheLock = asyncio.Lock()
 def parseBool(rawValue: object, defaultValue: bool = False) -> bool:
     """
     설명: 다양한 입력값을 bool로 파싱한다.
+    처리 규칙: 문자열은 소문자 정규화 후 truthy 집합(1/true/yes/on)으로 판별한다.
+    반환값: 파싱 실패/None 입력 시 defaultValue를 반환한다.
     갱신일: 2026-02-22
     """
     if rawValue is None:
@@ -117,6 +119,8 @@ def getIpGeoCacheTtlSec() -> int:
 def normalizeIp(clientIp: Optional[str]) -> Optional[str]:
     """
     설명: 원본 클라이언트 IP 문자열을 정규화한다.
+    처리 규칙: 공백/대괄호([::1])를 제거하고 비어 있으면 None으로 반환한다.
+    반환값: 정규화된 IP 문자열 또는 None을 반환한다.
     갱신일: 2026-02-22
     """
     rawIp = (clientIp or "").strip()
@@ -156,6 +160,8 @@ def classifyIpLocal(ipValue: str) -> tuple[str, str]:
 def buildLocationText(geoJson: dict) -> str:
     """
     설명: 외부 IP 위치 조회 결과를 저장용 텍스트로 변환한다.
+    처리 규칙: country/region/city를 순서대로 조합하고 값이 없으면 PUBLIC_IP를 사용한다.
+    반환값: 로그 적재용 위치 문자열을 반환한다.
     갱신일: 2026-02-22
     """
     countryCode = str(geoJson.get("country_code") or "").strip()
@@ -179,6 +185,8 @@ def buildLocationText(geoJson: dict) -> str:
 async def getIpGeoFromRemote(ipValue: str) -> Optional[dict]:
     """
     설명: 외부 API(ipwho.is)로 공인 IP의 대략 위치를 조회한다.
+    처리 규칙: 200 응답 + success=true dict일 때만 결과를 채택한다.
+    실패 동작: 타임아웃/비정상 응답/파싱 실패 시 None을 반환한다.
     갱신일: 2026-02-22
     """
     timeoutMs = getIpGeoTimeoutMs()
@@ -256,6 +264,9 @@ async def writeUserAccessLog(
 ) -> None:
     """
     설명: 인증 사용자 접근 로그를 T_USER_LOG에 저장한다.
+    처리 규칙: username 미존재/DB 미초기화 시 즉시 종료하고, 위치 정보는 비동기 조회 후 bind에 반영한다.
+    실패 동작: INSERT 실패는 warning 로그만 남기고 요청 흐름에는 예외를 전파하지 않는다.
+    부작용: T_USER_LOG 테이블에 접근 로그 레코드를 적재한다.
     갱신일: 2026-02-22
     """
     userId = (username or "").strip()

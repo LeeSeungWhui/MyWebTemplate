@@ -35,6 +35,7 @@ class DashboardUpdatePayload(BaseModel):
 def toModelDict(model: BaseModel, *, excludeNone: bool = False) -> dict:
     """
     설명: Pydantic v1/v2 호환으로 payload dict를 추출한다.
+    반환값: model_dump(dict) 결과를 표준 dict로 통일한 값.
     갱신일: 2026-02-22
     """
     dumpFn = getattr(model, "model_dump", None)
@@ -46,12 +47,27 @@ def toModelDict(model: BaseModel, *, excludeNone: bool = False) -> dict:
     return dict(model)
 
 
+def resolveServiceErrorCode(exc: Exception) -> str | None:
+    """
+    설명: 서비스 예외에서 표준 코드 문자열을 추출한다.
+    갱신일: 2026-02-27
+    """
+    codeValue = getattr(exc, "code", None)
+    if isinstance(codeValue, str) and codeValue.strip():
+        return codeValue.strip()
+    if exc.args:
+        firstArg = exc.args[0]
+        if isinstance(firstArg, str) and firstArg.strip():
+            return firstArg.strip()
+    return None
+
+
 def handleDashboardError(exc: Exception) -> JSONResponse:
     """
     설명: 대시보드 API 공통 예외를 표준 응답으로 변환한다.
     갱신일: 2026-02-22
     """
-    errorCode = str(exc)
+    errorCode = resolveServiceErrorCode(exc)
     if errorCode == "DB_NOT_READY":
         return JSONResponse(
             status_code=503,
@@ -120,6 +136,7 @@ async def listDataTemplates(
 async def dataTemplateStats(user=Depends(getCurrentUser)):
     """
     설명: 업무 상태별 집계를 조회한다.
+    반환값: 상태별 count/amount 집계 리스트를 담은 successResponse.
     갱신일: 2026-02-22
     """
     try:
@@ -133,6 +150,7 @@ async def dataTemplateStats(user=Depends(getCurrentUser)):
 async def getDataTemplateDetail(dataId: int, user=Depends(getCurrentUser)):
     """
     설명: 업무 상세를 조회한다.
+    반환값: dataId에 해당하는 단건 상세를 담은 successResponse.
     갱신일: 2026-02-22
     """
     try:
@@ -146,6 +164,7 @@ async def getDataTemplateDetail(dataId: int, user=Depends(getCurrentUser)):
 async def createDataTemplate(payload: DashboardCreatePayload, user=Depends(getCurrentUser)):
     """
     설명: 업무를 신규 등록한다.
+    반환값: 생성된 엔티티를 포함한 201(successResponse, message=created).
     갱신일: 2026-02-22
     """
     try:
@@ -159,6 +178,7 @@ async def createDataTemplate(payload: DashboardCreatePayload, user=Depends(getCu
 async def updateDataTemplate(dataId: int, payload: DashboardUpdatePayload, user=Depends(getCurrentUser)):
     """
     설명: 업무를 수정한다.
+    반환값: 수정 완료 엔티티를 포함한 successResponse(message=updated).
     갱신일: 2026-02-22
     """
     try:
@@ -172,6 +192,7 @@ async def updateDataTemplate(dataId: int, payload: DashboardUpdatePayload, user=
 async def deleteDataTemplate(dataId: int, user=Depends(getCurrentUser)):
     """
     설명: 업무를 삭제한다.
+    반환값: 삭제 결과 정보를 담은 successResponse(message=deleted).
     갱신일: 2026-02-22
     """
     try:

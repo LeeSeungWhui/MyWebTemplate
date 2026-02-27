@@ -18,7 +18,11 @@ from lib.Config import getConfig
 
 
 def loadConfig():
-    """설명: 실행 시점 설정(config.ini)을 로딩한다. 갱신일: 2026-02-24"""
+    """
+    설명: 실행 시점 설정(config.ini)을 로딩한다.
+    반환값: ConfigParser 인스턴스를 반환하며, 이후 uvicorn 포트/옵션 계산에 사용된다.
+    갱신일: 2026-02-24
+    """
     return getConfig()
 
 

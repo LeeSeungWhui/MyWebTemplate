@@ -211,6 +211,29 @@ def testReadyzFail503(monkeypatch):
         assert j["result"]["db"] == "down"
 
 
+def testReadyzNoDbManagersReturns503(monkeypatch):
+    from service import CommonService
+
+    class EmptyDbRegistry:
+        dbManagers = {}
+
+        @staticmethod
+        def getPrimaryDbName():
+            return "main_db"
+
+    monkeypatch.setattr(CommonService, "DB", EmptyDbRegistry, raising=False)
+
+    from server import app
+    with TestClient(app) as client:
+        response = client.get("/readyz")
+        assert response.status_code == 503
+        j = response.json()
+        assert j["status"] is False
+        assert j["result"]["ok"] is False
+        assert j["result"]["db"] == "down"
+        assert j["result"]["dbTargets"] == []
+
+
 def testReadyzTimeout(monkeypatch):
     # Simulate slow DB to trigger timeout
     from lib import Database as DB

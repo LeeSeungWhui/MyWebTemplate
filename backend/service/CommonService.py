@@ -19,6 +19,7 @@ startedAt = datetime.now(timezone.utc)
 def versionInfo() -> Dict[str, str]:
     """
     설명: 버전/시작 시각 메타 정보를 반환한다.
+    반환값: version/gitSha/startedAt를 포함한 진단용 메타 dict를 반환한다.
     갱신일: 2026-02-24
     """
     version = os.getenv("APP_VERSION", "dev")
@@ -33,7 +34,9 @@ def versionInfo() -> Dict[str, str]:
 async def healthz(_: Dict | None = None) -> Dict[str, str | int | bool]:
     """
     설명: 프로세스 기동 상태와 업타임 정보를 반환한다.
-    갱신일: 2026-02-24
+    처리 규칙: 현재 UTC 시각 기준으로 startedAt과의 차이를 계산해 uptimeSeconds를 만든다.
+    반환값: ok/version/gitSha/startedAt/uptimeSeconds를 포함한 헬스 payload dict.
+    갱신일: 2026-02-28
     """
     now = datetime.now(timezone.utc)
     uptimeSeconds = int((now - startedAt).total_seconds())
@@ -47,6 +50,8 @@ async def healthz(_: Dict | None = None) -> Dict[str, str | int | bool]:
 async def readyz(_: Dict | None = None) -> Tuple[Dict[str, Any], bool]:
     """
     설명: 레디니스 체크. DB 핑 및 타임아웃/지표를 포함해 관측성을 확장한다.
+    처리 규칙: 유지보수 모드 또는 DB ping 실패 시 ok=False로 전환한다.
+    반환값: (상태 payload, 준비 완료 여부 bool) 튜플을 반환한다.
     갱신일: 2025-12-03
     """
     maintenance = os.getenv("MAINTENANCE_MODE", "false").lower() in ("1", "true", "yes")
@@ -71,7 +76,8 @@ async def readyz(_: Dict | None = None) -> Tuple[Dict[str, Any], bool]:
             timeoutMs = int(os.getenv("READYZ_TIMEOUT_MS", "300"))
 
             if not targets:
-                dbStatus = "skipped"
+                dbStatus = "down"
+                ok = False
             else:
                 dbStatus = "up"
                 for name in targets:

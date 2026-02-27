@@ -1,9 +1,9 @@
 -- name: profile.me
-SELECT USER_NO AS user_no
-     , USER_ID AS user_id
-     , USER_NM AS user_nm
-     , USER_EML AS user_eml
-     , ROLE_CD AS role_cd
+SELECT USER_NO AS USER_NO
+     , USER_ID AS USER_ID
+     , USER_NM AS USER_NM
+     , USER_EML AS USER_EML
+     , ROLE_CD AS ROLE_CD
   FROM T_USER
  WHERE USER_ID = :userId;
 

@@ -1,6 +1,6 @@
 """
 파일명: backend/scripts/users_seed.py
-작성자: Codex
+작성자: LSH
 갱신일: 2026-02-24
 설명: 로컬/테스트용 SQLite 사용자 테이블 생성 및 데모 계정 시드 유틸.
 """

@@ -25,6 +25,8 @@ def attachOpenAPI(app: FastAPI, config) -> None:
     def readConfigValue(section: Optional[object], key: str, fallback: Optional[str] = None) -> Optional[str]:
         """
         설명: configparser.SectionProxy/dict 양쪽에서 설정 값을 안전하게 읽는다.
+        처리 규칙: getter 시그니처 차이(TypeError)는 dict 방식으로 재시도하고, 실패 시 fallback을 반환한다.
+        반환값: 설정 문자열 또는 fallback 값을 반환한다.
         갱신일: 2026-02-26
         """
         if section is None:
@@ -47,6 +49,8 @@ def attachOpenAPI(app: FastAPI, config) -> None:
     def patchOpenapi(schema: Dict[str, Any]) -> Dict[str, Any]:
         """
         설명: OpenAPI 스키마에 보안/응답/파라미터/코드샘플 정책을 패치한다.
+        처리 규칙: components/paths를 보강하되 예외 발생 시 로그만 남기고 원본 schema를 반환한다.
+        반환값: 패치가 적용된 OpenAPI schema dict를 반환한다.
         갱신일: 2026-02-26
         """
         try:
@@ -405,6 +409,8 @@ def attachOpenAPI(app: FastAPI, config) -> None:
     def customOpenapi():
         """
         설명: FastAPI 기본 스키마 생성 후 patchOpenapi를 적용해 캐시한다.
+        처리 규칙: 이미 캐시(app.openapi_schema)가 있으면 재생성하지 않고 그대로 반환한다.
+        반환값: FastAPI에서 사용하는 최종 OpenAPI schema 객체를 반환한다.
         갱신일: 2026-02-26
         """
         if app.openapi_schema:

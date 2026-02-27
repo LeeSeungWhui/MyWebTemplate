@@ -13,8 +13,20 @@ def testCreateDataTemplateUsesCandidateQueryWhenInsertIdMissing(monkeypatch):
     from lib import Database as DB
 
     class FakeManager:
+        class _FakeTxContext:
+            async def __aenter__(self):
+                return self
+
+            async def __aexit__(self, exc_type, exc, tb):
+                return False
+
+        class _FakeDatabase:
+            def transaction(self, **kwargs):
+                return FakeManager._FakeTxContext()
+
         def __init__(self):
             self.fetchQueryCalls = []
+            self.database = self._FakeDatabase()
 
         async def executeQuery(self, queryName, binds):
             assert queryName == "dashboard.create"
@@ -36,6 +48,7 @@ def testCreateDataTemplateUsesCandidateQueryWhenInsertIdMissing(monkeypatch):
 
     fakeDb = FakeManager()
     monkeypatch.setattr(DB, "getManager", lambda _name=None: fakeDb)
+    monkeypatch.setitem(DB.dbManagers, "main_db", fakeDb)
 
     created = asyncio.run(
         DashboardService.createDataTemplate(
@@ -53,4 +66,3 @@ def testCreateDataTemplateUsesCandidateQueryWhenInsertIdMissing(monkeypatch):
     assert created["title"] == "후보 조회 테스트"
     queryNameList = [call[0] for call in fakeDb.fetchQueryCalls]
     assert "dashboard.findCreatedCandidate" in queryNameList
-

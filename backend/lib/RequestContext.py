@@ -24,7 +24,8 @@ def setRequestId(requestId: str) -> contextvars.Token:
 
 def getRequestId() -> str | None:
     """
-    설명: 현재 컨텍스트의 요청ID를 반환.
+    설명: 현재 컨텍스트의 요청ID를 조회한다.
+    반환값: 미들웨어에서 설정한 requestId 문자열 또는 None을 반환한다.
     갱신일: 2025-11-12
     """
     return requestIdVar.get()
@@ -32,7 +33,8 @@ def getRequestId() -> str | None:
 
 def resetRequestId(token: contextvars.Token) -> None:
     """
-    설명: 저장된 요청ID를 초기 상태로 되돌림.
+    설명: 저장된 요청ID를 초기 상태로 복구한다.
+    처리 규칙: 유효하지 않은 토큰이 전달돼도 예외를 삼켜 요청 종료 경로를 방해하지 않는다.
     갱신일: 2025-11-12
     """
     try:

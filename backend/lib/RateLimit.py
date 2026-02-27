@@ -1,6 +1,6 @@
 """
 파일명: backend/lib/RateLimit.py
-작성자: Codex
+작성자: LSH
 갱신일: 2026-02-24
 설명: 간단한 인메모리 속도 제한기와 FastAPI용 체크 헬퍼.
 """
@@ -29,6 +29,8 @@ class RateLimiter:
     def __init__(self, limit: int = 5, windowSec: int = 60, sweepEvery: int = 256):
         """
         설명: 제한 횟수/윈도우/청소 주기를 초기화한다.
+        처리 규칙: sweepEvery는 최소 1로 보정하고 내부 store/hitCount를 초기화한다.
+        부작용: 인메모리 카운터 상태를 새로 생성한다.
         갱신일: 2026-02-27
         """
         self.limit = int(limit)
@@ -44,6 +46,8 @@ class RateLimiter:
     def sweepExpired(self, nowSec: float) -> None:
         """
         설명: 윈도우를 벗어난 키를 일괄 정리해 메모리 증가를 완화한다.
+        처리 규칙: 각 키의 오래된 타임스탬프를 제거하고 비어 있는 키는 store에서 제거한다.
+        부작용: self.store 내부 상태를 직접 변경한다.
         갱신일: 2026-02-24
         """
         expiredKeys = []
@@ -105,12 +109,11 @@ def resolveClientIp(request: Request) -> str:
 
 
 def checkRateLimit(request: Request, username: Optional[str] = None, *, commit: bool = True) -> Optional[JSONResponse]:
-    """설명: IP/사용자별 속도 제한을 검사한다. 갱신일: 2026-01-15"""
     """
-    속도 제한 검사 유틸.
-    - 초과 시 JSONResponse(429)를 반환, 통과 시 None.
-    - 키: ip:{ip} 와 user:{username}(옵션) 조합.
-    - commit=False로 호출하면 '현재 제한 상태인지'만 확인한다(카운트 증가 없음).
+    설명: IP/사용자별 속도 제한을 검사한다.
+    처리 규칙: 키(ip:{ip}, user:{username})를 순회해 하나라도 초과면 즉시 429를 반환한다.
+    반환값: 제한 초과 시 Retry-After/no-store 헤더가 포함된 JSONResponse, 통과 시 None을 반환한다.
+    갱신일: 2026-01-15
     """
     ip = resolveClientIp(request)
     keys = [f"ip:{ip}"]

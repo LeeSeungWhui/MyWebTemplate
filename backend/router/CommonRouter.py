@@ -19,6 +19,8 @@ router = APIRouter(tags=["common"])
 async def healthz(request: Request):
     """
     설명: 프로세스 헬스 체크 응답을 반환한다.
+    처리 규칙: service 결과를 표준 successResponse로 감싼 뒤 no-store 헤더를 강제한다.
+    반환값: status=200 JSONResponse를 반환한다.
     갱신일: 2026-02-24
     """
     result = await CommonService.healthz({})

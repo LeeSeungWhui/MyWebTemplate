@@ -52,6 +52,7 @@ class AuthConfig:
     ):
         """
         설명: 인증 토큰 만료/쿠키/보안 강제 옵션을 전역 설정에 반영한다.
+        부작용: AuthConfig 클래스 전역 속성(secret/expire/cookie/security 정책)이 모두 갱신된다.
         갱신일: 2026-02-24
         """
         cls.secretKey = secretKey
@@ -70,7 +71,8 @@ oauth2Scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/app/login", auto_erro
 
 def isStrongAuthSecret(secretKey: str | None) -> bool:
     """
-    설명: 운영용 JWT 시크릿 강도(길이/금지 키워드/문자 다양성)를 검증한다.
+    설명: 운영용 JWT 시크릿 강도(길이/금지 키워드/문자 다양성)를 평가한다.
+    반환값: 보안 기준을 만족하면 True, 아니면 False.
     갱신일: 2026-02-24
     """
     raw = str(secretKey or "").strip()
@@ -99,6 +101,7 @@ def isStrongAuthSecret(secretKey: str | None) -> bool:
 def bindAuthUsernameToRequestState(request: Request, username: str | None) -> None:
     """
     설명: 인증된 사용자 식별자를 request.state에 바인딩한다(미들웨어 접근 로그용).
+    부작용: request.state.authUsername 속성이 설정된다.
     갱신일: 2026-02-22
     """
     try:
@@ -110,6 +113,7 @@ def bindAuthUsernameToRequestState(request: Request, username: str | None) -> No
 def createAccessToken(data: dict, *, tokenType: str = "access", expireMinutes: int | None = None) -> Token:
     """
     설명: 페이로드에 만료(exp)를 추가해 JWT 액세스/리프레시 토큰 생성.
+    반환값: 인코딩된 JWT와 expiresIn 값을 포함한 Token 모델.
     갱신일: 2026-02-26
     """
     if not AuthConfig.secretKey:
@@ -139,6 +143,7 @@ def createAccessToken(data: dict, *, tokenType: str = "access", expireMinutes: i
 def createRefreshToken(data: dict) -> Token:
     """
     설명: 리프레시 토큰을 생성한다.
+    반환값: typ=refresh와 refresh 만료시간이 반영된 Token 모델.
     갱신일: 2026-02-24
     """
     return createAccessToken(

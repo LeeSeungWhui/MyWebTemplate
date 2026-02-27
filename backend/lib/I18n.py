@@ -34,7 +34,12 @@ MESSAGES = {
 
 
 def detectLocale(request: Any) -> str:
-    """설명: Accept-Language로 ko/en을 판별. 갱신일: 2025-11-12"""
+    """
+    설명: Accept-Language 헤더에서 ko/en 로케일을 판별한다.
+    처리 규칙: 헤더 파싱 실패 또는 비지원 언어면 기본값으로 en을 사용한다.
+    반환값: "ko" 또는 "en" 중 하나를 반환한다.
+    갱신일: 2025-11-12
+    """
     try:
         lang = (request.headers.get("Accept-Language") or "").lower()
     except Exception:

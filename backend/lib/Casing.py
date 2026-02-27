@@ -12,10 +12,16 @@ from typing import Any
 
 def toCamelCaseKey(key: str) -> str:
     """
-    설명: snake_case 문자열 키를 camelCase로 변환한다.
+    설명: snake_case 문자열 키를 camelCase로 정규화한다.
+    처리 규칙: 구분자 `_`가 없으면 원본을 유지하되 전체 대문자 키는 소문자로 변환한다.
+    반환값: 변환된 키 문자열을 반환하며, 문자열이 아닌 입력은 그대로 반환한다.
     갱신일: 2026-02-22
     """
-    if not isinstance(key, str) or "_" not in key:
+    if not isinstance(key, str):
+        return key
+    if "_" not in key:
+        if key.isupper():
+            return key.lower()
         return key
     normalizedParts = [p.lower() for p in key.split("_") if p]
     if not normalizedParts:
@@ -28,6 +34,8 @@ def toCamelCaseKey(key: str) -> str:
 def convertKeysToCamelCase(value: Any) -> Any:
     """
     설명: dict/list 내부의 모든 키를 재귀적으로 camelCase로 변환한다.
+    처리 규칙: list는 각 원소를 재귀 처리하고 dict는 문자열 키만 변환한 새 dict를 만든다.
+    반환값: 입력 구조를 유지한 변환 결과를 반환한다(스칼라는 원본 그대로 반환).
     갱신일: 2026-02-22
     """
     if isinstance(value, list):

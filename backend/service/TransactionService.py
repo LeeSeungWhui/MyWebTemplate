@@ -1,6 +1,6 @@
 """
 파일명: backend/service/TransactionService.py
-작성자: Codex
+작성자: LSH
 갱신일: 2025-12-18
 설명: 트랜잭션/세이브포인트 동작을 검증하기 위한 데모 서비스.
 """
@@ -30,7 +30,9 @@ async def ensureTables(dbName: str = "main_db") -> None:
 @transaction("main_db")
 async def testSingle() -> dict:
     """
-    설명: 단일 INSERT 트랜잭션 성공 케이스를 검증한다.
+    설명: 테스트 테이블에 단일 값을 insert하고 커밋된 값을 결과로 반환한다.
+    실패 동작: 테이블 누락/DB 오류가 발생하면 예외를 전파해 데코레이터가 롤백한다.
+    반환값: 삽입된 값을 포함한 {"inserted": "..."} dict를 반환한다.
     갱신일: 2026-02-24
     """
     await ensureTables("main_db")
@@ -44,7 +46,9 @@ async def testSingle() -> dict:
 @transaction("main_db")
 async def testUniqueViolation() -> None:
     """
-    설명: UNIQUE 제약 위반 시 롤백 동작을 검증한다.
+    설명: 동일 값을 2회 insert해 UNIQUE 제약 위반 롤백 경로를 의도적으로 유발한다.
+    실패 동작: 두 번째 insert에서 예외가 발생하며 데코레이터가 전체 트랜잭션을 롤백한다.
+    반환값: 성공 반환값은 없고, 정상 동작 시 예외를 통해 상위 레이어가 409를 응답한다.
     갱신일: 2026-02-24
     """
     await ensureTables("main_db")

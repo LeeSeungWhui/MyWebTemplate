@@ -63,6 +63,8 @@ app = FastAPI()
 def encodeDsnUserInfo(value: object) -> str:
     """
     설명: DB DSN user/password 구간을 URL-safe 문자열로 인코딩한다.
+    처리 규칙: None 입력은 빈 문자열로 처리해 DSN 조합 시 예외를 방지한다.
+    반환값: urllib.quote_plus 규칙으로 인코딩된 문자열을 반환한다.
     갱신일: 2026-02-24
     """
     if value is None:
@@ -80,6 +82,8 @@ def buildNetworkDbUrl(
 ) -> str:
     """
     설명: 네트워크 DB(mysql/postgresql) 접속 URL을 생성한다.
+    처리 규칙: 사용자명/비밀번호는 encodeDsnUserInfo로 선인코딩해 특수문자 충돌을 방지한다.
+    반환값: databases 라이브러리가 사용하는 접속 URL 문자열을 반환한다.
     갱신일: 2026-02-24
     """
     safeUser = encodeDsnUserInfo(user)
@@ -90,6 +94,8 @@ def buildNetworkDbUrl(
 async def onShutdown():
     """
     설명: 애플리케이션 종료 시 DB 연결과 쿼리 워처 리소스를 정리한다.
+    처리 규칙: 등록된 DB 매니저마다 disconnect를 호출하고, 워처 스레드는 stop/join으로 종료한다.
+    부작용: 전역 DB 커넥션과 파일 감시 스레드를 해제한다.
     갱신일: 2026-02-24
     """
     for manager in DB.dbManagers.values():
@@ -108,6 +114,8 @@ async def onShutdown():
 async def onStartup():
     """
     설명: 서버 시작 시 DB 연결, 쿼리 로더, 인증 설정을 초기화한다.
+    처리 규칙: DB 섹션을 순회해 매니저를 생성/연결하고, query watcher 및 AuthConfig를 초기화한다.
+    실패 동작: 개별 DB 연결 실패는 로그로 남기고 나머지 초기화는 계속 진행한다.
     갱신일: 2026-02-24
     """
     logger.info("database connect start")
@@ -406,6 +414,8 @@ async def requestValidationExceptionHandler(request: Request, exc: RequestValida
 async def httpExceptionHandler(request: Request, exc: HTTPException):
     """
     설명: HTTPException을 표준 에러 응답으로 변환하고 401 헤더를 보강한다.
+    처리 규칙: detail dict의 message/code를 우선 사용하고 없으면 status 기반 기본 코드를 부여한다.
+    반환값: code/path/detail을 포함한 표준 JSONResponse를 반환한다.
     갱신일: 2026-02-24
     """
     headers = dict(getattr(exc, "headers", None) or {})
