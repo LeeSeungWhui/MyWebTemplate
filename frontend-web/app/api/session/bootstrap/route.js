@@ -68,7 +68,7 @@ function rewriteSetCookie(rawValue) {
 }
 
 /**
- * 설명: 런타임별 Response 헤더 구현 차이를 흡수해 Set-Cookie 배열을 모은다.
+ * 설명: 런타임별 Response 헤더 구현 차이 흡수와 Set-Cookie 배열 수집.
  * 갱신일: 2026-01-18
  */
 function collectSetCookies(res) {
@@ -81,7 +81,7 @@ function collectSetCookies(res) {
 }
 
 /**
- * 설명: refresh_token이 있으면 access_token을 재발급하고 nx(/dashboard)로 이동시킨다.
+ * 설명: refresh_token 존재 시 access_token 재발급 및 nx(/dashboard) 이동.
  * 갱신일: 2026-01-18
  */
 export async function GET(request) {

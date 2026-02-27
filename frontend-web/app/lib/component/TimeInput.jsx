@@ -4,16 +4,16 @@
  * 갱신일: 2025-09-13
  * 설명: TimeInput UI 컴포넌트 구현
  */
-// TimeInput.jsx
-// Updated: 2025-09-09
-// 한글설명: Purpose: Simple time input with EasyObj binding
+// 파일명: TimeInput.jsx
+// 갱신일: 2025-09-09
+// 한글설명: 설명 Purpose: Simple time input with EasyObj binding
 import { forwardRef, useEffect, useMemo, useRef, useState } from 'react';
 import { getBoundValue, setBoundValue, buildCtx, fireValueHandlers } from '../binding';
 import Icon from './Icon';
 import { COMMON_COMPONENT_LANG_KO } from '@/app/common/i18n/lang.ko';
 
 /**
- * @description 시/분 숫자를 두 자리 문자열로 맞춘다.
+ * @description 시/분 숫자 두 자리 문자열 정규화.
  * 처리 규칙: 1자리 값은 앞에 0을 붙여 HH:mm 포맷 정합성을 유지한다.
  * @updated 2026-02-27
  */
@@ -88,7 +88,7 @@ const TimeInput = forwardRef(({
   const inputRef = useRef(null);
   const rootRef = useRef(null);
 
-  const interval = Math.max(1, step ?? 30); // 한글설명: seconds step for list granularity (default 30)
+  const interval = Math.max(1, step ?? 30); // 한글설명: 설명 seconds step for list granularity (default 30)
   const items = useMemo(() => {
     const options = [];
     for (let secondCursor = 0; secondCursor < 24 * 60 * 60; secondCursor += interval * 60) {
@@ -103,14 +103,14 @@ const TimeInput = forwardRef(({
     if (!open) return;
 
     /**
-     * @description 컴포넌트 외부 클릭 시 시간 옵션 패널을 닫는다.
+     * @description 컴포넌트 외부 클릭 시 시간 옵션 패널 닫기.
      * 처리 규칙: rootRef 외부 mousedown 이벤트에서만 open=false를 반영한다.
      * @updated 2026-02-27
      */
     const handler = (event) => { if (rootRef.current && !rootRef.current.contains(event.target)) setOpen(false); };
 
     /**
-     * @description Escape 키 입력으로 시간 옵션 패널을 닫는다.
+     * @description Escape 키 입력으로 시간 옵션 패널 닫기.
      * 처리 규칙: key 값이 Escape일 때만 close 동작을 적용한다.
      * @updated 2026-02-27
      */

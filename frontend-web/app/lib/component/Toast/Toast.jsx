@@ -10,8 +10,8 @@ import styles from './Toast.module.css';
 
 const Toast = forwardRef(({
     message,
-    type = 'info',  // 한글설명: info, success, warning, error
-    position = 'bottom-center',  // 한글설명: top-left, top-center, top-right, bottom-left, bottom-center, bottom-right
+    type = 'info',  // 한글설명: 설명 info, success, warning, error
+    position = 'bottom-center',  // 한글설명: 설명 top-left, top-center, top-right, bottom-left, bottom-center, bottom-right
     isExiting = false,
     onClose,
     className = '',

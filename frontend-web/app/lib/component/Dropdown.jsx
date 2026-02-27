@@ -85,7 +85,7 @@ const resolveSelectedLabel = ({ multiSelect, selectedItem, selectedItems, labelK
 };
 
 /**
- * @description 옵션 행의 선택/비활성 상태에 맞는 텍스트 클래스를 고른다.
+ * @description 옵션 행 선택/비활성 상태별 텍스트 클래스 선택.
  * 처리 규칙: disabled > selected > default 순으로 우선 적용한다.
  * @updated 2026-02-27
  */
@@ -222,7 +222,7 @@ const Dropdown = ({
     };
 
     /**
-     * @description 드롭다운 바깥 영역 클릭 시 메뉴를 닫는다.
+     * @description 드롭다운 바깥 영역 클릭 시 메뉴 닫기.
      * 처리 규칙: rootRef 외부 mousedown 이벤트에서만 open=false를 반영한다.
      * @updated 2026-02-27
      */

@@ -4,9 +4,9 @@
  * 갱신일: 2025-09-13
  * 설명: 바인딩 유틸 함수
  */
-// binding.js
-// Updated: 2025-09-09
-// 한글설명: Purpose: Common helpers for data binding (EasyObj/EasyList) and change context
+// 파일명: binding.js
+// 갱신일: 2025-09-09
+// 한글설명: 설명 Purpose: Common helpers for data binding (EasyObj/EasyList) and change context
 
 /**
  * @description 입력 객체가 EasyObj/EasyList 프록시 래퍼인지 판별
@@ -23,15 +23,15 @@ const isProxyLike = (obj) => obj && typeof obj === 'object' && (obj.__isProxy ||
 const getRaw = (obj) => (obj && obj.__rawObject) ? obj.__rawObject : obj;
 
 /**
- * @description 바인딩 객체에서 key 경로 값을 읽는다.
+ * @description 바인딩 객체에서 key 경로 값 조회.
  * 처리 규칙: dataObj.get 우선 사용, 없으면 `a.b.c` dotted path를 순회한다.
  * @updated 2026-02-24
  */
 export function getBoundValue(dataObj, dataKey) {
   if (!dataObj || !dataKey) return undefined;
-  // 한글설명: Prefer explicit getter if provided
+  // 한글설명: 설명 Prefer explicit getter if provided
   if (typeof dataObj.get === 'function') return dataObj.get(dataKey);
-  // 한글설명: Dotted path support
+  // 한글설명: 설명 Dotted path support
   const parts = String(dataKey).split('.');
   let cur = dataObj;
   for (const segment of parts) {
@@ -87,7 +87,7 @@ export function buildCtx({ dataKey, dataObj, source = 'user', valid = null, dirt
  */
 export function fireValueHandlers({ onChange, onValueChange, value, ctx, event }) {
 
-  // 한글설명: Back-compat: if consumer provided onChange expecting event, pass event with detail
+  // 한글설명: 설명 Back-compat: if consumer provided onChange expecting event, pass event with detail
   if (event) {
     try {
       if (!Object.prototype.hasOwnProperty.call(event, 'detail') || event.detail == null) {
@@ -100,7 +100,7 @@ export function fireValueHandlers({ onChange, onValueChange, value, ctx, event }
       try {
         event.detail = { value, ctx };
       } catch (_) {
-        // 한글설명: readonly detail; ignore
+        // 한글설명: 설명 readonly detail; ignore
       }
     }
   }

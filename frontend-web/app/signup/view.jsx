@@ -65,7 +65,7 @@ const SignupView = () => {
   };
 
   /**
-   * @description 검증 실패한 첫 입력 요소로 포커스를 이동시킨다.
+   * @description 검증 실패 첫 입력 요소 포커스 이동.
    * 처리 규칙: ref.current가 있을 때 requestAnimationFrame으로 focus를 실행한다.
    * @updated 2026-02-27
    */

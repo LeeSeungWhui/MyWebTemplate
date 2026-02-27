@@ -122,7 +122,7 @@ const PublicGnb = () => {
   useEffect(() => {
 
     /**
-     * @description 데모 메뉴 영역 바깥 포인터 입력에서 드롭다운을 닫는다.
+     * @description 데모 메뉴 영역 바깥 포인터 입력에서 드롭다운 닫기.
      * 처리 규칙: demoMenuRef 외부 pointerdown 이벤트만 close 대상으로 본다.
      * @updated 2026-02-27
      */
@@ -135,7 +135,7 @@ const PublicGnb = () => {
     };
 
     /**
-     * @description Escape 키 입력으로 데모 드롭다운을 닫는다.
+     * @description Escape 키 입력으로 데모 드롭다운 닫기.
      * 처리 규칙: key 값이 Escape일 때 closeDemoMenu를 호출한다.
      * @updated 2026-02-27
      */

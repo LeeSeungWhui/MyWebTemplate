@@ -26,9 +26,9 @@ export const publicRoutes = [
  */
 function compilePattern(pat) {
   if (pat === "/") return /^\/$/;
-  // 한글설명: escape regex specials
+  // 한글설명: 설명 escape regex specials
   const esc = pat.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-  // 한글설명: handle :path* or :path+
+  // 한글설명: 설명 handle :path* or :path+
   if (esc.endsWith("\/:path\\*")) {
     const base = esc.slice(0, -"\/:path\\*".length);
     return new RegExp("^" + base + "(?:\/.*)?$");

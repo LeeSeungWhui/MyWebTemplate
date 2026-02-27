@@ -330,7 +330,7 @@ def _nowMs() -> int:
 
 def auditLog(event: str, username: str | None, success: bool, meta: dict[str, Any] | None = None) -> None:
     """
-    설명: 로그인/리프레시/로그아웃 등 인증 이벤트 감사 로그를 남긴다.
+    설명: 로그인/리프레시/로그아웃 등 인증 이벤트 감사 로그 기록.
     부작용: 구조화된 JSON 로그를 남기며, 로깅 실패는 인증 흐름을 차단하지 않는다.
     갱신일: 2025-12-03
     """

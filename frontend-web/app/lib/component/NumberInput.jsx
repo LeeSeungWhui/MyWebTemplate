@@ -4,9 +4,9 @@
  * 갱신일: 2025-09-13
  * 설명: NumberInput UI 컴포넌트 구현
  */
-// NumberInput.jsx
-// Updated: 2025-09-09
-// 한글설명: Purpose: Numeric input with step controls and EasyObj binding support
+// 파일명: NumberInput.jsx
+// 갱신일: 2025-09-09
+// 한글설명: 설명 Purpose: Numeric input with step controls and EasyObj binding support
 import { forwardRef, useEffect, useRef, useState } from 'react';
 import Icon from './Icon';
 import { getBoundValue, setBoundValue, buildCtx, fireValueHandlers } from '../binding';
@@ -68,7 +68,7 @@ const NumberInput = forwardRef(({
   };
 
   useEffect(() => {
-    // 한글설명: sync on external change
+    // 한글설명: 설명 sync on external change
   }, [propValue, dataObj, dataKey]);
 
   /**
@@ -99,9 +99,9 @@ const NumberInput = forwardRef(({
     commit(next);
   };
 
-  // 한글설명: long-press support for step buttons (no double increment)
+  // 한글설명: 설명 long-press support for step buttons (no double increment)
   const holdRef = useRef(null);       // interval
-  const holdTimerRef = useRef(null);  // 한글설명: delay before repeat
+  const holdTimerRef = useRef(null);  // 한글설명: 설명 delay before repeat
   const heldStartedRef = useRef(false);
 
   /**

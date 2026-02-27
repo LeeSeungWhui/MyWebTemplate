@@ -116,7 +116,7 @@ const Header = ({
   useEffect(() => {
 
     /**
-     * @description 네비게이션 바깥 영역 클릭 시 열린 메뉴를 닫는다.
+     * @description 네비게이션 바깥 영역 클릭 시 열린 메뉴 닫기.
      * 처리 규칙: pointerdown 이벤트 target이 navRef 외부면 `ui.openMenu`를 null로 초기화한다.
      * @updated 2026-02-27
      */

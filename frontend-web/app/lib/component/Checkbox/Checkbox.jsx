@@ -83,7 +83,7 @@ const Checkbox = forwardRef(({
     const colorStyle = isCssColor ? {
         '--checkbox-color': color
     } : {
-        '--checkbox-color': '#3b82f6'  // 한글설명: primary color
+        '--checkbox-color': '#3b82f6'  // 한글설명: 설명 primary color
     };
 
     return (

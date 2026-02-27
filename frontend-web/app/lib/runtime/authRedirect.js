@@ -37,7 +37,7 @@ export function safeDecodeURIComponent(value) {
 }
 
 /**
- * 설명: base64url 문자셋/길이 규칙을 확인해 허용 가능한 토큰만 통과시킨다.
+ * 설명: base64url 문자셋/길이 규칙 검증과 허용 토큰 통과.
  * 갱신일: 2026-01-19
  */
 export function sanitizeBase64Url(value, maxLen = AUTH_REASON_MAXLEN) {
@@ -66,7 +66,7 @@ export function base64UrlEncodeUtf8(text) {
       return base64.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
     }
   } catch {
-    // 한글설명: fall through
+    // 한글설명: 설명 fall through
   }
   try {
     if (typeof Buffer !== "undefined") {
@@ -102,7 +102,7 @@ export function base64UrlDecodeUtf8(input) {
       return new TextDecoder().decode(bytes);
     }
   } catch {
-    // 한글설명: fall through
+    // 한글설명: 설명 fall through
   }
 
   try {

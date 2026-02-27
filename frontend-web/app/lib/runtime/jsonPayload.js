@@ -16,7 +16,7 @@ const BROKEN_ARRAY_REGEX = /"([A-Za-z0-9_]+)"\s*:\s*](?=\s*[},])/g;
  * 서버가 [] 대신 ]만 내려보내는 경우를 감지해 자동 보정
  * @param {string} text
  * @returns {string}
- * @description 깨진 배열 토큰(`": ]`)을 정상 배열 표기(`": []`)로 교체해 파싱 실패를 줄인다.
+ * @description 깨진 배열 토큰 교체 기반 파싱 실패 완화.
  * @updated 2026-02-27
  */
 const autofixBrokenArrays = (text) => {

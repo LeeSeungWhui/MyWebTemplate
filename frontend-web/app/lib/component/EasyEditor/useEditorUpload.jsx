@@ -27,7 +27,7 @@ const isNonEmptyString = (value) => typeof value === 'string' && value.trim() !=
 const toStringOrNull = (value) => (isNonEmptyString(value) ? value.trim() : null);
 
 /**
- * @description 업로드 응답 래퍼(result/data)를 재귀적으로 벗겨 실제 payload를 얻는다.
+ * @description 업로드 응답 래퍼(result/data) 재귀 언래핑 기반 실제 payload 획득.
  * 반환값: 더 이상 래핑 키가 없는 원본 payload 객체/값.
  * @updated 2026-02-27
  */

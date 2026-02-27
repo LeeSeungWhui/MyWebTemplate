@@ -5,7 +5,7 @@
  * 설명: Table 컴포넌트 문서
  */
 /**
- * TableDocs.jsx
+ * 파일명: TableDocs.jsx
  * Table 컴포넌트 문서
  */
 import DocSection from '../shared/DocSection';

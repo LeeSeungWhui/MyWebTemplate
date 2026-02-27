@@ -259,7 +259,7 @@ const EasyTable = forwardRef(function EasyTable(
   };
 
   /**
-   * @description 페이지 변경 이벤트를 다룬다.
+   * @description 페이지 변경 이벤트 처리.
    * 처리 규칙: 목표 페이지를 clamp한 뒤 controlled 모드는 onPageChange 위임, uncontrolled 모드는 내부 state를 갱신한다.
    * @updated 2026-02-27
    */

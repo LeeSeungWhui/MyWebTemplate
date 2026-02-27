@@ -43,7 +43,7 @@ const DashboardLayoutClient = ({ children }) => {
   const currentYear = new Date().getFullYear();
 
   /**
-   * @description 홈 버튼 클릭 시 루트 경로(`/`)로 이동시킨다.
+   * @description 홈 버튼 클릭 시 루트 경로(`/`) 이동.
    * 부작용: Next router push가 실행된다.
    * @updated 2026-02-27
    */

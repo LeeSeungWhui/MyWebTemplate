@@ -34,7 +34,7 @@ const TopButton = () => {
     }, []);
 
     /**
-     * @description 클릭 시 페이지를 부드럽게 최상단으로 이동시킨다.
+     * @description 클릭 시 페이지 부드러운 최상단 이동.
      * 부작용: window.scrollTo({top:0, behavior:'smooth'})가 실행된다.
      * @updated 2026-02-27
      */

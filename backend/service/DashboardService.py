@@ -193,7 +193,7 @@ def buildCreatePayload(payload: Dict[str, Any]) -> Dict[str, Any]:
 
 def buildUpdatePayload(payload: Dict[str, Any], currentRow: Dict[str, Any]) -> Dict[str, Any]:
     """
-    설명: 부분 수정 payload를 기존 값과 병합해 DB 입력 포맷으로 만든다.
+    설명: 부분 수정 payload와 기존 값 병합 기반 DB 입력 포맷 생성.
     반환값: 기존값과 병합된 DB update 바인딩용 payload dict.
     갱신일: 2026-02-22
     """

@@ -215,7 +215,7 @@ function useEasyObj(initialData = {}) {
     };
 
     /**
-     * @description 기준 경로와 key를 결합해 최종 경로를 만든다.
+     * @description 기준 경로와 key 결합 기반 최종 경로 생성.
      * 처리 규칙: key를 세그먼트 배열로 변환한 뒤 basePath 뒤에 이어붙인다.
      * @updated 2026-02-27
      */
@@ -311,7 +311,7 @@ function useEasyObj(initialData = {}) {
             try {
                 listener(detail);
             } catch {
-                // 한글설명: suppress listener failures
+                // 한글설명: 설명 suppress listener failures
             }
         });
     };

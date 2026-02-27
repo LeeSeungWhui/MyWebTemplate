@@ -90,7 +90,7 @@ const AdminDemoView = ({ initRows = [] }) => {
   });
 
   /**
-   * @description 현재 날짜를 사용자 생성일 필드용 YYYY-MM-DD 문자열로 만든다.
+   * @description 현재 날짜의 사용자 생성일 필드용 YYYY-MM-DD 문자열 생성.
    * 반환값: 신규 사용자 createdAt 값으로 쓰는 날짜 텍스트.
    * @updated 2026-02-27
    */

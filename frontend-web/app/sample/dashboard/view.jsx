@@ -99,7 +99,7 @@ const DemoDashboardView = ({
   };
 
   /**
-   * @description 최근 생성일 기준 상위 5건 업무 목록을 표 데이터 형태로 만든다.
+   * @description 최근 생성일 기준 상위 5건 업무 목록 표 데이터 생성.
    * 처리 규칙: createdAt 내림차순, 동률 시 id 내림차순으로 정렬한다.
    * @updated 2026-02-27
    */

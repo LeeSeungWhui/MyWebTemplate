@@ -106,14 +106,14 @@ function isBinaryBody(value) {
 function serializeBody(input) {
   if (input == null) return undefined;
   if (isBodyLike(input)) return input;
-  // 한글설명: EasyObj/EasyList proxies expose toJSON; JSON.stringify will respect it.
-  // 한글설명: Also supports plain objects/arrays directly.
+  // 한글설명: 설명 EasyObj/EasyList proxies expose toJSON; JSON.stringify will respect it.
+  // 한글설명: 설명 Also supports plain objects/arrays directly.
   try {
     return typeof input === "string" ? input : JSON.stringify(input);
   } catch {
-    // 한글설명: Fallback: attempt structured clone via toJSON where possible
+    // 한글설명: 설명 Fallback: attempt structured clone via toJSON where possible
     try {
-      // 한글설명: This will call toJSON on proxies and drop unsupported values
+      // 한글설명: 설명 This will call toJSON on proxies and drop unsupported values
       return JSON.stringify(JSON.parse(JSON.stringify(input)));
     } catch {
       return JSON.stringify({});
@@ -127,13 +127,13 @@ function serializeBody(input) {
  * @updated 2026-02-27
  */
 function normalizeArgs(path, a2, a3) {
-  // 한글설명: Supports overloading:
-  // 한글설명: - api*(path)
-  // 한글설명: - api*(path, init)
-  // 한글설명: - api*(path, body)
-  // 한글설명: - api*(path, body, 'authless')
-  // 한글설명: - api*(path, body, { authless: boolean })
-  // 한글설명: - api*(path, initLike, 'authless' | options)
+  // 한글설명: 설명 Supports overloading:
+  // 한글설명: 설명 - api*(path)
+  // 한글설명: 설명 - api*(path, init)
+  // 한글설명: 설명 - api*(path, body)
+  // 한글설명: 설명 - api*(path, body, 'authless')
+  // 한글설명: 설명 - api*(path, body, { authless: boolean })
+  // 한글설명: 설명 - api*(path, initLike, 'authless' | options)
 
   /**
    * @description 값이 RequestInit 유사 객체인지 판별
@@ -221,7 +221,7 @@ function hasHeader(headers, name) {
  * 응답 본문을 안전하게 텍스트로 변환
  * @param {Response} response fetch Response 객체
  * @returns {Promise<string>} 본문 텍스트
- * @description Response 본문을 안전하게 텍스트로 읽는다.
+ * @description Response 본문 안전 텍스트 조회.
  * 처리 규칙: 빈 본문 상태코드(204/205/304)는 즉시 빈 문자열을 반환하고 읽기 실패도 빈 문자열로 수렴한다.
  * @updated 2026-02-27
  */
@@ -348,7 +348,7 @@ export async function apiRequest(path, initOrBody = {}, modeOrOptions) {
       : new URL(toBffPath(path), resolveFrontendOrigin());
 
     /**
-     * @description SSR fetch 호출을 지연 실행 함수로 감싼다.
+     * @description SSR fetch 호출 지연 실행 함수 래핑.
      * 처리 규칙: targetUrl/requestInit 스냅샷을 사용해 단일 fetch 요청을 수행한다.
      * @updated 2026-02-27
      */
@@ -356,7 +356,7 @@ export async function apiRequest(path, initOrBody = {}, modeOrOptions) {
     return doFetch();
   }
 
-  // 한글설명: Client: delegate to CSR helpers with refresh-once logic
+  // 한글설명: 설명 Client: delegate to CSR helpers with refresh-once logic
   const targetUrl = absoluteUrl ? path : toBffPath(path);
   const headers = { ...headersIn };
 
@@ -373,7 +373,7 @@ export async function apiRequest(path, initOrBody = {}, modeOrOptions) {
   }
 
   /**
-   * @description CSR fetch 요청 초기값을 구성한 뒤 네트워크 요청을 보낸다.
+   * @description CSR fetch 요청 초기값 구성 후 네트워크 요청 전송.
    * 처리 규칙: 비-GET/HEAD 메서드에서 body 미지정 시 `"{}"`를 기본 body로 사용한다.
    * @updated 2026-02-27
    */

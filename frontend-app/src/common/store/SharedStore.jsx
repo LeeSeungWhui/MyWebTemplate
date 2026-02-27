@@ -154,7 +154,7 @@ export const useSharedStore = create((set, get) => ({
         confirmPromiseResolve: null,
       });
       if (typeof confirm.onFocus === "function") {
-        // 한글설명: allow UI to settle before focusing
+        // 한글설명: 설명 allow UI to settle before focusing
         setTimeout(() => confirm.onFocus(), 0);
       }
     }

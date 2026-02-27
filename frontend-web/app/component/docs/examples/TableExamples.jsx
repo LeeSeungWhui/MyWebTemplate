@@ -5,7 +5,7 @@
  * 설명: EasyTable 컴포넌트 예제
  */
 /**
- * TableExamples.jsx
+ * 파일명: TableExamples.jsx
  * EasyTable 컴포넌트 사용 예제 모음
  */
 import * as Lib from '@/app/lib';

@@ -79,7 +79,7 @@ const Pagination = ({
   const addToken = (token) => tokenList.push(token);
 
   /**
-   * @description startPage~endPage 구간의 연속 페이지 번호를 tokenList에 채운다.
+   * @description startPage~endPage 구간 연속 페이지 번호 tokenList 채움.
    * 처리 규칙: for 루프로 모든 번호를 순회하며 addToken을 호출한다.
    * @updated 2026-02-27
    */

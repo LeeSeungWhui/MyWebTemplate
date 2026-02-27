@@ -24,7 +24,7 @@ def attachOpenAPI(app: FastAPI, config) -> None:
 
     def readConfigValue(section: Optional[object], key: str, fallback: Optional[str] = None) -> Optional[str]:
         """
-        설명: configparser.SectionProxy/dict 양쪽에서 설정 값을 안전하게 읽는다.
+        설명: configparser.SectionProxy/dict 양쪽에서 설정 값 안전 조회.
         처리 규칙: getter 시그니처 차이(TypeError)는 dict 방식으로 재시도하고, 실패 시 fallback을 반환한다.
         반환값: 설정 문자열 또는 fallback 값을 반환한다.
         갱신일: 2026-02-26

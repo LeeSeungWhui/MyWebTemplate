@@ -76,7 +76,7 @@ def loadConfig(filename: str) -> ConfigParser:
 
 def getConfig(path: str | None = None, forceReload: bool = False) -> ConfigParser:
     """
-    설명: 설정 캐시를 반환하고 forceReload/경로 변경 시 설정 파일을 다시 읽는다.
+    설명: 설정 캐시 반환과 forceReload/경로 변경 시 설정 파일 재로딩.
     처리 규칙: path 미지정이면 BACKEND_CONFIG 또는 기존 캐시 경로를 우선 사용한다.
     부작용: 재로딩 시 configCache/configCachePath를 갱신하고 파생 캐시를 무효화한다.
     반환값: 현재 유효한 ConfigParser 인스턴스.

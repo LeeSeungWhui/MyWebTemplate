@@ -81,7 +81,7 @@ function buildQueryString(params) {
 }
 
 /**
- * @description 기존 URL에 query string을 병합해 최종 요청 URL을 만든다.
+ * @description 기존 URL과 query string 병합 기반 최종 요청 URL 생성.
  * 반환값: 파라미터가 없으면 원본 URL, 있으면 `?` 또는 `&`가 반영된 URL.
  * @updated 2026-02-27
  */

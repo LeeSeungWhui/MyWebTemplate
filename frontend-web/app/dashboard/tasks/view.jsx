@@ -295,7 +295,7 @@ const TasksView = ({ initialFilter = {} }) => {
   };
 
   /**
-   * @description 드로어를 닫는다.
+   * @description 드로어 닫기.
    * 처리 규칙: 저장 중(isSaving=true)에는 닫기를 막고, 그 외에는 드로어 상태를 초기화한다.
    * @updated 2026-02-27
    */
@@ -306,7 +306,7 @@ const TasksView = ({ initialFilter = {} }) => {
   };
 
   /**
-   * @description 생성/수정 폼을 검증한 뒤 저장 API 요청을 보낸다.
+   * @description 생성/수정 폼 검증 후 저장 API 요청 전송.
    * 처리 규칙: 필수값 검증 실패 시 즉시 중단하고, 성공 시 toast/목록 재조회/드로어 닫기를 수행한다.
    * @updated 2026-02-27
    */

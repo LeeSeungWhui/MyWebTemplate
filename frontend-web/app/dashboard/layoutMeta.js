@@ -27,7 +27,7 @@ const SORT_LABEL_MAP = new Map(
 );
 
 /**
- * @description searchParams에서 키 값을 문자열로 안전하게 읽는다.
+ * @description searchParams에서 키 값을 문자열로 안전 조회.
  * 처리 규칙: URLSearchParams.get, 배열, 단일값 순으로 읽고 없으면 빈 문자열을 반환한다.
  * @updated 2026-02-27
  */

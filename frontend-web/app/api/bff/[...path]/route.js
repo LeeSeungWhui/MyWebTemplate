@@ -20,7 +20,7 @@ const LOGOUT_PATH = "/api/v1/auth/logout";
 const ACCESS_COOKIE_NAME = "access_token";
 
 // refresh_token 기반 singleflight(동시 탭/요청 경합 완화)
-// 한글설명: key: sha256(refresh_token)
+// 한글설명: 설명 key: sha256(refresh_token)
 const refreshInflight = new Map();
 
 /**
@@ -194,7 +194,7 @@ async function refreshOnce(req, backendHost, frontendOrigin) {
   if (inflight) return inflight;
 
   /**
-   * @description refresh 엔드포인트 호출과 Set-Cookie/Access 토큰 추출을 수행하는 내부 태스크다.
+   * @description refresh 엔드포인트 호출과 Set-Cookie/Access 토큰 추출을 수행하는 내부 태스크.
    * 처리 규칙: refresh 응답 성공 + access_token 존재 조건을 모두 만족해야 ok=true를 반환한다.
    * @updated 2026-02-27
    */

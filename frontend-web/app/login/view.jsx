@@ -111,7 +111,7 @@ const Client = ({ mode, init, nextHint, authReason }) => {
   };
 
   /**
-   * @description 오류가 난 입력 요소로 포커스를 이동시킨다.
+   * @description 오류 입력 요소 포커스 이동.
    * 처리 규칙: ref.current가 있을 때 requestAnimationFrame 타이밍으로 focus를 호출한다.
    * @updated 2026-02-27
    */

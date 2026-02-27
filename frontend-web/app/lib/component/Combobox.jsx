@@ -348,7 +348,7 @@ const Combobox = forwardRef((props, ref) => {
     if (!open) return
 
     /**
-     * @description 컴포넌트 외부 클릭 시 드롭다운을 닫는다.
+     * @description 컴포넌트 외부 클릭 시 드롭다운 닫기.
      * 처리 규칙: rootRef 바깥 mousedown 이벤트에서만 close를 수행한다.
      * @updated 2026-02-27
      */
@@ -359,7 +359,7 @@ const Combobox = forwardRef((props, ref) => {
     }
 
     /**
-     * @description Escape 키 입력으로 드롭다운을 닫는다.
+     * @description Escape 키 입력으로 드롭다운 닫기.
      * 처리 규칙: key 값이 Escape일 때 open=false를 반영한다.
      * @updated 2026-02-27
      */
