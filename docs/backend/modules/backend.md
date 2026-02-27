@@ -156,6 +156,8 @@ port = 2000
 ## Links
 - Parent: docs/index.md
 - Children: docs/backend/units/
+- Rule Gate Ops: docs/backend/rule-gate-operations.md
+- Rule Gate Regression: docs/backend/rule-gate-regression-cases.md
 
 ## 정책/명시
 - CSRF 헤더는 기본 강제가 아니며, Web 쿠키 권한 경로는 Origin/Referer allowlist를 기본 적용한다.

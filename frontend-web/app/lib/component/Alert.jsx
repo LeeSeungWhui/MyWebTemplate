@@ -11,7 +11,7 @@ import { COMMON_COMPONENT_LANG_KO } from '@/app/common/i18n/lang.ko';
 const Alert = ({
     title = COMMON_COMPONENT_LANG_KO.alert.title,  // 제목 (옵션)
     text,           // 필수 메시지
-    type = 'info',  // info, success, warning, error
+    type = 'info',  // 한글설명: info, success, warning, error
     onClick        // 확인 버튼 클릭 핸들러
 }) => {
     // 타입별 스타일 및 아이콘 설정

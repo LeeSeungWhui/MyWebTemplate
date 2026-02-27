@@ -40,14 +40,10 @@ const DashboardLayoutClient = (props) => {
   const searchParams = useSearchParams();
   const { setUser } = useUser();
   const { setLoading, showToast } = useGlobalUi();
-  const layoutMeta = useMemo(
-    () =>
-      resolveDashboardLayoutMeta({
-        pathname,
-        searchParams,
-      }),
-    [pathname, searchParams?.toString()],
-  );
+  const layoutMeta = resolveDashboardLayoutMeta({
+    pathname,
+    searchParams,
+  });
   const currentYear = new Date().getFullYear();
 
   const handleGoHome = () => {

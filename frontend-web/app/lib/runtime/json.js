@@ -28,7 +28,7 @@ export const deepCloneValue = (targetValue, fallbackValue = targetValue) => {
     try {
       return globalThis.structuredClone(targetValue);
     } catch (error) {
-      // fallback path below
+      // 한글설명: fallback path below
     }
   }
   try {

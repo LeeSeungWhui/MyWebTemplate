@@ -183,7 +183,7 @@ function useEasyList(initialData = []) {
             try {
                 listener(detail);
             } catch {
-                // swallow listener errors
+                // 한글설명: swallow listener errors
             }
         });
     };

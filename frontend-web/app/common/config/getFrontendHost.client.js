@@ -15,7 +15,7 @@ export function getFrontendHost() {
   const cfg = getConfigSnapshot()
   const base = cfg?.APP?.frontendHost
   if (typeof base === 'string' && base) return base.replace(/\/$/, '')
-  // best-effort fallback in browser
+  // 한글설명: best-effort fallback in browser
   if (typeof window !== 'undefined' && window.location?.origin) return window.location.origin
   return 'http://localhost:3000'
 }

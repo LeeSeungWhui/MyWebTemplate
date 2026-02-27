@@ -7,6 +7,8 @@
 - 모듈 스펙: `docs/frontend-web/modules/web.md`
 - 페이지 디자인 스펙: `docs/frontend-web/page-design-spec.md`
 - 웹 코딩 규칙: `docs/frontend-web/codding-rules-frontend.md`
+- 룰게이트 운영 기준: `docs/frontend-web/rule-gate-operations.md`
+- 룰게이트 회귀 케이스: `docs/frontend-web/rule-gate-regression-cases.md`
 
 ## Unit Specs
 - 경로: `docs/frontend-web/units/CU-WEB-*.md`

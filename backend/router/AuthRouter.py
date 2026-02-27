@@ -215,14 +215,22 @@ def invalidInputResponse(loc: str, includeAuthHeader: bool = False) -> JSONRespo
     설명: 잘못된 JSON/입력 형식에 대한 422 표준 응답을 생성한다.
     갱신일: 2026-02-23
     """
-    headers = {"WWW-Authenticate": "Bearer"} if includeAuthHeader else None
+    if includeAuthHeader:
+        return JSONResponse(
+            status_code=422,
+            content=errorResponse(
+                message=i18nTranslate("error.invalid_input", "invalid input", loc),
+                code="AUTH_422_INVALID_INPUT",
+            ),
+            headers={"WWW-Authenticate": "Bearer", "Cache-Control": "no-store"},
+        )
     return JSONResponse(
         status_code=422,
         content=errorResponse(
             message=i18nTranslate("error.invalid_input", "invalid input", loc),
             code="AUTH_422_INVALID_INPUT",
         ),
-        headers=headers,
+        headers={"Cache-Control": "no-store"},
     )
 
 
@@ -291,7 +299,7 @@ async def login(request: Request):
         return JSONResponse(
             status_code=422,
             content=errorResponse(message=i18nTranslate("error.invalid_input", "invalid input", loc), code="AUTH_422_INVALID_INPUT"),
-            headers={"WWW-Authenticate": "Bearer"},
+            headers={"WWW-Authenticate": "Bearer", "Cache-Control": "no-store"},
         )
 
     # 레이트리밋(선체크): 이미 초과된 상태면 인증 로직(쿼리/해시)을 타기 전에 차단한다.
@@ -308,7 +316,7 @@ async def login(request: Request):
         return JSONResponse(
             status_code=401,
             content=errorResponse(message=i18nTranslate("error.invalid_credentials", "invalid credentials", loc), code="AUTH_401_INVALID"),
-            headers={"WWW-Authenticate": "Bearer"},
+            headers={"WWW-Authenticate": "Bearer", "Cache-Control": "no-store"},
         )
 
     tokenPayload = authResult["token"]
@@ -354,7 +362,11 @@ async def signup(request: Request):
         elif errorCode == "AUTH_503_DB_NOT_READY":
             statusCode = 503
             message = i18nTranslate("error.db_not_ready", "database not ready", loc)
-        return JSONResponse(status_code=statusCode, content=errorResponse(message=message, code=errorCode))
+        return JSONResponse(
+            status_code=statusCode,
+            content=errorResponse(message=message, code=errorCode),
+            headers={"Cache-Control": "no-store"},
+        )
 
     response = JSONResponse(status_code=201, content=successResponse(result=result))
     response.headers["Cache-Control"] = "no-store"
@@ -453,7 +465,7 @@ async def appLogin(request: Request):
         return JSONResponse(
             status_code=422,
             content=errorResponse(message=i18nTranslate("error.invalid_input", "invalid input", loc), code="AUTH_422_INVALID_INPUT"),
-            headers={"WWW-Authenticate": "Bearer"},
+            headers={"WWW-Authenticate": "Bearer", "Cache-Control": "no-store"},
         )
 
     limited = checkRateLimit(request, username=username, commit=False)
@@ -468,7 +480,7 @@ async def appLogin(request: Request):
         return JSONResponse(
             status_code=401,
             content=errorResponse(message=i18nTranslate("error.invalid_credentials", "invalid credentials", loc), code="AUTH_401_INVALID"),
-            headers={"WWW-Authenticate": "Bearer"},
+            headers={"WWW-Authenticate": "Bearer", "Cache-Control": "no-store"},
         )
 
     tokenPayload = authResult["token"]
@@ -495,7 +507,7 @@ async def appRefresh(request: Request):
                 message=i18nTranslate("auth.refresh_missing", "refresh token missing", loc),
                 code="AUTH_401_INVALID",
             ),
-            headers={"WWW-Authenticate": "Bearer"},
+            headers={"WWW-Authenticate": "Bearer", "Cache-Control": "no-store"},
         )
     try:
         tokenPayload = await AuthService.refresh(refreshToken)
@@ -520,7 +532,7 @@ async def appRefresh(request: Request):
                 message=i18nTranslate("auth.refresh_invalid", "invalid refresh token", loc),
                 code="AUTH_401_INVALID",
             ),
-            headers={"WWW-Authenticate": "Bearer"},
+            headers={"WWW-Authenticate": "Bearer", "Cache-Control": "no-store"},
         )
     response = JSONResponse(status_code=200, content=successResponse(result=appTokenResult(tokenPayload)))
     response.headers["Cache-Control"] = "no-store"

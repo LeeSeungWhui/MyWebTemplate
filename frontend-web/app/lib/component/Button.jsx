@@ -17,14 +17,14 @@ const Button = forwardRef(({
     iconPosition = 'left',
     disabled = false,
     loading = false,
-    status, // 'idle' | 'loading' | 'error' | 'success'
+    status, // 한글설명: 'idle' | 'loading' | 'error' | 'success'
     ...props
 }, ref) => {
     const baseStyle = "inline-flex items-center justify-center font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors";
 
     const variants = {
         primary: "bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500",
-        // inverse of primary: blue text, white background, blue border
+        // 한글설명: inverse of primary: blue text, white background, blue border
         secondary: "border border-blue-600 text-blue-600 bg-white hover:bg-blue-50 focus:ring-blue-500",
         outline: "border border-gray-300 text-gray-700 bg-white hover:bg-gray-50 focus:ring-blue-500",
         danger: "bg-red-600 text-white hover:bg-red-700 focus:ring-red-500",

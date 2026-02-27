@@ -27,6 +27,10 @@ class RateLimiter:
     """
 
     def __init__(self, limit: int = 5, windowSec: int = 60, sweepEvery: int = 256):
+        """
+        설명: 제한 횟수/윈도우/청소 주기를 초기화한다.
+        갱신일: 2026-02-27
+        """
         self.limit = int(limit)
         self.window = int(windowSec)
         self.store = {}
@@ -118,6 +122,6 @@ def checkRateLimit(request: Request, username: Optional[str] = None, *, commit: 
             return JSONResponse(
                 status_code=429,
                 content=errorResponse(message="too many requests", code="AUTH_429_RATE_LIMIT"),
-                headers={"Retry-After": str(retryAfter)},
+                headers={"Retry-After": str(retryAfter), "Cache-Control": "no-store"},
             )
     return None

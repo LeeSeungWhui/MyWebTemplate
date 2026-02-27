@@ -138,7 +138,7 @@ const Select = forwardRef((props, ref) => {
   const [innerValue, setInnerValue] = useState(() => deriveValueFromSources())
   const currentValue = isControlled ? String(valueProp ?? '') : innerValue
 
-  // Sync EasyList selection flags with the resolved value
+  // 한글설명: Sync EasyList selection flags with the resolved value
   useEffect(() => {
     const normalized = String(currentValue ?? '')
     const updater = (item) => {
@@ -153,14 +153,14 @@ const Select = forwardRef((props, ref) => {
     }
   }, [dataList, valueKey, currentValue])
 
-  // Update inner value when external sources change
+  // 한글설명: Update inner value when external sources change
   useEffect(() => {
     if (isControlled) return
     const next = deriveValueFromSources()
     setInnerValue((prev) => (prev === next ? prev : next))
   }, [deriveValueFromSources, isControlled])
 
-  // Subscribe to EasyObj/EasyList updates so that external mutations reflect immediately
+  // 한글설명: Subscribe to EasyObj/EasyList updates so that external mutations reflect immediately
   useEasySubscription(
     dataObj,
     useCallback(

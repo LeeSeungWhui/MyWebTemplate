@@ -37,7 +37,7 @@ def testTransactionSingleAndUniqueRollback():
 
         async def countRows():
             rows = await db.fetchAll(
-                "SELECT COUNT(*) as cnt FROM test_transaction WHERE value = :v",
+                "SELECT COUNT(*) as cnt FROM T_TEST_TRANSACTION WHERE VALUE = :v",
                 {"v": "tx-dup"},
             )
             return rows[0]["cnt"] if rows else 0

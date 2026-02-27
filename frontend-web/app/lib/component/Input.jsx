@@ -152,7 +152,7 @@ const Input = forwardRef(
           `^-?\\d{0,${maxDigits ?? 2}}(\\.\\d{0,${maxDecimals ?? 2}})?$`
         );
         if (!regex.test(value)) {
-          return; // reject invalid numeric pattern
+          return; // 한글설명: reject invalid numeric pattern
         }
       }
       if (isBoundControlled) {
@@ -210,7 +210,7 @@ const Input = forwardRef(
           const isAlpha = (inputChar) => /[a-zA-Z]/.test(inputChar);
           const nextMaskToken = (maskPattern, rawText) => {
             let maskPos = 0;
-            // consume existing raw according to mask
+            // 한글설명: consume existing raw according to mask
             for (let i = 0; i < rawText.length; i++) {
               while (maskPos < maskPattern.length && !MASK_TOKEN_RE.test(maskPattern[maskPos])) {
                 maskPos++;
@@ -315,7 +315,7 @@ const Input = forwardRef(
         try {
           event.target.value = committed;
         } catch (_) {
-          /* ignore readonly target */
+          /* 한글설명: ignore readonly target */
         }
       }
       const ctx = buildCtx({
@@ -406,7 +406,7 @@ const Input = forwardRef(
             });
           }}
           onBlur={(event) => {
-            // Ensure final sanitize on blur in case some IME didn't fire compositionend properly
+            // 한글설명: Ensure final sanitize on blur in case some IME didn't fire compositionend properly
             const committed = commitValue(event.target.value);
             if (typeof committed !== "undefined") {
               try {

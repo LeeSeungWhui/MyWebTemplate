@@ -20,7 +20,7 @@ const LOGOUT_PATH = "/api/v1/auth/logout";
 const ACCESS_COOKIE_NAME = "access_token";
 
 // refresh_token 기반 singleflight(동시 탭/요청 경합 완화)
-// key: sha256(refresh_token)
+// 한글설명: key: sha256(refresh_token)
 const refreshInflight = new Map();
 
 function toBackendUrl(

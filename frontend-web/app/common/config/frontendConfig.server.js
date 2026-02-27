@@ -89,7 +89,7 @@ export function parseIni(iniText) {
  */
 function coerceValue(valueRaw) {
   if (valueRaw === '') return ''
-  // Strip wrapping quotes if present (e.g., 'DEV' or "DEV")
+  // 한글설명: Strip wrapping quotes if present (e.g., 'DEV' or "DEV")
   if ((valueRaw.startsWith("'") && valueRaw.endsWith("'")) || (valueRaw.startsWith('"') && valueRaw.endsWith('"'))) {
     const inner = valueRaw.slice(1, -1)
     return coerceValue(inner)

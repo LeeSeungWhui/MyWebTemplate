@@ -6,7 +6,7 @@
  */
 // binding.js
 // Updated: 2025-09-09
-// Purpose: Common helpers for data binding (EasyObj/EasyList) and change context
+// 한글설명: Purpose: Common helpers for data binding (EasyObj/EasyList) and change context
 
 const isProxyLike = (obj) => obj && typeof obj === 'object' && (obj.__isProxy || obj.__rawObject);
 const getRaw = (obj) => (obj && obj.__rawObject) ? obj.__rawObject : obj;
@@ -17,9 +17,9 @@ const getRaw = (obj) => (obj && obj.__rawObject) ? obj.__rawObject : obj;
  */
 export function getBoundValue(dataObj, dataKey) {
   if (!dataObj || !dataKey) return undefined;
-  // Prefer explicit getter if provided
+  // 한글설명: Prefer explicit getter if provided
   if (typeof dataObj.get === 'function') return dataObj.get(dataKey);
-  // Dotted path support
+  // 한글설명: Dotted path support
   const parts = String(dataKey).split('.');
   let cur = dataObj;
   for (const segment of parts) {
@@ -69,7 +69,7 @@ export function buildCtx({ dataKey, dataObj, source = 'user', valid = null, dirt
  * @updated 2026-02-24
  */
 export function fireValueHandlers({ onChange, onValueChange, value, ctx, event }) {
-  // Back-compat: if consumer provided onChange expecting event, pass event with detail
+  // 한글설명: Back-compat: if consumer provided onChange expecting event, pass event with detail
   if (event) {
     try {
       if (!Object.prototype.hasOwnProperty.call(event, 'detail') || event.detail == null) {
@@ -82,7 +82,7 @@ export function fireValueHandlers({ onChange, onValueChange, value, ctx, event }
       try {
         event.detail = { value, ctx };
       } catch (_) {
-        // readonly detail; ignore
+        // 한글설명: readonly detail; ignore
       }
     }
   }

@@ -56,6 +56,13 @@ lastChangedFile: str | None = None
 # 요청 단위 SQL 카운터(ContextVar)
 sqlCountVar: contextvars.ContextVar[int] = contextvars.ContextVar("sql_count", default=0)
 
+SENSITIVE_SQL_PARAM_NAME_PATTERN = re.compile(
+    r"(pass(word)?|pwd|secret|token|refresh|access|auth|cookie|session|csrf|email|eml|phone|mobile|tel|ssn|rrn|card|account|acct|bank)",
+    re.IGNORECASE,
+)
+EMAIL_LITERAL_PATTERN = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
+JWT_LITERAL_PATTERN = re.compile(r"^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$")
+
 
 def maskDatabaseUrl(url: str) -> str:
     """
@@ -155,6 +162,10 @@ class QueryManager:
         return QueryManager.instance
 
     def __init__(self):
+        """
+        설명: 최초 생성 시 쿼리/파일 매핑 저장소를 초기화한다.
+        갱신일: 2026-02-27
+        """
         if QueryManager.instance is None:
             self.queries: dict[str, str] = {}
             self.nameToFile: dict[str, str] = {}
@@ -224,26 +235,89 @@ class DatabaseManager:
         raw = str(os.getenv("SQL_LOG_LITERAL_VALUES", "")).strip().lower()
         return raw in {"1", "true", "yes", "on"}
 
-    def toSqlLiteralForLog(self, value: Any, revealLiteral: bool) -> str:
-        """설명: 로그 출력용 SQL 리터럴 문자열로 변환한다. 갱신일: 2026-02-22"""
+    def isSensitiveSqlParamName(self, paramName: str | None) -> bool:
+        """
+        설명: 파라미터 키 이름으로 민감정보 가능성을 판별한다.
+        갱신일: 2026-02-27
+        """
+        name = str(paramName or "").strip()
+        if not name:
+            return False
+        return SENSITIVE_SQL_PARAM_NAME_PATTERN.search(name) is not None
+
+    def isSensitiveSqlStringValue(self, rawValue: str) -> bool:
+        """
+        설명: 문자열 값 자체가 토큰/이메일 같은 민감값인지 판별한다.
+        갱신일: 2026-02-27
+        """
+        value = str(rawValue or "").strip()
+        if not value:
+            return False
+        lowered = value.lower()
+        if lowered.startswith("bearer "):
+            return True
+        if JWT_LITERAL_PATTERN.fullmatch(value) and len(value) >= 24:
+            return True
+        if EMAIL_LITERAL_PATTERN.fullmatch(value):
+            return True
+        return False
+
+    def shouldMaskSqlParamForLog(self, paramName: str | None, value: Any) -> bool:
+        """
+        설명: SQL 로그 출력 시 마스킹이 필요한 파라미터인지 판정한다.
+        갱신일: 2026-02-27
+        """
+        if self.isSensitiveSqlParamName(paramName):
+            return True
+        if isinstance(value, str) and self.isSensitiveSqlStringValue(value):
+            return True
+        return False
+
+    def sanitizeSqlLogValue(self, value: Any) -> Any:
+        """
+        설명: dict/list 같은 복합 파라미터에서 민감 키를 재귀적으로 마스킹한다.
+        갱신일: 2026-02-27
+        """
+        if isinstance(value, str):
+            return "***" if self.isSensitiveSqlStringValue(value) else value
+        if isinstance(value, dict):
+            sanitized: dict[str, Any] = {}
+            for key, nested in value.items():
+                keyText = str(key)
+                if self.shouldMaskSqlParamForLog(keyText, nested):
+                    sanitized[keyText] = "***"
+                else:
+                    sanitized[keyText] = self.sanitizeSqlLogValue(nested)
+            return sanitized
+        if isinstance(value, list):
+            return [self.sanitizeSqlLogValue(item) for item in value]
+        if isinstance(value, tuple):
+            return tuple(self.sanitizeSqlLogValue(item) for item in value)
+        return value
+
+    def toSqlLiteralForLog(self, value: Any, revealLiteral: bool, paramName: str | None = None) -> str:
+        """설명: 로그 출력용 SQL 리터럴 문자열로 변환한다. 갱신일: 2026-02-27"""
         if value is None:
             return "NULL"
+        if self.shouldMaskSqlParamForLog(paramName, value):
+            return "'***'"
+        safeValue = self.sanitizeSqlLogValue(value)
         if not revealLiteral:
-            if isinstance(value, (int, float)) and not isinstance(value, bool):
+            if isinstance(safeValue, (int, float)) and not isinstance(safeValue, bool):
                 return "?"
-            if isinstance(value, bool):
+            if isinstance(safeValue, bool):
                 return "?"
             return "'***'"
-        if isinstance(value, bool):
-            return "TRUE" if value else "FALSE"
-        if isinstance(value, (int, float)) and not isinstance(value, bool):
-            return str(value)
-        if isinstance(value, (dict, list)):
-            text = json.dumps(value, ensure_ascii=False).replace("'", "''")
+        if isinstance(safeValue, bool):
+            return "TRUE" if safeValue else "FALSE"
+        if isinstance(safeValue, (int, float)) and not isinstance(safeValue, bool):
+            return str(safeValue)
+        if isinstance(safeValue, (dict, list)):
+            text = json.dumps(safeValue, ensure_ascii=False).replace("'", "''")
             return f"'{text}'"
-        if isinstance(value, (bytes, bytearray, memoryview)):
+        if isinstance(safeValue, (bytes, bytearray, memoryview)):
             return "'<binary>'"
-        text = str(value).replace("'", "''")
+        text = str(safeValue).replace("'", "''")
         return f"'{text}'"
 
     def renderQueryForLog(self, normalizedQuery: str, values: dict[str, Any] | None, revealLiteral: bool) -> str:
@@ -252,10 +326,11 @@ class DatabaseManager:
         pattern = re.compile(r"(?<!:):([a-zA-Z_][a-zA-Z0-9_]*)")
 
         def replace(match: re.Match[str]) -> str:
+            """설명: 개별 플레이스홀더를 로그용 리터럴로 치환한다. 갱신일: 2026-02-26"""
             key = match.group(1)
             if key not in params:
                 return match.group(0)
-            return self.toSqlLiteralForLog(params.get(key), revealLiteral)
+            return self.toSqlLiteralForLog(params.get(key), revealLiteral, paramName=key)
 
         return pattern.sub(replace, normalizedQuery)
 
@@ -533,6 +608,10 @@ class QueryFolderEventHandler(FileSystemEventHandler):
     """설명: SQL 파일 변경을 감지해 재로딩을 예약. 갱신일: 2025-11-12"""
 
     def __init__(self, onChange):
+        """
+        설명: SQL 파일 변경 콜백을 저장해 이벤트 수신 시 호출한다.
+        갱신일: 2026-02-27
+        """
         super().__init__()
         self.onChange = onChange
 

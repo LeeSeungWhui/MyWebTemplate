@@ -5,11 +5,11 @@
  * 설명: 루트 페이지 서버 엔트리
  */
 
+import HomeView from "@/app/view";
+
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 export const runtime = "nodejs";
-
-import HomeView from "@/app/view";
 
 /**
  * @description 공개 랜딩 화면을 렌더링한다.

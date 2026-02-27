@@ -36,7 +36,7 @@ const normalizeErrorMessage = async (response) => {
 
 const resolveUploadUrl = (url) => {
   if (!url || typeof url !== "string") return "";
-  if (/^https?:\/\//i.test(url)) return url;
+  if (/^https?:\/\// 한글설명: i.test(url)) return url;
   if (url.startsWith("/api/bff/")) {
     return url;
   }

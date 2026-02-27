@@ -52,12 +52,12 @@ const AppShell = ({ children }) => {
       onClick?.()
     } finally {
       hideAlert()
-      // move focus after the alert is closed/unmounted
+      // 한글설명: move focus after the alert is closed/unmounted
       setTimeout(() => onFocus?.(), 0)
     }
   }, [alert, hideAlert])
 
-  // auto-hide toast after duration if set
+  // 한글설명: auto-hide toast after duration if set
   useEffect(() => {
     if (toast?.show && (toast.duration ?? 3000) !== Infinity) {
       const toastTimer = setTimeout(() => hideToast(), toast.duration ?? 3000)
@@ -65,7 +65,7 @@ const AppShell = ({ children }) => {
     }
   }, [toast?.show, toast?.duration, hideToast])
 
-  // removed: focusing on show caused premature focus shift
+  // 한글설명: removed: focusing on show caused premature focus shift
 
   const onConfirmClose = useCallback((ok) => {
     const onFocus = confirm && typeof confirm.onFocus === 'function' ? confirm.onFocus : null

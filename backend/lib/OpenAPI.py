@@ -24,7 +24,8 @@ def attachOpenAPI(app: FastAPI, config) -> None:
 
     def readConfigValue(section: Optional[object], key: str, fallback: Optional[str] = None) -> Optional[str]:
         """
-        configparser.SectionProxy / dict 모두에서 안전하게 값을 읽는다.
+        설명: configparser.SectionProxy/dict 양쪽에서 설정 값을 안전하게 읽는다.
+        갱신일: 2026-02-26
         """
         if section is None:
             return fallback
@@ -44,6 +45,10 @@ def attachOpenAPI(app: FastAPI, config) -> None:
             return fallback
 
     def patchOpenapi(schema: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        설명: OpenAPI 스키마에 보안/응답/파라미터/코드샘플 정책을 패치한다.
+        갱신일: 2026-02-26
+        """
         try:
             authSection = None
             try:
@@ -179,6 +184,10 @@ def attachOpenAPI(app: FastAPI, config) -> None:
 
             # 설정값에서 서버 URL 목록을 구성
             def resolveServers():
+                """
+                설명: 설정 기반 서버 URL 목록을 OpenAPI servers 형식으로 변환한다.
+                갱신일: 2026-02-26
+                """
                 urls = []
                 try:
                     serverSection = config["SERVER"]
@@ -212,6 +221,10 @@ def attachOpenAPI(app: FastAPI, config) -> None:
             paths = schema.get("paths", {})
 
             def ensureJavaScriptCodeSample(operation: Dict[str, Any], source: str) -> None:
+                """
+                설명: operation에 openapi-client-axios JavaScript 예제를 보장한다.
+                갱신일: 2026-02-26
+                """
                 samples = operation.setdefault("x-codeSamples", [])
                 hasSample = any(
                     isinstance(sample, dict)
@@ -230,6 +243,10 @@ def attachOpenAPI(app: FastAPI, config) -> None:
                 )
 
             def ensureHeaderRef(operation: Dict[str, Any], refName: str) -> None:
+                """
+                설명: operation 파라미터에 공통 헤더 ref를 중복 없이 추가한다.
+                갱신일: 2026-02-26
+                """
                 parameters = operation.setdefault("parameters", [])
                 refPath = f"#/components/parameters/{refName}"
                 hasRef = any(isinstance(param, dict) and param.get("$ref") == refPath for param in parameters)
@@ -386,6 +403,10 @@ def attachOpenAPI(app: FastAPI, config) -> None:
         return schema
 
     def customOpenapi():
+        """
+        설명: FastAPI 기본 스키마 생성 후 patchOpenapi를 적용해 캐시한다.
+        갱신일: 2026-02-26
+        """
         if app.openapi_schema:
             return app.openapi_schema
         openapiSchema = get_openapi(

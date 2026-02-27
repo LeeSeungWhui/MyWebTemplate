@@ -113,6 +113,67 @@ def testBindParameterEnforcementMoreCases():
     manager.validateBindParameters("SELECT * FROM t WHERE a=:a AND b=:b", {"a": 1, "b": 2})
 
 
+def testSqlRenderedLiteralMasksSensitiveParams():
+    from lib.Database import DatabaseManager
+
+    manager = DatabaseManager("sqlite:///ignored.db")
+    fakeJwt = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJkZW1vQGRlbW8uZGVtbyJ9.sig1234567890123456789012"
+    rendered = manager.renderQueryForLog(
+        "SELECT :password AS pw, :email AS eml, :title AS ttl, :refreshToken AS rt",
+        {
+            "password": "SuperSecret!234",
+            "email": "demo@demo.demo",
+            "title": "hello world",
+            "refreshToken": fakeJwt,
+        },
+        True,
+    )
+    assert "SuperSecret!234" not in rendered
+    assert "demo@demo.demo" not in rendered
+    assert fakeJwt not in rendered
+    assert "'hello world'" in rendered
+    assert rendered.count("'***'") >= 3
+
+
+def testSqlRenderedLiteralMasksSensitiveNestedPayload():
+    from lib.Database import DatabaseManager
+
+    manager = DatabaseManager("sqlite:///ignored.db")
+    rendered = manager.renderQueryForLog(
+        "SELECT :payload AS payload",
+        {
+            "payload": {
+                "contactEmail": "owner@example.com",
+                "password": "nested-secret",
+                "memo": "visible",
+            }
+        },
+        True,
+    )
+    assert "owner@example.com" not in rendered
+    assert "nested-secret" not in rendered
+    assert "visible" in rendered
+    assert "***" in rendered
+
+
+def testSqlRenderedLiteralMasksSensitiveNestedListValues():
+    from lib.Database import DatabaseManager
+
+    manager = DatabaseManager("sqlite:///ignored.db")
+    fakeJwt = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJvd25lckBleGFtcGxlLmNvbSJ9.sig1234567890123456789012"
+    rendered = manager.renderQueryForLog(
+        "SELECT :payload AS payload",
+        {
+            "payload": ["owner@example.com", "visible-text", fakeJwt]
+        },
+        True,
+    )
+    assert "owner@example.com" not in rendered
+    assert fakeJwt not in rendered
+    assert "visible-text" in rendered
+    assert "***" in rendered
+
+
 def testConfigTogglesDisablesWatchdog():
     from lib.Database import setQueryConfig, startWatchingQueryFolder
 

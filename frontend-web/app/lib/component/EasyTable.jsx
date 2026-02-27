@@ -42,44 +42,44 @@ const clamp = (value, min, max) => Math.max(min, Math.min(value, max));
  */
 const EasyTable = forwardRef(function EasyTable(
   {
-    // data & columns
+    // 데이터/컬럼 설정
     data = [],
-    columns = [], // [{ key, header, width, align, headerClassName, cellClassName, render(row, idx) }]
+    columns = [], // 컬럼 스펙 목록
     rowKey = defaultRowKey,
-    // layout
+    // 레이아웃 설정
     className = '',
     headerClassName = '',
     rowClassName = '',
     cellClassName = '',
-    rowsClassName = '', // container for rows (e.g., 'space-y-2')
+    rowsClassName = '', // 행 래퍼 클래스(예: 'space-y-2')
     preserveRowSpace = true,
     empty = COMMON_COMPONENT_LANG_KO.easyTable.empty,
     loading = false,
-    // interactions
+    // 상호작용 핸들러
     onRowClick,
-    // pagination
+    // 페이지네이션 옵션
     page: pageProp,
     defaultPage = 1,
     pageSize = 10,
     maxPageButtons = 10,
-    total: totalProp, // for server paging
-    pageParam, // e.g. 'page' to sync with URL
-    persistKey, // sessionStorage key
-    persist = 'session', // 'session' | 'local'
+    total: totalProp, // 서버 페이지네이션 총 개수
+    pageParam, // URL 동기화용 파라미터명(예: 'page')
+    persistKey, // 스토리지 키(session/local)
+    persist = 'session', // 저장소 타입: 'session' | 'local'
     onPageChange,
-    // variant
-    variant = 'table', // 'table' | 'card'
-    // card-only
+    // 렌더링 변형
+    variant = 'table', // 지원 타입: 'table' | 'card'
+    // 카드 모드 전용 옵션
     renderCard,
     cardsPerRow = 4,
     gridClassName = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4',
-    // status & error
+    // 상태/오류 처리
     status,
     errorText,
   },
   ref
 ) {
-  // derive initial page
+  // 초기 페이지 계산
   const initPage = (typeof pageProp === 'number') ? pageProp : defaultPage;
 
   const [pageState, setPageState] = useState(initPage);
@@ -93,13 +93,13 @@ const EasyTable = forwardRef(function EasyTable(
   const effectivePageSize = Math.max(1, pageSize);
   const pageCount = Math.max(1, Math.ceil(size / effectivePageSize));
 
-  // clamp when data size changes (uncontrolled only)
+  // 데이터 길이 변경 시 페이지 범위 보정(uncontrolled 모드)
   useEffect(() => {
     if (typeof pageProp === 'number') return;
     if (page > pageCount) setPageState(pageCount);
   }, [pageCount]);
 
-  // initialize from URL/persist AFTER hydration to avoid SSR mismatch (uncontrolled)
+  // hydration 이후 URL/스토리지 값으로 초기화해 SSR 불일치 방지(uncontrolled 모드)
   useEffect(() => {
     if (typeof pageProp === 'number') return;
     if (typeof window === 'undefined') return;
@@ -128,7 +128,7 @@ const EasyTable = forwardRef(function EasyTable(
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pageProp, pageParam, persistKey, persist, defaultPage]);
 
-  // persist + URL sync (uncontrolled)
+  // 페이지 상태를 저장소/URL에 동기화(uncontrolled 모드)
   useEffect(() => {
     if (typeof pageProp === 'number') return;
     if (persistKey && typeof window !== 'undefined') {
@@ -209,7 +209,7 @@ const EasyTable = forwardRef(function EasyTable(
   const onChangePage = (next) => {
     const target = clamp(next, 1, pageCount);
     if (typeof pageProp === 'number') {
-      // controlled
+      // controlled 모드: 상위 onPageChange에 위임
       onPageChange?.(target);
     } else {
       setPageState(target);
@@ -302,14 +302,14 @@ const EasyTable = forwardRef(function EasyTable(
     if (isBusy) {
       return (
         <div className="p-6 text-center text-gray-500" role="status" aria-live="polite">
-          Loading...
+          {COMMON_COMPONENT_LANG_KO.easyTable.loading}
         </div>
       );
     }
     if (isError) {
       return (
         <div className="p-6 text-center text-red-600" role="alert">
-          {errorText || 'Error'}
+          {errorText || COMMON_COMPONENT_LANG_KO.easyTable.error}
         </div>
       );
     }

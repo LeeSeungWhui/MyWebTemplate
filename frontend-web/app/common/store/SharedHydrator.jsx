@@ -9,8 +9,8 @@
 import { useEffect } from 'react'
 import { useSharedStore } from './SharedStore'
 
-// Hydrates shared store from SSR-provided initial data.
-// Pass userJson (e.g., { userId, name }) and/or sharedPatch (partial shared object).
+// 한글설명: Hydrates shared store from SSR-provided initial data.
+// 한글설명: Pass userJson (e.g., { userId, name }) and/or sharedPatch (partial shared object).
 /**
  * @description SharedHydrator export를 노출한다.
  */
@@ -19,7 +19,7 @@ const SharedHydrator = ({ userJson, sharedPatch, config }) => {
   useEffect(() => {
     if (typeof userJson !== 'undefined') {
       setUserJson(userJson || null)
-      // maintain derived lightweight user for convenience
+      // 한글설명: maintain derived lightweight user for convenience
       if (userJson && (userJson.userId || userJson.name)) {
         setUser({ userId: userJson.userId, name: userJson.name })
       } else {

@@ -415,6 +415,9 @@ async def httpExceptionHandler(request: Request, exc: HTTPException):
         headers.setdefault("WWW-Authenticate", "Bearer")
 
     statusCode = int(getattr(exc, "status_code", 500) or 500)
+    if statusCode == 401:
+        headers.setdefault("Cache-Control", "no-store")
+
     detail = getattr(exc, "detail", None)
     message = str(detail) if detail is not None else "error"
 

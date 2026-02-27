@@ -59,7 +59,7 @@ const Tab = ({
 
     return (
         <div className={`flex flex-col ${className}`}>
-            {/* Tab Headers */}
+            {/* 한글설명: Tab Headers */}
             <div className="flex border-b border-gray-200">
                 {items.map((item, index) => (
                     <button
@@ -78,7 +78,7 @@ const Tab = ({
                 ))}
             </div>
 
-            {/* Tab Content */}
+            {/* 한글설명: Tab Content */}
             <div className="py-4">
                 {items[currentTab]}
             </div>

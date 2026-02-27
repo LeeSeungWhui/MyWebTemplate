@@ -54,7 +54,7 @@ const CheckButton = React.forwardRef(({
         }
 
         const ctx = buildCtx({ dataKey: dataKeyName, dataObj, source: 'user', dirty: true, valid: null });
-        try { event.target.value = newChecked; } catch (_) { /* ignore read-only */ }
+        try { event.target.value = newChecked; } catch (_) { /* 한글설명: ignore read-only */ }
         fireValueHandlers({
             onChange,
             onValueChange,

@@ -47,6 +47,8 @@ export const COMMON_COMPONENT_LANG_KO = {
   },
   easyTable: {
     empty: "데이터가 없습니다.",
+    loading: "불러오는 중...",
+    error: "오류가 발생했습니다.",
     noRenderCardProvided: "카드 렌더링 함수가 없습니다.",
   },
   easyUpload: {
@@ -58,6 +60,7 @@ export const COMMON_COMPONENT_LANG_KO = {
     uploadUnknownError: "파일 업로드 중 알 수 없는 오류가 발생했습니다.",
   },
   header: {
+    defaultTitle: "Dashboard",
     toggleSidebarAriaLabel: "사이드바 토글",
     primaryMenuAriaLabel: "주요 메뉴",
     defaultMenuLabel: "메뉴",

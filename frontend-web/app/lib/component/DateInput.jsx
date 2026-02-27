@@ -6,7 +6,7 @@
  */
 // DateInput.jsx
 // Updated: 2025-09-09
-// Purpose: Simple date input with EasyObj binding
+// 한글설명: Purpose: Simple date input with EasyObj binding
 import { forwardRef, useEffect, useRef, useState, useMemo } from 'react';
 import { getBoundValue, setBoundValue, buildCtx, fireValueHandlers } from '../binding';
 import Icon from './Icon';

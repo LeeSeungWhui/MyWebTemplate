@@ -23,26 +23,26 @@ def testSavepointPartialRollback():
             await ensureTables()
             db = DB.dbManagers["main_db"]
             # clear table for deterministic test
-            await db.execute("DELETE FROM test_transaction")
+            await db.execute("DELETE FROM T_TEST_TRANSACTION")
             # insert keep1
-            await db.execute("INSERT INTO test_transaction (value) VALUES (:val)", {"val": "keep1"})
+            await db.execute("INSERT INTO T_TEST_TRANSACTION (VALUE) VALUES (:val)", {"val": "keep1"})
             # duplicate in savepoint; on error should rollback only inner block
             try:
                 async with savepoint("main_db", "sp1"):
-                    await db.execute("INSERT INTO test_transaction (value) VALUES (:val)", {"val": "dup"})
+                    await db.execute("INSERT INTO T_TEST_TRANSACTION (VALUE) VALUES (:val)", {"val": "dup"})
                     # second insert violates UNIQUE
-                    await db.execute("INSERT INTO test_transaction (value) VALUES (:val)", {"val": "dup"})
+                    await db.execute("INSERT INTO T_TEST_TRANSACTION (VALUE) VALUES (:val)", {"val": "dup"})
             except Exception:
                 # expected due to unique constraint; outer tx continues
                 pass
             # insert keep2 outside savepoint
-            await db.execute("INSERT INTO test_transaction (value) VALUES (:val)", {"val": "keep2"})
+            await db.execute("INSERT INTO T_TEST_TRANSACTION (VALUE) VALUES (:val)", {"val": "keep2"})
 
         anyio.run(doOps)
 
         async def fetchCounts():
             db = DB.dbManagers["main_db"]
-            rows = await db.fetchAll("SELECT value, COUNT(*) as cnt FROM test_transaction GROUP BY value")
+            rows = await db.fetchAll("SELECT VALUE AS value, COUNT(*) as cnt FROM T_TEST_TRANSACTION GROUP BY VALUE")
             return {row["value"]: row["cnt"] for row in (rows or [])}
 
         countsByValue = anyio.run(fetchCounts)

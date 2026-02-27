@@ -4,7 +4,7 @@
  * 갱신일: 2025-09-13
  * 설명: 로그인 초기 데이터 엔드포인트
  */
-// Endpoints for initial (SEO-friendly) data fetch on login
+// 한글설명: Endpoints for initial (SEO-friendly) data fetch on login
 export const SESSION_PATH = '/api/v1/auth/me'
 
 /**
@@ -21,7 +21,7 @@ export const createLoginFormModel = () => ({
   },
 })
 
-// Default client-side configuration (CSR)
+// 한글설명: Default client-side configuration (CSR)
 export const CLIENT_ONLY_MODE = {
   MODE: 'CSR',
   init: null,

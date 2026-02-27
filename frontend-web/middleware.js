@@ -71,7 +71,7 @@ export async function middleware(req) {
   ).toLowerCase();
   if (purpose.includes("prefetch")) return NextResponse.next();
 
-  // If already authenticated and visiting /login or root, bounce to home
+  // 한글설명: If already authenticated and visiting /login or root, bounce to home
   if (path.startsWith("/login")) {
     // access_token이 유효한 경우에만 /login에서 대시보드로 보낸다(스테일 refresh_token 루프 방지)
     if (hasValidAccessToken) {
@@ -80,7 +80,7 @@ export async function middleware(req) {
       res.cookies.set(AUTH_REASON_COOKIE, "", { path: "/", maxAge: 0 });
       return res;
     }
-    // If next query exists, convert to cookie then redirect to clean /login (no query)
+    // 한글설명: If next query exists, convert to cookie then redirect to clean /login (no query)
     const nextParam = url.searchParams.get(NEXT_QUERY_PARAM);
     const reasonParam = url.searchParams.get(AUTH_REASON_QUERY_PARAM);
     if (nextParam || reasonParam) {
@@ -148,7 +148,7 @@ export async function middleware(req) {
     return NextResponse.next();
   }
 
-  // Allow public routes to pass without auth
+  // 한글설명: Allow public routes to pass without auth
   if (isPublicPath(path)) {
     if (hasAuthCookie && req.cookies.get(NX_COOKIE)) {
       const res = NextResponse.next();
@@ -180,7 +180,7 @@ export async function middleware(req) {
   if (!hasAuthCookie) {
     const res = NextResponse.redirect(new URL("/login", req.url));
     const nextValue = sanitizeInternalPath(path + (url.search || ""));
-    // Stash desired path in httpOnly cookie (hidden from address bar and client JS)
+    // 한글설명: Stash desired path in httpOnly cookie (hidden from address bar and client JS)
     res.cookies.set(NX_COOKIE, nextValue, {
       path: "/",
       httpOnly: true,

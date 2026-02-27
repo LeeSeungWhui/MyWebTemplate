@@ -42,7 +42,7 @@ const toArray = (list) => {
  * @param {string} [props.className] 추가 클래스
  */
 const Header = ({
-  title = "Dashboard",
+  title = COMMON_COMPONENT_LANG_KO.header.defaultTitle,
   subtitle,
   menuList,
   subMenuList,

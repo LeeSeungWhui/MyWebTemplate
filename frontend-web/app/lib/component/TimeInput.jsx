@@ -6,7 +6,7 @@
  */
 // TimeInput.jsx
 // Updated: 2025-09-09
-// Purpose: Simple time input with EasyObj binding
+// 한글설명: Purpose: Simple time input with EasyObj binding
 import { forwardRef, useEffect, useMemo, useRef, useState } from 'react';
 import { getBoundValue, setBoundValue, buildCtx, fireValueHandlers } from '../binding';
 import Icon from './Icon';
@@ -72,7 +72,7 @@ const TimeInput = forwardRef(({
   const inputRef = useRef(null);
   const rootRef = useRef(null);
 
-  const interval = Math.max(1, step ?? 30); // seconds step for list granularity (default 30)
+  const interval = Math.max(1, step ?? 30); // 한글설명: seconds step for list granularity (default 30)
   const items = useMemo(() => {
     const options = [];
     for (let secondCursor = 0; secondCursor < 24 * 60 * 60; secondCursor += interval * 60) {

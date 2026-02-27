@@ -101,6 +101,9 @@ def issueTokens(username: str, remember: bool = False) -> dict:
 
 - import 순서: 표준 라이브러리 → 서드파티 → 로컬(`lib/`, `service/`, `router/`)
   - 그룹 사이 빈 줄 1줄
+- 모듈 상단 import 블록 무결성 유지
+  - 선행 실행문(상수 할당/함수 호출/로거 생성 등) 이후 정적 import 재등장 금지
+  - 예외: `if TYPE_CHECKING:` 블록, `try: import ... except: <fallback>` 패턴은 허용
 - 타입 힌트는 “공개 인터페이스/경계”에만 우선 적용한다.
   - router↔service, service↔lib 같은 경계
   - 복잡한 제네릭으로 가독성 깨는 건 금지
@@ -148,7 +151,7 @@ def issueTokens(username: str, remember: bool = False) -> dict:
 - SQL은 `backend/query/*.sql`에서 `-- name: key`로 관리하고, 서비스에서는 `fetchOneQuery("key", {bind})`처럼 호출한다.
 - 바인드 파라미터는 `:name` 형식만 사용한다.
 - 파라미터 누락/여분은 실패로 처리한다(템플릿 DB 레이어가 강제).
-- 로그에는 파라미터 값을 남기지 않는다(키만 마스킹).
+- 로그에는 유지보수 목적의 파라미터 값 노출을 허용한다(단, PII/시크릿은 반드시 마스킹).
 - 쿼리문은 대문자 작성 원칙으로 통일한다.
   - 대상: 키워드, 함수명, 테이블명, 컬럼명, 별칭
   - 예: `SELECT`, `COALESCE`, `T_USER`, `USER_ID`, `AS USER_NM`
@@ -204,5 +207,10 @@ SELECT STAT_CD
 
 1. 기능 구현: 라우터→서비스→DB/유틸 흐름을 먼저 완성한다.
 2. 리팩터링: 책임 분리/네이밍/에러 코드/로그/테스트를 이 문서 기준으로 정리한다.
+3. 룰게이트 운영/동기화:
+   - 실행 모드 기준(`--all`/`--changed`)과 문서 변경 시 동기화 절차는
+     `docs/backend/rule-gate-operations.md`를 따른다.
+   - 검출/비검출 회귀 기준은
+     `docs/backend/rule-gate-regression-cases.md`를 기준으로 유지한다.
 
 이 문서의 규칙을 바꾸면, 템플릿 코드와 문서도 반드시 같이 갱신한다.

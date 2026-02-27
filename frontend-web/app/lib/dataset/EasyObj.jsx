@@ -201,7 +201,7 @@ function useEasyObj(initialData = {}) {
             try {
                 listener(detail);
             } catch {
-                // suppress listener failures
+                // 한글설명: suppress listener failures
             }
         });
     };

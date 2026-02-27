@@ -84,8 +84,16 @@ def transaction(
             pass
 
     def decorator(func):
+        """
+        설명: 트랜잭션 옵션을 캡처한 데코레이터를 생성한다.
+        갱신일: 2026-02-26
+        """
         @wraps(func)
         async def wrapper(*args, **kwargs):
+            """
+            설명: 대상 함수를 트랜잭션/재시도 정책으로 감싸 실행한다.
+            갱신일: 2026-02-26
+            """
             attempt = 0
             lastExc: BaseException | None = None
             while attempt <= max(0, retries):
@@ -187,6 +195,10 @@ class Savepoint:
     """설명: SAVEPOINT 관리용 컨텍스트. 갱신일: 2025-11-12"""
 
     def __init__(self, dbName: str, name: str):
+        """
+        설명: 대상 DB와 savepoint 이름을 검증해 보관한다.
+        갱신일: 2026-02-27
+        """
         self.dbName = dbName
         self.name = self.validateName(name)
 

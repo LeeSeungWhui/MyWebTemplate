@@ -34,7 +34,7 @@ function isTestEnv() {
 }
 
 function isAbsoluteUrl(input) {
-  return typeof input === "string" && /^https?:\/\//i.test(input);
+  return typeof input === "string" && /^https?:\/\// 한글설명: i.test(input);
 }
 
 function toBffPath(path) {
@@ -66,14 +66,14 @@ function isBinaryBody(value) {
 function serializeBody(input) {
   if (input == null) return undefined;
   if (isBodyLike(input)) return input;
-  // EasyObj/EasyList proxies expose toJSON; JSON.stringify will respect it.
-  // Also supports plain objects/arrays directly.
+  // 한글설명: EasyObj/EasyList proxies expose toJSON; JSON.stringify will respect it.
+  // 한글설명: Also supports plain objects/arrays directly.
   try {
     return typeof input === "string" ? input : JSON.stringify(input);
   } catch {
-    // Fallback: attempt structured clone via toJSON where possible
+    // 한글설명: Fallback: attempt structured clone via toJSON where possible
     try {
-      // This will call toJSON on proxies and drop unsupported values
+      // 한글설명: This will call toJSON on proxies and drop unsupported values
       return JSON.stringify(JSON.parse(JSON.stringify(input)));
     } catch {
       return JSON.stringify({});
@@ -82,13 +82,13 @@ function serializeBody(input) {
 }
 
 function normalizeArgs(path, a2, a3) {
-  // Supports overloading:
-  // - api*(path)
-  // - api*(path, init)
-  // - api*(path, body)
-  // - api*(path, body, 'authless')
-  // - api*(path, body, { authless: boolean })
-  // - api*(path, initLike, 'authless' | options)
+  // 한글설명: Supports overloading:
+  // 한글설명: - api*(path)
+  // 한글설명: - api*(path, init)
+  // 한글설명: - api*(path, body)
+  // 한글설명: - api*(path, body, 'authless')
+  // 한글설명: - api*(path, body, { authless: boolean })
+  // 한글설명: - api*(path, initLike, 'authless' | options)
   const isInitLike = (value) => {
     if (!value || typeof value !== "object") return false;
     if (isBodyLike(value)) return false;
@@ -259,7 +259,7 @@ export async function apiRequest(path, initOrBody = {}, modeOrOptions) {
     return doFetch();
   }
 
-  // Client: delegate to CSR helpers with refresh-once logic
+  // 한글설명: Client: delegate to CSR helpers with refresh-once logic
   const targetUrl = absoluteUrl ? path : toBffPath(path);
   const headers = { ...headersIn };
   if (!hasHeader(headers, "accept-language"))

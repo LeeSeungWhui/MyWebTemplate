@@ -63,10 +63,10 @@ export function base64UrlEncodeUtf8(text) {
         binary += String.fromCharCode(...chunk);
       }
       const base64 = btoa(binary);
-      return base64.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
+      return base64.replace(/\+/g, "-").replace(/\// 한글설명: g, "_").replace(/=+$/g, "");
     }
   } catch {
-    // fall through
+    // 한글설명: fall through
   }
   try {
     if (typeof Buffer !== "undefined") {
@@ -100,7 +100,7 @@ export function base64UrlDecodeUtf8(input) {
       return new TextDecoder().decode(bytes);
     }
   } catch {
-    // fall through
+    // 한글설명: fall through
   }
 
   try {

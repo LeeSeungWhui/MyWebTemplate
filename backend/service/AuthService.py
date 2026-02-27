@@ -18,7 +18,7 @@ import secrets
 from datetime import datetime, timezone
 
 try:
-    import bcrypt  # optional; used only if available
+    import bcrypt  # bcrypt는 설치된 환경에서만 선택적으로 사용한다.
 except Exception:
     bcrypt = None
 

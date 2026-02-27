@@ -15,8 +15,8 @@ const Stat = ({
   label,
   value,
   delta,
-  deltaType = 'neutral', // 'up' | 'down' | 'neutral'
-  icon, // optional ReactNode
+  deltaType = 'neutral', // 한글설명: 'up' | 'down' | 'neutral'
+  icon, // 한글설명: optional ReactNode
   helpText,
   className = '',
 }) => {

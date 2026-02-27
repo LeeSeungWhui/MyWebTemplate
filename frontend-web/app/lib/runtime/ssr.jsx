@@ -5,7 +5,7 @@
  * 설명: SSR 유틸리티 모듈
  */
 export async function buildSSRHeaders(extra = {}) {
-  // Next.js 15 dynamic APIs must be awaited
+  // 한글설명: Next.js 15 dynamic APIs must be awaited
   const mod = await import('next/headers')
   const cookieStore = await mod.cookies()
   const headersList = await mod.headers()

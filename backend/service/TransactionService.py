@@ -24,7 +24,7 @@ async def ensureTables(dbName: str = "main_db") -> None:
     try:
         await db.fetchOneQuery("transaction.pingTestTable")
     except Exception as e:
-        raise RuntimeError("test_transaction table is missing. seed/migrate schema before runtime.") from e
+        raise RuntimeError("T_TEST_TRANSACTION table is missing. seed/migrate schema before runtime.") from e
 
 
 @transaction("main_db")
@@ -50,6 +50,6 @@ async def testUniqueViolation() -> None:
     await ensureTables("main_db")
     db = DB.getManager("main_db")
     assert db is not None
-    # Intentionally trigger UNIQUE constraint error. The decorator must roll back the whole tx.
+    # UNIQUE 제약 위반을 의도적으로 유발한다. 데코레이터가 전체 트랜잭션을 롤백해야 한다.
     await db.executeQuery("transaction.insertValue", {"val": "tx-dup"})
     await db.executeQuery("transaction.insertValue", {"val": "tx-dup"})

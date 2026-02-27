@@ -110,7 +110,7 @@ def bindAuthUsernameToRequestState(request: Request, username: str | None) -> No
 def createAccessToken(data: dict, *, tokenType: str = "access", expireMinutes: int | None = None) -> Token:
     """
     설명: 페이로드에 만료(exp)를 추가해 JWT 액세스/리프레시 토큰 생성.
-    갱신일: 2025-11-XX
+    갱신일: 2026-02-26
     """
     if not AuthConfig.secretKey:
         raise Exception("SECRET_KEY가 설정되지 않았습니다.")
@@ -151,7 +151,7 @@ def createRefreshToken(data: dict) -> Token:
 async def getCurrentUser(request: Request, token: str | None = Depends(oauth2Scheme)):
     """
     설명: Bearer 토큰을 검증하고 인증된 사용자 식별자를 반환.
-    갱신일: 2025-11-XX
+    갱신일: 2026-02-26
     """
     credentialsException = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,

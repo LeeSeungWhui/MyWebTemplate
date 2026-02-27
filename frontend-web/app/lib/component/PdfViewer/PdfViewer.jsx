@@ -14,7 +14,7 @@ import { defaultLayoutPlugin } from '@react-pdf-viewer/default-layout';
 import Empty from '../Empty.jsx';
 import { COMMON_COMPONENT_LANG_KO } from '@/app/common/i18n/lang.ko';
 
-// Viewer/Worker stay client-only to avoid node-canvas crashes under SSR
+// 한글설명: Viewer/Worker stay client-only to avoid node-canvas crashes under SSR
 const Viewer = dynamic(() => import('@react-pdf-viewer/core').then((m) => m.Viewer), { ssr: false });
 const Worker = dynamic(() => import('@react-pdf-viewer/core').then((m) => m.Worker), { ssr: false });
 
@@ -57,14 +57,14 @@ const PdfViewer = ({
   const [viewerError, setViewerError] = useState(null);
   const [isLoading, setIsLoading] = useState(Boolean(src));
   const [documentState, setDocumentState] = useState(() => initialDocumentState(normalizedInitialPage));
-  // Initialize toolbar plugin at the top level (not inside another hook)
+  // 한글설명: Initialize toolbar plugin at the top level (not inside another hook)
   const defaultLayoutPluginInstance = withToolbar
     ? defaultLayoutPlugin({ renderToolbar: (Toolbar) => <Toolbar /> })
     : null;
 
   const plugins = useMemo(() => (defaultLayoutPluginInstance ? [defaultLayoutPluginInstance] : []), [defaultLayoutPluginInstance]);
 
-  // No dynamic import for plugin; created synchronously above.
+  // 한글설명: No dynamic import for plugin; created synchronously above.
 
   useEffect(() => {
     const nextFileUrl = toObjectUrl(src);
@@ -74,7 +74,7 @@ const PdfViewer = ({
         try {
           URL.revokeObjectURL(nextFileUrl);
         } catch {
-          // Ignore revoke failures
+          // 한글설명: Ignore revoke failures
         }
       }
     };
