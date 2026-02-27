@@ -63,7 +63,7 @@ export function base64UrlEncodeUtf8(text) {
         binary += String.fromCharCode(...chunk);
       }
       const base64 = btoa(binary);
-      return base64.replace(/\+/g, "-").replace(/\// 한글설명: g, "_").replace(/=+$/g, "");
+      return base64.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
     }
   } catch {
     // 한글설명: fall through

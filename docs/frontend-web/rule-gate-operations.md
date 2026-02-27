@@ -25,7 +25,7 @@
 체크리스트:
 1. 문서 diff에서 변경된 규칙 섹션 번호/제목을 기록한다.
 2. 룰게이트 자동 규칙 매핑(`FE-A-*`) 영향 여부를 분류한다.
-3. 자동 검사가 필요한 항목이면 `myweb-rule-gate` 구현(정규식/휴리스틱/allowlist)을 갱신한다.
+3. 자동 검사가 필요한 항목이면 `myweb-rule-gate` 구현(정규식/휴리스틱/allowlist/파서 검사)을 갱신한다.
 4. 수동 검사가 맞는 항목이면 `MANUAL` 포커스 항목 설명을 갱신한다.
 5. `scripts/cli/check-myweb-rule-gate-regression.sh`를 실행한다.
 6. 실제 저장소에서 `--changed` + `--all`을 모두 실행해 결과를 확인한다.
@@ -39,4 +39,3 @@ python3 /home/hwi/.codex/skills/myweb-rule-gate/scripts/rule_gate.py . --changed
 python3 /home/hwi/.codex/skills/myweb-rule-gate/scripts/rule_gate.py . --all
 bash scripts/cli/check-myweb-rule-gate-regression.sh .
 ```
-

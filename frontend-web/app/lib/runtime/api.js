@@ -34,7 +34,7 @@ function isTestEnv() {
 }
 
 function isAbsoluteUrl(input) {
-  return typeof input === "string" && /^https?:\/\// 한글설명: i.test(input);
+  return typeof input === "string" && /^https?:\/\//i.test(input);
 }
 
 function toBffPath(path) {

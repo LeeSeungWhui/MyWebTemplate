@@ -37,6 +37,7 @@ mkdir -p \
   "$FIXTURE_REPO/docs/backend" \
   "$FIXTURE_REPO/frontend-web/app/common/layout" \
   "$FIXTURE_REPO/frontend-web/app/lib/component" \
+  "$FIXTURE_REPO/frontend-web/app/lib/runtime" \
   "$FIXTURE_REPO/frontend-web/app/dashboard"
 
 cp "$ROOT/docs/frontend-web/codding-rules-frontend.md" "$FIXTURE_REPO/docs/frontend-web/codding-rules-frontend.md"
@@ -148,6 +149,35 @@ const ImportIntegrityGood = () => {
 };
 
 export default ImportIntegrityGood;
+EOF
+
+cat > "$FIXTURE_REPO/frontend-web/app/lib/runtime/SyntaxErrorBad.js" <<'EOF'
+/**
+ * 파일명: lib/runtime/SyntaxErrorBad.js
+ * 작성자: LSH
+ * 갱신일: 2026-02-27
+ * 설명: JS 파싱 실패 회귀 검증 fixture
+ */
+
+const SyntaxErrorBad = () => {
+  return /^https?:\/\// 한글설명: i.test("https://example.com");
+};
+
+export default SyntaxErrorBad;
+EOF
+
+cat > "$FIXTURE_REPO/frontend-web/app/lib/runtime/RegexLiteralCommentSafe.js" <<'EOF'
+/**
+ * 파일명: lib/runtime/RegexLiteralCommentSafe.js
+ * 작성자: LSH
+ * 갱신일: 2026-02-27
+ * 설명: 정규식 리터럴 내부 // 패턴 오탐 방지 fixture
+ */
+
+const isAbsoluteUrl = (input) => typeof input === "string" && /^https?:\/\//i.test(input);
+const sanitizeSlash = (raw) => String(raw || "").replace(/\//g, "_");
+
+export { isAbsoluteUrl, sanitizeSlash };
 EOF
 
 cat > "$FIXTURE_REPO/frontend-web/app/lib/component/CommentEnglishBad.jsx" <<'EOF'
@@ -279,6 +309,8 @@ assert_contains "컴포넌트 문구 하드코딩 지양: 'Loading...' frontend-
 assert_contains "컴포넌트 문구 하드코딩 지양: 'Error' frontend-web/app/lib/component/EasyTable.jsx"
 assert_contains "불필요한 useMemo 가능성: 'layoutMeta'"
 assert_contains "import 블록 오염: 실행문 이후 import 선언 금지 frontend-web/app/lib/component/ImportIntegrityBad.jsx"
+assert_contains "JS/JSX 문법 오류:"
+assert_contains "frontend-web/app/lib/runtime/SyntaxErrorBad.js"
 assert_contains "주석/문구는 한글 기준 권장(예외: 라이브러리/헤더/코드값) frontend-web/app/lib/component/CommentEnglishBad.jsx"
 
 # Must Ignore
@@ -288,5 +320,6 @@ assert_not_contains "컴포넌트 문구 하드코딩 지양: 'increment' fronte
 assert_not_contains "컴포넌트 문구 하드코딩 지양: 'collapse' frontend-web/app/lib/component/Drawer.jsx"
 assert_not_contains "import 블록 오염: 실행문 이후 import 선언 금지 frontend-web/app/lib/component/ImportIntegrityGood.jsx"
 assert_not_contains "주석/문구는 한글 기준 권장(예외: 라이브러리/헤더/코드값) frontend-web/app/lib/component/CommentKoreanGood.jsx"
+assert_not_contains "주석/문구는 한글 기준 권장(예외: 라이브러리/헤더/코드값) frontend-web/app/lib/runtime/RegexLiteralCommentSafe.js"
 
 echo "[PASS] rule-gate regression fixtures passed"
