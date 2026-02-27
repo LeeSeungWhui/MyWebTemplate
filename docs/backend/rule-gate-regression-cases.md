@@ -17,6 +17,7 @@
 | RG-BE-014-001 | BE-A-014 | `SQL_LOG_LITERAL_VALUES` 노출 경로에서 민감값 마스킹 가드 누락 | WARN 검출 |
 | RG-BE-014-002 | BE-A-014 | SQL 로그 리터럴 노출 경로에서 list/dict 중첩 문자열 민감값 마스킹 누락 | WARN 검출 |
 | RG-BE-015-001 | BE-A-015 | 선행 실행문 이후 모듈 레벨 `import` 재등장 | WARN 검출 |
+| RG-BE-018-001 | BE-A-018 | docstring이 `설명` 재진술형 + 구체 정보 없음 | WARN 검출 |
 
 ## 2) 검출되면 안 되는 케이스 (Must Ignore)
 
@@ -36,5 +37,5 @@ bash scripts/cli/check-myweb-rule-gate-backend-regression.sh .
 ```
 
 성공 기준:
-- Must Catch 10건이 모두 검출된다.
+- Must Catch 11건이 모두 검출된다.
 - Must Ignore 3건이 검출되지 않는다.

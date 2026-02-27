@@ -274,6 +274,23 @@ def testCommentRule() -> str:
     return "ok"
 EOF
 
+cat > "$FIXTURE_REPO/backend/lib/DocQualityBad.py" <<'EOF'
+"""
+파일명: backend/lib/DocQualityBad.py
+작성자: LSH
+갱신일: 2026-02-27
+설명: 회귀 검증용 docstring 상세도 부족 fixture
+"""
+
+
+def validateEmail() -> str:
+    """
+    설명: validate 로직을 수행한다.
+    갱신일: 2026-02-27
+    """
+    return "ok"
+EOF
+
 cat > "$FIXTURE_REPO/backend/query/bad_naming.sql" <<'EOF'
 -- name: badNaming.select
 SELECT VALUE
@@ -338,6 +355,8 @@ assert_contains "DB 오브젝트명 prefix는 T_/V_ 권장(현재: TEST_TRANSACT
 assert_contains "SQL_LOG_LITERAL_VALUES 활성화 경로에서는 민감 파라미터(PII/시크릿) 마스킹 가드를 함께 구현해야 함 backend/lib/Database.py"
 assert_contains "SQL 로그 리터럴 노출 경로에서는 list/dict 중첩 문자열 민감값도 마스킹해야 함 backend/lib/Database.py"
 assert_contains "import 블록 오염: 선행 실행문 이후 import 선언 금지 backend/service/ImportIntegrityBad.py"
+assert_contains "함수 'validateEmail' docstring 설명 품질 개선 권장 (템플릿 문구 '로직을 수행한다' 사용) backend/lib/DocQualityBad.py"
+assert_contains "함수 'validateEmail' docstring 상세도 부족: 처리 규칙/실패 동작/부작용/반환값 의미 중 1개 이상 권장 backend/lib/DocQualityBad.py"
 
 # Must Ignore
 assert_not_contains "SQL 문자열 보간/치환 금지. 바인드 파라미터 사용 backend/service/SafeTextService.py"

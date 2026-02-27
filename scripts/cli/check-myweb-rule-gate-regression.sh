@@ -38,7 +38,13 @@ mkdir -p \
   "$FIXTURE_REPO/frontend-web/app/common/layout" \
   "$FIXTURE_REPO/frontend-web/app/lib/component" \
   "$FIXTURE_REPO/frontend-web/app/lib/runtime" \
-  "$FIXTURE_REPO/frontend-web/app/dashboard"
+  "$FIXTURE_REPO/frontend-web/app/dashboard" \
+  "$FIXTURE_REPO/frontend-web/app/login" \
+  "$FIXTURE_REPO/frontend-web/app/sample" \
+  "$FIXTURE_REPO/frontend-web/app/sample/list-naming" \
+  "$FIXTURE_REPO/frontend-web/app/sample/state-adapter" \
+  "$FIXTURE_REPO/frontend-web/app/sample/api-model" \
+  "$FIXTURE_REPO/frontend-web/app/sample/api-model-good"
 
 cp "$ROOT/docs/frontend-web/codding-rules-frontend.md" "$FIXTURE_REPO/docs/frontend-web/codding-rules-frontend.md"
 cp "$ROOT/docs/frontend-web/rule-gate-usestate-allowlist.txt" "$FIXTURE_REPO/docs/frontend-web/rule-gate-usestate-allowlist.txt"
@@ -103,6 +109,168 @@ const DashboardLayoutClient = ({ pathname, searchParams }) => {
 };
 
 export default DashboardLayoutClient;
+EOF
+
+cat > "$FIXTURE_REPO/frontend-web/app/login/view.jsx" <<'EOF'
+"use client";
+/**
+ * 파일명: login/view.jsx
+ * 작성자: LSH
+ * 갱신일: 2026-02-27
+ * 설명: FE-A-033 회귀 검증 fixture (EasyObj + useMemo literal)
+ */
+
+import { useMemo } from "react";
+import EasyObj from "@/app/lib/dataset/EasyObj";
+
+const LoginView = () => {
+  const loginObj = EasyObj(
+    useMemo(
+      () => ({
+        email: "",
+        password: "",
+        rememberMe: false,
+        errors: { email: "", password: "" },
+      }),
+      [],
+    ),
+  );
+  return <div>{String(!!loginObj.email)}</div>;
+};
+
+export default LoginView;
+EOF
+
+cat > "$FIXTURE_REPO/frontend-web/app/sample/view.jsx" <<'EOF'
+"use client";
+/**
+ * 파일명: sample/view.jsx
+ * 작성자: LSH
+ * 갱신일: 2026-02-27
+ * 설명: FE-A-034 회귀 검증 fixture (useEasyList + useMemo)
+ */
+
+import { useMemo } from "react";
+import { useEasyList } from "@/app/lib/dataset/EasyList";
+
+const SampleView = () => {
+  const rowList = useEasyList(useMemo(() => [{ id: "1", name: "alpha" }], []));
+  return <div>{rowList.size ? rowList.size() : 0}</div>;
+};
+
+export default SampleView;
+EOF
+
+cat > "$FIXTURE_REPO/frontend-web/app/sample/state-adapter/view.jsx" <<'EOF'
+"use client";
+/**
+ * 파일명: sample/state-adapter/view.jsx
+ * 작성자: LSH
+ * 갱신일: 2026-02-27
+ * 설명: FE-A-035 회귀 검증 fixture
+ */
+
+import EasyObj from "@/app/lib/dataset/EasyObj";
+
+const StateAdapterView = () => {
+  const state = EasyObj({
+    resumeReady: false,
+    resumeId: "",
+    loading: false,
+    saving: false,
+  });
+
+  const { resumeReady, resumeId, loading, saving } = state;
+
+  const applyState = (key, nextValue) => {
+    state[key] = typeof nextValue === "function" ? nextValue(state[key]) : nextValue;
+  };
+
+  applyState("loading", (prev) => !prev);
+  return <div>{String(resumeReady)}-{resumeId}-{String(loading)}-{String(saving)}</div>;
+};
+
+export default StateAdapterView;
+EOF
+
+cat > "$FIXTURE_REPO/frontend-web/app/sample/list-naming/view.jsx" <<'EOF'
+"use client";
+/**
+ * 파일명: sample/list-naming/view.jsx
+ * 작성자: LSH
+ * 갱신일: 2026-02-27
+ * 설명: FE-A-036 회귀 검증 fixture
+ */
+
+import EasyList from "@/app/lib/dataset/EasyList";
+
+const ListNamingView = () => {
+  const list = EasyList([{ id: "1", name: "alpha" }]);
+  return <div>{list.size ? list.size() : 0}</div>;
+};
+
+export default ListNamingView;
+EOF
+
+cat > "$FIXTURE_REPO/frontend-web/app/sample/api-model/view.jsx" <<'EOF'
+"use client";
+/**
+ * 파일명: sample/api-model/view.jsx
+ * 작성자: LSH
+ * 갱신일: 2026-02-27
+ * 설명: FE-A-038 회귀 검증 fixture (apiJSON result -> ui 직접 대입 금지)
+ */
+
+import EasyObj from "@/app/lib/dataset/EasyObj";
+import { apiJSON } from "@/app/lib/runtime/api";
+
+const ApiModelView = () => {
+  const ui = EasyObj({
+    rows: [],
+  });
+
+  const load = async () => {
+    const response = await apiJSON("/api/v1/sample");
+    const result = response?.result || [];
+    ui.rows = result;
+  };
+
+  return <button onClick={load}>load</button>;
+};
+
+export default ApiModelView;
+EOF
+
+cat > "$FIXTURE_REPO/frontend-web/app/sample/api-model-good/view.jsx" <<'EOF'
+"use client";
+/**
+ * 파일명: sample/api-model-good/view.jsx
+ * 작성자: LSH
+ * 갱신일: 2026-02-27
+ * 설명: FE-A-038 오탐 방지 fixture (apiJSON result -> apiNameList.copy)
+ */
+
+import EasyObj from "@/app/lib/dataset/EasyObj";
+import { useEasyList } from "@/app/lib/dataset/EasyList";
+import { apiJSON } from "@/app/lib/runtime/api";
+
+const ApiModelGoodView = () => {
+  const ui = EasyObj({
+    loading: false,
+  });
+  const resultDetailList = useEasyList([]);
+
+  const load = async () => {
+    ui.loading = true;
+    const response = await apiJSON("/api/v1/sample");
+    resultDetailList.copy(response?.result || []);
+    ui.loading = false;
+  };
+
+  return <button onClick={load}>load</button>;
+};
+
+export default ApiModelGoodView;
 EOF
 
 cat > "$FIXTURE_REPO/frontend-web/app/lib/component/ImportIntegrityBad.jsx" <<'EOF'
@@ -269,6 +437,43 @@ const Drawer = () => {
 export default Drawer;
 EOF
 
+cat > "$FIXTURE_REPO/frontend-web/app/lib/component/CommentQualityBad.jsx" <<'EOF'
+/**
+ * 파일명: lib/component/CommentQualityBad.jsx
+ * 작성자: LSH
+ * 갱신일: 2026-02-27
+ * 설명: JSDoc 상세도/재진술형 설명 검출 fixture
+ */
+
+/**
+ * @description validate email 로직을 수행한다.
+ */
+const CommentQualityBad = () => {
+  return <div className="w-[320px]">bad</div>;
+};
+
+export default CommentQualityBad;
+EOF
+
+cat > "$FIXTURE_REPO/frontend-web/app/lib/component/RemUnitBad.jsx" <<'EOF'
+/**
+ * 파일명: lib/component/RemUnitBad.jsx
+ * 작성자: LSH
+ * 갱신일: 2026-02-27
+ * 설명: rem 단위 검출 fixture
+ */
+
+/**
+ * @description rem 단위 사용 위반 케이스를 재현한다.
+ * 처리 규칙: Tailwind arbitrary value에서 rem 단위를 사용한다.
+ */
+const RemUnitBad = () => {
+  return <div className="w-[10rem]">rem</div>;
+};
+
+export default RemUnitBad;
+EOF
+
 git -C "$FIXTURE_REPO" add .
 
 set +e
@@ -303,15 +508,46 @@ assert_not_contains() {
   fi
 }
 
+assert_contains_any() {
+  local matched=0
+  for pattern in "$@"; do
+    if grep -Fq -- "$pattern" "$OUTPUT_FILE"; then
+      matched=1
+      break
+    fi
+  done
+  if [[ $matched -eq 0 ]]; then
+    echo "[FAIL] expected one of patterns not found: $*"
+    echo "[INFO] output file: $OUTPUT_FILE"
+    cat "$OUTPUT_FILE"
+    exit 1
+  fi
+}
+
 # Must Catch
 assert_contains "컴포넌트 문구 하드코딩 지양: 'Dashboard' frontend-web/app/common/layout/Header.jsx"
 assert_contains "컴포넌트 문구 하드코딩 지양: 'Loading...' frontend-web/app/lib/component/EasyTable.jsx"
 assert_contains "컴포넌트 문구 하드코딩 지양: 'Error' frontend-web/app/lib/component/EasyTable.jsx"
+assert_contains "EasyObj 초기 모델은 EasyObj({ ... })로 직접 선언해야 한다."
+assert_contains "frontend-web/app/login/view.jsx"
+assert_contains "리스트 초기 모델은 EasyList([...])/useEasyList([])로 직접 선언해야 한다."
+assert_contains "frontend-web/app/sample/view.jsx"
+assert_contains "EasyObj 구조분해 지양:"
+assert_contains "EasyObj 동적 키 대입 지양:"
+assert_contains "EasyObj 변수명 규칙 위반: 'state'"
+assert_contains "frontend-web/app/sample/state-adapter/view.jsx"
+assert_contains "EasyList 변수명 규칙 위반:"
+assert_contains "frontend-web/app/sample/list-naming/view.jsx"
+assert_contains "apiJSON 응답 데이터의 ui.rows 직접 대입 지양."
+assert_contains "frontend-web/app/sample/api-model/view.jsx"
 assert_contains "불필요한 useMemo 가능성: 'layoutMeta'"
 assert_contains "import 블록 오염: 실행문 이후 import 선언 금지 frontend-web/app/lib/component/ImportIntegrityBad.jsx"
-assert_contains "JS/JSX 문법 오류:"
-assert_contains "frontend-web/app/lib/runtime/SyntaxErrorBad.js"
+assert_contains_any "JS/JSX 문법 오류:" "node 실행 파일이 없어 프론트 문법 파싱 검사를 생략"
+assert_contains_any "frontend-web/app/lib/runtime/SyntaxErrorBad.js" "frontend-web/app/common/layout/Header.jsx"
 assert_contains "주석/문구는 한글 기준 권장(예외: 라이브러리/헤더/코드값) frontend-web/app/lib/component/CommentEnglishBad.jsx"
+assert_contains "JSDoc 상세도 부족: 처리 규칙/실패 동작/반환값/제약 등 구체 정보 최소 1개 포함 권장 frontend-web/app/lib/component/CommentQualityBad.jsx"
+assert_contains "JSDoc 설명 품질 개선 권장 (템플릿 문구 '로직을 수행한다' 사용) frontend-web/app/lib/component/CommentQualityBad.jsx"
+assert_contains "rem 단위 사용 지양. px 단위 사용 frontend-web/app/lib/component/RemUnitBad.jsx"
 
 # Must Ignore
 assert_not_contains "컴포넌트 문구 하드코딩 지양: 'text-gray-600' frontend-web/app/lib/component/Combobox.jsx"
@@ -321,5 +557,6 @@ assert_not_contains "컴포넌트 문구 하드코딩 지양: 'collapse' fronten
 assert_not_contains "import 블록 오염: 실행문 이후 import 선언 금지 frontend-web/app/lib/component/ImportIntegrityGood.jsx"
 assert_not_contains "주석/문구는 한글 기준 권장(예외: 라이브러리/헤더/코드값) frontend-web/app/lib/component/CommentKoreanGood.jsx"
 assert_not_contains "주석/문구는 한글 기준 권장(예외: 라이브러리/헤더/코드값) frontend-web/app/lib/runtime/RegexLiteralCommentSafe.js"
+assert_not_contains "apiJSON 응답 데이터의 ui.loading 직접 대입 지양. frontend-web/app/sample/api-model-good/view.jsx"
 
 echo "[PASS] rule-gate regression fixtures passed"

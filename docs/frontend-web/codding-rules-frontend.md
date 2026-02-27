@@ -1,5 +1,14 @@
 # 코딩 스타일 가이드 (정규화 버전)
 
+## [중요/강제] 룰 적용 우선순위
+
+- 코딩룰 관련 수정에서는 `"기존 코드 영향 최소화"`를 이유로 룰 위반 상태를 유지하지 않는다.
+- 우선순위는 항상 `기존 코드 보존`보다 `코딩룰 100% 준수`가 먼저다.
+- 기존 구조와 충돌하면 구조를 바꿔서라도 룰에 맞춘다.
+- 예외는 문서에 명시된 허용 항목 또는 사용자 명시 승인 케이스만 인정한다.
+
+---
+
 이 문서는 앞으로 이 프로젝트(및 비슷한 구조의 프론트엔드)에서  
 코드 짤 때 항상 지켜야 하는 **공통 코딩 규칙의 기준선**이다.
 
@@ -122,6 +131,36 @@ export const LANG_KO = {
 - 기본 정책:
   - 도메인 데이터(리스트, 상세, 검색 조건 등)와 페이지 UI 상태(토글/탭/선택/로딩/임시 입력값)는 `EasyObj/EasyList`를 기본으로 사용한다.
   - 검색/필터는 `draft`와 `applied`를 분리해 관리하는 것을 권장한다.
+  - 폼 입력 초기 모델은 `view.jsx`에서 `EasyObj({ ... })` 리터럴로 직접 선언한다.
+    - 금지: `EasyObj(useMemo(() => createXxxFormModel(), []))`
+    - 금지: `EasyObj(useMemo(() => ({ ... }), []))`
+    - `initData.jsx`에는 폼 초기 모델 팩토리를 두지 않는다.
+  - 리스트/옵션 초기 모델은 `view.jsx`에서 `EasyList([...])` 리터럴로 직접 선언한다.
+    - 금지: `EasyList(useMemo(() => createXxxListModel(), []))`
+    - 금지: `EasyList(useMemo(() => [...], []))`
+    - 금지: `EasyList(useMemo(() => resolveXxxList(...), []))`
+    - 금지: `useEasyList(useMemo(() => [...], []))`
+    - `initData.jsx`에는 리스트 초기 모델 팩토리를 두지 않는다.
+  - `EasyList` 변수명은 역할 기반 `...List` 접미사로 선언한다.
+    - 권장: `taskList`, `statusOptionList`, `resultDetailList`
+    - 금지: `list`, `dataList`, `items`, `rows` 같은 제너릭 이름
+    - API 응답 리스트는 `const <apiName>List = useEasyList([])`로 두고 `apiJSON` 이후 `<apiName>List.copy(...)`로 동기화한다.
+  - `EasyObj` 변수명은 목적 기반으로 선언한다.
+    - UI 상태 묶음: `const ui = EasyObj({ ... })`
+    - 팝업/모달 상태 묶음: `const popup = EasyObj({ ... })`
+    - 프론트→백 전송 데이터 묶음: `const dataObj = EasyObj({ ... })`
+    - 백→프론트 API 응답 데이터 묶음: `const <apiName>Obj = EasyObj({ ... })`
+      - 예: `/api/bff/resume/selectResultDetail` → `resultDetailObj`
+      - 권장: `apiJSON(...)` 이후 `<apiName>Obj.copy(response?.result || {})`
+    - 금지: `obj`, `stateObj`, `tempObj` 같은 제너릭/임시 이름
+  - `apiJSON` 응답 데이터(`result`/리스트/상세)는 `ui/popup`에 직접 대입하지 않는다.
+    - 금지: `ui.rows = response?.result`, `ui.profile = nextResult`
+    - 권장: `const <apiName>Obj = EasyObj({}); <apiName>Obj.copy(response?.result || {})`
+    - 권장: `const <apiName>List = useEasyList([]); <apiName>List.copy(response?.result?.items || [])`
+  - `EasyObj` 상태를 `useState`처럼 감싸는 어댑터 패턴을 만들지 않는다.
+    - 금지: `const { a, b, c } = state` (`state`가 `EasyObj`인 경우)
+    - 금지: `const applyState = (key, nextValue) => { state[key] = ... }`
+    - 읽기/쓰기는 `state.field` 직접 접근으로 유지한다.
 - `useState` 사용 정책:
   - 원칙적으로 사용하지 않는다.
   - 아래처럼 진짜 불가피한 경우에만 예외적으로 사용한다.
@@ -396,17 +435,23 @@ export const LANG_KO = {
 
 ### 8.2 함수/컴포넌트 헤더
 
-- 외부에서 재사용되는 함수/컴포넌트에는 JSDoc 스타일 주석을 붙인다.
+- 모든 함수/컴포넌트에는 JSDoc 스타일 주석을 붙인다.
+- 가독성을 위해 각 함수/컴포넌트 선언 블록의 위/아래에는 빈 줄을 정확히 1줄씩 둔다.
+- 함수명 재진술형 주석은 금지한다.
+  - 금지 예: `validate email 로직을 수행한다.`, `데이터를 처리한다.`, `조회 함수를 실행한다.`
+- JSDoc에는 최소 1개 이상의 구체 정보를 반드시 포함한다.
+  - 허용 예: 처리 규칙, 실패 동작, 성공 동작, 부작용(어떤 상태를 바꾸는지), 반환값 의미, 서버 재검증/제약 조건
+- `@description` 한 줄만 쓰고 끝내는 패턴은 지양한다.
+  - 동작이 단순한 함수라도 “왜 필요한지/실패 시 무엇을 하는지/반환값이 무엇을 의미하는지” 중 하나는 적는다.
 
   ```jsx
   /**
-   * @description 이력서 결과 목록을 렌더링한다.
+   * @description 이력서 결과 목록을 렌더링하고, 빈 목록이면 Empty 블록을 표시한다.
    * @param {Object} props
+   * @returns {JSX.Element} 결과 목록 또는 빈 상태 UI
    */
   const ResumeListView = (props) => { … };
   ```
-
-- 내부에서만 쓰는 짧은 헬퍼는 꼭 필요하지 않으면 생략 가능.
 
 ### 8.3 유지 원칙
 
@@ -420,6 +465,9 @@ export const LANG_KO = {
 - 우선 Tailwind 유틸 클래스와 프로젝트 공통 유틸 클래스를 사용한다.
 - 반복되는 스타일만 CSS 모듈/공용 클래스 형태로 추출한다.
 - 인라인 스타일은 특별한 이유가 있을 때만 사용한다.
+- 단위는 `px`를 기본으로 사용하고, `rem` 단위는 사용하지 않는다.
+- Tailwind arbitrary value(`w-[...]`, `h-[...]`, `gap-[...]` 등)도 `px` 기준으로 작성한다.
+- 예: `w-[360px]` (O), `w-[22.5rem]` (X)
 
 ### 9.1 반응형/해상도 규칙 (공통)
 
