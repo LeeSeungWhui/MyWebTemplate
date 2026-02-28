@@ -42,6 +42,73 @@
 - 각 페이지(라우트 폴더)는 다국어 리소스 파일을 함께 가진다.
   - `lang.ko.js` (필수)
   - `lang.<locale>.js` (선택, 확장 시)
+- 아래 템플릿 포맷을 기본 강제 규칙으로 사용한다.
+  - `initData.jsx`: 페이지 모드 + API 엔드포인트만 선언
+  - `page.jsx`: `MODE` 기준 SSR/CSR 분기
+  - `view.jsx`: 실질 UI/상태/이벤트 담당, CSR 모드에서 API 호출 담당
+
+#### 포맷 강제 템플릿(필수)
+
+- `initData.jsx`는 아래 2개 정보만 가진다.
+  - `MODE`: `"CSR"` 또는 `"SSR"`
+  - `API`: 엔드포인트 맵(`{ list: "/...", detail: "/..." }`)
+- `initData.jsx` 금지 항목:
+  - 정적 UI 데이터(`CARD_LIST`, `TAB_LIST`, `DEFAULT_FORM` 등)
+  - 쿼리 파서/유틸 함수
+  - 상태 상수/뷰 전용 파생 데이터
+- 권장 형태:
+
+```jsx
+export const PAGE_CONFIG = {
+  MODE: "CSR", // or "SSR"
+  API: {
+    list: "/api/v1/example",
+    detail: "/api/v1/example/:id",
+  },
+};
+```
+
+- 사용자는 `initData.jsx`에서 `MODE/API`만 채운다.
+- `page/view` 데이터 로딩은 공용 자동 로더를 강제 사용한다.
+  - `page.jsx`: `loadServerPageData({ pageConfig: PAGE_CONFIG })`
+  - `view.jsx`: `usePageData({ pageConfig: PAGE_CONFIG, initialDataObj, initialErrorObj })`
+- `page.jsx` 권장 형태:
+
+```jsx
+import View from "./view";
+import { PAGE_CONFIG } from "./initData";
+import { loadServerPageData } from "@/app/lib/runtime/pageData";
+
+export default async function Page() {
+  const { dataObj, errorObj } = await loadServerPageData({
+    pageConfig: PAGE_CONFIG,
+  });
+  return <View initialDataObj={dataObj} initialErrorObj={errorObj} />;
+}
+```
+
+- `view.jsx` 권장 형태:
+
+```jsx
+"use client";
+import { PAGE_CONFIG } from "./initData";
+import { usePageData } from "@/app/lib/hooks/usePageData";
+
+const View = ({ initialDataObj, initialErrorObj }) => {
+  const { dataObj, errorObj, isLoading } = usePageData({
+    pageConfig: PAGE_CONFIG,
+    initialDataObj,
+    initialErrorObj,
+  });
+  return <section>{isLoading ? "로딩" : JSON.stringify(dataObj)}</section>;
+};
+```
+
+- `view.jsx` 동작 규칙:
+  - `MODE === "SSR"`: `page.jsx`에서 주입한 `initialDataObj` 우선 사용.
+  - `MODE === "CSR"`: `usePageData`가 `PAGE_CONFIG.API`를 자동 호출.
+  - 화면 컴포넌트는 데이터 로딩 분기(if/else) 구현을 반복 작성하지 않는다.
+- `lang.ko.js`는 사용자 노출 문구 리소스만 담당하고, 모드/API 설정은 두지 않는다.
 
 #### `lang.ko.js` (필수)
 
@@ -70,21 +137,22 @@ export const LANG_KO = {
 
 #### `initData.jsx`
 
-- 페이지 모드, 엔드포인트, 초기 설정 등 **정적인 정보만** 정의한다.
-- 예: `PAGE_MODE`, API 경로 배열, 상수들.
+- 페이지 모드와 API 엔드포인트만 정의한다.
+- 예: `PAGE_CONFIG.MODE`, `PAGE_CONFIG.API`.
 - 이 파일 안에서는 **실제 API 호출·상태 관리 금지**.
-- 페이지 전용 문구는 `lang.ko.js`를 import해서 조합한다.
+- 페이지 전용 문구/정적 표시 데이터는 `lang.ko.js` 또는 `view.jsx` 내부 상수로 분리한다.
 
 #### `page.jsx`
 
 - Next.js 라우트 엔트리(서버 컴포넌트) 역할.
 - 할 일:
-  - `initData.jsx`에서 설정을 읽는다.
-  - SSR이 필요할 때만 서버에서 데이터를 미리 조회한다.
-  - 최종적으로 `view.jsx`를 호출하면서 props로 데이터/설정을 넘긴다.
+  - `initData.jsx`의 `PAGE_CONFIG`를 읽는다.
+  - `loadServerPageData({ pageConfig: PAGE_CONFIG })`를 호출한다.
+  - 최종적으로 `view.jsx`를 호출하면서 `initialDataObj`, `initialErrorObj`만 props로 넘긴다.
 - 하지 말아야 할 일:
   - 복잡한 상태/이벤트/뷰 로직을 직접 들고 있지 않는다.
   - useState/useEffect 등 클라이언트 훅 사용하지 않는다.
+  - 엔드포인트별 수동 분기 로직(`if (MODE === "SSR") apiJSON(...)`)을 페이지마다 반복 작성하지 않는다.
 
 #### `view.jsx`
 
@@ -96,6 +164,9 @@ export const LANG_KO = {
   - 실제 JSX 렌더링
 - 이 파일 하나만 봐도 “이 페이지가 뭘 하는지” 파악 가능해야 한다.
 - 사용자 노출 텍스트 하드코딩 대신 `lang.ko.js`/공통 i18n 리소스를 참조한다.
+- 데이터 로딩은 `usePageData({ pageConfig: PAGE_CONFIG, initialDataObj, initialErrorObj })`를 사용한다.
+  - `MODE === "SSR"`이면 주입된 초기 데이터를 사용한다.
+  - `MODE === "CSR"`이면 훅이 API를 자동 호출한다.
 
 ### 1.2 도메인 vs 공통 코드
 
@@ -155,8 +226,21 @@ export const LANG_KO = {
     - 금지: `obj`, `stateObj`, `tempObj` 같은 제너릭/임시 이름
   - `apiJSON` 응답 데이터(`result`/리스트/상세)는 `ui/popup`에 직접 대입하지 않는다.
     - 금지: `ui.rows = response?.result`, `ui.profile = nextResult`
-    - 권장: `const <apiName>Obj = EasyObj({}); <apiName>Obj.copy(response?.result || {})`
-    - 권장: `const <apiName>List = useEasyList([]); <apiName>List.copy(response?.result?.items || [])`
+    - 권장: `payload.result` 타입 기준 동기화 규칙을 고정한다.
+      - `result`가 object면 `<apiName>Obj.copy(payload.result)`
+      - `result`가 list면 `<apiName>List.copy(payload.result)`
+    - 권장 예시:
+
+```jsx
+const payload = await apiJSON(PAGE_CONFIG.API.list, { method: "GET" });
+if (Array.isArray(payload?.result)) {
+  taskList.copy(payload.result);
+} else if (payload?.result && typeof payload.result === "object") {
+  taskDetailObj.copy(payload.result);
+}
+```
+
+    - 공용 유틸 권장: `syncApiResult({ payload, apiObj: <apiName>Obj, apiList: <apiName>List })`
   - `EasyObj` 상태를 `useState`처럼 감싸는 어댑터 패턴을 만들지 않는다.
     - 금지: `const { a, b, c } = state` (`state`가 `EasyObj`인 경우)
     - 금지: `const applyState = (key, nextValue) => { state[key] = ... }`
@@ -261,6 +345,10 @@ export const LANG_KO = {
 - 함수를 쪼갠 뒤에
   - 가독성이 올라가면 OK
   - 호출 계층만 늘어서 더 헷갈리면 다시 합친다.
+- 모든 함수/컴포넌트는 가능한 한 **화살표 함수**로 작성한다.
+  - 권장: `const handleSubmit = (event) => { ... };`, `const UserCard = ({ userObj }) => { ... };`
+  - 지양: `function handleSubmit(event) { ... }`, `function UserCard(props) { ... }`
+  - 예외: 프레임워크 엔트리 패턴(예: `export default async function Page()`), 호이스팅이 반드시 필요한 경우.
 
 ### 3.4 얕은 별칭(shallow alias) 금지
 
@@ -382,6 +470,10 @@ export const LANG_KO = {
     - 상단: 상수, EasyObj/EasyList, 훅(`useState`, `useRef`, `useEffect` cleanup 등) 선언
     - 중간: 도메인 이름이 붙은 헬퍼/이벤트 함수 (`acceptFile`, `onUpload`, `resolvePdfUrl` 등)
     - 하단: `return (…)` 안에서 JSX 렌더링
+- 함수/컴포넌트 내부의 `const`/`let` 선언은 **최상단 배치**를 기본으로 한다.
+  - 대상: 값/모델/상태 선언 (`const loginObj`, `const ui`, `const emailRef` 등)
+  - 지양: 헬퍼 함수 선언보다 아래에 값 선언을 섞어두는 패턴
+  - 예외: 함수/컴포넌트 자체 선언(`const sanitizeRedirect = (...) => { ... }`)은 중간 헬퍼 구간에 둘 수 있다.
 - 이 페이지(view)에서만 쓰는 헬퍼/이벤트 함수는
   - 별도 파일·전역 유틸로 빼지 말고 **컴포넌트 내부에 JSDoc 주석과 함께 정의**하는 것을 우선으로 한다.
 - 서브 컴포넌트로 쪼갤 기준:

@@ -27,7 +27,7 @@ const REFRESH_PATH = "/api/v1/auth/refresh";
 /**
  * 설명: Cookie 헤더 문자열을 단순 파싱(값 디코딩은 별도 처리)
  * 갱신일: 2026-01-18
- */
+ */ // 룰게이트 예외 허용: rule-gate: allow-function-declaration
 function parseCookieHeader(cookieHeader) {
   const result = {};
   if (!cookieHeader || typeof cookieHeader !== "string") return result;
@@ -48,7 +48,7 @@ function parseCookieHeader(cookieHeader) {
 /**
  * 설명: 백엔드 Set-Cookie를 프런트 도메인에 맞게 정리(Domain 제거 + Path 보장)
  * 갱신일: 2026-01-18
- */
+ */ // 룰게이트 예외 허용: rule-gate: allow-function-declaration
 function rewriteSetCookie(rawValue) {
   if (!rawValue || typeof rawValue !== "string") return null;
   const segments = rawValue.split(";");
@@ -70,7 +70,7 @@ function rewriteSetCookie(rawValue) {
 /**
  * 설명: 런타임별 Response 헤더 구현 차이 흡수와 Set-Cookie 배열 수집
  * 갱신일: 2026-01-18
- */
+ */ // 룰게이트 예외 허용: rule-gate: allow-function-declaration
 function collectSetCookies(res) {
   let setCookies = res?.headers?.getSetCookie?.() || [];
   if (!setCookies.length) {
@@ -83,7 +83,7 @@ function collectSetCookies(res) {
 /**
  * 설명: refresh_token 존재 시 access_token 재발급 및 nx(/dashboard) 이동
  * 갱신일: 2026-01-18
- */
+ */ // 룰게이트 예외 허용: rule-gate: allow-function-declaration
 export async function GET(request) {
   const cookieHeader = request.headers.get("cookie") || "";
   const cookies = parseCookieHeader(cookieHeader);

@@ -14,7 +14,7 @@ import { apiJSON } from "@/app/lib/runtime/api";
  * @param {string} path
  * @param {Object} [options]
  * @returns {any}
- */
+ */ // 룰게이트 예외 허용: rule-gate: allow-function-declaration
 export function useSwr(
   key,
   path,

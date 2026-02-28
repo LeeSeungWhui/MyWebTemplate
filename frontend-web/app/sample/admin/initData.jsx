@@ -21,3 +21,8 @@ export const ROLE_OPTION_LIST = initData.roleOptions.map((item) => ({ ...item })
 export const STATUS_OPTION_LIST = initData.statusOptions.map((item) => ({ ...item }));
 
 export const USER_ROW_LIST = initData.userRows.map((item) => ({ ...item }));
+
+export const PAGE_CONFIG = {
+  MODE: "CSR",
+  API: {},
+};

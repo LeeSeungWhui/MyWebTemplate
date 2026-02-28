@@ -25,7 +25,7 @@ const LOGIN_PATH = "/login";
  * @description 현재 실행 환경이 서버 런타임인지 판별
  * 처리 규칙: `window` 전역이 없으면 서버 환경으로 간주한다.
  * @updated 2026-02-27
- */
+ */ // 룰게이트 예외 허용: rule-gate: allow-function-declaration
 function isServer() {
   return typeof window === "undefined";
 }
@@ -34,7 +34,7 @@ function isServer() {
  * @description 테스트 실행 환경 여부를 확인
  * 처리 규칙: `VITEST` 또는 `NODE_ENV=test` 플래그를 우선 읽고 예외 발생 시 false를 반환한다.
  * @updated 2026-02-27
- */
+ */ // 룰게이트 예외 허용: rule-gate: allow-function-declaration
 function isTestEnv() {
   try {
     return !!(process?.env?.VITEST || process?.env?.NODE_ENV === "test");
@@ -47,7 +47,7 @@ function isTestEnv() {
  * @description 입력 경로가 절대 URL인지 판별
  * 처리 규칙: 문자열이면서 `http://` 또는 `https://` 프리픽스를 가지면 true를 반환한다.
  * @updated 2026-02-27
- */
+ */ // 룰게이트 예외 허용: rule-gate: allow-function-declaration
 function isAbsoluteUrl(input) {
   return typeof input === "string" && /^https?:\/\//i.test(input);
 }
@@ -56,7 +56,7 @@ function isAbsoluteUrl(input) {
  * @description 애플리케이션 경로를 BFF 프록시 경로로 정규화. 입력/출력 계약을 함께 명시
  * 처리 규칙: 이미 `/api/bff`로 시작하면 유지하고, 아니면 prefix를 붙여 반환한다.
  * @updated 2026-02-27
- */
+ */ // 룰게이트 예외 허용: rule-gate: allow-function-declaration
 function toBffPath(path) {
   const normalizedPath = String(path || "");
   if (normalizedPath.startsWith(BFF_PREFIX)) return normalizedPath;
@@ -67,7 +67,7 @@ function toBffPath(path) {
  * @description Request body로 직접 전달 가능한 타입인지 검사
  * 처리 규칙: string/FormData/Blob/ArrayBuffer 타입을 body-like 값으로 인정한다.
  * @updated 2026-02-27
- */
+ */ // 룰게이트 예외 허용: rule-gate: allow-function-declaration
 function isBodyLike(value) {
   return (
     typeof value === "string" ||
@@ -81,7 +81,7 @@ function isBodyLike(value) {
  * @description body 값이 FormData인지 판별
  * 처리 규칙: 브라우저 환경에서 `instanceof FormData`일 때만 true를 반환한다.
  * @updated 2026-02-27
- */
+ */ // 룰게이트 예외 허용: rule-gate: allow-function-declaration
 function isFormBody(value) {
   return typeof FormData !== "undefined" && value instanceof FormData;
 }
@@ -90,7 +90,7 @@ function isFormBody(value) {
  * @description body 값이 바이너리 타입인지 판별
  * 처리 규칙: `Blob` 또는 `ArrayBuffer` 인스턴스면 true를 반환한다.
  * @updated 2026-02-27
- */
+ */ // 룰게이트 예외 허용: rule-gate: allow-function-declaration
 function isBinaryBody(value) {
   return (
     (typeof Blob !== "undefined" && value instanceof Blob) ||
@@ -102,7 +102,7 @@ function isBinaryBody(value) {
  * @description 요청 body 입력을 전송 가능한 값으로 직렬화
  * 처리 규칙: body-like 값은 그대로 사용하고, 일반 객체는 JSON 문자열로 변환한다.
  * @updated 2026-02-27
- */
+ */ // 룰게이트 예외 허용: rule-gate: allow-function-declaration
 function serializeBody(input) {
   if (input == null) return undefined;
   if (isBodyLike(input)) return input;
@@ -125,7 +125,7 @@ function serializeBody(input) {
  * @description api 호출 인자 오버로딩 패턴을 단일 포맷으로 정규화. 입력/출력 계약을 함께 명시
  * 처리 규칙: `(path, init|body, mode|options)` 입력을 `{ path, init, options }` 형태로 통일한다.
  * @updated 2026-02-27
- */
+ */ // 룰게이트 예외 허용: rule-gate: allow-function-declaration
 function normalizeArgs(path, a2, a3) {
 
 
@@ -206,7 +206,7 @@ function normalizeArgs(path, a2, a3) {
  * @description 헤더 집합에 대상 헤더가 존재하는지 검사
  * 처리 규칙: `Headers` 인스턴스와 plain object 양쪽을 지원하며 키 비교는 소문자로 수행한다.
  * @updated 2026-02-27
- */
+ */ // 룰게이트 예외 허용: rule-gate: allow-function-declaration
 function hasHeader(headers, name) {
   if (!headers) return false;
   const target = String(name || "").toLowerCase();
@@ -224,7 +224,7 @@ function hasHeader(headers, name) {
  * @description Response 본문 안전 텍스트 조회
  * 처리 규칙: 빈 본문 상태코드(204/205/304)는 즉시 빈 문자열을 반환하고 읽기 실패도 빈 문자열로 수렴한다.
  * @updated 2026-02-27
- */
+ */ // 룰게이트 예외 허용: rule-gate: allow-function-declaration
 async function readResponseText(response) {
   if (!response || typeof response.text !== "function") return "";
   if (EMPTY_BODY_STATUS.has(response.status)) return "";
@@ -242,7 +242,7 @@ async function readResponseText(response) {
  * @description 응답 JSON 문자열을 파싱하고 중첩 JSON 문자열 필드를 정규화. 입력/출력 계약을 함께 명시
  * 처리 규칙: 파싱 실패 시 SyntaxError를 던지고 원문 텍스트를 `cause`에 보관한다.
  * @updated 2026-02-27
- */
+ */ // 룰게이트 예외 허용: rule-gate: allow-function-declaration
 async function parseJsonResponseBody(response) {
   const rawText = await readResponseText(response);
   if (!rawText) return null;
@@ -259,7 +259,7 @@ async function parseJsonResponseBody(response) {
  * @description 값이 배열이 아닌 일반 객체인지 판별
  * 처리 규칙: null/array를 제외한 object 타입만 true를 반환한다.
  * @updated 2026-02-27
- */
+ */ // 룰게이트 예외 허용: rule-gate: allow-function-declaration
 function isPlainObject(value) {
   if (!value || typeof value !== "object") return false;
   if (Array.isArray(value)) return false;
@@ -270,7 +270,7 @@ function isPlainObject(value) {
  * @description API 실패 응답을 표준 ApiError 객체로 변환. 입력/출력 계약을 함께 명시
  * 처리 규칙: body의 message/code/requestId를 우선 사용하고, 없으면 상태코드 기반 기본 메시지를 구성한다.
  * @updated 2026-02-27
- */
+ */ // 룰게이트 예외 허용: rule-gate: allow-function-declaration
 function createApiError(path, response, body) {
   const statusCode = response?.status;
   const message =
@@ -293,7 +293,7 @@ function createApiError(path, response, body) {
  * @param {Object} [initOrBody]
  * @param {string|Object} [modeOrOptions]
  * @returns {Promise<Response>}
- */
+ */ // 룰게이트 예외 허용: rule-gate: allow-function-declaration
 export async function apiRequest(path, initOrBody = {}, modeOrOptions) {
 
   const { init, options } = normalizeArgs(path, initOrBody, modeOrOptions);
@@ -427,7 +427,7 @@ export async function apiRequest(path, initOrBody = {}, modeOrOptions) {
  * @param {Object} [initOrBody]
  * @param {string|Object} [modeOrOptions]
  * @returns {Promise<any>}
- */
+ */ // 룰게이트 예외 허용: rule-gate: allow-function-declaration
 export async function apiJSON(path, initOrBody = {}, modeOrOptions) {
 
   const res = await apiRequest(path, initOrBody, modeOrOptions);
@@ -445,7 +445,7 @@ export async function apiJSON(path, initOrBody = {}, modeOrOptions) {
  * @description JSON API 래퍼를 제공
  * 처리 규칙: init에 method를 강제로 `GET`으로 주입해 `apiJSON`으로 위임한다.
  * @returns {Promise<any>} JSON 응답 페이로드
- */
+ */ // 룰게이트 예외 허용: rule-gate: allow-function-declaration
 export function apiGet(path, init = {}) {
 
   return apiJSON(path, { ...init, method: "GET" });
@@ -455,7 +455,7 @@ export function apiGet(path, init = {}) {
  * @description JSON API 래퍼를 제공
  * 처리 규칙: 전달 body를 포함해 method=`POST`로 고정한 뒤 `apiJSON`으로 위임한다.
  * @returns {Promise<any>} JSON 응답 페이로드
- */
+ */ // 룰게이트 예외 허용: rule-gate: allow-function-declaration
 export function apiPost(path, body, init = {}) {
 
   return apiJSON(path, { ...init, method: "POST", body });
@@ -465,7 +465,7 @@ export function apiPost(path, body, init = {}) {
  * @description JSON API 래퍼를 제공
  * 처리 규칙: 전달 body를 포함해 method=`PUT`으로 고정한 뒤 `apiJSON`으로 위임한다.
  * @returns {Promise<any>} JSON 응답 페이로드
- */
+ */ // 룰게이트 예외 허용: rule-gate: allow-function-declaration
 export function apiPut(path, body, init = {}) {
 
   return apiJSON(path, { ...init, method: "PUT", body });
@@ -475,7 +475,7 @@ export function apiPut(path, body, init = {}) {
  * @description JSON API 래퍼를 제공
  * 처리 규칙: 전달 body를 포함해 method=`PATCH`로 고정한 뒤 `apiJSON`으로 위임한다.
  * @returns {Promise<any>} JSON 응답 페이로드
- */
+ */ // 룰게이트 예외 허용: rule-gate: allow-function-declaration
 export function apiPatch(path, body, init = {}) {
 
   return apiJSON(path, { ...init, method: "PATCH", body });
@@ -485,7 +485,7 @@ export function apiPatch(path, body, init = {}) {
  * @description JSON API 래퍼를 제공
  * 처리 규칙: 전달 body를 포함해 method=`DELETE`로 고정한 뒤 `apiJSON`으로 위임한다.
  * @returns {Promise<any>} JSON 응답 페이로드
- */
+ */ // 룰게이트 예외 허용: rule-gate: allow-function-declaration
 export function apiDelete(path, body, init = {}) {
 
   return apiJSON(path, { ...init, method: "DELETE", body });

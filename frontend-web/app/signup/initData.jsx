@@ -6,3 +6,10 @@
  */
 
 export const SIGNUP_PATH = "/api/v1/auth/signup";
+
+export const PAGE_CONFIG = {
+  MODE: "CSR",
+  API: {
+    signup: "/api/v1/auth/signup",
+  },
+};

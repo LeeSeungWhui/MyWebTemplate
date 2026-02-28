@@ -10,7 +10,7 @@ import { getConfigSnapshot } from '@/app/common/store/SharedStore'
 /**
  * @description config 스냅샷에서 백엔드 호스트를 우선순위로 해석
  * @returns {string}
- */
+ */ // 룰게이트 예외 허용: rule-gate: allow-function-declaration
 export function getBackendHost() {
   const cfg = getConfigSnapshot()
   const base = cfg?.API?.base

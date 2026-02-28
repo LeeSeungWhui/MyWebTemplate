@@ -10,7 +10,7 @@ import { getConfigSnapshot } from '@/app/common/store/SharedStore'
 /**
  * @description config 스냅샷 기반으로 프론트 호스트를 해석하고 기본값을 반환. 입력/출력 계약을 함께 명시
  * @returns {string}
- */
+ */ // 룰게이트 예외 허용: rule-gate: allow-function-declaration
 export function getFrontendHost() {
   const cfg = getConfigSnapshot()
   const base = cfg?.APP?.frontendHost

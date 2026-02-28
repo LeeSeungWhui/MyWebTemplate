@@ -32,23 +32,7 @@ import EasyObj from "@/app/lib/dataset/EasyObj";
  * 처리 규칙: 프로필 API 응답은 profileMeObj에 복사하고 탭 상태는 query `tab`과 양방향 동기화한다.
  */
 const SettingsView = () => {
-
-  /**
-   * @description API 예외 객체를 화면 표시용 에러 메타로 정규화. 입력/출력 계약을 함께 명시
-   * 반환값: message/requestId 필드를 갖는 단순 객체.
-   * @updated 2026-02-27
-   */
-  const toApiError = (error, fallbackMessage) => ({
-    message: error?.message || fallbackMessage,
-    requestId: error?.requestId,
-  });
-
-  /**
-   * @description 프로필 폼의 기본 모델을 생성. 입력/출력 계약을 함께 명시
-   * 반환값: 화면 초기 렌더와 재초기화에 쓰는 user profile 기본값.
-   * @updated 2026-02-27
-   */
-  const createDefaultProfile = () => ({
+  const defaultProfileObj = {
     userId: "",
     userNm: "",
     userEml: "",
@@ -56,13 +40,13 @@ const SettingsView = () => {
     notifyEmail: false,
     notifySms: false,
     notifyPush: false,
-  });
+  };
 
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const { showToast } = useGlobalUi();
-  const profileMeObj = EasyObj(createDefaultProfile());
+  const profileMeObj = EasyObj({ ...defaultProfileObj });
   const ui = EasyObj({
     systemSetting: { ...SYSTEM_SETTING_DEFAULT },
     activeTabIndex: toSettingsTabIndex(normalizeSettingsTab(searchParams)),
@@ -80,6 +64,16 @@ const SettingsView = () => {
       ui.activeTabIndex = tabIndex;
     }
   }, [searchParams?.toString(), ui]);
+
+  /**
+   * @description API 예외 객체를 화면 표시용 에러 메타로 정규화. 입력/출력 계약을 함께 명시
+   * 반환값: message/requestId 필드를 갖는 단순 객체.
+   * @updated 2026-02-27
+   */
+  const toApiError = (error, fallbackMessage) => ({
+    message: error?.message || fallbackMessage,
+    requestId: error?.requestId,
+  });
 
   /**
    * @description 프로필 조회 API를 호출해 profileMeObj와 로딩/에러 상태를 갱신

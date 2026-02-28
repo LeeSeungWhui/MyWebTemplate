@@ -31,13 +31,7 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
  * 처리 규칙: 단계별(step1~3) 입력/검증/요약 상태를 하나의 EasyObj(ui)에서 관리한다.
  */
 const FormDemoView = () => {
-
-  /**
-   * @description 1단계 입력 검증 에러 모델의 기본값을 생성. 입력/출력 계약을 함께 명시
-   * 반환값: 각 필드 에러 메시지를 빈 문자열로 초기화한 객체.
-   * @updated 2026-02-27
-   */
-  const createStepOneErrorModel = () => ({
+  const defaultStepOneErrors = {
     name: "",
     email: "",
     phone: "",
@@ -45,13 +39,13 @@ const FormDemoView = () => {
     startDate: "",
     endDate: "",
     budgetRange: "",
-  });
+  };
 
   const ui = EasyObj({
     isLoading: true,
     step: 1,
     form: createDefaultForm(),
-    stepOneErrors: createStepOneErrorModel(),
+    stepOneErrors: { ...defaultStepOneErrors },
   });
   const { showToast } = useGlobalUi();
 
@@ -114,7 +108,7 @@ const FormDemoView = () => {
    * @updated 2026-02-27
    */
   const resetStepOneErrors = () => {
-    ui.stepOneErrors = createStepOneErrorModel();
+    ui.stepOneErrors = { ...defaultStepOneErrors };
   };
 
   /**
@@ -123,7 +117,7 @@ const FormDemoView = () => {
    * @updated 2026-02-27
    */
   const validateStepOne = () => {
-    const nextErrors = createStepOneErrorModel();
+    const nextErrors = { ...defaultStepOneErrors };
     const name = String(ui.form.name || "").trim();
     const email = String(ui.form.email || "").trim();
     const phone = String(ui.form.phone || "").trim();

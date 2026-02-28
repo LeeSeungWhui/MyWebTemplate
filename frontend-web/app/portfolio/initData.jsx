@@ -9,3 +9,8 @@ export const PAGE_MODE = {
   MODE: "STATIC",
   PUBLIC_PATH: "/portfolio",
 };
+
+export const PAGE_CONFIG = {
+  MODE: "CSR",
+  API: {},
+};

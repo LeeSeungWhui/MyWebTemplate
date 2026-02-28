@@ -22,3 +22,8 @@ export const DEMO_HUB_HEADER = {
 export const DEMO_HUB_CARD_LIST = initData.cardList.map((item) => ({ ...item }));
 
 export const DEMO_HUB_EXTRA_LINK_LIST = initData.extraLinkList.map((item) => ({ ...item }));
+
+export const PAGE_CONFIG = {
+  MODE: "CSR",
+  API: {},
+};

@@ -143,7 +143,7 @@ const SignupView = () => {
           email: String(signupObj.email || "").trim().toLowerCase(),
           password: String(signupObj.password || ""),
         },
-      });
+      }, { authless: true });
       showToast(LANG_KO.view.toast.signupDone, { type: "success" });
       window.location.assign("/login?signup=done");
     } catch (error) {

@@ -72,3 +72,10 @@ export const toSettingsTabQueryValue = (tabIndex) => {
 export const SYSTEM_SETTING_DEFAULT = {
   ...LANG_KO.initData.systemDefault,
 };
+
+export const PAGE_CONFIG = {
+  MODE: "CSR",
+  API: {
+    profileMe: "/api/v1/profile/me",
+  },
+};

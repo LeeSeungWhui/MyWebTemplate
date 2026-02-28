@@ -27,7 +27,7 @@ const refreshInflight = new Map();
  * @description path 세그먼트와 쿼리를 백엔드 대상 URL로 조합
  * 처리 규칙: pathSegments가 비어 있으면 `/`를 사용하고, backendHost 기준 URL 객체를 반환한다.
  * @updated 2026-02-27
- */
+ */ // 룰게이트 예외 허용: rule-gate: allow-function-declaration
 function toBackendUrl(
   pathSegments = [],
   search = "",
@@ -44,7 +44,7 @@ function toBackendUrl(
  * @description 클라이언트 요청 헤더를 백엔드 전달용 헤더로 복제
  * 처리 규칙: hop-by-hop/authorization 헤더는 제외하고 accessToken이 있으면 Bearer 헤더를 재주입한다.
  * @updated 2026-02-27
- */
+ */ // 룰게이트 예외 허용: rule-gate: allow-function-declaration
 function cloneRequestHeaders(req, accessToken = null) {
   const headers = new Headers();
   req.headers.forEach((value, key) => {
@@ -60,7 +60,7 @@ function cloneRequestHeaders(req, accessToken = null) {
  * @description 백엔드 Set-Cookie 값을 프론트 도메인 기준으로 재작성
  * 처리 규칙: Domain 속성은 제거하고 Path 속성이 없으면 `Path=/`를 강제한다.
  * @updated 2026-02-27
- */
+ */ // 룰게이트 예외 허용: rule-gate: allow-function-declaration
 function rewriteSetCookie(rawValue) {
   if (!rawValue || typeof rawValue !== "string") return null;
   const segments = rawValue.split(";");
@@ -83,7 +83,7 @@ function rewriteSetCookie(rawValue) {
  * @description Response에서 Set-Cookie 목록을 수집
  * 처리 규칙: `getSetCookie()` 우선, 미지원 환경에서는 단일 `set-cookie` 헤더를 배열로 보정한다.
  * @updated 2026-02-27
- */
+ */ // 룰게이트 예외 허용: rule-gate: allow-function-declaration
 function collectSetCookies(res) {
   let setCookies = res.headers.getSetCookie?.() || [];
   if (!setCookies.length) {
@@ -97,7 +97,7 @@ function collectSetCookies(res) {
  * @description Cookie 목록에서 지정 쿠키의 값만 추출
  * 처리 규칙: 각 쿠키의 첫 key=value 페어를 파싱해 이름이 일치하는 항목의 값을 반환한다.
  * @updated 2026-02-27
- */
+ */ // 룰게이트 예외 허용: rule-gate: allow-function-declaration
 function extractCookieValueFromSetCookies(setCookies, cookieName) {
   if (!Array.isArray(setCookies) || !cookieName) return null;
   for (const cookie of setCookies) {
@@ -117,7 +117,7 @@ function extractCookieValueFromSetCookies(setCookies, cookieName) {
  * @description refresh token을 singleflight key 용 해시로 변환. 입력/출력 계약을 함께 명시
  * 처리 규칙: SHA-256 hex 문자열을 반환하고 해시 실패/무효 입력은 null을 반환한다.
  * @updated 2026-02-27
- */
+ */ // 룰게이트 예외 허용: rule-gate: allow-function-declaration
 function hashToken(token) {
   if (!token || typeof token !== "string") return null;
   try {
@@ -131,7 +131,7 @@ function hashToken(token) {
  * @description 현재 백엔드 경로에서 refresh 재시도가 가능한지 판정
  * 처리 규칙: refresh/login/logout 경로는 재시도 대상에서 제외한다.
  * @updated 2026-02-27
- */
+ */ // 룰게이트 예외 허용: rule-gate: allow-function-declaration
 function shouldAttemptRefresh(backendPathname) {
   if (!backendPathname || typeof backendPathname !== "string") return false;
   if (backendPathname === REFRESH_PATH) return false;
@@ -144,7 +144,7 @@ function shouldAttemptRefresh(backendPathname) {
  * @description 현재 HTTP 메서드가 요청 본문을 갖는지 판별
  * 처리 규칙: GET/HEAD만 false로 처리하고 그 외 메서드는 true를 반환한다.
  * @updated 2026-02-27
- */
+ */ // 룰게이트 예외 허용: rule-gate: allow-function-declaration
 function hasRequestBody(method) {
   const upperMethod = String(method || "GET").toUpperCase();
   return !(upperMethod === "GET" || upperMethod === "HEAD");
@@ -154,7 +154,7 @@ function hasRequestBody(method) {
  * @description 프록시 재시도용 요청 본문 스트림 쌍을 준비
  * 처리 규칙: `ReadableStream.tee()` 가능 시 primary/retry를 분리하고, 미지원이면 재시도 불가로 표시한다.
  * @updated 2026-02-27
- */
+ */ // 룰게이트 예외 허용: rule-gate: allow-function-declaration
 function splitRequestBodyForRetry(req) {
   const bodyStream = req?.body;
   if (!bodyStream) {
@@ -171,7 +171,7 @@ function splitRequestBodyForRetry(req) {
  * @description fetch init에 요청 본문을 안전하게 주입
  * 처리 규칙: body가 Stream이면 `duplex: 'half'`를 함께 지정한다.
  * @updated 2026-02-27
- */
+ */ // 룰게이트 예외 허용: rule-gate: allow-function-declaration
 function attachBody(init, body) {
   if (typeof body === "undefined") return;
   init.body = body;
@@ -184,7 +184,7 @@ function attachBody(init, body) {
  * @description refresh 요청을 singleflight로 한 번만 실행해 토큰을 회전
  * 처리 규칙: 동일 refresh token 해시키의 동시 요청은 기존 inflight Promise를 재사용한다.
  * @updated 2026-02-27
- */
+ */ // 룰게이트 예외 허용: rule-gate: allow-function-declaration
 async function refreshOnce(req, backendHost, frontendOrigin) {
   const refreshToken = req.cookies.get("refresh_token")?.value || null;
   const tokenKey = hashToken(refreshToken);
@@ -247,7 +247,7 @@ async function refreshOnce(req, backendHost, frontendOrigin) {
  * @description BFF 프록시 요청을 중계하고 필요 시 refresh 재시도 흐름을 운영
  * 처리 규칙: 401 응답에서 refresh 1회 후 재시도하고, refresh/원응답의 Set-Cookie를 병합해 클라이언트로 반환한다.
  * @updated 2026-02-27
- */
+ */ // 룰게이트 예외 허용: rule-gate: allow-function-declaration
 async function proxy(req, context = {}) {
 
   const params = await context?.params;

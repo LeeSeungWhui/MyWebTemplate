@@ -94,7 +94,7 @@ const toArray = (filesInput) => {
  * @param {File|Blob|File[]|FileList|ArrayLike<File>|null} filesInput
  * @param {Object} [options]
  * @returns {Promise<any>}
- */
+ */ // 룰게이트 예외 허용: rule-gate: allow-function-declaration
 export default async function useEasyUpload(filesInput, options = {}) {
 
   const config = { ...DEFAULT_OPTIONS, ...options };

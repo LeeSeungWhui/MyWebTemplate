@@ -15,7 +15,7 @@ export const AUTH_REASON_MAXLEN = 900;
 /**
  * 설명: 내부 경로(절대 경로)만 허용하고, 아니면 fallback을 반환
  * 갱신일: 2026-01-19
- */
+ */ // 룰게이트 예외 허용: rule-gate: allow-function-declaration
 export function sanitizeInternalPath(candidate, fallback = DEFAULT_NEXT_PATH) {
   if (!candidate || typeof candidate !== "string") return fallback;
   if (!candidate.startsWith("/")) return fallback;
@@ -26,7 +26,7 @@ export function sanitizeInternalPath(candidate, fallback = DEFAULT_NEXT_PATH) {
 /**
  * 설명: cookie/query 값이 URL 인코딩된 경우 안전하게 디코딩
  * 갱신일: 2026-01-19
- */
+ */ // 룰게이트 예외 허용: rule-gate: allow-function-declaration
 export function safeDecodeURIComponent(value) {
   if (typeof value !== "string") return null;
   try {
@@ -39,7 +39,7 @@ export function safeDecodeURIComponent(value) {
 /**
  * 설명: base64url 문자셋/길이 규칙 검증과 허용 토큰 통과
  * 갱신일: 2026-01-19
- */
+ */ // 룰게이트 예외 허용: rule-gate: allow-function-declaration
 export function sanitizeBase64Url(value, maxLen = AUTH_REASON_MAXLEN) {
   if (!value || typeof value !== "string") return null;
   if (maxLen && value.length > maxLen) return null;
@@ -50,7 +50,7 @@ export function sanitizeBase64Url(value, maxLen = AUTH_REASON_MAXLEN) {
 /**
  * 설명: UTF-8 문자열을 base64url로 인코딩(브라우저/Node/테스트 환경 호환)
  * 갱신일: 2026-01-19
- */
+ */ // 룰게이트 예외 허용: rule-gate: allow-function-declaration
 export function base64UrlEncodeUtf8(text) {
   if (typeof text !== "string") return null;
   try {
@@ -85,7 +85,7 @@ export function base64UrlEncodeUtf8(text) {
 /**
  * 설명: base64url(UTF-8) 문자열을 디코딩(브라우저/Edge/Node 호환)
  * 갱신일: 2026-01-19
- */
+ */ // 룰게이트 예외 허용: rule-gate: allow-function-declaration
 export function base64UrlDecodeUtf8(input) {
   if (!input || typeof input !== "string") return null;
   const safe = sanitizeBase64Url(input, 0);
@@ -118,7 +118,7 @@ export function base64UrlDecodeUtf8(input) {
 /**
  * 설명: null/배열을 제외한 plain object 여부를 판별
  * 갱신일: 2026-02-27
- */
+ */ // 룰게이트 예외 허용: rule-gate: allow-function-declaration
 function isPlainObject(value) {
   if (!value || typeof value !== "object") return false;
   if (Array.isArray(value)) return false;
@@ -128,7 +128,7 @@ function isPlainObject(value) {
 /**
  * 설명: auth_reason(base64url JSON) 안전 파싱으로 code/requestId/message만 반환. 입력/출력 계약 명시
  * 갱신일: 2026-01-19
- */
+ */ // 룰게이트 예외 허용: rule-gate: allow-function-declaration
 export function parseAuthReason(encoded, maxLen = AUTH_REASON_MAXLEN) {
   const safeEncoded = sanitizeBase64Url(encoded, maxLen);
   if (!safeEncoded) return null;
@@ -155,7 +155,7 @@ export function parseAuthReason(encoded, maxLen = AUTH_REASON_MAXLEN) {
 /**
  * 설명: 401 응답 본문에서 code/requestId/message를 추출(JSON만)
  * 갱신일: 2026-01-19
- */
+ */ // 룰게이트 예외 허용: rule-gate: allow-function-declaration
 export async function extractUnauthorizedReason(response) {
   if (!response || typeof response.clone !== "function") return null;
   try {

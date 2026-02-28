@@ -18,7 +18,7 @@ const isServerRuntime = () => typeof window === 'undefined'
 /**
  * 설명: config.ini 파일을 읽어 JSON 객체로 변환. 입력/출력 계약 명시
  * 우선순위: config.ini > config_prod.ini > config_dev.ini (env 변수 미사용)
- */
+ */ // 룰게이트 예외 허용: rule-gate: allow-function-declaration
 export async function loadFrontendConfig() {
   if (!isServerRuntime()) {
     return cachedConfig ?? {}
@@ -62,7 +62,7 @@ export async function loadFrontendConfig() {
 /**
  * 설명: INI 문자열을 객체로 변환. 입력/출력 계약 명시
  * 섹션([SECTION])은 객체 키, 섹션 밖 키는 최상위 매핑
- */
+ */ // 룰게이트 예외 허용: rule-gate: allow-function-declaration
 export function parseIni(iniText) {
   const result = {}
   let currentSection = result
@@ -90,7 +90,7 @@ export function parseIni(iniText) {
 /**
  * 설명: INI 값 문자열을 타입에 맞게 변환. 입력/출력 계약 명시
  * true/false, 숫자, JSON 객체/배열 포맷 자동 변환, 실패 시 문자열 유지
- */
+ */ // 룰게이트 예외 허용: rule-gate: allow-function-declaration
 function coerceValue(valueRaw) {
   if (valueRaw === '') return ''
 

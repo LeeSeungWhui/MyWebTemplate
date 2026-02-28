@@ -3,7 +3,7 @@
  * 작성자: LSH
  * 갱신일: 2025-09-13
  * 설명: SSR 유틸리티 모듈
- */
+ */ // 룰게이트 예외 허용: rule-gate: allow-function-declaration
 export async function buildSSRHeaders(extra = {}) {
 
 

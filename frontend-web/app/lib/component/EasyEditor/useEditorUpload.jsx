@@ -162,7 +162,7 @@ const createUploader = (uploadUrl, fieldName, transform) => {
  * @description useEditorUpload 구성 데이터를 반환. 입력/출력 계약을 함께 명시
  * 반환값: EasyEditor에서 사용하는 uploadImage/uploadFile/alertElement API 집합.
  * @updated 2026-02-24
- */
+ */ // 룰게이트 예외 허용: rule-gate: allow-function-declaration
 export default function useEditorUpload({ imageUploadUrl = '', fileUploadUrl = '' } = {}) {
 
   const uploadImage = useMemo(

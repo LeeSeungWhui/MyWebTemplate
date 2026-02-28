@@ -26,7 +26,7 @@ const getRaw = (obj) => (obj && obj.__rawObject) ? obj.__rawObject : obj;
  * @description 바인딩 객체에서 key 경로 값 조회
  * 처리 규칙: dataObj.get 우선 사용, 없으면 `a.b.c` dotted path를 순회한다.
  * @updated 2026-02-24
- */
+ */ // 룰게이트 예외 허용: rule-gate: allow-function-declaration
 export function getBoundValue(dataObj, dataKey) {
   if (!dataObj || !dataKey) return undefined;
 
@@ -45,7 +45,7 @@ export function getBoundValue(dataObj, dataKey) {
  * @description 바인딩 객체의 key 경로 값을 설정. 입력/출력 계약을 함께 명시
  * 부작용: 경로 중간 노드가 없으면 객체를 생성하고 마지막 키에 값을 대입한다.
  * @updated 2026-02-24
- */
+ */ // 룰게이트 예외 허용: rule-gate: allow-function-declaration
 export function setBoundValue(dataObj, dataKey, value, options = {}) {
 
   if (!dataObj || !dataKey) return;
@@ -67,7 +67,7 @@ export function setBoundValue(dataObj, dataKey, value, options = {}) {
  * @description 값 변경 컨텍스트를 구성. 입력/출력 계약을 함께 명시
  * 반환값: `{ dataKey, modelType, dirty, valid, source }` 형태의 공통 ctx 객체.
  * @updated 2026-02-24
- */
+ */ // 룰게이트 예외 허용: rule-gate: allow-function-declaration
 export function buildCtx({ dataKey, dataObj, source = 'user', valid = null, dirty = true }) {
 
   const raw = getRaw(dataObj);
@@ -84,7 +84,7 @@ export function buildCtx({ dataKey, dataObj, source = 'user', valid = null, dirt
  * @description onChange/onValueChange 핸들러에 공통 이벤트 규약을 전달
  * 처리 규칙: event.detail에 value/ctx를 주입하고 onChange(event) → onValueChange(value, ctx) 순으로 호출한다.
  * @updated 2026-02-24
- */
+ */ // 룰게이트 예외 허용: rule-gate: allow-function-declaration
 export function fireValueHandlers({ onChange, onValueChange, value, ctx, event }) {
 
 

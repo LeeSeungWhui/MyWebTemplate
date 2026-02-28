@@ -67,3 +67,8 @@ export const CTA_LINK_LIST = [
   { href: "/sample/crud", label: initData.ctaLabels.crud },
   { href: "/sample/admin", label: initData.ctaLabels.admin },
 ];
+
+export const PAGE_CONFIG = {
+  MODE: "CSR",
+  API: {},
+};

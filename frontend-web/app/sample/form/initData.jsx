@@ -36,3 +36,8 @@ export const createDefaultForm = () => ({
   attachmentName: "",
   selectedFeatures: [],
 });
+
+export const PAGE_CONFIG = {
+  MODE: "CSR",
+  API: {},
+};

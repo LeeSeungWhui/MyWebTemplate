@@ -53,6 +53,114 @@ const TasksView = ({ initialFilter = {} }) => {
   const router = useRouter();
   const pathname = usePathname();
   const { showToast, showConfirm } = useGlobalUi();
+  const defaultTaskForm = {
+    title: "",
+    status: "ready",
+    amount: 0,
+    tags: "",
+    description: "",
+  };
+  const ui = EasyObj({
+    keyword: String(initialFilter?.keyword || ""),
+    status: String(initialFilter?.status || ""),
+    sort: String(initialFilter?.sort || DEFAULT_SORT),
+    page:
+      Number.isFinite(initialFilter?.page) && initialFilter.page > 0
+        ? Number(initialFilter.page)
+        : 1,
+    isLoading: true,
+    isSaving: false,
+    isDrawerLoading: false,
+    error: null,
+    isDrawerOpen: false,
+    drawerMode: "create",
+    editingId: null,
+    form: { ...defaultTaskForm },
+  });
+  const taskList = useEasyList([]);
+  const taskMetaObj = EasyObj({ totalCount: 0 });
+  const taskDetailObj = EasyObj({});
+  const endPoints = PAGE_MODE.endPoints || {};
+  const hasListEndpoint = Boolean(endPoints.list);
+  const hasDetailEndpoint = Boolean(endPoints.detail);
+  const hasCreateEndpoint = Boolean(endPoints.create);
+  const hasUpdateEndpoint = Boolean(endPoints.update);
+  const hasRemoveEndpoint = Boolean(endPoints.remove);
+  const tableColumns = [
+    {
+      key: "title",
+      header: LANG_KO.view.table.titleHeader,
+      align: "left",
+      width: "2fr",
+      render: (row) => (
+        <button
+          type="button"
+          className="text-left text-blue-700 hover:underline"
+          onClick={() => openEditDrawer(row?.id)}
+        >
+          {row?.title || "-"}
+        </button>
+      ),
+    },
+    {
+      key: "status",
+      header: LANG_KO.view.table.statusHeader,
+      width: 140,
+      render: (row) => (
+        <Badge variant={STATUS_BADGE_VARIANT[row?.status] || "neutral"} pill>
+          {LANG_KO.view.statusLabelMap[row?.status] || row?.status || LANG_KO.view.misc.noData}
+        </Badge>
+      ),
+    },
+    {
+      key: "amount",
+      header: LANG_KO.view.table.amountHeader,
+      width: 140,
+      align: "right",
+      render: (row) => toCurrencyText(row?.amount),
+    },
+    {
+      key: "tags",
+      header: LANG_KO.view.table.tagsHeader,
+      align: "left",
+      width: "2fr",
+      render: (row) => {
+        const tagList = toTagList(row?.tags);
+        if (!tagList.length) return <span className="text-gray-400">{LANG_KO.view.misc.dateUnknown}</span>;
+        return (
+          <div className="flex flex-wrap gap-1">
+            {tagList.map((tag) => (
+              <Badge key={`${row?.id || "row"}-${tag}`} variant="outline" pill>
+                {tag}
+              </Badge>
+            ))}
+          </div>
+        );
+      },
+    },
+    {
+      key: "createdAt",
+      header: LANG_KO.view.table.createdAtHeader,
+      width: 140,
+      render: (row) => toDateText(row?.createdAt),
+    },
+    {
+      key: "actions",
+      header: LANG_KO.view.table.actionsHeader,
+      width: 180,
+      render: (row) => (
+        <div className="flex items-center justify-center gap-2">
+          <Button size="sm" variant="secondary" onClick={() => openEditDrawer(row?.id)}>
+            {LANG_KO.view.action.editButton}
+          </Button>
+          <Button size="sm" variant="danger" onClick={() => removeTask(row)}>
+            {LANG_KO.view.action.removeButton}
+          </Button>
+        </div>
+      ),
+    },
+  ];
+  const pageCount = Math.max(1, Math.ceil(taskMetaObj.totalCount / PAGE_SIZE));
 
   /**
    * @description tags 입력값을 문자열 배열로 정규화. 입력/출력 계약을 함께 명시
@@ -117,46 +225,6 @@ const TasksView = ({ initialFilter = {} }) => {
     message: error?.message || fallbackMessage,
     requestId: error?.requestId,
   });
-
-  /**
-   * @description 드로어 폼의 초기값 모델을 생성. 입력/출력 계약을 함께 명시
-   * 처리 규칙: 생성/수정 공통 폼 필드를 기본 상태값으로 구성해 반환한다.
-   * @updated 2026-02-27
-   */
-  const createDefaultForm = () => ({
-    title: "",
-    status: "ready",
-    amount: 0,
-    tags: "",
-    description: "",
-  });
-
-  const ui = EasyObj({
-    keyword: String(initialFilter?.keyword || ""),
-    status: String(initialFilter?.status || ""),
-    sort: String(initialFilter?.sort || DEFAULT_SORT),
-    page:
-      Number.isFinite(initialFilter?.page) && initialFilter.page > 0
-        ? Number(initialFilter.page)
-        : 1,
-    isLoading: true,
-    isSaving: false,
-    isDrawerLoading: false,
-    error: null,
-    isDrawerOpen: false,
-    drawerMode: "create",
-    editingId: null,
-    form: createDefaultForm(),
-  });
-  const taskList = useEasyList([]);
-  const taskMetaObj = EasyObj({ totalCount: 0 });
-  const taskDetailObj = EasyObj({});
-  const endPoints = PAGE_MODE.endPoints || {};
-  const hasListEndpoint = Boolean(endPoints.list);
-  const hasDetailEndpoint = Boolean(endPoints.detail);
-  const hasCreateEndpoint = Boolean(endPoints.create);
-  const hasUpdateEndpoint = Boolean(endPoints.update);
-  const hasRemoveEndpoint = Boolean(endPoints.remove);
 
   /**
    * @description 현재 필터/페이지 상태를 브라우저 쿼리스트링과 동기화
@@ -254,7 +322,7 @@ const TasksView = ({ initialFilter = {} }) => {
   const openCreateDrawer = () => {
     ui.drawerMode = "create";
     ui.editingId = null;
-    ui.form = createDefaultForm();
+    ui.form = { ...defaultTaskForm };
     ui.isDrawerOpen = true;
     ui.isDrawerLoading = false;
   };
@@ -408,83 +476,6 @@ const TasksView = ({ initialFilter = {} }) => {
       syncQuery: false,
     });
   }, [hasListEndpoint]);
-
-  const tableColumns = [
-    {
-      key: "title",
-      header: LANG_KO.view.table.titleHeader,
-      align: "left",
-      width: "2fr",
-      render: (row) => (
-        <button
-          type="button"
-          className="text-left text-blue-700 hover:underline"
-          onClick={() => openEditDrawer(row?.id)}
-        >
-          {row?.title || "-"}
-        </button>
-      ),
-    },
-    {
-      key: "status",
-      header: LANG_KO.view.table.statusHeader,
-      width: 140,
-      render: (row) => (
-        <Badge variant={STATUS_BADGE_VARIANT[row?.status] || "neutral"} pill>
-          {LANG_KO.view.statusLabelMap[row?.status] || row?.status || LANG_KO.view.misc.noData}
-        </Badge>
-      ),
-    },
-    {
-      key: "amount",
-      header: LANG_KO.view.table.amountHeader,
-      width: 140,
-      align: "right",
-      render: (row) => toCurrencyText(row?.amount),
-    },
-    {
-      key: "tags",
-      header: LANG_KO.view.table.tagsHeader,
-      align: "left",
-      width: "2fr",
-      render: (row) => {
-        const tagList = toTagList(row?.tags);
-        if (!tagList.length) return <span className="text-gray-400">{LANG_KO.view.misc.dateUnknown}</span>;
-        return (
-          <div className="flex flex-wrap gap-1">
-            {tagList.map((tag) => (
-              <Badge key={`${row?.id || "row"}-${tag}`} variant="outline" pill>
-                {tag}
-              </Badge>
-            ))}
-          </div>
-        );
-      },
-    },
-    {
-      key: "createdAt",
-      header: LANG_KO.view.table.createdAtHeader,
-      width: 140,
-      render: (row) => toDateText(row?.createdAt),
-    },
-    {
-      key: "actions",
-      header: LANG_KO.view.table.actionsHeader,
-      width: 180,
-      render: (row) => (
-        <div className="flex items-center justify-center gap-2">
-          <Button size="sm" variant="secondary" onClick={() => openEditDrawer(row?.id)}>
-            {LANG_KO.view.action.editButton}
-          </Button>
-          <Button size="sm" variant="danger" onClick={() => removeTask(row)}>
-            {LANG_KO.view.action.removeButton}
-          </Button>
-        </div>
-      ),
-    },
-  ];
-
-  const pageCount = Math.max(1, Math.ceil(taskMetaObj.totalCount / PAGE_SIZE));
 
   return (
     <div className="space-y-3">

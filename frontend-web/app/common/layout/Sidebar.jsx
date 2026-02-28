@@ -468,6 +468,7 @@ const Sidebar = ({
               </li>
             );
           })}
+
         </ul>
       </nav>
       {footerSlot ? (

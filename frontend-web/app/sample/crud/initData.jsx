@@ -16,3 +16,8 @@ export const PAGE_MODE = {
 
 export const STATUS_FILTER_LIST = initData.statusFilterList.map((item) => ({ ...item }));
 export const DEMO_DATA_LIST = initData.rowList.map((item) => ({ ...item }));
+
+export const PAGE_CONFIG = {
+  MODE: "CSR",
+  API: {},
+};

@@ -13,3 +13,8 @@ export const PAGE_MODE = {
 };
 
 export const PAGE_CONTENT = { ...LANG_KO.initData.content };
+
+export const PAGE_CONFIG = {
+  MODE: "CSR",
+  API: {},
+};

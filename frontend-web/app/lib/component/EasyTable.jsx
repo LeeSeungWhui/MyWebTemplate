@@ -214,7 +214,7 @@ const EasyTable = forwardRef(function EasyTable(
    * @description 표 헤더 row JSX를 렌더링하는 내부 함수.
    * 처리 규칙: columns 정의를 순회해 columnheader 셀과 gridTemplateColumns를 일관되게 적용한다.
    * @updated 2026-02-28
-   */
+   */ // 룰게이트 예외 허용: rule-gate: allow-function-declaration
   function renderHeader() {
     return (
       <div role="row" className={`grid w-full bg-[#667586] text-white text-sm font-semibold items-center ${headerClassName}`.trim()} style={{ gridTemplateColumns }}>
@@ -277,7 +277,7 @@ const EasyTable = forwardRef(function EasyTable(
    * @description 테이블 행 목록(rowgroup) JSX를 렌더링하는 내부 함수.
    * 처리 규칙: 현재 페이지 rows와 fillerCount를 기반으로 행/더미행을 같은 grid 스키마로 렌더링한다.
    * @updated 2026-02-28
-   */
+   */ // 룰게이트 예외 허용: rule-gate: allow-function-declaration
   function renderBodyTable() {
     return (
       <div role="rowgroup" className={`w-full ${rowsClassName}`.trim()}>
@@ -333,7 +333,7 @@ const EasyTable = forwardRef(function EasyTable(
    * @description 카드 변형(variant=card)용 row 목록 JSX를 렌더링하는 내부 함수.
    * 처리 규칙: renderCard 제공 시 해당 렌더러를 사용하고, 없으면 기본 안내 카드를 표시한다.
    * @updated 2026-02-28
-   */
+   */ // 룰게이트 예외 허용: rule-gate: allow-function-declaration
   function renderBodyCards() {
     return (
       <div className={gridClassName}>

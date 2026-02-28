@@ -23,7 +23,7 @@ export const publicRoutes = [
 /**
  * 설명: Next matcher 스타일 패턴을 RegExp로 변환
  * 지원: '/path', '/path/:path*', '/path/:path+' (접미부 전용)
- */
+ */ // 룰게이트 예외 허용: rule-gate: allow-function-declaration
 function compilePattern(pat) {
   if (pat === "/") return /^\/$/;
 
@@ -46,7 +46,7 @@ const compiled = publicRoutes.map(compilePattern);
  * 설명: 주어진 pathname이 공개 경로인지 판별
  * 처리 규칙: 문자열이 아니면 false를 반환하고, 등록된 정규식 패턴 중 하나라도 일치하면 true를 반환한다.
  * 반환값: 공개 경로 여부(boolean)
- */
+ */ // 룰게이트 예외 허용: rule-gate: allow-function-declaration
 export function isPublicPath(pathname) {
   if (!pathname || typeof pathname !== "string") return false;
   for (const re of compiled) {

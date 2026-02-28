@@ -36,86 +36,6 @@ const STATUS_ORDER = ["ready", "pending", "running", "done", "failed"];
  */
 const DashboardView = ({ statList, dataList, initialError }) => {
 
-  /**
-   * @description 날짜 문자열에서 월 라벨(`n월`)을 계산
-   * 실패 동작: 비어 있거나 파싱 실패한 입력은 unknown 라벨을 반환한다.
-   * @updated 2026-02-27
-   */
-  const monthKey = (iso) => {
-    if (!iso) return LANG_KO.view.unknown;
-    const date = new Date(iso);
-    if (Number.isNaN(date.getTime())) return LANG_KO.view.unknown;
-    const month = date.getMonth() + 1;
-    return `${month}${LANG_KO.view.monthSuffix}`;
-  };
-
-  /**
-   * @description 숫자 값을 로케일 기준 문자열로 포맷
-   * 반환값: NaN 입력은 0 텍스트를 반환하고, 정상 입력은 locale 문자열을 반환한다.
-   * @updated 2026-02-27
-   */
-  const formatNumber = (value) => {
-    const num = Number(value || 0);
-    if (Number.isNaN(num)) return LANG_KO.view.number.zeroText;
-    return num.toLocaleString(LANG_KO.view.number.locale);
-  };
-
-  /**
-   * @description 금액 숫자를 통계 카드용 문자열로 포맷
-   * 처리 규칙: 현재는 formatNumber 정책을 동일하게 재사용한다.
-   * @updated 2026-02-27
-   */
-  const formatCurrency = (value) => {
-    return formatNumber(value);
-  };
-
-  /**
-   * @description 에러 키를 사용자 노출 메시지로 매핑. 입력/출력 계약을 함께 명시
-   * 반환값: 매핑된 메시지 또는 null.
-   * @updated 2026-02-27
-   */
-  const resolveErrorText = (errorKey) => {
-    if (errorKey === DASHBOARD_ERROR_KEY.ENDPOINT_MISSING) {
-      return LANG_KO.view.error.endpointMissing;
-    }
-    if (errorKey === DASHBOARD_ERROR_KEY.INIT_FETCH_FAILED) {
-      return LANG_KO.view.error.fetchFailed;
-    }
-    return null;
-  };
-
-  /**
-   * @description 상태 필터를 포함한 `/dashboard/tasks` 이동 경로를 생성
-   * 반환값: status query 포함 여부가 반영된 href 문자열.
-   * @updated 2026-02-27
-   */
-  const createTasksPath = ({ status }) => {
-
-    const params = new URLSearchParams();
-    if (status && LANG_KO.view.statusLabelMap[status]) params.set("status", status);
-    return params.toString()
-      ? `/dashboard/tasks?${params.toString()}`
-      : "/dashboard/tasks";
-  };
-
-  /**
-   * @description 다양한 에러 표현(string/object/null)을 공통 shape로 정규화. 입력/출력 계약을 함께 명시
-   * 반환값: `{key, code, requestId}` 구조 또는 null.
-   * @updated 2026-02-27
-   */
-  const normalizeErrorState = (value) => {
-    if (!value) return null;
-    if (typeof value === "string") return { key: value };
-    if (typeof value === "object") {
-      return {
-        key: value.key || "FETCH_FAILED",
-        code: value.code,
-        requestId: value.requestId,
-      };
-    }
-    return { key: "FETCH_FAILED" };
-  };
-
   const router = useRouter();
   const statsList = useEasyList(statList || []);
   const dashboardDataList = useEasyList(dataList || []);
@@ -126,39 +46,6 @@ const DashboardView = ({ statList, dataList, initialError }) => {
   });
   const endpoints = PAGE_MODE.endPoints || {};
   const hasEndpoint = Boolean(endpoints.stats && endpoints.list);
-
-  /**
-   * @description 대시보드 API(stats/list)를 조회하고 EasyList 모델을 동기화
-   * 실패 동작: 조회 실패 시 ui.error에 표준 에러 상태를 저장하고 로딩을 종료한다.
-   * @updated 2026-02-27
-   */
-  const fetchDashboard = async () => {
-    if (!hasEndpoint) {
-      ui.error = toErrorState(null, DASHBOARD_ERROR_KEY.ENDPOINT_MISSING);
-      return;
-    }
-    ui.isLoading = true;
-    ui.error = null;
-    try {
-      const [statsRes, listRes] = await Promise.all([
-        apiJSON(endpoints.stats),
-        apiJSON(endpoints.list),
-      ]);
-      const listResult = listRes?.result;
-      const normalizedItems = Array.isArray(listResult)
-        ? listResult
-        : Array.isArray(listResult?.items)
-          ? listResult.items
-          : [];
-      statsList.copy(statsRes?.result?.byStatus || []);
-      dashboardDataList.copy(normalizedItems);
-    } catch (err) {
-      console.error(LANG_KO.view.error.fetchFailed, err);
-      ui.error = toErrorState(err, DASHBOARD_ERROR_KEY.INIT_FETCH_FAILED);
-    } finally {
-      ui.isLoading = false;
-    }
-  };
 
   useEffect(() => {
     const hasSsrData = statList?.length && dataList?.length;
@@ -229,6 +116,118 @@ const DashboardView = ({ statList, dataList, initialError }) => {
 
   const legendFontSize = 12;
   const errorText = resolveErrorText(ui.error?.key);
+
+  /**
+   * @description 날짜 문자열에서 월 라벨(`n월`)을 계산
+   * 실패 동작: 비어 있거나 파싱 실패한 입력은 unknown 라벨을 반환한다.
+   * @updated 2026-02-27
+   */ // 룰게이트 예외 허용: rule-gate: allow-function-declaration
+  function monthKey(iso) {
+    if (!iso) return LANG_KO.view.unknown;
+    const date = new Date(iso);
+    if (Number.isNaN(date.getTime())) return LANG_KO.view.unknown;
+    const month = date.getMonth() + 1;
+    return `${month}${LANG_KO.view.monthSuffix}`;
+  }
+
+  /**
+   * @description 숫자 값을 로케일 기준 문자열로 포맷
+   * 반환값: NaN 입력은 0 텍스트를 반환하고, 정상 입력은 locale 문자열을 반환한다.
+   * @updated 2026-02-27
+   */ // 룰게이트 예외 허용: rule-gate: allow-function-declaration
+  function formatNumber(value) {
+    const num = Number(value || 0);
+    if (Number.isNaN(num)) return LANG_KO.view.number.zeroText;
+    return num.toLocaleString(LANG_KO.view.number.locale);
+  }
+
+  /**
+   * @description 금액 숫자를 통계 카드용 문자열로 포맷
+   * 처리 규칙: 현재는 formatNumber 정책을 동일하게 재사용한다.
+   * @updated 2026-02-27
+   */ // 룰게이트 예외 허용: rule-gate: allow-function-declaration
+  function formatCurrency(value) {
+    return formatNumber(value);
+  }
+
+  /**
+   * @description 에러 키를 사용자 노출 메시지로 매핑. 입력/출력 계약을 함께 명시
+   * 반환값: 매핑된 메시지 또는 null.
+   * @updated 2026-02-27
+   */ // 룰게이트 예외 허용: rule-gate: allow-function-declaration
+  function resolveErrorText(errorKey) {
+    if (errorKey === DASHBOARD_ERROR_KEY.ENDPOINT_MISSING) {
+      return LANG_KO.view.error.endpointMissing;
+    }
+    if (errorKey === DASHBOARD_ERROR_KEY.INIT_FETCH_FAILED) {
+      return LANG_KO.view.error.fetchFailed;
+    }
+    return null;
+  }
+
+  /**
+   * @description 상태 필터를 포함한 `/dashboard/tasks` 이동 경로를 생성
+   * 반환값: status query 포함 여부가 반영된 href 문자열.
+   * @updated 2026-02-27
+   */ // 룰게이트 예외 허용: rule-gate: allow-function-declaration
+  function createTasksPath({ status }) {
+    const params = new URLSearchParams();
+    if (status && LANG_KO.view.statusLabelMap[status]) params.set("status", status);
+    return params.toString()
+      ? `/dashboard/tasks?${params.toString()}`
+      : "/dashboard/tasks";
+  }
+
+  /**
+   * @description 다양한 에러 표현(string/object/null)을 공통 shape로 정규화. 입력/출력 계약을 함께 명시
+   * 반환값: `{key, code, requestId}` 구조 또는 null.
+   * @updated 2026-02-27
+   */ // 룰게이트 예외 허용: rule-gate: allow-function-declaration
+  function normalizeErrorState(value) {
+    if (!value) return null;
+    if (typeof value === "string") return { key: value };
+    if (typeof value === "object") {
+      return {
+        key: value.key || "FETCH_FAILED",
+        code: value.code,
+        requestId: value.requestId,
+      };
+    }
+    return { key: "FETCH_FAILED" };
+  }
+
+  /**
+   * @description 대시보드 API(stats/list)를 조회하고 EasyList 모델을 동기화
+   * 실패 동작: 조회 실패 시 ui.error에 표준 에러 상태를 저장하고 로딩을 종료한다.
+   * @updated 2026-02-27
+   */
+  const fetchDashboard = async () => {
+    if (!hasEndpoint) {
+      ui.error = toErrorState(null, DASHBOARD_ERROR_KEY.ENDPOINT_MISSING);
+      return;
+    }
+    ui.isLoading = true;
+    ui.error = null;
+    try {
+      const [statsRes, listRes] = await Promise.all([
+        apiJSON(endpoints.stats),
+        apiJSON(endpoints.list),
+      ]);
+      const listResult = listRes?.result;
+      const normalizedItems = Array.isArray(listResult)
+        ? listResult
+        : Array.isArray(listResult?.items)
+          ? listResult.items
+          : [];
+      statsList.copy(statsRes?.result?.byStatus || []);
+      dashboardDataList.copy(normalizedItems);
+    } catch (err) {
+      console.error(LANG_KO.view.error.fetchFailed, err);
+      ui.error = toErrorState(err, DASHBOARD_ERROR_KEY.INIT_FETCH_FAILED);
+    } finally {
+      ui.isLoading = false;
+    }
+  };
 
   return (
     <div className="space-y-2">

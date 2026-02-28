@@ -27,108 +27,6 @@ const DemoDashboardView = ({
 
   const statusOrder = ["ready", "pending", "running", "done", "failed"];
 
-  /**
-   * @description 금액 숫자를 로케일 포맷 문자열로 변환. 입력/출력 계약을 함께 명시
-   * 반환값: NaN이면 0 텍스트, 정상값이면 locale 기반 숫자 문자열.
-   * @updated 2026-02-27
-   */
-  const formatCurrency = (value) => {
-    const num = Number(value || 0);
-    if (Number.isNaN(num)) return LANG_KO.view.number.zeroText;
-    return num.toLocaleString(LANG_KO.view.number.locale);
-  };
-
-  /**
-   * @description 행 목록을 상태별 건수/합계 금액 요약 배열로 변환. 입력/출력 계약을 함께 명시
-   * 반환값: statusOrder 순서가 보장된 `{status,count,amountSum}` 리스트.
-   * @updated 2026-02-27
-   */
-  const toStatusSummaryList = (rowList) => {
-    /**
-     * @description CRUD 샘플 행 목록으로 상태 집계를 생성
-     * 처리 규칙: statusOrder 순서로 순회하며 count/amountSum 누적 요약을 생성.
-     * @updated 2026-02-23
-     */
-    return statusOrder.map((statusCode) => {
-      const filteredRows = rowList.filter(
-        (rowItem) => String(rowItem?.status || "") === statusCode,
-      );
-      return {
-        status: statusCode,
-        count: filteredRows.length,
-        amountSum: filteredRows.reduce(
-          (total, rowItem) => total + Number(rowItem?.amount || 0),
-          0,
-        ),
-      };
-    });
-  };
-
-  /**
-   * @description 행 목록에서 월별 건수/금액 추이 데이터를 생성. 입력/출력 계약을 함께 명시
-   * 처리 규칙: `YYYY-MM` 키로 집계 후 월 오름차순 정렬해 `n월` 라벨로 변환한다.
-   * @updated 2026-02-27
-   */
-  const toMonthlyTrendList = (rowList) => {
-    /**
-     * @description CRUD 샘플 행 목록으로 월별 추이 데이터를 생성
-     * 처리 규칙: createdAt를 YYYY-MM 기준으로 그룹화하고 월 오름차순 결과를 생성.
-     * @updated 2026-02-23
-     */
-    const monthlyMap = {};
-    rowList.forEach((rowItem) => {
-      const createdAt = String(rowItem?.createdAt || "");
-      const matched = createdAt.match(/^(\d{4})-(\d{2})-\d{2}$/);
-      if (!matched) return;
-      const key = `${matched[1]}-${matched[2]}`;
-      const prevValue = monthlyMap[key] || { count: 0, amount: 0 };
-      monthlyMap[key] = {
-        count: prevValue.count + 1,
-        amount: prevValue.amount + Number(rowItem?.amount || 0),
-      };
-    });
-    return Object.keys(monthlyMap)
-      .sort()
-      .map((monthKey) => {
-        const monthNo = Number(monthKey.split("-")[1] || 0);
-        const monthlyValue = monthlyMap[monthKey] || { count: 0, amount: 0 };
-        return {
-          label: `${monthNo}${LANG_KO.view.monthSuffix}`,
-          count: monthlyValue.count,
-          amount: monthlyValue.amount,
-        };
-      });
-  };
-
-  /**
-   * @description 최근 생성일 기준 상위 5건 업무 목록 표 데이터 생성
-   * 처리 규칙: createdAt 내림차순, 동률 시 id 내림차순으로 정렬한다.
-   * @updated 2026-02-27
-   */
-  const toRecentTaskList = (rowList) => {
-    /**
-     * @description CRUD 샘플 행 목록으로 최근 업무 상위 5건을 구성
-     * 처리 규칙: createdAt/id 내림차순 정렬 후 상위 5건으로 절단.
-     * @updated 2026-02-23
-     */
-    return [...rowList]
-      .sort((rowA, rowB) => {
-        const dateA = String(rowA?.createdAt || "");
-        const dateB = String(rowB?.createdAt || "");
-        if (dateA === dateB) {
-          return Number(rowB?.id || 0) - Number(rowA?.id || 0);
-        }
-        return dateA < dateB ? 1 : -1;
-      })
-      .slice(0, 5)
-      .map((rowItem) => ({
-        title: rowItem?.title || "-",
-        status: rowItem?.status || LANG_KO.view.misc.defaultStatusCode,
-        amount: Number(rowItem?.amount || 0),
-        createdAt: rowItem?.createdAt || "-",
-      }));
-  };
-
   const { value: rowList } = useDemoSharedState({
     stateKey: "demoCrudRows",
     initialValue: initRows,
@@ -198,6 +96,108 @@ const DemoDashboardView = ({
     },
     { key: "createdAt", header: LANG_KO.view.table.createdAtHeader, width: 120 },
   ];
+
+  /**
+   * @description 금액 숫자를 로케일 포맷 문자열로 변환. 입력/출력 계약을 함께 명시
+   * 반환값: NaN이면 0 텍스트, 정상값이면 locale 기반 숫자 문자열.
+   * @updated 2026-02-27
+   */ // 룰게이트 예외 허용: rule-gate: allow-function-declaration
+  function formatCurrency(value) {
+    const num = Number(value || 0);
+    if (Number.isNaN(num)) return LANG_KO.view.number.zeroText;
+    return num.toLocaleString(LANG_KO.view.number.locale);
+  }
+
+  /**
+   * @description 행 목록을 상태별 건수/합계 금액 요약 배열로 변환. 입력/출력 계약을 함께 명시
+   * 반환값: statusOrder 순서가 보장된 `{status,count,amountSum}` 리스트.
+   * @updated 2026-02-27
+   */ // 룰게이트 예외 허용: rule-gate: allow-function-declaration
+  function toStatusSummaryList(rowList) {
+    /**
+     * @description CRUD 샘플 행 목록으로 상태 집계를 생성
+     * 처리 규칙: statusOrder 순서로 순회하며 count/amountSum 누적 요약을 생성.
+     * @updated 2026-02-23
+     */
+    return statusOrder.map((statusCode) => {
+      const filteredRows = rowList.filter(
+        (rowItem) => String(rowItem?.status || "") === statusCode,
+      );
+      return {
+        status: statusCode,
+        count: filteredRows.length,
+        amountSum: filteredRows.reduce(
+          (total, rowItem) => total + Number(rowItem?.amount || 0),
+          0,
+        ),
+      };
+    });
+  }
+
+  /**
+   * @description 행 목록에서 월별 건수/금액 추이 데이터를 생성. 입력/출력 계약을 함께 명시
+   * 처리 규칙: `YYYY-MM` 키로 집계 후 월 오름차순 정렬해 `n월` 라벨로 변환한다.
+   * @updated 2026-02-27
+   */ // 룰게이트 예외 허용: rule-gate: allow-function-declaration
+  function toMonthlyTrendList(rowList) {
+    /**
+     * @description CRUD 샘플 행 목록으로 월별 추이 데이터를 생성
+     * 처리 규칙: createdAt를 YYYY-MM 기준으로 그룹화하고 월 오름차순 결과를 생성.
+     * @updated 2026-02-23
+     */
+    const monthlyMap = {};
+    rowList.forEach((rowItem) => {
+      const createdAt = String(rowItem?.createdAt || "");
+      const matched = createdAt.match(/^(\d{4})-(\d{2})-\d{2}$/);
+      if (!matched) return;
+      const key = `${matched[1]}-${matched[2]}`;
+      const prevValue = monthlyMap[key] || { count: 0, amount: 0 };
+      monthlyMap[key] = {
+        count: prevValue.count + 1,
+        amount: prevValue.amount + Number(rowItem?.amount || 0),
+      };
+    });
+    return Object.keys(monthlyMap)
+      .sort()
+      .map((monthKey) => {
+        const monthNo = Number(monthKey.split("-")[1] || 0);
+        const monthlyValue = monthlyMap[monthKey] || { count: 0, amount: 0 };
+        return {
+          label: `${monthNo}${LANG_KO.view.monthSuffix}`,
+          count: monthlyValue.count,
+          amount: monthlyValue.amount,
+        };
+      });
+  }
+
+  /**
+   * @description 최근 생성일 기준 상위 5건 업무 목록 표 데이터 생성
+   * 처리 규칙: createdAt 내림차순, 동률 시 id 내림차순으로 정렬한다.
+   * @updated 2026-02-27
+   */ // 룰게이트 예외 허용: rule-gate: allow-function-declaration
+  function toRecentTaskList(rowList) {
+    /**
+     * @description CRUD 샘플 행 목록으로 최근 업무 상위 5건을 구성
+     * 처리 규칙: createdAt/id 내림차순 정렬 후 상위 5건으로 절단.
+     * @updated 2026-02-23
+     */
+    return [...rowList]
+      .sort((rowA, rowB) => {
+        const dateA = String(rowA?.createdAt || "");
+        const dateB = String(rowB?.createdAt || "");
+        if (dateA === dateB) {
+          return Number(rowB?.id || 0) - Number(rowA?.id || 0);
+        }
+        return dateA < dateB ? 1 : -1;
+      })
+      .slice(0, 5)
+      .map((rowItem) => ({
+        title: rowItem?.title || "-",
+        status: rowItem?.status || LANG_KO.view.misc.defaultStatusCode,
+        amount: Number(rowItem?.amount || 0),
+        createdAt: rowItem?.createdAt || "-",
+      }));
+  }
 
   return (
     <div className="space-y-3">

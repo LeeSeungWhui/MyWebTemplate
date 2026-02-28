@@ -31,3 +31,8 @@ export const LANDING_BOTTOM_CTA = {
   subtitle: initData.bottomCta.subtitle,
   demo: { href: "/sample", label: initData.bottomCta.label },
 };
+
+export const PAGE_CONFIG = {
+  MODE: "SSR",
+  API: {},
+};

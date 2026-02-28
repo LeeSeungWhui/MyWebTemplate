@@ -2,7 +2,7 @@
 /**
  * 파일명: app/login/view.jsx
  * 작성자: LSH
- * 갱신일: 2026-02-23
+ * 갱신일: 2026-02-28
  * 설명: 로그인 페이지 클라이언트 뷰
  */
 
@@ -12,8 +12,8 @@ import Button from "@/app/lib/component/Button";
 import Input from "@/app/lib/component/Input";
 import Checkbox from "@/app/lib/component/Checkbox";
 import { apiJSON } from "@/app/lib/runtime/api";
-import useSwr from "@/app/lib/hooks/useSwr";
-import { SESSION_PATH } from "./initData";
+import usePageData from "@/app/lib/hooks/usePageData";
+import { PAGE_CONFIG } from "./initData";
 import Link from "next/link";
 import { useGlobalUi } from "@/app/common/store/SharedStore";
 import LANG_KO from "./lang.ko";
@@ -25,21 +25,7 @@ const MIN_PASSWORD_LENGTH = 8;
  * @description 로그인 폼 검증/제출 및 세션 상태 기반 리다이렉트를 담당하는 페이지 뷰를 렌더링. 입력/출력 계약을 함께 명시
  * 처리 규칙: 로그인 성공 시 nextHint(안전 경로) 또는 `/dashboard`로 이동한다.
  */
-const Client = ({ mode, init, nextHint, authReason }) => {
-
-  /**
-   * @description 로그인 후 이동할 리다이렉트 경로를 안전한 내부 경로로 제한
-   * 처리 규칙: 절대 URL/프로토콜/`//` 경로를 차단하고 `/`로 시작하는 내부 경로만 허용한다.
-   * @updated 2026-02-27
-   */
-  const sanitizeRedirect = (candidate) => {
-    if (!candidate || typeof candidate !== "string") return null;
-    if (!candidate.startsWith("/")) return null;
-    if (candidate.startsWith("//")) return null;
-    if (/^https?:/i.test(candidate)) return null;
-    return candidate;
-  };
-
+const Client = ({ initialDataObj, initialErrorObj, nextHint, authReason }) => {
   const loginObj = EasyObj({
     email: "",
     password: "",
@@ -57,16 +43,21 @@ const Client = ({ mode, init, nextHint, authReason }) => {
   const passwordRef = useRef(null);
   const errorSummaryRef = useRef(null);
   const { showToast } = useGlobalUi();
-  const hasInitSession = !!(init && init.result && init.result.username);
-  const sessionKey = hasInitSession ? "session" : null;
-  const { data: sessionData, mutate } = useSwr(sessionKey, SESSION_PATH, {
-    swr: { fallbackData: init, revalidateOnFocus: true },
+  const { dataObj, reload } = usePageData({
+    pageConfig: PAGE_CONFIG,
+    initialDataObj,
+    initialErrorObj,
   });
+  const sessionData = dataObj.session || null;
   const isAuthed = !!(
     sessionData &&
     sessionData.result &&
     sessionData.result.username
   );
+  const emailErrorId = loginObj.errors.email ? "login-email-error" : undefined;
+  const passwordErrorId = loginObj.errors.password
+    ? "login-password-error"
+    : undefined;
 
   useEffect(() => {
     if (!authReason) return;
@@ -98,6 +89,19 @@ const Client = ({ mode, init, nextHint, authReason }) => {
       : currentUrl.pathname;
     window.history.replaceState({}, "", nextUrl);
   }, [showToast, LANG_KO.view.toast.signupDone]);
+
+  /**
+   * @description 로그인 후 이동할 리다이렉트 경로를 안전한 내부 경로로 제한
+   * 처리 규칙: 절대 URL/프로토콜/`//` 경로를 차단하고 `/`로 시작하는 내부 경로만 허용한다.
+   * @updated 2026-02-27
+   */
+  const sanitizeRedirect = (candidate) => {
+    if (!candidate || typeof candidate !== "string") return null;
+    if (!candidate.startsWith("/")) return null;
+    if (candidate.startsWith("//")) return null;
+    if (/^https?:/i.test(candidate)) return null;
+    return candidate;
+  };
 
   /**
    * @description 필드 에러와 폼 공통 에러 메시지를 초기화
@@ -210,7 +214,7 @@ const Client = ({ mode, init, nextHint, authReason }) => {
         method: "POST",
         body: payload,
       });
-      await mutate?.();
+      await reload?.();
       const target = sanitizeRedirect(nextHint) || "/dashboard";
       window.location.assign(target);
       return;
@@ -241,11 +245,6 @@ const Client = ({ mode, init, nextHint, authReason }) => {
     }
     return null;
   }
-
-  const emailErrorId = loginObj.errors.email ? "login-email-error" : undefined;
-  const passwordErrorId = loginObj.errors.password
-    ? "login-password-error"
-    : undefined;
 
   return (
     <main className="min-h-screen flex items-center justify-center bg-gray-50 p-4 sm:p-6">

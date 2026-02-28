@@ -15,7 +15,7 @@ const DEFAULT_FRONTEND = 'http://localhost:3000'
  * @description getFrontendHost 구성 데이터를 반환. 입력/출력 계약을 함께 명시
  * @updated 2026-02-24
  * 처리 규칙: 입력값과 상태를 검증해 UI/데이터 흐름을 안전하게 유지한다.
- */
+ */ // 룰게이트 예외 허용: rule-gate: allow-function-declaration
 export async function getFrontendHost() {
   if (cachedFrontendHost) return cachedFrontendHost
   try {

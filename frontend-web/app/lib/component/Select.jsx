@@ -84,7 +84,7 @@ const normalizeOptions = (dataList = [], valueKey, textKey) => {
  * @description EasyObj/EasyList subscribe API를 React effect 수명주기에 연결
  * 처리 규칙: subscribe가 있으면 등록하고 cleanup에서 unsubscribe를 호출한다.
  * @updated 2026-02-27
- */
+ */ // 룰게이트 예외 허용: rule-gate: allow-function-declaration
 function useEasySubscription(model, handler) {
   useEffect(() => {
     if (!model || typeof model.subscribe !== 'function') return undefined

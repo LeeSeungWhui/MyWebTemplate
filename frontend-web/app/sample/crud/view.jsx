@@ -30,32 +30,13 @@ import LANG_KO from "./lang.ko";
  * @param {{ mode: Object, initRows: Array }} props
  */
 const CrudDemoView = ({ initRows = [] }) => {
-
-  /**
-   * @description 드로어 폼의 초기값 객체를 생성. 입력/출력 계약을 함께 명시
-   * 반환값: 생성/수정 모드 전환 시 재사용하는 기본 폼 데이터.
-   * @updated 2026-02-27
-   */
-  const createDefaultForm = () => ({
+  const defaultForm = {
     title: "",
     status: LANG_KO.view.misc.defaultStatusCode,
     owner: "",
     amount: 0,
     description: "",
     attachmentName: "",
-  });
-
-  /**
-   * @description 현재 날짜 YYYY-MM-DD 문자열 생성
-   * 반환값: 신규 행 createdAt 필드에 저장할 날짜 텍스트.
-   * @updated 2026-02-27
-   */
-  const toTodayText = () => {
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = String(now.getMonth() + 1).padStart(2, "0");
-    const day = String(now.getDate()).padStart(2, "0");
-    return `${year}-${month}-${day}`;
   };
 
   const ui = EasyObj({
@@ -76,7 +57,7 @@ const CrudDemoView = ({ initRows = [] }) => {
       mode: "create",
       editingId: null,
     },
-    form: createDefaultForm(),
+    form: { ...defaultForm },
     formError: "",
   });
   const { value: rowList, setValue: setRowList } = useDemoSharedState({
@@ -254,6 +235,19 @@ const CrudDemoView = ({ initRows = [] }) => {
   ];
 
   /**
+   * @description 현재 날짜 YYYY-MM-DD 문자열 생성
+   * 반환값: 신규 행 createdAt 필드에 저장할 날짜 텍스트.
+   * @updated 2026-02-27
+   */
+  const toTodayText = () => {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, "0");
+    const day = String(now.getDate()).padStart(2, "0");
+    return `${year}-${month}-${day}`;
+  };
+
+  /**
    * @description 생성 모드로 드로어를 열고 폼/오류 상태를 초기화
    * 부작용: ui.drawerState, ui.form, ui.formError 값을 덮어쓴다.
    * @updated 2026-02-27
@@ -264,7 +258,7 @@ const CrudDemoView = ({ initRows = [] }) => {
       mode: "create",
       editingId: null,
     };
-    ui.form = createDefaultForm();
+    ui.form = { ...defaultForm };
     ui.formError = "";
   };
 

@@ -115,3 +115,14 @@ export const buildTasksQueryString = (options = {}) => {
   if (pageValue > 1) params.set("page", String(pageValue));
   return params.toString();
 };
+
+export const PAGE_CONFIG = {
+  MODE: "CSR",
+  API: {
+    list: "/api/v1/dashboard",
+    detail: "/api/v1/dashboard/:id",
+    create: "/api/v1/dashboard",
+    update: "/api/v1/dashboard/:id",
+    remove: "/api/v1/dashboard/:id",
+  },
+};

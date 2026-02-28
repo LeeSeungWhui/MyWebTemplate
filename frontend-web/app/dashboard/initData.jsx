@@ -16,3 +16,11 @@ export const PAGE_MODE = {
     list: "/api/v1/dashboard",
   },
 };
+
+export const PAGE_CONFIG = {
+  MODE: "SSR",
+  API: {
+    stats: "/api/v1/dashboard/stats",
+    list: "/api/v1/dashboard",
+  },
+};

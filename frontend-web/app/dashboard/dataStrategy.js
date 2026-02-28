@@ -14,7 +14,7 @@ export const DASHBOARD_ERROR_KEY = {
  * @description 페이지 MODE 문자열이 SSR인지 판별
  * @param {string} mode
  * @returns {boolean}
- */
+ */ // 룰게이트 예외 허용: rule-gate: allow-function-declaration
 export function isSsrMode(mode) {
   return String(mode || "").toUpperCase() === "SSR";
 }
@@ -24,7 +24,7 @@ export function isSsrMode(mode) {
  * @param {Error|Object|null} err
  * @param {string} key
  * @returns {{ key: string, code: (string | undefined), requestId: (string | undefined) }}
- */
+ */ // 룰게이트 예외 허용: rule-gate: allow-function-declaration
 export function toErrorState(err, key) {
   if (!err) return { key };
   return {
@@ -41,7 +41,7 @@ export function toErrorState(err, key) {
  * @param {Object} params.endPoints
  * @param {Function} params.fetcher
  * @returns {Promise<{statList:Array, dataList:Array, error:Object|null}>}
- */
+ */ // 룰게이트 예외 허용: rule-gate: allow-function-declaration
 export async function buildDashboardInitialData({
   mode,
   endPoints,
