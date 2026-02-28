@@ -33,6 +33,7 @@ export const useDemoSharedState = ({ stateKey, initialValue }) => {
   useEffect(() => {
     /**
      * @description 공유 상태 미존재 시 초기값 1회 채움
+     * 처리 규칙: sharedValue가 undefined일 때만 cloneValue(initialValue)를 저장.
      * @updated 2026-02-23
      */
     if (sharedValue !== undefined) return;
@@ -43,6 +44,7 @@ export const useDemoSharedState = ({ stateKey, initialValue }) => {
     (nextValueOrUpdater) => {
       /**
        * @description 현재 공유 상태를 기준으로 다음 상태를 계산해 저장
+       * 처리 규칙: updater 함수/직접값 입력을 분기해 cloneValue(nextValue)로 저장.
        * @updated 2026-02-23
        */
       const currentValue =
@@ -61,6 +63,7 @@ export const useDemoSharedState = ({ stateKey, initialValue }) => {
   const resetValue = useCallback(() => {
     /**
      * @description 공유 상태 초기값 복원
+     * 처리 규칙: stateKey 슬롯을 cloneValue(initialValue)로 덮어쓰기.
      * @updated 2026-02-23
      */
     setShared({ [stateKey]: cloneValue(initialValue) });

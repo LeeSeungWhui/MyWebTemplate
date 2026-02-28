@@ -52,7 +52,4 @@ const Card = ({
   );
 };
 
-/**
- * @description Card export를 노출
- */
 export default Card;

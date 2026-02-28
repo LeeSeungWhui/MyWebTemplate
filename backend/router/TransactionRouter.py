@@ -21,7 +21,7 @@ router = APIRouter(prefix="/api/v1/transaction", tags=["transaction"])
 async def testSingle(user=Depends(getCurrentUser)):
     """
     설명: 서비스의 단건 insert 시나리오를 호출해 커밋 성공 응답을 반환. 호출 맥락의 제약을 기준으로 동작 기준을 확정
-    반환값: 삽입 결과를 successResponse로 감싼 status=200 JSONResponse를 반환한다.
+    반환값: 삽입 결과를 successResponse로 감싼 status=200 JSONResponse를 반환
     갱신일: 2026-02-22
     """
     result = await TransactionService.testSingle()
@@ -32,7 +32,7 @@ async def testSingle(user=Depends(getCurrentUser)):
 async def testUniqueViolation(user=Depends(getCurrentUser)):
     """
     설명: UNIQUE 제약 충돌 시나리오를 실행하고 롤백 결과를 409로 매핑. 호출 맥락의 제약을 기준으로 동작 기준을 확정
-    처리 규칙: 서비스 예외 발생 시 code=TX_409_UNIQUE 표준 에러 응답을 반환한다.
+    처리 규칙: 서비스 예외 발생 시 code=TX_409_UNIQUE 표준 에러 응답을 반환
     갱신일: 2026-02-22
     """
     try:

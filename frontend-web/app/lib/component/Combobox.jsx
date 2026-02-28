@@ -657,7 +657,4 @@ const Combobox = forwardRef(({
 
 Combobox.displayName = 'Combobox'
 
-/**
- * @description Combobox export를 노출
- */
 export default Combobox

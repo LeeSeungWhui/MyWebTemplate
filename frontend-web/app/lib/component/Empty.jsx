@@ -38,7 +38,4 @@ const Empty = ({
   );
 };
 
-/**
- * @description Empty export를 노출
- */
 export default Empty;

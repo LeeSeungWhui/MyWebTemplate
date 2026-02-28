@@ -27,7 +27,7 @@ configCachePath: str | None = None
 def backendDir() -> str:
     """
     설명: 현재 모듈(__file__) 기준으로 계산한 backend 루트 절대 경로
-    처리 규칙: 입력값을 검증하고 실패 시 예외/기본값 경로로 수렴한다.
+    처리 규칙: 입력값을 검증하고 실패 시 예외/기본값 경로로 수렴
     갱신일: 2026-02-24
     """
     return os.path.dirname(os.path.dirname(__file__))
@@ -77,9 +77,9 @@ def loadConfig(filename: str) -> ConfigParser:
 def getConfig(path: str | None = None, forceReload: bool = False) -> ConfigParser:
     """
     설명: 설정 캐시 반환과 forceReload/경로 변경 시 설정 파일 재로딩
-    처리 규칙: path 미지정이면 BACKEND_CONFIG 또는 기존 캐시 경로를 우선 사용한다.
-    부작용: 재로딩 시 configCache/configCachePath를 갱신하고 파생 캐시를 무효화한다.
-    반환값: 현재 유효한 ConfigParser 인스턴스.
+    처리 규칙: path 미지정이면 BACKEND_CONFIG 또는 기존 캐시 경로를 우선 사용
+    부작용: 재로딩 시 configCache/configCachePath를 갱신하고 파생 캐시를 무효화
+    반환값: 현재 유효한 ConfigParser 인스턴스
     갱신일: 2026-02-28
     """
     global configCache, configCachePath
@@ -104,7 +104,7 @@ def reloadConfig() -> ConfigParser:
 def clearConfigDependentCaches() -> None:
     """
     설명: 설정 파생 캐시(AuthRouter CORS rules 등)를 무효화
-    부작용: AuthRouter.getCorsOriginRules.cache_clear()가 호출되어 CORS 룰 캐시가 비워진다.
+    부작용: AuthRouter.getCorsOriginRules.cache_clear()가 호출되어 CORS 룰 캐시가 비워진
     갱신일: 2026-02-26
     """
     module = sys.modules.get("router.AuthRouter") or sys.modules.get("backend.router.AuthRouter")

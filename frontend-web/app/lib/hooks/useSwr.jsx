@@ -32,7 +32,4 @@ export function useSwr(
   return useSwrLib(key, fetcher, { revalidateOnFocus: false, ...swr });
 }
 
-/**
- * @description useSwr export를 노출
- */
 export default useSwr;

@@ -340,7 +340,4 @@ const Dropdown = ({
   );
 };
 
-/**
- * @description 엔트리를 export
- */
 export default Dropdown;

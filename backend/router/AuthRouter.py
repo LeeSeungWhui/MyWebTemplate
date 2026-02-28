@@ -27,7 +27,7 @@ router = APIRouter(prefix="/api/v1/auth", tags=["auth"])
 def normalizeOrigin(value: str | None) -> str | None:
     """
     설명: Origin/Referer 값을 scheme://host[:port] 형태로 정규화
-    반환값: 유효하지 않은 입력은 None, 유효 입력은 정규화된 오리진 문자열.
+    반환값: 유효하지 않은 입력은 None, 유효 입력은 정규화된 오리진 문자열
     갱신일: 2026-02-25
     """
     if not isinstance(value, str):
@@ -53,9 +53,9 @@ def normalizeOrigin(value: str | None) -> str | None:
 @lru_cache(maxsize=1)
 def getCorsOriginRules() -> tuple[tuple[str, ...], str | None]:
     """
-    설명: CORS allowlist/regex와 frontendHost를 합쳐 Origin 검증 룰셋을 구성하는 캐시 함수.
-    처리 규칙: 설정 오리진 문자열을 정규화하고 localhost/127.0.0.1 alias를 함께 확장한다.
-    반환값: (허용 오리진 튜플, 허용 정규식) 튜플.
+    설명: CORS allowlist/regex와 frontendHost를 합쳐 Origin 검증 룰셋을 구성하는 캐시 함수
+    처리 규칙: 설정 오리진 문자열을 정규화하고 localhost/127.0.0.1 alias를 함께 확장
+    반환값: (허용 오리진 튜플, 허용 정규식) 튜플
     갱신일: 2026-02-25
     """
     allowOrigins: list[str] = []
@@ -63,8 +63,8 @@ def getCorsOriginRules() -> tuple[tuple[str, ...], str | None]:
 
     def addOriginCandidate(candidate: str | None) -> None:
         """
-        설명: 오리진 후보를 정규화해 allowlist에 추가한다(localhost/127 alias 포함).
-        부작용: allowOrigins 리스트에 정규화 결과와 localhost/127 alias를 누적한다.
+        설명: 오리진 후보를 정규화해 allowlist에 추가 처리(localhost/127 alias 포함)
+        부작용: allowOrigins 리스트에 정규화 결과와 localhost/127 alias를 누적
         갱신일: 2026-02-25
         """
         normalized = normalizeOrigin(candidate)
@@ -118,7 +118,7 @@ def getCorsOriginRules() -> tuple[tuple[str, ...], str | None]:
 def isAllowedWebOrigin(origin: str) -> bool:
     """
     설명: 요청 Origin이 CORS allowlist/regex 정책을 만족하는지 확인
-    반환값: allowlist 또는 regex 매칭 시 True, 그 외는 False.
+    반환값: allowlist 또는 regex 매칭 시 True, 그 외는 False
     갱신일: 2026-02-25
     """
     allowOrigins, allowOriginRegex = getCorsOriginRules()
@@ -168,7 +168,7 @@ def ensureWebCookieOrigin(request: Request, loc: str) -> JSONResponse | None:
 def isSecureRequest(request: Request) -> bool:
     """
     설명: 프록시 환경을 포함해 HTTPS 요청 여부를 판정
-    처리 규칙: URL scheme, 프록시 헤더, 운영 ENV 값을 순서대로 확인한다.
+    처리 규칙: URL scheme, 프록시 헤더, 운영 ENV 값을 순서대로 확인
     갱신일: 2026-02-24
     """
     scheme = str(getattr(request.url, "scheme", "") or "").strip().lower()
@@ -190,8 +190,8 @@ def isSecureRequest(request: Request) -> bool:
 
 def cookieOptions(request: Request, name: str, value: str, maxAge: int | None = None) -> dict:
     """
-    설명: 인증 쿠키(HttpOnly/SameSite/Secure) 기본 옵션을 만드는 빌더.
-    반환값: set_cookie 호출에 바로 전달 가능한 옵션 dict.
+    설명: 인증 쿠키(HttpOnly/SameSite/Secure) 기본 옵션을 만드는 빌더
+    반환값: set_cookie 호출에 바로 전달 가능한 옵션 dict
     갱신일: 2026-02-24
     """
     opts = {
@@ -210,7 +210,7 @@ def cookieOptions(request: Request, name: str, value: str, maxAge: int | None = 
 def clearAuthCookies(response: JSONResponse | Response, request: Request) -> None:
     """
     설명: 인증 쿠키(access/refresh)를 현재 보안 옵션으로 제거
-    부작용: response.delete_cookie를 통해 access/refresh 쿠키를 모두 만료시킨다.
+    부작용: response.delete_cookie를 통해 access/refresh 쿠키를 모두 만료시킨
     갱신일: 2026-02-24
     """
     secure = isSecureRequest(request)
@@ -220,8 +220,8 @@ def clearAuthCookies(response: JSONResponse | Response, request: Request) -> Non
 
 def invalidInputResponse(loc: str, includeAuthHeader: bool = False) -> JSONResponse:
     """
-    설명: 잘못된 JSON/입력 형식에 공통 적용하는 422 에러 응답 빌더.
-    반환값: includeAuthHeader 여부에 따라 WWW-Authenticate 포함 정책이 반영된 JSONResponse.
+    설명: 잘못된 JSON/입력 형식에 공통 적용하는 422 에러 응답 빌더
+    반환값: includeAuthHeader 여부에 따라 WWW-Authenticate 포함 정책이 반영된 JSONResponse
     갱신일: 2026-02-23
     """
     if includeAuthHeader:
@@ -245,8 +245,8 @@ def invalidInputResponse(loc: str, includeAuthHeader: bool = False) -> JSONRespo
 
 async def parseJsonBody(request: Request) -> dict | None:
     """
-    설명: 요청 본문을 JSON dict로 안전하게 파싱하는 유틸.
-    실패 동작: 파싱 실패 또는 dict 타입 불일치 시 None을 반환한다.
+    설명: 요청 본문을 JSON dict로 안전하게 파싱하는 유틸
+    실패 동작: 파싱 실패 또는 dict 타입 불일치 시 None을 반환
     갱신일: 2026-02-23
     """
     try:
@@ -260,8 +260,8 @@ async def parseJsonBody(request: Request) -> dict | None:
 
 def webSessionResult(tokenPayload: dict) -> dict:
     """
-    설명: 웹(cookie) 계약에서 노출할 최소 토큰 메타 result 매퍼.
-    반환값: tokenType/expiresIn/refreshExpiresIn 필드만 포함한 요약 결과.
+    설명: 웹(cookie) 계약에서 노출할 최소 토큰 메타 result 매퍼
+    반환값: tokenType/expiresIn/refreshExpiresIn 필드만 포함한 요약 결과
     갱신일: 2026-02-25
     """
     return {
@@ -273,8 +273,8 @@ def webSessionResult(tokenPayload: dict) -> dict:
 
 def appTokenResult(tokenPayload: dict) -> dict:
     """
-    설명: 앱(JSON token) 계약에서 사용하는 토큰 페어 응답 매퍼.
-    반환값: access/refresh 토큰과 만료 정보를 포함한 앱 전용 결과.
+    설명: 앱(JSON token) 계약에서 사용하는 토큰 페어 응답 매퍼
+    반환값: access/refresh 토큰과 만료 정보를 포함한 앱 전용 결과
     갱신일: 2026-02-25
     """
     return {
@@ -290,7 +290,7 @@ def appTokenResult(tokenPayload: dict) -> dict:
 async def login(request: Request):
     """
     설명: 로그인 요청을 처리하고 Access/Refresh 쿠키를 발급
-    실패 동작: 입력 검증/인증 실패/레이트리밋/상태저장소 오류를 각각 4xx/5xx로 매핑해 반환한다.
+    실패 동작: 입력 검증/인증 실패/레이트리밋/상태저장소 오류를 각각 4xx/5xx로 매핑해 반환
     갱신일: 2026-02-22
     """
     loc = detectLocale(request)
@@ -350,8 +350,8 @@ async def login(request: Request):
 @router.post("/signup")
 async def signup(request: Request):
     """
-    설명: 회원가입 입력 검증과 서비스 에러코드→HTTP 상태코드 매핑을 담당하는 핸들러.
-    실패 동작: 서비스 오류 코드를 상태코드(422/409/503/500)와 메시지로 변환해 반환한다.
+    설명: 회원가입 입력 검증과 서비스 에러코드→HTTP 상태코드 매핑을 담당하는 핸들러
+    실패 동작: 서비스 오류 코드를 상태코드(422/409/503/500)와 메시지로 변환해 반환
     갱신일: 2026-02-22
     """
     loc = detectLocale(request)
@@ -391,7 +391,7 @@ async def signup(request: Request):
 async def refresh(request: Request):
     """
     설명: refresh_token 쿠키로 Access/Refresh 토큰을 재발급
-    실패 동작: Origin 검증 실패/토큰 누락·무효 시 401·403을 반환하고 필요 시 쿠키를 정리한다.
+    실패 동작: Origin 검증 실패/토큰 누락·무효 시 401·403을 반환하고 필요 시 쿠키를 정리
     갱신일: 2026-02-22
     """
     refreshToken = request.cookies.get(AuthConfig.refreshCookieName)
@@ -459,9 +459,9 @@ async def refresh(request: Request):
 @router.post("/app/login")
 async def appLogin(request: Request):
     """
-    설명: 앱 로그인(JSON) 계약 전용 인증 핸들러(쿠키 미사용).
-    실패 동작: 입력 오류/인증 실패/레이트리밋 시 422/401/429 응답을 반환한다.
-    반환값: successResponse(result=appTokenResult(tokenPayload)) 형태 JSONResponse.
+    설명: 앱 로그인(JSON) 계약 전용 인증 핸들러(쿠키 미사용)
+    실패 동작: 입력 오류/인증 실패/레이트리밋 시 422/401/429 응답을 반환
+    반환값: successResponse(result=appTokenResult(tokenPayload)) 형태 JSONResponse
     갱신일: 2026-02-25
     """
     loc = detectLocale(request)
@@ -510,7 +510,7 @@ async def appLogin(request: Request):
 async def appRefresh(request: Request):
     """
     설명: 앱 refresh_token(JSON body)으로 Access/Refresh 토큰을 재발급
-    실패 동작: refreshToken 누락/무효 또는 상태저장소 오류 시 401/503을 반환한다.
+    실패 동작: refreshToken 누락/무효 또는 상태저장소 오류 시 401/503을 반환
     갱신일: 2026-02-25
     """
     loc = detectLocale(request)
@@ -561,7 +561,7 @@ async def appRefresh(request: Request):
 async def appLogout(request: Request):
     """
     설명: 앱 로그아웃 처리. body의 refreshToken(옵션)을 폐기
-    처리 규칙: body가 있으면 JSON dict만 허용하고, 토큰이 없어도 revoke 경로를 안전하게 호출한다.
+    처리 규칙: body가 있으면 JSON dict만 허용하고, 토큰이 없어도 revoke 경로를 안전하게 호출
     갱신일: 2026-02-25
     """
     loc = detectLocale(request)
@@ -601,7 +601,7 @@ async def appLogout(request: Request):
 async def logout(request: Request):
     """
     설명: 로그아웃 처리 후 인증 쿠키를 제거
-    부작용: 서버 측 refresh revoke 이후 access/refresh 쿠키를 삭제한다.
+    부작용: 서버 측 refresh revoke 이후 access/refresh 쿠키를 삭제
     갱신일: 2026-02-22
     """
     loc = detectLocale(request)
@@ -633,8 +633,8 @@ async def logout(request: Request):
 @router.get("/me")
 async def me(request: Request, user=Depends(getCurrentUser)):
     """
-    설명: 인증 컨텍스트 사용자 정보를 표준 successResponse로 감싸 반환하는 조회 엔드포인트.
-    반환값: successResponse(result=userProfile) 형태의 no-store JSONResponse.
+    설명: 인증 컨텍스트 사용자 정보를 표준 successResponse로 감싸 반환하는 조회 엔드포인트
+    반환값: successResponse(result=userProfile) 형태의 no-store JSONResponse
     갱신일: 2026-02-22
     """
     result = await AuthService.me(user)

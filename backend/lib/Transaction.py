@@ -63,7 +63,7 @@ def transaction(
 ):
     """
     설명: 단일/다중 DB 트랜잭션을 지원하는 데코레이터
-    인자: dbNames/isolation/timeoutMs(timeout_ms)/retries/retryOn.
+    인자: dbNames/isolation/timeoutMs(timeout_ms)/retries/retryOn
     갱신일: 2026-02-26
     """
     if isinstance(dbNames, str):
@@ -93,7 +93,7 @@ def transaction(
         async def wrapper(*args, **kwargs):
             """
             설명: 대상 함수 실행 경로에 트랜잭션/재시도 정책을 적용
-            실패 동작: 예외 발생 시 롤백 로그를 남기고 retryOn/retries 조건에 따라 재시도 후 최종 예외를 재전파한다.
+            실패 동작: 예외 발생 시 롤백 로그를 남기고 retryOn/retries 조건에 따라 재시도 후 최종 예외를 재전파
             갱신일: 2026-02-26
             """
             attempt = 0
@@ -199,7 +199,7 @@ class Savepoint:
     def __init__(self, dbName: str, name: str):
         """
         설명: 대상 DB와 savepoint 이름을 검증해 보관
-        부작용: self.dbName/self.name 속성이 초기화된다.
+        부작용: self.dbName/self.name 속성이 초기화
         갱신일: 2026-02-27
         """
         self.dbName = dbName
@@ -220,8 +220,8 @@ class Savepoint:
     async def __aenter__(self):
         """
         설명: 현재 트랜잭션에 SAVEPOINT를 등록한 뒤 동일 인스턴스를 컨텍스트로 제공
-        처리 규칙: 대상 DB가 없으면 예외를 발생시키고, 존재하면 SAVEPOINT SQL을 먼저 실행한다.
-        반환값: 현재 SavepointContext 인스턴스(self).
+        처리 규칙: 대상 DB가 없으면 예외를 발생시키고, 존재하면 SAVEPOINT SQL을 먼저 실행
+        반환값: 현재 SavepointContext 인스턴스(self)
         갱신일: 2025-11-12
         """
         if self.dbName not in dbManagers:
@@ -232,8 +232,8 @@ class Savepoint:
     async def __aexit__(self, exc_type, exc, tb):
         """
         설명: 컨텍스트 종료 시점의 예외 유무에 따라 SAVEPOINT 롤백/해제를 분기하는 정리 단계
-        처리 규칙: 예외가 있으면 ROLLBACK TO SAVEPOINT 후 RELEASE를 보장하고, 예외가 없으면 RELEASE만 수행한다.
-        부작용: 현재 트랜잭션 savepoint 상태를 변경한다.
+        처리 규칙: 예외가 있으면 ROLLBACK TO SAVEPOINT 후 RELEASE를 보장하고, 예외가 없으면 RELEASE만 수행
+        부작용: 현재 트랜잭션 savepoint 상태를 변경
         갱신일: 2025-11-12
         """
         if exc:

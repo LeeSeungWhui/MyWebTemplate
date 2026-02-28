@@ -67,7 +67,7 @@ JWT_LITERAL_PATTERN = re.compile(r"^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-
 def maskDatabaseUrl(url: str) -> str:
     """
     설명: DB 접속 URL에서 자격증명(password)을 마스킹해 로그에 노출되지 않게
-    처리 규칙: URL 파싱이 실패하면 정규식 대체 마스킹을 시도하고, 최종 실패 시 <redacted>를 반환한다.
+    처리 규칙: URL 파싱이 실패하면 정규식 대체 마스킹을 시도하고, 최종 실패 시 <redacted>를 반환
     갱신일: 2026-02-06
     """
     if not url or not isinstance(url, str):
@@ -113,8 +113,8 @@ def setPrimaryDbName(name: str) -> None:
 def getPrimaryDbName() -> str:
     """
     설명: 우선순위(설정→ENV→보유목록)로 기본 DB 이름을 반환
-    처리 규칙: 설정값이 없으면 ENV/기본 키/main_db 순으로 폴백한다.
-    반환값: 현재 프로세스에서 사용할 기본 DB 키 문자열.
+    처리 규칙: 설정값이 없으면 ENV/기본 키/main_db 순으로 폴백
+    반환값: 현재 프로세스에서 사용할 기본 DB 키 문자열
     갱신일: 2025-11-12
     """
     # 우선순위: 명시적 설정 → 환경변수 → 템플릿 기본값 → 등록된 첫 DB
@@ -170,7 +170,7 @@ class QueryManager:
     def __init__(self):
         """
         설명: 최초 생성 시 쿼리/파일 매핑 저장소를 초기화
-        부작용: self.queries/self.nameToFile/self.fileToNames 저장소를 빈 상태로 구성한다.
+        부작용: self.queries/self.nameToFile/self.fileToNames 저장소를 빈 상태로 구성
         갱신일: 2026-02-27
         """
         if QueryManager.instance is None:
@@ -236,7 +236,7 @@ class DatabaseManager:
     def shouldRevealSqlLiteralValues(self) -> bool:
         """
         설명: SQL 로그에 실제 리터럴 값을 노출할지 여부를 판단
-        환경변수 SQL_LOG_LITERAL_VALUES=true|1|yes|on 일 때만 노출한다.
+        환경변수 SQL_LOG_LITERAL_VALUES=true|1|yes|on 일 때만 노출
         갱신일: 2026-02-22
         """
         raw = str(os.getenv("SQL_LOG_LITERAL_VALUES", "")).strip().lower()
@@ -245,7 +245,7 @@ class DatabaseManager:
     def isSensitiveSqlParamName(self, paramName: str | None) -> bool:
         """
         설명: 파라미터 키 이름으로 민감정보 가능성을 판별
-        반환값: 민감 키 패턴이 감지되면 True, 아니면 False.
+        반환값: 민감 키 패턴이 감지되면 True, 아니면 False
         갱신일: 2026-02-27
         """
         name = str(paramName or "").strip()
@@ -256,7 +256,7 @@ class DatabaseManager:
     def isSensitiveSqlStringValue(self, rawValue: str) -> bool:
         """
         설명: 문자열 값 자체가 토큰/이메일 같은 민감값인지 판별
-        반환값: 민감값으로 판단되면 True, 일반 문자열이면 False.
+        반환값: 민감값으로 판단되면 True, 일반 문자열이면 False
         갱신일: 2026-02-27
         """
         value = str(rawValue or "").strip()
@@ -274,7 +274,7 @@ class DatabaseManager:
     def shouldMaskSqlParamForLog(self, paramName: str | None, value: Any) -> bool:
         """
         설명: SQL 로그 출력 시 마스킹이 필요한 파라미터인지 판정
-        반환값: 키/값 중 하나라도 민감 기준을 만족하면 True.
+        반환값: 키/값 중 하나라도 민감 기준을 만족하면 True
         갱신일: 2026-02-27
         """
         if self.isSensitiveSqlParamName(paramName):
@@ -286,7 +286,7 @@ class DatabaseManager:
     def sanitizeSqlLogValue(self, value: Any) -> Any:
         """
         설명: dict/list 같은 복합 파라미터에서 민감 키를 재귀적으로 마스킹
-        처리 규칙: dict/list/tuple을 재귀 순회하고 민감 키·민감 문자열 값은 "***"로 치환한다.
+        처리 규칙: dict/list/tuple을 재귀 순회하고 민감 키·민감 문자열 값은 "***"로 치환
         갱신일: 2026-02-27
         """
         if isinstance(value, str):
@@ -424,8 +424,8 @@ class DatabaseManager:
     async def execute(self, query: str, values: dict[str, Any] | None = None, queryName: str | None = None) -> Any:
         """
         설명: INSERT/UPDATE/DELETE 결과(영향 행)를 전달하는 쓰기 전용 실행 진입점
-        처리 규칙: 바인드 파라미터를 검증한 뒤 query 로깅과 SQL 카운터 증가를 함께 수행한다.
-        반환값: DB 드라이버가 반환한 영향 행 수 또는 실행 결과 값.
+        처리 규칙: 바인드 파라미터를 검증한 뒤 query 로깅과 SQL 카운터 증가를 함께 수행
+        반환값: DB 드라이버가 반환한 영향 행 수 또는 실행 결과 값
         갱신일: 2025-11-12
         """
         self.validateBindParameters(query, values)
@@ -440,8 +440,8 @@ class DatabaseManager:
     ) -> dict[str, Any] | None:
         """
         설명: 조회 결과를 단일 dict 형태로 정규화해 전달하는 단건 조회 헬퍼
-        처리 규칙: 결과가 없으면 None을 반환하고, 조회 성공/실패와 관계없이 SQL 카운터를 증가시킨다.
-        반환값: 조회된 단일 행(dict) 또는 None.
+        처리 규칙: 결과가 없으면 None을 반환하고, 조회 성공/실패와 관계없이 SQL 카운터를 증가시킨
+        반환값: 조회된 단일 행(dict) 또는 None
         갱신일: 2025-11-12
         """
         self.validateBindParameters(query, values)
@@ -462,8 +462,8 @@ class DatabaseManager:
     ) -> list[dict[str, Any]] | None:
         """
         설명: 조회 결과를 dict 리스트 형태로 정규화해 전달하는 다건 조회 헬퍼
-        처리 규칙: 결과가 없으면 None을 반환하고, 조회 성공/실패와 관계없이 SQL 카운터를 증가시킨다.
-        반환값: dict 리스트 또는 None.
+        처리 규칙: 결과가 없으면 None을 반환하고, 조회 성공/실패와 관계없이 SQL 카운터를 증가시킨
+        반환값: dict 리스트 또는 None
         갱신일: 2025-11-12
         """
         self.validateBindParameters(query, values)
@@ -636,7 +636,7 @@ class QueryFolderEventHandler(FileSystemEventHandler):
     def __init__(self, onChange):
         """
         설명: SQL 파일 변경 알림 콜백을 저장해 각 파일 이벤트에서 재사용
-        부작용: self.onChange에 외부 콜백 참조를 보관한다.
+        부작용: self.onChange에 외부 콜백 참조를 보관
         갱신일: 2026-02-27
         """
         super().__init__()
@@ -645,7 +645,7 @@ class QueryFolderEventHandler(FileSystemEventHandler):
     def maybe(self, event: FileSystemEvent):
         """
         설명: SQL 파일 이벤트만 재로딩 후보로 분류
-        부작용: 조건을 만족하면 onChange(path)를 호출한다.
+        부작용: 조건을 만족하면 onChange(path)를 호출
         갱신일: 2025-11-12
         """
         path = getattr(event, "src_path", None) or getattr(event, "dest_path", None)

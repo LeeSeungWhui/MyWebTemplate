@@ -63,8 +63,8 @@ app = FastAPI()
 def encodeDsnUserInfo(value: object) -> str:
     """
     설명: DB DSN user/password 구간을 URL-safe 문자열로 인코딩
-    처리 규칙: None 입력은 빈 문자열로 처리해 DSN 조합 시 예외를 방지한다.
-    반환값: urllib.quote_plus 규칙으로 인코딩된 문자열을 반환한다.
+    처리 규칙: None 입력은 빈 문자열로 처리해 DSN 조합 시 예외를 방지
+    반환값: urllib.quote_plus 규칙으로 인코딩된 문자열을 반환
     갱신일: 2026-02-24
     """
     if value is None:
@@ -82,8 +82,8 @@ def buildNetworkDbUrl(
 ) -> str:
     """
     설명: mysql/postgresql 접속에 사용하는 DSN 문자열 조합 유틸(계정 정보 URL 인코딩 포함)
-    처리 규칙: 사용자명/비밀번호는 encodeDsnUserInfo로 선인코딩해 특수문자 충돌을 방지한다.
-    반환값: databases 라이브러리가 사용하는 접속 URL 문자열을 반환한다.
+    처리 규칙: 사용자명/비밀번호는 encodeDsnUserInfo로 선인코딩해 특수문자 충돌을 방지
+    반환값: databases 라이브러리가 사용하는 접속 URL 문자열을 반환
     갱신일: 2026-02-24
     """
     safeUser = encodeDsnUserInfo(user)
@@ -94,8 +94,8 @@ def buildNetworkDbUrl(
 async def onShutdown():
     """
     설명: 애플리케이션 종료 시 DB 연결과 쿼리 워처 리소스를 정리
-    처리 규칙: 등록된 DB 매니저마다 disconnect를 호출하고, 워처 스레드는 stop/join으로 종료한다.
-    부작용: 전역 DB 커넥션과 파일 감시 스레드를 해제한다.
+    처리 규칙: 등록된 DB 매니저마다 disconnect를 호출하고, 워처 스레드는 stop/join으로 종료
+    부작용: 전역 DB 커넥션과 파일 감시 스레드를 해제
     갱신일: 2026-02-24
     """
     for manager in DB.dbManagers.values():
@@ -114,8 +114,8 @@ async def onShutdown():
 async def onStartup():
     """
     설명: 서버 시작 시 DB 연결, 쿼리 로더, 인증 설정을 초기화
-    처리 규칙: DB 섹션을 순회해 매니저를 생성/연결하고, query watcher 및 AuthConfig를 초기화한다.
-    실패 동작: 개별 DB 연결 실패는 로그로 남기고 나머지 초기화는 계속 진행한다.
+    처리 규칙: DB 섹션을 순회해 매니저를 생성/연결하고, query watcher 및 AuthConfig를 초기화
+    실패 동작: 개별 DB 연결 실패는 로그로 남기고 나머지 초기화는 계속 진행
     갱신일: 2026-02-24
     """
     logger.info("database connect start")
@@ -311,6 +311,12 @@ if originsRaw == "*":
 else:
     origins = [o.strip() for o in originsRaw.split(",") if o.strip()]
 
+if "*" in origins:
+    raise ValueError(
+        "CORS misconfig: wildcard '*' token is forbidden in allow_origins list. "
+        "Use explicit allowlist origins instead."
+    )
+
 allowOriginRegex = originRegexRaw or None
 
 app.add_middleware(
@@ -372,7 +378,7 @@ async def globalExceptionHandler(request: Request, exc: Exception):
 def sanitizeValidationErrors(errors: object) -> list[dict]:
     """
     설명: RequestValidationError의 errors()를 노출 가능한 형태로 정리
-    주의: 입력값(input) 등 민감정보가 포함될 수 있어 최소 필드만 반환한다.
+    주의: 입력값(input) 등 민감정보가 포함될 수 있어 최소 필드만 반환
     갱신일: 2026-01-15
     """
     if not isinstance(errors, list):
@@ -414,8 +420,8 @@ async def requestValidationExceptionHandler(request: Request, exc: RequestValida
 async def httpExceptionHandler(request: Request, exc: HTTPException):
     """
     설명: HTTPException을 표준 에러 응답으로 변환하고 401 헤더를 보강
-    처리 규칙: detail dict의 message/code를 우선 사용하고 없으면 status 기반 기본 코드를 부여한다.
-    반환값: code/path/detail을 포함한 표준 JSONResponse를 반환한다.
+    처리 규칙: detail dict의 message/code를 우선 사용하고 없으면 status 기반 기본 코드를 부여
+    반환값: code/path/detail을 포함한 표준 JSONResponse를 반환
     갱신일: 2026-02-24
     """
     headers = dict(getattr(exc, "headers", None) or {})

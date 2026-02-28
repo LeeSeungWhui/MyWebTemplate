@@ -2,7 +2,7 @@
 파일명: backend/lib/RateLimit.py
 작성자: LSH
 갱신일: 2026-02-24
-설명: 간단한 인메모리 속도 제한기와 FastAPI용 체크 헬퍼.
+설명: 간단한 인메모리 속도 제한기와 FastAPI용 체크 헬퍼
 """
 
 from __future__ import annotations
@@ -29,8 +29,8 @@ class RateLimiter:
     def __init__(self, limit: int = 5, windowSec: int = 60, sweepEvery: int = 256):
         """
         설명: 제한 횟수/윈도우/청소 주기를 초기화
-        처리 규칙: sweepEvery는 최소 1로 보정하고 내부 store/hitCount를 초기화한다.
-        부작용: 인메모리 카운터 상태를 새로 생성한다.
+        처리 규칙: sweepEvery는 최소 1로 보정하고 내부 store/hitCount를 초기화
+        부작용: 인메모리 카운터 상태를 새로 생성
         갱신일: 2026-02-27
         """
         self.limit = int(limit)
@@ -41,8 +41,8 @@ class RateLimiter:
 
     def now(self):
         """
-        설명: 시스템 시계 변경 영향 없이 윈도우 계산에 쓰는 monotonic 타임스탬프 제공.
-        반환값: rate-limit 윈도우 계산에 사용하는 monotonic float 초 값.
+        설명: 시스템 시계 변경 영향 없이 윈도우 계산에 쓰는 monotonic 타임스탬프 제공
+        반환값: rate-limit 윈도우 계산에 사용하는 monotonic float 초 값
         갱신일: 2025-11-12
         """
         return time.monotonic()
@@ -50,8 +50,8 @@ class RateLimiter:
     def sweepExpired(self, nowSec: float) -> None:
         """
         설명: 윈도우를 벗어난 키를 일괄 정리해 메모리 증가를 완화
-        처리 규칙: 각 키의 오래된 타임스탬프를 제거하고 비어 있는 키는 store에서 제거한다.
-        부작용: self.store 내부 상태를 직접 변경한다.
+        처리 규칙: 각 키의 오래된 타임스탬프를 제거하고 비어 있는 키는 store에서 제거
+        부작용: self.store 내부 상태를 직접 변경
         갱신일: 2026-02-24
         """
         expiredKeys = []
@@ -115,8 +115,8 @@ def resolveClientIp(request: Request) -> str:
 def checkRateLimit(request: Request, username: Optional[str] = None, *, commit: bool = True) -> Optional[JSONResponse]:
     """
     설명: IP/사용자별 속도 제한을 검사
-    처리 규칙: 키(ip:{ip}, user:{username})를 순회해 하나라도 초과면 즉시 429를 반환한다.
-    반환값: 제한 초과 시 Retry-After/no-store 헤더가 포함된 JSONResponse, 통과 시 None을 반환한다.
+    처리 규칙: 키(ip:{ip}, user:{username})를 순회해 하나라도 초과면 즉시 429를 반환
+    반환값: 제한 초과 시 Retry-After/no-store 헤더가 포함된 JSONResponse, 통과 시 None을 반환
     갱신일: 2026-01-15
     """
     ip = resolveClientIp(request)

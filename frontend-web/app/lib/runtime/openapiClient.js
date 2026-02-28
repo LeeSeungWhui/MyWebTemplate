@@ -128,7 +128,7 @@ export async function openapiRequest(
 }
 
 /**
- * 설명: OpenAPI operationId 기반으로 JSON(표준 응답 스키마) 호출을 수행한다(apiJSON 규약 동일).
+ * 설명: OpenAPI operationId 기반으로 JSON(표준 응답 스키마) 호출을 수행(apiJSON 규약 동일)
  * 반환값: apiJSON 규약의 JSON 객체(success/result/code/message/requestId 등).
  * 갱신일: 2026-01-18
  */

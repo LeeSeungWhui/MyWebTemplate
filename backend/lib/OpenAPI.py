@@ -2,7 +2,7 @@
 파일명: backend/lib/OpenAPI.py
 작성자: LSH
 갱신일: 2025-09-07
-설명: FastAPI OpenAPI 스키마 커스터마이저 부착(보안 스키마/표준 응답/CSRF/servers/codeSamples 등).
+설명: FastAPI OpenAPI 스키마 커스터마이저 부착(보안 스키마/표준 응답/CSRF/servers/codeSamples 등)
 """
 
 from __future__ import annotations
@@ -18,15 +18,15 @@ from lib.Logger import logger
 def attachOpenAPI(app: FastAPI, config) -> None:
     """
     이름: attachOpenAPI
-    설명: 주어진 app에 custom openapi 함수 부착. config는 [AUTH]/기타 값을 제공.
+    설명: 주어진 app에 custom openapi 함수 부착. config는 [AUTH]/기타 값을 제공
     갱신일: 2026-02-24
     """
 
     def readConfigValue(section: Optional[object], key: str, fallback: Optional[str] = None) -> Optional[str]:
         """
-        설명: configparser.SectionProxy/dict 양쪽에서 설정 값 안전 조회.
-        처리 규칙: getter 시그니처 차이(TypeError)는 dict 방식으로 재시도하고, 실패 시 fallback을 반환한다.
-        반환값: 설정 문자열 또는 fallback 값을 반환한다.
+        설명: configparser.SectionProxy/dict 양쪽에서 설정 값 안전 조회
+        처리 규칙: getter 시그니처 차이(TypeError)는 dict 방식으로 재시도하고, 실패 시 fallback을 반환
+        반환값: 설정 문자열 또는 fallback 값을 반환
         갱신일: 2026-02-26
         """
         if section is None:
@@ -49,8 +49,8 @@ def attachOpenAPI(app: FastAPI, config) -> None:
     def patchOpenapi(schema: Dict[str, Any]) -> Dict[str, Any]:
         """
         설명: OpenAPI 스키마에 보안/응답/파라미터/코드샘플 정책을 패치
-        처리 규칙: components/paths를 보강하되 예외 발생 시 로그만 남기고 원본 schema를 반환한다.
-        반환값: 패치가 적용된 OpenAPI schema dict를 반환한다.
+        처리 규칙: components/paths를 보강하되 예외 발생 시 로그만 남기고 원본 schema를 반환
+        반환값: 패치가 적용된 OpenAPI schema dict를 반환
         갱신일: 2026-02-26
         """
         try:
@@ -409,8 +409,8 @@ def attachOpenAPI(app: FastAPI, config) -> None:
     def customOpenapi():
         """
         설명: FastAPI 기본 스키마 생성 후 patchOpenapi를 적용해 캐시
-        처리 규칙: 이미 캐시(app.openapi_schema)가 있으면 재생성하지 않고 그대로 반환한다.
-        반환값: FastAPI에서 사용하는 최종 OpenAPI schema 객체를 반환한다.
+        처리 규칙: 이미 캐시(app.openapi_schema)가 있으면 재생성하지 않고 그대로 반환
+        반환값: FastAPI에서 사용하는 최종 OpenAPI schema 객체를 반환
         갱신일: 2026-02-26
         """
         if app.openapi_schema:

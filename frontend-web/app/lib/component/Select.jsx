@@ -356,7 +356,4 @@ const Select = forwardRef(({
 
 Select.displayName = 'Select'
 
-/**
- * @description Select export를 노출
- */
 export default Select

@@ -2,7 +2,7 @@
 파일명: backend/lib/I18n.py
 작성자: LSH
 갱신일: 2025-11-12
-설명: 최소한의 i18n 메시지 헬퍼(언어 감지 + 메시지 조회).
+설명: 최소한의 i18n 메시지 헬퍼(언어 감지 + 메시지 조회)
 """
 
 from __future__ import annotations
@@ -36,8 +36,8 @@ MESSAGES = {
 def detectLocale(request: Any) -> str:
     """
     설명: Accept-Language 헤더에서 ko/en 로케일을 판별
-    처리 규칙: 헤더 파싱 실패 또는 비지원 언어면 기본값으로 en을 사용한다.
-    반환값: "ko" 또는 "en" 중 하나를 반환한다.
+    처리 규칙: 헤더 파싱 실패 또는 비지원 언어면 기본값으로 en을 사용
+    반환값: "ko" 또는 "en" 중 하나를 반환
     갱신일: 2025-11-12
     """
     try:

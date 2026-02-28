@@ -188,7 +188,4 @@ export const COMMON_COMPONENT_LANG_KO = {
   },
 };
 
-/**
- * @description COMMON_LANG_KO export를 노출
- */
 export default COMMON_LANG_KO;

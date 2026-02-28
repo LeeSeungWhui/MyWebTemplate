@@ -2,7 +2,7 @@
  * 파일명: authRedirect.js
  * 작성자: LSH
  * 갱신일: 2026-01-19
- * 설명: next(nx) 경로 sanitize + auth_reason(base64url JSON) 인코딩/디코딩 공용 유틸(SSR/CSR/미들웨어 공통).
+ * 설명: next(nx) 경로 sanitize + auth_reason(base64url JSON) 인코딩/디코딩 공용 유틸(SSR/CSR/미들웨어 공통)
  */
 
 export const DEFAULT_NEXT_PATH = "/dashboard";
@@ -37,7 +37,7 @@ export function safeDecodeURIComponent(value) {
 }
 
 /**
- * 설명: base64url 문자셋/길이 규칙 검증과 허용 토큰 통과.
+ * 설명: base64url 문자셋/길이 규칙 검증과 허용 토큰 통과
  * 갱신일: 2026-01-19
  */
 export function sanitizeBase64Url(value, maxLen = AUTH_REASON_MAXLEN) {
@@ -48,7 +48,7 @@ export function sanitizeBase64Url(value, maxLen = AUTH_REASON_MAXLEN) {
 }
 
 /**
- * 설명: UTF-8 문자열을 base64url로 인코딩한다(브라우저/Node/테스트 환경 호환).
+ * 설명: UTF-8 문자열을 base64url로 인코딩(브라우저/Node/테스트 환경 호환)
  * 갱신일: 2026-01-19
  */
 export function base64UrlEncodeUtf8(text) {
@@ -83,7 +83,7 @@ export function base64UrlEncodeUtf8(text) {
 }
 
 /**
- * 설명: base64url(UTF-8) 문자열을 디코딩한다(브라우저/Edge/Node 호환).
+ * 설명: base64url(UTF-8) 문자열을 디코딩(브라우저/Edge/Node 호환)
  * 갱신일: 2026-01-19
  */
 export function base64UrlDecodeUtf8(input) {
@@ -153,7 +153,7 @@ export function parseAuthReason(encoded, maxLen = AUTH_REASON_MAXLEN) {
 }
 
 /**
- * 설명: 401 응답 본문에서 code/requestId/message를 추출한다(JSON만).
+ * 설명: 401 응답 본문에서 code/requestId/message를 추출(JSON만)
  * 갱신일: 2026-01-19
  */
 export async function extractUnauthorizedReason(response) {

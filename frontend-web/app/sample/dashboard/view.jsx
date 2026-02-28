@@ -46,6 +46,7 @@ const DemoDashboardView = ({
   const toStatusSummaryList = (rowList) => {
     /**
      * @description CRUD 샘플 행 목록으로 상태 집계를 생성
+     * 처리 규칙: statusOrder 순서로 순회하며 count/amountSum 누적 요약을 생성.
      * @updated 2026-02-23
      */
     return statusOrder.map((statusCode) => {
@@ -71,6 +72,7 @@ const DemoDashboardView = ({
   const toMonthlyTrendList = (rowList) => {
     /**
      * @description CRUD 샘플 행 목록으로 월별 추이 데이터를 생성
+     * 처리 규칙: createdAt를 YYYY-MM 기준으로 그룹화하고 월 오름차순 결과를 생성.
      * @updated 2026-02-23
      */
     const monthlyMap = {};
@@ -106,6 +108,7 @@ const DemoDashboardView = ({
   const toRecentTaskList = (rowList) => {
     /**
      * @description CRUD 샘플 행 목록으로 최근 업무 상위 5건을 구성
+     * 처리 규칙: createdAt/id 내림차순 정렬 후 상위 5건으로 절단.
      * @updated 2026-02-23
      */
     return [...rowList]

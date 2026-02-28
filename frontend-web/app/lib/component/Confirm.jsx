@@ -93,7 +93,4 @@ const Confirm = ({
     );
 };
 
-/**
- * @description Confirm export를 노출
- */
 export default Confirm;

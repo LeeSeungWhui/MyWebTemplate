@@ -55,8 +55,8 @@ def successResponse(result: Any = None, message: str = "success") -> Dict[str, A
 def errorResponse(message: str = "error", result: Any = None, code: Optional[str] = None) -> Dict[str, Any]:
     """
     설명: 표준 에러 응답 본문 생성. 오류 코드를 포함할 수 있음
-    처리 규칙: status=false 고정이며 현재 requestId를 함께 포함한다.
-    반환값: API 에러 응답 규격(dict) 객체를 반환한다.
+    처리 규칙: status=false 고정이며 현재 requestId를 함께 포함
+    반환값: API 에러 응답 규격(dict) 객체를 반환
     갱신일: 2025-11-12
     """
     return dumpModel(

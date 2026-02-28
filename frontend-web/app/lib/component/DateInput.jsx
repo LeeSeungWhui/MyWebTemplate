@@ -294,7 +294,4 @@ const DateInput = forwardRef(({
 
 DateInput.displayName = 'DateInput';
 
-/**
- * @description DateInput export를 노출
- */
 export default DateInput;

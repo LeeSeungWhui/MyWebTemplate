@@ -2,7 +2,7 @@
 파일명: backend/service/DashboardService.py
 작성자: LSH
 갱신일: 2026-02-22
-설명: 대시보드 업무(T_DATA) 목록/상세/CRUD/집계 서비스 로직.
+설명: 대시보드 업무(T_DATA) 목록/상세/CRUD/집계 서비스 로직
 """
 
 import json
@@ -29,7 +29,7 @@ ALLOWED_SORT = {
 def toIntOrDefault(rawValue: Optional[Any], defaultValue: int) -> int:
     """
     설명: 정수값 파싱 실패 시 기본값으로 대체
-    반환값: 파싱 성공 시 정수값, 실패 시 defaultValue.
+    반환값: 파싱 성공 시 정수값, 실패 시 defaultValue
     갱신일: 2026-02-22
     """
     if rawValue is None:
@@ -43,7 +43,7 @@ def toIntOrDefault(rawValue: Optional[Any], defaultValue: int) -> int:
 def clampValue(rawValue: Optional[Any], defaultValue: int, minValue: int, maxValue: int) -> int:
     """
     설명: 정수값을 범위로 보정
-    반환값: minValue~maxValue 범위로 제한된 정수값.
+    반환값: minValue~maxValue 범위로 제한된 정수값
     갱신일: 2026-02-22
     """
     value = toIntOrDefault(rawValue, defaultValue)
@@ -53,7 +53,7 @@ def clampValue(rawValue: Optional[Any], defaultValue: int, minValue: int, maxVal
 def normalizeSort(sortValue: Optional[str]) -> str:
     """
     설명: 허용된 정렬값만 통과시키고 나머지는 기본 정렬로 보정
-    반환값: 허용 목록(ALLOWED_SORT) 내 정렬키 또는 기본값 reg_dt_desc.
+    반환값: 허용 목록(ALLOWED_SORT) 내 정렬키 또는 기본값 reg_dt_desc
     갱신일: 2026-02-22
     """
     candidate = str(sortValue or "").strip().lower()
@@ -62,8 +62,8 @@ def normalizeSort(sortValue: Optional[str]) -> str:
 
 def normalizeStatus(statusValue: Optional[str]) -> str:
     """
-    설명: 상태 필터 문자열을 허용 상태 집합(ALLOWED_STATUS) 기준으로 정규화하는 유틸.
-    반환값: 빈 문자열 또는 허용 상태값, 허용 외 입력은 ServiceError를 발생시킨다.
+    설명: 상태 필터 문자열을 허용 상태 집합(ALLOWED_STATUS) 기준으로 정규화하는 유틸
+    반환값: 빈 문자열 또는 허용 상태값, 허용 외 입력은 ServiceError를 발생시킨
     갱신일: 2026-02-22
     """
     candidate = str(statusValue or "").strip().lower()
@@ -76,8 +76,8 @@ def normalizeStatus(statusValue: Optional[str]) -> str:
 
 def normalizeKeyword(keyword: Optional[str]) -> str:
     """
-    설명: 검색 키워드 문자열의 공백 정리를 담당하는 정규화 유틸.
-    반환값: 좌우 공백이 제거된 검색어 문자열.
+    설명: 검색 키워드 문자열의 공백 정리를 담당하는 정규화 유틸
+    반환값: 좌우 공백이 제거된 검색어 문자열
     갱신일: 2026-02-22
     """
     return str(keyword or "").strip()
@@ -85,8 +85,8 @@ def normalizeKeyword(keyword: Optional[str]) -> str:
 
 def parseTagList(rawTags: Any) -> List[str]:
     """
-    설명: tags 입력(raw list/json/comma text)을 문자열 리스트로 통일하는 파서.
-    반환값: 공백/빈값이 제거된 태그 문자열 리스트.
+    설명: tags 입력(raw list/json/comma text)을 문자열 리스트로 통일하는 파서
+    반환값: 공백/빈값이 제거된 태그 문자열 리스트
     갱신일: 2026-02-22
     """
     if rawTags is None:
@@ -110,8 +110,8 @@ def parseTagList(rawTags: Any) -> List[str]:
 
 def normalizeTitle(rawTitle: Any) -> str:
     """
-    설명: 제목 필드 길이/타입 제약을 검증하는 정규화 단계.
-    반환값: 공백 제거된 제목 문자열, 형식 위반 시 ServiceError를 발생시킨다.
+    설명: 제목 필드 길이/타입 제약을 검증하는 정규화 단계
+    반환값: 공백 제거된 제목 문자열, 형식 위반 시 ServiceError를 발생시킨
     갱신일: 2026-02-22
     """
     if not isinstance(rawTitle, str):
@@ -124,8 +124,8 @@ def normalizeTitle(rawTitle: Any) -> str:
 
 def normalizeDescription(rawDescription: Any) -> str:
     """
-    설명: 설명 필드의 타입/널 입력을 처리하는 정규화 단계.
-    반환값: 공백 제거된 설명 문자열(null 입력 시 빈 문자열).
+    설명: 설명 필드의 타입/널 입력을 처리하는 정규화 단계
+    반환값: 공백 제거된 설명 문자열(null 입력 시 빈 문자열)
     갱신일: 2026-02-22
     """
     if rawDescription is None:
@@ -138,7 +138,7 @@ def normalizeDescription(rawDescription: Any) -> str:
 def normalizeAmount(rawAmount: Any) -> float:
     """
     설명: 금액 필드를 수치형으로 보정
-    반환값: float 금액값(공백/None은 0.0), 변환 실패 시 ServiceError를 발생시킨다.
+    반환값: float 금액값(공백/None은 0.0), 변환 실패 시 ServiceError를 발생시킨
     갱신일: 2026-02-22
     """
     if rawAmount in (None, ""):
@@ -153,7 +153,7 @@ def normalizeAmount(rawAmount: Any) -> float:
 def parseInsertedId(rawResult: Any) -> Optional[int]:
     """
     설명: DB execute 결과값에서 생성된 PK 후보 ID를 추출
-    반환값: 1 이상 정수 ID 또는 None.
+    반환값: 1 이상 정수 ID 또는 None
     갱신일: 2026-02-23
     """
     if isinstance(rawResult, bool):
@@ -171,8 +171,8 @@ def parseInsertedId(rawResult: Any) -> Optional[int]:
 
 def buildCreatePayload(payload: Dict[str, Any]) -> Dict[str, Any]:
     """
-    설명: 신규 등록 payload를 DB insert 바인딩 형태로 구성하는 매퍼.
-    반환값: DB insert 바인딩에 바로 사용할 정규화 payload dict.
+    설명: 신규 등록 payload를 DB insert 바인딩 형태로 구성하는 매퍼
+    반환값: DB insert 바인딩에 바로 사용할 정규화 payload dict
     갱신일: 2026-02-22
     """
     title = normalizeTitle(payload.get("title"))
@@ -193,8 +193,8 @@ def buildCreatePayload(payload: Dict[str, Any]) -> Dict[str, Any]:
 
 def buildUpdatePayload(payload: Dict[str, Any], currentRow: Dict[str, Any]) -> Dict[str, Any]:
     """
-    설명: 부분 수정 payload와 기존 값 병합 기반 DB 입력 포맷 생성.
-    반환값: 기존값과 병합된 DB update 바인딩용 payload dict.
+    설명: 부분 수정 payload와 기존 값 병합 기반 DB 입력 포맷 생성
+    반환값: 기존값과 병합된 DB update 바인딩용 payload dict
     갱신일: 2026-02-22
     """
     if not payload:
@@ -230,7 +230,7 @@ def buildUpdatePayload(payload: Dict[str, Any], currentRow: Dict[str, Any]) -> D
 def ensureDbManager():
     """
     설명: 기본 DB 매니저를 확보하고 미준비 상태를 차단
-    반환값: 초기화된 DB 매니저 인스턴스, 미준비 시 ServiceError를 발생시킨다.
+    반환값: 초기화된 DB 매니저 인스턴스, 미준비 시 ServiceError를 발생시킨
     갱신일: 2026-02-22
     """
     db = DB.getManager()
@@ -249,8 +249,8 @@ async def listDataTemplates(
     sort: Optional[str] = None,
 ) -> Dict[str, Any]:
     """
-    설명: 검색/필터/페이지네이션 파라미터를 안전값으로 보정해 업무 목록을 조회하는 서비스.
-    반환값: items/total/page/size/sort를 포함한 목록 조회 결과 dict.
+    설명: 검색/필터/페이지네이션 파라미터를 안전값으로 보정해 업무 목록을 조회하는 서비스
+    반환값: items/total/page/size/sort를 포함한 목록 조회 결과 dict
     갱신일: 2026-02-22
     """
     db = ensureDbManager()
@@ -302,8 +302,8 @@ async def listDataTemplates(
 
 async def getDataTemplateDetail(dataId: int) -> Dict[str, Any]:
     """
-    설명: dataId 기준 업무 단건 상세를 조회하고 camelCase 결과로 반환하는 서비스.
-    반환값: camelCase 변환된 단건 상세 dict, 미존재 시 ServiceError를 발생시킨다.
+    설명: dataId 기준 업무 단건 상세를 조회하고 camelCase 결과로 반환하는 서비스
+    반환값: camelCase 변환된 단건 상세 dict, 미존재 시 ServiceError를 발생시킨
     갱신일: 2026-02-22
     """
     db = ensureDbManager()
@@ -317,7 +317,7 @@ async def getDataTemplateDetail(dataId: int) -> Dict[str, Any]:
 async def createDataTemplate(payload: Dict[str, Any]) -> Dict[str, Any]:
     """
     설명: 업무를 신규 등록
-    반환값: 신규 생성된 업무 상세 dict, 생성 후보 확인 실패 시 ServiceError를 발생시킨다.
+    반환값: 신규 생성된 업무 상세 dict, 생성 후보 확인 실패 시 ServiceError를 발생시킨
     갱신일: 2026-02-22
     """
     if not isinstance(payload, dict):
@@ -340,8 +340,8 @@ async def createDataTemplate(payload: Dict[str, Any]) -> Dict[str, Any]:
 
 async def updateDataTemplate(dataId: int, payload: Dict[str, Any]) -> Dict[str, Any]:
     """
-    설명: 업무를 수정한다(부분 수정 지원).
-    반환값: 수정 완료 후 재조회한 업무 상세 dict.
+    설명: 업무를 수정(부분 수정 지원)
+    반환값: 수정 완료 후 재조회한 업무 상세 dict
     갱신일: 2026-02-22
     """
     if not isinstance(payload, dict):
@@ -363,7 +363,7 @@ async def updateDataTemplate(dataId: int, payload: Dict[str, Any]) -> Dict[str, 
 async def deleteDataTemplate(dataId: int) -> Dict[str, Any]:
     """
     설명: 업무를 삭제
-    반환값: 삭제된 업무 ID dict, 대상 미존재 시 ServiceError를 발생시킨다.
+    반환값: 삭제된 업무 ID dict, 대상 미존재 시 ServiceError를 발생시킨
     갱신일: 2026-02-22
     """
     db = ensureDbManager()
@@ -376,8 +376,8 @@ async def deleteDataTemplate(dataId: int) -> Dict[str, Any]:
 
 async def dataTemplateStats() -> Dict[str, Any]:
     """
-    설명: 상태별 count/amount 집계를 합산해 대시보드 통계 payload를 구성하는 서비스.
-    반환값: totalCount/totalAmount/byStatus를 포함한 통계 결과 dict.
+    설명: 상태별 count/amount 집계를 합산해 대시보드 통계 payload를 구성하는 서비스
+    반환값: totalCount/totalAmount/byStatus를 포함한 통계 결과 dict
     갱신일: 2026-02-22
     """
     db = ensureDbManager()

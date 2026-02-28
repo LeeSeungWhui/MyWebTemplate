@@ -34,8 +34,8 @@ ipGeoCacheLock = asyncio.Lock()
 def parseBool(rawValue: object, defaultValue: bool = False) -> bool:
     """
     설명: 다양한 입력값을 bool로 파싱
-    처리 규칙: 문자열은 소문자 정규화 후 truthy 집합(1/true/yes/on)으로 판별한다.
-    반환값: 파싱 실패/None 입력 시 defaultValue를 반환한다.
+    처리 규칙: 문자열은 소문자 정규화 후 truthy 집합(1/true/yes/on)으로 판별
+    반환값: 파싱 실패/None 입력 시 defaultValue를 반환
     갱신일: 2026-02-22
     """
     if rawValue is None:
@@ -62,7 +62,7 @@ def parsePositiveInt(rawValue: object, defaultValue: int) -> int:
 
 def getIpGeoEnabled() -> bool:
     """
-    설명: IP 위치 추정 기능 on/off 판단 규칙(환경변수 우선)을 담당하는 설정 조회 유틸.
+    설명: IP 위치 추정 기능 on/off 판단 규칙(환경변수 우선)을 담당하는 설정 조회 유틸
     우선순위: 환경변수(IP_GEO_ENABLED) > config(OBSERVABILITY.ip_geo_enabled)
     갱신일: 2026-02-22
     """
@@ -80,7 +80,7 @@ def getIpGeoEnabled() -> bool:
 
 def getIpGeoTimeoutMs() -> int:
     """
-    설명: 외부 IP 위치 조회 타임아웃(ms) 결정 규칙(환경변수 우선) 유틸.
+    설명: 외부 IP 위치 조회 타임아웃(ms) 결정 규칙(환경변수 우선) 유틸
     우선순위: 환경변수(IP_GEO_TIMEOUT_MS) > config(OBSERVABILITY.ip_geo_timeout_ms)
     갱신일: 2026-02-22
     """
@@ -98,7 +98,7 @@ def getIpGeoTimeoutMs() -> int:
 
 def getIpGeoCacheTtlSec() -> int:
     """
-    설명: IP 위치 조회 캐시 TTL(초) 결정 규칙(환경변수 우선) 유틸.
+    설명: IP 위치 조회 캐시 TTL(초) 결정 규칙(환경변수 우선) 유틸
     우선순위: 환경변수(IP_GEO_CACHE_TTL_SEC) > config(OBSERVABILITY.ip_geo_cache_ttl_sec)
     갱신일: 2026-02-22
     """
@@ -118,9 +118,9 @@ def getIpGeoCacheTtlSec() -> int:
 
 def normalizeIp(clientIp: Optional[str]) -> Optional[str]:
     """
-    설명: 원본 클라이언트 IP 문자열 표준화(공백/브래킷 제거) 유틸.
-    처리 규칙: 공백/대괄호([::1])를 제거하고 비어 있으면 None으로 반환한다.
-    반환값: 정규화된 IP 문자열 또는 None을 반환한다.
+    설명: 원본 클라이언트 IP 문자열 표준화(공백/브래킷 제거) 유틸
+    처리 규칙: 공백/대괄호([::1])를 제거하고 비어 있으면 None으로 반환
+    반환값: 정규화된 IP 문자열 또는 None을 반환
     갱신일: 2026-02-22
     """
     rawIp = (clientIp or "").strip()
@@ -159,9 +159,9 @@ def classifyIpLocal(ipValue: str) -> tuple[str, str]:
 
 def buildLocationText(geoJson: dict) -> str:
     """
-    설명: 외부 IP 위치 조회 결과를 로그 저장용 위치 문자열로 조합하는 포매터.
-    처리 규칙: country/region/city를 순서대로 조합하고 값이 없으면 PUBLIC_IP를 사용한다.
-    반환값: 로그 적재용 위치 문자열을 반환한다.
+    설명: 외부 IP 위치 조회 결과를 로그 저장용 위치 문자열로 조합하는 포매터
+    처리 규칙: country/region/city를 순서대로 조합하고 값이 없으면 PUBLIC_IP를 사용
+    반환값: 로그 적재용 위치 문자열을 반환
     갱신일: 2026-02-22
     """
     countryCode = str(geoJson.get("country_code") or "").strip()
@@ -184,9 +184,9 @@ def buildLocationText(geoJson: dict) -> str:
 
 async def getIpGeoFromRemote(ipValue: str) -> Optional[dict]:
     """
-    설명: 외부 API(ipwho.is) 호출로 공인 IP의 대략 위치를 가져오는 원격 조회 함수.
-    처리 규칙: 200 응답 + success=true dict일 때만 결과를 채택한다.
-    실패 동작: 타임아웃/비정상 응답/파싱 실패 시 None을 반환한다.
+    설명: 외부 API(ipwho.is) 호출로 공인 IP의 대략 위치를 가져오는 원격 조회 함수
+    처리 규칙: 200 응답 + success=true dict일 때만 결과를 채택
+    실패 동작: 타임아웃/비정상 응답/파싱 실패 시 None을 반환
     갱신일: 2026-02-22
     """
     timeoutMs = getIpGeoTimeoutMs()
@@ -206,7 +206,7 @@ async def getIpGeoFromRemote(ipValue: str) -> Optional[dict]:
 
 async def resolveIpLocation(clientIp: Optional[str]) -> tuple[Optional[str], Optional[str]]:
     """
-    설명: IP 기반 위치 텍스트/소스를 로컬 판별 + 원격 조회 + 캐시로 해석하는 파이프라인.
+    설명: IP 기반 위치 텍스트/소스를 로컬 판별 + 원격 조회 + 캐시로 해석하는 파이프라인
     반환값: (ipLocTxt, ipLocSrc)
     갱신일: 2026-02-22
     """
@@ -264,9 +264,9 @@ async def writeUserAccessLog(
 ) -> None:
     """
     설명: 인증 사용자 접근 로그를 T_USER_LOG에 저장
-    처리 규칙: username 미존재/DB 미초기화 시 즉시 종료하고, 위치 정보는 비동기 조회 후 bind에 반영한다.
-    실패 동작: INSERT 실패는 warning 로그만 남기고 요청 흐름에는 예외를 전파하지 않는다.
-    부작용: T_USER_LOG 테이블에 접근 로그 레코드를 적재한다.
+    처리 규칙: username 미존재/DB 미초기화 시 즉시 종료하고, 위치 정보는 비동기 조회 후 bind에 반영
+    실패 동작: INSERT 실패는 warning 로그만 남기고 요청 흐름에는 예외를 전파하지 않는
+    부작용: T_USER_LOG 테이블에 접근 로그 레코드를 적재
     갱신일: 2026-02-22
     """
     userId = (username or "").strip()

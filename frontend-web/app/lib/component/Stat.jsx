@@ -51,7 +51,4 @@ const Stat = ({
   );
 };
 
-/**
- * @description Stat export를 노출
- */
 export default Stat;

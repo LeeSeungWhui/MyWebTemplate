@@ -116,8 +116,4 @@ const Footer = ({
   );
 };
 
-/**
- * @description 를 외부에서 재사용할 수 있도록 기본 export
- * @returns {React.ComponentType} Footer 컴포넌트
- */
 export default Footer;

@@ -448,7 +448,4 @@ const EasyEditor = ({
   );
 };
 
-/**
- * @description EasyEditor export를 노출
- */
 export default EasyEditor;

@@ -97,7 +97,7 @@ def loadSqlQueries(folderPath: str) -> Dict[str, str]:
     """
     설명: scanSqlQueries 결과 중 쿼리 dict만 반환
     갱신일: 2025-11-12
-    처리 규칙: 입력값을 검증하고 실패 시 예외/기본값 경로로 수렴한다.
+    처리 규칙: 입력값을 검증하고 실패 시 예외/기본값 경로로 수렴
     """
     queries, _, _ = scanSqlQueries(folderPath)
     return queries

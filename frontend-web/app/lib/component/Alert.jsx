@@ -90,7 +90,4 @@ const Alert = ({
     );
 };
 
-/**
- * @description Alert export를 노출
- */
 export default Alert;
