@@ -154,7 +154,7 @@ export const useSharedStore = create((set, get) => ({
         confirmPromiseResolve: null,
       });
       if (typeof confirm.onFocus === "function") {
-        // 한글설명: 설명 동작 설명
+
         setTimeout(() => confirm.onFocus(), 0);
       }
     }

@@ -46,7 +46,7 @@ const DropdownDocs = () => {
         <li><code>disabled?</code>: 드롭다운 비활성화</li>
         <li><code>className?</code>: 루트 추가 클래스</li>
       </ul>
-    </div>}> 
+    </div>}>
       <div id="dropdown-basic" className="mb-8">
         <h3 className="text-lg font-medium mb-4">기본</h3>
         <div>

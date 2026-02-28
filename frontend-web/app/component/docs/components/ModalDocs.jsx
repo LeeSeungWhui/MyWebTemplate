@@ -105,4 +105,4 @@ const ModalDocs = () => {
     );
 };
 
-export default ModalDocs; 
+export default ModalDocs;

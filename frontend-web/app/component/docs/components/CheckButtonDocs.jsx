@@ -69,4 +69,4 @@ const CheckButtonDocs = () => {
     );
 };
 
-export default CheckButtonDocs; 
+export default CheckButtonDocs;

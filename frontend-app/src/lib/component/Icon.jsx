@@ -6,14 +6,14 @@
  */
 import { forwardRef } from "react";
 import {
-  AntDesign, // ai
-  Feather, // fi
-  FontAwesome, // fa
-  Ionicons, // io
-  MaterialIcons, // md
-  MaterialCommunityIcons, // mc
-  Octicons, // oc
-  SimpleLineIcons, // si
+  AntDesign,
+  Feather,
+  FontAwesome,
+  Ionicons,
+  MaterialIcons,
+  MaterialCommunityIcons,
+  Octicons,
+  SimpleLineIcons,
 } from "@expo/vector-icons";
 
 const iconSets = {

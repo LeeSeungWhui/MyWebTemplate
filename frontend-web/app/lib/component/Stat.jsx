@@ -19,8 +19,8 @@ const Stat = ({
   label,
   value,
   delta,
-  deltaType = 'neutral', // 한글설명: 설명 동작 설명
-  icon, // 한글설명: 설명 동작 설명
+  deltaType = 'neutral',
+  icon,
   helpText,
   className = '',
 }) => {

@@ -60,14 +60,14 @@ export const ButtonExamples = () => {
         },
         {
             component: <Lib.Button
-                className="bg-gradient-to-r from-purple-500 to-pink-500 
+                className="bg-gradient-to-r from-purple-500 to-pink-500
                 hover:from-purple-600 hover:to-pink-600"
             >
                 그라데이션
             </Lib.Button>,
             description: "커스텀 버튼",
             code: `<Lib.Button
-    className="bg-gradient-to-r from-purple-500 to-pink-500 
+    className="bg-gradient-to-r from-purple-500 to-pink-500
     hover:from-purple-600 hover:to-pink-600"
 >
     그라데이션
@@ -108,4 +108,4 @@ export const ButtonExamples = () => {
     ];
 
     return examples;
-}; 
+};

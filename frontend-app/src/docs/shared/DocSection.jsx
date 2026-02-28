@@ -18,4 +18,4 @@ const DocSection = ({ title, description, children }) => {
     );
 };
 
-export default DocSection; 
+export default DocSection;

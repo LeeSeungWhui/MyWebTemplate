@@ -31,7 +31,7 @@ const StatDocs = () => {
         <li><code>helpText?</code>: 하단 보조 설명</li>
         <li><code>className?</code>: 루트 추가 클래스</li>
       </ul>
-    </div>}> 
+    </div>}>
       <div id="stat-basic" className="mb-8">
         <h3 className="text-lg font-medium mb-4">기본</h3>
         <div>

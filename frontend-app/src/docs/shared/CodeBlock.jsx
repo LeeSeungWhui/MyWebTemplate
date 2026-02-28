@@ -25,4 +25,4 @@ const CodeBlock = ({ code }) => {
     );
 };
 
-export default CodeBlock; 
+export default CodeBlock;

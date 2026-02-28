@@ -9,8 +9,8 @@
 import { useEffect } from 'react'
 import { useSharedStore } from './SharedStore'
 
-// 한글설명: 설명 동작 설명
-// 한글설명: 설명 동작 설명
+
+
 
 /**
  * @description SSR에서 주입된 user/shared/config 값을 공용 store에 1회 하이드레이션
@@ -26,7 +26,7 @@ const SharedHydrator = ({ userJson, sharedPatch, config }) => {
   useEffect(() => {
     if (typeof userJson !== 'undefined') {
       setUserJson(userJson || null)
-      // 한글설명: 설명 동작 설명
+
       if (userJson && (userJson.userId || userJson.name)) {
         setUser({ userId: userJson.userId, name: userJson.name })
       } else {

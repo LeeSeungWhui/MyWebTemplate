@@ -106,14 +106,14 @@ function isBinaryBody(value) {
 function serializeBody(input) {
   if (input == null) return undefined;
   if (isBodyLike(input)) return input;
-  // 한글설명: 설명 동작 설명
-  // 한글설명: 설명 동작 설명
+
+
   try {
     return typeof input === "string" ? input : JSON.stringify(input);
   } catch {
-    // 한글설명: 설명 동작 설명
+
     try {
-      // 한글설명: 설명 동작 설명
+
       return JSON.stringify(JSON.parse(JSON.stringify(input)));
     } catch {
       return JSON.stringify({});
@@ -127,13 +127,13 @@ function serializeBody(input) {
  * @updated 2026-02-27
  */
 function normalizeArgs(path, a2, a3) {
-  // 한글설명: 설명 동작 설명
-  // 한글설명: 설명 동작 설명
-  // 한글설명: 설명 동작 설명
-  // 한글설명: 설명 동작 설명
-  // 한글설명: 설명 동작 설명
-  // 한글설명: 설명 동작 설명
-  // 한글설명: 설명 동작 설명
+
+
+
+
+
+
+
 
   /**
    * @description 값이 RequestInit 유사 객체인지 판별
@@ -356,7 +356,7 @@ export async function apiRequest(path, initOrBody = {}, modeOrOptions) {
     return doFetch();
   }
 
-  // 한글설명: 설명 동작 설명
+
   const targetUrl = absoluteUrl ? path : toBffPath(path);
   const headers = { ...headersIn };
 

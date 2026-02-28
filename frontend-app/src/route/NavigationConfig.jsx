@@ -38,4 +38,4 @@ const NavigationConfig = () => {
     );
 };
 
-export default NavigationConfig; 
+export default NavigationConfig;

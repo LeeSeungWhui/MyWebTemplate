@@ -107,4 +107,4 @@ list.pop();`
 data.items[0].count++;`
         }
     ];
-}; 
+};

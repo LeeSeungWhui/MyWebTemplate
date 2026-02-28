@@ -68,4 +68,4 @@ const CheckboxDocs = () => {
     );
 };
 
-export default CheckboxDocs; 
+export default CheckboxDocs;

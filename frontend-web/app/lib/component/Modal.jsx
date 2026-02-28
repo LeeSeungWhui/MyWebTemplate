@@ -311,4 +311,4 @@ Modal.displayName = 'Modal';
  * @description 헤더/본문/푸터 슬롯을 제공하는 공통 Modal 컴포넌트를 외부에 노출
  * 반환값: Modal 컴포넌트 export.
  */
-export default Modal; 
+export default Modal;

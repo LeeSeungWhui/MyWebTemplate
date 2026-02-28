@@ -15,4 +15,4 @@ const RouteIndex = {
     // 웹이랑 똑같은 방식으로 route 정의하면 돼!
 };
 
-export default RouteIndex; 
+export default RouteIndex;

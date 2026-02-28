@@ -170,7 +170,7 @@ const Input = forwardRef(
           `^-?\\d{0,${maxDigits ?? 2}}(\\.\\d{0,${maxDecimals ?? 2}})?$`
         );
         if (!regex.test(value)) {
-          return; // 한글설명: 설명 동작 설명
+          return;
         }
       }
       if (isBoundControlled) {
@@ -227,7 +227,7 @@ const Input = forwardRef(
       if (!filter && !hasStringMask && type !== "number") return;
       const data = event.data;
 
-      // NOTE: 조합(insertCompositionText)은 onCompositionUpdate/Change에서 정밀 처리한다.
+      // 참고: 조합(insertCompositionText)은 onCompositionUpdate/Change에서 정밀 처리한다.
       // beforeinput 단계에서는 data가 없을 수 있으므로 무조건 차단하지 않는다.
 
       if (typeof data === "string" && data.length > 0) {
@@ -264,7 +264,7 @@ const Input = forwardRef(
            */
           const nextMaskToken = (maskPattern, rawText) => {
             let maskPos = 0;
-            // 한글설명: 설명 동작 설명
+
             for (let i = 0; i < rawText.length; i++) {
               while (maskPos < maskPattern.length && !MASK_TOKEN_RE.test(maskPattern[maskPos])) {
                 maskPos++;
@@ -378,7 +378,7 @@ const Input = forwardRef(
         try {
           event.target.value = committed;
         } catch (_) {
-          /* 한글설명: 설명 동작 설명 */
+
         }
       }
       const ctx = buildCtx({
@@ -450,7 +450,7 @@ const Input = forwardRef(
               try {
                 event.target.value = committed;
               } catch (_) {
-                /* ignore */
+                /* 무시 */
               }
             }
             const ctx = buildCtx({
@@ -469,13 +469,13 @@ const Input = forwardRef(
             });
           }}
           onBlur={(event) => {
-            // 한글설명: 설명 동작 설명
+
             const committed = commitValue(event.target.value);
             if (typeof committed !== "undefined") {
               try {
                 event.target.value = committed;
               } catch (_) {
-                /* ignore */
+                /* 무시 */
               }
             }
             const ctx = buildCtx({

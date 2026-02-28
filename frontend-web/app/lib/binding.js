@@ -4,9 +4,9 @@
  * 갱신일: 2025-09-13
  * 설명: 바인딩 유틸 함수
  */
-// 파일명: binding.js
-// 갱신일: 2025-09-09
-// 한글설명: 설명 동작 설명
+
+
+// 바인딩 유틸 함수 선언 구간
 
 /**
  * @description 입력 객체가 EasyObj/EasyList 프록시 래퍼인지 판별
@@ -29,9 +29,9 @@ const getRaw = (obj) => (obj && obj.__rawObject) ? obj.__rawObject : obj;
  */
 export function getBoundValue(dataObj, dataKey) {
   if (!dataObj || !dataKey) return undefined;
-  // 한글설명: 설명 동작 설명
+
   if (typeof dataObj.get === 'function') return dataObj.get(dataKey);
-  // 한글설명: 설명 동작 설명
+
   const parts = String(dataKey).split('.');
   let cur = dataObj;
   for (const segment of parts) {
@@ -87,7 +87,7 @@ export function buildCtx({ dataKey, dataObj, source = 'user', valid = null, dirt
  */
 export function fireValueHandlers({ onChange, onValueChange, value, ctx, event }) {
 
-  // 한글설명: 설명 동작 설명
+
   if (event) {
     try {
       if (!Object.prototype.hasOwnProperty.call(event, 'detail') || event.detail == null) {
@@ -100,7 +100,7 @@ export function fireValueHandlers({ onChange, onValueChange, value, ctx, event }
       try {
         event.detail = { value, ctx };
       } catch (_) {
-        // 한글설명: 설명 동작 설명
+
       }
     }
   }

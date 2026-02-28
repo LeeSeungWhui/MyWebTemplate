@@ -12,7 +12,7 @@ import { getBoundValue, setBoundValue, buildCtx, fireValueHandlers } from '../bi
  * 처리 규칙: 전달된 props와 바인딩 값을 기준으로 UI 상태를 계산하고 변경 이벤트를 상위로 전달한다.
  * @updated 2026-02-27
  */
-const Textarea = forwardRef(({ 
+const Textarea = forwardRef(({
   dataObj,
   dataKey,
   value: propValue,
@@ -103,7 +103,8 @@ const Textarea = forwardRef(({
 Textarea.displayName = 'Textarea';
 
 /**
- * @description 를 기본 export
- * @returns {React.ComponentType} Textarea 컴포넌트
+ * @description Textarea 컴포넌트 진입점 노출
+ * 반환값: 다중 줄 텍스트 입력을 처리하는 Textarea 컴포넌트.
+ * @returns {React.ComponentType}
  */
 export default Textarea;

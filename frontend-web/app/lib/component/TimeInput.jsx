@@ -4,9 +4,7 @@
  * 갱신일: 2025-09-13
  * 설명: TimeInput UI 컴포넌트 구현
  */
-// 파일명: TimeInput.jsx
-// 갱신일: 2025-09-09
-// 한글설명: 설명 동작 설명
+
 import { forwardRef, useEffect, useMemo, useRef, useState } from 'react';
 import { getBoundValue, setBoundValue, buildCtx, fireValueHandlers } from '../binding';
 import Icon from './Icon';
@@ -24,7 +22,7 @@ const pad2 = (numberValue) => String(numberValue).padStart(2, '0');
  * 처리 규칙: 전달된 props와 바인딩 값을 기준으로 UI 상태를 계산하고 변경 이벤트를 상위로 전달한다.
  * @updated 2026-02-27
  */
-const TimeInput = forwardRef(({ 
+const TimeInput = forwardRef(({
   dataObj,
   dataKey,
   value: propValue,
@@ -93,7 +91,7 @@ const TimeInput = forwardRef(({
   const inputRef = useRef(null);
   const rootRef = useRef(null);
 
-  const interval = Math.max(1, step ?? 30); // 한글설명: 설명 동작 설명
+  const interval = Math.max(1, step ?? 30);
   const items = useMemo(() => {
     const options = [];
     for (let secondCursor = 0; secondCursor < 24 * 60 * 60; secondCursor += interval * 60) {

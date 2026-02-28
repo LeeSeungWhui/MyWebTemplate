@@ -143,7 +143,7 @@ export const LANG_KO = {
     - `initData.jsx`에는 리스트 초기 모델 팩토리를 두지 않는다.
   - `EasyList` 변수명은 역할 기반 `...List` 접미사로 선언한다.
     - 권장: `taskList`, `statusOptionList`, `resultDetailList`
-    - 금지: `list`, `dataList`, `items`, `rows` 같은 제너릭 이름
+    - 금지: `list`, `items`, `rows` 같은 제너릭 이름 (`dataList`는 허용)
     - API 응답 리스트는 `const <apiName>List = useEasyList([])`로 두고 `apiJSON` 이후 `<apiName>List.copy(...)`로 동기화한다.
   - `EasyObj` 변수명은 목적 기반으로 선언한다.
     - UI 상태 묶음: `const ui = EasyObj({ ... })`

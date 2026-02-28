@@ -14,7 +14,7 @@ import { useState } from 'react';
  * 처리 규칙: 입력값과 상태를 검증해 UI/데이터 흐름을 안전하게 유지한다.
  */
 export const SwitchExamples = () => {
-  const obj = Lib.EasyObj({ enabled: false, notifications: true });
+  const switchDataObj = Lib.EasyObj({ enabled: false, notifications: true });
   const [local, setLocal] = useState(false);
 
   const examples = [
@@ -22,21 +22,21 @@ export const SwitchExamples = () => {
       component: (
         <div className="flex items-center gap-4">
           <Lib.Switch
-            dataObj={obj}
+            dataObj={switchDataObj}
             dataKey="enabled"
-            label={`바운드: ${obj.enabled ? 'ON' : 'OFF'}`}
+            label={`바운드: ${switchDataObj.enabled ? 'ON' : 'OFF'}`}
             onValueChange={(nextValue) => console.log('switch(bound):', nextValue)}
           />
-          <span className="text-sm text-gray-600">obj.enabled = {String(obj.enabled)}</span>
+          <span className="text-sm text-gray-600">switchDataObj.enabled = {String(switchDataObj.enabled)}</span>
         </div>
       ),
       description: 'dataObj + dataKey 로 상태 바인딩',
-      code: `const obj = Lib.EasyObj({ enabled: false });
+      code: `const switchDataObj = Lib.EasyObj({ enabled: false });
 
 <Lib.Switch
-  dataObj={obj}
+  dataObj={switchDataObj}
   dataKey="enabled"
-  label={\`바운드: \${obj.enabled ? 'ON' : 'OFF'}\`}
+  label={\`바운드: \${switchDataObj.enabled ? 'ON' : 'OFF'}\`}
   onValueChange={(nextValue) => console.log('switch(bound):', nextValue)}
 />`
     },
@@ -75,7 +75,7 @@ export const SwitchExamples = () => {
       component: (
         <div className="flex items-center gap-4">
           <Lib.Switch
-            dataObj={obj}
+            dataObj={switchDataObj}
             dataKey="notifications"
             id="notify-switch"
             label="알림 허용"
@@ -84,7 +84,7 @@ export const SwitchExamples = () => {
       ),
       description: '접근성: id/label 로 명확한 레이블 제공',
       code: `<Lib.Switch
-  dataObj={obj}
+  dataObj={switchDataObj}
   dataKey="notifications"
   id="notify-switch"
   label="알림 허용"

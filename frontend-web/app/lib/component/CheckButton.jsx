@@ -66,7 +66,7 @@ const CheckButton = React.forwardRef(({
         }
 
         const ctx = buildCtx({ dataKey: dataKeyName, dataObj, source: 'user', dirty: true, valid: null });
-        try { event.target.value = newChecked; } catch (_) { /* 한글설명: 설명 동작 설명 */ }
+        try { event.target.value = newChecked; } catch (_) {  }
         fireValueHandlers({
             onChange,
             onValueChange,
@@ -131,7 +131,8 @@ const CheckButton = React.forwardRef(({
 CheckButton.displayName = 'CheckButton';
 
 /**
- * @description 를 기본 export
- * @returns {React.ComponentType} CheckButton 컴포넌트
+ * @description CheckButton 컴포넌트 진입점 노출
+ * 반환값: 체크 토글 UI를 제공하는 CheckButton 컴포넌트.
+ * @returns {React.ComponentType}
  */
 export default CheckButton;

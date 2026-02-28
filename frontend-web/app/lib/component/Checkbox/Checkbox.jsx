@@ -89,7 +89,7 @@ const Checkbox = forwardRef(({
     const colorStyle = isCssColor ? {
         '--checkbox-color': color
     } : {
-        '--checkbox-color': '#3b82f6'  // 한글설명: 설명 동작 설명
+        '--checkbox-color': '#3b82f6'
     };
 
     return (
@@ -116,7 +116,8 @@ const Checkbox = forwardRef(({
 Checkbox.displayName = 'Checkbox';
 
 /**
- * @description 를 기본 export
- * @returns {React.ComponentType} Checkbox 컴포넌트
+ * @description Checkbox 컴포넌트 진입점 노출
+ * 반환값: 체크 상태 입력을 처리하는 Checkbox 컴포넌트.
+ * @returns {React.ComponentType}
  */
-export default Checkbox; 
+export default Checkbox;

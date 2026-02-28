@@ -272,7 +272,7 @@ def attachOpenAPI(app: FastAPI, config) -> None:
             login = paths.get("/api/v1/auth/login", {}).get("post")
             if isinstance(login, dict):
                 responses = login.setdefault("responses", {})
-                # NOTE: 실제 구현은 200 JSON(successResponse) + Set-Cookie 이다(AuthRouter.login).
+                # 참고: 실제 구현은 200 JSON(successResponse) + Set-Cookie 이다(AuthRouter.login).
                 responses.pop("204", None)
 
                 res200 = responses.setdefault("200", {"description": "OK"})
@@ -399,7 +399,7 @@ def attachOpenAPI(app: FastAPI, config) -> None:
                         "// });"
                     ),
                 )
-            # NOTE: 템플릿 기본(토큰 모드)에서는 CSRF 헤더를 강제하지 않는다.
+            # 참고: 템플릿 기본(토큰 모드)에서는 CSRF 헤더를 강제하지 않는다.
             # 쿠키가 직접 권한을 갖는 엔드포인트를 추가하는 경우에만,
             # 해당 라우트에 CSRFToken 파라미터를 수동으로 붙여 문서화한다.
         except Exception as e:

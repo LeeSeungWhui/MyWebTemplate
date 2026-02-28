@@ -20,7 +20,7 @@ export const ComboboxExamples = () => {
     { value: 'daegu', text: '대구' },
   ])
 
-  const profile = Lib.EasyObj({
+  const profileDataObj = Lib.EasyObj({
     address: {
       city: 'incheon',
       favorites: ['seoul', 'busan'],
@@ -37,11 +37,11 @@ export const ComboboxExamples = () => {
         <Lib.Combobox
           id="combobox-bound"
           dataList={cityList}
-          dataObj={profile.address}
+          dataObj={profileDataObj.address}
           dataKey="city"
           placeholder="도시 선택"
           status="success"
-          statusMessage={`선택 도시: ${profile.address.city}`}
+          statusMessage={`선택 도시: ${profileDataObj.address.city}`}
         />
       ),
       description:
@@ -52,15 +52,15 @@ export const ComboboxExamples = () => {
   { value: 'incheon', text: '인천' },
   { value: 'daegu', text: '대구' },
 ]);
-const profile = Lib.EasyObj({ address: { city: 'incheon' } });
+const profileDataObj = Lib.EasyObj({ address: { city: 'incheon' } });
 
 <Lib.Combobox
   dataList={cityList}
-  dataObj={profile.address}
+  dataObj={profileDataObj.address}
   dataKey="city"
   placeholder="도시 선택"
   status="success"
-  statusMessage={\`선택 도시: \${profile.address.city}\`}
+  statusMessage={\`선택 도시: \${profileDataObj.address.city}\`}
 />`,
     },
     {
@@ -97,7 +97,7 @@ const profile = Lib.EasyObj({ address: { city: 'incheon' } });
         <Lib.Combobox
           id="combobox-multi"
           dataList={cityList}
-          dataObj={profile.address}
+          dataObj={profileDataObj.address}
           dataKey="favorites"
           multi
           multiSummary

@@ -19,7 +19,7 @@ const truthy = (value) => [true, 'Y', 'y', '1', 1].includes(value) || value === 
  * 처리 규칙: 전달된 props와 바인딩 값을 기준으로 UI 상태를 계산하고 변경 이벤트를 상위로 전달한다.
  * @updated 2026-02-27
  */
-const Switch = forwardRef(({ 
+const Switch = forwardRef(({
   label,
   name,
   onChange,

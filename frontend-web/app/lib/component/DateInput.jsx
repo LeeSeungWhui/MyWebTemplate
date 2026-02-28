@@ -4,9 +4,7 @@
  * 갱신일: 2025-09-13
  * 설명: DateInput UI 컴포넌트 구현
  */
-// 파일명: DateInput.jsx
-// 갱신일: 2025-09-09
-// 한글설명: 설명 동작 설명
+
 import { forwardRef, useEffect, useRef, useState, useMemo } from 'react';
 import { getBoundValue, setBoundValue, buildCtx, fireValueHandlers } from '../binding';
 import Icon from './Icon';
@@ -68,7 +66,7 @@ const sameDay = (firstDate, secondDate) => {
  * 처리 규칙: 전달된 props와 바인딩 값을 기준으로 UI 상태를 계산하고 변경 이벤트를 상위로 전달한다.
  * @updated 2026-02-27
  */
-const DateInput = forwardRef(({ 
+const DateInput = forwardRef(({
   dataObj,
   dataKey,
   value: propValue,
@@ -91,7 +89,7 @@ const DateInput = forwardRef(({
   const [inner, setInner] = useState(defaultValue);
   const [text, setText] = useState(() => (propValue ?? (isData ? getBoundValue(dataObj, dataKey) : inner) ?? ''));
   const [open, setOpen] = useState(false);
-  
+
   /**
    * @description 외부 소스(prop/dataObj/local state) 우선순위 기반 현재 값 조회
    * 처리 규칙: controlled > EasyObj 바인딩 > 내부 상태 순으로 fallback 한다.

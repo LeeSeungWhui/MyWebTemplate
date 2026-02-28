@@ -71,7 +71,7 @@ const Radiobox = forwardRef(({
 
         const ctx = buildCtx({ dataKey: dataKeyName, dataObj, source: 'user', dirty: true, valid: null });
         if (newChecked) {
-            try { event.target.value = value; } catch (_) { /* ignore */ }
+            try { event.target.value = value; } catch (_) { /* 무시 */ }
         }
         fireValueHandlers({
             onChange,
@@ -123,7 +123,8 @@ const Radiobox = forwardRef(({
 Radiobox.displayName = 'Radiobox';
 
 /**
- * @description 를 기본 export
- * @returns {React.ComponentType} Radiobox 컴포넌트
+ * @description Radiobox 컴포넌트 진입점 노출
+ * 반환값: 기본 라디오 입력 UI를 제공하는 Radiobox 컴포넌트.
+ * @returns {React.ComponentType}
  */
-export default Radiobox; 
+export default Radiobox;

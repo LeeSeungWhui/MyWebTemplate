@@ -94,4 +94,4 @@ export const IconExamples = () => {
     ];
 
     return examples;
-}; 
+};

@@ -66,7 +66,7 @@ export function base64UrlEncodeUtf8(text) {
       return base64.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
     }
   } catch {
-    // 한글설명: 설명 동작 설명
+
   }
   try {
     if (typeof Buffer !== "undefined") {
@@ -77,7 +77,7 @@ export function base64UrlEncodeUtf8(text) {
         .replace(/=+$/g, "");
     }
   } catch {
-    // ignore
+    // 무시
   }
   return null;
 }
@@ -102,7 +102,7 @@ export function base64UrlDecodeUtf8(input) {
       return new TextDecoder().decode(bytes);
     }
   } catch {
-    // 한글설명: 설명 동작 설명
+
   }
 
   try {
@@ -110,7 +110,7 @@ export function base64UrlDecodeUtf8(input) {
       return Buffer.from(padded, "base64").toString("utf8");
     }
   } catch {
-    // ignore
+    // 무시
   }
   return null;
 }

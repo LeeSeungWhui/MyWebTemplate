@@ -22,7 +22,7 @@ const Button = forwardRef(({
     iconPosition = 'left',
     disabled = false,
     loading = false,
-    status, // 한글설명: 설명 동작 설명
+    status,
     ...props
 }, ref) => {
 
@@ -30,7 +30,7 @@ const Button = forwardRef(({
 
     const variants = {
         primary: "bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500",
-        // 한글설명: 설명 동작 설명
+
         secondary: "border border-blue-600 text-blue-600 bg-white hover:bg-blue-50 focus:ring-blue-500",
         outline: "border border-gray-300 text-gray-700 bg-white hover:bg-gray-50 focus:ring-blue-500",
         danger: "bg-red-600 text-white hover:bg-red-700 focus:ring-red-500",

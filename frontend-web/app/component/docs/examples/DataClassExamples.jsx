@@ -129,4 +129,4 @@ taskList.forAll(item => {
     ];
 
     return examples;
-}; 
+};

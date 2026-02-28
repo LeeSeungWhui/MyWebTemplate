@@ -70,4 +70,4 @@ const ButtonDocs = () => {
     );
 };
 
-export default ButtonDocs; 
+export default ButtonDocs;

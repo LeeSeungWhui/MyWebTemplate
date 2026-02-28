@@ -152,7 +152,7 @@ const Select = forwardRef(({
   const [innerValue, setInnerValue] = useState(() => deriveValueFromSources())
   const currentValue = isControlled ? String(valueProp ?? '') : innerValue
 
-  // 한글설명: 설명 동작 설명
+
   useEffect(() => {
     const normalized = String(currentValue ?? '')
 
@@ -174,14 +174,14 @@ const Select = forwardRef(({
     }
   }, [dataList, valueKey, currentValue])
 
-  // 한글설명: 설명 동작 설명
+
   useEffect(() => {
     if (isControlled) return
     const next = deriveValueFromSources()
     setInnerValue((prev) => (prev === next ? prev : next))
   }, [deriveValueFromSources, isControlled])
 
-  // 한글설명: 설명 동작 설명
+
   useEasySubscription(
     dataObj,
     useCallback(

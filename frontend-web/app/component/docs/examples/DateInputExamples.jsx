@@ -12,20 +12,20 @@ import * as Lib from '@/app/lib';
  * 처리 규칙: 입력값과 상태를 검증해 UI/데이터 흐름을 안전하게 유지한다.
  */
 export const DateInputExamples = () => {
-  const obj = Lib.EasyObj({ date: '' });
+  const dateDataObj = Lib.EasyObj({ date: '' });
 
   const examples = [
     {
       component: (
         <div className="space-y-2">
-          <Lib.DateInput dataObj={obj} dataKey="date" />
-          <div className="text-xs text-gray-600">obj.date = {String(obj.date)}</div>
+          <Lib.DateInput dataObj={dateDataObj} dataKey="date" />
+          <div className="text-xs text-gray-600">dateDataObj.date = {String(dateDataObj.date)}</div>
         </div>
       ),
       description: '기본: 바운드',
-      code: `const obj = Lib.EasyObj({ date: '' });
+      code: `const dateDataObj = Lib.EasyObj({ date: '' });
 
-<Lib.DateInput dataObj={obj} dataKey=\"date\" />`
+<Lib.DateInput dataObj={dateDataObj} dataKey=\"date\" />`
     },
     {
       component: (
@@ -38,4 +38,3 @@ export const DateInputExamples = () => {
 
   return examples;
 };
-

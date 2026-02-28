@@ -113,4 +113,4 @@ const InputDocs = () => {
     );
 };
 
-export default InputDocs; 
+export default InputDocs;

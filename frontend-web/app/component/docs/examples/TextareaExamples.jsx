@@ -14,7 +14,7 @@ import { useState } from 'react';
  * 처리 규칙: 입력값과 상태를 검증해 UI/데이터 흐름을 안전하게 유지한다.
  */
 export const TextareaExamples = () => {
-  const obj = Lib.EasyObj({ memo: '초기 메모' });
+  const textDataObj = Lib.EasyObj({ memo: '초기 메모' });
   const [val, setVal] = useState('로컬 상태');
 
   const examples = [
@@ -23,20 +23,20 @@ export const TextareaExamples = () => {
         <div>
           <div className="mb-2 text-sm text-gray-600">바운드 모드</div>
           <Lib.Textarea
-            dataObj={obj}
+            dataObj={textDataObj}
             dataKey="memo"
             rows={4}
             placeholder="메모를 입력하세요"
             onValueChange={(nextValue) => console.log('textarea(bound):', nextValue)}
           />
-          <div className="mt-1 text-xs text-gray-500">obj.memo = {obj.memo}</div>
+          <div className="mt-1 text-xs text-gray-500">textDataObj.memo = {textDataObj.memo}</div>
         </div>
       ),
       description: 'dataObj + dataKey 로 상태 바인딩',
-      code: `const obj = Lib.EasyObj({ memo: '' });
+      code: `const textDataObj = Lib.EasyObj({ memo: '' });
 
 <Lib.Textarea
-  dataObj={obj}
+  dataObj={textDataObj}
   dataKey="memo"
   rows={4}
   placeholder="메모를 입력하세요"
@@ -65,24 +65,24 @@ export const TextareaExamples = () => {
         <div>
           <div className="mb-2 text-sm text-gray-600">검증/에러 상태</div>
           <Lib.Textarea
-            dataObj={obj}
+            dataObj={textDataObj}
             dataKey="memo"
             rows={4}
-            error={obj.memo.length < 10}
+            error={textDataObj.memo.length < 10}
             placeholder="10자 이상 입력"
           />
-          <div className="mt-1 text-xs text-red-600">{obj.memo.length < 10 ? '10자 이상 입력해주세요' : '정상'}</div>
+          <div className="mt-1 text-xs text-red-600">{textDataObj.memo.length < 10 ? '10자 이상 입력해주세요' : '정상'}</div>
         </div>
       ),
       description: 'error prop 과 aria-invalid 활용',
       code: `<Lib.Textarea
-  dataObj={obj}
+  dataObj={textDataObj}
   dataKey="memo"
   rows={4}
-  error={obj.memo.length < 10}
+  error={textDataObj.memo.length < 10}
   placeholder="10자 이상 입력"
 />
-<div className="mt-1 text-xs text-red-600">{obj.memo.length < 10 ? '10자 이상 입력해주세요' : '정상'}</div>`
+<div className="mt-1 text-xs text-red-600">{textDataObj.memo.length < 10 ? '10자 이상 입력해주세요' : '정상'}</div>`
     },
     {
       component: (

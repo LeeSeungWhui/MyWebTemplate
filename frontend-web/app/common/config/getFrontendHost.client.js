@@ -15,7 +15,7 @@ export function getFrontendHost() {
   const cfg = getConfigSnapshot()
   const base = cfg?.APP?.frontendHost
   if (typeof base === 'string' && base) return base.replace(/\/$/, '')
-  // 한글설명: 설명 동작 설명
+
   if (typeof window !== 'undefined' && window.location?.origin) return window.location.origin
   return 'http://localhost:3000'
 }

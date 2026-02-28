@@ -62,4 +62,4 @@ const DataClassDocs = () => {
     );
 };
 
-export default DataClassDocs; 
+export default DataClassDocs;

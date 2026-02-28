@@ -113,17 +113,17 @@ export const EasyEditorExamples = () => {
       ),
       description: '컨트롤드 모드 + HTML 직렬화',
       code: `const ControlledHtml = () => {
-  const store = Lib.EasyObj({ value: '<p>초기 HTML</p>' });
+  const editorDataObj = Lib.EasyObj({ value: '<p>초기 HTML</p>' });
   return (
     <>
       <Lib.EasyEditor
-        value={store.value}
+        value={editorDataObj.value}
         serialization="html"
-        onChange={(next) => { store.value = next; }}
+        onChange={(next) => { editorDataObj.value = next; }}
         placeholder="HTML 문자열을 직접 관리"
         label="컨트롤드 HTML 편집기"
       />
-      <pre>{store.value}</pre>
+      <pre>{editorDataObj.value}</pre>
     </>
   );
 };`,

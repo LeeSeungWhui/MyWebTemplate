@@ -26,32 +26,32 @@ export const DropdownExamples = () => {
     { label: '항목 2', value: 'two' },
     { label: '비활성 항목', value: 'disabled', disabled: true },
   ]);
-  const dataListFilled = Lib.EasyList([
+  const fruitOptionList = Lib.EasyList([
     { label: '사과', value: 'apple' },
     { label: '바나나', value: 'banana' },
     { label: '체리', value: 'cherry' },
   ]);
-  const dataListCustom = Lib.EasyList([
+  const teamRoleList = Lib.EasyList([
     { label: '개발', value: 'dev' },
     { label: '디자인', value: 'design' },
     { label: '기획', value: 'pm' },
   ]);
-  const dataListPlacement = Lib.EasyList([
+  const placementMenuList = Lib.EasyList([
     { label: 'Top', value: 'top' },
     { label: 'Middle', value: 'mid' },
     { label: 'Bottom', value: 'bot' },
   ]);
-  const dataListPreselected = Lib.EasyList([
+  const preselectedChoiceList = Lib.EasyList([
     { label: '선택 A', value: 'A', selected: true },
     { label: '선택 B', value: 'B' },
     { label: '선택 C', value: 'C' },
   ]);
-  const dataListMulti = Lib.EasyList([
+  const multiRoleList = Lib.EasyList([
     { label: '개발', value: 'dev', selected: true },
     { label: '디자인', value: 'design' },
     { label: '기획', value: 'pm' },
   ]);
-  const sortOptions = Lib.EasyList([
+  const sortOptionList = Lib.EasyList([
     { label: '최신순', value: 'latest', selected: true },
     { label: '오래된순', value: 'oldest' },
     { label: '제목순', value: 'title' },
@@ -75,12 +75,12 @@ export const DropdownExamples = () => {
         </div>
       ),
       description: '테이블 행 우측 ⋯ 같은 액션 메뉴 — 선택 시 onSelect로 액션 처리하고 닫힌다.',
-      code: `const actions = EasyList([\n  { label: '상세 보기', value: 'view' },\n  { label: '수정', value: 'edit' },\n  { label: '삭제', value: 'delete' },\n]);\n\nconst [lastAction, setLastAction] = useState('없음');\n\n<Dropdown\n  dataList={actions}\n  trigger={<span>행 액션</span>}\n  onSelect={(item) => {\n    const label = item?.label;\n    setLastAction(label || '없음');\n  }}\n/>`
+      code: `const actionList = EasyList([\n  { label: '상세 보기', value: 'view' },\n  { label: '수정', value: 'edit' },\n  { label: '삭제', value: 'delete' },\n]);\n\nconst [lastAction, setLastAction] = useState('없음');\n\n<Dropdown\n  dataList={actionList}\n  trigger={<span>행 액션</span>}\n  onSelect={(item) => {\n    const label = item?.label;\n    setLastAction(label || '없음');\n  }}\n/>`
     },
     {
       component: (
         <div className="flex flex-col gap-2 items-start">
-          <Lib.Dropdown dataList={dataListFilled} variant="filled" size="lg" elevation="shadow-lg" />
+          <Lib.Dropdown dataList={fruitOptionList} variant="filled" size="lg" elevation="shadow-lg" />
         </div>
       ),
       description: '스타일 변형: filled + lg + shadow-lg',
@@ -90,7 +90,7 @@ export const DropdownExamples = () => {
       component: (
         <div className="flex flex-col gap-2 items-start">
           <Lib.Dropdown
-            dataList={sortOptions}
+            dataList={sortOptionList}
             placeholder="정렬 기준 선택"
             variant="text"
             trigger={({ selectedLabel }) => (
@@ -110,12 +110,12 @@ export const DropdownExamples = () => {
         </div>
       ),
       description: '정렬 기준 선택 드롭다운 — 선택 시 정렬 기준 상태만 바꾸는 필터/정렬 메뉴.',
-      code: `const sortOptions = EasyList([\n  { label: '최신순', value: 'latest', selected: true },\n  { label: '오래된순', value: 'oldest' },\n  { label: '제목순', value: 'title' },\n]);\n\nconst [sortLabel, setSortLabel] = useState('최신순');\n\n<Dropdown\n  dataList={sortOptions}\n  variant=\"text\"\n  placeholder=\"정렬 기준 선택\"\n  trigger={({ selectedLabel }) => (\n    <span>{selectedLabel ?? '정렬 기준'}</span>\n  )}\n  onSelect={(item) => {\n    const label = item?.label;\n    setSortLabel(label || '');\n  }}\n/>`
+      code: `const sortOptionList = EasyList([\n  { label: '최신순', value: 'latest', selected: true },\n  { label: '오래된순', value: 'oldest' },\n  { label: '제목순', value: 'title' },\n]);\n\nconst [sortLabel, setSortLabel] = useState('최신순');\n\n<Dropdown\n  dataList={sortOptionList}\n  variant=\"text\"\n  placeholder=\"정렬 기준 선택\"\n  trigger={({ selectedLabel }) => (\n    <span>{selectedLabel ?? '정렬 기준'}</span>\n  )}\n  onSelect={(item) => {\n    const label = item?.label;\n    setSortLabel(label || '');\n  }}\n/>`
     },
     {
       component: (
         <div className="flex flex-col gap-2 items-start">
-          <Lib.Dropdown dataList={dataListPlacement} side="top" align="end" />
+          <Lib.Dropdown dataList={placementMenuList} side="top" align="end" />
         </div>
       ),
       description: '메뉴 위치/정렬: side="top" align="end"',
@@ -124,7 +124,7 @@ export const DropdownExamples = () => {
     {
       component: (
         <div className="flex flex-col gap-2 items-start">
-          <Lib.Dropdown dataList={dataListPreselected} />
+          <Lib.Dropdown dataList={preselectedChoiceList} />
         </div>
       ),
       description: '사전 선택(selected: true) 값 표시',
@@ -134,24 +134,24 @@ export const DropdownExamples = () => {
       component: (
         <div className="flex flex-col gap-2 items-start">
           <Lib.Dropdown
-            dataList={dataListMulti}
+            dataList={multiRoleList}
             multiSelect
             placeholder="역할 선택 (다중 선택)"
           />
           <div className="text-sm text-gray-600">
-            선택된 항목은 dataListMulti 내부의 <code>selected</code> 플래그로만 관리되고,
+            선택된 항목은 multiRoleList 내부의 <code>selected</code> 플래그로만 관리되고,
             드롭다운은 바깥을 클릭하거나 트리거를 다시 눌러야 닫힌다.
           </div>
         </div>
       ),
       description: 'multiSelect 모드 — 여러 항목을 체크해도 닫히지 않고, selected 플래그만 토글',
-      code: `const roles = EasyList([\n  { label: '개발', value: 'dev', selected: true },\n  { label: '디자인', value: 'design' },\n  { label: '기획', value: 'pm' },\n]);\n\n<Dropdown dataList={roles} multiSelect placeholder="역할 선택 (다중 선택)" />`
+      code: `const roleOptionList = EasyList([\n  { label: '개발', value: 'dev', selected: true },\n  { label: '디자인', value: 'design' },\n  { label: '기획', value: 'pm' },\n]);\n\n<Dropdown dataList={roleOptionList} multiSelect placeholder="역할 선택 (다중 선택)" />`
     },
     {
       component: (
         <div className="flex flex-col gap-2 items-start">
           <Lib.Dropdown
-            dataList={dataListCustom}
+            dataList={teamRoleList}
             variant="outlined"
             rounded="rounded-xl"
             elevation="shadow-lg"

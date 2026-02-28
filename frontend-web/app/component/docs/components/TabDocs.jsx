@@ -88,4 +88,4 @@ const TabDocs = () => {
     );
 };
 
-export default TabDocs; 
+export default TabDocs;

@@ -30,7 +30,7 @@ const PaginationDocs = () => {
         <li><code>showEdges?</code>: 처음/끝 버튼 및 ... 표시 여부 (기본 true)</li>
         <li><code>className?</code>: 래퍼 추가 클래스</li>
       </ul>
-    </div>}> 
+    </div>}>
       <div id="pagination-basic" className="mb-8">
         <h3 className="text-lg font-medium mb-4">기본 (독립 컴포넌트)</h3>
         <div>

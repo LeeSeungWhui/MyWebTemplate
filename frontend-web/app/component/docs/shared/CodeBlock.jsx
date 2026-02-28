@@ -45,4 +45,4 @@ const CodeBlock = ({ code, language = 'jsx' }) => {
     );
 };
 
-export default CodeBlock; 
+export default CodeBlock;

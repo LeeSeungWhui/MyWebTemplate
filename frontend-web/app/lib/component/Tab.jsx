@@ -69,7 +69,7 @@ const Tab = ({
             stopPropagation() {},
         };
         if (event) {
-            try { event.target.value = index; } catch (_) { /* ignore */ }
+            try { event.target.value = index; } catch (_) { /* 무시 */ }
         }
         fireValueHandlers({
             onChange,
@@ -82,7 +82,7 @@ const Tab = ({
 
     return (
         <div className={`flex flex-col ${className}`}>
-            {/* 한글설명: 설명 동작 설명 */}
+
             <div className="flex border-b border-gray-200">
                 {items.map((item, index) => (
                     <button
@@ -101,7 +101,7 @@ const Tab = ({
                 ))}
             </div>
 
-            {/* 한글설명: 설명 동작 설명 */}
+
             <div className="py-4">
                 {items[currentTab]}
             </div>
@@ -109,11 +109,12 @@ const Tab = ({
     );
 };
 
-// 한글설명: 설명 동작 설명
+
 Tab.Item = TabItem;
 
 /**
- * @description 를 기본 export
- * @returns {React.ComponentType} Tab 컴포넌트
+ * @description Tab 컴포넌트 진입점 노출
+ * 반환값: 탭 전환과 콘텐츠 분기 UI를 제공하는 Tab 컴포넌트.
+ * @returns {React.ComponentType}
  */
 export default Tab;

@@ -4,9 +4,7 @@
  * 갱신일: 2025-09-13
  * 설명: NumberInput UI 컴포넌트 구현
  */
-// 파일명: NumberInput.jsx
-// 갱신일: 2025-09-09
-// 한글설명: 설명 동작 설명
+
 import { forwardRef, useEffect, useRef, useState } from 'react';
 import Icon from './Icon';
 import { getBoundValue, setBoundValue, buildCtx, fireValueHandlers } from '../binding';
@@ -38,7 +36,7 @@ const parseNum = (rawValue) => {
  * 처리 규칙: 전달된 props와 바인딩 값을 기준으로 UI 상태를 계산하고 변경 이벤트를 상위로 전달한다.
  * @updated 2026-02-27
  */
-const NumberInput = forwardRef(({ 
+const NumberInput = forwardRef(({
   dataObj,
   dataKey,
   value: propValue,
@@ -74,7 +72,7 @@ const NumberInput = forwardRef(({
   };
 
   useEffect(() => {
-    // 한글설명: 설명 동작 설명
+
   }, [propValue, dataObj, dataKey]);
 
   /**
@@ -105,9 +103,9 @@ const NumberInput = forwardRef(({
     commit(next);
   };
 
-  // 한글설명: 설명 동작 설명
-  const holdRef = useRef(null);       // interval
-  const holdTimerRef = useRef(null);  // 한글설명: 설명 동작 설명
+
+  const holdRef = useRef(null);       // 반복 증감 인터벌
+  const holdTimerRef = useRef(null);
   const heldStartedRef = useRef(false);
 
   /**
@@ -127,7 +125,7 @@ const NumberInput = forwardRef(({
   };
 
   /**
-   * @description press 관련 타이머와 interval을 모두 정리
+   * @description press 관련 타이머와 반복 인터벌 정리
    * 부작용: holdRef/holdTimerRef를 null로 초기화한다.
    * @updated 2026-02-27
    */

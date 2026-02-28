@@ -160,4 +160,4 @@ export const CheckboxExamples = () => {
     ];
 
     return examples;
-}; 
+};

@@ -15,8 +15,8 @@ import styles from './Toast.module.css';
  */
 const Toast = forwardRef(({
     message,
-    type = 'info',  // 한글설명: 설명 동작 설명
-    position = 'bottom-center',  // 한글설명: 설명 동작 설명
+    type = 'info',
+    position = 'bottom-center',
     isExiting = false,
     onClose,
     className = '',
@@ -87,7 +87,7 @@ const Toast = forwardRef(({
         <div
             ref={ref}
             className={`
-                fixed z-50 
+                fixed z-50
                 ${positions[position] || positions['bottom-center']}
                 flex items-center
                 w-[calc(100vw-32px)] max-w-md
@@ -125,7 +125,8 @@ const Toast = forwardRef(({
 Toast.displayName = 'Toast';
 
 /**
- * @description 를 기본 export
- * @returns {React.ComponentType} Toast 컴포넌트
+ * @description Toast 컴포넌트 진입점 노출
+ * 반환값: 상태별 알림 메시지 표시를 제공하는 Toast 컴포넌트.
+ * @returns {React.ComponentType}
  */
-export default Toast; 
+export default Toast;

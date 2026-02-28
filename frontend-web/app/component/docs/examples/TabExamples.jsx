@@ -13,14 +13,14 @@ import { useState } from 'react';
  * @updated 2026-02-24
  */
 export const TabExamples = () => {
-    const tabState = Lib.EasyObj({
+    const tabDataObj = Lib.EasyObj({
         selectedTab: 0
     });
 
     const examples = [
         {
             component: (
-                <Lib.Tab dataObj={tabState} dataKey="selectedTab">
+                <Lib.Tab dataObj={tabDataObj} dataKey="selectedTab">
                     <Lib.Tab.Item title="첫번째 탭">
                         <div className="p-4">
                             첫번째 탭의 내용입니다.
@@ -39,11 +39,11 @@ export const TabExamples = () => {
                 </Lib.Tab>
             ),
             description: "EasyObj를 사용한 기본 탭",
-            code: `const tabState = Lib.EasyObj({
+            code: `const tabDataObj = Lib.EasyObj({
     selectedTab: 0
 });
 
-<Lib.Tab dataObj={tabState} dataKey="selectedTab">
+<Lib.Tab dataObj={tabDataObj} dataKey="selectedTab">
     <Lib.Tab.Item title="첫번째 탭">
         <div className="p-4">
             첫번째 탭의 내용입니다.
@@ -104,7 +104,7 @@ export const TabExamples = () => {
             component: (
                 <Lib.Tab
                     className="bg-gray-100 rounded-lg p-4"
-                    dataObj={tabState}
+                    dataObj={tabDataObj}
                     dataKey="customTab"
                 >
                     <Lib.Tab.Item title="커스텀 스타일">
@@ -120,9 +120,9 @@ export const TabExamples = () => {
                 </Lib.Tab>
             ),
             description: "커스텀 스타일링",
-            code: `<Lib.Tab 
+            code: `<Lib.Tab
     className="bg-gray-100 rounded-lg p-4"
-    dataObj={tabState} 
+    dataObj={tabDataObj}
     dataKey="customTab"
 >
     <Lib.Tab.Item title="커스텀 스타일">
@@ -139,7 +139,7 @@ export const TabExamples = () => {
         },
         {
             component: (
-                <Lib.Tab dataObj={tabState} dataKey="iconTab">
+                <Lib.Tab dataObj={tabDataObj} dataKey="iconTab">
                     <Lib.Tab.Item
                         title={
                             <div className="flex items-center gap-2">
@@ -167,8 +167,8 @@ export const TabExamples = () => {
                 </Lib.Tab>
             ),
             description: "아이콘이 있는 탭",
-            code: `<Lib.Tab dataObj={tabState} dataKey="iconTab">
-    <Lib.Tab.Item 
+            code: `<Lib.Tab dataObj={tabDataObj} dataKey="iconTab">
+    <Lib.Tab.Item
         title={
             <div className="flex items-center gap-2">
                 <Lib.Icon icon="md:MdHome" className="w-5 h-5" />
@@ -180,7 +180,7 @@ export const TabExamples = () => {
             탭 제목에 아이콘과 텍스트를 함께 사용할 수 있습니다.
         </div>
     </Lib.Tab.Item>
-    <Lib.Tab.Item 
+    <Lib.Tab.Item
         title={
             <div className="flex items-center gap-2">
                 <Lib.Icon icon="md:MdSettings" className="w-5 h-5" />
@@ -197,4 +197,4 @@ export const TabExamples = () => {
     ];
 
     return examples;
-}; 
+};

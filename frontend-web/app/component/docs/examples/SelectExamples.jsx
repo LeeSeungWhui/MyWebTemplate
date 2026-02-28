@@ -13,18 +13,18 @@ import * as Lib from '@/app/lib'
  * 처리 규칙: 입력값과 상태를 검증해 UI/데이터 흐름을 안전하게 유지한다.
  */
 export const SelectExamples = () => {
-  const jobOptions = Lib.EasyList([
+  const jobOptionList = Lib.EasyList([
     { id: '', label: '직무를 선택하세요', placeholder: true, selected: true },
     { id: 'designer', label: '디자이너' },
     { id: 'developer', label: '개발자' },
     { id: 'pm', label: '프로덕트 매니저' },
   ])
 
-  const emptyOptions = Lib.EasyList([])
+  const emptyOptionList = Lib.EasyList([])
 
   const [role, setRole] = useState('developer')
 
-  const loadingOptions = Lib.EasyList([
+  const loadingOptionList = Lib.EasyList([
     { id: '', label: '불러오는 중', placeholder: true, selected: true },
   ])
 
@@ -34,7 +34,7 @@ export const SelectExamples = () => {
    * @updated 2026-02-27
    */
   const getSelectedJobId = () => {
-    const selected = jobOptions.find((item) => item.selected)
+    const selected = jobOptionList.find((item) => item.selected)
     return selected ? String(selected.id) : ''
   }
 
@@ -44,7 +44,7 @@ export const SelectExamples = () => {
         <div className="space-y-2">
           <Lib.Select
             id="select-easylist"
-            dataList={jobOptions}
+            dataList={jobOptionList}
             valueKey="id"
             textKey="label"
             status="success"
@@ -58,7 +58,7 @@ export const SelectExamples = () => {
       ),
       description:
         'EasyList 모드 — dataList 내부의 selected 플래그만으로 선택 상태를 관리',
-      code: `const jobs = Lib.EasyList([
+      code: `const jobOptionList = Lib.EasyList([
   { id: '', label: '직무를 선택하세요', placeholder: true, selected: true },
   { id: 'designer', label: '디자이너' },
   { id: 'developer', label: '개발자' },
@@ -66,7 +66,7 @@ export const SelectExamples = () => {
 ]);
 
 <Lib.Select
-  dataList={jobs}
+  dataList={jobOptionList}
   valueKey="id"
   textKey="label"
   status="success"
@@ -78,7 +78,7 @@ export const SelectExamples = () => {
         <div className="space-y-2">
           <Lib.Select
             id="select-controlled"
-            dataList={jobOptions}
+            dataList={jobOptionList}
             valueKey="id"
             textKey="label"
             value={role}
@@ -94,7 +94,7 @@ export const SelectExamples = () => {
       code: `const [role, setRole] = useState('developer');
 
 <Lib.Select
-  dataList={jobs}
+  dataList={jobOptionList}
   valueKey="id"
   textKey="label"
   value={role}
@@ -107,7 +107,7 @@ export const SelectExamples = () => {
       component: (
         <Lib.Select
           id="select-loading"
-          dataList={loadingOptions}
+          dataList={loadingOptionList}
           valueKey="id"
           textKey="label"
           status="loading"
@@ -118,7 +118,7 @@ export const SelectExamples = () => {
       description:
         '로딩/비활성화 상태 — status="loading" + assistiveText로 라이브 영역 안내',
       code: `<Lib.Select
-  dataList={loadingOptions}
+  dataList={loadingOptionList}
   valueKey="id"
   textKey="label"
   status="loading"
@@ -130,7 +130,7 @@ export const SelectExamples = () => {
       component: (
         <Lib.Select
           id="select-error"
-          dataList={jobOptions}
+          dataList={jobOptionList}
           valueKey="id"
           textKey="label"
           status="error"
@@ -150,7 +150,7 @@ export const SelectExamples = () => {
       component: (
         <Lib.Select
           id="select-empty"
-          dataList={emptyOptions}
+          dataList={emptyOptionList}
           status="empty"
           assistiveText="선택 가능한 항목이 비어 있습니다."
         />

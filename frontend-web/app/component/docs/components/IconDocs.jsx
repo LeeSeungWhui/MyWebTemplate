@@ -110,4 +110,4 @@ const IconDocs = () => {
     );
 };
 
-export default IconDocs; 
+export default IconDocs;

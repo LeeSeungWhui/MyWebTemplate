@@ -80,4 +80,4 @@ export const IconExamples = () => {
 <Icon icon="fi:settings" />  // Feather Icons`
         }
     ];
-}; 
+};

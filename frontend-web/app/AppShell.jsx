@@ -64,12 +64,12 @@ const AppShell = ({ children }) => {
       onClick?.()
     } finally {
       hideAlert()
-      // 한글설명: 설명 동작 설명
+
       setTimeout(() => onFocus?.(), 0)
     }
   }, [alert, hideAlert])
 
-  // 한글설명: 설명 동작 설명
+
   useEffect(() => {
     if (toast?.show && (toast.duration ?? 3000) !== Infinity) {
       const toastTimer = setTimeout(() => hideToast(), toast.duration ?? 3000)
@@ -77,7 +77,7 @@ const AppShell = ({ children }) => {
     }
   }, [toast?.show, toast?.duration, hideToast])
 
-  // 한글설명: 설명 동작 설명
+
 
   const onConfirmClose = useCallback((ok) => {
     const onFocus = confirm && typeof confirm.onFocus === 'function' ? confirm.onFocus : null

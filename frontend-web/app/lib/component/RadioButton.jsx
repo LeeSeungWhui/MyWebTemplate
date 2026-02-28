@@ -69,7 +69,7 @@ const RadioButton = forwardRef(({
 
         const ctx = buildCtx({ dataKey: dataKeyName, dataObj, source: 'user', dirty: true, valid: null });
         if (newChecked) {
-            try { event.target.value = value; } catch (_) { /* ignore */ }
+            try { event.target.value = value; } catch (_) { /* 무시 */ }
         }
         fireValueHandlers({
             onChange,
@@ -145,7 +145,8 @@ const RadioButton = forwardRef(({
 RadioButton.displayName = 'RadioButton';
 
 /**
- * @description 를 기본 export
- * @returns {React.ComponentType} RadioButton 컴포넌트
+ * @description RadioButton 컴포넌트 진입점 노출
+ * 반환값: 버튼형 단일 선택 입력을 제공하는 RadioButton 컴포넌트.
+ * @returns {React.ComponentType}
  */
-export default RadioButton; 
+export default RadioButton;

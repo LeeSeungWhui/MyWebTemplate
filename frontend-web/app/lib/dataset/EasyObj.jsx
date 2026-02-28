@@ -311,7 +311,7 @@ function useEasyObj(initialData = {}) {
             try {
                 listener(detail);
             } catch {
-                // 한글설명: 설명 동작 설명
+
             }
         });
     };

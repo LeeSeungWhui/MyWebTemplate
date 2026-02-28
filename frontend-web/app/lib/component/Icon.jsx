@@ -5,14 +5,14 @@
  * 설명: Icon UI 컴포넌트 구현
  */
 import { forwardRef } from 'react';
-import * as AiIcons from 'react-icons/ai';  // 한글설명: 설명 동작 설명
-import * as BiIcons from 'react-icons/bi';  // Boxicons
-import * as BsIcons from 'react-icons/bs';  // 한글설명: 설명 동작 설명
-import * as FiIcons from 'react-icons/fi';  // 한글설명: 설명 동작 설명
-import * as HiIcons from 'react-icons/hi';  // Heroicons
+import * as AiIcons from 'react-icons/ai';
+import * as BiIcons from 'react-icons/bi';
+import * as BsIcons from 'react-icons/bs';
+import * as FiIcons from 'react-icons/fi';
+import * as HiIcons from 'react-icons/hi';
 import * as IoIcons from 'react-icons/io5'; // Ionicons 5
-import * as MdIcons from 'react-icons/md';  // 한글설명: 설명 동작 설명
-import * as RiIcons from 'react-icons/ri';  // 한글설명: 설명 동작 설명
+import * as MdIcons from 'react-icons/md';
+import * as RiIcons from 'react-icons/ri';
 
 const iconSets = {
     ai: AiIcons,
@@ -77,4 +77,4 @@ Icon.displayName = 'Icon';
 /**
  * @description Icon export를 노출
  */
-export default Icon; 
+export default Icon;

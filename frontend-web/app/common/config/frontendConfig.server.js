@@ -93,7 +93,7 @@ export function parseIni(iniText) {
  */
 function coerceValue(valueRaw) {
   if (valueRaw === '') return ''
-  // 한글설명: 설명 동작 설명
+
   if ((valueRaw.startsWith("'") && valueRaw.endsWith("'")) || (valueRaw.startsWith('"') && valueRaw.endsWith('"'))) {
     const inner = valueRaw.slice(1, -1)
     return coerceValue(inner)
