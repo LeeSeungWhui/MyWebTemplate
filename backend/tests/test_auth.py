@@ -77,7 +77,6 @@ def testAppLoginRefreshMeLogoutFlow():
         assert appAccessToken
         assert appRefreshToken
         assert loginBody["result"]["tokenType"] == "bearer"
-        # App 계약은 쿠키를 사용하지 않는다.
         assert not findCookie(loginResponse.headers, "access_token")
         assert not findCookie(loginResponse.headers, "refresh_token")
 
@@ -105,7 +104,6 @@ def testAppLoginRefreshMeLogoutFlow():
         )
         assert logoutResponse.status_code == 204
 
-        # 로그아웃으로 폐기된 refresh 토큰은 재사용할 수 없다.
         rejected = client.post(
             "/api/v1/auth/app/refresh",
             json={"refreshToken": nextRefreshToken},
@@ -276,13 +274,11 @@ def testRateLimiterSweepsStaleKeysWithoutRevisit():
     nowRef = {"value": 0.0}
     limiter.now = lambda: nowRef["value"]
 
-    # 서로 다른 키가 단발성으로 들어오면 store에 누적된다.
     for index in range(3):
         ok, _ = limiter.hit(f"ip:{index}", commit=True)
         assert ok is True
     assert len(limiter.store) == 3
 
-    # 윈도우 이후 다음 요청 시 sweep이 동작해 stale key를 제거한다.
     nowRef["value"] = 20.0
     ok, _ = limiter.hit("ip:new", commit=True)
     assert ok is True
@@ -401,7 +397,6 @@ def testRefreshTokenReuseGraceWindow(monkeypatch):
     monkeypatch.setattr(AuthService, "_nowMs", lambda: now["ms"])
 
     with TestClient(app) as client:
-        # startup에서 AuthConfig.initConfig가 실행되므로, 유예 시간은 클라이언트 컨텍스트 진입 후에 덮어쓴다.
         monkeypatch.setattr(AuthConfig, "refreshGraceMs", 500)
         response = client.post(
             "/api/v1/auth/login",
@@ -411,20 +406,17 @@ def testRefreshTokenReuseGraceWindow(monkeypatch):
         originalRefresh = client.cookies.get("refresh_token")
         assert originalRefresh
 
-        # 첫 번째 refresh는 정상 동작해야 한다.
         refreshResponse1 = client.post("/api/v1/auth/refresh", headers=WEB_ORIGIN_HEADERS)
         assert refreshResponse1.status_code == 200
         accessAfterRefresh1 = client.cookies.get("access_token")
         assert accessAfterRefresh1
 
-        # 유예 시간 내: 이전 refresh 토큰 재전송은 동일 토큰 페이로드로 재응답한다.
         client.cookies.set("refresh_token", originalRefresh)
         now["ms"] += 100
         refreshResponse2 = client.post("/api/v1/auth/refresh", headers=WEB_ORIGIN_HEADERS)
         assert refreshResponse2.status_code == 200
         assert client.cookies.get("access_token") == accessAfterRefresh1
 
-        # 유예 시간 이후: 이전 refresh 토큰 재전송은 401이어야 한다.
         client.cookies.set("refresh_token", originalRefresh)
         now["ms"] += 1000
         response3 = client.post("/api/v1/auth/refresh", headers=WEB_ORIGIN_HEADERS)
@@ -447,11 +439,9 @@ def testRefreshAfterLogoutIsRejected(monkeypatch):
         refreshCookie = client.cookies.get("refresh_token")
         assert refreshCookie
 
-        # 서버와 클라이언트 양쪽에서 쿠키 삭제를 시뮬레ート하되, 테스트를 위해 토큰 값은 별도로 보존한다.
         response = client.post("/api/v1/auth/logout", headers=WEB_ORIGIN_HEADERS)
         assert response.status_code == 204
 
-        # 클라이언트 측에서 예전 refresh 토큰을 다시 보내는 상황을 재현
         client.cookies.set("refresh_token", refreshCookie)
         response2 = client.post("/api/v1/auth/refresh", headers=WEB_ORIGIN_HEADERS)
         assert response2.status_code == 401

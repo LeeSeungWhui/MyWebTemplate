@@ -3,7 +3,7 @@ import {
   DASHBOARD_ERROR_KEY,
   isSsrMode,
   toErrorState,
-} from "@/app/dashboard/dataStrategy";
+} from "@/app/dashboard/page";
 
 describe("dashboard data strategy", () => {
   it("MODE가 SSR일 때만 SSR 모드로 판단한다", () => {

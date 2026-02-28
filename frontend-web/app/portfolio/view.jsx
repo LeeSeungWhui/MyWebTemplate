@@ -7,17 +7,24 @@
  */
 
 import DemoPortfolioView from "../sample/portfolio/view";
+import { usePageData } from "@/app/lib/hooks/usePageData";
+import { PAGE_CONFIG } from "./initData";
 
 /**
  * @description 샘플 포트폴리오 뷰를 래핑하고 공개 경로 식별용 data 속성을 주입
- * @param {{ content: any, publicPath?: string }} props
  * @returns {JSX.Element}
  */
-const PortfolioView = ({ content, publicPath }) => {
+const PortfolioView = ({ initialDataObj = {}, initialErrorObj = {} }) => {
+  usePageData({
+    pageConfig: PAGE_CONFIG,
+    initialDataObj,
+    initialErrorObj,
+    auto: false,
+  });
 
   return (
-    <div data-public-path={publicPath}>
-      <DemoPortfolioView content={content} />
+    <div data-public-path="/portfolio">
+      <DemoPortfolioView />
     </div>
   );
 };

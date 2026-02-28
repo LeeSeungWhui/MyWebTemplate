@@ -9,20 +9,42 @@
 import Link from "next/link";
 import Image from "next/image";
 import Icon from "@/app/lib/component/Icon";
-import {
-  LANDING_BOTTOM_CTA,
-  LANDING_GALLERY_LIST,
-  LANDING_HERO,
-  LANDING_SERVICE_LIST,
-  LANDING_STACK_LIST,
-} from "@/app/initData";
+import { usePageData } from "@/app/lib/hooks/usePageData";
+import { PAGE_CONFIG } from "@/app/initData";
 import LANG_KO from "@/app/lang.ko";
+
+const { initData } = LANG_KO;
+
+const LANDING_HERO = {
+  title: initData.hero.title,
+  subtitle: initData.hero.subtitle,
+  primaryCta: { href: "/sample", label: initData.hero.primaryCtaLabel },
+  secondaryCta: { href: "/component", label: initData.hero.secondaryCtaLabel },
+  previewImage: {
+    src: "/images/landing/demo-dashboard.png",
+    alt: initData.hero.previewImageAlt,
+  },
+};
+const LANDING_SERVICE_LIST = initData.services.map((item) => ({ ...item }));
+const LANDING_GALLERY_LIST = initData.gallery.map((item) => ({ ...item }));
+const LANDING_STACK_LIST = [...initData.stackList];
+const LANDING_BOTTOM_CTA = {
+  title: initData.bottomCta.title,
+  subtitle: initData.bottomCta.subtitle,
+  demo: { href: "/sample", label: initData.bottomCta.label },
+};
 
 /**
  * @description 루트 랜딩 페이지를 렌더링. 입력/출력 계약을 함께 명시
  * @returns {JSX.Element}
  */
-const HomeView = () => {
+const HomeView = ({ initialDataObj = {}, initialErrorObj = {} }) => {
+  usePageData({
+    pageConfig: PAGE_CONFIG,
+    initialDataObj,
+    initialErrorObj,
+    auto: false,
+  });
   return (
     <>
       <section className="overflow-hidden rounded-3xl bg-gradient-to-br from-[#1e3a5f] to-[#312e81] px-6 py-10 text-white shadow-xl sm:px-10 sm:py-14">

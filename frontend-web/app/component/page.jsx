@@ -5,14 +5,23 @@
  * 설명: 컴포넌트 문서 페이지 엔트리(서버 컴포넌트)
  */
 import ComponentsView from "./view";
-import { PAGE_MODE } from "./initData";
+import { PAGE_CONFIG } from "./initData";
+import { loadServerPageData } from "@/app/lib/runtime/pageData";
 
 /**
- * @description 컴포넌트 문서 화면을 서버 엔트리에서 반환. 입력/출력 계약을 함께 명시
- * @returns {JSX.Element}
+ * @description 컴포넌트 문서 화면의 초기 데이터 로딩 후 클라이언트 뷰 전달
+ * @returns {Promise<JSX.Element>}
  */
-const ComponentsPage = () => {
-  return <ComponentsView pageMode={PAGE_MODE.MODE} />;
+const ComponentsPage = async () => {
+  const { dataObj, errorObj } = await loadServerPageData({
+    pageConfig: PAGE_CONFIG,
+  });
+  return (
+    <ComponentsView
+      initialDataObj={dataObj}
+      initialErrorObj={errorObj}
+    />
+  );
 };
 
 export default ComponentsPage

@@ -1,6 +1,6 @@
 /**
  * 파일명: pageData.js
- * 작성자: Codex
+ * 작성자: LSH
  * 갱신일: 2026-02-28
  * 설명: PAGE_CONFIG(MODE/API) 기반 페이지 초기 데이터 자동 로딩 유틸
  */

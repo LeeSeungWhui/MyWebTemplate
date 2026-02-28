@@ -5,14 +5,17 @@
  * 설명: 대시보드 레이아웃(헤더/사이드바) 경로·쿼리 메타 계산 유틸
  */
 
-import {
-  DEFAULT_SORT,
-  SORT_FILTER_LIST,
-  STATUS_FILTER_LIST,
-} from "./tasks/initData";
 import LANG_KO from "./lang.ko";
+import TASKS_LANG_KO from "./tasks/lang.ko";
 
 const { layoutMeta } = LANG_KO;
+const DEFAULT_SORT = "reg_dt_desc";
+const STATUS_FILTER_LIST = TASKS_LANG_KO.initData.statusFilterList.map((item) => ({
+  ...item,
+}));
+const SORT_FILTER_LIST = TASKS_LANG_KO.initData.sortFilterList.map((item) => ({
+  ...item,
+}));
 const MENU_TEMPLATE_LIST = layoutMeta.menuList.map((item) => ({ ...item }));
 
 const STATUS_LABEL_MAP = new Map(

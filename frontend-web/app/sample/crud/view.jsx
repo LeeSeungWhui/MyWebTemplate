@@ -19,17 +19,21 @@ import Input from "@/app/lib/component/Input";
 import NumberInput from "@/app/lib/component/NumberInput";
 import Select from "@/app/lib/component/Select";
 import Textarea from "@/app/lib/component/Textarea";
-import { STATUS_FILTER_LIST } from "./initData";
 import { useDemoSharedState } from "@/app/sample/demoSharedState";
+import { usePageData } from "@/app/lib/hooks/usePageData";
 import EasyObj from "@/app/lib/dataset/EasyObj";
+import { PAGE_CONFIG } from "./initData";
 import LANG_KO from "./lang.ko";
+
+const STATUS_FILTER_LIST = LANG_KO.initData.statusFilterList.map((item) => ({ ...item }));
+const INITIAL_ROW_LIST = LANG_KO.initData.rowList.map((item) => ({ ...item }));
 
 /**
  * @description 공개 CRUD 샘플 화면을 렌더링. 입력/출력 계약을 함께 명시
  * 처리 규칙: 필터/선택/드로어 상태는 EasyObj(ui)로 유지하고 목록 데이터는 shared state로 동기화한다.
- * @param {{ mode: Object, initRows: Array }} props
+ * @param {{ initialDataObj?: Object, initialErrorObj?: Object }} props
  */
-const CrudDemoView = ({ initRows = [] }) => {
+const CrudDemoView = ({ initialDataObj = {}, initialErrorObj = {} }) => {
   const defaultForm = {
     title: "",
     status: LANG_KO.view.misc.defaultStatusCode,
@@ -60,12 +64,22 @@ const CrudDemoView = ({ initRows = [] }) => {
     form: { ...defaultForm },
     formError: "",
   });
+  usePageData({
+    pageConfig: PAGE_CONFIG,
+    initialDataObj,
+    initialErrorObj,
+    auto: false,
+  });
   const { value: rowList, setValue: setRowList } = useDemoSharedState({
     stateKey: "demoCrudRows",
-    initialValue: initRows,
+    initialValue: INITIAL_ROW_LIST,
   });
   const { showToast, showConfirm } = useGlobalUi();
 
+  /**
+   * @description 초기 로딩 상태 전환을 위한 타이머 구독/해제
+   * 처리 규칙: 180ms 이후 isLoading false 반영, 언마운트 시 타이머 정리.
+   */
   useEffect(() => {
     const timer = setTimeout(() => {
       ui.isLoading = false;

@@ -25,7 +25,7 @@ const MIN_PASSWORD_LENGTH = 8;
  * @description 로그인 폼 검증/제출 및 세션 상태 기반 리다이렉트를 담당하는 페이지 뷰를 렌더링. 입력/출력 계약을 함께 명시
  * 처리 규칙: 로그인 성공 시 nextHint(안전 경로) 또는 `/dashboard`로 이동한다.
  */
-const Client = ({ initialDataObj, initialErrorObj, nextHint, authReason }) => {
+const Client = ({ initialDataObj, initialErrorObj }) => {
   const loginObj = EasyObj({
     email: "",
     password: "",
@@ -43,6 +43,9 @@ const Client = ({ initialDataObj, initialErrorObj, nextHint, authReason }) => {
   const passwordRef = useRef(null);
   const errorSummaryRef = useRef(null);
   const { showToast } = useGlobalUi();
+  const pageMetaObj = initialDataObj?.__pageMeta || {};
+  const nextHint = pageMetaObj.nextHint || null;
+  const authReason = pageMetaObj.authReason || null;
   const { dataObj, reload } = usePageData({
     pageConfig: PAGE_CONFIG,
     initialDataObj,
@@ -59,6 +62,11 @@ const Client = ({ initialDataObj, initialErrorObj, nextHint, authReason }) => {
     ? "login-password-error"
     : undefined;
 
+  /**
+   * @description 인증 실패 사유(authReason)가 전달되면 토스트로 경고를 노출
+   * 처리 규칙: code/requestId가 있으면 메타 정보까지 함께 표시한다.
+   * @updated 2026-02-28
+   */
   useEffect(() => {
     if (!authReason) return;
     const message = authReason?.message
@@ -73,6 +81,11 @@ const Client = ({ initialDataObj, initialErrorObj, nextHint, authReason }) => {
     showToast(`${message}${metaText}`, { type: "error", duration: 5000 });
   }, [authReason, showToast, LANG_KO.view.toast.sessionExpired]);
 
+  /**
+   * @description 회원가입 완료 쿼리(`signup=done`)를 1회 토스트로 안내하고 URL에서 제거
+   * 처리 규칙: 성공 토스트 노출 후 history.replaceState로 쿼리 파라미터를 정리한다.
+   * @updated 2026-02-28
+   */
   useEffect(() => {
     if (typeof window === "undefined") return;
     const currentUrl = new URL(window.location.href);
@@ -213,7 +226,7 @@ const Client = ({ initialDataObj, initialErrorObj, nextHint, authReason }) => {
       await apiJSON("/api/v1/auth/login", {
         method: "POST",
         body: payload,
-      });
+      }, { authless: true });
       await reload?.();
       const target = sanitizeRedirect(nextHint) || "/dashboard";
       window.location.assign(target);

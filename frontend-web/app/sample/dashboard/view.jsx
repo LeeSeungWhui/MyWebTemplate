@@ -13,23 +13,38 @@ import EasyChart from "@/app/lib/component/EasyChart";
 import EasyTable from "@/app/lib/component/EasyTable";
 import Stat from "@/app/lib/component/Stat";
 import { useDemoSharedState } from "@/app/sample/demoSharedState";
+import { usePageData } from "@/app/lib/hooks/usePageData";
+import { PAGE_CONFIG } from "./initData";
 import LANG_KO from "./lang.ko";
+import CRUD_LANG_KO from "@/app/sample/crud/lang.ko";
+
+const CTA_LINK_LIST = [
+  { href: "/sample/crud", label: LANG_KO.initData.ctaLabels.crud },
+  { href: "/sample/admin", label: LANG_KO.initData.ctaLabels.admin },
+];
+const INITIAL_ROW_LIST = CRUD_LANG_KO.initData.rowList.map((item) => ({ ...item }));
 
 /**
  * @description 공개 샘플 대시보드 화면을 렌더링. 입력/출력 계약을 함께 명시
  * 처리 규칙: CRUD shared state를 기반으로 통계/차트/최근 목록 파생 데이터를 계산해 표시한다.
- * @param {{ initRows:Array, ctaList:Array }} props
+ * @param {{ initialDataObj?: Object, initialErrorObj?: Object }} props
  */
 const DemoDashboardView = ({
-  initRows = [],
-  ctaList = [],
+  initialDataObj = {},
+  initialErrorObj = {},
 }) => {
+  usePageData({
+    pageConfig: PAGE_CONFIG,
+    initialDataObj,
+    initialErrorObj,
+    auto: false,
+  });
 
   const statusOrder = ["ready", "pending", "running", "done", "failed"];
 
   const { value: rowList } = useDemoSharedState({
     stateKey: "demoCrudRows",
-    initialValue: initRows,
+    initialValue: INITIAL_ROW_LIST,
   });
   const summaryList = toStatusSummaryList(rowList);
   const trendList = toMonthlyTrendList(rowList);
@@ -262,7 +277,7 @@ const DemoDashboardView = ({
             rowKey={(rowItem, rowIndex) => rowItem?.title ?? rowIndex}
           />
           <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
-            {ctaList.map((ctaItem) => (
+            {CTA_LINK_LIST.map((ctaItem) => (
               <Link
                 key={ctaItem.href}
                 href={ctaItem.href}

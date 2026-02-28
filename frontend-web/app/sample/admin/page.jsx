@@ -6,7 +6,8 @@
  */
 
 import AdminDemoView from "./view";
-import { PAGE_MODE, USER_ROW_LIST } from "./initData";
+import { PAGE_CONFIG } from "./initData";
+import { loadServerPageData } from "@/app/lib/runtime/pageData";
 import LANG_KO from "./lang.ko";
 
 export const metadata = {
@@ -18,8 +19,16 @@ export const metadata = {
  * @description 공개 관리자 화면 샘플 페이지를 렌더링. 입력/출력 계약을 함께 명시
  * @returns {JSX.Element}
  */
-const AdminDemoPage = () => {
-  return <AdminDemoView mode={PAGE_MODE} initRows={USER_ROW_LIST} />;
+const AdminDemoPage = async () => {
+  const { dataObj: initialDataObj, errorObj: initialErrorObj } = await loadServerPageData({
+    pageConfig: PAGE_CONFIG,
+  });
+  return (
+    <AdminDemoView
+      initialDataObj={initialDataObj}
+      initialErrorObj={initialErrorObj}
+    />
+  );
 };
 
 export default AdminDemoPage;

@@ -6,7 +6,6 @@ from configparser import ConfigParser
 from fastapi.testclient import TestClient
 
 
-# Ensure we can import backend modules in both test and runtime
 baseDir = os.path.dirname(os.path.dirname(__file__))
 if baseDir not in sys.path:
     sys.path.insert(0, baseDir)
@@ -45,7 +44,6 @@ def testReadyzOk():
         assert response.status_code == 200
         data = response.json()
         assert data["status"] is True
-        # db may not exist in tests, but default sqlite is configured; allow either
         assert "ok" in data["result"]
 
 
@@ -182,14 +180,12 @@ def testReadyzMaintenance(monkeypatch):
         response = client.get("/readyz")
         assert response.status_code == 503
         data = response.json()
-        # maintenance mode should return error envelope
         assert data["status"] is False
         assert data["code"] == "OBS_503_NOT_READY"
         assert data["result"]["ok"] is False
 
 
 def testReadyzFail503(monkeypatch):
-    # Force DB ping failure by replacing dbManagers with a stub that raises
     from lib import Database as DB
 
     class FailingMgr:
@@ -235,7 +231,6 @@ def testReadyzNoDbManagersReturns503(monkeypatch):
 
 
 def testReadyzTimeout(monkeypatch):
-    # Simulate slow DB to trigger timeout
     from lib import Database as DB
 
     class SlowMgr:
@@ -257,7 +252,6 @@ def testReadyzTimeout(monkeypatch):
 
 
 def testOraclePingSql(monkeypatch):
-    # Verify readyz ping uses 표준 쿼리 키(common.ping) by having stub capture query name
     from lib import Database as DB
 
     class OracleMgr:
@@ -285,7 +279,6 @@ def testLoggingShape(caplog):
         caplog.clear()
         response = client.get("/healthz")
         assert response.status_code == 200
-        # find at least one log containing JSON fields we emit
         seen = False
         for rec in caplog.records:
             msg = rec.message

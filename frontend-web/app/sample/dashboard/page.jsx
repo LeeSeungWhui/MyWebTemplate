@@ -6,11 +6,8 @@
  */
 
 import DemoDashboardView from "./view";
-import {
-  CTA_LINK_LIST,
-  PAGE_MODE,
-} from "./initData";
-import { DEMO_DATA_LIST } from "@/app/sample/crud/initData";
+import { PAGE_CONFIG } from "./initData";
+import { loadServerPageData } from "@/app/lib/runtime/pageData";
 import LANG_KO from "./lang.ko";
 
 export const metadata = {
@@ -22,12 +19,14 @@ export const metadata = {
  * @description 공개 샘플 대시보드 페이지를 렌더링. 입력/출력 계약을 함께 명시
  * @returns {JSX.Element}
  */
-const DemoDashboardPage = () => {
+const DemoDashboardPage = async () => {
+  const { dataObj: initialDataObj, errorObj: initialErrorObj } = await loadServerPageData({
+    pageConfig: PAGE_CONFIG,
+  });
   return (
     <DemoDashboardView
-      mode={PAGE_MODE}
-      initRows={DEMO_DATA_LIST}
-      ctaList={CTA_LINK_LIST}
+      initialDataObj={initialDataObj}
+      initialErrorObj={initialErrorObj}
     />
   );
 };

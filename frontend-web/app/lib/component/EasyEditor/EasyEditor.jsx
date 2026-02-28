@@ -133,6 +133,10 @@ const EasyEditor = ({
   const isHtmlMode = mode === 'html';
   const toolbarDisabled = readOnly || isHtmlMode;
 
+  /**
+   * @description useEffect 실행 흐름 관리
+   * 처리 규칙: effect 실행/cleanup 경계를 명시적으로 유지.
+   */
   useEffect(() => {
     if (!editor) return;
     if (mode === 'html') {
@@ -140,11 +144,19 @@ const EasyEditor = ({
     }
   }, [mode, editor]);
 
+  /**
+   * @description useEffect 실행 흐름 관리
+   * 처리 규칙: effect 실행/cleanup 경계를 명시적으로 유지.
+   */
   useEffect(() => {
     if (!editor) return;
     editor.setEditable(!readOnly);
   }, [editor, readOnly]);
 
+  /**
+   * @description useEffect 실행 흐름 관리
+   * 처리 규칙: effect 실행/cleanup 경계를 명시적으로 유지.
+   */
   useEffect(() => {
     if (!editor || mode !== 'html') return;
     editor.commands.setContent(htmlDraft || '<p></p>', false);

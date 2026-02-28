@@ -9,18 +9,30 @@
 import Link from "next/link";
 import Card from "@/app/lib/component/Card";
 import Icon from "@/app/lib/component/Icon";
-import {
-  DEMO_HUB_CARD_LIST,
-  DEMO_HUB_EXTRA_LINK_LIST,
-  DEMO_HUB_HEADER,
-} from "./initData";
+import { usePageData } from "@/app/lib/hooks/usePageData";
+import { PAGE_CONFIG } from "./initData";
 import LANG_KO from "./lang.ko";
+
+const { initData } = LANG_KO;
+
+const DEMO_HUB_HEADER = {
+  title: initData.header.title,
+  subtitle: initData.header.subtitle,
+};
+const DEMO_HUB_CARD_LIST = initData.cardList.map((item) => ({ ...item }));
+const DEMO_HUB_EXTRA_LINK_LIST = initData.extraLinkList.map((item) => ({ ...item }));
 
 /**
  * @description 공개 샘플 허브 화면을 렌더링. 입력/출력 계약을 함께 명시
  * @returns {JSX.Element}
  */
-const DemoHubView = () => {
+const DemoHubView = ({ initialDataObj = {}, initialErrorObj = {} }) => {
+  usePageData({
+    pageConfig: PAGE_CONFIG,
+    initialDataObj,
+    initialErrorObj,
+    auto: false,
+  });
   return (
     <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
       <section className="mb-6 rounded-2xl bg-gradient-to-r from-[#1e3a5f] to-[#312e81] px-6 py-7 text-white shadow-lg">

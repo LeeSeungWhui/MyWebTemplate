@@ -120,6 +120,11 @@ const Modal = forwardRef(({
     };
 
     // 스크롤 잠금 관리
+
+    /**
+     * @description useEffect 실행 흐름 관리
+     * 처리 규칙: effect 실행/cleanup 경계를 명시적으로 유지.
+     */
     useEffect(() => {
         if (isOpen) {
             try { lastFocusedRef.current = document.activeElement; } catch {}
@@ -139,6 +144,11 @@ const Modal = forwardRef(({
     }, [isOpen]);
 
     // 모달이 닫힐 때 position 초기화
+
+    /**
+     * @description useEffect 실행 흐름 관리
+     * 처리 규칙: effect 실행/cleanup 경계를 명시적으로 유지.
+     */
     useEffect(() => {
         if (!isOpen) {
             setPosition(null);
@@ -146,6 +156,11 @@ const Modal = forwardRef(({
     }, [isOpen]);
 
     // ESC 키 이벤트 처리
+
+    /**
+     * @description useEffect 실행 흐름 관리
+     * 처리 규칙: effect 실행/cleanup 경계를 명시적으로 유지.
+     */
     useEffect(() => {
 
     /**
@@ -230,6 +245,11 @@ const Modal = forwardRef(({
     };
 
     // 드래그 이벤트 리스너
+
+    /**
+     * @description useEffect 실행 흐름 관리
+     * 처리 규칙: effect 실행/cleanup 경계를 명시적으로 유지.
+     */
     useEffect(() => {
         if (draggable) {
             document.addEventListener('mousemove', handleMouseMove);

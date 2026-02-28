@@ -29,16 +29,17 @@ export const metadata = {
  * @returns {Promise<JSX.Element>}
  */
 const Page = async () => {
-  const { dataObj, errorObj } = await loadServerPageData({
+  const { dataObj: initialDataObj, errorObj: initialErrorObj } = await loadServerPageData({
     pageConfig: PAGE_CONFIG,
   })
-  const sessionData = dataObj.session || null
+  const sessionData = initialDataObj.session || null
   // 미들웨어가 저장한 httpOnly 쿠키(next-hint)를 읽어 복귀 경로에 사용한다(URL에는 노출되지 않음).
   const cookieStore = await cookies()
   const rawNext = cookieStore.get(NX_COOKIE)?.value || null
   const rawAuthReason = cookieStore.get(AUTH_REASON_COOKIE)?.value || null
   const nextHint = sanitizeInternalPath(safeDecodeURIComponent(rawNext), null)
   const authReason = parseAuthReason(rawAuthReason)
+  initialDataObj.__pageMeta = { nextHint, authReason }
   const userJson = sessionData && sessionData.result && sessionData.result.username
     ? { userId: sessionData.result.username, name: sessionData.result.username }
     : null
@@ -46,10 +47,8 @@ const Page = async () => {
     <>
       <SharedHydrator userJson={userJson} />
       <Client
-        initialDataObj={dataObj}
-        initialErrorObj={errorObj}
-        nextHint={nextHint}
-        authReason={authReason}
+        initialDataObj={initialDataObj}
+        initialErrorObj={initialErrorObj}
       />
     </>
   )

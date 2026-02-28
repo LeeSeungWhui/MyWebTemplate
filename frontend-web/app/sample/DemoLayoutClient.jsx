@@ -45,6 +45,10 @@ const DemoLayoutClient = ({ children }) => {
   const layoutMeta = resolveDemoLayoutMeta(pathname);
   const currentYear = new Date().getFullYear();
 
+  /**
+   * @description useEffect 실행 흐름 관리
+   * 처리 규칙: effect 실행/cleanup 경계를 명시적으로 유지.
+   */
   useEffect(() => {
     if (typeof window === "undefined") {
       return undefined;
@@ -66,6 +70,10 @@ const DemoLayoutClient = ({ children }) => {
     return () => mediaQuery.removeEventListener("change", syncViewport);
   }, [ui]);
 
+  /**
+   * @description useEffect 실행 흐름 관리
+   * 처리 규칙: effect 실행/cleanup 경계를 명시적으로 유지.
+   */
   useEffect(() => {
     if (!ui.isDesktopViewport) {
       ui.sidebarOpen = false;

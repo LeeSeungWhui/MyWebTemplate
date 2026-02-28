@@ -95,6 +95,10 @@ const PdfViewer = ({
 
   // 한글설명: 플러그인은 동적 import 없이 위에서 동기 생성
 
+  /**
+   * @description useEffect 실행 흐름 관리
+   * 처리 규칙: effect 실행/cleanup 경계를 명시적으로 유지.
+   */
   useEffect(() => {
     const nextFileUrl = toObjectUrl(src);
     setObjectUrl(nextFileUrl);
@@ -109,6 +113,10 @@ const PdfViewer = ({
     };
   }, [src]);
 
+  /**
+   * @description useEffect 실행 흐름 관리
+   * 처리 규칙: effect 실행/cleanup 경계를 명시적으로 유지.
+   */
   useEffect(() => {
     if (!objectUrl) {
       setIsLoading(false);

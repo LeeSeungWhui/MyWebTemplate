@@ -40,7 +40,7 @@ vi.mock("@/app/lib/component/EasyTable", () => ({
 
 import { apiJSON } from "@/app/lib/runtime/api";
 import DashboardView from "@/app/dashboard/view";
-import { DASHBOARD_ERROR_KEY } from "@/app/dashboard/dataStrategy";
+import { DASHBOARD_ERROR_KEY } from "@/app/dashboard/page";
 
 describe("dashboard view", () => {
   let consoleErrorSpy;

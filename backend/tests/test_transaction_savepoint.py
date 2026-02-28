@@ -22,20 +22,14 @@ def testSavepointPartialRollback():
         async def doOps():
             await ensureTables()
             db = DB.dbManagers["main_db"]
-            # clear table for deterministic test
             await db.execute("DELETE FROM T_TEST_TRANSACTION")
-            # insert keep1
             await db.execute("INSERT INTO T_TEST_TRANSACTION (VALUE) VALUES (:val)", {"val": "keep1"})
-            # duplicate in savepoint; on error should rollback only inner block
             try:
                 async with savepoint("main_db", "sp1"):
                     await db.execute("INSERT INTO T_TEST_TRANSACTION (VALUE) VALUES (:val)", {"val": "dup"})
-                    # second insert violates UNIQUE
                     await db.execute("INSERT INTO T_TEST_TRANSACTION (VALUE) VALUES (:val)", {"val": "dup"})
             except Exception:
-                # expected due to unique constraint; outer tx continues
                 pass
-            # insert keep2 outside savepoint
             await db.execute("INSERT INTO T_TEST_TRANSACTION (VALUE) VALUES (:val)", {"val": "keep2"})
 
         anyio.run(doOps)
@@ -48,7 +42,6 @@ def testSavepointPartialRollback():
         countsByValue = anyio.run(fetchCounts)
         assert countsByValue.get("keep1") == 1
         assert countsByValue.get("keep2") == 1
-        # dup should not remain due to savepoint rollback; or at most 1 if unique has been inserted before error
         assert countsByValue.get("dup") in (None, 1)
 
 
@@ -61,6 +54,5 @@ def testSavepointNameValidation():
     with pytest.raises(TransactionError):
         savepoint("main_db", "1bad")
 
-    # 정상 케이스
     sp = savepoint("main_db", "sp_valid_1")
     assert sp.name == "sp_valid_1"

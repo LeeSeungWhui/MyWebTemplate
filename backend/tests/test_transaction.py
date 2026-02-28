@@ -43,5 +43,4 @@ def testTransactionSingleAndUniqueRollback():
             return rows[0]["cnt"] if rows else 0
 
         cnt = anyio.run(countRows)
-        # unique violation rolled back the whole tx; no rows with 'tx-dup' should remain
         assert cnt == 0

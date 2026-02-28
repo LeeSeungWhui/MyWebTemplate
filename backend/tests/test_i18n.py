@@ -19,14 +19,12 @@ def testI18nInvalidCredentialsKo():
         assert response.status_code == 401
         j = response.json()
         assert j["code"] == "AUTH_401_INVALID"
-        # Korean message expected
         assert "아이디" in j["message"] or "비밀번호" in j["message"]
 
 
 def testI18nInvalidInputEn():
     from server import app
     with TestClient(app) as client:
-        # invalid short username/password
         response = client.post(
             "/api/v1/auth/login",
             json={"username": "a", "password": "b"},
@@ -35,4 +33,4 @@ def testI18nInvalidInputEn():
         assert response.status_code == 422
         j = response.json()
         assert j["code"] == "AUTH_422_INVALID_INPUT"
-        assert j["message"] in ("invalid input", "잘못된 입력")  # fallback safety
+        assert j["message"] in ("invalid input", "잘못된 입력")  # 폴백 안전성 확인

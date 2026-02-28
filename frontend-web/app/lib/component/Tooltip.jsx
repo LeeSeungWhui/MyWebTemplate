@@ -46,6 +46,10 @@ const Tooltip = forwardRef(({ content, placement = 'top', delay = 150, disabled 
     setOpen(false);
   };
 
+  /**
+   * @description useEffect 실행 흐름 관리
+   * 처리 규칙: effect 실행/cleanup 경계를 명시적으로 유지.
+   */
   useEffect(() => () => clearTimeout(timer.current), []);
 
   /**

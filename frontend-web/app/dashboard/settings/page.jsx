@@ -6,6 +6,8 @@
  */
 
 import SettingsView from "./view";
+import { PAGE_CONFIG } from "./initData";
+import { loadServerPageData } from "@/app/lib/runtime/pageData";
 import LANG_KO from "./lang.ko";
 
 export const dynamic = "force-dynamic";
@@ -21,11 +23,14 @@ export const metadata = {
 };
 
 /**
- * @description 설정 화면 서버 엔트리에서 SettingsView를 반환. 입력/출력 계약을 함께 명시
+ * @description 설정 화면 초기 데이터 로딩 후 클라이언트 뷰에 전달
  * @returns {Promise<JSX.Element>}
  */
 const SettingsPage = async () => {
-  return <SettingsView />;
+  const { dataObj, errorObj } = await loadServerPageData({
+    pageConfig: PAGE_CONFIG,
+  });
+  return <SettingsView initialDataObj={dataObj} initialErrorObj={errorObj} />;
 };
 
 export default SettingsPage;

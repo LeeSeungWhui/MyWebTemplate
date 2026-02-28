@@ -14,7 +14,6 @@ import pytest
 """
 from configparser import ConfigParser
 
-# Ensure backend/ is importable
 baseDir = os.path.dirname(os.path.dirname(__file__))
 testConfigPath = os.path.join(baseDir, "config.test.ini")
 os.environ["BACKEND_CONFIG"] = testConfigPath
@@ -23,7 +22,6 @@ if baseDir not in sys.path:
 
 
 def loadDbPath() -> str:
-    # 테스트 전용 config(test)에서 DB 경로를 읽는다.
     config = ConfigParser()
     config.read(testConfigPath, encoding="utf-8")
     section = "DATABASE"
@@ -145,7 +143,6 @@ def ensureUserLogTable(dbPath: str) -> None:
 
 
 def pytest_sessionstart(session):
-    # Seed required tables/data for tests without touching runtime code.
     dbPath = loadDbPath()
     ensureUserTableAndDemo(dbPath)
     ensureTxTable(dbPath)
@@ -154,7 +151,6 @@ def pytest_sessionstart(session):
 
 @pytest.fixture(autouse=True)
 def resetRateLimiter():
-    # Ensure tests don't depend on order (RateLimiter is in-memory global).
     try:
         from lib.RateLimit import globalRateLimiter
 

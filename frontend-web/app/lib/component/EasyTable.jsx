@@ -124,12 +124,22 @@ const EasyTable = forwardRef(function EasyTable(
   const pageCount = Math.max(1, Math.ceil(size / effectivePageSize));
 
   // 데이터 길이 변경 시 페이지 범위 보정(uncontrolled 모드)
+
+  /**
+   * @description useEffect 실행 흐름 관리
+   * 처리 규칙: effect 실행/cleanup 경계를 명시적으로 유지.
+   */
   useEffect(() => {
     if (typeof pageProp === 'number') return;
     if (page > pageCount) setPageState(pageCount);
   }, [pageCount]);
 
   // hydration 이후 URL/스토리지 값으로 초기화해 SSR 불일치 방지(uncontrolled 모드)
+
+  /**
+   * @description useEffect 실행 흐름 관리
+   * 처리 규칙: effect 실행/cleanup 경계를 명시적으로 유지.
+   */
   useEffect(() => {
     if (typeof pageProp === 'number') return;
     if (typeof window === 'undefined') return;
@@ -159,6 +169,11 @@ const EasyTable = forwardRef(function EasyTable(
   }, [pageProp, pageParam, persistKey, persist, defaultPage]);
 
   // 페이지 상태를 저장소/URL에 동기화(uncontrolled 모드)
+
+  /**
+   * @description useEffect 실행 흐름 관리
+   * 처리 규칙: effect 실행/cleanup 경계를 명시적으로 유지.
+   */
   useEffect(() => {
     if (typeof pageProp === 'number') return;
     if (persistKey && typeof window !== 'undefined') {

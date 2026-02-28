@@ -1,9 +1,15 @@
 /**
  * 파일명: apiResult.js
- * 작성자: Codex
+ * 작성자: LSH
  * 갱신일: 2026-02-28
  * 설명: apiJSON 표준 응답(payload.result) 타입별 EasyObj/EasyList 동기화 유틸
  */
+
+const RESULT_TYPE = {
+  OBJ: "obj",
+  LIST: "list",
+  OTHER: "other",
+};
 
 /**
  * @description 값이 plain object인지 판별
@@ -35,22 +41,21 @@ export const syncApiResult = ({
   if (Array.isArray(result)) {
     apiList?.copy?.(result);
     return {
-      resultType: "list",
+      resultType: RESULT_TYPE.LIST,
       result,
     };
   }
   if (isPlainObject(result)) {
     apiObj?.copy?.(result);
     return {
-      resultType: "obj",
+      resultType: RESULT_TYPE.OBJ,
       result,
     };
   }
   return {
-    resultType: "other",
+    resultType: RESULT_TYPE.OTHER,
     result,
   };
 };
 
 export default syncApiResult;
-

@@ -7,8 +7,9 @@
  */
 
 import { useEffect } from "react";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useGlobalUi } from "@/app/common/store/SharedStore";
+import { usePageData } from "@/app/lib/hooks/usePageData";
 import Badge from "@/app/lib/component/Badge";
 import Button from "@/app/lib/component/Button";
 import Card from "@/app/lib/component/Card";
@@ -23,16 +24,17 @@ import { apiJSON } from "@/app/lib/runtime/api";
 import { safeJsonParse } from "@/app/lib/runtime/json";
 import EasyObj from "@/app/lib/dataset/EasyObj";
 import { useEasyList } from "@/app/lib/dataset/EasyList";
-import {
-  buildTasksQueryString,
-  DEFAULT_SORT,
-  PAGE_MODE,
-  SORT_FILTER_LIST,
-  STATUS_FILTER_LIST,
-} from "./initData";
+import { PAGE_CONFIG } from "./initData";
 import LANG_KO from "./lang.ko";
 
 const PAGE_SIZE = 10;
+const DEFAULT_SORT = "reg_dt_desc";
+const STATUS_FILTER_LIST = LANG_KO.initData.statusFilterList.map((item) => ({ ...item }));
+const SORT_FILTER_LIST = LANG_KO.initData.sortFilterList.map((item) => ({ ...item }));
+const ALLOWED_STATUS = new Set(
+  STATUS_FILTER_LIST.map((item) => item.value).filter(Boolean),
+);
+const ALLOWED_SORT = new Set(SORT_FILTER_LIST.map((item) => item.value));
 
 const STATUS_BADGE_VARIANT = {
   ready: "neutral",
@@ -48,10 +50,20 @@ const STATUS_FORM_LIST = STATUS_FILTER_LIST.filter((item) => item.value);
  * @description 업무 관리 페이지의 CSR 뷰를 렌더링. 입력/출력 계약을 함께 명시
  * 처리 규칙: 목록 조회/드로어 CRUD/브라우저 쿼리 동기화를 단일 컴포넌트에서 제어한다.
  */
-const TasksView = ({ initialFilter = {} }) => {
-
+const TasksView = ({
+  initialDataObj = {},
+  initialErrorObj = {},
+}) => {
   const router = useRouter();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+  const keywordValue = String(searchParams?.get("q") || "").trim();
+  const statusCandidate = String(searchParams?.get("status") || "").trim().toLowerCase();
+  const statusValue = ALLOWED_STATUS.has(statusCandidate) ? statusCandidate : "";
+  const sortCandidate = String(searchParams?.get("sort") || "").trim().toLowerCase();
+  const sortValue = ALLOWED_SORT.has(sortCandidate) ? sortCandidate : DEFAULT_SORT;
+  const pageCandidate = Number.parseInt(String(searchParams?.get("page") || ""), 10);
+  const pageValue = Number.isFinite(pageCandidate) && pageCandidate > 0 ? pageCandidate : 1;
   const { showToast, showConfirm } = useGlobalUi();
   const defaultTaskForm = {
     title: "",
@@ -61,13 +73,10 @@ const TasksView = ({ initialFilter = {} }) => {
     description: "",
   };
   const ui = EasyObj({
-    keyword: String(initialFilter?.keyword || ""),
-    status: String(initialFilter?.status || ""),
-    sort: String(initialFilter?.sort || DEFAULT_SORT),
-    page:
-      Number.isFinite(initialFilter?.page) && initialFilter.page > 0
-        ? Number(initialFilter.page)
-        : 1,
+    keyword: keywordValue,
+    status: statusValue,
+    sort: sortValue,
+    page: pageValue,
     isLoading: true,
     isSaving: false,
     isDrawerLoading: false,
@@ -80,12 +89,18 @@ const TasksView = ({ initialFilter = {} }) => {
   const taskList = useEasyList([]);
   const taskMetaObj = EasyObj({ totalCount: 0 });
   const taskDetailObj = EasyObj({});
-  const endPoints = PAGE_MODE.endPoints || {};
+  const endPoints = PAGE_CONFIG.API || {};
   const hasListEndpoint = Boolean(endPoints.list);
   const hasDetailEndpoint = Boolean(endPoints.detail);
   const hasCreateEndpoint = Boolean(endPoints.create);
   const hasUpdateEndpoint = Boolean(endPoints.update);
   const hasRemoveEndpoint = Boolean(endPoints.remove);
+  usePageData({
+    pageConfig: PAGE_CONFIG,
+    initialDataObj,
+    initialErrorObj,
+    auto: false,
+  });
   const tableColumns = [
     {
       key: "title",
@@ -225,6 +240,35 @@ const TasksView = ({ initialFilter = {} }) => {
     message: error?.message || fallbackMessage,
     requestId: error?.requestId,
   });
+
+  /**
+   * @description 업무 목록 필터 모델을 URL query 문자열로 직렬화
+   * 처리 규칙: 기본 sort/page는 query에서 생략해 URL 노이즈를 줄인다.
+   * @updated 2026-02-28
+   */
+  const buildTasksQueryString = (options = {}) => {
+    const {
+      keyword = "",
+      status = "",
+      sort = DEFAULT_SORT,
+      page = 1,
+    } = options;
+    const params = new URLSearchParams();
+    const keywordText = String(keyword || "").trim();
+    const statusText = String(status || "").trim().toLowerCase();
+    const sortText = String(sort || DEFAULT_SORT).trim().toLowerCase();
+    const pageValue = Number.parseInt(String(page || 1), 10);
+
+    if (keywordText) params.set("q", keywordText);
+    if (ALLOWED_STATUS.has(statusText)) params.set("status", statusText);
+    if (ALLOWED_SORT.has(sortText) && sortText !== DEFAULT_SORT) {
+      params.set("sort", sortText);
+    }
+    if (Number.isFinite(pageValue) && pageValue > 1) {
+      params.set("page", String(pageValue));
+    }
+    return params.toString();
+  };
 
   /**
    * @description 현재 필터/페이지 상태를 브라우저 쿼리스트링과 동기화
@@ -467,6 +511,10 @@ const TasksView = ({ initialFilter = {} }) => {
     }
   };
 
+  /**
+   * @description 초기 필터 기준으로 목록 API를 호출해 테이블 데이터를 동기화
+   * 처리 규칙: 첫 마운트에서는 브라우저 query 재기록 없이 초기 데이터만 조회한다.
+   */
   useEffect(() => {
     loadTasks({
       nextKeyword: ui.keyword,

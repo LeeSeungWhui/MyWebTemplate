@@ -14,15 +14,14 @@ import CheckButton from "@/app/lib/component/CheckButton";
 import Input from "@/app/lib/component/Input";
 import Select from "@/app/lib/component/Select";
 import Textarea from "@/app/lib/component/Textarea";
-import {
-  CATEGORY_OPTION_LIST,
-  FEATURE_CHECK_LIST,
-  createDefaultForm,
-} from "./initData";
+import { usePageData } from "@/app/lib/hooks/usePageData";
 import EasyObj from "@/app/lib/dataset/EasyObj";
+import { PAGE_CONFIG } from "./initData";
 import LANG_KO from "./lang.ko";
 
 const STEP_LIST = LANG_KO.view.stepList.map((item) => ({ ...item }));
+const CATEGORY_OPTION_LIST = LANG_KO.initData.categoryOptions.map((item) => ({ ...item }));
+const FEATURE_CHECK_LIST = LANG_KO.initData.featureOptions.map((item) => ({ ...item }));
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -30,7 +29,21 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
  * @description 공개 복합 폼 샘플 화면을 렌더링. 입력/출력 계약을 함께 명시
  * 처리 규칙: 단계별(step1~3) 입력/검증/요약 상태를 하나의 EasyObj(ui)에서 관리한다.
  */
-const FormDemoView = () => {
+const FormDemoView = ({ initialDataObj = {}, initialErrorObj = {} }) => {
+  const defaultForm = {
+    name: "",
+    email: "",
+    phone: "",
+    category: "",
+    startDate: "",
+    endDate: "",
+    budgetRange: "",
+    requirement: "",
+    referenceUrl: "",
+    attachmentName: "",
+    selectedFeatures: [],
+  };
+
   const defaultStepOneErrors = {
     name: "",
     email: "",
@@ -44,11 +57,21 @@ const FormDemoView = () => {
   const ui = EasyObj({
     isLoading: true,
     step: 1,
-    form: createDefaultForm(),
+    form: { ...defaultForm },
     stepOneErrors: { ...defaultStepOneErrors },
+  });
+  usePageData({
+    pageConfig: PAGE_CONFIG,
+    initialDataObj,
+    initialErrorObj,
+    auto: false,
   });
   const { showToast } = useGlobalUi();
 
+  /**
+   * @description 초기 로딩 카드 노출 후 본문 전환을 위한 타이머 구독/정리
+   * 처리 규칙: 마운트 시 타이머 등록, 언마운트 시 clearTimeout 실행.
+   */
   useEffect(() => {
     const timer = setTimeout(() => {
       ui.isLoading = false;
@@ -435,7 +458,7 @@ const FormDemoView = () => {
             className="w-full sm:w-auto"
             onClick={() => {
               showToast(LANG_KO.view.action.submitSuccessToast, { type: "success" });
-              ui.form = createDefaultForm();
+              ui.form = { ...defaultForm };
               resetStepOneErrors();
               ui.step = 1;
             }}

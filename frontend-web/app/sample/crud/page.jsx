@@ -6,7 +6,8 @@
  */
 
 import CrudDemoView from "./view";
-import { DEMO_DATA_LIST, PAGE_MODE } from "./initData";
+import { PAGE_CONFIG } from "./initData";
+import { loadServerPageData } from "@/app/lib/runtime/pageData";
 import LANG_KO from "./lang.ko";
 
 export const metadata = {
@@ -18,8 +19,16 @@ export const metadata = {
  * @description 공개 CRUD 샘플 페이지를 렌더링. 입력/출력 계약을 함께 명시
  * @returns {JSX.Element}
  */
-const CrudDemoPage = () => {
-  return <CrudDemoView mode={PAGE_MODE} initRows={DEMO_DATA_LIST} />;
+const CrudDemoPage = async () => {
+  const { dataObj: initialDataObj, errorObj: initialErrorObj } = await loadServerPageData({
+    pageConfig: PAGE_CONFIG,
+  });
+  return (
+    <CrudDemoView
+      initialDataObj={initialDataObj}
+      initialErrorObj={initialErrorObj}
+    />
+  );
 };
 
 export default CrudDemoPage;

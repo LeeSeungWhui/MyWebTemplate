@@ -51,6 +51,10 @@ const Drawer = forwardRef(function Drawer(
   const conf = sides[side] || sides.right;
 
 
+  /**
+   * @description useEffect 실행 흐름 관리
+   * 처리 규칙: effect 실행/cleanup 경계를 명시적으로 유지.
+   */
   useEffect(() => {
     if (!isOpen) return undefined;
 

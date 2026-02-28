@@ -71,6 +71,10 @@ const NumberInput = forwardRef(({
     return inner ?? '';
   };
 
+  /**
+   * @description useEffect 실행 흐름 관리
+   * 처리 규칙: effect 실행/cleanup 경계를 명시적으로 유지.
+   */
   useEffect(() => {
 
   }, [propValue, dataObj, dataKey]);
@@ -102,7 +106,6 @@ const NumberInput = forwardRef(({
     const next = clamp(base + delta, min, max);
     commit(next);
   };
-
 
   const holdRef = useRef(null);       // 반복 증감 인터벌
   const holdTimerRef = useRef(null);

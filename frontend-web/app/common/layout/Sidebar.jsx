@@ -123,6 +123,10 @@ const Sidebar = ({
     );
   }, [resolvedItems, subMenuMap]);
 
+  /**
+   * @description useEffect 실행 흐름 관리
+   * 처리 규칙: effect 실행/cleanup 경계를 명시적으로 유지.
+   */
   useEffect(() => {
     if (!dataObj || !collapsedKey) return;
     ui.collapsed = !!getBoundValue(dataObj, collapsedKey);
@@ -139,6 +143,10 @@ const Sidebar = ({
     if (dataObj && collapsedKey) setBoundValue(dataObj, collapsedKey, next);
   };
 
+  /**
+   * @description useEffect 실행 흐름 관리
+   * 처리 규칙: effect 실행/cleanup 경계를 명시적으로 유지.
+   */
   useEffect(() => {
     if (isFirstRenderRef.current) {
       isFirstRenderRef.current = false;
@@ -256,6 +264,10 @@ const Sidebar = ({
     return isPathActive(item.href);
   };
 
+  /**
+   * @description useEffect 실행 흐름 관리
+   * 처리 규칙: effect 실행/cleanup 경계를 명시적으로 유지.
+   */
   useEffect(() => {
     const next = { ...ui.expanded };
     let changed = false;

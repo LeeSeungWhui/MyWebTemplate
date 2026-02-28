@@ -6,7 +6,8 @@
  */
 
 import PortfolioView from "./view";
-import { PAGE_CONTENT } from "./initData";
+import { PAGE_CONFIG } from "./initData";
+import { loadServerPageData } from "@/app/lib/runtime/pageData";
 import LANG_KO from "./lang.ko";
 
 export const metadata = {
@@ -18,8 +19,16 @@ export const metadata = {
  * @description 공개 샘플 경로에서 포트폴리오 페이지를 렌더링. 입력/출력 계약을 함께 명시
  * @returns {JSX.Element}
  */
-const DemoPortfolioPage = () => {
-  return <PortfolioView content={PAGE_CONTENT} />;
+const DemoPortfolioPage = async () => {
+  const { dataObj: initialDataObj, errorObj: initialErrorObj } = await loadServerPageData({
+    pageConfig: PAGE_CONFIG,
+  });
+  return (
+    <PortfolioView
+      initialDataObj={initialDataObj}
+      initialErrorObj={initialErrorObj}
+    />
+  );
 };
 
 export default DemoPortfolioPage;

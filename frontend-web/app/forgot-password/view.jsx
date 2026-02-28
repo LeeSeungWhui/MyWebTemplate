@@ -11,6 +11,8 @@ import EasyObj from "@/app/lib/dataset/EasyObj";
 import Button from "@/app/lib/component/Button";
 import Input from "@/app/lib/component/Input";
 import Link from "next/link";
+import { usePageData } from "@/app/lib/hooks/usePageData";
+import { PAGE_CONFIG } from "./initData";
 import LANG_KO from "./lang.ko";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -19,7 +21,7 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
  * @description 비밀번호 찾기 이메일 입력/검증/제출 상태를 관리하는 화면을 렌더링. 입력/출력 계약을 함께 명시
  * 처리 규칙: 유효한 이메일 제출 시 submitted 상태로 전환해 안내 메시지를 노출한다.
  */
-const ForgotPasswordView = () => {
+const ForgotPasswordView = ({ initialDataObj = {}, initialErrorObj = {} }) => {
   const formObj = EasyObj({
     email: "",
     errors: {
@@ -33,6 +35,12 @@ const ForgotPasswordView = () => {
   });
   const emailRef = useRef(null);
   const errorSummaryRef = useRef(null);
+  usePageData({
+    pageConfig: PAGE_CONFIG,
+    initialDataObj,
+    initialErrorObj,
+    auto: false,
+  });
 
   /**
    * @description 이메일 필드 에러와 폼 공통 에러 메시지를 초기화

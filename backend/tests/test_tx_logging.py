@@ -30,7 +30,6 @@ def testTxLogsIncludeRequestIdAndSqlCount(caplog):
             },
         )
         assert response.status_code == 200
-        # find tx.commit log with our requestId and sql_count field
         seen = False
         for rec in caplog.records:
             msg = rec.message

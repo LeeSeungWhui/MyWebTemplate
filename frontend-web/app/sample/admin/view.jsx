@@ -8,6 +8,7 @@
 
 import { useEffect, useMemo } from "react";
 import { useGlobalUi } from "@/app/common/store/SharedStore";
+import { usePageData } from "@/app/lib/hooks/usePageData";
 import Badge from "@/app/lib/component/Badge";
 import Button from "@/app/lib/component/Button";
 import Card from "@/app/lib/component/Card";
@@ -20,11 +21,7 @@ import Switch from "@/app/lib/component/Switch";
 import Tab from "@/app/lib/component/Tab";
 import { useDemoSharedState } from "@/app/sample/demoSharedState";
 import EasyObj from "@/app/lib/dataset/EasyObj";
-import {
-  ROLE_OPTION_LIST,
-  STATUS_OPTION_LIST,
-  TAB_LIST,
-} from "./initData";
+import { PAGE_CONFIG } from "./initData";
 import LANG_KO from "./lang.ko";
 
 const ROLE_BADGE_VARIANT_MAP = {
@@ -39,6 +36,9 @@ const STATUS_BADGE_VARIANT_MAP = {
 };
 
 const ROLE_PERMISSION_LIST = LANG_KO.view.rolePermissionList.map((item) => ({ ...item }));
+const TAB_LIST = LANG_KO.initData.tabList.map((item) => ({ ...item }));
+const ROLE_OPTION_LIST = LANG_KO.initData.roleOptions.map((item) => ({ ...item }));
+const STATUS_OPTION_LIST = LANG_KO.initData.statusOptions.map((item) => ({ ...item }));
 
 const ROLE_PERMISSION_MAP = {
   admin: {
@@ -64,14 +64,15 @@ const ROLE_PERMISSION_MAP = {
   },
 };
 
-  const SYSTEM_DEFAULT = { ...LANG_KO.view.systemDefault };
+const SYSTEM_DEFAULT = { ...LANG_KO.view.systemDefault };
+const INITIAL_ROW_LIST = LANG_KO.initData.userRows.map((item) => ({ ...item }));
 
 /**
  * @description 공개 관리자 화면 샘플를 렌더링. 입력/출력 계약을 함께 명시
  * 처리 규칙: 사용자 탭은 목록/드로어 CRUD를, 시스템 탭은 설정 토글 상태를 EasyObj 기반으로 유지한다.
- * @param {{ mode: Object, initRows: Array }} props
+ * @param {{ initialDataObj?: Object, initialErrorObj?: Object }} props
  */
-const AdminDemoView = ({ initRows = [] }) => {
+const AdminDemoView = ({ initialDataObj = {}, initialErrorObj = {} }) => {
   const defaultUserForm = {
     name: "",
     email: "",
@@ -95,9 +96,15 @@ const AdminDemoView = ({ initRows = [] }) => {
     userForm: { ...defaultUserForm },
     formError: "",
   });
+  usePageData({
+    pageConfig: PAGE_CONFIG,
+    initialDataObj,
+    initialErrorObj,
+    auto: false,
+  });
   const { value: rows, setValue: setRows } = useDemoSharedState({
     stateKey: "demoAdminUsers",
-    initialValue: initRows,
+    initialValue: INITIAL_ROW_LIST,
   });
   const { value: systemSetting, setValue: setSystemSetting } =
     useDemoSharedState({
@@ -106,6 +113,10 @@ const AdminDemoView = ({ initRows = [] }) => {
     });
   const { showToast } = useGlobalUi();
 
+  /**
+   * @description 초기 로딩 스켈레톤 표시 후 본문 노출을 위한 타이머 구독/정리
+   * 처리 규칙: 마운트 시 타이머 등록, 언마운트 시 clearTimeout으로 정리.
+   */
   useEffect(() => {
     const timer = setTimeout(() => {
       ui.isLoading = false;

@@ -6,7 +6,8 @@
  */
 
 import DemoHubView from "./view";
-import { PAGE_MODE } from "./initData";
+import { PAGE_CONFIG } from "./initData";
+import { loadServerPageData } from "@/app/lib/runtime/pageData";
 import LANG_KO from "./lang.ko";
 
 export const metadata = {
@@ -22,8 +23,16 @@ export const revalidate = 0;
  * @description 공개 샘플 허브 페이지를 렌더링. 입력/출력 계약을 함께 명시
  * @returns {JSX.Element}
  */
-const DemoHubPage = () => {
-  return <DemoHubView mode={PAGE_MODE} />;
+const DemoHubPage = async () => {
+  const { dataObj: initialDataObj, errorObj: initialErrorObj } = await loadServerPageData({
+    pageConfig: PAGE_CONFIG,
+  });
+  return (
+    <DemoHubView
+      initialDataObj={initialDataObj}
+      initialErrorObj={initialErrorObj}
+    />
+  );
 };
 
 export default DemoHubPage;

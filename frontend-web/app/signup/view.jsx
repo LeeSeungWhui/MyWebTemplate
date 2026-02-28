@@ -13,8 +13,9 @@ import Checkbox from "@/app/lib/component/Checkbox";
 import Input from "@/app/lib/component/Input";
 import Link from "next/link";
 import { apiJSON } from "@/app/lib/runtime/api";
+import { usePageData } from "@/app/lib/hooks/usePageData";
 import { useGlobalUi } from "@/app/common/store/SharedStore";
-import { SIGNUP_PATH } from "./initData";
+import { PAGE_CONFIG } from "./initData";
 import LANG_KO from "./lang.ko";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -23,7 +24,7 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
  * @description 회원가입 입력 검증/제출/에러 포커스 이동을 담당하는 화면을 렌더링. 입력/출력 계약을 함께 명시
  * 처리 규칙: 가입 성공 시 성공 토스트 표시 후 `/login?signup=done`으로 이동한다.
  */
-const SignupView = () => {
+const SignupView = ({ initialDataObj = {}, initialErrorObj = {} }) => {
   const signupObj = EasyObj({
     name: "",
     email: "",
@@ -49,6 +50,12 @@ const SignupView = () => {
   const agreeTermsRef = useRef(null);
   const errorSummaryRef = useRef(null);
   const { showToast } = useGlobalUi();
+  usePageData({
+    pageConfig: PAGE_CONFIG,
+    initialDataObj,
+    initialErrorObj,
+    auto: false,
+  });
 
   /**
    * @description 모든 필드 에러와 폼 공통 에러 메시지를 초기화
@@ -136,7 +143,7 @@ const SignupView = () => {
 
     ui.pending = true;
     try {
-      await apiJSON(SIGNUP_PATH, {
+      await apiJSON(PAGE_CONFIG.API.signup, {
         method: "POST",
         body: {
           name: String(signupObj.name || "").trim(),

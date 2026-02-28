@@ -9,6 +9,7 @@
 import { useEffect } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useGlobalUi } from "@/app/common/store/SharedStore";
+import { usePageData } from "@/app/lib/hooks/usePageData";
 import Badge from "@/app/lib/component/Badge";
 import Button from "@/app/lib/component/Button";
 import Card from "@/app/lib/component/Card";
@@ -17,21 +18,26 @@ import NumberInput from "@/app/lib/component/NumberInput";
 import Switch from "@/app/lib/component/Switch";
 import Tab from "@/app/lib/component/Tab";
 import { apiJSON } from "@/app/lib/runtime/api";
-import {
-  normalizeSettingsTab,
-  PAGE_MODE,
-  SYSTEM_SETTING_DEFAULT,
-  toSettingsTabIndex,
-  toSettingsTabQueryValue,
-} from "./initData";
+import { PAGE_CONFIG } from "./initData";
 import LANG_KO from "./lang.ko";
 import EasyObj from "@/app/lib/dataset/EasyObj";
+
+const SETTINGS_TAB = {
+  PROFILE: "profile",
+  SYSTEM: "system",
+};
+const SYSTEM_SETTING_DEFAULT = {
+  ...LANG_KO.initData.systemDefault,
+};
 
 /**
  * @description 설정 페이지의 프로필/시스템 탭 UI를 렌더링. 입력/출력 계약을 함께 명시
  * 처리 규칙: 프로필 API 응답은 profileMeObj에 복사하고 탭 상태는 query `tab`과 양방향 동기화한다.
  */
-const SettingsView = () => {
+const SettingsView = ({
+  initialDataObj = {},
+  initialErrorObj = {},
+}) => {
   const defaultProfileObj = {
     userId: "",
     userNm: "",
@@ -49,15 +55,68 @@ const SettingsView = () => {
   const profileMeObj = EasyObj({ ...defaultProfileObj });
   const ui = EasyObj({
     systemSetting: { ...SYSTEM_SETTING_DEFAULT },
-    activeTabIndex: toSettingsTabIndex(normalizeSettingsTab(searchParams)),
+    activeTabIndex: 0,
     isLoadingProfile: true,
     isSavingProfile: false,
     isSavingSystem: false,
     error: null,
   });
-  const endPoints = PAGE_MODE.endPoints || {};
+  usePageData({
+    pageConfig: PAGE_CONFIG,
+    initialDataObj,
+    initialErrorObj,
+    auto: false,
+  });
+  const endPoints = PAGE_CONFIG.API || {};
   const hasProfileEndpoint = Boolean(endPoints.profileMe);
 
+  /**
+   * @description 검색 파라미터에서 key 값을 문자열로 안전 조회
+   * 처리 규칙: URLSearchParams.get/배열/단일값 순으로 읽고 없으면 빈 문자열 반환.
+   * @updated 2026-02-28
+   */
+  const pickQueryValue = (targetSearchParams, key) => {
+    if (!targetSearchParams || !key) return "";
+    if (typeof targetSearchParams.get === "function") {
+      return String(targetSearchParams.get(key) || "");
+    }
+    if (Array.isArray(targetSearchParams[key])) return String(targetSearchParams[key][0] || "");
+    if (targetSearchParams[key] == null) return "";
+    return String(targetSearchParams[key]);
+  };
+
+  /**
+   * @description 검색 파라미터 tab 값을 설정 탭 코드로 정규화
+   * 처리 규칙: system 외 입력은 profile로 기본 보정.
+   * @updated 2026-02-28
+   */
+  const normalizeSettingsTab = (targetSearchParams) => {
+    const tab = pickQueryValue(targetSearchParams, "tab").trim().toLowerCase();
+    return tab === SETTINGS_TAB.SYSTEM ? SETTINGS_TAB.SYSTEM : SETTINGS_TAB.PROFILE;
+  };
+
+  /**
+   * @description 설정 탭 코드를 Tab 컴포넌트 인덱스로 변환
+   * 반환값: system은 1, 그 외는 0.
+   * @updated 2026-02-28
+   */
+  const toSettingsTabIndex = (tab) => {
+    return tab === SETTINGS_TAB.SYSTEM ? 1 : 0;
+  };
+
+  /**
+   * @description 탭 인덱스를 URL query tab 값으로 직렬화
+   * 처리 규칙: 기본 탭(0)은 빈 문자열 반환으로 query 제거 유도.
+   * @updated 2026-02-28
+   */
+  const toSettingsTabQueryValue = (tabIndex) => {
+    return Number(tabIndex) === 1 ? SETTINGS_TAB.SYSTEM : "";
+  };
+
+  /**
+   * @description URL query 변경 시 탭 인덱스를 화면 상태와 동기화
+   * 처리 규칙: 동일 인덱스면 상태 갱신을 생략한다.
+   */
   useEffect(() => {
     const tabIndex = toSettingsTabIndex(normalizeSettingsTab(searchParams));
     if (ui.activeTabIndex !== tabIndex) {
@@ -108,6 +167,10 @@ const SettingsView = () => {
     }
   };
 
+  /**
+   * @description 초기 마운트 시 프로필 조회 API를 1회 호출
+   * 처리 규칙: profile endpoint 유효성은 loadProfile 내부에서 다시 검증한다.
+   */
   useEffect(() => {
     loadProfile();
   }, [hasProfileEndpoint]);

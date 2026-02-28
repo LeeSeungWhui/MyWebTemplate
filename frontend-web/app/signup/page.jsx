@@ -6,6 +6,8 @@
  */
 
 import SignupView from "./view";
+import { PAGE_CONFIG } from "./initData";
+import { loadServerPageData } from "@/app/lib/runtime/pageData";
 import LANG_KO from "./lang.ko";
 
 export const dynamic = "force-dynamic";
@@ -23,7 +25,10 @@ export const metadata = {
  * @returns {Promise<JSX.Element>}
  */
 const SignupPage = async () => {
-  return <SignupView />;
+  const { dataObj: initialDataObj, errorObj: initialErrorObj } = await loadServerPageData({
+    pageConfig: PAGE_CONFIG,
+  });
+  return <SignupView initialDataObj={initialDataObj} initialErrorObj={initialErrorObj} />;
 };
 
 export default SignupPage;

@@ -1,7 +1,7 @@
 "use client";
 /**
  * 파일명: usePageData.jsx
- * 작성자: Codex
+ * 작성자: LSH
  * 갱신일: 2026-02-28
  * 설명: PAGE_CONFIG 기반 페이지 데이터 자동 로딩 훅
  */
@@ -46,15 +46,14 @@ const applySnapshot = ({
  * @param {boolean} [params.auto]
  * @returns {{mode:string, dataObj:Object, errorObj:Object, isLoading:boolean, hasError:boolean, reload:Function}}
  */
-export function usePageData({
+export const usePageData = ({
   pageConfig,
   initialDataObj = EMPTY_OBJ,
   initialErrorObj = EMPTY_OBJ,
   auto = true,
-} = {}) {
+} = {}) => {
   const normalizedConfig = normalizePageConfig(pageConfig);
   const ui = EasyObj({
-    mode: normalizedConfig.MODE,
     isLoading: false,
   });
   const dataObj = EasyObj(initialDataObj || EMPTY_OBJ);
@@ -108,10 +107,10 @@ export function usePageData({
     }
   };
 
-  useEffect(() => {
-    ui.mode = normalizedConfig.MODE;
-  }, [normalizedConfig.MODE]);
-
+  /**
+   * @description useEffect 실행 흐름 관리
+   * 처리 규칙: effect 실행/cleanup 경계를 명시적으로 유지.
+   */
   useEffect(() => {
     applySnapshot({
       dataObj,
@@ -121,6 +120,10 @@ export function usePageData({
     });
   }, [initialDataObj, initialErrorObj]);
 
+  /**
+   * @description useEffect 실행 흐름 관리
+   * 처리 규칙: effect 실행/cleanup 경계를 명시적으로 유지.
+   */
   useEffect(() => {
     if (!auto) return undefined;
     if (isSsrMode(normalizedConfig.MODE)) {
@@ -128,6 +131,12 @@ export function usePageData({
       return undefined;
     }
     let isMounted = true;
+
+    /**
+     * @description 자동 로딩 초기 호출 실행
+     * 처리 규칙: 마운트 유지 상태에서만 로딩 완료 상태를 반영한다.
+     * @returns {Promise<void>}
+     */
     const executeAutoLoad = async () => {
       try {
         await load();
@@ -136,6 +145,7 @@ export function usePageData({
         ui.isLoading = false;
       }
     };
+
     executeAutoLoad();
     return () => {
       isMounted = false;
@@ -144,13 +154,13 @@ export function usePageData({
 
   const hasError = Object.keys(errorObj.toJSON() || {}).length > 0;
   return {
-    mode: ui.mode,
+    mode: normalizedConfig.MODE,
     dataObj,
     errorObj,
     isLoading: !!ui.isLoading,
     hasError,
     reload,
   };
-}
+};
 
 export default usePageData;

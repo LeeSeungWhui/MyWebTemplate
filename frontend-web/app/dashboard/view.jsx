@@ -11,6 +11,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEasyList } from "@/app/lib/dataset/EasyList";
 import EasyObj from "@/app/lib/dataset/EasyObj";
+import { usePageData } from "@/app/lib/hooks/usePageData";
 import Button from "@/app/lib/component/Button";
 import Card from "@/app/lib/component/Card";
 import EasyChart from "@/app/lib/component/EasyChart";
@@ -18,38 +19,63 @@ import EasyTable from "@/app/lib/component/EasyTable";
 import Skeleton from "@/app/lib/component/Skeleton";
 import Stat from "@/app/lib/component/Stat";
 import { apiJSON } from "@/app/lib/runtime/api";
-import { PAGE_MODE } from "./initData";
-import {
-  DASHBOARD_ERROR_KEY,
-  isSsrMode,
-  toErrorState,
-} from "./dataStrategy";
+import { PAGE_CONFIG } from "./initData";
 import LANG_KO from "./lang.ko";
 
 const CHART_HEIGHT = 180;
 const DONUT_HEIGHT = 180;
 const STATUS_ORDER = ["ready", "pending", "running", "done", "failed"];
+const DASHBOARD_ERROR_KEY = {
+  ENDPOINT_MISSING: "ENDPOINT_MISSING",
+  INIT_FETCH_FAILED: "INIT_FETCH_FAILED",
+};
 
 /**
  * @description 대시보드 요약 통계/차트/최근 목록 화면을 렌더링. 입력/출력 계약을 함께 명시
  * 처리 규칙: SSR 데이터가 있으면 즉시 사용하고, 없으면 API로 stats/list를 병렬 조회한다.
  */
-const DashboardView = ({ statList, dataList, initialError }) => {
-
+const DashboardView = ({
+  initialDataObj = {},
+  initialErrorObj = {},
+}) => {
+  const statsPayload = initialDataObj?.stats;
+  const listPayload = initialDataObj?.list;
+  const listResult = listPayload?.result;
+  const statList = Array.isArray(statsPayload?.result?.byStatus)
+    ? statsPayload.result.byStatus
+    : [];
+  const dataList = Array.isArray(listResult)
+    ? listResult
+    : Array.isArray(listResult?.items)
+      ? listResult.items
+      : [];
+  const initialError = initialErrorObj?.stats || initialErrorObj?.list || null;
   const router = useRouter();
+  const { mode: pageMode } = usePageData({
+    pageConfig: PAGE_CONFIG,
+    initialDataObj,
+    initialErrorObj,
+    auto: false,
+  });
   const statsList = useEasyList(statList || []);
   const dashboardDataList = useEasyList(dataList || []);
   const ui = EasyObj({
     isLoading:
-      !isSsrMode(PAGE_MODE.MODE) || !statList?.length || !dataList?.length,
+      String(pageMode || "").toUpperCase() !== "SSR"
+      || !statList?.length
+      || !dataList?.length,
     error: normalizeErrorState(initialError),
   });
-  const endpoints = PAGE_MODE.endPoints || {};
+  const endpoints = PAGE_CONFIG.API || {};
   const hasEndpoint = Boolean(endpoints.stats && endpoints.list);
 
+  /**
+   * @description SSR 주입 데이터 우선 사용 여부를 판별하고 초기 목록 로딩 트리거를 수행
+   * 처리 규칙: SSR 모드에서 초기 데이터가 있으면 복사만 수행하고 API 호출은 생략.
+   */
   useEffect(() => {
     const hasSsrData = statList?.length && dataList?.length;
-    if (isSsrMode(PAGE_MODE.MODE) && hasSsrData) {
+    if (String(pageMode || "").toUpperCase() === "SSR" && hasSsrData) {
       statsList.copy(statList || []);
       dashboardDataList.copy(dataList || []);
       ui.isLoading = false;
@@ -203,7 +229,7 @@ const DashboardView = ({ statList, dataList, initialError }) => {
    */
   const fetchDashboard = async () => {
     if (!hasEndpoint) {
-      ui.error = toErrorState(null, DASHBOARD_ERROR_KEY.ENDPOINT_MISSING);
+      ui.error = { key: DASHBOARD_ERROR_KEY.ENDPOINT_MISSING };
       return;
     }
     ui.isLoading = true;
@@ -223,7 +249,11 @@ const DashboardView = ({ statList, dataList, initialError }) => {
       dashboardDataList.copy(normalizedItems);
     } catch (err) {
       console.error(LANG_KO.view.error.fetchFailed, err);
-      ui.error = toErrorState(err, DASHBOARD_ERROR_KEY.INIT_FETCH_FAILED);
+      ui.error = {
+        key: DASHBOARD_ERROR_KEY.INIT_FETCH_FAILED,
+        code: err?.code,
+        requestId: err?.requestId,
+      };
     } finally {
       ui.isLoading = false;
     }

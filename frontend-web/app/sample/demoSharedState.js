@@ -30,6 +30,10 @@ export const useDemoSharedState = ({ stateKey, initialValue }) => {
   const { shared, setShared } = useSharedData();
   const sharedValue = shared?.[stateKey];
 
+  /**
+   * @description useEffect 실행 흐름 관리
+   * 처리 규칙: effect 실행/cleanup 경계를 명시적으로 유지.
+   */
   useEffect(() => {
     /**
      * @description 공유 상태 미존재 시 초기값 1회 채움

@@ -9,9 +9,6 @@
 import { useEffect } from 'react'
 import { useSharedStore } from './SharedStore'
 
-
-
-
 /**
  * @description SSR에서 주입된 user/shared/config 값을 공용 store에 1회 하이드레이션
  * @param {Object} props
@@ -21,8 +18,12 @@ import { useSharedStore } from './SharedStore'
  * @returns {null}
  */
 const SharedHydrator = ({ userJson, sharedPatch, config }) => {
-
   const { setUserJson, setUser, setShared, setConfig } = useSharedStore()
+
+  /**
+   * @description useEffect 실행 흐름 관리
+   * 처리 규칙: effect 실행/cleanup 경계를 명시적으로 유지.
+   */
   useEffect(() => {
     if (typeof userJson !== 'undefined') {
       setUserJson(userJson || null)

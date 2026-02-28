@@ -43,7 +43,7 @@
 - CU-WEB-006: implemented — 페이지별 `PAGE_MODE` + `dynamic/runtime/revalidate/fetchCache` 규약 적용(보호 경로 기본 SSR/nodejs/no-store)
 - CU-WEB-007: completed — `frontend-web` Vite → Next 마이그레이션 반영 완료
 - CU-WEB-008: implemented — `middleware.js` 리다이렉트 규칙 + `nx/auth_reason` 쿠키 정리, 프리페치 bypass 포함
-- CU-WEB-009: implemented — `initData` 기반 MODE 분기(SSR/CSR) + `dataStrategy` 유틸 + 단위 테스트(`dashboardDataStrategy`)로 데이터 패치 계약 고정
+- CU-WEB-009: implemented — `initData(PAGE_CONFIG)` 기반 MODE 분기(SSR/CSR) + `page/view` 일관 데이터 로더 패턴 + 대시보드 데이터 로더 단위 테스트로 데이터 패치 계약 고정
 - CU-WEB-010: implemented — `/forgot-password` 템플릿 인증 보조 경로(공개 GNB 비노출)
 - CU-WEB-011: implemented — 공개 퍼널을 `/(랜딩) → /sample/* + /component` 구조로 고정하고 템플릿 인증 경로 비노출 정책 반영
 - CU-WEB-012: implemented — 공개 GNB(샘플 드롭다운/모바일 메뉴) + 랜딩 섹션 + 단일 CTA(`샘플 보기`) 구성 반영

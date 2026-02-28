@@ -86,6 +86,11 @@ const normalizeOptions = (dataList = [], valueKey, textKey) => {
  * @updated 2026-02-27
  */ // 룰게이트 예외 허용: rule-gate: allow-function-declaration
 function useEasySubscription(model, handler) {
+
+  /**
+   * @description useEffect 실행 흐름 관리
+   * 처리 규칙: effect 실행/cleanup 경계를 명시적으로 유지.
+   */
   useEffect(() => {
     if (!model || typeof model.subscribe !== 'function') return undefined
     const unsubscribe = model.subscribe(handler)
@@ -153,6 +158,10 @@ const Select = forwardRef(({
   const currentValue = isControlled ? String(valueProp ?? '') : innerValue
 
 
+  /**
+   * @description useEffect 실행 흐름 관리
+   * 처리 규칙: effect 실행/cleanup 경계를 명시적으로 유지.
+   */
   useEffect(() => {
     const normalized = String(currentValue ?? '')
 
@@ -175,6 +184,10 @@ const Select = forwardRef(({
   }, [dataList, valueKey, currentValue])
 
 
+  /**
+   * @description useEffect 실행 흐름 관리
+   * 처리 규칙: effect 실행/cleanup 경계를 명시적으로 유지.
+   */
   useEffect(() => {
     if (isControlled) return
     const next = deriveValueFromSources()

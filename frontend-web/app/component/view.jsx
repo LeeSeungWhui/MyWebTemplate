@@ -8,6 +8,7 @@
 
 import { useEffect } from "react";
 import EasyObj from "@/app/lib/dataset/EasyObj";
+import { usePageData } from "@/app/lib/hooks/usePageData";
 import TableOfContents from "./docs/shared/TableOfContents";
 import TopButton from "./docs/shared/TopButton";
 import DataClassDocs from "./docs/components/DataClassDocs";
@@ -43,17 +44,31 @@ import ModalDocs from "./docs/components/ModalDocs";
 import EasyEditorDocs from "./docs/components/EasyEditorDocs";
 import EasyChartDocs from "./docs/components/EasyChartDocs";
 import PdfViewerDocs from "./docs/components/PdfViewerDocs";
+import { PAGE_CONFIG } from "./initData";
 import LANG_KO from "./lang.ko";
 
 /**
  * @description 컴포넌트 문서 허브를 렌더링하고 모바일 TOC 열림 상태를 제어
- * @param {{ pageMode?: string }} props
+ * @param {Object} props
+ * @param {Object} [props.initialDataObj]
+ * @param {Object} [props.initialErrorObj]
  * @returns {JSX.Element} 문서 허브 화면
  */
-const ComponentsView = ({ pageMode = "CSR" }) => {
-
+const ComponentsView = ({
+  initialDataObj = {},
+  initialErrorObj = {},
+}) => {
   const ui = EasyObj({ mobileTocOpen: false });
+  const { mode: pageMode } = usePageData({
+    pageConfig: PAGE_CONFIG,
+    initialDataObj,
+    initialErrorObj,
+  });
 
+  /**
+   * @description 문서 화면 전역 ESC 키를 구독해 모바일 TOC 닫힘 동작 동기화
+   * 처리 규칙: effect cleanup에서 keydown 리스너를 반드시 해제한다.
+   */
   useEffect(() => {
 
     /**
@@ -72,6 +87,10 @@ const ComponentsView = ({ pageMode = "CSR" }) => {
     return () => document.removeEventListener("keydown", handleEscape);
   }, [ui]);
 
+  /**
+   * @description 모바일 TOC 열림 상태에 맞춰 body 스크롤 잠금 동기화
+   * 처리 규칙: 닫힘/언마운트 시 이전 overflow 값을 복원한다.
+   */
   useEffect(() => {
     if (!ui.mobileTocOpen) return;
     const previousOverflow = document.body.style.overflow;

@@ -6,6 +6,8 @@
  */
 
 import ForgotPasswordView from "./view";
+import { PAGE_CONFIG } from "./initData";
+import { loadServerPageData } from "@/app/lib/runtime/pageData";
 import LANG_KO from "./lang.ko";
 
 export const dynamic = "force-dynamic";
@@ -23,7 +25,15 @@ export const metadata = {
  * @returns {Promise<JSX.Element>}
  */
 const ForgotPasswordPage = async () => {
-  return <ForgotPasswordView />;
+  const { dataObj: initialDataObj, errorObj: initialErrorObj } = await loadServerPageData({
+    pageConfig: PAGE_CONFIG,
+  });
+  return (
+    <ForgotPasswordView
+      initialDataObj={initialDataObj}
+      initialErrorObj={initialErrorObj}
+    />
+  );
 };
 
 export default ForgotPasswordPage;

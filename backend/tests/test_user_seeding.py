@@ -25,10 +25,8 @@ def testUserSeedInitAndDemo():
         con = mod.connect(dbPath)
         try:
             mod.ensureTable(con)
-            # initially empty
             cnt = con.execute("SELECT COUNT(*) FROM T_USER").fetchone()[0]
             assert cnt == 0
-            # seed demo
             mod.seedDemo(con)
             cnt2 = con.execute("SELECT COUNT(*) FROM T_USER").fetchone()[0]
             assert cnt2 == 1

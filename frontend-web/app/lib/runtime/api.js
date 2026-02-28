@@ -128,13 +128,6 @@ function serializeBody(input) {
  */ // 룰게이트 예외 허용: rule-gate: allow-function-declaration
 function normalizeArgs(path, a2, a3) {
 
-
-
-
-
-
-
-
   /**
    * @description 값이 RequestInit 유사 객체인지 판별
    * 처리 규칙: body-like 값은 제외하고, method/headers/body/authless 키 보유 여부로 판별한다.
