@@ -14,8 +14,10 @@ class ServiceError(Exception):
 
     def __init__(self, code: str):
         """
-        설명: 에러 코드를 보관하고 부모 예외 메시지로도 설정. 호출 맥락의 제약을 기준으로 동작 기준을 확정
-        갱신일: 2026-02-27
+        설명: 서비스 에러 코드를 정규화해 예외 메시지로 설정
+        처리 규칙: code 입력은 문자열로 강제 변환 후 trim 처리
+        부작용: self.code 보관 및 부모 Exception 메시지 초기화
+        갱신일: 2026-02-28
         """
         self.code = str(code or "").strip()
         super().__init__(self.code)

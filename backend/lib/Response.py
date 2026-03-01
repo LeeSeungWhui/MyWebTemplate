@@ -23,8 +23,10 @@ class StandardResponse(BaseModel):
 
 def dumpModel(model: BaseModel) -> Dict[str, Any]:
     """
-    설명: Pydantic v1/v2 호환으로 dict를 반환. 호출 맥락의 제약을 기준으로 동작 기준을 확정
-    갱신일: 2026-01-18
+    설명: Pydantic v1/v2 호환 dict 직렬화
+    처리 규칙: model_dump를 우선 호출하고 미지원 런타임에서는 dict 폴백을 사용
+    반환값: exclude_none이 적용된 표준 dict 응답
+    갱신일: 2026-02-28
     """
     dumpFn = getattr(model, "model_dump", None)
     if callable(dumpFn):

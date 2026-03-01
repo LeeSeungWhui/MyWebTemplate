@@ -22,11 +22,23 @@ const JWT_SEGMENT_RE = /^[A-Za-z0-9_-]+$/;
 const JWT_MAX_LENGTH = 4096;
 const JWT_PAYLOAD_MAX_LENGTH = 4096;
 
+/**
+ * @description JWT 세그먼트 문자열 형식을 검증
+ * 처리 규칙: 빈 값/비문자열은 false로 처리하고 base64url 허용 문자만 통과시킨다.
+ * 반환값: JWT 세그먼트 형식 적합 여부(boolean)
+ * @updated 2026-02-28
+ */
 function isValidJwtSegment(segment) {
   if (!segment || typeof segment !== "string") return false;
   return JWT_SEGMENT_RE.test(segment);
 }
 
+/**
+ * @description JWT payload에서 exp(만료 시각, epoch seconds)를 안전하게 추출
+ * 처리 규칙: 토큰 형식/길이/payload JSON을 검증하고 유효하지 않으면 null을 반환한다.
+ * 반환값: 만료 시각(exp) 정수 또는 null
+ * @updated 2026-02-28
+ */
 function getJwtExpSeconds(token) {
   if (!token || typeof token !== "string") return null;
   const normalized = token.trim();
@@ -48,6 +60,12 @@ function getJwtExpSeconds(token) {
   }
 }
 
+/**
+ * @description 현재 시각 기준 JWT 만료 여부를 leeway를 포함해 판정
+ * 처리 규칙: exp가 없거나 비정상이면 만료로 간주(false)하고, 유효 시각이면 true를 반환한다.
+ * 반환값: 토큰 만료 전 여부(boolean)
+ * @updated 2026-02-28
+ */
 function isJwtNotExpired(token, leewaySeconds = 30) {
   const exp = getJwtExpSeconds(token);
   if (!exp) return false;
@@ -55,6 +73,12 @@ function isJwtNotExpired(token, leewaySeconds = 30) {
   return exp > now + Math.max(0, Number(leewaySeconds) || 0);
 }
 
+/**
+ * @description 공개/보호 경로 접근 시 인증 쿠키 상태에 맞는 리다이렉트 정책을 수행
+ * 처리 규칙: refresh/access 쿠키와 요청 경로를 기준으로 next/login/bootstrap/dashboard 분기를 적용한다.
+ * 반환값: NextResponse.next() 또는 NextResponse.redirect() 응답 객체
+ * @updated 2026-02-28
+ */
 export async function middleware(req) {
   const url = new URL(req.url);
   const path = url.pathname;

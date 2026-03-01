@@ -33,8 +33,10 @@ async def healthz(request: Request):
 @router.get("/readyz")
 async def readyz(request: Request):
     """
-    설명: 레디니스 체크 결과를 상태코드와 함께 반환. 호출 맥락의 제약을 기준으로 동작 기준을 확정
-    갱신일: 2026-02-24
+    설명: 레디니스 체크 결과를 상태코드와 함께 반환
+    처리 규칙: isReady=true면 200 success, false면 로케일 메시지와 code(OBS_503_NOT_READY)로 503 반환
+    반환값: Cache-Control=no-store가 적용된 표준 JSONResponse
+    갱신일: 2026-02-28
     """
     result, isReady = await CommonService.readyz({})
     if isReady:

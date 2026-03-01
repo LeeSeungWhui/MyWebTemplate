@@ -357,8 +357,11 @@ logger.info("router load done")
 @app.exception_handler(Exception)
 async def globalExceptionHandler(request: Request, exc: Exception):
     """
-    설명: 처리되지 않은 예외를 표준 에러 응답(JSON)으로 변환. 호출 맥락의 제약을 기준으로 동작 기준을 확정
-    갱신일: 2026-02-24
+    설명: 처리되지 않은 예외를 표준 에러 응답(JSON)으로 변환
+    처리 규칙: 내부 예외 상세는 응답에서 숨기고 path/code만 포함한 500 응답을 반환
+    실패 동작: 로거 기록 실패는 무시하고 예외 핸들링 흐름을 유지
+    반환값: status=500 표준 JSONResponse
+    갱신일: 2026-02-28
     """
     try:
         # 내부 예외 메시지는 응답에 노출하지 않고, 로그로만 남긴다.
@@ -400,8 +403,10 @@ def sanitizeValidationErrors(errors: object) -> list[dict]:
 @app.exception_handler(RequestValidationError)
 async def requestValidationExceptionHandler(request: Request, exc: RequestValidationError):
     """
-    설명: 요청 바디/파라미터 검증 실패를 표준 422 응답으로 변환. 호출 맥락의 제약을 기준으로 동작 기준을 확정
-    갱신일: 2026-02-24
+    설명: 요청 바디/파라미터 검증 실패를 표준 422 응답으로 변환
+    처리 규칙: 검증 오류 detail에서 loc/msg/type 최소 필드만 노출
+    반환값: status=422 표준 JSONResponse
+    갱신일: 2026-02-28
     """
     return JSONResponse(
         status_code=422,

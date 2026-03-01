@@ -57,15 +57,27 @@ def transaction(
     *,
     isolation: str | None = None,
     timeoutMs: int | None = None,
-    timeout_ms: int | None = None,
     retries: int = 0,
     retryOn: Tuple[type[BaseException], ...] = (),
+    **legacyOptions: object,
 ):
     """
     설명: 단일/다중 DB 트랜잭션을 지원하는 데코레이터
-    인자: dbNames/isolation/timeoutMs(timeout_ms)/retries/retryOn
-    갱신일: 2026-02-26
+    처리 규칙: timeoutMs를 기준으로 옵션을 구성하고, 레거시 timeout_ms 키는 하위호환으로만 수용
+    실패 동작: 미지원 키워드 인자 전달 시 TypeError를 발생
+    인자: dbNames/isolation/timeoutMs/retries/retryOn
+    갱신일: 2026-02-28
     """
+    normalizedTimeoutMs = timeoutMs
+    if "timeout_ms" in legacyOptions:
+        if normalizedTimeoutMs is None:
+            normalizedTimeoutMs = legacyOptions.pop("timeout_ms")  # type: ignore[assignment]
+        else:
+            legacyOptions.pop("timeout_ms")
+    if legacyOptions:
+        unknownKey = sorted(str(key) for key in legacyOptions.keys())[0]
+        raise TypeError(f"transaction() got an unexpected keyword argument '{unknownKey}'")
+
     if isinstance(dbNames, str):
         dbList = [dbNames]
     else:
@@ -74,7 +86,7 @@ def transaction(
     transactionOptions: dict[str, object] = {}
     if isinstance(isolation, str) and isolation.strip():
         transactionOptions["isolation"] = isolation.strip()
-    effectiveTimeoutMs = timeoutMs if timeoutMs is not None else timeout_ms
+    effectiveTimeoutMs = normalizedTimeoutMs
     if effectiveTimeoutMs is not None:
         try:
             timeoutFloat = float(effectiveTimeoutMs) / 1000.0
@@ -85,8 +97,10 @@ def transaction(
 
     def decorator(func):
         """
-        설명: 트랜잭션 옵션을 캡처한 데코레이터를 생성. 호출 맥락의 제약을 기준으로 동작 기준을 확정
-        갱신일: 2026-02-26
+        설명: 트랜잭션 옵션을 캡처한 데코레이터 생성
+        처리 규칙: 외부에서 전달된 옵션을 고정한 wrapper를 반환
+        반환값: 트랜잭션 경계를 적용한 비동기 wrapper 함수
+        갱신일: 2026-02-28
         """
 
         @wraps(func)
