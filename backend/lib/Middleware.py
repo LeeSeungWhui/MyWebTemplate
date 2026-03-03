@@ -61,7 +61,7 @@ async def writeUserAccessLogSafely(
 
 def parsePositiveInt(rawValue: object) -> int | None:
     """
-    설명: 양의 정수 값만 파싱해서 반환. 호출 맥락의 제약을 기준으로 동작 기준을 확정
+    설명: 양의 정수 값만 파싱해서 반환. 호출 맥락의 제약을 기준으로 동작 기준 확정
     반환값: 1 이상 정수면 해당 값, 그 외 입력은 None
     갱신일: 2026-02-22
     """
@@ -123,7 +123,7 @@ def getSqlWarnThreshold() -> int:
 
 def resolveClientIp(request: Request) -> str | None:
     """
-    설명: 요청 헤더/소켓 정보를 기반으로 클라이언트 IP를 추정
+    설명: 요청 헤더/소켓 정보를 기반으로 클라이언트 IP 추정
     우선순위: X-Forwarded-For(첫 IP) > X-Real-IP > request.client.host
     갱신일: 2026-02-22
     """
@@ -154,7 +154,7 @@ def resolveClientIp(request: Request) -> str | None:
 
 def resolveAuthUsername(request: Request) -> str | None:
     """
-    설명: 인증 의존성에서 주입한 request. state. authUsername 값을 조회. 호출 맥락의 제약을 기준으로 동작 기준을 확정
+    설명: 인증 의존성에서 주입한 request. state. authUsername 값을 조회. 호출 맥락의 제약을 기준으로 동작 기준 확정
     반환값: 공백 제거 후 유효 문자열 username 또는 None
     갱신일: 2026-02-22
     """
@@ -169,7 +169,7 @@ def resolveAuthUsername(request: Request) -> str | None:
 
 def maskClientIpForLog(clientIp: str | None) -> str | None:
     """
-    설명: 로그 출력용 클라이언트 IP를 마스킹
+    설명: 로그 출력용 클라이언트 IP 마스킹
     처리 규칙: IPv4는 마지막 octet을 `*`, IPv6는 앞 4블록만 남기고 나머지는 `*`로 마스킹
     갱신일: 2026-02-22
     """

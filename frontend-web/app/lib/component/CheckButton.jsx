@@ -1,7 +1,7 @@
 /**
  * 파일명: CheckButton.jsx
  * 작성자: LSH
- * 갱신일: 2025-02-19
+ * 갱신일: 2026-03-03
  * 설명: CheckButton UI 컴포넌트 구현
  */
 import React, { useState, useEffect } from 'react';
@@ -70,7 +70,7 @@ const CheckButton = React.forwardRef(({
         }
 
         const ctx = buildCtx({ dataKey: dataKeyName, dataObj, source: 'user', dirty: true, valid: null });
-        try { event.target.value = newChecked; } catch (_) {  }
+        try { event.target.value = newChecked; } catch (eventSyncError) { void eventSyncError; }
         fireValueHandlers({
             onChange,
             onValueChange,

@@ -2,14 +2,15 @@
 /**
  * 파일명: sample/portfolio/view.jsx
  * 작성자: LSH
- * 갱신일: 2026-02-24
+ * 갱신일: 2026-03-03
  * 설명: 공개 포트폴리오 페이지 뷰(시각 중심 리뉴얼)
  */
 
 import Image from "next/image";
 import Link from "next/link";
-import { usePageData } from "@/app/lib/hooks/usePageData";
 import { PAGE_CONFIG } from "./initData";
+import { normalizePageConfig } from "@/app/lib/runtime/pageData";
+import { usePageData } from "@/app/lib/hooks/usePageData";
 import LANG_KO from "./lang.ko";
 
 const flowItemClassName =
@@ -20,18 +21,21 @@ const SAMPLE_PORTFOLIO_CONTENT = { ...LANG_KO.initData.content };
  * @description 공개 포트폴리오 콘텐츠를 시각 섹션으로 구성해 렌더링. 입력/출력 계약을 함께 명시
  * @returns {JSX.Element}
  */
-const PortfolioView = ({ initialDataObj = {}, initialErrorObj = {} }) => {
+const PortfolioView = ({ initialDataObj, initialErrorObj }) => {
+  const pageMode = normalizePageConfig(PAGE_CONFIG).MODE;
   usePageData({
     pageConfig: PAGE_CONFIG,
     initialDataObj,
     initialErrorObj,
-    auto: false,
   });
   const content = SAMPLE_PORTFOLIO_CONTENT;
 
   return (
     <>
-      <section className="overflow-hidden rounded-3xl bg-gradient-to-br from-[#1e3a5f] to-[#312e81] px-6 py-10 text-white shadow-xl sm:px-10">
+      <section
+        className="overflow-hidden rounded-3xl bg-gradient-to-br from-[#1e3a5f] to-[#312e81] px-6 py-10 text-white shadow-xl sm:px-10"
+        data-page-mode={pageMode}
+      >
         <p className="text-xs font-semibold tracking-wide text-blue-100">
           {LANG_KO.view.heroBadge}
         </p>

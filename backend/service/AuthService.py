@@ -12,7 +12,6 @@ import base64
 import hashlib
 import hmac
 import json
-import os
 import re
 import secrets
 from datetime import datetime, timezone
@@ -27,7 +26,6 @@ from jose import JWTError, jwt
 from lib.Auth import AuthConfig, Token, createAccessToken, createRefreshToken
 from lib import Database as DB
 from lib.Casing import convertKeysToCamelCase
-from lib.Config import getConfig
 from lib.Logger import logger
 from lib.Masking import maskUserIdentifierForLog
 from lib.RequestContext import getRequestId
@@ -38,7 +36,6 @@ TOKEN_STATE_GRACE = "grace"
 
 # 토큰 상태 저장소 준비 상태
 tokenStateStoreReady = False
-tokenStateStoreWarned = False
 
 # 인메모리 폴백 스토어(DB 저장소 사용 불가 시 사용)
 # 키는 refresh jti, 값은 refresh 만료 기준 ms TTL
@@ -47,57 +44,9 @@ revokedRefreshJtiStore: dict[str, int] = {}
 refreshGraceStore: dict[str, dict[str, Any]] = {}
 
 
-def _toBool(rawValue: object, defaultValue: bool = False) -> bool:
-    """
-    설명: 문자열/숫자 형태의 bool 값을 파싱
-    반환값: 파싱 성공 시 bool 값, 해석 불가 시 defaultValue
-    갱신일: 2026-02-24
-    """
-    if rawValue is None:
-        return defaultValue
-    value = str(rawValue).strip().lower()
-    if value in {"1", "true", "yes", "on"}:
-        return True
-    if value in {"0", "false", "no", "off"}:
-        return False
-    return defaultValue
-
-
-def _getRuntimeMode() -> str:
-    """
-    설명: 인증 분기에서 사용하는 서버 런타임 모드 식별자 계산 규칙
-    처리 규칙: SERVER.runtime 설정값을 우선 사용하고, 비어 있으면 ENV 환경변수를 대체 사용
-    반환값: 공백 제거/대문자화가 적용된 런타임 문자열
-    갱신일: 2026-02-24
-    """
-    runtime = ""
-    try:
-        config = getConfig()
-        if "SERVER" in config:
-            runtime = str(config["SERVER"].get("runtime", "")).strip().upper()
-    except Exception:
-        runtime = ""
-    if runtime:
-        return runtime
-    return str(os.getenv("ENV", "")).strip().upper()
-
-
-def allowMemoryTokenStateFallback() -> bool:
-    """
-    설명: 토큰 상태 저장소 DB 장애 시 인메모리 폴백 허용 여부 결정 규칙
-    우선순위: AUTH_ALLOW_MEMORY_TOKEN_STATE > runtime(TEST/CI)
-    갱신일: 2026-02-24
-    """
-    envRaw = os.getenv("AUTH_ALLOW_MEMORY_TOKEN_STATE")
-    if envRaw is not None and str(envRaw).strip() != "":
-        return _toBool(envRaw, False)
-    runtime = _getRuntimeMode()
-    return runtime in {"TEST", "CI"}
-
-
 def tokenStateStoreUnavailableError(reason: str) -> RuntimeError:
     """
-    설명: 토큰 상태 저장소 미가용 상황을 RuntimeError로 래핑하는 헬퍼
+    설명: 토큰 상태 저장소 미가용 상황을 RuntimeError로 래핑하 헬퍼
     반환값: 원인(reason)이 포함된 RuntimeError 인스턴스
     갱신일: 2026-02-24
     """
@@ -120,20 +69,15 @@ def _getTokenStateStoreDbManager():
 async def ensureTokenStateStore() -> bool:
     """
     설명: 리프레시 토큰 상태 저장소(DB)의 사용 가능 여부를 점검(필요 시 테이블 생성 DDL 포함)
-    반환값: DB 저장소 준비 완료면 True, 인메모리 폴백 경로면 False, 비허용 장애는 예외를 발생시킨
+    반환값: DB 저장소 준비 완료면 True
+    실패 동작: DB 준비/접근 실패 시 RuntimeError를 발생시킨
     갱신일: 2026-02-26
     """
-    global tokenStateStoreReady, tokenStateStoreWarned
+    global tokenStateStoreReady
     if tokenStateStoreReady:
         return True
-    allowFallback = allowMemoryTokenStateFallback()
     manager = _getTokenStateStoreDbManager()
     if not manager:
-        if allowFallback:
-            if not tokenStateStoreWarned:
-                logger.warning("auth token-state DB manager not ready. fallback=memory")
-                tokenStateStoreWarned = True
-            return False
         raise tokenStateStoreUnavailableError("db manager not ready")
     try:
         await manager.executeQuery("auth.ensureTokenStateTable")
@@ -144,49 +88,43 @@ async def ensureTokenStateStore() -> bool:
         tokenStateStoreReady = True
         logger.info("auth token-state store ready (db)")
         return True
-    except RuntimeError:
-        raise
     except Exception as e:
-        if allowFallback:
-            if not tokenStateStoreWarned:
-                logger.warning(
-                    f"auth token-state store unavailable (schema missing or db error). "
-                    f"fallback=memory error={type(e).__name__}"
-                )
-                tokenStateStoreWarned = True
-            return False
         raise tokenStateStoreUnavailableError(type(e).__name__) from e
 
 
 async def cleanupTokenStateStore(nowMs: int) -> bool:
     """
-    설명: DB 토큰 상태 저장소에서 만료 항목을 정리
-    반환값: 정리 쿼리 성공 여부(boolean)
-    갱신일: 2026-02-24
+    설명: DB 토큰 상태 저장소에서 만료 항목 정리
+    처리 규칙: DB 저장소 모드일 때 정리 쿼리 실패는 RuntimeError로 올려 fail-close
+    반환값: DB 저장소 미사용(메모리 폴백)이면 False, DB 정리 성공이면 True
+    실패 동작: DB 저장소 모드에서 매니저 누락/정리 쿼리 실패 시 RuntimeError를 발생시킨
+    갱신일: 2026-03-02
     """
-    if not await ensureTokenStateStore():
+    useDbTokenStateStore = await ensureTokenStateStore()
+    if not useDbTokenStateStore:
         return False
     manager = _getTokenStateStoreDbManager()
     if not manager:
-        return False
+        raise tokenStateStoreUnavailableError("db manager missing after store ready")
     try:
         await manager.executeQuery("auth.deleteExpiredTokenState", {"nowMs": nowMs})
         return True
-    except Exception:
-        return False
+    except Exception as e:
+        raise tokenStateStoreUnavailableError(f"cleanup_failed:{type(e).__name__}") from e
 
 
 async def getTokenStateEntry(stateType: str, tokenJti: str) -> dict[str, Any] | None:
     """
-    설명: DB 토큰 상태 조회 결과를 expiresAtMs/tokenPayload 구조로 복원하는 로직
+    설명: DB 토큰 상태 조회 결과를 expiresAtMs/tokenPayload 구조로 복원하 로직
     반환값: expiresAtMs/tokenPayload를 포함한 상태 dict 또는 None
     갱신일: 2026-02-24
     """
-    if not await ensureTokenStateStore():
+    useDbTokenStateStore = await ensureTokenStateStore()
+    if not useDbTokenStateStore:
         return None
     manager = _getTokenStateStoreDbManager()
     if not manager:
-        return None
+        raise tokenStateStoreUnavailableError("db manager missing after store ready")
     try:
         row = await manager.fetchOneQuery(
             "auth.getTokenState",
@@ -206,8 +144,8 @@ async def getTokenStateEntry(stateType: str, tokenJti: str) -> dict[str, Any] | 
             except Exception:
                 tokenPayload = None
         return {"expiresAtMs": expiresAtMs, "tokenPayload": tokenPayload}
-    except Exception:
-        return None
+    except Exception as e:
+        raise tokenStateStoreUnavailableError(f"read_failed:{type(e).__name__}") from e
 
 
 async def upsertTokenStateEntry(
@@ -217,15 +155,16 @@ async def upsertTokenStateEntry(
     tokenPayload: dict[str, Any] | None = None,
 ) -> bool:
     """
-    설명: DB 토큰 상태 저장소에 상태 항목을 생성/갱신
+    설명: DB 토큰 상태 저장소에 상태 항목 생성/갱신
     반환값: upsert 성공 여부(boolean)
     갱신일: 2026-02-24
     """
-    if not await ensureTokenStateStore():
+    useDbTokenStateStore = await ensureTokenStateStore()
+    if not useDbTokenStateStore:
         return False
     manager = _getTokenStateStoreDbManager()
     if not manager:
-        return False
+        raise tokenStateStoreUnavailableError("db manager missing after store ready")
     payloadJson: str | None = None
     if isinstance(tokenPayload, dict):
         try:
@@ -251,35 +190,38 @@ async def upsertTokenStateEntry(
             try:
                 await manager.executeQuery("auth.updateTokenState", params)
                 return True
-            except Exception:
-                return False
-        return False
+            except Exception as updateError:
+                raise tokenStateStoreUnavailableError(
+                    f"write_failed:{type(updateError).__name__}"
+                ) from updateError
+        raise tokenStateStoreUnavailableError(f"write_failed:{type(e).__name__}") from e
 
 
 async def deleteTokenStateEntry(stateType: str, tokenJti: str) -> bool:
     """
-    설명: DB 토큰 상태 저장소에서 특정 항목을 제거
+    설명: DB 토큰 상태 저장소에서 특정 항목 제거
     반환값: 삭제 쿼리 성공 여부(boolean)
     갱신일: 2026-02-24
     """
-    if not await ensureTokenStateStore():
+    useDbTokenStateStore = await ensureTokenStateStore()
+    if not useDbTokenStateStore:
         return False
     manager = _getTokenStateStoreDbManager()
     if not manager:
-        return False
+        raise tokenStateStoreUnavailableError("db manager missing after store ready")
     try:
         await manager.executeQuery(
             "auth.deleteTokenState",
             {"stateType": stateType, "tokenJti": tokenJti},
         )
         return True
-    except Exception:
-        return False
+    except Exception as e:
+        raise tokenStateStoreUnavailableError(f"delete_failed:{type(e).__name__}") from e
 
 
 def cleanupRefreshGraceStore(nowMs: int) -> None:
     """
-    설명: refresh grace 캐시에서 만료된 항목을 제거
+    설명: refresh grace 캐시에서 만료된 항목 제거
     부작용: 전역 refreshGraceStore를 직접 갱신
     갱신일: 2026-01-17
     """
@@ -300,7 +242,7 @@ def cleanupRefreshGraceStore(nowMs: int) -> None:
 
 def cleanupRevokedRefreshJtiStore(nowMs: int) -> None:
     """
-    설명: revoked refresh jti store에서 만료된 항목을 제거(TTL)
+    설명: revoked refresh jti store에서 만료된 항목 제거(TTL)
     부작용: 전역 revokedRefreshJtiStore를 직접 갱신
     갱신일: 2026-01-18
     """
@@ -374,9 +316,26 @@ def _extractExpMs(payload: dict[str, Any], nowMs: int) -> int:
     return nowMs + max(0, minutes) * 60 * 1000
 
 
+def normalizeLoginUsername(rawValue: Any) -> str | None:
+    """
+    설명: 로그인 식별자(username/email)를 공백 제거 및 이메일 소문자 기준으로 정규화
+    처리 규칙: 문자열이 아니거나 공백 문자열이면 None, 이메일 형식(@ 포함)은 lower 처리
+    반환값: 정규화된 로그인 식별자 문자열 또는 None
+    갱신일: 2026-03-02
+    """
+    if not isinstance(rawValue, str):
+        return None
+    normalized = rawValue.strip()
+    if not normalized:
+        return None
+    if "@" in normalized:
+        return normalized.lower()
+    return normalized
+
+
 async def me(user):
     """
-    설명: 인증 컨텍스트 사용자 객체를 API 응답용 최소 payload로 매핑하는 로직
+    설명: 인증 컨텍스트 사용자 객체를 API 응답용 최소 payload로 매핑하 로직
     반환값: username 필드를 포함한 사용자 식별 payload dict
     갱신일: 2026-02-25
     """
@@ -385,15 +344,13 @@ async def me(user):
 
 async def login(payload: dict, rememberMe: bool = False) -> dict | None:
     """
-    설명: 로그인 요청의 자격 증명 검증과 토큰 발급/감사로그 기록을 묶은 오케스트레이션
+    설명: 로그인 자격 증명 검증/토큰 발급/감사로그 오케스트레이션 처리
     반환값: 인증 성공 시 user/token dict, 실패 시 None
     갱신일: 2026-02-22
     """
     candidateUsername: str | None = None
     if isinstance(payload, dict):
-        rawUsername = payload.get("username")
-        if isinstance(rawUsername, str):
-            candidateUsername = rawUsername
+        candidateUsername = normalizeLoginUsername(payload.get("username"))
 
     authUser, username = await authenticateUser(payload)
     if not authUser or not username:
@@ -417,7 +374,7 @@ def hashPasswordPbkdf2(plain: str, iterations: int = 260000) -> str:
 
 def isValidEmail(value: str) -> bool:
     """
-    설명: 기본 이메일 형식을 검사
+    설명: 기본 이메일 형식 검사
     반환값: 이메일 정규식 일치 여부(boolean)
     갱신일: 2026-02-22
     """
@@ -468,7 +425,7 @@ def isDuplicateTokenStateConstraintError(error: Exception) -> bool:
 
 async def signup(payload: dict) -> tuple[dict | None, str | None]:
     """
-    설명: 회원가입 입력 검증, 중복 확인, 계정 생성, 결과 코드 매핑까지 처리하는 흐름
+    설명: 회원가입 입력 검증, 중복 확인, 계정 생성, 결과 코드 매핑까지 처리하 흐름
     반환값: (성공 결과 dict, None) 또는 (None, 에러코드)
     갱신일: 2026-02-22
     """
@@ -534,7 +491,7 @@ async def signup(payload: dict) -> tuple[dict | None, str | None]:
 
 def session(payload: dict) -> dict:
     """
-    설명: 세션 조회 원본 payload를 authenticated 중심 표준 결과 형태로 정규화하는 매퍼
+    설명: 세션 조회 원본 payload를 authenticated 중심 표준 결과 형태로 정규화하 매퍼
     반환값: authenticated/userId/name 필드를 갖는 세션 결과 dict
     갱신일: 2026-02-22
     """
@@ -558,7 +515,7 @@ def csrf(_: dict | None = None) -> dict:
 
 async def refresh(refreshToken: str) -> dict | None:
     """
-    설명: refresh 토큰 회전 정책으로 새 Access/Refresh 토큰을 발급
+    설명: refresh 토큰 회전 정책으로 새 Access/Refresh 토큰 발급
     반환값: 재발급 토큰 payload dict 또는 실패 시 None
     갱신일: 2026-02-22
     """
@@ -639,7 +596,7 @@ async def refresh(refreshToken: str) -> dict | None:
 
 async def revokeRefreshToken(refreshToken: str | None) -> None:
     """
-    설명: 로그아웃 시 리프레시 토큰을 블랙리스트에 추가해 재사용을 차단
+    설명: 로그아웃 시 리프레시 토큰을 블랙리스트에 추가해 재사용 차단
     부작용: 토큰 상태 저장소/인메모리 블랙리스트를 갱신하고 감사 로그를 기록
     갱신일: 2025-12-03
     """
@@ -669,7 +626,7 @@ async def revokeRefreshToken(refreshToken: str | None) -> None:
 
 def verifyPassword(plain: str, stored: str) -> bool:
     """
-    설명: 저장 해시 규격(pbkdf2/bcrypt)에 맞춰 평문 비밀번호 일치 여부를 판정하는 검증기
+    설명: 저장 해시 규격(pbkdf2/bcrypt)에 맞춰 평문 비밀번호 일치 여부를 판정하 검증기
     반환값: 해시 검증 성공 여부(boolean)
     갱신일: 2026-02-22
     """
@@ -702,7 +659,7 @@ async def authenticateUser(payload: dict) -> tuple[dict | None, str | None]:
     """
     if not isinstance(payload, dict):
         return None, None
-    username = payload.get("username")
+    username = normalizeLoginUsername(payload.get("username"))
     password = payload.get("password")
     if not isinstance(username, str) or not isinstance(password, str):
         return None, None
@@ -715,6 +672,9 @@ async def authenticateUser(payload: dict) -> tuple[dict | None, str | None]:
     authUser = convertKeysToCamelCase(user)
     if not verifyPassword(password, authUser.get("passwordHash") or ""):
         return None, None
+    canonicalUserId = authUser.get("userId")
+    if isinstance(canonicalUserId, str) and canonicalUserId.strip():
+        return authUser, canonicalUserId.strip()
     return authUser, username
 
 

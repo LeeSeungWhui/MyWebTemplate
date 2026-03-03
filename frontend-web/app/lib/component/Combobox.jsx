@@ -1,7 +1,7 @@
 /**
  * 파일명: Combobox.jsx
  * 작성자: LSH
- * 갱신일: 2025-11-05
+ * 갱신일: 2026-03-03
  * 설명: EasyList/EasyObj와 동기화되는 필터 가능한 콤보박스
  */
 import {
@@ -149,8 +149,8 @@ const normalizeOptions = (dataList = [], valueKey, textKey) => {
       key: Object.prototype.hasOwnProperty.call(item, valueKey) ? rawValue : index,
       value,
       label: String(item?.[textKey] ?? ''),
-      selected: !!item?.selected,
-      placeholder: !!item?.placeholder,
+      selected: Boolean(item?.selected),
+      placeholder: Boolean(item?.placeholder),
       raw: item,
     }
   })
@@ -160,8 +160,8 @@ const normalizeOptions = (dataList = [], valueKey, textKey) => {
  * @description EasyObj/EasyList subscribe API를 React effect로 연결
  * 처리 규칙: subscribe 함수가 있으면 등록하고, effect cleanup에서 unsubscribe를 보장한다.
  * @updated 2026-02-27
- */ // 룰게이트 예외 허용: rule-gate: allow-function-declaration
-function useEasySubscription(model, handler) {
+ */
+const useEasySubscription = (model, handler) => {
 
   /**
    * @description useEffect 실행 흐름 관리
@@ -335,7 +335,7 @@ const Combobox = forwardRef(({
           ? item?.[valueKey].map((valueItem) => String(valueItem))
           : String(item?.[valueKey] ?? '')
         const shouldSelect = Array.isArray(key)
-          ? key.every((k) => nextSet.has(k))
+          ? key.every((selectedKey) => nextSet.has(selectedKey))
           : nextSet.has(String(key))
         if (item.selected !== shouldSelect) item.selected = shouldSelect
         return item
@@ -618,7 +618,7 @@ const Combobox = forwardRef(({
                 className="w-full px-2 py-1 text-sm rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
                 placeholder={COMMON_COMPONENT_LANG_KO.combobox.searchPlaceholder}
                 value={query}
-                onChange={(e) => setQuery(e.target.value)}
+                onChange={(changeEvent) => setQuery(changeEvent.target.value)}
               />
             </div>
           )}

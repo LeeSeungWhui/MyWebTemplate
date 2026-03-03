@@ -2,7 +2,7 @@
 /**
  * 파일명: SharedStore.jsx
  * 작성자: LSH
- * 갱신일: 2026-02-22
+ * 갱신일: 2026-03-03
  * 설명: Zustand 기반 전역 공유 스토어
  */
 
@@ -26,7 +26,7 @@ export const useSharedStore = create((set, get) => ({
     const nextCounter = Math.max(0, (storeState.loadingCounter || 0) + delta);
     return { loadingCounter: nextCounter, isLoading: nextCounter > 0 };
   }),
-  setLoading: (nextLoading) => set({ isLoading: !!nextLoading, loadingCounter: nextLoading ? 1 : 0 }),
+  setLoading: (nextLoading) => set({ isLoading: Boolean(nextLoading), loadingCounter: nextLoading ? 1 : 0 }),
 
   // 알림
   alert: { show: false, title: '', message: '', type: 'info', onClick: undefined, onFocus: undefined },
@@ -67,7 +67,7 @@ export const useSharedStore = create((set, get) => ({
     try {
       if (confirmed && typeof confirm.onConfirm === 'function') confirm.onConfirm();
       if (!confirmed && typeof confirm.onCancel === 'function') confirm.onCancel();
-      if (typeof confirmPromiseResolve === 'function') confirmPromiseResolve(!!confirmed);
+      if (typeof confirmPromiseResolve === 'function') confirmPromiseResolve(Boolean(confirmed));
     } finally {
       set({
         confirm: { show: false, title: '', message: '', type: 'info', confirmText: '확인', cancelText: '취소', onFocus: undefined },
@@ -151,7 +151,7 @@ export const useGlobalUi = () => {
 
 /**
  * 설명: React 훅 컨텍스트 밖에서 안전하게 config 스냅샷 조회. 입력/출력 계약 명시
- * 갱신일: 2026-02-22
+ * 갱신일: 2026-03-02
  */
 export const getConfigSnapshot = () => {
   const state = useSharedStore.getState?.();
@@ -161,7 +161,7 @@ export const getConfigSnapshot = () => {
 
 /**
  * 설명: React 훅 컨텍스트 밖에서 전역 UI 액션 스냅샷 조회. 입력/출력 계약 명시
- * 갱신일: 2026-02-22
+ * 갱신일: 2026-03-02
  */
 export const getGlobalUiActionsSnapshot = () => {
   const state = useSharedStore.getState?.() || {};

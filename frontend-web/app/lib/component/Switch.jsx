@@ -1,7 +1,7 @@
 /**
  * 파일명: Switch.jsx
  * 작성자: LSH
- * 갱신일: 2025-09-13
+ * 갱신일: 2026-03-03
  * 설명: Switch UI 컴포넌트 구현
  */
 import { useState, forwardRef, useEffect } from 'react';
@@ -35,13 +35,13 @@ const Switch = forwardRef(({
 }, ref) => {
 
   const isControlled = propChecked !== undefined;
-  const isDataObj = !!(dataObj && dataKey);
+  const isDataObj = Boolean(dataObj && dataKey);
 
   const inputName = name || dataKey;
 
   const [internalChecked, setInternalChecked] = useState(() => {
     if (isDataObj) return truthy(getBoundValue(dataObj, dataKey));
-    return !!defaultChecked;
+    return Boolean(defaultChecked);
   });
 
   /**
@@ -60,7 +60,7 @@ const Switch = forwardRef(({
    * @updated 2026-02-27
    */
   const getCheckedState = () => {
-    if (isControlled) return !!propChecked;
+    if (isControlled) return Boolean(propChecked);
     if (isDataObj) return truthy(getBoundValue(dataObj, dataKey));
     return internalChecked;
   };
@@ -94,11 +94,11 @@ const Switch = forwardRef(({
         type="checkbox"
         name={inputName}
         className="sr-only"
-        checked={!!checked}
+        checked={Boolean(checked)}
         onChange={handleChange}
         disabled={disabled}
         role="switch"
-        aria-checked={!!checked}
+        aria-checked={Boolean(checked)}
         aria-disabled={disabled}
         {...props}
       />

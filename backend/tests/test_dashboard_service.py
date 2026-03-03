@@ -58,7 +58,8 @@ def testCreateDataTemplateUsesCandidateQueryWhenInsertIdMissing(monkeypatch):
                 "status": "ready",
                 "amount": 1000,
                 "tags": ["qa", "fallback"],
-            }
+            },
+            userId="demo@demo.demo",
         )
     )
 

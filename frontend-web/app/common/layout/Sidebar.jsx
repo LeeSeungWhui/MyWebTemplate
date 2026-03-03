@@ -2,7 +2,7 @@
 /**
  * 파일명: common/layout/Sidebar.jsx
  * 작성자: LSH
- * 갱신일: 2025-11-27
+ * 갱신일: 2026-03-03
  * 설명: 햄버거/화살표 토글이 가능한 공용 사이드바(EasyList 기반)
  */
 
@@ -20,7 +20,7 @@ import { COMMON_COMPONENT_LANG_KO } from "@/app/common/i18n/lang.ko";
  * @updated 2026-02-27
  */
 const isListLike = (list) =>
-  !!list && (typeof list.size === "function" || Array.isArray(list));
+  Boolean(list) && (typeof list.size === "function" || Array.isArray(list));
 
 /**
  * @description menu/subMenu 입력을 순회 가능한 배열로 맞추는 데이터 정규화 유틸.
@@ -68,7 +68,7 @@ const Sidebar = ({
   const EXPANDED_WIDTH = 256;
   const TRANSITION_MS = 180;
   const initialCollapsed =
-    dataObj && collapsedKey ? !!getBoundValue(dataObj, collapsedKey) : false;
+    dataObj && collapsedKey ? Boolean(getBoundValue(dataObj, collapsedKey)) : false;
   const ui = EasyObj({
     collapsed: initialCollapsed,
     renderWidth: isOpen
@@ -87,7 +87,7 @@ const Sidebar = ({
       key: item.menuId ?? item.key ?? item.id ?? item.menuNm,
       label: item.menuNm ?? item.label ?? COMMON_COMPONENT_LANG_KO.sidebar.defaultMenuLabel,
       href: item.href,
-      active: !!item.active,
+      active: Boolean(item.active),
       icon: item.icon,
       badge: item.badge ?? item.count,
       description: item.description,
@@ -103,7 +103,7 @@ const Sidebar = ({
         key: cur.subMenuId ?? cur.subMenuNm ?? cur.menuId,
         label: cur.subMenuNm ?? cur.label ?? COMMON_COMPONENT_LANG_KO.sidebar.defaultSubMenuLabel,
         href: cur.href,
-        active: !!cur.active,
+        active: Boolean(cur.active),
         icon: cur.icon,
         badge: cur.badge ?? cur.count,
         description: cur.description,
@@ -114,12 +114,12 @@ const Sidebar = ({
   }, [subMenuList]);
 
   const hasExplicitActive = useMemo(() => {
-    const menuActiveExists = resolvedItems.some((item) => !!item.active);
+    const menuActiveExists = resolvedItems.some((item) => Boolean(item.active));
     if (menuActiveExists) {
       return true;
     }
     return Array.from(subMenuMap.values()).some((children) =>
-      children.some((child) => !!child.active),
+      children.some((child) => Boolean(child.active)),
     );
   }, [resolvedItems, subMenuMap]);
 
@@ -129,7 +129,7 @@ const Sidebar = ({
    */
   useEffect(() => {
     if (!dataObj || !collapsedKey) return;
-    ui.collapsed = !!getBoundValue(dataObj, collapsedKey);
+    ui.collapsed = Boolean(getBoundValue(dataObj, collapsedKey));
   }, [dataObj, collapsedKey, ui]);
 
   /**

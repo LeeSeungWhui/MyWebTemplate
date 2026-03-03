@@ -1,13 +1,12 @@
 /**
  * 파일명: route.js
  * 작성자: LSH
- * 갱신일: 2026-01-18
+ * 갱신일: 2026-03-03
  * 설명: /login 진입 시 refresh_token으로 access_token을 재발급하고 next(=nx)/dashboard로 자동 리다이렉트
  */
 
 import { NextResponse } from "next/server";
 import { getBackendHost } from "@/app/common/config/getBackendHost.server";
-import { getFrontendHost } from "@/app/common/config/getFrontendHost.server";
 import {
   AUTH_REASON_COOKIE,
   AUTH_REASON_MAXLEN,
@@ -27,8 +26,8 @@ const REFRESH_PATH = "/api/v1/auth/refresh";
 /**
  * 설명: Cookie 헤더 문자열을 단순 파싱(값 디코딩은 별도 처리)
  * 갱신일: 2026-01-18
- */ // 룰게이트 예외 허용: rule-gate: allow-function-declaration
-function parseCookieHeader(cookieHeader) {
+ */
+const parseCookieHeader = (cookieHeader) => {
   const result = {};
   if (!cookieHeader || typeof cookieHeader !== "string") return result;
   const parts = cookieHeader.split(";");
@@ -48,8 +47,8 @@ function parseCookieHeader(cookieHeader) {
 /**
  * 설명: 백엔드 Set-Cookie를 프런트 도메인에 맞게 정리(Domain 제거 + Path 보장)
  * 갱신일: 2026-01-18
- */ // 룰게이트 예외 허용: rule-gate: allow-function-declaration
-function rewriteSetCookie(rawValue) {
+ */
+const rewriteSetCookie = (rawValue) => {
   if (!rawValue || typeof rawValue !== "string") return null;
   const segments = rawValue.split(";");
   const rewritten = [];
@@ -70,8 +69,8 @@ function rewriteSetCookie(rawValue) {
 /**
  * 설명: 런타임별 Response 헤더 구현 차이 흡수와 Set-Cookie 배열 수집
  * 갱신일: 2026-01-18
- */ // 룰게이트 예외 허용: rule-gate: allow-function-declaration
-function collectSetCookies(res) {
+ */
+const collectSetCookies = (res) => {
   let setCookies = res?.headers?.getSetCookie?.() || [];
   if (!setCookies.length) {
     const single = res?.headers?.get?.("set-cookie");
@@ -83,8 +82,8 @@ function collectSetCookies(res) {
 /**
  * 설명: refresh_token 존재 시 access_token 재발급 및 nx(/dashboard) 이동
  * 갱신일: 2026-01-18
- */ // 룰게이트 예외 허용: rule-gate: allow-function-declaration
-export async function GET(request) {
+ */
+export const GET = async (request) => {
   const cookieHeader = request.headers.get("cookie") || "";
   const cookies = parseCookieHeader(cookieHeader);
   const refreshToken = cookies.refresh_token || null;
@@ -98,10 +97,6 @@ export async function GET(request) {
   }
 
   const backendHost = await getBackendHost();
-  const frontendOrigin =
-    (await getFrontendHost()) ||
-    request.nextUrl?.origin ||
-    "";
   const refreshUrl = new URL(REFRESH_PATH, backendHost);
   const headers = new Headers();
   const acceptLanguage = request.headers.get("accept-language");
@@ -110,9 +105,7 @@ export async function GET(request) {
   if (acceptLanguage) headers.set("accept-language", acceptLanguage);
   if (cookieHeader) headers.set("cookie", cookieHeader);
   if (originHeader) headers.set("origin", originHeader);
-  else if (frontendOrigin) headers.set("origin", frontendOrigin);
   if (refererHeader) headers.set("referer", refererHeader);
-  else if (frontendOrigin) headers.set("referer", `${frontendOrigin}/login`);
   headers.set("content-type", "application/json");
 
   const refreshRes = await fetch(refreshUrl, {

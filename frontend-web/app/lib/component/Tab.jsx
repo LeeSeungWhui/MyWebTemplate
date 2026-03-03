@@ -1,7 +1,7 @@
 /**
  * 파일명: Tab.jsx
  * 작성자: LSH
- * 갱신일: 2025-09-13
+ * 갱신일: 2026-03-03
  * 설명: Tab UI 컴포넌트 구현
  */
 import { useState } from 'react';
@@ -69,7 +69,7 @@ const Tab = ({
             stopPropagation() {},
         };
         if (event) {
-            try { event.target.value = index; } catch (_) { /* 무시 */ }
+            try { event.target.value = index; } catch (eventSyncError) { void eventSyncError; /* 무시 */ }
         }
         fireValueHandlers({
             onChange,

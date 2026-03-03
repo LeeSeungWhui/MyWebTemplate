@@ -51,7 +51,16 @@
 
 - `initData.jsx`는 아래 2개 정보만 가진다.
   - `MODE`: `"CSR"` 또는 `"SSR"`
-  - `API`: 엔드포인트 맵(`{ list: "/...", detail: "/..." }`)
+  - `API`: 엔드포인트 맵
+    - 문자열 엔트리: `{ list: "/...", detail: "/..." }`
+    - 옵션 포함 엔트리: `{ session: { path: "/...", method: "GET", authless: true, init: { headers: { "X-Client-Type": "web" } } } }`
+- `PAGE_CONFIG.API` 엔트리 값은 아래만 허용한다.
+  - `"/api/..."` 문자열
+  - `{ path: "/api/...", method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE" | "HEAD" | "OPTIONS", authless?: boolean, init?: RequestInit 유사 객체, fetchInit?: RequestInit 유사 객체 }`
+  - `method`를 생략하면 기본값은 `"GET"`으로 해석한다.
+  - `init`/`fetchInit`에는 `headers`, `body`, `cache`, `credentials` 등 API 호출 옵션을 포함할 수 있다.
+  - 우선순위: 루트(`method`, `body`, `authless`)가 `init`/`fetchInit`보다 우선한다.
+  - 금지: query builder 함수, 함수/동적 계산식
 - `initData.jsx` 금지 항목:
   - 정적 UI 데이터(`CARD_LIST`, `TAB_LIST`, `DEFAULT_FORM` 등)
   - 쿼리 파서/유틸 함수
@@ -64,6 +73,16 @@ export const PAGE_CONFIG = {
   API: {
     list: "/api/v1/example",
     detail: "/api/v1/example/:id",
+    session: {
+      path: "/api/v1/auth/me",
+      method: "GET",
+      authless: true,
+      init: {
+        headers: {
+          "X-Client-Type": "web",
+        },
+      },
+    },
   },
 };
 ```
@@ -201,6 +220,9 @@ export const LANG_KO = {
 
 - 기본 정책:
   - 도메인 데이터(리스트, 상세, 검색 조건 등)와 페이지 UI 상태(토글/탭/선택/로딩/임시 입력값)는 `EasyObj/EasyList`를 기본으로 사용한다.
+  - 입력/선택/토글 계열 컴포넌트는 `lib/component`의 공용 컴포넌트를 우선 사용한다.
+    - 금지: 공용 컴포넌트로 대체 가능한데도 페이지마다 raw `<input>`, `<select>`, `<textarea>`를 신규 구현하는 패턴
+    - 예외: `lib/component`에 동등 기능이 없거나 접근성/제품 요구를 충족할 수 없는 경우(사유를 코드 주석/JSDoc으로 남긴다)
   - 검색/필터는 `draft`와 `applied`를 분리해 관리하는 것을 권장한다.
   - 폼 입력 초기 모델은 `view.jsx`에서 `EasyObj({ ... })` 리터럴로 직접 선언한다.
     - 금지: `EasyObj(useMemo(() => createXxxFormModel(), []))`
@@ -229,18 +251,26 @@ export const LANG_KO = {
     - 권장: `payload.result` 타입 기준 동기화 규칙을 고정한다.
       - `result`가 object면 `<apiName>Obj.copy(payload.result)`
       - `result`가 list면 `<apiName>List.copy(payload.result)`
+    - 공용 유틸 권장: `syncApiResult({ payload, apiObj: <apiName>Obj, apiList: <apiName>List })`
     - 권장 예시:
 
-```jsx
-const payload = await apiJSON(PAGE_CONFIG.API.list, { method: "GET" });
-if (Array.isArray(payload?.result)) {
-  taskList.copy(payload.result);
-} else if (payload?.result && typeof payload.result === "object") {
-  taskDetailObj.copy(payload.result);
-}
-```
+      ```jsx
+      const payload = await apiJSON(PAGE_CONFIG.API.list, { method: "GET" });
+      if (Array.isArray(payload?.result)) {
+        taskList.copy(payload.result);
+      } else if (payload?.result && typeof payload.result === "object") {
+        taskDetailObj.copy(payload.result);
+      }
+      ```
 
-    - 공용 유틸 권장: `syncApiResult({ payload, apiObj: <apiName>Obj, apiList: <apiName>List })`
+  - 공용 입력/선택 컴포넌트는 컴포넌트가 제공하는 바인딩 props(`dataObj + dataKey`, `dataList` 등)를 기본 모드로 사용한다.
+    - 권장: `<Input dataObj={formObj} dataKey="email" />`
+    - 권장: `<Dropdown dataList={statusOptionList} />`
+    - 지양: 같은 값을 `value={...}` + `onChange={...}`로 반복 연결하는 수동 보일러플레이트
+    - `value/checked + onChange` 제어 모드는 아래처럼 필요한 경우에만 허용한다.
+      - 외부 라이브러리 연동으로 완전 제어 상태를 강제할 때
+      - debounce/지연 커밋/복합 마스킹 등 컴포넌트 기본 바인딩 props만으로 요구사항을 만족하기 어려울 때
+    - 분류 기준: 이 패턴은 DOM `ref` 기반의 전통적인 uncontrolled가 아니라, 바인딩 모델을 단일 소스로 두는 model-bound 방식으로 본다.
   - `EasyObj` 상태를 `useState`처럼 감싸는 어댑터 패턴을 만들지 않는다.
     - 금지: `const { a, b, c } = state` (`state`가 `EasyObj`인 경우)
     - 금지: `const applyState = (key, nextValue) => { state[key] = ... }`
@@ -286,7 +316,7 @@ if (Array.isArray(payload?.result)) {
 - API 401 처리 원칙:
   - `apiRequest`가 401을 받으면 `/login?next=...`로 이동시킨다(미들웨어가 `nx` 쿠키로 정리).
 - 로그인 불필요(public) API 호출 규칙:
-  - 로그인 없이도 호출 가능한 API는 호출부에서 `authless` 옵션을 명시한다.
+  - 로그인 없이도 호출 가능한 API는 호출부에서 `authless` 옵션을 명시할 수 있다.
     - 권장: `apiJSON('/notice/list', { method: 'GET' }, { authless: true })`
     - 축약: `apiJSON('/notice/list', { method: 'GET' }, 'authless')`
   - `authless`의 의미는 “CSR에서 401 수신 시 자동 `/login` 리다이렉트 생략”이다.
@@ -395,6 +425,9 @@ if (Array.isArray(payload?.result)) {
 - 읽기 좋은 스타일 우선:
   - `if (!cond) return;`
   - `if (cond) { doSomething(); }`
+- `!!value` 같은 강제 boolean 변환은 기본적으로 지양한다.
+  - 조건식에서는 `if (value)`처럼 원형을 그대로 사용한다.
+  - 타입 정규화가 정말 필요한 경계(API payload/직렬화 직전)에서만 `Boolean(value)`를 제한적으로 사용한다.
 
 ### 4.3 조건 이름 붙이기
 
@@ -449,11 +482,9 @@ if (Array.isArray(payload?.result)) {
 - 큰 설정 객체나 스펙 의미가 있는 데이터는 별도 모듈로 분리한다.
   - 예: `fieldSpecs.mjs`, `formConfig.mjs` 등.
 - 기본은 `view.jsx` 내부 유지다. 아래 기준을 넘을 때만 분리한다.
-- **과대 객체 분리 기준(명시 규칙)**: 아래 중 하나라도 만족하면 별도 모듈로 분리한다.
-  - 단일 객체/배열 리터럴 선언 블록이 **40줄 이상**인 경우
-  - 단일 객체의 최상위 key 개수가 **12개 이상**인 경우
-  - 중첩 깊이가 **3단계 이상**인 하위 객체/배열 블록이 **2개 이상**인 경우
-  - 동일 객체/배열 상수를 같은 파일에서 **3회 이상** 참조하고 화면 가독성을 떨어뜨리는 경우
+- **과대 객체 분리 기준(명시 규칙)**: 아래 조건을 만족하면 별도 모듈로 분리한다.
+  - 동일 객체/배열 상수를 **2개 이상의 파일**에서 참조하고 화면 가독성을 떨어뜨리는 경우
+- 위 조건에 해당하지 않으면 `view.jsx` 내부 유지를 기본으로 한다.
 - 예외(명시): `EasyTable` 컬럼 정의(`tableColumns`, `*ColumnList`, `*Columns`)는 기본적으로 `view.jsx` 내부 유지를 허용한다.
   - 취지: 컬럼 렌더링 로직과 화면 이벤트를 함께 읽을 수 있게 하기 위함.
   - 컬럼 정의를 별도 모듈로 분리하는 경우는 "동일 컬럼 세트를 여러 화면에서 재사용"할 때만 권장한다.
@@ -468,6 +499,9 @@ if (Array.isArray(payload?.result)) {
 
 ### 6.3 서브 컴포넌트 위치
 
+- 새 컴포넌트를 만들기 전에 `lib/component`에서 기존 공용 컴포넌트 존재 여부를 먼저 확인한다.
+  - 동일/유사 컴포넌트가 있으면 우선 재사용하고, 필요한 범위만 `props` 확장으로 해결한다.
+  - 페이지 전용 구현은 공용 컴포넌트로 해결이 불가능하다고 확인된 뒤에만 진행한다.
 - 특정 페이지에서만 쓰는 컴포넌트:
   - 같은 페이지 폴더(또는 인접 파일) 안에 둔다.
 - 여러 페이지에서 재사용될 수 있는 컴포넌트:
@@ -480,6 +514,22 @@ if (Array.isArray(payload?.result)) {
     - 상단: 상수, EasyObj/EasyList, 훅(`useState`, `useRef`, `useEffect` cleanup 등) 선언
     - 중간: 도메인 이름이 붙은 헬퍼/이벤트 함수 (`acceptFile`, `onUpload`, `resolvePdfUrl` 등)
     - 하단: `return (…)` 안에서 JSX 렌더링
+- `view.jsx` 내부 선언/렌더링은 아래 섹션 주석 순서를 고정한다. (`/* n. ... === */` 형식)
+  - 섹션 이름/번호는 아래 순서를 기준으로 유지한다.
+  - 사용하지 않는 섹션도 주석은 유지하고, 블록 내부에 `// 없음`으로 명시한다.
+
+  ```jsx
+  /* 1. 상수 ======================================================================================================================= */
+  /* 2. 데이터 ======================================================================================================================= */
+  /* 3. UI ========================================================================================================================= */
+  /* 4. 팝업 ======================================================================================================================= */
+  /* 5. 기타 ======================================================================================================================= */
+  /* 6. 커스텀 훅 =================================================================================================================== */
+  /* 7. 함수 ======================================================================================================================= */
+  /* 8. useEffect ================================================================================================================== */
+  /* 9. 내부 컴포넌트 ============================================================================================================== */
+  /* 10. 렌더링 ==================================================================================================================== */
+  ```
 - 함수/컴포넌트 내부의 `const`/`let` 선언은 **최상단 배치**를 기본으로 한다.
   - 대상: 값/모델/상태 선언 (`const loginObj`, `const ui`, `const emailRef` 등)
   - 지양: 헬퍼 함수 선언보다 아래에 값 선언을 섞어두는 패턴
@@ -536,7 +586,7 @@ if (Array.isArray(payload?.result)) {
 
 ### 8.1 파일 헤더
 
-- 모든 페이지 템플릿 파일 및 주요 컴포넌트 파일 상단에는 헤더 주석을 단다.(작성자 반드시 LSH로)
+- 모든 런타임 코드 파일 상단에는 헤더 주석을 단다.(작성자 반드시 LSH로)
 
   ```jsx
   /**
@@ -547,7 +597,7 @@ if (Array.isArray(payload?.result)) {
    */
   ```
 
-- 내용은 가능한 한 **한글**로 적는다.
+- 내용은 가능한 한 **한글**로 적고, 변수명/함수명/라이브러리 고유 용어/프로토콜 값 등 코드 식별자는 영어 원문을 유지한다.
 
 ### 8.2 함수/컴포넌트 헤더
 

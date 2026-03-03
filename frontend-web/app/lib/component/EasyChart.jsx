@@ -2,7 +2,7 @@
 /**
  * 파일명: EasyChart.jsx
  * 작성자: LSH
- * 갱신일: 2025-11-27
+ * 갱신일: 2026-03-03
  * 설명: Recharts 기반 대시보드 차트 카드 래퍼
  */
 
@@ -47,7 +47,7 @@ const donutMargin = { top: 36, right: 16, bottom: 24, left: 16 };
  * @updated 2026-02-27
  */
 const isListLike = (list) =>
-  !!list && (typeof list.size === "function" || Array.isArray(list));
+  Boolean(list) && (typeof list.size === "function" || Array.isArray(list));
 
 /**
  * @description 배열 또는 EasyList류 입력을 실제 배열로 평탄화하는 데이터 어댑터.

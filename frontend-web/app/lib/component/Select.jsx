@@ -1,7 +1,7 @@
 /**
  * 파일명: Select.jsx
  * 작성자: LSH
- * 갱신일: 2025-11-05
+ * 갱신일: 2026-03-03
  * 설명: EasyObj/EasyList 바운드 및 컨트롤드 모드를 모두 지원하는 Select 컴포넌트
  */
 import { forwardRef, useCallback, useEffect, useId, useMemo, useState } from 'react'
@@ -74,8 +74,8 @@ const normalizeOptions = (dataList = [], valueKey, textKey) => {
     key: Object.prototype.hasOwnProperty.call(item, valueKey) ? item[valueKey] : index,
     value: String(item?.[valueKey] ?? ''),
     label: String(item?.[textKey] ?? ''),
-    placeholder: !!item?.placeholder,
-    selected: !!item?.selected,
+    placeholder: Boolean(item?.placeholder),
+    selected: Boolean(item?.selected),
     raw: item,
   }))
 }
@@ -84,8 +84,8 @@ const normalizeOptions = (dataList = [], valueKey, textKey) => {
  * @description EasyObj/EasyList subscribe API를 React effect 수명주기에 연결
  * 처리 규칙: subscribe가 있으면 등록하고 cleanup에서 unsubscribe를 호출한다.
  * @updated 2026-02-27
- */ // 룰게이트 예외 허용: rule-gate: allow-function-declaration
-function useEasySubscription(model, handler) {
+ */
+const useEasySubscription = (model, handler) => {
 
   /**
    * @description useEffect 실행 흐름 관리

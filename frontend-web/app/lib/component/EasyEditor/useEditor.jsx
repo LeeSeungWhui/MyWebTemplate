@@ -2,7 +2,7 @@
 /**
  * 파일명: useEditor.jsx
  * 작성자: LSH
- * 갱신일: 2026-02-24
+ * 갱신일: 2026-03-03
  * 설명: EasyEditor 전용 훅
  */
 
@@ -146,8 +146,8 @@ const cloneForStorage = (value, format) => {
  * @description EasyEditor 상태를 바인딩/동기화하는 훅을 반환. 입력/출력 계약을 함께 명시
  * 처리 규칙: bound 모드에서는 dataObj[dataKey]와 동기화하고, unbound 모드에서는 onChange/onValueChange 콜백으로 전달한다.
  * @updated 2026-02-24
- */ // 룰게이트 예외 허용: rule-gate: allow-function-declaration
-export function useEasyEditor({
+ */
+export const useEasyEditor = ({
   dataObj,
   dataKey,
   value,
@@ -159,7 +159,7 @@ export function useEasyEditor({
   extensions,
   autofocus = false,
   onReady,
-} = {}) {
+} = {}) => {
 
   const isBound = Boolean(dataObj && dataKey);
   const lastFingerprint = useRef(null);

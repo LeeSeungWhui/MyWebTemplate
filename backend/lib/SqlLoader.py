@@ -2,7 +2,7 @@
 파일명: backend/lib/SqlLoader.py
 작성자: LSH
 갱신일: 2025-09-07
-설명: sql 파일에서 `-- name:` 블록을 파싱하여 쿼리 레지스트리를 구성
+설명: sql 파일에서 `-- name:` 블록을 파싱하여 쿼리 레지스트리 구성
 """
 
 import os
@@ -58,7 +58,7 @@ def parseSqlFile(filePath: str) -> List[Tuple[str, str]]:
 
 def scanSqlQueries(folderPath: str) -> Tuple[Dict[str, str], Dict[str, str], Dict[str, Set[str]]]:
     """
-    설명: 폴더를 스캔해 쿼리/파일 매핑을 구성. 호출 맥락의 제약을 기준으로 동작 기준을 확정
+    설명: 폴더를 스캔해 쿼리/파일 매핑을 구성. 호출 맥락의 제약을 기준으로 동작 기준 확정
     제약: 파일 간 중복 발견 시 예외.
     갱신일: 2025-11-12
     """

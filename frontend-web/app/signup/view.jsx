@@ -2,7 +2,7 @@
 /**
  * 파일명: signup/view.jsx
  * 작성자: LSH
- * 갱신일: 2026-02-22
+ * 갱신일: 2026-03-03
  * 설명: 회원가입 페이지 클라이언트 뷰
  */
 
@@ -13,18 +13,20 @@ import Checkbox from "@/app/lib/component/Checkbox";
 import Input from "@/app/lib/component/Input";
 import Link from "next/link";
 import { apiJSON } from "@/app/lib/runtime/api";
-import { usePageData } from "@/app/lib/hooks/usePageData";
+import { normalizePageConfig } from "@/app/lib/runtime/pageData";
 import { useGlobalUi } from "@/app/common/store/SharedStore";
+import { usePageData } from "@/app/lib/hooks/usePageData";
 import { PAGE_CONFIG } from "./initData";
 import LANG_KO from "./lang.ko";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const SIGNUP_API_PATH = "/api/v1/auth/signup";
 
 /**
  * @description 회원가입 입력 검증/제출/에러 포커스 이동을 담당하는 화면을 렌더링. 입력/출력 계약을 함께 명시
  * 처리 규칙: 가입 성공 시 성공 토스트 표시 후 `/login?signup=done`으로 이동한다.
  */
-const SignupView = ({ initialDataObj = {}, initialErrorObj = {} }) => {
+const SignupView = ({ initialDataObj, initialErrorObj }) => {
   const signupObj = EasyObj({
     name: "",
     email: "",
@@ -50,11 +52,11 @@ const SignupView = ({ initialDataObj = {}, initialErrorObj = {} }) => {
   const agreeTermsRef = useRef(null);
   const errorSummaryRef = useRef(null);
   const { showToast } = useGlobalUi();
+  const pageMode = normalizePageConfig(PAGE_CONFIG).MODE;
   usePageData({
     pageConfig: PAGE_CONFIG,
     initialDataObj,
     initialErrorObj,
-    auto: false,
   });
 
   /**
@@ -95,7 +97,7 @@ const SignupView = ({ initialDataObj = {}, initialErrorObj = {} }) => {
     const email = String(signupObj.email || "").trim().toLowerCase();
     const password = String(signupObj.password || "");
     const passwordConfirm = String(signupObj.passwordConfirm || "");
-    const agreeTerms = !!signupObj.agreeTerms;
+    const agreeTerms = Boolean(signupObj.agreeTerms);
 
     signupObj.name = name;
     signupObj.email = email;
@@ -143,7 +145,7 @@ const SignupView = ({ initialDataObj = {}, initialErrorObj = {} }) => {
 
     ui.pending = true;
     try {
-      await apiJSON(PAGE_CONFIG.API.signup, {
+      await apiJSON(SIGNUP_API_PATH, {
         method: "POST",
         body: {
           name: String(signupObj.name || "").trim(),
@@ -175,7 +177,7 @@ const SignupView = ({ initialDataObj = {}, initialErrorObj = {} }) => {
   };
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-gray-50 p-4 sm:p-6">
+    <main className="min-h-screen flex items-center justify-center bg-gray-50 p-4 sm:p-6" data-page-mode={pageMode}>
       <section className="w-full max-w-xl rounded-2xl bg-white p-6 shadow-xl sm:p-10">
         <div className="mb-8 text-center">
           <h1 className="text-3xl font-semibold text-gray-900">{LANG_KO.view.form.title}</h1>

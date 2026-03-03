@@ -2,7 +2,7 @@
 /**
  * 파일명: common/layout/Header.jsx
  * 작성자: LSH
- * 갱신일: 2025-11-27
+ * 갱신일: 2026-03-03
  * 설명: 대시보드용 상단 헤더 내비게이션 (EasyObj/EasyList 기반)
  */
 
@@ -20,7 +20,7 @@ import { COMMON_COMPONENT_LANG_KO } from "@/app/common/i18n/lang.ko";
  * @updated 2026-02-27
  */
 const isListLike = (list) =>
-  !!list && (typeof list.size === "function" || Array.isArray(list));
+  Boolean(list) && (typeof list.size === "function" || Array.isArray(list));
 
 /**
  * @description menu/subMenu 입력을 순회 가능한 배열로 맞추는 데이터 정규화 유틸.
@@ -77,7 +77,7 @@ const Header = ({
         item.title ??
         COMMON_COMPONENT_LANG_KO.header.defaultMenuLabel,
       href: item.href,
-      active: !!item.active,
+      active: Boolean(item.active),
       icon: item.icon,
     }));
   }, [menuList]);
@@ -95,7 +95,7 @@ const Header = ({
           cur.title ??
           COMMON_COMPONENT_LANG_KO.header.defaultSubMenuLabel,
         href: cur.href,
-        active: !!cur.active,
+        active: Boolean(cur.active),
         icon: cur.icon,
       });
       acc.set(menuId, list);
@@ -104,12 +104,12 @@ const Header = ({
   }, [subMenuList]);
 
   const hasExplicitActive = useMemo(() => {
-    const menuActiveExists = resolvedMenus.some((item) => !!item.active);
+    const menuActiveExists = resolvedMenus.some((item) => Boolean(item.active));
     if (menuActiveExists) {
       return true;
     }
     return Array.from(subMenuMap.values()).some((children) =>
-      children.some((child) => !!child.active),
+      children.some((child) => Boolean(child.active)),
     );
   }, [resolvedMenus, subMenuMap]);
 

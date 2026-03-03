@@ -2,7 +2,7 @@
 /**
  * 파일명: sample/form/view.jsx
  * 작성자: LSH
- * 갱신일: 2026-02-22
+ * 갱신일: 2026-03-03
  * 설명: 공개 복합 폼 샘플 페이지 뷰(스텝 검증/요약 기반)
  */
 
@@ -14,9 +14,10 @@ import CheckButton from "@/app/lib/component/CheckButton";
 import Input from "@/app/lib/component/Input";
 import Select from "@/app/lib/component/Select";
 import Textarea from "@/app/lib/component/Textarea";
-import { usePageData } from "@/app/lib/hooks/usePageData";
 import EasyObj from "@/app/lib/dataset/EasyObj";
 import { PAGE_CONFIG } from "./initData";
+import { normalizePageConfig } from "@/app/lib/runtime/pageData";
+import { usePageData } from "@/app/lib/hooks/usePageData";
 import LANG_KO from "./lang.ko";
 
 const STEP_LIST = LANG_KO.view.stepList.map((item) => ({ ...item }));
@@ -29,7 +30,7 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
  * @description 공개 복합 폼 샘플 화면을 렌더링. 입력/출력 계약을 함께 명시
  * 처리 규칙: 단계별(step1~3) 입력/검증/요약 상태를 하나의 EasyObj(ui)에서 관리한다.
  */
-const FormDemoView = ({ initialDataObj = {}, initialErrorObj = {} }) => {
+const FormDemoView = ({ initialDataObj, initialErrorObj }) => {
   const defaultForm = {
     name: "",
     email: "",
@@ -60,11 +61,11 @@ const FormDemoView = ({ initialDataObj = {}, initialErrorObj = {} }) => {
     form: { ...defaultForm },
     stepOneErrors: { ...defaultStepOneErrors },
   });
+  const pageMode = normalizePageConfig(PAGE_CONFIG).MODE;
   usePageData({
     pageConfig: PAGE_CONFIG,
     initialDataObj,
     initialErrorObj,
-    auto: false,
   });
   const { showToast } = useGlobalUi();
 
@@ -188,7 +189,7 @@ const FormDemoView = ({ initialDataObj = {}, initialErrorObj = {} }) => {
   };
 
   return (
-    <div className="mx-auto w-full max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
+    <div className="mx-auto w-full max-w-4xl px-4 py-8 sm:px-6 lg:px-8" data-page-mode={pageMode}>
       <section className="mb-6">
         <h1 className="text-3xl font-bold text-gray-900">{LANG_KO.view.page.title}</h1>
         <p className="mt-2 text-sm text-gray-600">
@@ -223,10 +224,8 @@ const FormDemoView = ({ initialDataObj = {}, initialErrorObj = {} }) => {
             <label className="block space-y-1">
               <span className="text-sm font-medium text-gray-700">{LANG_KO.view.summaryLabel.name}</span>
               <Input
-                value={ui.form.name}
-                onChange={(event) => {
-                  ui.form.name = event.target.value;
-                }}
+                dataObj={ui}
+                dataKey="form.name"
                 placeholder={LANG_KO.view.input.namePlaceholder}
                 error={ui.stepOneErrors.name}
                 aria-describedby={stepOneErrorIds.name}
@@ -241,10 +240,8 @@ const FormDemoView = ({ initialDataObj = {}, initialErrorObj = {} }) => {
             <label className="block space-y-1">
               <span className="text-sm font-medium text-gray-700">{LANG_KO.view.summaryLabel.email}</span>
               <Input
-                value={ui.form.email}
-                onChange={(event) => {
-                  ui.form.email = event.target.value;
-                }}
+                dataObj={ui}
+                dataKey="form.email"
                 placeholder={LANG_KO.view.input.emailPlaceholder}
                 type="email"
                 error={ui.stepOneErrors.email}
@@ -260,10 +257,8 @@ const FormDemoView = ({ initialDataObj = {}, initialErrorObj = {} }) => {
             <label className="block space-y-1">
               <span className="text-sm font-medium text-gray-700">{LANG_KO.view.summaryLabel.phone}</span>
               <Input
-                value={ui.form.phone}
-                onChange={(event) => {
-                  ui.form.phone = event.target.value;
-                }}
+                dataObj={ui}
+                dataKey="form.phone"
                 placeholder={LANG_KO.view.input.phonePlaceholder}
                 error={ui.stepOneErrors.phone}
                 aria-describedby={stepOneErrorIds.phone}
@@ -278,10 +273,8 @@ const FormDemoView = ({ initialDataObj = {}, initialErrorObj = {} }) => {
             <label className="block space-y-1">
               <span className="text-sm font-medium text-gray-700">{LANG_KO.view.summaryLabel.category}</span>
               <Select
-                value={ui.form.category}
-                onChange={(event) => {
-                  ui.form.category = event.target.value;
-                }}
+                dataObj={ui}
+                dataKey="form.category"
                 dataList={CATEGORY_OPTION_LIST}
                 error={ui.stepOneErrors.category}
                 aria-describedby={stepOneErrorIds.category}
@@ -296,10 +289,8 @@ const FormDemoView = ({ initialDataObj = {}, initialErrorObj = {} }) => {
             <label className="block space-y-1">
               <span className="text-sm font-medium text-gray-700">{LANG_KO.view.summaryLabel.startDate}</span>
               <Input
-                value={ui.form.startDate}
-                onChange={(event) => {
-                  ui.form.startDate = event.target.value;
-                }}
+                dataObj={ui}
+                dataKey="form.startDate"
                 type="date"
                 error={ui.stepOneErrors.startDate}
                 aria-describedby={stepOneErrorIds.startDate}
@@ -314,10 +305,8 @@ const FormDemoView = ({ initialDataObj = {}, initialErrorObj = {} }) => {
             <label className="block space-y-1">
               <span className="text-sm font-medium text-gray-700">{LANG_KO.view.summaryLabel.endDate}</span>
               <Input
-                value={ui.form.endDate}
-                onChange={(event) => {
-                  ui.form.endDate = event.target.value;
-                }}
+                dataObj={ui}
+                dataKey="form.endDate"
                 type="date"
                 error={ui.stepOneErrors.endDate}
                 aria-describedby={stepOneErrorIds.endDate}
@@ -332,10 +321,8 @@ const FormDemoView = ({ initialDataObj = {}, initialErrorObj = {} }) => {
             <label className="block space-y-1 md:col-span-2">
               <span className="text-sm font-medium text-gray-700">{LANG_KO.view.summaryLabel.budgetRange}</span>
               <Input
-                value={ui.form.budgetRange}
-                onChange={(event) => {
-                  ui.form.budgetRange = event.target.value;
-                }}
+                dataObj={ui}
+                dataKey="form.budgetRange"
                 placeholder={LANG_KO.view.input.budgetRangePlaceholder}
                 error={ui.stepOneErrors.budgetRange}
                 aria-describedby={stepOneErrorIds.budgetRange}
@@ -356,10 +343,8 @@ const FormDemoView = ({ initialDataObj = {}, initialErrorObj = {} }) => {
             <label className="block space-y-1">
               <span className="text-sm font-medium text-gray-700">{LANG_KO.view.summaryLabel.requirement}</span>
               <Textarea
-                value={ui.form.requirement}
-                onChange={(event) => {
-                  ui.form.requirement = event.target.value;
-                }}
+                dataObj={ui}
+                dataKey="form.requirement"
                 placeholder={LANG_KO.view.input.requirementPlaceholder}
                 rows={5}
               />
@@ -370,6 +355,7 @@ const FormDemoView = ({ initialDataObj = {}, initialErrorObj = {} }) => {
               <div className="flex flex-wrap gap-2">
                 {FEATURE_CHECK_LIST.map((featureItem) => {
                   const selected = ui.form.selectedFeatures.includes(featureItem.label);
+                  // rule-gate: allow-controlled-binding - 다중 선택 토글(배열 포함/제거) 로직을 유지해야 함
                   return (
                     <CheckButton
                       key={featureItem.key}
@@ -386,24 +372,23 @@ const FormDemoView = ({ initialDataObj = {}, initialErrorObj = {} }) => {
             <label className="block space-y-1">
               <span className="text-sm font-medium text-gray-700">{LANG_KO.view.summaryLabel.referenceUrl}</span>
               <Input
-                value={ui.form.referenceUrl}
-                onChange={(event) => {
-                  ui.form.referenceUrl = event.target.value;
-                }}
+                dataObj={ui}
+                dataKey="form.referenceUrl"
                 placeholder={LANG_KO.view.input.referenceUrlPlaceholder}
               />
             </label>
 
             <label className="block space-y-1">
               <span className="text-sm font-medium text-gray-700">{LANG_KO.view.summaryLabel.attachmentName}</span>
+              {/* raw file input 예외 사유: 공용 lib/component에 파일 선택 전용 컴포넌트가 없어 브라우저 기본 picker 사용 */}
               <input
                 type="file"
-              className="block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700"
-              onChange={(event) => {
-                const nextFile = event?.target?.files?.[0];
-                ui.form.attachmentName = nextFile?.name || "";
-              }}
-            />
+                className="block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700"
+                onChange={(event) => {
+                  const nextFile = event?.target?.files?.[0];
+                  ui.form.attachmentName = nextFile?.name || "";
+                }}
+              />
               {ui.form.attachmentName ? (
                 <p className="text-xs text-gray-500">{ui.form.attachmentName}</p>
               ) : null}

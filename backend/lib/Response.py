@@ -23,18 +23,12 @@ class StandardResponse(BaseModel):
 
 def dumpModel(model: BaseModel) -> Dict[str, Any]:
     """
-    설명: Pydantic v1/v2 호환 dict 직렬화
-    처리 규칙: model_dump를 우선 호출하고 미지원 런타임에서는 dict 폴백을 사용
+    설명: Pydantic 모델을 dict로 직렬화
+    처리 규칙: model_dump(exclude_none=True)로 표준 응답 형태를 유지
     반환값: exclude_none이 적용된 표준 dict 응답
     갱신일: 2026-02-28
     """
-    dumpFn = getattr(model, "model_dump", None)
-    if callable(dumpFn):
-        return dumpFn(exclude_none=True)
-    dictFn = getattr(model, "dict", None)
-    if callable(dictFn):
-        return dictFn(exclude_none=True)
-    return dict(model)  # type: ignore[arg-type]
+    return model.model_dump(exclude_none=True)
 
 
 def successResponse(result: Any = None, message: str = "success") -> Dict[str, Any]:

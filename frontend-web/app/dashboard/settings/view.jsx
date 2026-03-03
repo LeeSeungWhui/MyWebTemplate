@@ -2,13 +2,14 @@
 /**
  * 파일명: dashboard/settings/view.jsx
  * 작성자: LSH
- * 갱신일: 2026-02-23
+ * 갱신일: 2026-03-03
  * 설명: 대시보드 설정 클라이언트 뷰(프로필/시스템설정 탭)
  */
 
 import { useEffect } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useGlobalUi } from "@/app/common/store/SharedStore";
+import { normalizePageConfig } from "@/app/lib/runtime/pageData";
 import { usePageData } from "@/app/lib/hooks/usePageData";
 import Badge from "@/app/lib/component/Badge";
 import Button from "@/app/lib/component/Button";
@@ -29,15 +30,13 @@ const SETTINGS_TAB = {
 const SYSTEM_SETTING_DEFAULT = {
   ...LANG_KO.initData.systemDefault,
 };
+const PROFILE_ME_API_PATH = "/api/v1/profile/me";
 
 /**
  * @description 설정 페이지의 프로필/시스템 탭 UI를 렌더링. 입력/출력 계약을 함께 명시
  * 처리 규칙: 프로필 API 응답은 profileMeObj에 복사하고 탭 상태는 query `tab`과 양방향 동기화한다.
  */
-const SettingsView = ({
-  initialDataObj = {},
-  initialErrorObj = {},
-}) => {
+const SettingsView = ({ initialDataObj, initialErrorObj }) => {
   const defaultProfileObj = {
     userId: "",
     userNm: "",
@@ -61,14 +60,13 @@ const SettingsView = ({
     isSavingSystem: false,
     error: null,
   });
+  const pageMode = normalizePageConfig(PAGE_CONFIG).MODE;
   usePageData({
     pageConfig: PAGE_CONFIG,
     initialDataObj,
     initialErrorObj,
-    auto: false,
   });
-  const endPoints = PAGE_CONFIG.API || {};
-  const hasProfileEndpoint = Boolean(endPoints.profileMe);
+  const hasProfileEndpoint = Boolean(PROFILE_ME_API_PATH);
 
   /**
    * @description 검색 파라미터에서 key 값을 문자열로 안전 조회
@@ -148,7 +146,7 @@ const SettingsView = ({
     ui.isLoadingProfile = true;
     ui.error = null;
     try {
-      const response = await apiJSON(endPoints.profileMe);
+      const response = await apiJSON(PROFILE_ME_API_PATH);
       const next = response?.result || {};
       profileMeObj.copy({
         userId: next?.userId || "",
@@ -222,7 +220,7 @@ const SettingsView = ({
     ui.isSavingProfile = true;
     ui.error = null;
     try {
-      const response = await apiJSON(endPoints.profileMe, {
+      const response = await apiJSON(PROFILE_ME_API_PATH, {
         method: "PUT",
         body: {
           userNm: String(profileMeObj.userNm || "").trim(),
@@ -267,7 +265,7 @@ const SettingsView = ({
   };
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3" data-page-mode={pageMode}>
       {ui.error?.message ? (
         <section aria-label={LANG_KO.view.error.profileLoadFailed}>
           <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700" role="alert">
@@ -298,17 +296,15 @@ const SettingsView = ({
                   <label className="block space-y-1">
                     <span className="text-sm font-medium text-gray-700">{LANG_KO.view.profile.nameLabel}</span>
                     <Input
-                      value={profileMeObj.userNm}
-                      onChange={(event) => {
-                        profileMeObj.userNm = event.target.value;
-                      }}
+                      dataObj={profileMeObj}
+                      dataKey="userNm"
                       placeholder={LANG_KO.view.profile.namePlaceholder}
                     />
                   </label>
 
                   <label className="block space-y-1">
                     <span className="text-sm font-medium text-gray-700">{LANG_KO.view.profile.emailLabel}</span>
-                    <Input value={profileMeObj.userEml} readOnly />
+                    <Input dataObj={profileMeObj} dataKey="userEml" readOnly />
                   </label>
 
                   <div className="space-y-1">
@@ -325,24 +321,18 @@ const SettingsView = ({
                     <div className="flex flex-wrap gap-4">
                       <Switch
                         label={LANG_KO.view.profile.notifyEmailLabel}
-                        checked={Boolean(profileMeObj.notifyEmail)}
-                        onChange={(event) => {
-                          profileMeObj.notifyEmail = event.target.checked;
-                        }}
+                        dataObj={profileMeObj}
+                        dataKey="notifyEmail"
                       />
                       <Switch
                         label={LANG_KO.view.profile.notifySmsLabel}
-                        checked={Boolean(profileMeObj.notifySms)}
-                        onChange={(event) => {
-                          profileMeObj.notifySms = event.target.checked;
-                        }}
+                        dataObj={profileMeObj}
+                        dataKey="notifySms"
                       />
                       <Switch
                         label={LANG_KO.view.profile.notifyPushLabel}
-                        checked={Boolean(profileMeObj.notifyPush)}
-                        onChange={(event) => {
-                          profileMeObj.notifyPush = event.target.checked;
-                        }}
+                        dataObj={profileMeObj}
+                        dataKey="notifyPush"
                       />
                     </div>
                   </div>
@@ -362,10 +352,8 @@ const SettingsView = ({
               <label className="block space-y-1">
                 <span className="text-sm font-medium text-gray-700">{LANG_KO.view.system.siteNameLabel}</span>
                 <Input
-                  value={ui.systemSetting.siteName}
-                  onChange={(event) => {
-                    ui.systemSetting.siteName = event.target.value;
-                  }}
+                  dataObj={ui}
+                  dataKey="systemSetting.siteName"
                 />
               </label>
 
@@ -373,36 +361,28 @@ const SettingsView = ({
                 <span className="text-sm font-medium text-gray-700">{LANG_KO.view.system.maintenanceModeLabel}</span>
                 <Switch
                   label={ui.systemSetting.maintenanceMode ? LANG_KO.view.system.maintenanceActive : LANG_KO.view.system.maintenanceInactive}
-                  checked={Boolean(ui.systemSetting.maintenanceMode)}
-                  onChange={(event) => {
-                    ui.systemSetting.maintenanceMode = event.target.checked;
-                  }}
+                  dataObj={ui}
+                  dataKey="systemSetting.maintenanceMode"
                 />
               </div>
 
               <label className="block space-y-1">
                 <span className="text-sm font-medium text-gray-700">{LANG_KO.view.system.sessionTimeoutLabel}</span>
                 <NumberInput
-                  value={ui.systemSetting.sessionTimeoutMinutes}
+                  dataObj={ui}
+                  dataKey="systemSetting.sessionTimeoutMinutes"
                   min={5}
                   step={5}
-                  onChange={(event) => {
-                    ui.systemSetting.sessionTimeoutMinutes = Number(
-                      event?.target?.value || 5,
-                    );
-                  }}
                 />
               </label>
 
               <label className="block space-y-1">
                 <span className="text-sm font-medium text-gray-700">{LANG_KO.view.system.maxUploadLabel}</span>
                 <NumberInput
-                  value={ui.systemSetting.maxUploadMb}
+                  dataObj={ui}
+                  dataKey="systemSetting.maxUploadMb"
                   min={1}
                   step={1}
-                  onChange={(event) => {
-                    ui.systemSetting.maxUploadMb = Number(event?.target?.value || 1);
-                  }}
                 />
               </label>
 

@@ -19,7 +19,7 @@ from lib.Response import errorResponse
 
 
 class RateLimiter:
-    """설명: 간단한 인메모리 속도 제한기. 갱신일: 2025-11-12"""
+    """설명: 간단한 인메모리 속도 제한기 갱신일: 2025-11-12"""
     """
     초간단 인메모리 속도 제한기(프로세스 단위).
     - limit: 윈도우 내 허용 횟수
@@ -28,7 +28,7 @@ class RateLimiter:
 
     def __init__(self, limit: int = 5, windowSec: int = 60, sweepEvery: int = 256):
         """
-        설명: 제한 횟수/윈도우/청소 주기를 초기화
+        설명: 제한 횟수/윈도우/청소 주기 초기화
         처리 규칙: sweepEvery는 최소 1로 보정하고 내부 store/hitCount를 초기화
         부작용: 인메모리 카운터 상태를 새로 생성
         갱신일: 2026-02-27
@@ -49,7 +49,7 @@ class RateLimiter:
 
     def sweepExpired(self, nowSec: float) -> None:
         """
-        설명: 윈도우를 벗어난 키를 일괄 정리해 메모리 증가를 완화
+        설명: 윈도우를 벗어난 키를 일괄 정리해 메모리 증 완화
         처리 규칙: 각 키의 오래된 타임스탬프를 제거하고 비어 있는 키는 store에서 제거
         부작용: self.store 내부 상태를 직접 변경
         갱신일: 2026-02-24
@@ -65,7 +65,7 @@ class RateLimiter:
 
     def hit(self, key: str, *, commit: bool = True):
         """
-        설명: 주어진 키로 속도 제한을 검사
+        설명: 주어진 키로 속도 제한 검사
         - commit=True: 검사 + 히트 기록(윈도우 내 카운트 증가)
         - commit=False: 검사만 수행(카운트 증가 없음)
         갱신일: 2026-01-15
@@ -93,7 +93,24 @@ class RateLimiter:
         return True, 0
 
 
-globalRateLimiter = RateLimiter(limit=int(os.getenv("AUTH_RATE_LIMIT", "5")), windowSec=60)
+def parseRateLimitLimit(defaultValue: int = 5) -> int:
+    """
+    설명: AUTH_RATE_LIMIT 환경변수를 rate-limit limit 정수로 파싱
+    처리 규칙: 숫자가 아니거나 1 미만이면 defaultValue로 폴백
+    반환값: 1 이상 정수 limit 값
+    갱신일: 2026-03-02
+    """
+    rawValue = os.getenv("AUTH_RATE_LIMIT", str(defaultValue))
+    try:
+        parsedValue = int(str(rawValue).strip())
+    except Exception:
+        return int(defaultValue)
+    if parsedValue < 1:
+        return int(defaultValue)
+    return parsedValue
+
+
+globalRateLimiter = RateLimiter(limit=parseRateLimitLimit(), windowSec=60)
 
 def resolveClientIp(request: Request) -> str:
     """
@@ -114,7 +131,7 @@ def resolveClientIp(request: Request) -> str:
 
 def checkRateLimit(request: Request, username: Optional[str] = None, *, commit: bool = True) -> Optional[JSONResponse]:
     """
-    설명: IP/사용자별 속도 제한을 검사
+    설명: IP/사용자별 속도 제한 검사
     처리 규칙: 키(ip:{ip}, user:{username})를 순회해 하나라도 초과면 즉시 429를 반환
     반환값: 제한 초과 시 Retry-After/no-store 헤더가 포함된 JSONResponse, 통과 시 None을 반환
     갱신일: 2026-01-15

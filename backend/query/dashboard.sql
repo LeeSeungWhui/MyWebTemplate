@@ -11,6 +11,7 @@ SELECT DATA_NO AS ID
          OR LOWER(DATA_NM) LIKE LOWER(:qLike)
          OR LOWER(COALESCE(DATA_DESC, '')) LIKE LOWER(:qLike)
        )
+   AND USER_ID = :userId
    AND ( :status = ''
          OR STAT_CD = :status
        )
@@ -31,6 +32,7 @@ SELECT COUNT(*) AS TOTAL_COUNT
          OR LOWER(DATA_NM) LIKE LOWER(:qLike)
          OR LOWER(COALESCE(DATA_DESC, '')) LIKE LOWER(:qLike)
        )
+   AND USER_ID = :userId
    AND ( :status = ''
          OR STAT_CD = :status
        );
@@ -44,17 +46,20 @@ SELECT DATA_NO AS ID
      , TAG_JSON AS TAGS
      , REG_DT AS CREATED_AT
   FROM T_DATA
- WHERE DATA_NO = :id;
+ WHERE DATA_NO = :id
+   AND USER_ID = :userId;
 
 -- name: dashboard.create
 INSERT INTO T_DATA
-     ( DATA_NM
+     ( USER_ID
+     , DATA_NM
      , DATA_DESC
      , STAT_CD
      , AMT
      , TAG_JSON
      )
-VALUES ( :title
+VALUES ( :userId
+       , :title
        , :description
        , :status
        , :amount
@@ -70,7 +75,8 @@ SELECT DATA_NO AS ID
      , TAG_JSON AS TAGS
      , REG_DT AS CREATED_AT
   FROM T_DATA
- WHERE DATA_NM = :title
+ WHERE USER_ID = :userId
+   AND DATA_NM = :title
    AND COALESCE(DATA_DESC, '') = COALESCE(:description, '')
    AND STAT_CD = :status
    AND COALESCE(AMT, 0) = COALESCE(:amount, 0)
@@ -85,16 +91,19 @@ UPDATE T_DATA
      , STAT_CD = :status
      , AMT = :amount
      , TAG_JSON = :tags
- WHERE DATA_NO = :id;
+ WHERE DATA_NO = :id
+   AND USER_ID = :userId;
 
 -- name: dashboard.delete
 DELETE
   FROM T_DATA
- WHERE DATA_NO = :id;
+ WHERE DATA_NO = :id
+   AND USER_ID = :userId;
 
 -- name: dashboard.statusSummary
 SELECT STAT_CD AS STATUS
      , COUNT(*) AS COUNT
      , COALESCE(SUM(AMT), 0) AS AMOUNT_SUM
   FROM T_DATA
+ WHERE USER_ID = :userId
  GROUP BY STAT_CD;

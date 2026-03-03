@@ -1,7 +1,7 @@
 /**
  * 파일명: Input.jsx
  * 작성자: LSH
- * 갱신일: 2026-02-23
+ * 갱신일: 2026-03-03
  * 설명: 필터 및 마스크가 적용된 입력 컴포넌트
  */
 import { useEffect, useState, useRef, forwardRef } from "react";
@@ -58,7 +58,7 @@ const Input = forwardRef(
     ref
   ) => {
 
-    const isBoundControlled = !!(dataObj && dataKey);
+    const isBoundControlled = Boolean(dataObj && dataKey);
     const isPropControlled =
       !isBoundControlled && typeof propValue !== "undefined";
     const [showPassword, setShowPassword] = useState(false);
@@ -381,7 +381,8 @@ const Input = forwardRef(
       if (typeof committed !== "undefined") {
         try {
           event.target.value = committed;
-        } catch (_) {
+        } catch (syncError) {
+          void syncError;
 
         }
       }
@@ -453,7 +454,8 @@ const Input = forwardRef(
             if (typeof committed !== "undefined") {
               try {
                 event.target.value = committed;
-              } catch (_) {
+              } catch (syncError) {
+                void syncError;
                 /* 무시 */
               }
             }
@@ -478,7 +480,8 @@ const Input = forwardRef(
             if (typeof committed !== "undefined") {
               try {
                 event.target.value = committed;
-              } catch (_) {
+              } catch (syncError) {
+                void syncError;
                 /* 무시 */
               }
             }
@@ -503,7 +506,7 @@ const Input = forwardRef(
                     ${suffix ? "pr-10" : ""}
                     ${togglePassword ? "pr-10" : ""}
                 `}
-          aria-invalid={!!error}
+          aria-invalid={Boolean(error)}
           {...rest}
         />
         {suffix && (

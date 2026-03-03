@@ -1,7 +1,7 @@
 /**
  * 파일명: Radiobox.jsx
  * 작성자: LSH
- * 갱신일: 2025-09-13
+ * 갱신일: 2026-03-03
  * 설명: Radiobox UI 컴포넌트 구현
  */
 import { useState, useEffect, forwardRef } from 'react';
@@ -75,7 +75,7 @@ const Radiobox = forwardRef(({
 
         const ctx = buildCtx({ dataKey: dataKeyName, dataObj, source: 'user', dirty: true, valid: null });
         if (newChecked) {
-            try { event.target.value = value; } catch (_) { /* 무시 */ }
+            try { event.target.value = value; } catch (eventSyncError) { void eventSyncError; /* 무시 */ }
         }
         fireValueHandlers({
             onChange,

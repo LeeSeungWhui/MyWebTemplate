@@ -251,6 +251,77 @@ def testReadyzTimeout(monkeypatch):
         assert response.json()["result"]["db"] == "down"
 
 
+def testReadyzTimeoutInvalidValueFallback(monkeypatch):
+    from lib import Database as DB
+
+    class SlowMgr:
+        def __init__(self):
+            self.databaseUrl = "postgresql://"
+
+        async def fetchOneQuery(self, queryName):
+            await asyncio.sleep(1)
+            return None
+
+    monkeypatch.setenv("READYZ_TIMEOUT_MS", "abc")
+    monkeypatch.setattr(DB, "dbManagers", {"main_db": SlowMgr()}, raising=False)
+
+    from server import app
+    with TestClient(app) as client:
+        response = client.get("/readyz")
+        assert response.status_code == 503
+        payload = response.json()
+        assert payload["result"]["db"] == "down"
+        assert payload["result"]["dbTimeoutMs"] == 300
+
+
+def testGlobalExceptionHandlerAddsNoStoreFor500(monkeypatch):
+    from server import app
+    from service import ProfileService
+
+    async def raiseUnexpectedError(user):
+        raise RuntimeError("boom")
+
+    monkeypatch.setattr(ProfileService, "getMyProfile", raiseUnexpectedError)
+
+    with TestClient(app, raise_server_exceptions=False) as client:
+        loginResponse = client.post(
+            "/api/v1/auth/login",
+            json={"username": "demo@demo.demo", "password": "password123"},
+        )
+        assert loginResponse.status_code == 200
+        accessToken = client.cookies.get("access_token")
+        assert accessToken
+
+        response = client.get(
+            "/api/v1/profile/me",
+            headers={"Authorization": f"Bearer {accessToken}"},
+        )
+        assert response.status_code == 500
+        assert response.headers.get("Cache-Control") == "no-store"
+        body = response.json()
+        assert body["status"] is False
+        assert body["code"] == "HTTP_500_INTERNAL"
+
+
+def testValidationExceptionHandlerAddsNoStoreFor422():
+    from server import app
+
+    testPath = "/__test__/validation/no-store"
+
+    if not any(getattr(route, "path", None) == testPath for route in app.routes):
+        @app.get(testPath)
+        def validationNoStoreRoute(value: int):
+            return {"value": value}
+
+    with TestClient(app) as client:
+        response = client.get(f"{testPath}?value=not-a-number")
+        assert response.status_code == 422
+        assert response.headers.get("Cache-Control") == "no-store"
+        payload = response.json()
+        assert payload["status"] is False
+        assert payload["code"] == "VALID_422_REQUEST"
+
+
 def testOraclePingSql(monkeypatch):
     from lib import Database as DB
 

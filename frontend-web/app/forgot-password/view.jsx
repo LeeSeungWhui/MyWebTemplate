@@ -2,7 +2,7 @@
 /**
  * 파일명: forgot-password/view.jsx
  * 작성자: LSH
- * 갱신일: 2026-02-22
+ * 갱신일: 2026-03-03
  * 설명: 비밀번호 찾기 페이지 클라이언트 뷰
  */
 
@@ -11,8 +11,9 @@ import EasyObj from "@/app/lib/dataset/EasyObj";
 import Button from "@/app/lib/component/Button";
 import Input from "@/app/lib/component/Input";
 import Link from "next/link";
-import { usePageData } from "@/app/lib/hooks/usePageData";
 import { PAGE_CONFIG } from "./initData";
+import { normalizePageConfig } from "@/app/lib/runtime/pageData";
+import { usePageData } from "@/app/lib/hooks/usePageData";
 import LANG_KO from "./lang.ko";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -21,7 +22,7 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
  * @description 비밀번호 찾기 이메일 입력/검증/제출 상태를 관리하는 화면을 렌더링. 입력/출력 계약을 함께 명시
  * 처리 규칙: 유효한 이메일 제출 시 submitted 상태로 전환해 안내 메시지를 노출한다.
  */
-const ForgotPasswordView = ({ initialDataObj = {}, initialErrorObj = {} }) => {
+const ForgotPasswordView = ({ initialDataObj, initialErrorObj }) => {
   const formObj = EasyObj({
     email: "",
     errors: {
@@ -35,11 +36,11 @@ const ForgotPasswordView = ({ initialDataObj = {}, initialErrorObj = {} }) => {
   });
   const emailRef = useRef(null);
   const errorSummaryRef = useRef(null);
+  const pageMode = normalizePageConfig(PAGE_CONFIG).MODE;
   usePageData({
     pageConfig: PAGE_CONFIG,
     initialDataObj,
     initialErrorObj,
-    auto: false,
   });
 
   /**
@@ -104,7 +105,7 @@ const ForgotPasswordView = ({ initialDataObj = {}, initialErrorObj = {} }) => {
   };
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-gray-50 p-6">
+    <main className="min-h-screen flex items-center justify-center bg-gray-50 p-6" data-page-mode={pageMode}>
       <section className="w-full max-w-xl rounded-2xl bg-white p-10 shadow-xl">
         <div className="mb-8 text-center">
           <h1 className="text-3xl font-semibold text-gray-900">{LANG_KO.view.form.title}</h1>

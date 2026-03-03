@@ -30,7 +30,7 @@ async def ensureTables(dbName: str = "main_db") -> None:
 @transaction("main_db")
 async def testSingle() -> dict:
     """
-    설명: 테스트 테이블에 단일 값을 insert하고 커밋된 값을 결과로 반환. 호출 맥락의 제약을 기준으로 동작 기준을 확정
+    설명: 테스트 테이블에 단일 값을 insert하고 커밋된 값을 결과로 반환. 호출 맥락의 제약을 기준으로 동작 기준 확정
     실패 동작: 테이블 누락/DB 오류가 발생하면 예외를 전파해 데코레이터가 롤백
     반환값: 삽입된 값을 포함한 {"inserted": "..."} dict를 반환
     갱신일: 2026-02-24

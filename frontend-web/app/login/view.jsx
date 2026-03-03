@@ -2,7 +2,7 @@
 /**
  * 파일명: app/login/view.jsx
  * 작성자: LSH
- * 갱신일: 2026-02-28
+ * 갱신일: 2026-03-03
  * 설명: 로그인 페이지 클라이언트 뷰
  */
 
@@ -20,6 +20,7 @@ import LANG_KO from "./lang.ko";
 
 const MIN_USERNAME_LENGTH = 3;
 const MIN_PASSWORD_LENGTH = 8;
+const LOGIN_API_PATH = "/api/v1/auth/login";
 
 /**
  * @description 로그인 폼 검증/제출 및 세션 상태 기반 리다이렉트를 담당하는 페이지 뷰를 렌더링. 입력/출력 계약을 함께 명시
@@ -52,7 +53,7 @@ const Client = ({ initialDataObj, initialErrorObj }) => {
     initialErrorObj,
   });
   const sessionData = dataObj.session || null;
-  const isAuthed = !!(
+  const isAuthed = Boolean(
     sessionData &&
     sessionData.result &&
     sessionData.result.username
@@ -221,9 +222,9 @@ const Client = ({ initialDataObj, initialErrorObj }) => {
       const payload = {
         username: loginObj.email,
         password: loginObj.password,
-        rememberMe: !!loginObj.rememberMe,
+        rememberMe: Boolean(loginObj.rememberMe),
       };
-      await apiJSON("/api/v1/auth/login", {
+      await apiJSON(LOGIN_API_PATH, {
         method: "POST",
         body: payload,
       }, { authless: true });

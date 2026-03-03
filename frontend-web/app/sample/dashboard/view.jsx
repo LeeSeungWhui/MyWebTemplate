@@ -2,7 +2,7 @@
 /**
  * 파일명: sample/dashboard/view.jsx
  * 작성자: LSH
- * 갱신일: 2026-02-23
+ * 갱신일: 2026-03-03
  * 설명: 공개 샘플 대시보드 페이지 뷰(읽기 전용)
  */
 
@@ -13,8 +13,9 @@ import EasyChart from "@/app/lib/component/EasyChart";
 import EasyTable from "@/app/lib/component/EasyTable";
 import Stat from "@/app/lib/component/Stat";
 import { useDemoSharedState } from "@/app/sample/demoSharedState";
-import { usePageData } from "@/app/lib/hooks/usePageData";
+import { normalizePageConfig } from "@/app/lib/runtime/pageData";
 import { PAGE_CONFIG } from "./initData";
+import { usePageData } from "@/app/lib/hooks/usePageData";
 import LANG_KO from "./lang.ko";
 import CRUD_LANG_KO from "@/app/sample/crud/lang.ko";
 
@@ -29,15 +30,12 @@ const INITIAL_ROW_LIST = CRUD_LANG_KO.initData.rowList.map((item) => ({ ...item 
  * 처리 규칙: CRUD shared state를 기반으로 통계/차트/최근 목록 파생 데이터를 계산해 표시한다.
  * @param {{ initialDataObj?: Object, initialErrorObj?: Object }} props
  */
-const DemoDashboardView = ({
-  initialDataObj = {},
-  initialErrorObj = {},
-}) => {
+const DemoDashboardView = ({ initialDataObj, initialErrorObj }) => {
+  const pageMode = normalizePageConfig(PAGE_CONFIG).MODE;
   usePageData({
     pageConfig: PAGE_CONFIG,
     initialDataObj,
     initialErrorObj,
-    auto: false,
   });
 
   const statusOrder = ["ready", "pending", "running", "done", "failed"];
@@ -116,8 +114,8 @@ const DemoDashboardView = ({
    * @description 금액 숫자를 로케일 포맷 문자열로 변환. 입력/출력 계약을 함께 명시
    * 반환값: NaN이면 0 텍스트, 정상값이면 locale 기반 숫자 문자열.
    * @updated 2026-02-27
-   */ // 룰게이트 예외 허용: rule-gate: allow-function-declaration
-  function formatCurrency(value) {
+   */
+  const formatCurrency = (value) => {
     const num = Number(value || 0);
     if (Number.isNaN(num)) return LANG_KO.view.number.zeroText;
     return num.toLocaleString(LANG_KO.view.number.locale);
@@ -127,8 +125,8 @@ const DemoDashboardView = ({
    * @description 행 목록을 상태별 건수/합계 금액 요약 배열로 변환. 입력/출력 계약을 함께 명시
    * 반환값: statusOrder 순서가 보장된 `{status,count,amountSum}` 리스트.
    * @updated 2026-02-27
-   */ // 룰게이트 예외 허용: rule-gate: allow-function-declaration
-  function toStatusSummaryList(rowList) {
+   */
+  const toStatusSummaryList = (rowList) => {
     /**
      * @description CRUD 샘플 행 목록으로 상태 집계를 생성
      * 처리 규칙: statusOrder 순서로 순회하며 count/amountSum 누적 요약을 생성.
@@ -153,8 +151,8 @@ const DemoDashboardView = ({
    * @description 행 목록에서 월별 건수/금액 추이 데이터를 생성. 입력/출력 계약을 함께 명시
    * 처리 규칙: `YYYY-MM` 키로 집계 후 월 오름차순 정렬해 `n월` 라벨로 변환한다.
    * @updated 2026-02-27
-   */ // 룰게이트 예외 허용: rule-gate: allow-function-declaration
-  function toMonthlyTrendList(rowList) {
+   */
+  const toMonthlyTrendList = (rowList) => {
     /**
      * @description CRUD 샘플 행 목록으로 월별 추이 데이터를 생성
      * 처리 규칙: createdAt를 YYYY-MM 기준으로 그룹화하고 월 오름차순 결과를 생성.
@@ -189,8 +187,8 @@ const DemoDashboardView = ({
    * @description 최근 생성일 기준 상위 5건 업무 목록 표 데이터 생성
    * 처리 규칙: createdAt 내림차순, 동률 시 id 내림차순으로 정렬한다.
    * @updated 2026-02-27
-   */ // 룰게이트 예외 허용: rule-gate: allow-function-declaration
-  function toRecentTaskList(rowList) {
+   */
+  const toRecentTaskList = (rowList) => {
     /**
      * @description CRUD 샘플 행 목록으로 최근 업무 상위 5건을 구성
      * 처리 규칙: createdAt/id 내림차순 정렬 후 상위 5건으로 절단.
@@ -215,7 +213,7 @@ const DemoDashboardView = ({
   }
 
   return (
-    <div className="space-y-3">
+    <div className="space-y-3" data-page-mode={pageMode}>
       <section className="grid gap-3 md:grid-cols-3">
         {statCardList.map((item) => (
           <Stat key={item.label} {...item} className="p-1" />

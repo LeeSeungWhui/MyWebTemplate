@@ -1,7 +1,7 @@
 /**
  * 파일명: apiResult.js
  * 작성자: LSH
- * 갱신일: 2026-02-28
+ * 갱신일: 2026-03-03
  * 설명: apiJSON 표준 응답(payload.result) 타입별 EasyObj/EasyList 동기화 유틸
  */
 
@@ -18,7 +18,7 @@ const RESULT_TYPE = {
  * @returns {boolean}
  */
 const isPlainObject = (value) => (
-  !!value
+  Boolean(value)
   && typeof value === "object"
   && !Array.isArray(value)
 );

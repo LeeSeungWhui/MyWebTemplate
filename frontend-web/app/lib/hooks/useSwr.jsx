@@ -2,7 +2,7 @@
 /**
  * 파일명: useSwr.jsx
  * 작성자: LSH
- * 갱신일: 2025-11-05
+ * 갱신일: 2026-03-03
  * 설명: apiJSON을 fetcher로 사용하는 SWR 래퍼 훅(선택적)
  */
 import useSwrLib from "swr";
@@ -14,13 +14,13 @@ import { apiJSON } from "@/app/lib/runtime/api";
  * @param {string} path
  * @param {Object} [options]
  * @returns {any}
- */ // 룰게이트 예외 허용: rule-gate: allow-function-declaration
-export function useSwr(
+ */
+export const useSwr = (
   key,
   path,
   { method = "GET", body, fetchInit = {}, swr = {} } = {},
 
-) {
+) => {
 
   /**
    * @description path/method/body를 고정한 apiJSON 호출 함수를 만들어 SWR fetcher로 사용

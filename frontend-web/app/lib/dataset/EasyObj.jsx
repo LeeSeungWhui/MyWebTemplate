@@ -1,7 +1,7 @@
 /**
  * 파일명: EasyObj.jsx
  * 작성자: LSH
- * 갱신일: 2026-02-24
+ * 갱신일: 2026-03-03
  * 설명: 객체형 반응형 데이터 모델
  */
 
@@ -92,8 +92,8 @@ const toPathString = (segments) => segments.filter((segment) => typeof segment !
  * @description EasyObj 프록시 상태 모델을 생성. 입력/출력 계약을 함께 명시
  * 처리 규칙: 내부 raw 데이터와 proxy 매핑을 유지하고 변경 시 렌더/구독 이벤트를 트리거한다.
  * @updated 2026-02-27
- */ // 룰게이트 예외 허용: rule-gate: allow-function-declaration
-function useEasyObj(initialData = {}) {
+ */
+const useEasyObj = (initialData = {}) => {
 
     const [, forceRender] = useState({});
     const rootRef = useRef(isObject(initialData) ? deepCopy(initialData) : {});
@@ -409,8 +409,8 @@ function useEasyObj(initialData = {}) {
      * @description raw 객체에 대한 프록시를 조회하거나 생성. 입력/출력 계약을 함께 명시
      * 처리 규칙: WeakMap 캐시를 우선 사용하고, handler에서 get/set/delete/copy 구문을 EasyObj 규약으로 통합한다.
      * @updated 2026-02-27
-     */ // 룰게이트 예외 허용: rule-gate: allow-function-declaration
-    function getOrCreateProxy(raw, basePath = []) {
+     */
+    const getOrCreateProxy = (raw, basePath = []) => {
         if (!isProxyableObject(raw)) return raw;
         const cached = rawToProxyRef.current.get(raw);
         if (cached) return cached;
@@ -534,8 +534,8 @@ function useEasyObj(initialData = {}) {
      * @description 루트 프록시의 유효성을 보장
      * 처리 규칙: rootRef와 캐시 프록시의 raw 매핑이 다르면 새 프록시를 재생성한다.
      * @updated 2026-02-27
-     */ // 룰게이트 예외 허용: rule-gate: allow-function-declaration
-    function ensureRootProxy() {
+     */
+    const ensureRootProxy = () => {
         if (!isObject(rootRef.current)) rootRef.current = {};
         if (rootProxyRef.current) {
             const cachedRawRoot = proxyToRawRef.current.get(rootProxyRef.current);
@@ -556,8 +556,8 @@ function useEasyObj(initialData = {}) {
 /**
  * @description EasyObj 생성 진입 함수를 외부에 노출
  * 처리 규칙: 전달받은 초기값으로 useEasyObj를 호출해 프록시 모델을 반환한다.
- */ // 룰게이트 예외 허용: rule-gate: allow-function-declaration
-function EasyObj(initialData = {}) {
+ */
+const EasyObj = (initialData = {}) => {
 
     return useEasyObj(initialData);
 }

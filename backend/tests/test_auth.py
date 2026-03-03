@@ -2,6 +2,7 @@ import os
 import sys
 import sqlite3
 import uuid
+import importlib
 from fastapi.testclient import TestClient
 
 baseDir = os.path.dirname(os.path.dirname(__file__))
@@ -125,6 +126,19 @@ def testLoginInvalidAndWwwAuthenticateHeader():
         assert response.headers.get("WWW-Authenticate") == "Bearer"
         j = response.json()
         assert j["status"] is False and j["code"] == "AUTH_401_INVALID"
+
+
+def testLoginNormalizesUppercaseEmail():
+    from server import app
+    with TestClient(app) as client:
+        response = client.post(
+            "/api/v1/auth/login",
+            json={"username": "DEMO@DEMO.DEMO", "password": "password123"},
+        )
+        assert response.status_code == 200
+        meResponse = client.get("/api/v1/auth/me", headers=authHeaderFromCookie(client))
+        assert meResponse.status_code == 200
+        assert meResponse.json()["result"]["username"] == "demo@demo.demo"
 
 
 def testLoginMalformedJsonReturns422():
@@ -285,6 +299,14 @@ def testRateLimiterSweepsStaleKeysWithoutRevisit():
     assert list(limiter.store.keys()) == ["ip:new"]
 
 
+def testRateLimiterLimitEnvFallback(monkeypatch):
+    import lib.RateLimit as rateLimitModule
+
+    monkeypatch.setenv("AUTH_RATE_LIMIT", "abc")
+    reloaded = importlib.reload(rateLimitModule)
+    assert reloaded.globalRateLimiter.limit == 5
+
+
 def testRefreshReturns503WhenTokenStateStoreUnavailable(monkeypatch):
     from server import app
     from service import AuthService
@@ -308,6 +330,73 @@ def testRefreshReturns503WhenTokenStateStoreUnavailable(monkeypatch):
         assert body["code"] == "AUTH_503_STATE_STORE"
 
 
+def testRefreshReturns503WhenTokenStateCleanupFails(monkeypatch):
+    from server import app
+    from service import AuthService
+
+    class BrokenTokenStateDbManager:
+        async def executeQuery(self, queryName, bindValues=None):
+            if queryName == "auth.deleteExpiredTokenState":
+                raise RuntimeError("cleanup failed")
+            return True
+
+    async def alwaysReadyStore():
+        return True
+
+    monkeypatch.setattr(AuthService, "ensureTokenStateStore", alwaysReadyStore)
+    monkeypatch.setattr(AuthService, "_getTokenStateStoreDbManager", lambda: BrokenTokenStateDbManager())
+
+    with TestClient(app) as client:
+        loginResponse = client.post(
+            "/api/v1/auth/login",
+            json={"username": "demo@demo.demo", "password": "password123", "rememberMe": True},
+        )
+        assert loginResponse.status_code == 200
+
+        response = client.post("/api/v1/auth/refresh", headers=WEB_ORIGIN_HEADERS)
+        assert response.status_code == 503
+        assert response.headers.get("Cache-Control") == "no-store"
+        body = response.json()
+        assert body["status"] is False
+        assert body["code"] == "AUTH_503_STATE_STORE"
+
+
+def testRefreshReturns503WhenTokenStateWriteFails(monkeypatch):
+    from server import app
+    from service import AuthService
+
+    class BrokenTokenStateDbManager:
+        async def executeQuery(self, queryName, bindValues=None):
+            if queryName == "auth.deleteExpiredTokenState":
+                return True
+            if queryName in {"auth.insertTokenState", "auth.updateTokenState", "auth.deleteTokenState"}:
+                raise RuntimeError("write failed")
+            return True
+
+        async def fetchOneQuery(self, queryName, bindValues=None):
+            return None
+
+    async def alwaysReadyStore():
+        return True
+
+    monkeypatch.setattr(AuthService, "ensureTokenStateStore", alwaysReadyStore)
+    monkeypatch.setattr(AuthService, "_getTokenStateStoreDbManager", lambda: BrokenTokenStateDbManager())
+
+    with TestClient(app) as client:
+        loginResponse = client.post(
+            "/api/v1/auth/login",
+            json={"username": "demo@demo.demo", "password": "password123", "rememberMe": True},
+        )
+        assert loginResponse.status_code == 200
+
+        response = client.post("/api/v1/auth/refresh", headers=WEB_ORIGIN_HEADERS)
+        assert response.status_code == 503
+        assert response.headers.get("Cache-Control") == "no-store"
+        body = response.json()
+        assert body["status"] is False
+        assert body["code"] == "AUTH_503_STATE_STORE"
+
+
 def testRefreshAutoCreatesTokenStateTableWhenMissing(monkeypatch):
     from server import app
     from service import AuthService
@@ -320,9 +409,7 @@ def testRefreshAutoCreatesTokenStateTableWhenMissing(monkeypatch):
     finally:
         con.close()
 
-    monkeypatch.setenv("AUTH_ALLOW_MEMORY_TOKEN_STATE", "false")
     monkeypatch.setattr(AuthService, "tokenStateStoreReady", False)
-    monkeypatch.setattr(AuthService, "tokenStateStoreWarned", False)
 
     with TestClient(app) as client:
         loginResponse = client.post(
@@ -358,6 +445,73 @@ def testLogoutReturns503WhenTokenStateStoreUnavailable(monkeypatch):
         )
         assert loginResponse.status_code == 200
         monkeypatch.setattr(AuthService, "revokeRefreshToken", raiseUnavailable)
+
+        response = client.post("/api/v1/auth/logout", headers=WEB_ORIGIN_HEADERS)
+        assert response.status_code == 503
+        assert response.headers.get("Cache-Control") == "no-store"
+        body = response.json()
+        assert body["status"] is False
+        assert body["code"] == "AUTH_503_STATE_STORE"
+
+
+def testLogoutReturns503WhenTokenStateCleanupFails(monkeypatch):
+    from server import app
+    from service import AuthService
+
+    class BrokenTokenStateDbManager:
+        async def executeQuery(self, queryName, bindValues=None):
+            if queryName == "auth.deleteExpiredTokenState":
+                raise RuntimeError("cleanup failed")
+            return True
+
+    async def alwaysReadyStore():
+        return True
+
+    monkeypatch.setattr(AuthService, "ensureTokenStateStore", alwaysReadyStore)
+    monkeypatch.setattr(AuthService, "_getTokenStateStoreDbManager", lambda: BrokenTokenStateDbManager())
+
+    with TestClient(app) as client:
+        loginResponse = client.post(
+            "/api/v1/auth/login",
+            json={"username": "demo@demo.demo", "password": "password123", "rememberMe": True},
+        )
+        assert loginResponse.status_code == 200
+
+        response = client.post("/api/v1/auth/logout", headers=WEB_ORIGIN_HEADERS)
+        assert response.status_code == 503
+        assert response.headers.get("Cache-Control") == "no-store"
+        body = response.json()
+        assert body["status"] is False
+        assert body["code"] == "AUTH_503_STATE_STORE"
+
+
+def testLogoutReturns503WhenTokenStateWriteFails(monkeypatch):
+    from server import app
+    from service import AuthService
+
+    class BrokenTokenStateDbManager:
+        async def executeQuery(self, queryName, bindValues=None):
+            if queryName == "auth.deleteExpiredTokenState":
+                return True
+            if queryName in {"auth.insertTokenState", "auth.updateTokenState", "auth.deleteTokenState"}:
+                raise RuntimeError("write failed")
+            return True
+
+        async def fetchOneQuery(self, queryName, bindValues=None):
+            return None
+
+    async def alwaysReadyStore():
+        return True
+
+    monkeypatch.setattr(AuthService, "ensureTokenStateStore", alwaysReadyStore)
+    monkeypatch.setattr(AuthService, "_getTokenStateStoreDbManager", lambda: BrokenTokenStateDbManager())
+
+    with TestClient(app) as client:
+        loginResponse = client.post(
+            "/api/v1/auth/login",
+            json={"username": "demo@demo.demo", "password": "password123", "rememberMe": True},
+        )
+        assert loginResponse.status_code == 200
 
         response = client.post("/api/v1/auth/logout", headers=WEB_ORIGIN_HEADERS)
         assert response.status_code == 503

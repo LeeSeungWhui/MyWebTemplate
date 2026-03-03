@@ -1,7 +1,7 @@
 /**
  * 파일명: Textarea.jsx
  * 작성자: LSH
- * 갱신일: 2025-09-13
+ * 갱신일: 2026-03-03
  * 설명: Textarea UI 컴포넌트 구현
  */
 import { useState, forwardRef, useEffect, useRef } from 'react';
@@ -29,7 +29,7 @@ const Textarea = forwardRef(({
 }, ref) => {
 
   const isPropControlled = propValue !== undefined;
-  const isData = !!(dataObj && dataKey);
+  const isData = Boolean(dataObj && dataKey);
 
   const [innerValue, setInnerValue] = useState(defaultValue);
   const [draftValue, setDraftValue] = useState(undefined);
@@ -98,7 +98,7 @@ const Textarea = forwardRef(({
       disabled={disabled}
       readOnly={readOnly}
       placeholder={placeholder}
-      aria-invalid={!!error}
+      aria-invalid={Boolean(error)}
       {...props}
     />
   );

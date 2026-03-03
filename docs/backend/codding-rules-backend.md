@@ -132,6 +132,11 @@ def issueTokens(username: str, remember: bool = False) -> dict:
 - 성공/실패는 HTTP 상태코드로 구분하고, 본문은 표준 응답 스키마를 따른다.
 - 401 응답에는 `WWW-Authenticate` 헤더를 포함한다.
 - 인증 관련/세션 관련 JSON 응답은 `Cache-Control: no-store`를 기본으로 둔다.
+- 인증이 필요한 사용자별 데이터 API(예: 프로필/개인 대시보드)도 `Cache-Control: no-store`를 기본으로 둔다.
+- 인증이 필요한 사용자별 데이터 API는 소유권 바인딩을 라우터→서비스→SQL 전 구간에서 강제한다.
+  - 라우터: `getCurrentUser` 결과의 `user.username`을 서비스에 `userId`로 전달
+  - 서비스: 조회/수정/삭제/집계 함수 시그니처에 `userId`를 명시하고 DB 바인딩에 포함
+  - SQL: 사용자 데이터 쿼리(`SELECT/UPDATE/DELETE`)는 `USER_ID = :userId` 조건을 포함
 - 쿠키는 `HttpOnly`, `SameSite=Lax`, `(prod)Secure`를 기본값으로 둔다.
 
 ---

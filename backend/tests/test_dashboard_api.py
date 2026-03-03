@@ -19,10 +19,12 @@ def ensureDataTableAndSeed():
     os.makedirs(os.path.dirname(dbPath), exist_ok=True)
     con = sqlite3.connect(dbPath)
     try:
+        con.execute("DROP TABLE IF EXISTS T_DATA")
         con.execute(
             """
-            CREATE TABLE IF NOT EXISTS T_DATA (
+            CREATE TABLE T_DATA (
                 DATA_NO INTEGER PRIMARY KEY AUTOINCREMENT,
+                USER_ID TEXT NOT NULL,
                 DATA_NM TEXT NOT NULL,
                 DATA_DESC TEXT,
                 STAT_CD TEXT NOT NULL,
@@ -32,32 +34,50 @@ def ensureDataTableAndSeed():
             )
             """
         )
-        con.execute("DELETE FROM T_DATA")
         con.execute(
             """
-            INSERT INTO T_DATA (DATA_NM, DATA_DESC, STAT_CD, AMT, TAG_JSON)
-            VALUES (?, ?, ?, ?, ?)
+            INSERT INTO T_DATA (USER_ID, DATA_NM, DATA_DESC, STAT_CD, AMT, TAG_JSON)
+            VALUES (?, ?, ?, ?, ?, ?)
             """,
-            ("테스트 업무", "REST 경로 검증", "ready", 1000, '["qa"]'),
+            ("demo@demo.demo", "테스트 업무", "REST 경로 검증", "ready", 1000, '["qa"]'),
         )
         con.execute(
             """
-            INSERT INTO T_DATA (DATA_NM, DATA_DESC, STAT_CD, AMT, TAG_JSON)
-            VALUES (?, ?, ?, ?, ?)
+            INSERT INTO T_DATA (USER_ID, DATA_NM, DATA_DESC, STAT_CD, AMT, TAG_JSON)
+            VALUES (?, ?, ?, ?, ?, ?)
             """,
-            ("운영 점검", "필터용 샘플", "pending", 2000, '["ops","night"]'),
+            ("demo@demo.demo", "운영 점검", "필터용 샘플", "pending", 2000, '["ops","night"]'),
+        )
+        con.execute(
+            """
+            INSERT INTO T_DATA (USER_ID, DATA_NM, DATA_DESC, STAT_CD, AMT, TAG_JSON)
+            VALUES (?, ?, ?, ?, ?, ?)
+            """,
+            ("viewer@demo.demo", "다른 사용자 업무", "소유권 검증 샘플", "ready", 500, '["other"]'),
         )
         con.commit()
     finally:
         con.close()
 
 
-def loginAsDemo(client):
+def loginAs(client, username: str, password: str):
     response = client.post(
         "/api/v1/auth/login",
-        json={"username": "demo@demo.demo", "password": "password123", "rememberMe": True},
+        json={"username": username, "password": password, "rememberMe": True},
     )
     assert response.status_code == 200
+
+
+def loginAsDemo(client):
+    loginAs(client, "demo@demo.demo", "password123")
+
+
+def ensureSignup(client, *, name: str, email: str, password: str):
+    response = client.post(
+        "/api/v1/auth/signup",
+        json={"name": name, "email": email, "password": password},
+    )
+    assert response.status_code in (201, 409)
 
 
 def testDashboardListRestPath():
@@ -163,3 +183,27 @@ def testDashboardRequiresAuth():
         response = client.get("/api/v1/dashboard")
         assert response.status_code == 401
         assert response.headers.get("WWW-Authenticate") == "Bearer"
+
+
+def testDashboardRejectsCrossUserDetailAccess():
+    from server import app
+
+    ensureDataTableAndSeed()
+    with TestClient(app) as client:
+        loginAsDemo(client)
+        ownerHeaders = authHeaderFromCookie(client)
+        ownerList = client.get("/api/v1/dashboard?q=테스트 업무&size=10&page=1", headers=ownerHeaders)
+        assert ownerList.status_code == 200
+        ownerItems = ownerList.json()["result"]
+        assert len(ownerItems) == 1
+        ownerDataId = int(ownerItems[0]["id"])
+
+    with TestClient(app) as client:
+        ensureSignup(client, name="Viewer", email="viewer@demo.demo", password="password123")
+        loginAs(client, "viewer@demo.demo", "password123")
+        viewerHeaders = authHeaderFromCookie(client)
+        detailResponse = client.get(f"/api/v1/dashboard/{ownerDataId}", headers=viewerHeaders)
+        assert detailResponse.status_code == 404
+        body = detailResponse.json()
+        assert body["status"] is False
+        assert body["code"] == "DASH_404_NOT_FOUND"

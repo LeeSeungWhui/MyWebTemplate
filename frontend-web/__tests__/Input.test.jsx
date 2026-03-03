@@ -4,7 +4,7 @@ import "@testing-library/jest-dom";
 import { vi } from "vitest";
 import Input from "../app/lib/component/Input.jsx";
 
-describe("Input mask compatibility", () => {
+describe("Input mask behavior", () => {
   it("supports function mask and commits transformed value", () => {
     const onValueChange = vi.fn();
     const maskFn = (rawValue) =>

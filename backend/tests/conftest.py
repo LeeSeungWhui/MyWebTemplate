@@ -57,33 +57,6 @@ def ensureUserTableAndDemo(dbPath: str) -> None:
             )
             """
         )
-        userColumnMap = [
-            ("id", "USER_NO"),
-            ("username", "USER_ID"),
-            ("password_hash", "USER_PW"),
-            ("name", "USER_NM"),
-            ("email", "USER_EML"),
-            ("role", "ROLE_CD"),
-        ]
-        renameSqlByLegacy = {
-            "id": "ALTER TABLE T_USER RENAME COLUMN id TO USER_NO",
-            "username": "ALTER TABLE T_USER RENAME COLUMN username TO USER_ID",
-            "password_hash": "ALTER TABLE T_USER RENAME COLUMN password_hash TO USER_PW",
-            "name": "ALTER TABLE T_USER RENAME COLUMN name TO USER_NM",
-            "email": "ALTER TABLE T_USER RENAME COLUMN email TO USER_EML",
-            "role": "ALTER TABLE T_USER RENAME COLUMN role TO ROLE_CD",
-        }
-        columns = {
-            str(row[1]).upper()
-            for row in con.execute("PRAGMA table_info(T_USER)").fetchall()
-            if len(row) > 1
-        }
-        for legacyColumnName, targetColumnName in userColumnMap:
-            if targetColumnName in columns or legacyColumnName.upper() not in columns:
-                continue
-            con.execute(renameSqlByLegacy[legacyColumnName])
-            columns.discard(legacyColumnName.upper())
-            columns.add(targetColumnName)
         con.commit()
         cur = con.execute("SELECT 1 FROM T_USER WHERE USER_ID = ?", ("demo@demo.demo",))
         if cur.fetchone():

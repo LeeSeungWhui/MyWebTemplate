@@ -1,7 +1,7 @@
 /**
  * 파일명: RadioButton.jsx
  * 작성자: LSH
- * 갱신일: 2025-09-13
+ * 갱신일: 2026-03-03
  * 설명: RadioButton UI 컴포넌트 구현
  */
 import { useState, useEffect, forwardRef } from 'react';
@@ -73,7 +73,7 @@ const RadioButton = forwardRef(({
 
         const ctx = buildCtx({ dataKey: dataKeyName, dataObj, source: 'user', dirty: true, valid: null });
         if (newChecked) {
-            try { event.target.value = value; } catch (_) { /* 무시 */ }
+            try { event.target.value = value; } catch (eventSyncError) { void eventSyncError; /* 무시 */ }
         }
         fireValueHandlers({
             onChange,

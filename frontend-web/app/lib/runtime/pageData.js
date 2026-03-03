@@ -1,7 +1,7 @@
 /**
  * 파일명: pageData.js
  * 작성자: LSH
- * 갱신일: 2026-02-28
+ * 갱신일: 2026-03-03
  * 설명: PAGE_CONFIG(MODE/API) 기반 페이지 초기 데이터 자동 로딩 유틸
  */
 
@@ -17,7 +17,7 @@ const CSR_MODE = "CSR";
  * @returns {boolean}
  */
 const isPlainObject = (value) => (
-  !!value
+  Boolean(value)
   && typeof value === "object"
   && !Array.isArray(value)
 );
@@ -35,12 +35,12 @@ const normalizeMode = (mode) => {
 
 /**
  * @description PAGE_CONFIG의 API 맵 정규화
- * 처리 규칙: `API` 우선, 레거시 `endPoints` 폴백 순서로 object 맵 반환.
+ * 처리 규칙: `API` 필드만 object 맵으로 정규화한다.
  * @param {Object} pageConfig
  * @returns {Object}
  */
 const normalizeApiMap = (pageConfig) => {
-  const apiMap = pageConfig?.API ?? pageConfig?.endPoints ?? {};
+  const apiMap = pageConfig?.API ?? {};
   if (!isPlainObject(apiMap)) return {};
   return { ...apiMap };
 };
@@ -64,15 +64,12 @@ const normalizeEndpointSpec = (endpoint) => {
     };
   }
   if (!isPlainObject(endpoint)) return null;
-  if (endpoint.enabled === false) return null;
   const initConfig = isPlainObject(endpoint.init)
     ? endpoint.init
     : isPlainObject(endpoint.fetchInit)
       ? endpoint.fetchInit
       : {};
-  const endpointPath = String(
-    endpoint.path ?? endpoint.url ?? endpoint.endpoint ?? initConfig.path ?? "",
-  ).trim();
+  const endpointPath = String(endpoint.path ?? "").trim();
   if (!endpointPath) return null;
   const method = String(
     endpoint.method ?? initConfig.method ?? "GET",
@@ -86,6 +83,7 @@ const normalizeEndpointSpec = (endpoint) => {
   delete restInit.method;
   delete restInit.body;
   delete restInit.authless;
+  delete restInit.path;
   const options = {};
   const authless = Object.prototype.hasOwnProperty.call(endpoint, "authless")
     ? endpoint.authless

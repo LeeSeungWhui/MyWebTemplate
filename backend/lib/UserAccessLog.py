@@ -20,11 +20,7 @@ import httpx
 from lib import Database as DB
 from lib.Logger import logger
 from .Masking import maskUserIdentifierForLog
-
-try:
-    from .Config import getConfig  # type: ignore
-except Exception:
-    from lib.Config import getConfig  # type: ignore
+from .Config import getConfig
 
 
 ipGeoCache: dict[str, dict[str, object]] = {}
@@ -48,7 +44,7 @@ def parseBool(rawValue: object, defaultValue: bool = False) -> bool:
 
 def parsePositiveInt(rawValue: object, defaultValue: int) -> int:
     """
-    설명: 양의 정수만 허용해 파싱하고, 실패 시 기본값을 반환
+    설명: 양의 정수만 허용해 파싱하고, 실패 시 기본값 반환
     갱신일: 2026-02-22
     """
     try:
@@ -134,7 +130,7 @@ def normalizeIp(clientIp: Optional[str]) -> Optional[str]:
 
 def classifyIpLocal(ipValue: str) -> tuple[str, str]:
     """
-    설명: 사설/루프백/예약 IP 여부를 분류
+    설명: 사설/루프백/예약 IP 여부 분류
     반환: (위치텍스트, 소스)
     갱신일: 2026-02-22
     """
@@ -159,7 +155,7 @@ def classifyIpLocal(ipValue: str) -> tuple[str, str]:
 
 def buildLocationText(geoJson: dict) -> str:
     """
-    설명: 외부 IP 위치 조회 결과를 로그 저장용 위치 문자열로 조합하는 포매터
+    설명: 외부 IP 위치 조회 결과를 로그 저장용 위치 문자열로 조합하 포매터
     처리 규칙: country/region/city를 순서대로 조합하고 값이 없으면 PUBLIC_IP를 사용
     반환값: 로그 적재용 위치 문자열을 반환
     갱신일: 2026-02-22
@@ -206,7 +202,7 @@ async def getIpGeoFromRemote(ipValue: str) -> Optional[dict]:
 
 async def resolveIpLocation(clientIp: Optional[str]) -> tuple[Optional[str], Optional[str]]:
     """
-    설명: IP 기반 위치 텍스트/소스를 로컬 판별 + 원격 조회 + 캐시로 해석하는 파이프라인
+    설명: IP 기반 위치 텍스트/소스 해석 파이프라인 처리
     반환값: (ipLocTxt, ipLocSrc)
     갱신일: 2026-02-22
     """

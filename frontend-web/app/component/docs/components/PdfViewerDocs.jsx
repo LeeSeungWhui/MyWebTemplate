@@ -1,7 +1,7 @@
 /**
  * 파일명: PdfViewerDocs.jsx
  * 작성자: LSH
- * 갱신일: 2026-02-24
+ * 갱신일: 2026-03-03
  * 설명: PdfViewer 컴포넌트 문서
  */
 import { PdfViewerExamples } from '../examples/PdfViewerExamples';
@@ -29,11 +29,11 @@ const PdfViewerDocs = () => {
       }
     >
       <div className="space-y-10">
-        {examples.map((e, i) => (
-          <div key={i} id={e.anchor} className="space-y-3 scroll-mt-24">
-            <div>{e.component}</div>
-            <p className="text-sm text-gray-600">{e.description}</p>
-            <CodeBlock code={e.code} />
+        {examples.map((exampleItem, index) => (
+          <div key={index} id={exampleItem.anchor} className="space-y-3 scroll-mt-24">
+            <div>{exampleItem.component}</div>
+            <p className="text-sm text-gray-600">{exampleItem.description}</p>
+            <CodeBlock code={exampleItem.code} />
           </div>
         ))}
       </div>

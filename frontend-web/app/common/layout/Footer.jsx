@@ -1,7 +1,7 @@
 /**
  * 파일명: common/layout/Footer.jsx
  * 작성자: LSH
- * 갱신일: 2025-11-26
+ * 갱신일: 2026-03-03
  * 설명: 대시보드 공용 푸터(EasyObj/EasyList 기반)
  */
 
@@ -17,7 +17,7 @@ import { COMMON_COMPONENT_LANG_KO } from "@/app/common/i18n/lang.ko";
  * @updated 2026-02-27
  */
 const isListLike = (list) =>
-  !!list && (typeof list.size === "function" || Array.isArray(list));
+  Boolean(list) && (typeof list.size === "function" || Array.isArray(list));
 
 /**
  * @description EasyList/배열 입력을 안전한 배열 형태로 정규화. 입력/출력 계약을 함께 명시
@@ -74,7 +74,7 @@ const Footer = ({
         item.text ??
         COMMON_COMPONENT_LANG_KO.footer.defaultLinkLabel,
       href: item.href,
-      active: !!item.active,
+      active: Boolean(item.active),
     }));
   }, [linkList]);
 

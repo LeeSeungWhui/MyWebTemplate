@@ -1,7 +1,7 @@
 /**
  * 파일명: EasyList.jsx
  * 작성자: LSH
- * 갱신일: 2026-02-24
+ * 갱신일: 2026-03-03
  * 설명: 리스트형 반응형 데이터 모델
  */
 
@@ -87,8 +87,8 @@ const toPathString = (segments) => segments.filter((segment) => typeof segment !
  * @description EasyList 프록시 상태 모델을 생성. 입력/출력 계약을 함께 명시
  * 처리 규칙: raw 리스트와 proxy 매핑을 유지하고 변경 시 렌더/구독 이벤트를 트리거한다.
  * @updated 2026-02-27
- */ // 룰게이트 예외 허용: rule-gate: allow-function-declaration
-function useEasyList(initialData = []) {
+ */
+const useEasyList = (initialData = []) => {
     const [, forceRender] = useState({});
     const rootRef = useRef(Array.isArray(initialData) ? deepCopy(initialData) : []);
     const listenersRef = useRef(new Set());
@@ -408,8 +408,8 @@ function useEasyList(initialData = []) {
      * @description raw 객체에 대한 프록시를 조회하거나 생성. 입력/출력 계약을 함께 명시
      * 처리 규칙: WeakMap 캐시를 우선 사용하고, handler에서 리스트 조작(push/pop/splice 등)을 EasyList 규약으로 통합한다.
      * @updated 2026-02-27
-     */ // 룰게이트 예외 허용: rule-gate: allow-function-declaration
-    function getOrCreateProxy(raw, basePath = []) {
+     */
+    const getOrCreateProxy = (raw, basePath = []) => {
         if (!isObject(raw)) return raw;
         const cached = rawToProxyRef.current.get(raw);
         if (cached) return cached;
@@ -571,8 +571,8 @@ function useEasyList(initialData = []) {
      * @description 루트 프록시의 유효성을 보장
      * 처리 규칙: rootRef와 캐시 프록시의 raw 매핑이 다르면 새 프록시를 재생성한다.
      * @updated 2026-02-27
-     */ // 룰게이트 예외 허용: rule-gate: allow-function-declaration
-    function ensureRootProxy() {
+     */
+    const ensureRootProxy = () => {
         if (!Array.isArray(rootRef.current)) rootRef.current = [];
         if (rootProxyRef.current) {
             const rawRoot = proxyToRawRef.current.get(rootProxyRef.current);
@@ -593,8 +593,8 @@ function useEasyList(initialData = []) {
 /**
  * @description EasyList 생성 진입 함수를 외부에 노출
  * 처리 규칙: 전달받은 초기값으로 useEasyList를 호출해 프록시 리스트 모델을 반환한다.
- */ // 룰게이트 예외 허용: rule-gate: allow-function-declaration
-function EasyList(initialData = []) {
+ */
+const EasyList = (initialData = []) => {
     return useEasyList(initialData);
 }
 

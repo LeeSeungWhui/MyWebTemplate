@@ -24,34 +24,6 @@ class TransactionError(Exception):
     pass
 
 
-def findUnsupportedTransactionOption(options: dict[str, object], error: TypeError) -> str | None:
-    """
-    설명: TypeError 메시지에서 미지원 트랜잭션 옵션 키를 추출
-    갱신일: 2026-02-26
-    """
-    if not options:
-        return None
-    message = str(error or "")
-    lowered = message.lower()
-    if "unexpected keyword argument" not in lowered:
-        return None
-
-    match = re.search(r"unexpected keyword argument ['\"]([^'\"]+)['\"]", message, flags=re.IGNORECASE)
-    if match:
-        key = str(match.group(1) or "").strip()
-        normalizedKey = "timeout" if key == "timeout_ms" else key
-        if normalizedKey in options:
-            return normalizedKey
-
-    if "timeout" in lowered and "timeout" in options:
-        return "timeout"
-    if "isolation" in lowered and "isolation" in options:
-        return "isolation"
-    if len(options) == 1:
-        return next(iter(options.keys()))
-    return None
-
-
 def transaction(
     dbNames: Union[str, List[str]],
     *,
@@ -59,25 +31,14 @@ def transaction(
     timeoutMs: int | None = None,
     retries: int = 0,
     retryOn: Tuple[type[BaseException], ...] = (),
-    **legacyOptions: object,
 ):
     """
-    설명: 단일/다중 DB 트랜잭션을 지원하는 데코레이터
-    처리 규칙: timeoutMs를 기준으로 옵션을 구성하고, 레거시 timeout_ms 키는 하위호환으로만 수용
+    설명: 단일/다중 DB 트랜잭션 지원 데코레이터 처리
+    처리 규칙: timeoutMs를 기준으로 options(timeout)을 구성
     실패 동작: 미지원 키워드 인자 전달 시 TypeError를 발생
     인자: dbNames/isolation/timeoutMs/retries/retryOn
     갱신일: 2026-02-28
     """
-    normalizedTimeoutMs = timeoutMs
-    if "timeout_ms" in legacyOptions:
-        if normalizedTimeoutMs is None:
-            normalizedTimeoutMs = legacyOptions.pop("timeout_ms")  # type: ignore[assignment]
-        else:
-            legacyOptions.pop("timeout_ms")
-    if legacyOptions:
-        unknownKey = sorted(str(key) for key in legacyOptions.keys())[0]
-        raise TypeError(f"transaction() got an unexpected keyword argument '{unknownKey}'")
-
     if isinstance(dbNames, str):
         dbList = [dbNames]
     else:
@@ -86,7 +47,7 @@ def transaction(
     transactionOptions: dict[str, object] = {}
     if isinstance(isolation, str) and isolation.strip():
         transactionOptions["isolation"] = isolation.strip()
-    effectiveTimeoutMs = normalizedTimeoutMs
+    effectiveTimeoutMs = timeoutMs
     if effectiveTimeoutMs is not None:
         try:
             timeoutFloat = float(effectiveTimeoutMs) / 1000.0
@@ -106,7 +67,7 @@ def transaction(
         @wraps(func)
         async def wrapper(*args, **kwargs):
             """
-            설명: 대상 함수 실행 경로에 트랜잭션/재시도 정책을 적용
+            설명: 대상 함수 실행 경로에 트랜잭션/재시도 정책 적용
             실패 동작: 예외 발생 시 롤백 로그를 남기고 retryOn/retries 조건에 따라 재시도 후 최종 예외를 재전파
             갱신일: 2026-02-26
             """
@@ -117,6 +78,7 @@ def transaction(
                 txId = uuid.uuid4().hex[:12]
                 stack: AsyncExitStack | None = None
                 started = time.perf_counter()
+                startCount = DB.getSqlCount()
                 try:
                     stack = AsyncExitStack()
                     # 중첩된 모든 DB 트랜잭션을 열어 동일 커넥션을 보장
@@ -124,30 +86,13 @@ def transaction(
                         if name not in dbManagers:
                             raise TransactionError(f"database not found: {name}")
                         manager = dbManagers[name]
-                        resolvedOptions = dict(transactionOptions)
-                        while True:
-                            try:
-                                await stack.enter_async_context(manager.database.transaction(**resolvedOptions))
-                                break
-                            except TypeError as e:
-                                unsupportedKey = findUnsupportedTransactionOption(resolvedOptions, e)
-                                if not unsupportedKey:
-                                    raise
-                                resolvedOptions.pop(unsupportedKey, None)
-                                try:
-                                    logger.warning(
-                                        f"tx.option_fallback txId={txId} db={name} dropped={unsupportedKey} remaining={list(resolvedOptions.keys())} requestId={getRequestId()}"
-                                    )
-                                except Exception:
-                                    pass
+                        await stack.enter_async_context(manager.database.transaction(**transactionOptions))
                         try:
                             logger.info(
                                 f"tx.begin txId={txId} db={name} isolation={isolation} timeoutMs={effectiveTimeoutMs} requestId={getRequestId()}"
                             )
                         except Exception:
                             pass
-
-                    startCount = DB.getSqlCount()
                     result = await func(*args, **kwargs)
 
                     try:
@@ -264,7 +209,7 @@ class Savepoint:
 
 
 def savepoint(dbName: str, name: str) -> Savepoint:
-    """설명: 부분 롤백용 SAVEPOINT 컨텍스트를 생성 반환값: Savepoint 컨텍스트 인스턴스. 갱신일: 2025-11-12"""
+    """설명: 부분 롤백용 SAVEPOINT 컨텍스트 생성 반환값: Savepoint 컨텍스트 인스턴스. 갱신일: 2025-11-12"""
     return Savepoint(dbName, name)
 
 

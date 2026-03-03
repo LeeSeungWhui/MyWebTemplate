@@ -2,7 +2,7 @@
 파일명: backend/tests/test_casing.py
 작성자: LSH
 갱신일: 2026-02-27
-설명: snake_case -> camelCase 변환 유틸의 회귀 테스트.
+설명: snake_case -> camelCase 변환 유틸의 회귀 테스트
 """
 
 from lib.Casing import convertKeysToCamelCase

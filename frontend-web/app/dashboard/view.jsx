@@ -2,15 +2,12 @@
 /**
  * 파일명: dashboard/view.jsx
  * 작성자: LSH
- * 갱신일: 2026-02-23
+ * 갱신일: 2026-03-03
  * 설명: 대시보드 클라이언트 뷰
  */
 
-import { useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEasyList } from "@/app/lib/dataset/EasyList";
-import EasyObj from "@/app/lib/dataset/EasyObj";
 import { usePageData } from "@/app/lib/hooks/usePageData";
 import Button from "@/app/lib/component/Button";
 import Card from "@/app/lib/component/Card";
@@ -18,17 +15,22 @@ import EasyChart from "@/app/lib/component/EasyChart";
 import EasyTable from "@/app/lib/component/EasyTable";
 import Skeleton from "@/app/lib/component/Skeleton";
 import Stat from "@/app/lib/component/Stat";
-import { apiJSON } from "@/app/lib/runtime/api";
 import { PAGE_CONFIG } from "./initData";
 import LANG_KO from "./lang.ko";
-
-const CHART_HEIGHT = 180;
-const DONUT_HEIGHT = 180;
-const STATUS_ORDER = ["ready", "pending", "running", "done", "failed"];
-const DASHBOARD_ERROR_KEY = {
-  ENDPOINT_MISSING: "ENDPOINT_MISSING",
-  INIT_FETCH_FAILED: "INIT_FETCH_FAILED",
-};
+import {
+  CHART_HEIGHT,
+  DONUT_HEIGHT,
+  STATUS_ORDER,
+  DASHBOARD_ERROR_KEY,
+  normalizeStatusList,
+  normalizeDashboardItems,
+  monthKey,
+  formatNumber,
+  formatCurrency,
+  resolveErrorText,
+  createTasksPath,
+  normalizeErrorState,
+} from "./viewHelper";
 
 /**
  * @description 대시보드 요약 통계/차트/최근 목록 화면을 렌더링. 입력/출력 계약을 함께 명시
@@ -38,53 +40,38 @@ const DashboardView = ({
   initialDataObj = {},
   initialErrorObj = {},
 }) => {
-  const statsPayload = initialDataObj?.stats;
-  const listPayload = initialDataObj?.list;
-  const listResult = listPayload?.result;
-  const statList = Array.isArray(statsPayload?.result?.byStatus)
-    ? statsPayload.result.byStatus
-    : [];
-  const dataList = Array.isArray(listResult)
-    ? listResult
-    : Array.isArray(listResult?.items)
-      ? listResult.items
-      : [];
-  const initialError = initialErrorObj?.stats || initialErrorObj?.list || null;
   const router = useRouter();
-  const { mode: pageMode } = usePageData({
+  const { mode: pageMode, dataObj, errorObj, isLoading } = usePageData({
     pageConfig: PAGE_CONFIG,
     initialDataObj,
     initialErrorObj,
-    auto: false,
-  });
-  const statsList = useEasyList(statList || []);
-  const dashboardDataList = useEasyList(dataList || []);
-  const ui = EasyObj({
-    isLoading:
-      String(pageMode || "").toUpperCase() !== "SSR"
-      || !statList?.length
-      || !dataList?.length,
-    error: normalizeErrorState(initialError),
   });
   const endpoints = PAGE_CONFIG.API || {};
   const hasEndpoint = Boolean(endpoints.stats && endpoints.list);
-
-  /**
-   * @description SSR 주입 데이터 우선 사용 여부를 판별하고 초기 목록 로딩 트리거를 수행
-   * 처리 규칙: SSR 모드에서 초기 데이터가 있으면 복사만 수행하고 API 호출은 생략.
-   */
-  useEffect(() => {
-    const hasSsrData = statList?.length && dataList?.length;
-    if (String(pageMode || "").toUpperCase() === "SSR" && hasSsrData) {
-      statsList.copy(statList || []);
-      dashboardDataList.copy(dataList || []);
-      ui.isLoading = false;
-      return;
-    }
-    fetchDashboard();
-  }, [statList, dataList, hasEndpoint]);
-
-  const byStatus = statsList.toJSON();
+  const statList = normalizeStatusList(dataObj?.stats);
+  const dataList = normalizeDashboardItems(dataObj?.list);
+  const initialErrorState = normalizeErrorState(
+    initialErrorObj?.stats || initialErrorObj?.list || null,
+    DASHBOARD_ERROR_KEY,
+  );
+  const statsErrorState = normalizeErrorState(errorObj?.stats, DASHBOARD_ERROR_KEY);
+  const listErrorState = normalizeErrorState(errorObj?.list, DASHBOARD_ERROR_KEY);
+  const errorState = !hasEndpoint
+    ? { key: DASHBOARD_ERROR_KEY.ENDPOINT_MISSING }
+    : statsErrorState || listErrorState || initialErrorState;
+  const hasLoadedSnapshot =
+    Object.prototype.hasOwnProperty.call(dataObj || {}, "stats")
+    || Object.prototype.hasOwnProperty.call(dataObj || {}, "list")
+    || Boolean(errorObj?.stats || errorObj?.list);
+  const shouldForceLoading =
+    String(pageMode || "").toUpperCase() === "CSR"
+    && !isLoading
+    && !errorState
+    && !hasLoadedSnapshot
+    && statList.length === 0
+    && dataList.length === 0;
+  const loading = isLoading || shouldForceLoading;
+  const byStatus = statList;
   const totalCount = byStatus.reduce((acc, row) => acc + (row.count ?? 0), 0);
   const totalAmount = byStatus.reduce(
     (acc, row) => acc + Number(row.amountSum ?? 0),
@@ -96,19 +83,19 @@ const DashboardView = ({
   const statCards = [
     {
       label: LANG_KO.view.stat.totalCount,
-      value: formatNumber(totalCount),
+      value: formatNumber(totalCount, LANG_KO.view.number),
       delta: null,
       deltaType: "neutral",
     },
     {
       label: LANG_KO.view.stat.totalAmount,
-      value: `${formatCurrency(totalAmount)}`,
+      value: `${formatCurrency(totalAmount, LANG_KO.view.number)}`,
       delta: null,
       deltaType: "neutral",
     },
     {
       label: LANG_KO.view.stat.activeCount,
-      value: formatNumber(activeCount),
+      value: formatNumber(activeCount, LANG_KO.view.number),
       delta: null,
       deltaType: "neutral",
     },
@@ -126,13 +113,16 @@ const DashboardView = ({
     status,
     label: LANG_KO.view.statusLabelMap[status],
     count: byStatusMap.get(status) || 0,
-    href: createTasksPath({ status }),
+    href: createTasksPath({
+      status,
+      statusLabelMap: LANG_KO.view.statusLabelMap,
+    }),
   }));
 
-  const items = dashboardDataList.toJSON();
+  const items = dataList;
   const byMonth = new Map();
   items.forEach((item) => {
-    const key = monthKey(item.createdAt);
+    const key = monthKey(item.createdAt, LANG_KO.view);
     const bucket = byMonth.get(key) || { label: key, count: 0, amount: 0 };
     bucket.count += 1;
     bucket.amount += Number(item.amount || 0);
@@ -141,123 +131,11 @@ const DashboardView = ({
   const lineData = Array.from(byMonth.values());
 
   const legendFontSize = 12;
-  const errorText = resolveErrorText(ui.error?.key);
-
-  /**
-   * @description 날짜 문자열에서 월 라벨(`n월`)을 계산
-   * 실패 동작: 비어 있거나 파싱 실패한 입력은 unknown 라벨을 반환한다.
-   * @updated 2026-02-27
-   */ // 룰게이트 예외 허용: rule-gate: allow-function-declaration
-  function monthKey(iso) {
-    if (!iso) return LANG_KO.view.unknown;
-    const date = new Date(iso);
-    if (Number.isNaN(date.getTime())) return LANG_KO.view.unknown;
-    const month = date.getMonth() + 1;
-    return `${month}${LANG_KO.view.monthSuffix}`;
-  }
-
-  /**
-   * @description 숫자 값을 로케일 기준 문자열로 포맷
-   * 반환값: NaN 입력은 0 텍스트를 반환하고, 정상 입력은 locale 문자열을 반환한다.
-   * @updated 2026-02-27
-   */ // 룰게이트 예외 허용: rule-gate: allow-function-declaration
-  function formatNumber(value) {
-    const num = Number(value || 0);
-    if (Number.isNaN(num)) return LANG_KO.view.number.zeroText;
-    return num.toLocaleString(LANG_KO.view.number.locale);
-  }
-
-  /**
-   * @description 금액 숫자를 통계 카드용 문자열로 포맷
-   * 처리 규칙: 현재는 formatNumber 정책을 동일하게 재사용한다.
-   * @updated 2026-02-27
-   */ // 룰게이트 예외 허용: rule-gate: allow-function-declaration
-  function formatCurrency(value) {
-    return formatNumber(value);
-  }
-
-  /**
-   * @description 에러 키를 사용자 노출 메시지로 매핑. 입력/출력 계약을 함께 명시
-   * 반환값: 매핑된 메시지 또는 null.
-   * @updated 2026-02-27
-   */ // 룰게이트 예외 허용: rule-gate: allow-function-declaration
-  function resolveErrorText(errorKey) {
-    if (errorKey === DASHBOARD_ERROR_KEY.ENDPOINT_MISSING) {
-      return LANG_KO.view.error.endpointMissing;
-    }
-    if (errorKey === DASHBOARD_ERROR_KEY.INIT_FETCH_FAILED) {
-      return LANG_KO.view.error.fetchFailed;
-    }
-    return null;
-  }
-
-  /**
-   * @description 상태 필터를 포함한 `/dashboard/tasks` 이동 경로를 생성
-   * 반환값: status query 포함 여부가 반영된 href 문자열.
-   * @updated 2026-02-27
-   */ // 룰게이트 예외 허용: rule-gate: allow-function-declaration
-  function createTasksPath({ status }) {
-    const params = new URLSearchParams();
-    if (status && LANG_KO.view.statusLabelMap[status]) params.set("status", status);
-    return params.toString()
-      ? `/dashboard/tasks?${params.toString()}`
-      : "/dashboard/tasks";
-  }
-
-  /**
-   * @description 다양한 에러 표현(string/object/null)을 공통 shape로 정규화. 입력/출력 계약을 함께 명시
-   * 반환값: `{key, code, requestId}` 구조 또는 null.
-   * @updated 2026-02-27
-   */ // 룰게이트 예외 허용: rule-gate: allow-function-declaration
-  function normalizeErrorState(value) {
-    if (!value) return null;
-    if (typeof value === "string") return { key: value };
-    if (typeof value === "object") {
-      return {
-        key: value.key || "FETCH_FAILED",
-        code: value.code,
-        requestId: value.requestId,
-      };
-    }
-    return { key: "FETCH_FAILED" };
-  }
-
-  /**
-   * @description 대시보드 API(stats/list)를 조회하고 EasyList 모델을 동기화
-   * 실패 동작: 조회 실패 시 ui.error에 표준 에러 상태를 저장하고 로딩을 종료한다.
-   * @updated 2026-02-27
-   */
-  const fetchDashboard = async () => {
-    if (!hasEndpoint) {
-      ui.error = { key: DASHBOARD_ERROR_KEY.ENDPOINT_MISSING };
-      return;
-    }
-    ui.isLoading = true;
-    ui.error = null;
-    try {
-      const [statsRes, listRes] = await Promise.all([
-        apiJSON(endpoints.stats),
-        apiJSON(endpoints.list),
-      ]);
-      const listResult = listRes?.result;
-      const normalizedItems = Array.isArray(listResult)
-        ? listResult
-        : Array.isArray(listResult?.items)
-          ? listResult.items
-          : [];
-      statsList.copy(statsRes?.result?.byStatus || []);
-      dashboardDataList.copy(normalizedItems);
-    } catch (err) {
-      console.error(LANG_KO.view.error.fetchFailed, err);
-      ui.error = {
-        key: DASHBOARD_ERROR_KEY.INIT_FETCH_FAILED,
-        code: err?.code,
-        requestId: err?.requestId,
-      };
-    } finally {
-      ui.isLoading = false;
-    }
-  };
+  const errorText = resolveErrorText(
+    errorState?.key,
+    LANG_KO.view.error,
+    DASHBOARD_ERROR_KEY,
+  );
 
   return (
     <div className="space-y-2">
@@ -272,14 +150,14 @@ const DashboardView = ({
             role="alert"
           >
             <div>{errorText}</div>
-            {ui.error?.requestId ? (
+            {errorState?.requestId ? (
               <div className="mt-1 text-xs text-red-700/80">
-                {LANG_KO.view.error.requestIdLabel}: {ui.error.requestId}
+                {LANG_KO.view.error.requestIdLabel}: {errorState.requestId}
               </div>
             ) : null}
-            {ui.error?.code ? (
+            {errorState?.code ? (
               <div className="mt-1 text-xs text-red-700/80">
-                {LANG_KO.view.error.codeLabel}: {ui.error.code}
+                {LANG_KO.view.error.codeLabel}: {errorState.code}
               </div>
             ) : null}
           </div>
@@ -294,7 +172,7 @@ const DashboardView = ({
         <h2 id="dashboard-summary-heading" className="sr-only">
           {LANG_KO.view.chart.summaryAriaLabel}
         </h2>
-        {ui.isLoading
+        {loading
           ? Array.from({ length: 3 }).map((_item, idx) => (
               <div
                 key={`stat-skeleton-${idx}`}
@@ -320,7 +198,7 @@ const DashboardView = ({
         <EasyChart
           title={LANG_KO.view.chart.trendTitle}
           dataList={lineData}
-          loading={ui.isLoading}
+          loading={loading}
           seriesList={[
             {
               seriesId: "count",
@@ -345,7 +223,7 @@ const DashboardView = ({
         <EasyChart
           title={LANG_KO.view.chart.statusTitle}
           dataList={donutData}
-          loading={ui.isLoading}
+          loading={loading}
           seriesList={[
             {
               seriesId: "value",
@@ -383,7 +261,7 @@ const DashboardView = ({
                 variant="secondary"
                 onClick={() => router.push(item.href)}
               >
-                {item.label} {formatNumber(item.count)}
+                {item.label} {formatNumber(item.count, LANG_KO.view.number)}
                 {LANG_KO.view.action.countSuffix}
               </Button>
             ))}
@@ -398,15 +276,18 @@ const DashboardView = ({
           }
         >
           <EasyTable
-            data={dashboardDataList}
-            loading={ui.isLoading}
+            data={dataList}
+            loading={loading}
             columns={[
               {
                 key: "title",
                 header: LANG_KO.view.table.titleHeader,
                 render: (row) => (
                   <Link
-                    href={createTasksPath({ status: row?.status })}
+                    href={createTasksPath({
+                      status: row?.status,
+                      statusLabelMap: LANG_KO.view.statusLabelMap,
+                    })}
                     className="text-left text-blue-700 hover:underline"
                   >
                     {row?.title || "-"}
@@ -418,7 +299,7 @@ const DashboardView = ({
               { key: "createdAt", header: LANG_KO.view.table.createdAtHeader },
             ]}
             pageSize={4}
-            empty={ui.error ? LANG_KO.view.table.emptyWhenError : LANG_KO.view.table.emptyDefault}
+            empty={errorState ? LANG_KO.view.table.emptyWhenError : LANG_KO.view.table.emptyDefault}
           />
         </Card>
       </section>

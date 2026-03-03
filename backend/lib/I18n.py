@@ -35,7 +35,7 @@ MESSAGES = {
 
 def detectLocale(request: Any) -> str:
     """
-    설명: Accept-Language 헤더에서 ko/en 로케일을 판별
+    설명: Accept-Language 헤더에서 ko/en 로케일 판별
     처리 규칙: 헤더 파싱 실패 또는 비지원 언어면 기본값으로 en을 사용
     반환값: "ko" 또는 "en" 중 하나를 반환
     갱신일: 2025-11-12
@@ -50,7 +50,7 @@ def detectLocale(request: Any) -> str:
 
 
 def translate(key: str, default: str, locale: Optional[str] = None) -> str:
-    """설명: 메시지 키를 번역하고 실패 시 기본값 반환. 갱신일: 2025-11-12"""
+    """설명: 메시지 키를 번역하고 실패 시 기본값 반환 갱신일: 2025-11-12"""
     loc = locale or "en"
     try:
         return MESSAGES.get(loc, {}).get(key) or default

@@ -6,14 +6,12 @@
 """
 
 import importlib
+import ipaddress
 import os
 import pkgutil
 from urllib.parse import quote_plus
 
-try:
-    from . import router as router  # 패키지로 실행될 때 라우터 임포트
-except Exception:  # pragma: no cover - 단일 스크립트 실행 대응
-    import router  # backend/ 디렉터리에서 직접 실행되는 경우 라우터 임포트
+import router
 
 from fastapi import FastAPI, Request
 from fastapi import HTTPException
@@ -21,37 +19,20 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-# backend.server / server 양쪽 임포트 경로를 모두 지원
-try:  # 패키지 컨텍스트
-    from .lib.Auth import AuthConfig, isStrongAuthSecret  # type: ignore
-    from .lib.Database import (  # type: ignore
-        DatabaseManager,
-        loadQueries,
-        sqlObserver,
-        startWatchingQueryFolder,
-        setQueryConfig,
-    )
-    from .lib import Database as DB  # type: ignore
-    from .lib.Logger import logger  # type: ignore
-    from .lib.Response import errorResponse  # type: ignore
-    from .lib.Middleware import RequestLogMiddleware  # type: ignore
-    from .lib.OpenAPI import attachOpenAPI  # type: ignore
-    from .lib.Config import getConfig  # type: ignore
-except Exception:  # 모듈 컨텍스트
-    from lib.Auth import AuthConfig, isStrongAuthSecret
-    from lib.Database import (
-        DatabaseManager,
-        loadQueries,
-        sqlObserver,
-        startWatchingQueryFolder,
-        setQueryConfig,
-    )
-    from lib import Database as DB
-    from lib.Logger import logger
-    from lib.Response import errorResponse
-    from lib.Middleware import RequestLogMiddleware
-    from lib.OpenAPI import attachOpenAPI
-    from lib.Config import getConfig
+from lib.Auth import AuthConfig, isStrongAuthSecret
+from lib.Database import (
+    DatabaseManager,
+    loadQueries,
+    sqlObserver,
+    startWatchingQueryFolder,
+    setQueryConfig,
+)
+from lib import Database as DB
+from lib.Logger import logger
+from lib.Response import errorResponse
+from lib.Middleware import RequestLogMiddleware
+from lib.OpenAPI import attachOpenAPI
+from lib.Config import getConfig
 
 app = FastAPI()
 
@@ -88,12 +69,34 @@ def buildNetworkDbUrl(
     """
     safeUser = encodeDsnUserInfo(user)
     safePassword = encodeDsnUserInfo(password)
-    return f"{scheme}://{safeUser}:{safePassword}@{host}:{port}/{database}"
+    safeHost = normalizeNetworkDbHost(host)
+    return f"{scheme}://{safeUser}:{safePassword}@{safeHost}:{port}/{database}"
+
+
+def normalizeNetworkDbHost(host: object) -> str:
+    """
+    설명: 네트워크 DB host 문자열을 DSN 규격에 맞게 정규화
+    처리 규칙: IPv6 literal 입력은 RFC 3986 규칙에 맞춰 대괄호([])를 감싸서 반환
+    반환값: DSN host 구간에 안전하게 삽입 가능한 host 문자열
+    갱신일: 2026-03-02
+    """
+    rawHost = str(host or "").strip()
+    if not rawHost:
+        return "localhost"
+    if rawHost.startswith("[") and rawHost.endswith("]"):
+        return rawHost
+    try:
+        ip = ipaddress.ip_address(rawHost)
+        if ip.version == 6:
+            return f"[{rawHost}]"
+    except ValueError:
+        pass
+    return rawHost
 
 
 async def onShutdown():
     """
-    설명: 애플리케이션 종료 시 DB 연결과 쿼리 워처 리소스를 정리
+    설명: 애플리케이션 종료 시 DB 연결과 쿼리 워처 리소스 정리
     처리 규칙: 등록된 DB 매니저마다 disconnect를 호출하고, 워처 스레드는 stop/join으로 종료
     부작용: 전역 DB 커넥션과 파일 감시 스레드를 해제
     갱신일: 2026-02-24
@@ -113,7 +116,7 @@ async def onShutdown():
 
 async def onStartup():
     """
-    설명: 서버 시작 시 DB 연결, 쿼리 로더, 인증 설정을 초기화
+    설명: 서버 시작 시 DB 연결, 쿼리 로더, 인증 설정 초기화
     처리 규칙: DB 섹션을 순회해 매니저를 생성/연결하고, query watcher 및 AuthConfig를 초기화
     실패 동작: 개별 DB 연결 실패는 로그로 남기고 나머지 초기화는 계속 진행
     갱신일: 2026-02-24
@@ -235,10 +238,7 @@ async def onStartup():
     try:
         refreshGraceMs = authConfig.getint("refresh_grace_ms", 10_000)
     except Exception:
-        try:
-            refreshGraceMs = authConfig.getint("refresh_grace_seconds", 10) * 1000
-        except Exception:
-            refreshGraceMs = 10_000
+        refreshGraceMs = 10_000
     secretKey = authConfig.get("secret_key", "")
     tokenEnable = authConfig.getboolean("token_enable", True)
     runtimeRaw = serverConfig.get("runtime", "DEV") if serverConfig else "DEV"
@@ -375,6 +375,7 @@ async def globalExceptionHandler(request: Request, exc: Exception):
             result={"path": request.url.path},
             code="HTTP_500_INTERNAL",
         ),
+        headers={"Cache-Control": "no-store"},
     )
 
 
@@ -418,13 +419,14 @@ async def requestValidationExceptionHandler(request: Request, exc: RequestValida
             },
             code="VALID_422_REQUEST",
         ),
+        headers={"Cache-Control": "no-store"},
     )
 
 
 @app.exception_handler(HTTPException)
 async def httpExceptionHandler(request: Request, exc: HTTPException):
     """
-    설명: HTTPException을 표준 에러 응답으로 변환하고 401 헤더를 보강
+    설명: HTTPException을 표준 에러 응답으로 변환하고 401 헤더 보강
     처리 규칙: detail dict의 message/code를 우선 사용하고 없으면 status 기반 기본 코드를 부여
     반환값: code/path/detail을 포함한 표준 JSONResponse를 반환
     갱신일: 2026-02-24

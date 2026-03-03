@@ -12,10 +12,7 @@ from typing import Any
 from datetime import datetime
 
 # requestId는 Middleware에서 ContextVar로 주입된다.
-try:
-    from .RequestContext import getRequestId  # type: ignore
-except Exception:  # pragma: no cover - 모듈 컨텍스트 호환
-    from lib.RequestContext import getRequestId  # type: ignore
+from .RequestContext import getRequestId
 
 # 로그 디렉토리 생성
 logDir = "logs"
@@ -31,7 +28,7 @@ logger: logging.Logger = logging.getLogger()
 
 def resolveLogLevel() -> int:
     """
-    설명: 환경변수 LOG_LEVEL 값을 logging 레벨 상수로 변환. 호출 맥락의 제약을 기준으로 동작 기준을 확정
+    설명: 환경변수 LOG_LEVEL 값을 logging 레벨 상수로 변환. 호출 맥락의 제약을 기준으로 동작 기준 확정
     처리 규칙: 미지원 문자열이면 기본 INFO 레벨을 사용
     반환값: logging 모듈의 정수 레벨 상수를 반환
     갱신일: 2026-02-24

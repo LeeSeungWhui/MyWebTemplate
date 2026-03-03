@@ -1,7 +1,7 @@
 /**
  * 파일명: Dropdown.jsx
  * 작성자: LSH
- * 갱신일: 2026-02-26
+ * 갱신일: 2026-03-03
  * 설명: 경량 Dropdown 컴포넌트 (EasyList 지원, 접근성 포함)
  */
 import React, { useEffect, useRef, useState } from 'react';
@@ -165,13 +165,13 @@ const Dropdown = ({
         const isTarget = String(nodeValue) === String(value);
         if (node?.set) {
           if (multiSelect) {
-            node.set('selected', isTarget ? !node.get('selected') : !!node.get('selected'));
+            node.set('selected', isTarget ? !node.get('selected') : Boolean(node.get('selected')));
           } else {
             node.set('selected', isTarget);
           }
         } else if (node) {
           if (multiSelect) {
-            node.selected = isTarget ? !node.selected : !!node.selected;
+            node.selected = isTarget ? !node.selected : Boolean(node.selected);
           } else {
             node.selected = isTarget;
           }
@@ -184,7 +184,7 @@ const Dropdown = ({
         const isTarget = String(nodeValue) === String(value);
         if (!node) return;
         if (multiSelect) {
-          node.selected = isTarget ? !node.selected : !!node.selected;
+          node.selected = isTarget ? !node.selected : Boolean(node.selected);
         } else {
           node.selected = isTarget;
         }
@@ -301,7 +301,7 @@ const Dropdown = ({
           {data.map((item, itemIdx) => {
             const label = item?.get ? item.get(labelKey) : item?.[labelKey];
             const value = item?.get ? item.get(valueKey) : item?.[valueKey];
-            const selected = item?.get ? !!item.get('selected') : !!item?.selected;
+            const selected = item?.get ? Boolean(item.get('selected')) : Boolean(item?.selected);
             const disabledItem = item?.get ? item.get('disabled') : item?.disabled;
             const isActive = itemIdx === activeIdx;
             const itemLabelClassName = resolveItemLabelClassName({
@@ -317,7 +317,7 @@ const Dropdown = ({
                   aria-disabled={disabledItem ? 'true' : 'false'}
                   aria-checked={selected ? 'true' : 'false'}
                   className={`w-full text-left px-3 py-2 flex items-center gap-2 text-sm ${isActive || selected ? activeClassName : ''} hover:bg-gray-50 disabled:opacity-50 ${itemClassName}`.trim()}
-                  disabled={!!disabledItem}
+                  disabled={Boolean(disabledItem)}
                   onMouseEnter={() => setActiveIdx(itemIdx)}
                   onFocus={() => setActiveIdx(itemIdx)}
                   onClick={() => {

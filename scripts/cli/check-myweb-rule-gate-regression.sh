@@ -36,15 +36,22 @@ mkdir -p \
   "$FIXTURE_REPO/docs/frontend-app" \
   "$FIXTURE_REPO/docs/backend" \
   "$FIXTURE_REPO/frontend-web/app/common/layout" \
+  "$FIXTURE_REPO/frontend-web/app/api/bff/[...path]" \
   "$FIXTURE_REPO/frontend-web/app/lib/component" \
   "$FIXTURE_REPO/frontend-web/app/lib/runtime" \
   "$FIXTURE_REPO/frontend-web/app/dashboard" \
   "$FIXTURE_REPO/frontend-web/app/login" \
   "$FIXTURE_REPO/frontend-web/app/sample" \
+  "$FIXTURE_REPO/frontend-web/app/sample/page-data-noop" \
   "$FIXTURE_REPO/frontend-web/app/sample/list-naming" \
   "$FIXTURE_REPO/frontend-web/app/sample/state-adapter" \
   "$FIXTURE_REPO/frontend-web/app/sample/api-model" \
-  "$FIXTURE_REPO/frontend-web/app/sample/api-model-good"
+  "$FIXTURE_REPO/frontend-web/app/sample/api-model-good" \
+  "$FIXTURE_REPO/frontend-web/app/sample/binding-props-bad" \
+  "$FIXTURE_REPO/frontend-web/app/sample/binding-props-good" \
+  "$FIXTURE_REPO/frontend-web/app/sample/binding-props-allowed" \
+  "$FIXTURE_REPO/frontend-web/app/sample/file-input-reason-bad" \
+  "$FIXTURE_REPO/frontend-web/app/sample/file-input-reason-good"
 
 cp "$ROOT/docs/frontend-web/codding-rules-frontend.md" "$FIXTURE_REPO/docs/frontend-web/codding-rules-frontend.md"
 cp "$ROOT/docs/frontend-web/rule-gate-usestate-allowlist.txt" "$FIXTURE_REPO/docs/frontend-web/rule-gate-usestate-allowlist.txt"
@@ -273,6 +280,139 @@ const ApiModelGoodView = () => {
 export default ApiModelGoodView;
 EOF
 
+cat > "$FIXTURE_REPO/frontend-web/app/sample/binding-props-bad/view.jsx" <<'EOF'
+"use client";
+/**
+ * 파일명: sample/binding-props-bad/view.jsx
+ * 작성자: LSH
+ * 갱신일: 2026-03-03
+ * 설명: FE-A-064 회귀 검증 fixture (수동 value/onChange 지양)
+ */
+
+import EasyObj from "@/app/lib/dataset/EasyObj";
+import Input from "@/app/lib/component/Input";
+
+const BindingPropsBadView = () => {
+  const formObj = EasyObj({
+    email: "",
+  });
+
+  return (
+    <Input
+      value={formObj.email}
+      onChange={(event) => {
+        formObj.email = event.target.value;
+      }}
+    />
+  );
+};
+
+export default BindingPropsBadView;
+EOF
+
+cat > "$FIXTURE_REPO/frontend-web/app/sample/binding-props-good/view.jsx" <<'EOF'
+"use client";
+/**
+ * 파일명: sample/binding-props-good/view.jsx
+ * 작성자: LSH
+ * 갱신일: 2026-03-03
+ * 설명: FE-A-064 오탐 방지 fixture (dataObj/dataKey 기본 바인딩)
+ */
+
+import EasyObj from "@/app/lib/dataset/EasyObj";
+import Input from "@/app/lib/component/Input";
+
+const BindingPropsGoodView = () => {
+  const formObj = EasyObj({
+    email: "",
+  });
+
+  return <Input dataObj={formObj} dataKey="email" />;
+};
+
+export default BindingPropsGoodView;
+EOF
+
+cat > "$FIXTURE_REPO/frontend-web/app/sample/binding-props-allowed/view.jsx" <<'EOF'
+"use client";
+/**
+ * 파일명: sample/binding-props-allowed/view.jsx
+ * 작성자: LSH
+ * 갱신일: 2026-03-03
+ * 설명: FE-A-064 오탐 방지 fixture (controlled 예외 마커)
+ */
+
+import EasyObj from "@/app/lib/dataset/EasyObj";
+import Input from "@/app/lib/component/Input";
+
+const BindingPropsAllowedView = () => {
+  const formObj = EasyObj({
+    masked: "",
+  });
+
+  // rule-gate: allow-controlled-binding - 외부 마스킹 라이브러리 연동 예외
+  return (
+    <Input
+      value={formObj.masked}
+      onChange={(event) => {
+        formObj.masked = event.target.value;
+      }}
+    />
+  );
+};
+
+export default BindingPropsAllowedView;
+EOF
+
+cat > "$FIXTURE_REPO/frontend-web/app/sample/file-input-reason-bad/view.jsx" <<'EOF'
+"use client";
+/**
+ * 파일명: sample/file-input-reason-bad/view.jsx
+ * 작성자: LSH
+ * 갱신일: 2026-03-03
+ * 설명: FE-A-065 회귀 검증 fixture (raw file input 사유 누락)
+ */
+
+const FileInputReasonBadView = () => {
+  return (
+    <input
+      type="file"
+      onChange={() => {
+        // noop
+      }}
+    />
+  );
+};
+
+export default FileInputReasonBadView;
+EOF
+
+cat > "$FIXTURE_REPO/frontend-web/app/sample/file-input-reason-good/view.jsx" <<'EOF'
+"use client";
+/**
+ * 파일명: sample/file-input-reason-good/view.jsx
+ * 작성자: LSH
+ * 갱신일: 2026-03-03
+ * 설명: FE-A-065 오탐 방지 fixture (raw file input 예외 사유 주석)
+ */
+
+const FileInputReasonGoodView = () => {
+  return (
+    <>
+      {/* 예외 사유: lib/component에 동등 업로드 컴포넌트가 없어 raw file input을 사용한다 */}
+      <input
+        type="file"
+        onChange={() => {
+          // noop
+        }}
+      />
+    </>
+  );
+};
+
+export default FileInputReasonGoodView;
+EOF
+
 cat > "$FIXTURE_REPO/frontend-web/app/lib/component/ImportIntegrityBad.jsx" <<'EOF'
 "use client";
 /**
@@ -474,6 +614,141 @@ const RemUnitBad = () => {
 export default RemUnitBad;
 EOF
 
+cat > "$FIXTURE_REPO/frontend-web/app/sample/page-data-noop/initData.jsx" <<'EOF'
+/**
+ * 파일명: sample/page-data-noop/initData.jsx
+ * 작성자: LSH
+ * 갱신일: 2026-03-03
+ * 설명: FE-A-047 회귀 검증 fixture (usePageData 반환값 미사용 호출)
+ */
+
+export const PAGE_CONFIG = {
+  MODE: "CSR",
+  API: {
+    list: "/api/v1/sample/list",
+  },
+};
+EOF
+
+cat > "$FIXTURE_REPO/frontend-web/app/sample/page-data-noop/page.jsx" <<'EOF'
+/**
+ * 파일명: sample/page-data-noop/page.jsx
+ * 작성자: LSH
+ * 갱신일: 2026-03-03
+ * 설명: FE-A-047 회귀 검증 fixture (page 템플릿 준수)
+ */
+
+import View from "./view";
+import { PAGE_CONFIG } from "./initData";
+import { loadServerPageData } from "@/app/lib/runtime/pageData";
+
+const Page = async () => {
+  const { dataObj: initialDataObj, errorObj: initialErrorObj } = await loadServerPageData({
+    pageConfig: PAGE_CONFIG,
+  });
+  return <View initialDataObj={initialDataObj} initialErrorObj={initialErrorObj} />;
+};
+
+export default Page;
+EOF
+
+cat > "$FIXTURE_REPO/frontend-web/app/sample/page-data-noop/view.jsx" <<'EOF'
+"use client";
+/**
+ * 파일명: sample/page-data-noop/view.jsx
+ * 작성자: LSH
+ * 갱신일: 2026-03-03
+ * 설명: FE-A-047 회귀 검증 fixture (auto:false + 반환값 미사용)
+ */
+
+import { usePageData } from "@/app/lib/hooks/usePageData";
+import { PAGE_CONFIG } from "./initData";
+
+const PageDataNoopView = ({ initialDataObj = {}, initialErrorObj = {} }) => {
+  usePageData({
+    pageConfig: PAGE_CONFIG,
+    initialDataObj,
+    initialErrorObj,
+    auto: false,
+  });
+  return <div>noop</div>;
+};
+
+export default PageDataNoopView;
+EOF
+
+cat > "$FIXTURE_REPO/frontend-web/app/lib/runtime/PageDataLegacyBad.js" <<'EOF'
+/**
+ * 파일명: lib/runtime/PageDataLegacyBad.js
+ * 작성자: LSH
+ * 갱신일: 2026-03-02
+ * 설명: FE-A-060 회귀 검증 fixture (레거시 API 스키마 호환 금지)
+ */
+
+const resolveLegacyEndpoint = (pageConfig, endpoint, initConfig = {}) => {
+  const apiMap = pageConfig?.API ?? pageConfig?.endPoints ?? {};
+  const path = endpoint.path ?? endpoint.url ?? endpoint.endpoint ?? initConfig.path ?? "";
+  if (endpoint.enabled === false) return null;
+  return { apiMap, path };
+};
+
+export default resolveLegacyEndpoint;
+EOF
+
+cat > "$FIXTURE_REPO/frontend-web/app/lib/runtime/api.js" <<'EOF'
+/**
+ * 파일명: lib/runtime/api.js
+ * 작성자: LSH
+ * 갱신일: 2026-03-02
+ * 설명: FE-A-061 회귀 검증 fixture (apiRequest 레거시 csrf/auth 호환 금지)
+ */
+
+const normalizeArgs = (a2) => {
+  const isLegacyOptionOnlyInit = (value) => {
+    const keys = Object.keys(value || {});
+    return keys.every((key) => key === "csrf" || key === "auth");
+  };
+
+  const init = isLegacyOptionOnlyInit(a2) ? { ...a2 } : {};
+  if ("csrf" in init) delete init.csrf;
+  if ("auth" in init) delete init.auth;
+  return init;
+};
+
+export default normalizeArgs;
+EOF
+
+cat > "$FIXTURE_REPO/frontend-web/app/api/bff/[...path]/route.js" <<'EOF'
+/**
+ * 파일명: app/api/bff/[...path]/route.js
+ * 작성자: LSH
+ * 갱신일: 2026-03-03
+ * 설명: FE-A-062 회귀 검증 fixture (refresh 경로 Origin/Referer 보강 누락)
+ */
+
+const cloneRequestHeaders = (req) => {
+  const headers = new Headers();
+  req.headers.forEach((value, key) => {
+    headers.set(key, value);
+  });
+  return headers;
+};
+
+async function refreshOnce(req, backendHost) {
+  const refreshUrl = new URL("/api/v1/auth/refresh", backendHost);
+  const headers = cloneRequestHeaders(req);
+  headers.delete("authorization");
+  return fetch(refreshUrl, {
+    method: "POST",
+    headers,
+    redirect: "manual",
+    cache: "no-store",
+  });
+}
+
+export { refreshOnce };
+EOF
+
 git -C "$FIXTURE_REPO" add .
 
 set +e
@@ -540,6 +815,10 @@ assert_contains "EasyList 변수명 규칙 위반:"
 assert_contains "frontend-web/app/sample/list-naming/view.jsx"
 assert_contains "apiJSON 응답 데이터의 ui.rows 직접 대입 지양."
 assert_contains "frontend-web/app/sample/api-model/view.jsx"
+assert_contains "Input 수동 제어(value/checked + onChange) 지양."
+assert_contains "frontend-web/app/sample/binding-props-bad/view.jsx"
+assert_contains "raw <input type=\"file\"> 사용 시 예외 사유 주석 필수."
+assert_contains "frontend-web/app/sample/file-input-reason-bad/view.jsx"
 assert_contains "불필요한 useMemo 가능성: 'layoutMeta'"
 assert_contains "import 블록 오염: 실행문 이후 import 선언 금지 frontend-web/app/lib/component/ImportIntegrityBad.jsx"
 assert_contains_any "JS/JSX 문법 오류:" "node 실행 파일이 없어 프론트 문법 파싱 검사를 생략"
@@ -548,6 +827,12 @@ assert_contains "주석/문구는 한글 기준 권장(예외: 라이브러리/�
 assert_contains "JSDoc 상세도 부족: 처리 규칙/실패 동작/반환값/제약 등 구체 정보 최소 1개 포함 권장 frontend-web/app/lib/component/CommentQualityBad.jsx"
 assert_contains "JSDoc 설명 품질 개선 권장 (템플릿 문구 '로직을 수행한다' 사용) frontend-web/app/lib/component/CommentQualityBad.jsx"
 assert_contains "rem 단위 사용 지양. px 단위 사용 frontend-web/app/lib/component/RemUnitBad.jsx"
+assert_contains "usePageData 반환값 미사용 + auto:false 호출 지양."
+assert_contains "frontend-web/app/sample/page-data-noop/view.jsx"
+assert_contains "레거시 API 스키마 호환 금지: 레거시 API 키 'endPoints' 사용 감지. PAGE_CONFIG.API + { path, method?, authless?, init?, fetchInit? } 형식으로 통일해야 한다 frontend-web/app/lib/runtime/PageDataLegacyBad.js"
+assert_contains "apiRequest 레거시 csrf/auth 호환(shim) 금지: 레거시 옵션 판별 함수. 호출 규약은 PAGE_CONFIG/API 표준 옵션으로만 해석해야 한다 frontend-web/app/lib/runtime/api.js"
+assert_contains "apiRequest 레거시 csrf/auth 호환(shim) 금지: csrf 키 무음 제거. 호출 규약은 PAGE_CONFIG/API 표준 옵션으로만 해석해야 한다 frontend-web/app/lib/runtime/api.js"
+assert_contains "BFF refresh 프록시는 Origin/Referer 헤더 보강(set) 로직을 포함해야 한다. frontend-web/app/api/bff/[...path]/route.js"
 
 # Must Ignore
 assert_not_contains "컴포넌트 문구 하드코딩 지양: 'text-gray-600' frontend-web/app/lib/component/Combobox.jsx"
@@ -558,5 +843,8 @@ assert_not_contains "import 블록 오염: 실행문 이후 import 선언 금지
 assert_not_contains "주석/문구는 한글 기준 권장(예외: 라이브러리/헤더/코드값) frontend-web/app/lib/component/CommentKoreanGood.jsx"
 assert_not_contains "주석/문구는 한글 기준 권장(예외: 라이브러리/헤더/코드값) frontend-web/app/lib/runtime/RegexLiteralCommentSafe.js"
 assert_not_contains "apiJSON 응답 데이터의 ui.loading 직접 대입 지양. frontend-web/app/sample/api-model-good/view.jsx"
+assert_not_contains "Input 수동 제어(value/checked + onChange) 지양. 컴포넌트 바인딩 props(dataObj/dataKey, dataList 등)를 우선 사용하고, 예외가 필요하면 인접 주석에 'rule-gate: allow-controlled-binding' 사유를 남겨야 한다 frontend-web/app/sample/binding-props-good/view.jsx"
+assert_not_contains "Input 수동 제어(value/checked + onChange) 지양. 컴포넌트 바인딩 props(dataObj/dataKey, dataList 등)를 우선 사용하고, 예외가 필요하면 인접 주석에 'rule-gate: allow-controlled-binding' 사유를 남겨야 한다 frontend-web/app/sample/binding-props-allowed/view.jsx"
+assert_not_contains "raw <input type=\"file\"> 사용 시 예외 사유 주석 필수. lib/component 우선 사용 원칙에 따라 인접 주석/JSDoc에 대체 불가 사유를 남겨야 한다 frontend-web/app/sample/file-input-reason-good/view.jsx"
 
 echo "[PASS] rule-gate regression fixtures passed"

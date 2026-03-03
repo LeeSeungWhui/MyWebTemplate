@@ -35,3 +35,33 @@ def testBuildPostgresqlUrlEncodesUserInfo():
     )
 
     assert dbUrl == "postgresql://team%3Auser:%21%3A%40@127.0.0.1:5432/appdb"
+
+
+def testBuildPostgresqlUrlWrapsIpv6Host():
+    from server import buildNetworkDbUrl
+
+    dbUrl = buildNetworkDbUrl(
+        scheme="postgresql",
+        host="::1",
+        port="5432",
+        database="appdb",
+        user="demo",
+        password="secret",
+    )
+
+    assert dbUrl == "postgresql://demo:secret@[::1]:5432/appdb"
+
+
+def testBuildPostgresqlUrlKeepsBracketedIpv6Host():
+    from server import buildNetworkDbUrl
+
+    dbUrl = buildNetworkDbUrl(
+        scheme="postgresql",
+        host="[::1]",
+        port="5432",
+        database="appdb",
+        user="demo",
+        password="secret",
+    )
+
+    assert dbUrl == "postgresql://demo:secret@[::1]:5432/appdb"

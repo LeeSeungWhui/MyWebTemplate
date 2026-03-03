@@ -2,7 +2,7 @@
 /**
  * 파일명: sample/crud/view.jsx
  * 작성자: LSH
- * 갱신일: 2026-02-22
+ * 갱신일: 2026-03-03
  * 설명: 공개 CRUD 샘플 페이지 뷰(더미 데이터 기반, Drawer CRUD)
  */
 
@@ -20,9 +20,10 @@ import NumberInput from "@/app/lib/component/NumberInput";
 import Select from "@/app/lib/component/Select";
 import Textarea from "@/app/lib/component/Textarea";
 import { useDemoSharedState } from "@/app/sample/demoSharedState";
-import { usePageData } from "@/app/lib/hooks/usePageData";
 import EasyObj from "@/app/lib/dataset/EasyObj";
 import { PAGE_CONFIG } from "./initData";
+import { normalizePageConfig } from "@/app/lib/runtime/pageData";
+import { usePageData } from "@/app/lib/hooks/usePageData";
 import LANG_KO from "./lang.ko";
 
 const STATUS_FILTER_LIST = LANG_KO.initData.statusFilterList.map((item) => ({ ...item }));
@@ -33,7 +34,7 @@ const INITIAL_ROW_LIST = LANG_KO.initData.rowList.map((item) => ({ ...item }));
  * 처리 규칙: 필터/선택/드로어 상태는 EasyObj(ui)로 유지하고 목록 데이터는 shared state로 동기화한다.
  * @param {{ initialDataObj?: Object, initialErrorObj?: Object }} props
  */
-const CrudDemoView = ({ initialDataObj = {}, initialErrorObj = {} }) => {
+const CrudDemoView = ({ initialDataObj, initialErrorObj }) => {
   const defaultForm = {
     title: "",
     status: LANG_KO.view.misc.defaultStatusCode,
@@ -64,11 +65,11 @@ const CrudDemoView = ({ initialDataObj = {}, initialErrorObj = {} }) => {
     form: { ...defaultForm },
     formError: "",
   });
+  const pageMode = normalizePageConfig(PAGE_CONFIG).MODE;
   usePageData({
     pageConfig: PAGE_CONFIG,
     initialDataObj,
     initialErrorObj,
-    auto: false,
   });
   const { value: rowList, setValue: setRowList } = useDemoSharedState({
     stateKey: "demoCrudRows",
@@ -115,6 +116,7 @@ const CrudDemoView = ({ initialDataObj = {}, initialErrorObj = {} }) => {
       key: "selected",
       header: (
         <div className="flex items-center justify-center">
+          {/* rule-gate: allow-controlled-binding - 선택 행 전체 토글은 목록 계산 로직이 필요해 checked/onChange 제어 유지 */}
           <Checkbox
             checked={allRowSelected}
             onChange={(event) => {
@@ -132,6 +134,7 @@ const CrudDemoView = ({ initialDataObj = {}, initialErrorObj = {} }) => {
       width: 70,
       render: (rowItem) => (
         <div className="flex items-center justify-center">
+          {/* rule-gate: allow-controlled-binding - 행별 선택 상태를 selectedIdList 포함/제외 로직으로 제어 */}
           <Checkbox
             checked={selectedIdSet.has(rowItem.id)}
             onChange={(event) => {
@@ -404,7 +407,7 @@ const CrudDemoView = ({ initialDataObj = {}, initialErrorObj = {} }) => {
   };
 
   return (
-    <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
+    <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 lg:px-8" data-page-mode={pageMode}>
       <section className="mb-6">
         <h1 className="text-3xl font-bold text-gray-900">{LANG_KO.view.section.title}</h1>
         <p className="mt-2 text-sm text-gray-600">
@@ -436,34 +439,26 @@ const CrudDemoView = ({ initialDataObj = {}, initialErrorObj = {} }) => {
         <div className="grid gap-2 md:grid-cols-[1fr_180px_160px_160px_auto_auto]">
           <div>
             <Input
-              value={ui.keyword}
-              onChange={(event) => {
-                ui.keyword = event.target.value;
-              }}
+              dataObj={ui}
+              dataKey="keyword"
               placeholder={LANG_KO.view.input.searchPlaceholder}
             />
           </div>
           <div>
             <Select
-              value={ui.status}
-              onChange={(event) => {
-                ui.status = event.target.value;
-              }}
+              dataObj={ui}
+              dataKey="status"
               dataList={STATUS_FILTER_LIST}
             />
           </div>
           <DateInput
-            value={ui.fromDate}
-            onChange={(event) => {
-              ui.fromDate = event?.target?.value || "";
-            }}
+            dataObj={ui}
+            dataKey="fromDate"
             placeholder={LANG_KO.view.input.fromDatePlaceholder}
           />
           <DateInput
-            value={ui.toDate}
-            onChange={(event) => {
-              ui.toDate = event?.target?.value || "";
-            }}
+            dataObj={ui}
+            dataKey="toDate"
             placeholder={LANG_KO.view.input.toDatePlaceholder}
           />
           <Button
@@ -522,10 +517,8 @@ const CrudDemoView = ({ initialDataObj = {}, initialErrorObj = {} }) => {
           <label className="block space-y-1">
             <span className="text-sm font-medium text-gray-700">{LANG_KO.view.drawer.titleLabel}</span>
             <Input
-              value={ui.form.title}
-              onChange={(event) => {
-                ui.form.title = event.target.value;
-              }}
+              dataObj={ui}
+              dataKey="form.title"
               placeholder={LANG_KO.view.input.titlePlaceholder}
             />
           </label>
@@ -533,10 +526,8 @@ const CrudDemoView = ({ initialDataObj = {}, initialErrorObj = {} }) => {
           <label className="block space-y-1">
             <span className="text-sm font-medium text-gray-700">{LANG_KO.view.drawer.statusLabel}</span>
             <Select
-              value={ui.form.status}
-              onChange={(event) => {
-                ui.form.status = event.target.value;
-              }}
+              dataObj={ui}
+              dataKey="form.status"
               dataList={STATUS_FILTER_LIST.filter((statusItem) => statusItem.value)}
             />
           </label>
@@ -544,10 +535,8 @@ const CrudDemoView = ({ initialDataObj = {}, initialErrorObj = {} }) => {
           <label className="block space-y-1">
             <span className="text-sm font-medium text-gray-700">{LANG_KO.view.drawer.ownerLabel}</span>
             <Input
-              value={ui.form.owner}
-              onChange={(event) => {
-                ui.form.owner = event.target.value;
-              }}
+              dataObj={ui}
+              dataKey="form.owner"
               placeholder={LANG_KO.view.input.ownerPlaceholder}
             />
           </label>
@@ -555,12 +544,10 @@ const CrudDemoView = ({ initialDataObj = {}, initialErrorObj = {} }) => {
           <label className="block space-y-1">
             <span className="text-sm font-medium text-gray-700">{LANG_KO.view.drawer.amountLabel}</span>
             <NumberInput
-              value={ui.form.amount}
+              dataObj={ui}
+              dataKey="form.amount"
               min={0}
               step={1000}
-              onChange={(event) => {
-                ui.form.amount = Number(event?.target?.value || 0);
-              }}
             />
           </label>
 
@@ -568,16 +555,15 @@ const CrudDemoView = ({ initialDataObj = {}, initialErrorObj = {} }) => {
             <span className="text-sm font-medium text-gray-700">{LANG_KO.view.drawer.descriptionLabel}</span>
             <Textarea
               rows={4}
-              value={ui.form.description}
-              onChange={(event) => {
-                ui.form.description = event.target.value;
-              }}
+              dataObj={ui}
+              dataKey="form.description"
               placeholder={LANG_KO.view.input.descriptionPlaceholder}
             />
           </label>
 
           <label className="block space-y-1">
             <span className="text-sm font-medium text-gray-700">{LANG_KO.view.drawer.attachmentLabel}</span>
+            {/* raw file input 예외 사유: 공용 lib/component에 파일 선택 전용 컴포넌트가 없어 브라우저 기본 picker 사용 */}
             <input
               type="file"
               className="block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700"

@@ -2,7 +2,7 @@
 파일명: backend/router/AuthRouter.py
 작성자: LSH
 갱신일: 2025-12-03
-설명: 인증 API 라우터. Access/Refresh 쿠키 기반 토큰 흐름을 담당
+설명: 인증 API 라우터. Access/Refresh 쿠키 기반 토큰 흐름 담당
 """
 
 import json
@@ -19,6 +19,7 @@ from lib.Config import getConfig
 from lib.I18n import detectLocale, translate as i18nTranslate
 from lib.RateLimit import checkRateLimit
 from lib.Response import errorResponse, successResponse
+from lib.ServiceError import buildMappedErrorResponse
 from service import AuthService
 
 router = APIRouter(prefix="/api/v1/auth", tags=["auth"])
@@ -104,10 +105,7 @@ def getCorsOriginRules() -> tuple[tuple[str, ...], str | None]:
         for candidate in [item.strip() for item in originsRaw.split(",") if item.strip()]:
             addOriginCandidate(candidate)
 
-        frontendHostRaw = (
-            (serverSection.get("frontendHost", "") if serverSection else "")
-            or (serverSection.get("frontend_host", "") if serverSection else "")
-        ).strip()
+        frontendHostRaw = (serverSection.get("frontendHost", "") if serverSection else "").strip()
         for frontendCandidate in [item.strip() for item in frontendHostRaw.split(",") if item.strip()]:
             addOriginCandidate(frontendCandidate)
     except Exception:
@@ -134,7 +132,7 @@ def isAllowedWebOrigin(origin: str) -> bool:
 
 def ensureWebCookieOrigin(request: Request, loc: str) -> JSONResponse | None:
     """
-    설명: Web 쿠키 권한 경로(refresh/logout)의 Origin/Referer allowlist를 강제
+    설명: Web 쿠키 권한 경로(refresh/logout)의 Origin/Referer allowlist 강제
     갱신일: 2026-02-25
     """
     origin = normalizeOrigin(request.headers.get("origin"))
@@ -167,7 +165,7 @@ def ensureWebCookieOrigin(request: Request, loc: str) -> JSONResponse | None:
 
 def isSecureRequest(request: Request) -> bool:
     """
-    설명: 프록시 환경을 포함해 HTTPS 요청 여부를 판정
+    설명: 프록시 환경을 포함해 HTTPS 요청 여부 판정
     처리 규칙: URL scheme, 프록시 헤더, 운영 ENV 값을 순서대로 확인
     갱신일: 2026-02-24
     """
@@ -190,7 +188,7 @@ def isSecureRequest(request: Request) -> bool:
 
 def cookieOptions(request: Request, name: str, value: str, maxAge: int | None = None) -> dict:
     """
-    설명: 인증 쿠키(HttpOnly/SameSite/Secure) 기본 옵션을 만드는 빌더
+    설명: 인증 쿠키(HttpOnly/SameSite/Secure) 기본 옵션을 만드 빌더
     반환값: set_cookie 호출에 바로 전달 가능한 옵션 dict
     갱신일: 2026-02-24
     """
@@ -245,7 +243,7 @@ def invalidInputResponse(loc: str, includeAuthHeader: bool = False) -> JSONRespo
 
 async def parseJsonBody(request: Request) -> dict | None:
     """
-    설명: 요청 본문을 JSON dict로 안전하게 파싱하는 유틸
+    설명: 요청 본문을 JSON dict로 안전하게 파싱하 유틸
     실패 동작: 파싱 실패 또는 dict 타입 불일치 시 None을 반환
     갱신일: 2026-02-23
     """
@@ -289,7 +287,7 @@ def appTokenResult(tokenPayload: dict) -> dict:
 @router.post("/login")
 async def login(request: Request):
     """
-    설명: 로그인 요청을 처리하고 Access/Refresh 쿠키를 발급
+    설명: 로그인 요청을 처리하고 Access/Refresh 쿠키 발급
     실패 동작: 입력 검증/인증 실패/레이트리밋/상태저장소 오류를 각각 4xx/5xx로 매핑해 반환
     갱신일: 2026-02-22
     """
@@ -350,7 +348,7 @@ async def login(request: Request):
 @router.post("/signup")
 async def signup(request: Request):
     """
-    설명: 회원가입 입력 검증과 서비스 에러코드→HTTP 상태코드 매핑을 담당하는 핸들러
+    설명: 회원가입 입력 검증과 서비스 에러코드→HTTP 상태코드 매핑을 담당하 핸들러
     실패 동작: 서비스 오류 코드를 상태코드(422/409/503/500)와 메시지로 변환해 반환
     갱신일: 2026-02-22
     """
@@ -365,20 +363,23 @@ async def signup(request: Request):
     }
     result, errorCode = await AuthService.signup(payload)
     if errorCode:
-        statusCode = 500
-        message = i18nTranslate("error.server_error", "server error", loc)
-        if errorCode == "AUTH_422_INVALID_INPUT":
-            statusCode = 422
-            message = i18nTranslate("error.invalid_input", "invalid input", loc)
-        elif errorCode == "AUTH_409_USER_EXISTS":
-            statusCode = 409
-            message = i18nTranslate("auth.user_exists", "user already exists", loc)
-        elif errorCode == "AUTH_503_DB_NOT_READY":
-            statusCode = 503
-            message = i18nTranslate("error.db_not_ready", "database not ready", loc)
+        mappedResponse = buildMappedErrorResponse(
+            errorCode,
+            messageByCode={
+                "AUTH_422_INVALID_INPUT": i18nTranslate("error.invalid_input", "invalid input", loc),
+                "AUTH_409_USER_EXISTS": i18nTranslate("auth.user_exists", "user already exists", loc),
+                "AUTH_503_DB_NOT_READY": i18nTranslate("error.db_not_ready", "database not ready", loc),
+            },
+            includeNoStore=True,
+        )
+        if mappedResponse is not None:
+            return mappedResponse
         return JSONResponse(
-            status_code=statusCode,
-            content=errorResponse(message=message, code=errorCode),
+            status_code=500,
+            content=errorResponse(
+                message=i18nTranslate("error.server_error", "server error", loc),
+                code=errorCode,
+            ),
             headers={"Cache-Control": "no-store"},
         )
 
@@ -390,7 +391,7 @@ async def signup(request: Request):
 @router.post("/refresh")
 async def refresh(request: Request):
     """
-    설명: refresh_token 쿠키로 Access/Refresh 토큰을 재발급
+    설명: refresh_token 쿠키로 Access/Refresh 토큰 재발급
     실패 동작: Origin 검증 실패/토큰 누락·무효 시 401·403을 반환하고 필요 시 쿠키를 정리
     갱신일: 2026-02-22
     """
@@ -509,7 +510,7 @@ async def appLogin(request: Request):
 @router.post("/app/refresh")
 async def appRefresh(request: Request):
     """
-    설명: 앱 refresh_token(JSON body)으로 Access/Refresh 토큰을 재발급
+    설명: 앱 refresh_token(JSON body)으로 Access/Refresh 토큰 재발급
     실패 동작: refreshToken 누락/무효 또는 상태저장소 오류 시 401/503을 반환
     갱신일: 2026-02-25
     """
@@ -560,7 +561,7 @@ async def appRefresh(request: Request):
 @router.post("/app/logout", status_code=204)
 async def appLogout(request: Request):
     """
-    설명: 앱 로그아웃 처리. body의 refreshToken(옵션)을 폐기
+    설명: 앱 로그아웃 처리. body의 refreshToken(옵션) 폐기
     처리 규칙: body가 있으면 JSON dict만 허용하고, 토큰이 없어도 revoke 경로를 안전하게 호출
     갱신일: 2026-02-25
     """
@@ -600,7 +601,7 @@ async def appLogout(request: Request):
 @router.post("/logout", status_code=204)
 async def logout(request: Request):
     """
-    설명: 로그아웃 처리 후 인증 쿠키를 제거
+    설명: 로그아웃 처리 후 인증 쿠키 제거
     부작용: 서버 측 refresh revoke 이후 access/refresh 쿠키를 삭제
     갱신일: 2026-02-22
     """

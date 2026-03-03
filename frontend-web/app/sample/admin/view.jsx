@@ -2,13 +2,13 @@
 /**
  * 파일명: sample/admin/view.jsx
  * 작성자: LSH
- * 갱신일: 2026-02-22
+ * 갱신일: 2026-03-03
  * 설명: 공개 관리자 화면 샘플 페이지 뷰(탭/사용자 Drawer 포함)
  */
 
 import { useEffect, useMemo } from "react";
 import { useGlobalUi } from "@/app/common/store/SharedStore";
-import { usePageData } from "@/app/lib/hooks/usePageData";
+import { normalizePageConfig } from "@/app/lib/runtime/pageData";
 import Badge from "@/app/lib/component/Badge";
 import Button from "@/app/lib/component/Button";
 import Card from "@/app/lib/component/Card";
@@ -23,6 +23,7 @@ import { useDemoSharedState } from "@/app/sample/demoSharedState";
 import EasyObj from "@/app/lib/dataset/EasyObj";
 import { PAGE_CONFIG } from "./initData";
 import LANG_KO from "./lang.ko";
+import { usePageData } from "@/app/lib/hooks/usePageData";
 
 const ROLE_BADGE_VARIANT_MAP = {
   admin: "primary",
@@ -72,7 +73,7 @@ const INITIAL_ROW_LIST = LANG_KO.initData.userRows.map((item) => ({ ...item }));
  * 처리 규칙: 사용자 탭은 목록/드로어 CRUD를, 시스템 탭은 설정 토글 상태를 EasyObj 기반으로 유지한다.
  * @param {{ initialDataObj?: Object, initialErrorObj?: Object }} props
  */
-const AdminDemoView = ({ initialDataObj = {}, initialErrorObj = {} }) => {
+const AdminDemoView = ({ initialDataObj, initialErrorObj }) => {
   const defaultUserForm = {
     name: "",
     email: "",
@@ -96,11 +97,11 @@ const AdminDemoView = ({ initialDataObj = {}, initialErrorObj = {} }) => {
     userForm: { ...defaultUserForm },
     formError: "",
   });
+  const pageMode = normalizePageConfig(PAGE_CONFIG).MODE;
   usePageData({
     pageConfig: PAGE_CONFIG,
     initialDataObj,
     initialErrorObj,
-    auto: false,
   });
   const { value: rows, setValue: setRows } = useDemoSharedState({
     stateKey: "demoAdminUsers",
@@ -300,7 +301,7 @@ const AdminDemoView = ({ initialDataObj = {}, initialErrorObj = {} }) => {
   };
 
   return (
-    <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
+    <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 lg:px-8" data-page-mode={pageMode}>
       <section className="mb-6">
         <h1 className="text-3xl font-bold text-gray-900">{LANG_KO.view.section.title}</h1>
         <p className="mt-2 text-sm text-gray-600">
@@ -326,10 +327,8 @@ const AdminDemoView = ({ initialDataObj = {}, initialErrorObj = {} }) => {
               <div className="flex flex-col gap-2 md:flex-row md:items-center">
                 <div className="flex-1">
                   <Input
-                    value={ui.keyword}
-                    onChange={(event) => {
-                      ui.keyword = event.target.value;
-                    }}
+                    dataObj={ui}
+                    dataKey="keyword"
                     placeholder={LANG_KO.view.users.searchPlaceholder}
                   />
                 </div>
@@ -393,6 +392,7 @@ const AdminDemoView = ({ initialDataObj = {}, initialErrorObj = {} }) => {
             <div className="grid gap-3 md:grid-cols-2">
               <label className="block space-y-1">
                 <span className="text-sm font-medium text-gray-700">{LANG_KO.view.settings.siteNameLabel}</span>
+                {/* rule-gate: allow-controlled-binding - shared store(systemSetting) 반영은 setSystemSetting updater가 필요 */}
                 <Input
                   value={systemSetting.siteName}
                   onChange={(event) =>
@@ -406,6 +406,7 @@ const AdminDemoView = ({ initialDataObj = {}, initialErrorObj = {} }) => {
 
               <label className="block space-y-1">
                 <span className="text-sm font-medium text-gray-700">{LANG_KO.view.settings.adminEmailLabel}</span>
+                {/* rule-gate: allow-controlled-binding - shared store(systemSetting) 반영은 setSystemSetting updater가 필요 */}
                 <Input
                   value={systemSetting.adminEmail}
                   onChange={(event) =>
@@ -420,6 +421,7 @@ const AdminDemoView = ({ initialDataObj = {}, initialErrorObj = {} }) => {
 
               <label className="block space-y-1">
                 <span className="text-sm font-medium text-gray-700">{LANG_KO.view.settings.sessionTimeoutLabel}</span>
+                {/* rule-gate: allow-controlled-binding - shared store(systemSetting) 반영은 setSystemSetting updater가 필요 */}
                 <Input
                   value={String(systemSetting.sessionTimeout)}
                   onChange={(event) =>
@@ -434,6 +436,7 @@ const AdminDemoView = ({ initialDataObj = {}, initialErrorObj = {} }) => {
 
               <label className="block space-y-1">
                 <span className="text-sm font-medium text-gray-700">{LANG_KO.view.settings.maxUploadLabel}</span>
+                {/* rule-gate: allow-controlled-binding - shared store(systemSetting) 반영은 setSystemSetting updater가 필요 */}
                 <Input
                   value={String(systemSetting.maxUploadMb)}
                   onChange={(event) =>
@@ -448,6 +451,7 @@ const AdminDemoView = ({ initialDataObj = {}, initialErrorObj = {} }) => {
 
               <div className="md:col-span-2">
                 <label className="flex items-center gap-2 text-sm text-gray-700">
+                  {/* rule-gate: allow-controlled-binding - shared store(systemSetting) 반영은 setSystemSetting updater가 필요 */}
                   <Switch
                     checked={Boolean(systemSetting.maintenanceMode)}
                     onChange={(event) =>
@@ -505,6 +509,7 @@ const AdminDemoView = ({ initialDataObj = {}, initialErrorObj = {} }) => {
 
           <label className="block space-y-1">
             <span className="text-sm font-medium text-gray-700">{LANG_KO.view.drawer.profileImageLabel}</span>
+            {/* raw file input 예외 사유: 공용 lib/component에 파일 선택 전용 컴포넌트가 없어 브라우저 기본 picker 사용 */}
             <input
               type="file"
               className="block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700"
@@ -521,10 +526,8 @@ const AdminDemoView = ({ initialDataObj = {}, initialErrorObj = {} }) => {
           <label className="block space-y-1">
             <span className="text-sm font-medium text-gray-700">{LANG_KO.view.drawer.nameLabel}</span>
             <Input
-              value={ui.userForm.name}
-              onChange={(event) => {
-                ui.userForm.name = event.target.value;
-              }}
+              dataObj={ui}
+              dataKey="userForm.name"
               placeholder={LANG_KO.view.drawer.namePlaceholder}
             />
           </label>
@@ -532,11 +535,9 @@ const AdminDemoView = ({ initialDataObj = {}, initialErrorObj = {} }) => {
           <label className="block space-y-1">
             <span className="text-sm font-medium text-gray-700">{LANG_KO.view.drawer.emailLabel}</span>
             <Input
-              value={ui.userForm.email}
+              dataObj={ui}
+              dataKey="userForm.email"
               readOnly={ui.drawerState.mode === "edit"}
-              onChange={(event) => {
-                ui.userForm.email = event.target.value;
-              }}
               placeholder={LANG_KO.view.drawer.emailPlaceholder}
               type="email"
             />
@@ -545,10 +546,8 @@ const AdminDemoView = ({ initialDataObj = {}, initialErrorObj = {} }) => {
           <label className="block space-y-1">
             <span className="text-sm font-medium text-gray-700">{LANG_KO.view.drawer.roleLabel}</span>
             <Select
-              value={ui.userForm.role}
-              onChange={(event) => {
-                ui.userForm.role = event.target.value;
-              }}
+              dataObj={ui}
+              dataKey="userForm.role"
               dataList={ROLE_OPTION_LIST}
             />
           </label>
@@ -556,10 +555,8 @@ const AdminDemoView = ({ initialDataObj = {}, initialErrorObj = {} }) => {
           <label className="block space-y-1">
             <span className="text-sm font-medium text-gray-700">{LANG_KO.view.drawer.statusLabel}</span>
             <Select
-              value={ui.userForm.status}
-              onChange={(event) => {
-                ui.userForm.status = event.target.value;
-              }}
+              dataObj={ui}
+              dataKey="userForm.status"
               dataList={STATUS_OPTION_LIST}
             />
           </label>
@@ -569,24 +566,18 @@ const AdminDemoView = ({ initialDataObj = {}, initialErrorObj = {} }) => {
             <div className="flex flex-wrap gap-4">
               <Switch
                 label={LANG_KO.view.drawer.notifyEmailLabel}
-                checked={Boolean(ui.userForm.notifyEmail)}
-                onChange={(event) => {
-                  ui.userForm.notifyEmail = Boolean(event?.target?.checked);
-                }}
+                dataObj={ui}
+                dataKey="userForm.notifyEmail"
               />
               <Switch
                 label={LANG_KO.view.drawer.notifySmsLabel}
-                checked={Boolean(ui.userForm.notifySms)}
-                onChange={(event) => {
-                  ui.userForm.notifySms = Boolean(event?.target?.checked);
-                }}
+                dataObj={ui}
+                dataKey="userForm.notifySms"
               />
               <Switch
                 label={LANG_KO.view.drawer.notifyPushLabel}
-                checked={Boolean(ui.userForm.notifyPush)}
-                onChange={(event) => {
-                  ui.userForm.notifyPush = Boolean(event?.target?.checked);
-                }}
+                dataObj={ui}
+                dataKey="userForm.notifyPush"
               />
             </div>
           </div>

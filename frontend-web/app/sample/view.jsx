@@ -2,15 +2,16 @@
 /**
  * 파일명: sample/view.jsx
  * 작성자: LSH
- * 갱신일: 2026-02-23
+ * 갱신일: 2026-03-03
  * 설명: 공개 샘플 허브 페이지 뷰
  */
 
 import Link from "next/link";
 import Card from "@/app/lib/component/Card";
 import Icon from "@/app/lib/component/Icon";
-import { usePageData } from "@/app/lib/hooks/usePageData";
 import { PAGE_CONFIG } from "./initData";
+import { normalizePageConfig } from "@/app/lib/runtime/pageData";
+import { usePageData } from "@/app/lib/hooks/usePageData";
 import LANG_KO from "./lang.ko";
 
 const { initData } = LANG_KO;
@@ -26,15 +27,15 @@ const DEMO_HUB_EXTRA_LINK_LIST = initData.extraLinkList.map((item) => ({ ...item
  * @description 공개 샘플 허브 화면을 렌더링. 입력/출력 계약을 함께 명시
  * @returns {JSX.Element}
  */
-const DemoHubView = ({ initialDataObj = {}, initialErrorObj = {} }) => {
+const DemoHubView = ({ initialDataObj, initialErrorObj }) => {
+  const pageMode = normalizePageConfig(PAGE_CONFIG).MODE;
   usePageData({
     pageConfig: PAGE_CONFIG,
     initialDataObj,
     initialErrorObj,
-    auto: false,
   });
   return (
-    <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
+    <div className="mx-auto w-full max-w-6xl px-4 py-8 sm:px-6 lg:px-8" data-page-mode={pageMode}>
       <section className="mb-6 rounded-2xl bg-gradient-to-r from-[#1e3a5f] to-[#312e81] px-6 py-7 text-white shadow-lg">
         <p className="text-xs font-semibold tracking-wide text-blue-100">
           {LANG_KO.view.heroBadge}

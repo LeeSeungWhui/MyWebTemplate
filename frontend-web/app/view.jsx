@@ -2,15 +2,16 @@
 /**
  * 파일명: app/view.jsx
  * 작성자: LSH
- * 갱신일: 2026-02-22
+ * 갱신일: 2026-03-03
  * 설명: 루트 랜딩 페이지 뷰
  */
 
 import Link from "next/link";
 import Image from "next/image";
 import Icon from "@/app/lib/component/Icon";
-import { usePageData } from "@/app/lib/hooks/usePageData";
 import { PAGE_CONFIG } from "@/app/initData";
+import { normalizePageConfig } from "@/app/lib/runtime/pageData";
+import { usePageData } from "@/app/lib/hooks/usePageData";
 import LANG_KO from "@/app/lang.ko";
 
 const { initData } = LANG_KO;
@@ -38,16 +39,19 @@ const LANDING_BOTTOM_CTA = {
  * @description 루트 랜딩 페이지를 렌더링. 입력/출력 계약을 함께 명시
  * @returns {JSX.Element}
  */
-const HomeView = ({ initialDataObj = {}, initialErrorObj = {} }) => {
+const HomeView = ({ initialDataObj, initialErrorObj }) => {
+  const pageMode = normalizePageConfig(PAGE_CONFIG).MODE;
   usePageData({
     pageConfig: PAGE_CONFIG,
     initialDataObj,
     initialErrorObj,
-    auto: false,
   });
   return (
     <>
-      <section className="overflow-hidden rounded-3xl bg-gradient-to-br from-[#1e3a5f] to-[#312e81] px-6 py-10 text-white shadow-xl sm:px-10 sm:py-14">
+      <section
+        className="overflow-hidden rounded-3xl bg-gradient-to-br from-[#1e3a5f] to-[#312e81] px-6 py-10 text-white shadow-xl sm:px-10 sm:py-14"
+        data-page-mode={pageMode}
+      >
         <div className="grid gap-8 lg:grid-cols-[1.2fr_0.8fr] lg:items-center">
           <div>
             <h1 className="text-3xl font-bold leading-tight sm:text-4xl">

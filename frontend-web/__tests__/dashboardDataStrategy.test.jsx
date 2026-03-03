@@ -1,9 +1,12 @@
+import { vi } from "vitest";
+
+import { PAGE_CONFIG as DASHBOARD_PAGE_CONFIG } from "@/app/dashboard/initData";
 import {
-  buildDashboardInitialData,
-  DASHBOARD_ERROR_KEY,
   isSsrMode,
-  toErrorState,
-} from "@/app/dashboard/page";
+  listPageApiEntries,
+  loadPageDataObj,
+  loadServerPageData,
+} from "@/app/lib/runtime/pageData";
 
 describe("dashboard data strategy", () => {
   it("MODE가 SSR일 때만 SSR 모드로 판단한다", () => {
@@ -13,36 +16,32 @@ describe("dashboard data strategy", () => {
     expect(isSsrMode("")).toBe(false);
   });
 
-  it("필수 엔드포인트가 없으면 ENDPOINT_MISSING 오류를 반환한다", async () => {
-    const result = await buildDashboardInitialData({
-      mode: "SSR",
-      endPoints: { list: "/api/v1/dashboard" },
-      fetcher: vi.fn(),
-    });
+  it("대시보드 PAGE_CONFIG는 stats/list API 엔트리를 가진다", () => {
+    const apiEntryList = listPageApiEntries(DASHBOARD_PAGE_CONFIG);
+    const keyList = apiEntryList.map(([apiKey]) => apiKey);
 
-    expect(result.statList).toEqual([]);
-    expect(result.dataList).toEqual([]);
-    expect(result.error).toEqual({
-      key: DASHBOARD_ERROR_KEY.ENDPOINT_MISSING,
-    });
+    expect(keyList).toEqual(["stats", "list"]);
   });
 
   it("CSR 모드면 서버 초기 조회를 건너뛴다", async () => {
     const fetcher = vi.fn();
-    const result = await buildDashboardInitialData({
-      mode: "CSR",
-      endPoints: {
-        stats: "/api/v1/dashboard/stats",
-        list: "/api/v1/dashboard",
+    const result = await loadServerPageData({
+      pageConfig: {
+        MODE: "CSR",
+        API: {
+          stats: "/api/v1/dashboard/stats",
+          list: "/api/v1/dashboard",
+        },
       },
       fetcher,
     });
 
     expect(fetcher).not.toHaveBeenCalled();
     expect(result).toEqual({
-      statList: [],
-      dataList: [],
-      error: null,
+      mode: "CSR",
+      dataObj: {},
+      errorObj: {},
+      hasError: false,
     });
   });
 
@@ -57,50 +56,61 @@ describe("dashboard data strategy", () => {
           items: [{ id: 11, title: "테스트 업무", status: "ready", amount: 12000 }],
         },
       });
-    const result = await buildDashboardInitialData({
-      mode: "SSR",
-      endPoints: {
-        stats: "/api/v1/dashboard/stats",
-        list: "/api/v1/dashboard",
-      },
+
+    const result = await loadServerPageData({
+      pageConfig: DASHBOARD_PAGE_CONFIG,
       fetcher,
     });
 
     expect(fetcher).toHaveBeenCalledTimes(2);
-    expect(fetcher).toHaveBeenNthCalledWith(1, "/api/v1/dashboard/stats");
-    expect(fetcher).toHaveBeenNthCalledWith(2, "/api/v1/dashboard");
-    expect(result.error).toBeNull();
-    expect(result.statList).toEqual([{ status: "ready", count: 2, amountSum: 12000 }]);
-    expect(result.dataList).toEqual([
-      { id: 11, title: "테스트 업무", status: "ready", amount: 12000 },
-    ]);
+    expect(fetcher).toHaveBeenNthCalledWith(1, "/api/v1/dashboard/stats", {
+      method: "GET",
+    });
+    expect(fetcher).toHaveBeenNthCalledWith(2, "/api/v1/dashboard", {
+      method: "GET",
+    });
+    expect(result.dataObj.stats).toEqual({
+      result: { byStatus: [{ status: "ready", count: 2, amountSum: 12000 }] },
+    });
+    expect(result.dataObj.list).toEqual({
+      result: {
+        items: [{ id: 11, title: "테스트 업무", status: "ready", amount: 12000 }],
+      },
+    });
+    expect(result.errorObj).toEqual({});
+    expect(result.hasError).toBe(false);
   });
 
-  it("SSR 초기 조회 실패 시 INIT_FETCH_FAILED 오류를 반환한다", async () => {
+  it("SSR 초기 조회 실패 시 errorObj로 정규화한다", async () => {
     const fetchError = new Error("fetch failed");
     fetchError.code = "DASHBOARD_500";
     fetchError.requestId = "rid-dashboard-1";
-    const result = await buildDashboardInitialData({
-      mode: "SSR",
-      endPoints: {
-        stats: "/api/v1/dashboard/stats",
-        list: "/api/v1/dashboard",
-      },
-      fetcher: vi.fn().mockRejectedValue(fetchError),
+    fetchError.statusCode = 500;
+    const fetcher = vi
+      .fn()
+      .mockRejectedValueOnce(fetchError)
+      .mockResolvedValueOnce({
+        result: {
+          items: [{ id: 1, title: "백업", status: "running", amount: 1000 }],
+        },
+      });
+
+    const result = await loadPageDataObj({
+      pageConfig: DASHBOARD_PAGE_CONFIG,
+      fetcher,
     });
 
-    expect(result.statList).toEqual([]);
-    expect(result.dataList).toEqual([]);
-    expect(result.error).toEqual({
-      key: DASHBOARD_ERROR_KEY.INIT_FETCH_FAILED,
+    expect(result.dataObj.list).toEqual({
+      result: {
+        items: [{ id: 1, title: "백업", status: "running", amount: 1000 }],
+      },
+    });
+    expect(result.errorObj.stats).toMatchObject({
+      message: "fetch failed",
       code: "DASHBOARD_500",
       requestId: "rid-dashboard-1",
+      statusCode: 500,
     });
-  });
-
-  it("toErrorState는 err가 없으면 key만 반환한다", () => {
-    expect(toErrorState(null, DASHBOARD_ERROR_KEY.ENDPOINT_MISSING)).toEqual({
-      key: DASHBOARD_ERROR_KEY.ENDPOINT_MISSING,
-    });
+    expect(result.hasError).toBe(true);
   });
 });

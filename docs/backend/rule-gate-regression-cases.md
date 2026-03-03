@@ -10,6 +10,10 @@
 | RG-BE-002-001 | BE-A-002 | 서비스 레이어 멀티라인 SQL f-string 보간 | ERROR 검출 |
 | RG-BE-002-002 | BE-A-002 | 서비스 레이어 SQL 문자열 `.format(...)` 치환 | ERROR 검출 |
 | RG-BE-011-001 | BE-A-011 | Auth 라우터에서 `JSONResponse` 반환 시 `Cache-Control: no-store` 누락 | WARN 검출 |
+| RG-BE-011-002 | BE-A-011 | 인증 필요 Profile 라우터 응답에서 `Cache-Control: no-store` 누락 | WARN 검출 |
+| RG-BE-011-003 | BE-A-011 | 인증 필요 Dashboard 라우터 응답에서 `Cache-Control: no-store` 누락 | WARN 검출 |
+| RG-BE-011-004 | BE-A-011 | 글로벌 500 예외 핸들러 응답에서 `Cache-Control: no-store` 누락 | WARN 검출 |
+| RG-BE-011-005 | BE-A-011 | 글로벌 422 검증 예외 핸들러 응답에서 `Cache-Control: no-store` 누락 | WARN 검출 |
 | RG-BE-008-001 | BE-A-008 | 함수 docstring `갱신일` 형식이 `YYYY-MM-DD`가 아님 (`2026-02-XX`) | WARN 검출 |
 | RG-BE-008-002 | BE-A-008 | `__init__` 메서드 docstring 누락 | WARN 검출 |
 | RG-BE-012-001 | BE-A-012 | 백엔드 인라인 주석이 영문 문장으로만 작성됨 | WARN 검출 |
@@ -18,6 +22,9 @@
 | RG-BE-014-002 | BE-A-014 | SQL 로그 리터럴 노출 경로에서 list/dict 중첩 문자열 민감값 마스킹 누락 | WARN 검출 |
 | RG-BE-015-001 | BE-A-015 | 선행 실행문 이후 모듈 레벨 `import` 재등장 | WARN 검출 |
 | RG-BE-018-001 | BE-A-018 | docstring이 `설명` 재진술형 + 구체 정보 없음 | WARN 검출 |
+| RG-BE-020-001 | BE-A-020 | Dashboard 라우터 서비스 호출에서 `userId` 전달 누락 | ERROR 검출 |
+| RG-BE-020-002 | BE-A-020 | Dashboard 서비스 함수 시그니처에 `userId` 누락 | ERROR 검출 |
+| RG-BE-020-003 | BE-A-020 | `dashboard.sql` 사용자 데이터 쿼리에 `USER_ID = :userId` 누락 | ERROR 검출 |
 
 ## 2) 검출되면 안 되는 케이스 (Must Ignore)
 
@@ -37,5 +44,5 @@ bash scripts/cli/check-myweb-rule-gate-backend-regression.sh .
 ```
 
 성공 기준:
-- Must Catch 11건이 모두 검출된다.
+- Must Catch 18건이 모두 검출된다.
 - Must Ignore 3건이 검출되지 않는다.

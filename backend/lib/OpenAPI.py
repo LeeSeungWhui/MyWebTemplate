@@ -18,14 +18,14 @@ from lib.Logger import logger
 def attachOpenAPI(app: FastAPI, config) -> None:
     """
     이름: attachOpenAPI
-    설명: 주어진 app에 custom openapi 함수 부착. config는 [AUTH]/기타 값을 제공
+    설명: 주어진 app에 custom openapi 함수 부착. config는 [AUTH]/기타 값 제공
     갱신일: 2026-02-24
     """
 
     def readConfigValue(section: Optional[object], key: str, fallback: Optional[str] = None) -> Optional[str]:
         """
-        설명: configparser.SectionProxy/dict 양쪽에서 설정 값 안전 조회
-        처리 규칙: getter 시그니처 차이(TypeError)는 dict 방식으로 재시도하고, 실패 시 fallback을 반환
+        설명: configparser 섹션에서 설정 값을 안전 조회
+        처리 규칙: 섹션/키 조회 실패 시 fallback을 반환
         반환값: 설정 문자열 또는 fallback 값을 반환
         갱신일: 2026-02-26
         """
@@ -35,20 +35,13 @@ def attachOpenAPI(app: FastAPI, config) -> None:
         if not callable(getter):
             return fallback
         try:
-            # configparser.SectionProxy는 fallback 키워드를 지원한다.
             return getter(key, fallback=fallback)  # type: ignore[misc]
-        except TypeError:
-            # dict.get은 fallback 키워드를 지원하지 않는다.
-            try:
-                return getter(key, fallback)  # type: ignore[misc]
-            except Exception:
-                return fallback
         except Exception:
             return fallback
 
     def patchOpenapi(schema: Dict[str, Any]) -> Dict[str, Any]:
         """
-        설명: OpenAPI 스키마에 보안/응답/파라미터/코드샘플 정책을 패치
+        설명: OpenAPI 스키마에 보안/응답/파라미터/코드샘플 정책 패치
         처리 규칙: components/paths를 보강하되 예외 발생 시 로그만 남기고 원본 schema를 반환
         반환값: 패치가 적용된 OpenAPI schema dict를 반환
         갱신일: 2026-02-26
@@ -62,7 +55,6 @@ def attachOpenAPI(app: FastAPI, config) -> None:
 
             accessCookie = (
                 readConfigValue(authSection, "access_cookie")
-                or readConfigValue(authSection, "session_cookie")
                 or "access_token"
             )
             refreshCookie = readConfigValue(authSection, "refresh_cookie") or "refresh_token"
@@ -226,7 +218,7 @@ def attachOpenAPI(app: FastAPI, config) -> None:
 
             def ensureJavaScriptCodeSample(operation: Dict[str, Any], source: str) -> None:
                 """
-                설명: operation에 openapi-client-axios JavaScript 예제를 보장
+                설명: operation에 openapi-client-axios JavaScript 예제 보장
                 갱신일: 2026-02-26
                 """
                 samples = operation.setdefault("x-codeSamples", [])
@@ -248,7 +240,7 @@ def attachOpenAPI(app: FastAPI, config) -> None:
 
             def ensureHeaderRef(operation: Dict[str, Any], refName: str) -> None:
                 """
-                설명: operation 파라미터에 공통 헤더 ref를 중복 없이 추가
+                설명: operation 파라미터에 공통 헤더 ref를 중복 없 추가
                 갱신일: 2026-02-26
                 """
                 parameters = operation.setdefault("parameters", [])

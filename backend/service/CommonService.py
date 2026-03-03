@@ -18,7 +18,7 @@ startedAt = datetime.now(timezone.utc)
 
 def versionInfo() -> Dict[str, str]:
     """
-    설명: 버전/시작 시각 메타 정보를 반환. 호출 맥락의 제약을 기준으로 동작 기준을 확정
+    설명: 버전/시작 시각 메타 정보를 반환. 호출 맥락의 제약을 기준으로 동작 기준 확정
     반환값: version/gitSha/startedAt를 포함한 진단용 메타 dict를 반환
     갱신일: 2026-02-24
     """
@@ -31,9 +31,26 @@ def versionInfo() -> Dict[str, str]:
     }
 
 
+def parseReadyzTimeoutMs(defaultValue: int = 300) -> int:
+    """
+    설명: READYZ_TIMEOUT_MS 환경변수를 readiness timeout(ms) 정수로 파싱
+    처리 규칙: 숫자가 아니거나 0 이하 값이면 defaultValue로 폴백
+    반환값: 양수 timeout(ms) 정수
+    갱신일: 2026-03-02
+    """
+    rawValue = os.getenv("READYZ_TIMEOUT_MS", str(defaultValue))
+    try:
+        timeoutMs = int(str(rawValue).strip())
+    except Exception:
+        return int(defaultValue)
+    if timeoutMs <= 0:
+        return int(defaultValue)
+    return timeoutMs
+
+
 async def healthz(_: Dict | None = None) -> Dict[str, str | int | bool]:
     """
-    설명: 프로세스 기동 상태와 업타임 정보를 반환. 호출 맥락의 제약을 기준으로 동작 기준을 확정
+    설명: 프로세스 기동 상태와 업타임 정보를 반환. 호출 맥락의 제약을 기준으로 동작 기준 확정
     처리 규칙: 현재 UTC 시각 기준으로 startedAt과의 차이를 계산해 uptimeSeconds를 생성
     반환값: ok/version/gitSha/startedAt/uptimeSeconds를 포함한 헬스 payload dict
     갱신일: 2026-02-28
@@ -49,7 +66,7 @@ async def healthz(_: Dict | None = None) -> Dict[str, str | int | bool]:
 
 async def readyz(_: Dict | None = None) -> Tuple[Dict[str, Any], bool]:
     """
-    설명: 레디니스 체크. DB 핑 및 타임아웃/지표를 포함해 관측성을 확장
+    설명: 레디니스 체크. DB 핑 및 타임아웃/지표를 포함해 관측성 확장
     처리 규칙: 유지보수 모드 또는 DB ping 실패 시 ok=False로 전환
     반환값: (상태 payload, 준비 완료 여부 bool) 튜플을 반환
     갱신일: 2025-12-03
@@ -65,6 +82,7 @@ async def readyz(_: Dict | None = None) -> Tuple[Dict[str, Any], bool]:
         dbStatus = "skipped"
         dbLatencies: List[int] = []
         dbTargets: List[str] = []
+        timeoutMs = parseReadyzTimeoutMs()
 
         try:
             try:
@@ -73,16 +91,16 @@ async def readyz(_: Dict | None = None) -> Tuple[Dict[str, Any], bool]:
                 primary = None
 
             targets = [primary] if primary in DB.dbManagers else list(DB.dbManagers.keys())
-            timeoutMs = int(os.getenv("READYZ_TIMEOUT_MS", "300"))
 
             if not targets:
                 dbStatus = "down"
                 ok = False
             else:
                 dbStatus = "up"
-                for name in targets:
+                dbTargets = list(targets)
+
+                async def pingTarget(name: str) -> Tuple[str, int | None, Exception | None]:
                     mgr = DB.dbManagers[name]
-                    dbTargets.append(name)
                     queryName = "common.ping"
                     try:
                         if hasattr(mgr, "fetchOneQuery"):
@@ -103,17 +121,24 @@ async def readyz(_: Dict | None = None) -> Tuple[Dict[str, Any], bool]:
                                 timeout=timeoutMs / 1000.0,
                             )
                         elapsedMs = int((time.perf_counter() - started) * 1000)
-                        dbLatencies.append(elapsedMs)
-                    except Exception:
+                        return name, elapsedMs, None
+                    except Exception as exc:
+                        return name, None, exc
+
+                pingResults = await asyncio.gather(*(pingTarget(name) for name in targets))
+                for _, elapsedMs, error in pingResults:
+                    if error is not None:
                         dbStatus = "down"
                         ok = False
-                        break
+                        continue
+                    if elapsedMs is not None:
+                        dbLatencies.append(elapsedMs)
         except Exception:
             dbStatus = "down"
             ok = False
 
         checks["db"] = dbStatus
-        checks["dbTimeoutMs"] = int(os.getenv("READYZ_TIMEOUT_MS", "300"))
+        checks["dbTimeoutMs"] = timeoutMs
         checks["dbTargets"] = dbTargets
         if dbLatencies:
             checks["dbLatencyMs"] = max(dbLatencies)

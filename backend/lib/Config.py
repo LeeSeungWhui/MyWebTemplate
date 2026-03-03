@@ -41,14 +41,14 @@ def resolvePath(filename: str) -> str:
 
 
 def get(section: str, key: str, default: str | None = None) -> str:
-    """설명: 지정 섹션/키 값을 조회 반환값: 존재하는 설정값 또는 기본값. 갱신일: 2025-11-12"""
+    """설명: 지정 섹션/키 값 조회 반환값: 존재하는 설정값 또는 기본값. 갱신일: 2025-11-12"""
     conf = getConfig()
     sec = conf[section]
     return sec.get(key, default) if default is not None else sec[key]
 
 
 def getAuth(key: str, default: str | None = None) -> str:
-    """설명: AUTH 섹션 키를 조회 반환값: AUTH 섹션의 설정값 또는 기본값. 갱신일: 2025-11-12"""
+    """설명: AUTH 섹션 키 조회 반환값: AUTH 섹션의 설정값 또는 기본값. 갱신일: 2025-11-12"""
     return get("AUTH", key, default)
 
 
@@ -97,13 +97,13 @@ def getConfig(path: str | None = None, forceReload: bool = False) -> ConfigParse
 
 
 def reloadConfig() -> ConfigParser:
-    """설명: 캐시를 무시하고 설정을 다시 반환값: 최신 설정 ConfigParser 인스턴스. 갱신일: 2025-11-12"""
+    """설명: 캐시를 무시하고 설정 다시 반환값: 최신 설정 ConfigParser 인스턴스. 갱신일: 2025-11-12"""
     return getConfig(forceReload=True)
 
 
 def clearConfigDependentCaches() -> None:
     """
-    설명: 설정 파생 캐시(AuthRouter CORS rules 등)를 무효화
+    설명: 설정 파생 캐시(AuthRouter CORS rules 등) 무효화
     부작용: AuthRouter.getCorsOriginRules.cache_clear()가 호출되어 CORS 룰 캐시가 비워진
     갱신일: 2026-02-26
     """

@@ -1,7 +1,7 @@
 /**
  * 파일명: publicRoutes.js
  * 작성자: LSH
- * 갱신일: 2026-02-22
+ * 갱신일: 2026-03-03
  * 설명: 인증 불필요(공개) 경로 목록과 판별 유틸
  */
 
@@ -23,8 +23,8 @@ export const publicRoutes = [
 /**
  * 설명: Next matcher 스타일 패턴을 RegExp로 변환
  * 지원: '/path', '/path/:path*', '/path/:path+' (접미부 전용)
- */ // 룰게이트 예외 허용: rule-gate: allow-function-declaration
-function compilePattern(pat) {
+ */
+const compilePattern = (pat) => {
   if (pat === "/") return /^\/$/;
 
   const esc = pat.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -38,7 +38,7 @@ function compilePattern(pat) {
     return new RegExp("^" + base + "\/.+$");
   }
   return new RegExp("^" + esc + "$");
-}
+};
 
 const compiled = publicRoutes.map(compilePattern);
 
@@ -46,11 +46,11 @@ const compiled = publicRoutes.map(compilePattern);
  * 설명: 주어진 pathname이 공개 경로인지 판별
  * 처리 규칙: 문자열이 아니면 false를 반환하고, 등록된 정규식 패턴 중 하나라도 일치하면 true를 반환한다.
  * 반환값: 공개 경로 여부(boolean)
- */ // 룰게이트 예외 허용: rule-gate: allow-function-declaration
-export function isPublicPath(pathname) {
+ */
+export const isPublicPath = (pathname) => {
   if (!pathname || typeof pathname !== "string") return false;
   for (const re of compiled) {
     if (re.test(pathname)) return true;
   }
   return false;
-}
+};

@@ -66,7 +66,7 @@ JWT_LITERAL_PATTERN = re.compile(r"^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-
 
 def maskDatabaseUrl(url: str) -> str:
     """
-    설명: DB 접속 URL에서 자격증명(password)을 마스킹해 로그에 노출되지 않게
+ 설명: DB 접속 URL에서 자격증명(password) 마스킹해 로그에 노출되지 않게
     처리 규칙: URL 파싱이 실패하면 정규식 대체 마스킹을 시도하고, 최종 실패 시 <redacted>를 반환
     갱신일: 2026-02-06
     """
@@ -97,7 +97,7 @@ def maskDatabaseUrl(url: str) -> str:
 
 
 def getSqlCount() -> int:
-    """설명: 현재 요청 컨텍스트의 SQL 실행 누계를 반환 반환값: 정수 카운트(예외 시 0). 갱신일: 2025-11-12"""
+    """설명: 현재 요청 컨텍스트의 SQL 실행 누계 반환 반환값: 정수 카운트(예외 시 0). 갱신일: 2025-11-12"""
     try:
         return int(sqlCountVar.get())
     except Exception:
@@ -112,7 +112,7 @@ def setPrimaryDbName(name: str) -> None:
 
 def getPrimaryDbName() -> str:
     """
-    설명: 우선순위(설정→ENV→보유목록)로 기본 DB 이름을 반환
+ 설명: 우선순위(설정→ENV→보유목록)로 기본 DB 이름 반환
     처리 규칙: 설정값이 없으면 ENV/기본 키/main_db 순으로 폴백
     반환값: 현재 프로세스에서 사용할 기본 DB 키 문자열
     갱신일: 2025-11-12
@@ -135,13 +135,13 @@ def getPrimaryDbName() -> str:
 
 
 def getManager(name: str | None = None) -> "DatabaseManager" | None:
-    """설명: 이름(없으면 기본 DB)으로 DatabaseManager를 조회 반환값: 매니저 인스턴스 또는 None. 갱신일: 2025-11-12"""
+    """설명: 이름(없으면 기본 DB)으로 DatabaseManager 조회 반환값: 매니저 인스턴스 또 None. 갱신일: 2025-11-12"""
     key = (name or "").strip() or getPrimaryDbName()
     return dbManagers.get(key)
 
 
 def incSqlCount(n: int = 1) -> None:
-    """설명: 현재 컨텍스트 SQL 카운터 증가 부작용: sqlCountVar 값 n만큼 증가. 갱신일: 2025-11-12"""
+    """설명: 현재 컨텍스트 SQL 카운터 증 부작용: sqlCountVar 값 n만큼 증가. 갱신일: 2025-11-12"""
     try:
         cur = int(sqlCountVar.get())
         sqlCountVar.set(cur + int(n))
@@ -162,14 +162,14 @@ class QueryManager:
 
     @staticmethod
     def getInstance():
-        """설명: 싱글톤 QueryManager를 반환 반환값: 프로세스 내 단일 QueryManager 인스턴스. 갱신일: 2025-11-12"""
+        """설명: 싱글톤 QueryManager 반환 반환값: 프로세스 내 단일 QueryManager 인스턴스. 갱신일: 2025-11-12"""
         if QueryManager.instance is None:
             QueryManager.instance = QueryManager()
         return QueryManager.instance
 
     def __init__(self):
         """
-        설명: 최초 생성 시 쿼리/파일 매핑 저장소를 초기화
+ 설명: 최초 생성 시 쿼리/파일 매핑 저장소 초기화
         부작용: self.queries/self.nameToFile/self.fileToNames 저장소를 빈 상태로 구성
         갱신일: 2026-02-27
         """
@@ -184,13 +184,8 @@ class QueryManager:
         self.nameToFile = dict(nameToFile or {})
         self.fileToNames = {fp: set(names) for fp, names in (fileToNames or {}).items()}
 
-    def setQueries(self, queries: dict):
-        """설명: 쿼리 테이블 단독 교체(레거시 호환) 부작용: self.queries만 새 dict로 대체. 갱신일: 2025-11-12"""
-        # 이전 코드 호환을 위해 쿼리 dict만 갱신 허용
-        self.queries = dict(queries or {})
-
     def getQuery(self, queryName: str) -> str | None:
-        """설명: 이름으로 SQL 텍스트를 조회 반환값: 등록된 SQL 문자열 또는 None. 갱신일: 2025-11-12"""
+        """설명: 이름으로 SQL 텍스트 조회 반환값: 등록된 SQL 문자열 또 None. 갱신일: 2025-11-12"""
         return self.queries.get(queryName)
 
 
@@ -205,19 +200,19 @@ class DatabaseManager:
         self.queryManager = QueryManager.getInstance()
 
     def maskParams(self, values: dict[str, Any] | None) -> dict[str, str]:
-        """설명: 로그에 사용할 파라미터 키만 노출 반환값: 입력 키를 유지하고 값은 모두 ***로 치환한 dict. 갱신일: 2025-11-12"""
+        """설명: 로그에 사용할 파라미터 키만 노출 반환값: 입력 키 유지하고 값 모두 ***로 치환한 dict. 갱신일: 2025-11-12"""
         if not values:
             return {}
         return {k: "***" for k in values.keys()}
 
     def extractPlaceholders(self, query: str) -> set[str]:
-        """설명: 쿼리에서 :name 형 플레이스홀더 목록을 추출 반환값: 바인딩 이름 집합(set). 갱신일: 2025-11-12"""
+        """설명: 쿼리에서 :name 형 플레이스홀더 목록 추출 반환값: 바인딩 이름 집합(set). 갱신일: 2025-11-12"""
         # 예시: :id, :user_name 등 명명 파라미터
         # PostgreSQL 캐스트(::jsonb)와 구분하기 위해 단일 ':'만 파라미터로 본다.
         return set(re.findall(r"(?<!:):([a-zA-Z_][a-zA-Z0-9_]*)", query or ""))
 
     def normalizeQueryForLog(self, query: str) -> str:
-        """설명: SQL 원문의 빈 줄/불필요 공백을 정리해 사람이 읽기 좋게 반환값: 로그 출력용 정규화 SQL 문자열. 갱신일: 2026-02-22"""
+        """설명: SQL 원문의 빈 줄/불필요 공백 정리해 사람 읽기 좋게 반환값: 로그 출력용 정규화 SQL 문자열. 갱신일: 2026-02-22"""
         rawLines = str(query or "").splitlines()
         lines: list[str] = []
         for rawLine in rawLines:
@@ -228,14 +223,14 @@ class DatabaseManager:
         return "\n".join(lines).rstrip(";")
 
     def truncateLogText(self, text: str, maxLength: int = 1200) -> str:
-        """설명: 과도하게 긴 SQL 로그를 잘라 단일 라인 로그 폭주를 방지 반환값: 길이 제한이 적용된 문자열. 갱신일: 2026-02-22"""
+        """설명: 과도하게 긴 SQL 로그 잘라 단일 라인 로그 폭주 방지 반환값: 길 제한이 적용된 문자열. 갱신일: 2026-02-22"""
         if len(text) <= maxLength:
             return text
         return f"{text[:maxLength]} …(truncated)"
 
     def shouldRevealSqlLiteralValues(self) -> bool:
         """
-        설명: SQL 로그에 실제 리터럴 값을 노출할지 여부를 판단
+ 설명: SQL 로그에 실제 리터럴 값 노출할지 여부 판단
         환경변수 SQL_LOG_LITERAL_VALUES=true|1|yes|on 일 때만 노출
         갱신일: 2026-02-22
         """
@@ -244,7 +239,7 @@ class DatabaseManager:
 
     def isSensitiveSqlParamName(self, paramName: str | None) -> bool:
         """
-        설명: 파라미터 키 이름으로 민감정보 가능성을 판별
+ 설명: 파라미터 키 이름으로 민감정보 가능성 판별
         반환값: 민감 키 패턴이 감지되면 True, 아니면 False
         갱신일: 2026-02-27
         """
@@ -255,7 +250,7 @@ class DatabaseManager:
 
     def isSensitiveSqlStringValue(self, rawValue: str) -> bool:
         """
-        설명: 문자열 값 자체가 토큰/이메일 같은 민감값인지 판별
+ 설명: 문자열 값 자체 토큰/이메일 같 민감값인지 판별
         반환값: 민감값으로 판단되면 True, 일반 문자열이면 False
         갱신일: 2026-02-27
         """
@@ -273,7 +268,7 @@ class DatabaseManager:
 
     def shouldMaskSqlParamForLog(self, paramName: str | None, value: Any) -> bool:
         """
-        설명: SQL 로그 출력 시 마스킹이 필요한 파라미터인지 판정
+ 설명: SQL 로그 출력 시 마스킹 필요한 파라미터인지 판정
         반환값: 키/값 중 하나라도 민감 기준을 만족하면 True
         갱신일: 2026-02-27
         """
@@ -285,7 +280,7 @@ class DatabaseManager:
 
     def sanitizeSqlLogValue(self, value: Any) -> Any:
         """
-        설명: dict/list 같은 복합 파라미터에서 민감 키를 재귀적으로 마스킹
+ 설명: dict/list 같 복합 파라미터에서 민감 키 재귀적으로 마스킹
         처리 규칙: dict/list/tuple을 재귀 순회하고 민감 키·민감 문자열 값은 "***"로 치환
         갱신일: 2026-02-27
         """
@@ -307,7 +302,7 @@ class DatabaseManager:
         return value
 
     def toSqlLiteralForLog(self, value: Any, revealLiteral: bool, paramName: str | None = None) -> str:
-        """설명: 로그 출력용 SQL 리터럴 문자열로 변환 반환값: 마스킹/리터럴 정책이 반영된 SQL 조각 문자열. 갱신일: 2026-02-27"""
+        """설명: 로그 출력용 SQL 리터럴 문자열로 변환 반환값: 마스킹/리터럴 정책 반영된 SQL 조각 문자열. 갱신일: 2026-02-27"""
         if value is None:
             return "NULL"
         if self.shouldMaskSqlParamForLog(paramName, value):
@@ -332,12 +327,12 @@ class DatabaseManager:
         return f"'{text}'"
 
     def renderQueryForLog(self, normalizedQuery: str, values: dict[str, Any] | None, revealLiteral: bool) -> str:
-        """설명: :name 플레이스홀더를 로그용 리터럴로 치환한 SQL을 생성 반환값: 바인딩이 치환된 SQL 문자열. 갱신일: 2026-02-22"""
+        """설명: :name 플레이스홀더 로그용 리터럴로 치환한 SQL 생성 반환값: 바인딩 치환된 SQL 문자열. 갱신일: 2026-02-22"""
         params = values or {}
         pattern = re.compile(r"(?<!:):([a-zA-Z_][a-zA-Z0-9_]*)")
 
         def replace(match: re.Match[str]) -> str:
-            """설명: 개별 플레이스홀더를 로그용 리터럴로 치환 반환값: 치환된 리터럴 또는 원본 플레이스홀더. 갱신일: 2026-02-26"""
+            """설명: 개별 플레이스홀더 로그용 리터럴로 치환 반환값: 치환된 리터럴 또 원본 플레이스홀더. 갱신일: 2026-02-26"""
             key = match.group(1)
             if key not in params:
                 return match.group(0)
@@ -346,7 +341,7 @@ class DatabaseManager:
         return pattern.sub(replace, normalizedQuery)
 
     def logQuery(self, op: str, query: str, values: dict[str, Any] | None = None, queryName: str | None = None) -> None:
-        """설명: SQL 로그를 읽기 쉬운 최소 필드(queryName/sqlRendered)로 구성 부작용: logger.info로 단일 JSON 로그 기록. 갱신일: 2026-02-22"""
+        """설명: SQL 로그 읽기 쉬운 최소 필드(queryName/sqlRendered)로 구성 부작용: logger.info로 단일 JSON 로그 기록. 갱신일: 2026-02-22"""
         normalized = self.normalizeQueryForLog(query)
         revealLiteral = self.shouldRevealSqlLiteralValues()
         rendered = self.renderQueryForLog(normalized, values, revealLiteral)
@@ -423,7 +418,7 @@ class DatabaseManager:
 
     async def execute(self, query: str, values: dict[str, Any] | None = None, queryName: str | None = None) -> Any:
         """
-        설명: INSERT/UPDATE/DELETE 결과(영향 행)를 전달하는 쓰기 전용 실행 진입점
+ 설명: INSERT/UPDATE/DELETE 결과(영향 행) 전달하는 쓰기 전용 실행 진입점
         처리 규칙: 바인드 파라미터를 검증한 뒤 query 로깅과 SQL 카운터 증가를 함께 수행
         반환값: DB 드라이버가 반환한 영향 행 수 또는 실행 결과 값
         갱신일: 2025-11-12
@@ -439,7 +434,7 @@ class DatabaseManager:
         self, query: str, values: dict[str, Any] | None = None, queryName: str | None = None
     ) -> dict[str, Any] | None:
         """
-        설명: 조회 결과를 단일 dict 형태로 정규화해 전달하는 단건 조회 헬퍼
+ 설명: 조회 결과 단일 dict 형태로 정규화해 전달하 단건 조회 헬퍼
         처리 규칙: 결과가 없으면 None을 반환하고, 조회 성공/실패와 관계없이 SQL 카운터를 증가시킨
         반환값: 조회된 단일 행(dict) 또는 None
         갱신일: 2025-11-12
@@ -461,7 +456,7 @@ class DatabaseManager:
         self, query: str, values: dict[str, Any] | None = None, queryName: str | None = None
     ) -> list[dict[str, Any]] | None:
         """
-        설명: 조회 결과를 dict 리스트 형태로 정규화해 전달하는 다건 조회 헬퍼
+ 설명: 조회 결과 dict 리스트 형태로 정규화해 전달하 다건 조회 헬퍼
         처리 규칙: 결과가 없으면 None을 반환하고, 조회 성공/실패와 관계없이 SQL 카운터를 증가시킨
         반환값: dict 리스트 또는 None
         갱신일: 2025-11-12
@@ -512,7 +507,7 @@ class DatabaseManager:
 
 
 def setQueryConfig(queryDirParam: str, watch: bool, debounceMsParam: int):
-    """설명: 쿼리 디렉터리/워치 설정 업데이트 부작용: queryDir/queryWatch/debounceMs 전역 설정값 갱신. 갱신일: 2025-11-12"""
+    """설명: 쿼리 디렉터리/워치 설정 업데이트 처리 부작용: queryDir/queryWatch/debounceMs 전역 설정값 갱신. 갱신일: 2025-11-12"""
     global queryDir, queryWatch, debounceMs
     if not os.path.isabs(queryDirParam):
         queryDirParam = os.path.join(baseDir, queryDirParam)
@@ -522,7 +517,7 @@ def setQueryConfig(queryDirParam: str, watch: bool, debounceMsParam: int):
 
 
 def loadQueries() -> int:
-    """설명: SQL 폴더를 파싱해 QueryManager에 로드 반환값: 로드된 SQL 키 개수. 갱신일: 2025-11-12"""
+    """설명: SQL 폴더 파싱해 QueryManager에 로드 반환값: 로드된 SQL 키 개수. 갱신일: 2025-11-12"""
     started = time.perf_counter()
     queries, nameToFile, fileToNames = scanSqlQueries(queryDir)
     QueryManager.getInstance().setAll(queries, nameToFile, fileToNames)
@@ -556,7 +551,7 @@ def scheduleReload(changedPath: str | None):
 
 
 def doReload() -> bool:
-    """설명: 디바운스 이후 실제로 쿼리 파일을 다시 반환값: 재로딩 성공 여부(True/False). 갱신일: 2025-11-12"""
+    """설명: 디바운스 이후 실제로 쿼리 파일 다시 반환값: 재로딩 성공 여부(True/False). 갱신일: 2025-11-12"""
     started = time.perf_counter()
     changedFile = lastChangedFile or queryDir
     try:
@@ -617,7 +612,7 @@ def doReload() -> bool:
 
 
 def startWatchingQueryFolder() -> Any | None:
-    """설명: watchdog으로 쿼리 폴더 변화를 감시 반환값: 감시 Observer 또는 비활성화 시 None. 갱신일: 2025-11-12"""
+    """설명: watchdog으로 쿼리 폴더 변화 감시 반환값: 감시 Observer 또 비활성화 시 None. 갱신일: 2025-11-12"""
     if not queryWatch:
         return None
     if not watchdogAvailable:
@@ -631,11 +626,11 @@ def startWatchingQueryFolder() -> Any | None:
 
 
 class QueryFolderEventHandler(FileSystemEventHandler):
-    """설명: SQL 파일 변경을 감지해 재로딩을 예약 갱신일: 2025-11-12"""
+    """설명: SQL 파일 변경 감지해 재로딩 예약 갱신일: 2025-11-12"""
 
     def __init__(self, onChange):
         """
-        설명: SQL 파일 변경 알림 콜백을 저장해 각 파일 이벤트에서 재사용
+ 설명: SQL 파일 변경 알림 콜백 저장해 각 파일 이벤트에서 재사용
         부작용: self.onChange에 외부 콜백 참조를 보관
         갱신일: 2026-02-27
         """
@@ -644,7 +639,7 @@ class QueryFolderEventHandler(FileSystemEventHandler):
 
     def maybe(self, event: FileSystemEvent):
         """
-        설명: SQL 파일 이벤트만 재로딩 후보로 분류
+ 설명: SQL 파일 이벤트만 재로딩 후보로 분류
         부작용: 조건을 만족하면 onChange(path)를 호출
         갱신일: 2025-11-12
         """
@@ -655,21 +650,21 @@ class QueryFolderEventHandler(FileSystemEventHandler):
             self.onChange(path)
 
     def on_modified(self, event: FileSystemEvent):
-        """설명: 수정 이벤트를 수신해 SQL 파일 필터링 로직으로 전달 부작용: 파일이면 maybe(event) 실행. 갱신일: 2025-11-12"""
+        """설명: 수정 이벤트 수신해 SQL 파일 필터링 로직으로 전달 부작용: 파일이면 maybe(event) 실행. 갱신일: 2025-11-12"""
         if not event.is_directory:
             self.maybe(event)
 
     def on_created(self, event: FileSystemEvent):
-        """설명: 생성 이벤트를 수신해 SQL 파일 필터링 로직으로 전달 부작용: 파일이면 maybe(event) 실행. 갱신일: 2025-11-12"""
+        """설명: 생성 이벤트 수신해 SQL 파일 필터링 로직으로 전달 부작용: 파일이면 maybe(event) 실행. 갱신일: 2025-11-12"""
         if not event.is_directory:
             self.maybe(event)
 
     def on_moved(self, event: FileSystemEvent):
-        """설명: 이동 이벤트를 수신해 SQL 파일 필터링 로직으로 전달 부작용: 파일이면 maybe(event) 실행. 갱신일: 2025-11-12"""
+        """설명: 이동 이벤트 수신해 SQL 파일 필터링 로직으로 전달 부작용: 파일이면 maybe(event) 실행. 갱신일: 2025-11-12"""
         if not event.is_directory:
             self.maybe(event)
 
     def on_deleted(self, event: FileSystemEvent):
-        """설명: 삭제 이벤트를 수신해 SQL 파일 필터링 로직으로 전달 부작용: 파일이면 maybe(event) 실행. 갱신일: 2025-11-12"""
+        """설명: 삭제 이벤트 수신해 SQL 파일 필터링 로직으로 전달 부작용: 파일이면 maybe(event) 실행. 갱신일: 2025-11-12"""
         if not event.is_directory:
             self.maybe(event)

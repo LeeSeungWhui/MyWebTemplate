@@ -71,7 +71,7 @@ oauth2Scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/app/login", auto_erro
 
 def isStrongAuthSecret(secretKey: str | None) -> bool:
     """
-    설명: 운영용 JWT 시크릿 강도(길이/금지 키워드/문자 다양성)를 평가
+    설명: 운영용 JWT 시크릿 강도(길이/금지 키워드/문자 다양성) 평가
     반환값: 보안 기준을 만족하면 True, 아니면 False
     갱신일: 2026-02-24
     """
@@ -142,7 +142,7 @@ def createAccessToken(data: dict, *, tokenType: str = "access", expireMinutes: i
 
 def createRefreshToken(data: dict) -> Token:
     """
-    설명: 리프레시 토큰을 생성. 호출 맥락의 제약을 기준으로 동작 기준을 확정
+    설명: 리프레시 토큰을 생성. 호출 맥락의 제약을 기준으로 동작 기준 확정
     반환값: typ=refresh와 refresh 만료시간이 반영된 Token 모델
     갱신일: 2026-02-24
     """
@@ -155,7 +155,7 @@ def createRefreshToken(data: dict) -> Token:
 
 async def getCurrentUser(request: Request, token: str | None = Depends(oauth2Scheme)):
     """
-    설명: Bearer 토큰을 검증하고 인증된 사용자 식별자를 반환
+    설명: Bearer 토큰을 검증하고 인증된 사용자 식별자 반환
     갱신일: 2026-02-26
     처리 규칙: 입력값을 검증하고 실패 시 예외/기본값 경로로 수렴
     """

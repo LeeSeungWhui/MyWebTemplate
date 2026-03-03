@@ -1,7 +1,7 @@
 /**
  * 파일명: DateInput.jsx
  * 작성자: LSH
- * 갱신일: 2025-09-13
+ * 갱신일: 2026-03-03
  * 설명: DateInput UI 컴포넌트 구현
  */
 
@@ -84,7 +84,7 @@ const DateInput = forwardRef(({
 }, ref) => {
 
   const isPropControlled = propValue !== undefined;
-  const isData = !!(dataObj && dataKey);
+  const isData = Boolean(dataObj && dataKey);
 
   const [inner, setInner] = useState(defaultValue);
   const [text, setText] = useState(() => (propValue ?? (isData ? getBoundValue(dataObj, dataKey) : inner) ?? ''));

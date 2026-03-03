@@ -10,6 +10,7 @@ from fastapi.responses import JSONResponse
 
 from lib.I18n import detectLocale, translate as i18nTranslate
 from lib.Response import errorResponse, successResponse
+from lib.ServiceError import buildMappedErrorResponse
 from service import CommonService
 
 router = APIRouter(tags=["common"])
@@ -18,7 +19,7 @@ router = APIRouter(tags=["common"])
 @router.get("/healthz")
 async def healthz(request: Request):
     """
-    설명: 프로세스 헬스 체크 응답을 반환. 호출 맥락의 제약을 기준으로 동작 기준을 확정
+    설명: 프로세스 헬스 체크 응답을 반환. 호출 맥락의 제약을 기준으로 동작 기준 확정
     처리 규칙: service 결과를 표준 successResponse로 감싼 뒤 no-store 헤더를 강제
     반환값: status=200 JSONResponse를 반환
     갱신일: 2026-02-24
@@ -42,10 +43,29 @@ async def readyz(request: Request):
     if isReady:
         resp = successResponse(result=result)
         status = 200
-    else:
-        loc = detectLocale(request)
-        resp = errorResponse(message=i18nTranslate("obs.not_ready", "not ready", loc), result=result, code="OBS_503_NOT_READY")
-        status = 503
-    r = JSONResponse(content=resp, status_code=status)
-    r.headers["Cache-Control"] = "no-store"
-    return r
+        r = JSONResponse(content=resp, status_code=status)
+        r.headers["Cache-Control"] = "no-store"
+        return r
+
+    loc = detectLocale(request)
+    mappedResponse = buildMappedErrorResponse(
+        "OBS_503_NOT_READY",
+        messageByCode={
+            "OBS_503_NOT_READY": i18nTranslate("obs.not_ready", "not ready", loc),
+        },
+        result=result,
+        includeNoStore=True,
+    )
+    if mappedResponse is not None:
+        return mappedResponse
+
+    fallbackResponse = JSONResponse(
+        content=errorResponse(
+            message=i18nTranslate("obs.not_ready", "not ready", loc),
+            result=result,
+            code="OBS_503_NOT_READY",
+        ),
+        status_code=503,
+    )
+    fallbackResponse.headers["Cache-Control"] = "no-store"
+    return fallbackResponse
