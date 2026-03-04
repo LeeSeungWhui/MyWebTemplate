@@ -2,7 +2,7 @@
 /**
  * 파일명: dashboard/tasks/view.jsx
  * 작성자: LSH
- * 갱신일: 2026-03-03
+ * 갱신일: 2026-03-04
  * 설명: 업무 관리 클라이언트 뷰(CSR API 연동 CRUD)
  */
 
@@ -54,6 +54,9 @@ const TASK_DETAIL_API_PATH = "/api/v1/dashboard/:id";
  * 처리 규칙: 목록 조회/드로어 CRUD/브라우저 쿼리 동기화를 단일 컴포넌트에서 제어한다.
  */
 const TasksView = ({ initialDataObj, initialErrorObj }) => {
+  /* 1. 상수 ======================================================================================================================= */
+  // 없음
+  /* 2. 데이터 ======================================================================================================================= */
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -100,6 +103,7 @@ const TasksView = ({ initialDataObj, initialErrorObj }) => {
   const hasCreateEndpoint = hasListEndpoint;
   const hasUpdateEndpoint = hasDetailEndpoint;
   const hasRemoveEndpoint = hasDetailEndpoint;
+
   const tableColumns = [
     {
       key: "title",
@@ -139,7 +143,7 @@ const TasksView = ({ initialDataObj, initialErrorObj }) => {
       align: "left",
       width: "2fr",
       render: (row) => {
-        const tagList = toTagList(row?.tags);
+        const tagList = toTagList?.(row?.tags) || [];
         if (!tagList.length) return <span className="text-gray-400">{LANG_KO.view.misc.dateUnknown}</span>;
         return (
           <div className="flex flex-wrap gap-1">
@@ -191,13 +195,6 @@ const TasksView = ({ initialDataObj, initialErrorObj }) => {
       .map((tag) => tag.trim())
       .filter(Boolean);
   };
-
-  /**
-   * @description tags 값을 화면 표시용 문자열로 변환. 입력/출력 계약을 함께 명시
-   * 처리 규칙: 내부적으로 toTagList를 호출한 뒤 `, ` 구분자로 join한다.
-   * @updated 2026-02-27
-   */
-  const toTagText = (value) => toTagList(value).join(", ");
 
   /**
    * @description 금액 값을 로케일 통화 문자열로 변환. 입력/출력 계약을 함께 명시
@@ -322,20 +319,9 @@ const TasksView = ({ initialDataObj, initialErrorObj }) => {
     ui.error = null;
     try {
       const response = await apiJSON(url);
-      const listResult = response?.result;
-      const itemList = Array.isArray(listResult)
-        ? listResult
-        : Array.isArray(listResult?.items)
-          ? listResult.items
-          : [];
-      const totalFromWrapperCount = Number(response?.count);
-      const totalFromLegacy = Number(listResult?.total);
-      const total = !Number.isNaN(totalFromWrapperCount)
-        ? totalFromWrapperCount
-        : !Number.isNaN(totalFromLegacy)
-          ? totalFromLegacy
-          : itemList.length;
-      taskList.copy(itemList);
+      taskList.copy(response?.result?.items || []);
+      const totalSource = response?.count ?? response?.result?.total ?? taskList.size();
+      const total = Number(totalSource || 0);
       taskMetaObj.totalCount = total;
       ui.page = nextPage;
       ui.sort = nextSort || DEFAULT_SORT;
@@ -387,13 +373,12 @@ const TasksView = ({ initialDataObj, initialErrorObj }) => {
     try {
       const detailPath = toPathWithId(TASK_DETAIL_API_PATH, id);
       const response = await apiJSON(detailPath);
-      const detail = response?.result || {};
-      taskDetailObj.copy(detail);
+      taskDetailObj.copy(response?.result || {});
       ui.form = {
         title: taskDetailObj.title || "",
         status: taskDetailObj.status || LANG_KO.view.misc.defaultStatusCode,
         amount: Number(taskDetailObj.amount || 0),
-        tags: toTagText(taskDetailObj.tags),
+        tags: toTagList(taskDetailObj.tags).join(", "),
         description: taskDetailObj.description || "",
       };
     } catch (err) {
@@ -524,6 +509,22 @@ const TasksView = ({ initialDataObj, initialErrorObj }) => {
     });
   }, [hasListEndpoint]);
 
+  /* 3. UI ========================================================================================================================= */
+  // 없음
+  /* 4. 팝업 ======================================================================================================================= */
+  // 없음
+  /* 5. 기타 ======================================================================================================================= */
+  // 없음
+  /* 6. 커스텀 훅 =================================================================================================================== */
+  // 없음
+  /* 7. 함수 ======================================================================================================================= */
+  // 없음
+  /* 8. useEffect ================================================================================================================== */
+  // 없음
+  /* 9. 내부 컴포넌트 ============================================================================================================== */
+  // 없음
+
+  /* 10. 렌더링 ==================================================================================================================== */
   return (
     <div className="space-y-3" data-page-mode={pageMode}>
       {ui.error?.message ? (

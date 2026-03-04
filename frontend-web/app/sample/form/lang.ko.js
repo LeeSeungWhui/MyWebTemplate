@@ -1,12 +1,13 @@
 /**
  * 파일명: app/sample/form/lang.ko.js
  * 작성자: LSH
- * 갱신일: 2026-02-25
+ * 갱신일: 2026-03-04
  * 설명: form 경로 한국어 리소스
  */
 
 export const LANG_KO = {
   page: {
+    metadataTitle: "Form Sample | MyWebTemplate",
     metadataDescription: "공개 복합 폼 샘플 화면",
   },
   initData: {

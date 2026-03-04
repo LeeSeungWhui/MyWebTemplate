@@ -1,7 +1,7 @@
 /**
  * 파일명: sample/page.jsx
  * 작성자: LSH
- * 갱신일: 2026-02-23
+ * 갱신일: 2026-03-04
  * 설명: 공개 샘플 허브 페이지 엔트리
  */
 
@@ -11,7 +11,7 @@ import { loadServerPageData } from "@/app/lib/runtime/pageData";
 import LANG_KO from "./lang.ko";
 
 export const metadata = {
-  title: "Sample Hub | MyWebTemplate",
+  title: LANG_KO.page.metadataTitle,
   description: LANG_KO.page.metadataDescription,
 };
 

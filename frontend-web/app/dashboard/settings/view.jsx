@@ -2,7 +2,7 @@
 /**
  * 파일명: dashboard/settings/view.jsx
  * 작성자: LSH
- * 갱신일: 2026-03-03
+ * 갱신일: 2026-03-04
  * 설명: 대시보드 설정 클라이언트 뷰(프로필/시스템설정 탭)
  */
 
@@ -37,6 +37,7 @@ const PROFILE_ME_API_PATH = "/api/v1/profile/me";
  * 처리 규칙: 프로필 API 응답은 profileMeObj에 복사하고 탭 상태는 query `tab`과 양방향 동기화한다.
  */
 const SettingsView = ({ initialDataObj, initialErrorObj }) => {
+  /* 1. 상수 ======================================================================================================================= */
   const defaultProfileObj = {
     userId: "",
     userNm: "",
@@ -46,7 +47,9 @@ const SettingsView = ({ initialDataObj, initialErrorObj }) => {
     notifySms: false,
     notifyPush: false,
   };
+  const hasProfileEndpoint = Boolean(PROFILE_ME_API_PATH);
 
+  /* 2. 데이터 ======================================================================================================================= */
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -61,12 +64,24 @@ const SettingsView = ({ initialDataObj, initialErrorObj }) => {
     error: null,
   });
   const pageMode = normalizePageConfig(PAGE_CONFIG).MODE;
+
+  /* 3. UI ========================================================================================================================= */
+  // 없음
+
+  /* 4. 팝업 ======================================================================================================================= */
+  // 없음
+
+  /* 5. 기타 ======================================================================================================================= */
+  // 없음
+
+  /* 6. 커스텀 훅 =================================================================================================================== */
   usePageData({
     pageConfig: PAGE_CONFIG,
     initialDataObj,
     initialErrorObj,
   });
-  const hasProfileEndpoint = Boolean(PROFILE_ME_API_PATH);
+
+  /* 7. 함수 ======================================================================================================================= */
 
   /**
    * @description 검색 파라미터에서 key 값을 문자열로 안전 조회
@@ -112,17 +127,6 @@ const SettingsView = ({ initialDataObj, initialErrorObj }) => {
   };
 
   /**
-   * @description URL query 변경 시 탭 인덱스를 화면 상태와 동기화
-   * 처리 규칙: 동일 인덱스면 상태 갱신을 생략한다.
-   */
-  useEffect(() => {
-    const tabIndex = toSettingsTabIndex(normalizeSettingsTab(searchParams));
-    if (ui.activeTabIndex !== tabIndex) {
-      ui.activeTabIndex = tabIndex;
-    }
-  }, [searchParams?.toString(), ui]);
-
-  /**
    * @description API 예외 객체를 화면 표시용 에러 메타로 정규화. 입력/출력 계약을 함께 명시
    * 반환값: message/requestId 필드를 갖는 단순 객체.
    * @updated 2026-02-27
@@ -147,16 +151,7 @@ const SettingsView = ({ initialDataObj, initialErrorObj }) => {
     ui.error = null;
     try {
       const response = await apiJSON(PROFILE_ME_API_PATH);
-      const next = response?.result || {};
-      profileMeObj.copy({
-        userId: next?.userId || "",
-        userNm: next?.userNm || "",
-        userEml: next?.userEml || "",
-        roleCd: next?.roleCd || "user",
-        notifyEmail: Boolean(next?.notifyEmail),
-        notifySms: Boolean(next?.notifySms),
-        notifyPush: Boolean(next?.notifyPush),
-      });
+      profileMeObj.copy(response?.result || {});
     } catch (err) {
       console.error(LANG_KO.view.error.profileLoadFailed, err);
       ui.error = toApiError(err, LANG_KO.view.error.profileLoadFailed);
@@ -164,14 +159,6 @@ const SettingsView = ({ initialDataObj, initialErrorObj }) => {
       ui.isLoadingProfile = false;
     }
   };
-
-  /**
-   * @description 초기 마운트 시 프로필 조회 API를 1회 호출
-   * 처리 규칙: profile endpoint 유효성은 loadProfile 내부에서 다시 검증한다.
-   */
-  useEffect(() => {
-    loadProfile();
-  }, [hasProfileEndpoint]);
 
   /**
    * @description 탭 인덱스를 URL query(`tab`) 값으로 동기화
@@ -229,16 +216,7 @@ const SettingsView = ({ initialDataObj, initialErrorObj }) => {
           notifyPush: Boolean(profileMeObj.notifyPush),
         },
       });
-      const next = response?.result || {};
-      profileMeObj.copy({
-        userId: profileMeObj.userId || "",
-        userNm: next?.userNm || profileMeObj.userNm || "",
-        userEml: profileMeObj.userEml || "",
-        roleCd: profileMeObj.roleCd || "user",
-        notifyEmail: Boolean(next?.notifyEmail),
-        notifySms: Boolean(next?.notifySms),
-        notifyPush: Boolean(next?.notifyPush),
-      });
+      profileMeObj.copy(response?.result || {});
       showToast(LANG_KO.view.toast.profileSaved, { type: "success" });
     } catch (err) {
       console.error(LANG_KO.view.error.profileSaveFailed, err);
@@ -264,6 +242,30 @@ const SettingsView = ({ initialDataObj, initialErrorObj }) => {
     }
   };
 
+  /* 8. useEffect ================================================================================================================== */
+  /**
+   * @description URL query 변경 시 탭 인덱스를 화면 상태와 동기화
+   * 처리 규칙: 동일 인덱스면 상태 갱신을 생략한다.
+   */
+  useEffect(() => {
+    const tabIndex = toSettingsTabIndex(normalizeSettingsTab(searchParams));
+    if (ui.activeTabIndex !== tabIndex) {
+      ui.activeTabIndex = tabIndex;
+    }
+  }, [searchParams?.toString(), ui]);
+
+  /**
+   * @description 초기 마운트 시 프로필 조회 API를 1회 호출
+   * 처리 규칙: profile endpoint 유효성은 loadProfile 내부에서 다시 검증한다.
+   */
+  useEffect(() => {
+    loadProfile();
+  }, [hasProfileEndpoint]);
+
+  /* 9. 내부 컴포넌트 ============================================================================================================== */
+  // 없음
+
+  /* 10. 렌더링 ==================================================================================================================== */
   return (
     <div className="space-y-3" data-page-mode={pageMode}>
       {ui.error?.message ? (

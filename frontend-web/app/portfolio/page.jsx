@@ -1,7 +1,7 @@
 /**
  * 파일명: portfolio/page.jsx
  * 작성자: LSH
- * 갱신일: 2026-02-24
+ * 갱신일: 2026-03-04
  * 설명: 레거시 공개 경로(/portfolio) 포트폴리오 페이지 엔트리
  */
 
@@ -11,7 +11,7 @@ import { loadServerPageData } from "@/app/lib/runtime/pageData";
 import LANG_KO from "./lang.ko";
 
 export const metadata = {
-  title: "Portfolio | MyWebTemplate",
+  title: LANG_KO.page.metadataTitle,
   description: LANG_KO.page.metadataDescription,
 };
 

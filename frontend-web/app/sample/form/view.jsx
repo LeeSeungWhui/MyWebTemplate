@@ -2,7 +2,7 @@
 /**
  * 파일명: sample/form/view.jsx
  * 작성자: LSH
- * 갱신일: 2026-03-03
+ * 갱신일: 2026-03-04
  * 설명: 공개 복합 폼 샘플 페이지 뷰(스텝 검증/요약 기반)
  */
 
@@ -31,6 +31,7 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
  * 처리 규칙: 단계별(step1~3) 입력/검증/요약 상태를 하나의 EasyObj(ui)에서 관리한다.
  */
 const FormDemoView = ({ initialDataObj, initialErrorObj }) => {
+  /* 1. 상수 ======================================================================================================================= */
   const defaultForm = {
     name: "",
     email: "",
@@ -55,6 +56,7 @@ const FormDemoView = ({ initialDataObj, initialErrorObj }) => {
     budgetRange: "",
   };
 
+  /* 2. 데이터 ======================================================================================================================= */
   const ui = EasyObj({
     isLoading: true,
     step: 1,
@@ -62,24 +64,31 @@ const FormDemoView = ({ initialDataObj, initialErrorObj }) => {
     stepOneErrors: { ...defaultStepOneErrors },
   });
   const pageMode = normalizePageConfig(PAGE_CONFIG).MODE;
+
+  /* 3. UI ========================================================================================================================= */
+  // 없음
+
+  /* 4. 팝업 ======================================================================================================================= */
+  // 없음
+
+  /* 5. 기타 ======================================================================================================================= */
+  const stepOneErrorIds = {
+    name: ui.stepOneErrors.name ? "demo-form-name-error" : undefined,
+    email: ui.stepOneErrors.email ? "demo-form-email-error" : undefined,
+    phone: ui.stepOneErrors.phone ? "demo-form-phone-error" : undefined,
+    category: ui.stepOneErrors.category ? "demo-form-category-error" : undefined,
+    startDate: ui.stepOneErrors.startDate ? "demo-form-start-date-error" : undefined,
+    endDate: ui.stepOneErrors.endDate ? "demo-form-end-date-error" : undefined,
+    budgetRange: ui.stepOneErrors.budgetRange ? "demo-form-budget-range-error" : undefined,
+  };
+
+  /* 6. 커스텀 훅 =================================================================================================================== */
   usePageData({
     pageConfig: PAGE_CONFIG,
     initialDataObj,
     initialErrorObj,
   });
   const { showToast } = useGlobalUi();
-
-  /**
-   * @description 초기 로딩 카드 노출 후 본문 전환을 위한 타이머 구독/정리
-   * 처리 규칙: 마운트 시 타이머 등록, 언마운트 시 clearTimeout 실행.
-   */
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      ui.isLoading = false;
-    }, 160);
-    return () => clearTimeout(timer);
-  }, [ui]);
-
   const summaryRows = useMemo(
     () => [
       { label: LANG_KO.view.summaryLabel.name, value: ui.form.name || "-" },
@@ -107,15 +116,8 @@ const FormDemoView = ({ initialDataObj, initialErrorObj }) => {
     ],
     [ui.form],
   );
-  const stepOneErrorIds = {
-    name: ui.stepOneErrors.name ? "demo-form-name-error" : undefined,
-    email: ui.stepOneErrors.email ? "demo-form-email-error" : undefined,
-    phone: ui.stepOneErrors.phone ? "demo-form-phone-error" : undefined,
-    category: ui.stepOneErrors.category ? "demo-form-category-error" : undefined,
-    startDate: ui.stepOneErrors.startDate ? "demo-form-start-date-error" : undefined,
-    endDate: ui.stepOneErrors.endDate ? "demo-form-end-date-error" : undefined,
-    budgetRange: ui.stepOneErrors.budgetRange ? "demo-form-budget-range-error" : undefined,
-  };
+
+  /* 7. 함수 ======================================================================================================================= */
 
   /**
    * @description 요청된 단계 번호를 허용 범위(1. 3)로 보정해 현재 단계를 변경
@@ -188,6 +190,22 @@ const FormDemoView = ({ initialDataObj, initialErrorObj }) => {
     ui.form.selectedFeatures = [...ui.form.selectedFeatures, label];
   };
 
+  /* 8. useEffect ================================================================================================================== */
+  /**
+   * @description 초기 로딩 카드 노출 후 본문 전환을 위한 타이머 구독/정리
+   * 처리 규칙: 마운트 시 타이머 등록, 언마운트 시 clearTimeout 실행.
+   */
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      ui.isLoading = false;
+    }, 160);
+    return () => clearTimeout(timer);
+  }, [ui]);
+
+  /* 9. 내부 컴포넌트 ============================================================================================================== */
+  // 없음
+
+  /* 10. 렌더링 ==================================================================================================================== */
   return (
     <div className="mx-auto w-full max-w-4xl px-4 py-8 sm:px-6 lg:px-8" data-page-mode={pageMode}>
       <section className="mb-6">

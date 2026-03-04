@@ -1,7 +1,7 @@
 /**
  * 파일명: sample/form/page.jsx
  * 작성자: LSH
- * 갱신일: 2026-02-22
+ * 갱신일: 2026-03-04
  * 설명: 공개 복합 폼 샘플 페이지 엔트리
  */
 
@@ -11,7 +11,7 @@ import { loadServerPageData } from "@/app/lib/runtime/pageData";
 import LANG_KO from "./lang.ko";
 
 export const metadata = {
-  title: "Form Sample | MyWebTemplate",
+  title: LANG_KO.page.metadataTitle,
   description: LANG_KO.page.metadataDescription,
 };
 

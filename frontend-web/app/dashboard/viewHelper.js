@@ -1,7 +1,7 @@
 /**
  * 파일명: dashboard/viewHelper.js
  * 작성자: LSH
- * 갱신일: 2026-03-03
+ * 갱신일: 2026-03-04
  * 설명: dashboard view 전용 계산/정규화 헬퍼 모음
  */
 
@@ -20,7 +20,7 @@ export const DASHBOARD_ERROR_KEY = {
  * @updated 2026-03-03
  */
 export const normalizeStatusList = (payload) =>
-  (Array.isArray(payload?.result?.byStatus) ? payload.result.byStatus : []);
+  (payload?.result?.byStatus || []);
 
 /**
  * @description list payload에서 업무 목록 배열을 추출
@@ -30,9 +30,7 @@ export const normalizeStatusList = (payload) =>
  */
 export const normalizeDashboardItems = (payload) => {
   const result = payload?.result;
-  if (Array.isArray(result)) return result;
-  if (Array.isArray(result?.items)) return result.items;
-  return [];
+  return result?.items || [];
 };
 
 /**
