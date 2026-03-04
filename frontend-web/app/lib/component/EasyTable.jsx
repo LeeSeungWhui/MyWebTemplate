@@ -1,7 +1,7 @@
 /**
  * 파일명: EasyTable.jsx
  * 작성자: LSH
- * 갱신일: 2026-03-03
+ * 갱신일: 2026-03-04
  * 설명: 테이블/카드형 데이터 뷰 컴포넌트 구현
  */
 import { forwardRef, useEffect, useMemo, useState } from 'react';
@@ -61,6 +61,48 @@ const defaultRowKey = (row, idx) => {
  * @updated 2026-02-27
  */
 const clamp = (value, min, max) => Math.max(min, Math.min(value, max));
+const columnWidthClassMap = {
+  '70px': 'w-[70px] flex-none',
+  '80px': 'w-[80px] flex-none',
+  '90px': 'w-[90px] flex-none',
+  '100px': 'w-[100px] flex-none',
+  '120px': 'w-[120px] flex-none',
+  '130px': 'w-[130px] flex-none',
+  '140px': 'w-[140px] flex-none',
+  '180px': 'w-[180px] flex-none',
+  '2fr': 'flex-[2_2_0%] min-w-0',
+  auto: 'flex-1 min-w-0',
+};
+
+/**
+ * @description 컬럼 width 입력을 Tailwind 폭 클래스 집합으로 변환
+ * 처리 규칙: number는 px 문자열로 정규화하고, 미지원 값은 auto(flex-1)로 fallback 한다.
+ * @updated 2026-03-04
+ */
+const resolveColumnWidthClass = (width) => {
+  if (width == null || width === '') return columnWidthClassMap.auto;
+  if (typeof width === 'number' && Number.isFinite(width)) {
+    const key = `${Math.floor(width)}px`;
+    return columnWidthClassMap[key] || columnWidthClassMap.auto;
+  }
+  if (typeof width === 'string') {
+    const key = width.trim().toLowerCase();
+    return columnWidthClassMap[key] || columnWidthClassMap.auto;
+  }
+  return columnWidthClassMap.auto;
+};
+
+/**
+ * @description 컬럼 정렬값(left/center/right)을 텍스트 정렬 클래스로 변환
+ * 처리 규칙: 미지정/미지원 값은 center를 기본값으로 사용한다.
+ * @updated 2026-03-04
+ */
+const resolveAlignClass = (align) => {
+  const key = typeof align === 'string' ? align.toLowerCase() : 'center';
+  if (key === 'left') return 'text-left';
+  if (key === 'right') return 'text-right';
+  return 'text-center';
+};
 
 /**
  * @description 테이블/카드 UI와 페이지네이션을 제공하는 데이터 렌더링 컴포넌트.
@@ -206,39 +248,18 @@ const EasyTable = forwardRef(function EasyTable(
     : 0;
 
   /**
-   * @description 컬럼 width 입력을 CSS width 문자열로 정규화하는 보정 유틸.
-   * 처리 규칙: number는 px 문자열로 변환하고, null/빈값은 null을 반환한다.
-   * @updated 2026-02-27
-   */
-  const normalizeWidth = (width) => {
-    if (width == null || width === '') return null;
-    if (typeof width === 'number' && Number.isFinite(width)) return `${width}px`;
-    if (typeof width === 'string') return width;
-    return null;
-  };
-
-  const gridTemplateColumns = useMemo(
-    () =>
-      columns
-        .map((col) => normalizeWidth(col.width) || 'minmax(0, 1fr)')
-        .join(' '),
-    [columns],
-  );
-
-  /**
    * @description 표 헤더 row JSX를 렌더링하는 내부 함수.
    * 처리 규칙: columns 정의를 순회해 columnheader 셀과 gridTemplateColumns를 일관되게 적용한다.
    * @updated 2026-02-28
    */
   const renderHeader = () => {
     return (
-      <div role="row" className={`grid w-full bg-[#667586] text-white text-sm font-semibold items-center ${headerClassName}`.trim()} style={{ gridTemplateColumns }}>
+      <div role="row" className={`flex w-full bg-[#667586] text-white text-sm font-semibold items-center ${headerClassName}`.trim()}>
         {columns.map((col, i) => (
           <div
             key={col.key ?? i}
             role="columnheader"
-            className={`min-w-0 px-3 py-3 ${col.headerClassName || ''}`.trim()}
-            style={{ width: col.width || 'auto', textAlign: col.align || 'center' }}
+            className={`min-w-0 px-3 py-3 ${resolveColumnWidthClass(col.width)} ${resolveAlignClass(col.align)} ${col.headerClassName || ''}`.trim()}
           >
             {typeof col.header === 'function' ? col.header() : col.header}
           </div>
@@ -303,16 +324,14 @@ const EasyTable = forwardRef(function EasyTable(
             <div
               key={keyVal}
               role="row"
-              className={`grid w-full bg-white text-sm text-center items-center border-b hover:bg-gray-50 ${rowClassName}`.trim()}
-              style={{ gridTemplateColumns }}
+              className={`flex w-full bg-white text-sm items-center border-b hover:bg-gray-50 ${rowClassName}`.trim()}
               onClick={onRowClick ? () => onRowClick(row, globalIdx) : undefined}
             >
               {columns.map((col, ci) => (
                 <div
                   key={col.key ?? ci}
                   role="cell"
-                  className={`min-w-0 px-3 py-3 ${cellClassName} ${col.cellClassName || ''}`.trim()}
-                  style={{ width: col.width || 'auto', textAlign: col.align || 'center' }}
+                  className={`min-w-0 px-3 py-3 ${resolveColumnWidthClass(col.width)} ${resolveAlignClass(col.align)} ${cellClassName} ${col.cellClassName || ''}`.trim()}
                 >
                   {renderCell(col, row, globalIdx)}
                 </div>
@@ -325,15 +344,13 @@ const EasyTable = forwardRef(function EasyTable(
             key={`filler-${fillerIdx}`}
             role="presentation"
             aria-hidden="true"
-            className={`grid w-full text-sm border-b opacity-0 pointer-events-none select-none ${rowClassName}`.trim()}
-            style={{ gridTemplateColumns }}
+            className={`flex w-full text-sm border-b opacity-0 pointer-events-none select-none ${rowClassName}`.trim()}
           >
             {columns.map((col, ci) => (
               <div
                 key={`filler-cell-${ci}`}
                 aria-hidden="true"
-                className={`min-w-0 px-3 py-3 ${cellClassName} ${col.cellClassName || ''}`.trim()}
-                style={{ width: col.width || 'auto', textAlign: col.align || 'center' }}
+                className={`min-w-0 px-3 py-3 ${resolveColumnWidthClass(col.width)} ${resolveAlignClass(col.align)} ${cellClassName} ${col.cellClassName || ''}`.trim()}
               >
                 Dummy
               </div>

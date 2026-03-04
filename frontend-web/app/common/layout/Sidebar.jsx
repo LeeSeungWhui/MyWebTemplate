@@ -2,11 +2,11 @@
 /**
  * 파일명: common/layout/Sidebar.jsx
  * 작성자: LSH
- * 갱신일: 2026-03-03
+ * 갱신일: 2026-03-04
  * 설명: 햄버거/화살표 토글이 가능한 공용 사이드바(EasyList 기반)
  */
 
-import { useEffect, useMemo, useRef } from "react";
+import { useEffect, useMemo } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Icon from "@/app/lib/component/Icon";
@@ -63,23 +63,12 @@ const Sidebar = ({
   dataObj,
   collapsedKey = "sidebarCollapsed",
 }) => {
-
-  const COLLAPSED_WIDTH = 64;
-  const EXPANDED_WIDTH = 256;
-  const TRANSITION_MS = 180;
   const initialCollapsed =
     dataObj && collapsedKey ? Boolean(getBoundValue(dataObj, collapsedKey)) : false;
   const ui = EasyObj({
     collapsed: initialCollapsed,
-    renderWidth: isOpen
-      ? initialCollapsed
-        ? COLLAPSED_WIDTH
-        : EXPANDED_WIDTH
-      : 0,
-    translateX: isOpen ? 0 : -EXPANDED_WIDTH,
     expanded: {},
   });
-  const isFirstRenderRef = useRef(true);
   const pathname = usePathname();
 
   const resolvedItems = useMemo(() => {
@@ -141,67 +130,6 @@ const Sidebar = ({
     const next = !ui.collapsed;
     ui.collapsed = next;
     if (dataObj && collapsedKey) setBoundValue(dataObj, collapsedKey, next);
-  };
-
-  /**
-   * @description useEffect 실행 흐름 관리
-   * 처리 규칙: effect 실행/cleanup 경계를 명시적으로 유지.
-   */
-  useEffect(() => {
-    if (isFirstRenderRef.current) {
-      isFirstRenderRef.current = false;
-      let initialWidth = 0;
-      if (isOpen) {
-        initialWidth = ui.collapsed ? COLLAPSED_WIDTH : EXPANDED_WIDTH;
-      }
-      ui.renderWidth = initialWidth;
-      ui.translateX = isOpen ? 0 : -EXPANDED_WIDTH;
-      return;
-    }
-    let timer = null;
-    const targetWidth = ui.collapsed ? COLLAPSED_WIDTH : EXPANDED_WIDTH;
-
-    // 닫기: 현재 폭만큼 왼쪽으로 밀고, 애니메이션 뒤 폭 0
-    if (!isOpen) {
-      ui.translateX = -ui.renderWidth || -targetWidth;
-      timer = setTimeout(() => {
-        ui.renderWidth = 0;
-      }, TRANSITION_MS);
-      return () => {
-        if (timer) clearTimeout(timer);
-      };
-    }
-
-    // 열기: 폭을 먼저 복원하고 화면 밖에서 슬라이드 인
-    if (ui.renderWidth === 0) {
-      ui.renderWidth = targetWidth;
-      ui.translateX = -targetWidth;
-      requestAnimationFrame(() => {
-        ui.translateX = 0;
-      });
-      return;
-    }
-
-    // 축소/확대: 폭만 바꾸고 위치는 고정
-    ui.renderWidth = targetWidth;
-    ui.translateX = 0;
-    return () => {
-      if (timer) clearTimeout(timer);
-    };
-  }, [
-    ui,
-    ui.collapsed,
-    isOpen,
-    COLLAPSED_WIDTH,
-    EXPANDED_WIDTH,
-    TRANSITION_MS,
-    ui.renderWidth,
-  ]);
-
-  const drawerStyle = {
-    width: `${ui.renderWidth}px`,
-    transform: `translateX(${ui.translateX}px)`,
-    transition: `transform ${TRANSITION_MS}ms ease`,
   };
 
   /**
@@ -491,6 +419,11 @@ const Sidebar = ({
     </>
   );
 
+  const sidebarWidthClass = ui.collapsed ? "w-16" : "w-64";
+  const sidebarTranslateClass = isOpen
+    ? "translate-x-0"
+    : "-translate-x-full pointer-events-none lg:pointer-events-auto lg:translate-x-0";
+
   return (
     <>
       <div
@@ -499,9 +432,8 @@ const Sidebar = ({
         aria-hidden="true"
       />
       <aside
-        className={`fixed bottom-0 left-0 top-16 z-40 flex h-auto flex-none flex-col overflow-visible border-r border-gray-200 bg-white shadow-sm lg:static lg:top-auto lg:bottom-auto lg:left-auto lg:min-h-full ${isOpen ? "" : "pointer-events-none"} ${className}`.trim()}
+        className={`fixed bottom-0 left-0 top-16 z-40 flex h-auto flex-none flex-col overflow-visible border-r border-gray-200 bg-white shadow-sm transition-all duration-200 lg:static lg:top-auto lg:bottom-auto lg:left-auto lg:min-h-full ${sidebarWidthClass} ${sidebarTranslateClass} ${className}`.trim()}
         aria-label={COMMON_COMPONENT_LANG_KO.sidebar.navigationAriaLabel}
-        style={drawerStyle}
       >
         {renderContent(ui.collapsed)}
       </aside>

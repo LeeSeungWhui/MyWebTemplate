@@ -1,7 +1,7 @@
 /**
  * 파일명: Tooltip.jsx
  * 작성자: LSH
- * 갱신일: 2025-09-13
+ * 갱신일: 2026-03-04
  * 설명: hover/click에 반응하는 툴팁 컴포넌트
  */
 import { forwardRef, useEffect, useId, useRef, useState } from 'react';
@@ -81,8 +81,7 @@ const Tooltip = forwardRef(({ content, placement = 'top', delay = 150, disabled 
         <span
           id={id}
           role="tooltip"
-          className={`pointer-events-none absolute z-20 px-2 py-1 text-xs rounded-md bg-gray-900 text-white shadow ${placements[placement] || placements.top}`}
-          style={textDirection === 'tb' ? { writingMode: 'vertical-rl', textOrientation: 'upright' } : undefined}
+          className={`pointer-events-none absolute z-20 px-2 py-1 text-xs rounded-md bg-gray-900 text-white shadow ${placements[placement] || placements.top} ${textDirection === 'tb' ? '[writing-mode:vertical-rl] [text-orientation:upright]' : ''}`.trim()}
         >
           {content}
         </span>

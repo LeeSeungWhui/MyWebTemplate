@@ -1,7 +1,7 @@
 /**
  * 파일명: Checkbox.jsx
  * 작성자: LSH
- * 갱신일: 2025-09-13
+ * 갱신일: 2026-03-04
  * 설명: Checkbox UI 컴포넌트 구현
  */
 import { useState, useEffect, forwardRef } from 'react';
@@ -86,15 +86,15 @@ const Checkbox = forwardRef(({
         return internalChecked;
     };
 
-    // CSS 색상값인지 확인 (HEX, RGB, RGBA, HSL, HSLA)
-    const isCssColor = /^(#|rgb[a]?\(|hsl[a]?\()/.test(color);
-
-    // 체크박스 색상 스타일
-    const colorStyle = isCssColor ? {
-        '--checkbox-color': color
-    } : {
-        '--checkbox-color': '#3b82f6'
+    const colorKey = typeof color === "string" ? color.toLowerCase() : "primary";
+    const colorClassMap = {
+        primary: styles.checkboxPrimary,
+        success: styles.checkboxSuccess,
+        warning: styles.checkboxWarning,
+        danger: styles.checkboxDanger,
+        neutral: styles.checkboxNeutral,
     };
+    const colorClassName = colorClassMap[colorKey] || styles.checkboxPrimary;
 
     return (
         <label className={`${styles.wrapper} ${className}`}>
@@ -105,8 +105,7 @@ const Checkbox = forwardRef(({
                 checked={getCheckedState()}
                 disabled={disabled}
                 onChange={handleChange}
-                className={styles.checkbox}
-                style={colorStyle}
+                className={`${styles.checkbox} ${colorClassName}`.trim()}
                 role="checkbox"
                 aria-checked={getCheckedState()}
                 aria-disabled={disabled}

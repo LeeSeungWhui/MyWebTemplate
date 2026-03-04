@@ -2,7 +2,7 @@
 /**
  * 파일명: PdfViewer.jsx
  * 작성자: LSH
- * 갱신일: 2026-02-24
+ * 갱신일: 2026-03-04
  * 설명: PDF 렌더링 컴포넌트
  */
 
@@ -74,7 +74,6 @@ const PdfViewer = ({
   withToolbar = true,
   initialPage = 1,
   headers,
-  style,
   className = '',
   onLoad,
   onError,
@@ -227,7 +226,6 @@ const PdfViewer = ({
   return (
     <div
       className={`relative w-full h-[70vh] border rounded overflow-hidden bg-white ${className}`.trim()}
-      style={style}
       role="document"
       aria-label={COMMON_COMPONENT_LANG_KO.pdfViewer.ariaLabel}
       aria-busy={isLoading ? 'true' : 'false'}

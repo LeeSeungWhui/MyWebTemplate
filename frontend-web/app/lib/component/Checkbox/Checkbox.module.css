@@ -22,6 +22,26 @@
     transition: all 0.2s;
 }
 
+.checkboxPrimary {
+    --checkbox-color: #3b82f6;
+}
+
+.checkboxSuccess {
+    --checkbox-color: #22c55e;
+}
+
+.checkboxWarning {
+    --checkbox-color: #f59e0b;
+}
+
+.checkboxDanger {
+    --checkbox-color: #ef4444;
+}
+
+.checkboxNeutral {
+    --checkbox-color: #6b7280;
+}
+
 .checkbox:checked {
     background-color: var(--checkbox-color, #3b82f6);
     border-color: var(--checkbox-color, #3b82f6);

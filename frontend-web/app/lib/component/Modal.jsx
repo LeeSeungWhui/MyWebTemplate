@@ -1,7 +1,7 @@
 /**
  * 파일명: Modal.jsx
  * 작성자: LSH
- * 갱신일: 2025-09-13
+ * 갱신일: 2026-03-04
  * 설명: Modal UI 컴포넌트 구현
  */
 import { forwardRef, useEffect, useRef, useState } from 'react';
@@ -110,6 +110,7 @@ const Modal = forwardRef(({
     const lastFocusedRef = useRef(null);
     const dragRef = useRef({ isDragging: false, startX: 0, startY: 0 });
     const [position, setPosition] = useState(null);
+    const [isDragging, setIsDragging] = useState(false);
 
     const sizes = {
         sm: 'max-w-md',
@@ -152,8 +153,31 @@ const Modal = forwardRef(({
     useEffect(() => {
         if (!isOpen) {
             setPosition(null);
+            setIsDragging(false);
         }
     }, [isOpen]);
+
+    /**
+     * @description 모달의 실제 좌표(top/left) CSS 변수를 DOM에 반영
+     * 처리 규칙: 드래그 좌표(position)가 있으면 px 기준으로 우선 적용하고, 없으면 top/left props를 fallback으로 적용한다.
+     * @updated 2026-03-04
+     */
+    useEffect(() => {
+        if (!isOpen) return;
+        if (!modalRef.current) return;
+        if (position) {
+            modalRef.current.style.setProperty('--modal-top', `${position.y}px`);
+            modalRef.current.style.setProperty('--modal-left', `${position.x}px`);
+            return;
+        }
+        if (top || left) {
+            modalRef.current.style.setProperty('--modal-top', String(top || '50%'));
+            modalRef.current.style.setProperty('--modal-left', String(left || '50%'));
+            return;
+        }
+        modalRef.current.style.removeProperty('--modal-top');
+        modalRef.current.style.removeProperty('--modal-left');
+    }, [isOpen, position, top, left]);
 
     // ESC 키 이벤트 처리
 
@@ -202,6 +226,7 @@ const Modal = forwardRef(({
             startX: event.clientX - rect.left,
             startY: event.clientY - rect.top
         };
+        setIsDragging(true);
 
         document.body.style.userSelect = 'none';
         setPosition({ x: rect.left, y: rect.top });
@@ -242,6 +267,7 @@ const Modal = forwardRef(({
     const handleMouseUp = () => {
         dragRef.current.isDragging = false;
         document.body.style.userSelect = '';
+        setIsDragging(false);
     };
 
     // 드래그 이벤트 리스너
@@ -275,6 +301,8 @@ const Modal = forwardRef(({
 
     if (!isOpen) return null;
 
+    const isCentered = !position && !top && !left;
+
     return (
         <div
             className="fixed inset-0 z-50 flex items-center justify-center bg-gray-500/70"
@@ -286,22 +314,12 @@ const Modal = forwardRef(({
                     if (typeof ref === 'function') ref(el);
                     else if (ref) ref.current = el;
                 }}
-                style={{
-                    position: 'absolute',
-                    ...(!position ? {
-                        top: top || '50%',
-                        left: left || '50%',
-                        transform: top || left ? undefined : 'translate(-50%, -50%)'
-                    } : {
-                        top: `${position.y}px`,
-                        left: `${position.x}px`
-                    }),
-                    transition: dragRef.current.isDragging ? 'none' : 'all 0.2s'
-                }}
                 className={`
-                    relative w-full ${sizes[size]}
+                    absolute w-full ${sizes[size]}
                     bg-white rounded-lg shadow-xl
                     animate-fade-in-up
+                    ${isCentered ? 'top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2' : 'top-[var(--modal-top)] left-[var(--modal-left)]'}
+                    ${isDragging ? '!transition-none' : 'transition-all duration-200'}
                     ${className}
                 `.trim()}
                 role="dialog"

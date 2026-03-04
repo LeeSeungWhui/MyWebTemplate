@@ -11,6 +11,7 @@
 }
 
 .radio {
+    --radio-color: #3b82f6;
     appearance: none;
     width: 16px;
     height: 16px;
@@ -53,4 +54,24 @@
 
 .wrapper:has(:disabled) .label {
     color: #9ca3af;
+}
+
+.radioPrimary {
+    --radio-color: #3b82f6;
+}
+
+.radioSuccess {
+    --radio-color: #10b981;
+}
+
+.radioWarning {
+    --radio-color: #f59e0b;
+}
+
+.radioDanger {
+    --radio-color: #ef4444;
+}
+
+.radioNeutral {
+    --radio-color: #6b7280;
 }

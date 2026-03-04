@@ -2,7 +2,7 @@
 /**
  * 파일명: EasyEditor.jsx
  * 작성자: LSH
- * 갱신일: 2026-02-24
+ * 갱신일: 2026-03-04
  * 설명: EasyEditor UI 컴포넌트
  */
 
@@ -282,6 +282,35 @@ const EasyEditor = ({
     editor.chain().focus().setTextAlign(value).run();
   }, [editor, toolbarDisabled]);
 
+  const minHeightClassMap = {
+    "180px": "min-h-[180px]",
+    "200px": "min-h-[200px]",
+    "220px": "min-h-[220px]",
+    "240px": "min-h-[240px]",
+    "260px": "min-h-[260px]",
+    "280px": "min-h-[280px]",
+    "300px": "min-h-[300px]",
+    "320px": "min-h-[320px]",
+    "360px": "min-h-[360px]",
+  };
+
+  /**
+   * @description 에디터 최소 높이 입력값을 Tailwind 클래스 키로 정규화
+   * 처리 규칙: number 또는 px 문자열을 허용하고, 미지원 값은 기본 240px 클래스로 보정한다.
+   * @updated 2026-03-04
+   */
+  const resolveMinHeightClass = (value) => {
+    if (typeof value === "number") {
+      const key = `${Math.floor(value)}px`;
+      return minHeightClassMap[key] || minHeightClassMap["240px"];
+    }
+    if (typeof value === "string") {
+      const normalized = value.trim().toLowerCase();
+      if (minHeightClassMap[normalized]) return minHeightClassMap[normalized];
+    }
+    return minHeightClassMap["240px"];
+  };
+
   return (
     <div className="space-y-2">
       {label && (
@@ -421,8 +450,7 @@ const EasyEditor = ({
           aria-readonly={readOnly || undefined}
           aria-hidden={isHtmlMode ? 'true' : undefined}
           data-name={name}
-          style={{ minHeight }}
-          className={clsx(editorBody, isHtmlMode && 'hidden')}
+          className={clsx(editorBody, resolveMinHeightClass(minHeight), isHtmlMode && 'hidden')}
         />
         {isHtmlMode && (
           <textarea

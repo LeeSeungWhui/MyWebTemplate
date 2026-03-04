@@ -1,7 +1,7 @@
 /**
  * 파일명: CheckButton.jsx
  * 작성자: LSH
- * 갱신일: 2026-03-03
+ * 갱신일: 2026-03-04
  * 설명: CheckButton UI 컴포넌트 구현
  */
 import React, { useState, useEffect } from 'react';
@@ -92,23 +92,33 @@ const CheckButton = React.forwardRef(({
     };
 
     const checked = getCheckedState();
-    const isCssColor = /^(#|rgb[a]?\(|hsl[a]?\()/.test(color);
-
     const baseStyle = "inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md transition-all duration-200 border";
     const disabledStyle = disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer";
-    const buttonStyle = isCssColor ? {
-        '--btn-color': color,
-    } : {};
-
-    const colorStyle = isCssColor
-        ? `${checked
-            ? "bg-[var(--btn-color)] border-[var(--btn-color)] text-white hover:opacity-90"
-            : "bg-white border-gray-300 text-gray-700 hover:border-[var(--btn-color)]"
-        }`
-        : `${checked
-            ? "bg-blue-500 text-white hover:bg-blue-600 border-blue-500"
-            : "bg-white text-gray-700 border-gray-300 hover:bg-gray-50 hover:border-blue-500"
-        }`;
+    const colorKey = typeof color === "string" ? color.toLowerCase() : "primary";
+    const colorPresetMap = {
+        primary: {
+            checked: "bg-blue-500 text-white hover:bg-blue-600 border-blue-500",
+            unchecked: "bg-white border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-blue-500",
+        },
+        success: {
+            checked: "bg-emerald-500 text-white hover:bg-emerald-600 border-emerald-500",
+            unchecked: "bg-white border-gray-300 text-gray-700 hover:bg-emerald-50 hover:border-emerald-500",
+        },
+        warning: {
+            checked: "bg-amber-500 text-white hover:bg-amber-600 border-amber-500",
+            unchecked: "bg-white border-gray-300 text-gray-700 hover:bg-amber-50 hover:border-amber-500",
+        },
+        danger: {
+            checked: "bg-rose-500 text-white hover:bg-rose-600 border-rose-500",
+            unchecked: "bg-white border-gray-300 text-gray-700 hover:bg-rose-50 hover:border-rose-500",
+        },
+        neutral: {
+            checked: "bg-gray-600 text-white hover:bg-gray-700 border-gray-600",
+            unchecked: "bg-white border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-500",
+        },
+    };
+    const colorPreset = colorPresetMap[colorKey] || colorPresetMap.primary;
+    const colorStyle = checked ? colorPreset.checked : colorPreset.unchecked;
 
     return (
         <button
@@ -117,7 +127,6 @@ const CheckButton = React.forwardRef(({
             name={inputName}
             onClick={handleChange}
             disabled={disabled}
-            style={buttonStyle}
             aria-pressed={checked}
             className={`
                 ${baseStyle}

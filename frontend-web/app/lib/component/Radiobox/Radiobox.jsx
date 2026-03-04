@@ -1,7 +1,7 @@
 /**
  * 파일명: Radiobox.jsx
  * 작성자: LSH
- * 갱신일: 2026-03-03
+ * 갱신일: 2026-03-04
  * 설명: Radiobox UI 컴포넌트 구현
  */
 import { useState, useEffect, forwardRef } from 'react';
@@ -97,13 +97,15 @@ const Radiobox = forwardRef(({
         return internalChecked;
     };
 
-    // CSS 색상값인지 확인 (HEX, RGB, RGBA, HSL, HSLA)
-    const isCssColor = /^(#|rgb[a]?\(|hsl[a]?\()/.test(color);
-
-    // 라디오 색상 스타일
-    const colorStyle = isCssColor ? {
-        '--radio-color': color
-    } : {};
+    const colorKey = typeof color === "string" ? color.toLowerCase() : "primary";
+    const radioColorClassMap = {
+        primary: styles.radioPrimary,
+        success: styles.radioSuccess,
+        warning: styles.radioWarning,
+        danger: styles.radioDanger,
+        neutral: styles.radioNeutral,
+    };
+    const radioColorClassName = radioColorClassMap[colorKey] || radioColorClassMap.primary;
 
     return (
         <label className={`${styles.wrapper} ${className}`}>
@@ -115,8 +117,7 @@ const Radiobox = forwardRef(({
                 checked={getCheckedState()}
                 disabled={disabled}
                 onChange={handleChange}
-                className={styles.radio}
-                style={colorStyle}
+                className={`${styles.radio} ${radioColorClassName}`.trim()}
                 {...props}
             />
             {label && <span className={styles.label}>{label}</span>}

@@ -2,7 +2,7 @@
 /**
  * 파일명: EasyChart.jsx
  * 작성자: LSH
- * 갱신일: 2026-03-03
+ * 갱신일: 2026-03-04
  * 설명: Recharts 기반 대시보드 차트 카드 래퍼
  */
 
@@ -40,6 +40,18 @@ const palette = [
 ];
 const defaultMargin = { top: 12, right: 20, left: 10, bottom: 12 };
 const donutMargin = { top: 36, right: 16, bottom: 24, left: 16 };
+const chartHeightClassMap = {
+  160: "h-40",
+  180: "h-[180px]",
+  200: "h-[200px]",
+  220: "h-[220px]",
+  240: "h-[240px]",
+  260: "h-[260px]",
+  280: "h-[280px]",
+  300: "h-[300px]",
+  320: "h-[320px]",
+  360: "h-[360px]",
+};
 
 /**
  * @description 입력 데이터가 EasyList/배열처럼 순회 가능한 구조인지 판별
@@ -63,6 +75,39 @@ const toArray = (list) => {
     );
   }
   return [];
+};
+
+/**
+ * @description height 입력값을 Tailwind 고정 높이 클래스로 매핑
+ * 처리 규칙: number 또는 px 문자열만 허용하고, 미지원 값은 가장 가까운 프리셋 높이로 보정한다.
+ * @updated 2026-03-04
+ */
+const resolveHeightClass = (value, { min = 0, fallback = 260 } = {}) => {
+
+  /**
+   * @description number/px 문자열을 차트 높이 숫자값으로 파싱
+   * 반환값: 파싱 성공 시 정수 높이, 실패 시 null.
+   * @updated 2026-03-04
+   */
+  const toNumber = (raw) => {
+    if (typeof raw === "number" && Number.isFinite(raw)) return Math.floor(raw);
+    if (typeof raw === "string") {
+      const normalized = raw.trim().toLowerCase();
+      const pxMatch = normalized.match(/^(\d+)(px)?$/);
+      if (pxMatch) return Number(pxMatch[1]);
+    }
+    return null;
+  };
+
+  const parsed = toNumber(value);
+  const target = Math.max(min, parsed ?? fallback);
+  if (chartHeightClassMap[target]) return chartHeightClassMap[target];
+  if (target <= 180) return chartHeightClassMap[180];
+  if (target <= 220) return chartHeightClassMap[220];
+  if (target <= 260) return chartHeightClassMap[260];
+  if (target <= 300) return chartHeightClassMap[300];
+  if (target <= 320) return chartHeightClassMap[320];
+  return chartHeightClassMap[360];
 };
 
 /**
@@ -127,6 +172,8 @@ const EasyChart = ({
   const useComposed = resolvedSeries.some((seriesItem) => seriesItem.type && seriesItem.type !== type);
   const pieValueKey = resolvedSeries[0]?.key;
   const hasHostSize = hostSize.width > 0 && hostSize.height > 0;
+  const hostHeightClassName = resolveHeightClass(height, { fallback: 260 });
+  const pieHeightClassName = resolveHeightClass(height, { min: 180, fallback: 260 });
 
   /**
    * @description useEffect 실행 흐름 관리
@@ -278,7 +325,7 @@ const EasyChart = ({
     }
     if (!isClient) {
       return (
-        <div style={{ height, minWidth: 0 }} className="min-w-0 w-full pt-1" />
+        <div className={`min-w-0 w-full pt-1 ${hostHeightClassName}`.trim()} />
       );
     }
     if (isEmpty) {
@@ -322,12 +369,10 @@ const EasyChart = ({
         );
       };
 
-      const pieHeight = Math.max(height, 180);
       return (
         <div
           ref={chartHostRef}
-          style={{ height: pieHeight, minWidth: 0 }}
-          className="min-w-0 w-full"
+          className={`min-w-0 w-full ${pieHeightClassName}`.trim()}
         >
           {hasHostSize ? (
             <PieChart
@@ -382,8 +427,7 @@ const EasyChart = ({
     return (
       <div
         ref={chartHostRef}
-        style={{ height, minWidth: 0 }}
-        className="min-w-0 w-full"
+        className={`min-w-0 w-full ${hostHeightClassName}`.trim()}
       >
         {hasHostSize ? (
           <ChartComponent
