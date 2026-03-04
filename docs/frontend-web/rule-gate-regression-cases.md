@@ -18,12 +18,31 @@
 | RG-FE-038-001 | FE-A-038 | `apiJSON` 응답을 `ui.*`에 직접 대입 (`ui.rows = responseResult`) | WARN 검출 |
 | RG-FE-064-001 | FE-A-064 | `EasyObj` 모델이 있는 뷰에서 `<Input value=... onChange=... />` 수동 제어 | WARN 검출 |
 | RG-FE-065-001 | FE-A-065 | `view.jsx`의 raw `<input type="file">` 사용 시 예외 사유 주석 누락 | WARN 검출 |
+| RG-FE-066-001 | FE-A-066 | `view.jsx` 섹션 주석(`/* 1. 상수 ... */`~`/* 10. 렌더링 ... */`) 누락 | WARN 검출 |
+| RG-FE-066-002 | FE-A-066 | `view.jsx` 섹션 주석이 `/* n. ... === */` 형식을 따르지 않음 | WARN 검출 |
+| RG-FE-066-003 | FE-A-066 | 빈 섹션에서 `// 없음` 표기 누락 | WARN 검출 |
+| RG-FE-066-004 | FE-A-066 | 빈 섹션에 `// 없음`을 두고 같은 섹션 블록에 실행 코드를 함께 배치 | WARN 검출 |
+| RG-FE-066-005 | FE-A-066 | `10. 렌더링` 섹션에서 `const/let/function` 선언이 `return`보다 먼저 나옴 | WARN 검출 |
+| RG-FE-066-006 | FE-A-066 | 빈 섹션에 `// 내부 컴포넌트 선언 없음` 같은 변형 `없음` 표기를 두고 실행 코드를 함께 배치 | WARN 검출 |
+| RG-FE-066-007 | FE-A-066 | `9. 내부 컴포넌트` 섹션에 PascalCase 내부 컴포넌트 선언이 아닌 코드(예: `const invalidPlacement = true`) 배치 | WARN 검출 |
+| RG-FE-067-001 | FE-A-067 | `page.jsx`의 `metadata.title/description` 문자열 하드코딩 | WARN 검출 |
+| RG-FE-068-001 | FE-A-068 | `const` 화살표 헬퍼를 선언 전 직접 호출 (`const x = fn(); const fn = () => ...`) | ERROR 검출 |
 | RG-FE-029-001 | FE-A-029 | `useMemo(() => resolveX({ ... }), [deps])` 단순 래핑 | WARN 검출 |
 | RG-FE-030-001 | FE-A-030 | 실행문 뒤에 정적 `import` 재선언 | ERROR 검출 |
 | RG-FE-032-001 | FE-A-032 | JS/JSX 파서 기준 구문 오류(예: 식 중간 주석 오염) | ERROR 검출 |
 | RG-FE-031-001 | FE-A-031 | 영문 인라인 주석만 작성 (`// english comment ...`) | WARN 검출 |
 | RG-FE-043-001 | FE-A-043 | JSDoc이 `@description` 한 줄로 끝나고 구체 정보 없음 | WARN 검출 |
 | RG-FE-044-001 | FE-A-044 | `w-[10rem]`, `calc(100vw-2rem)` 등 rem 단위 사용 | WARN 검출 |
+| RG-FE-069-001 | FE-A-069 | JSX 태그에 `style={...}` 또는 `style={{...}}` 사용 | ERROR 검출 |
+| RG-FE-070-001 | FE-A-070 | `view.jsx`에서 `Array.isArray(response?.result...)` 등 백엔드 응답 타입 재검증 | ERROR 검출 |
+| RG-FE-071-001 | FE-A-071 | `const loadingSyncObj = EasyObj(...)` 별도 SyncObj 선언 | ERROR 검출 |
+| RG-FE-072-001 | FE-A-072 | `obj.list = obj.list || []` fallback 재초기화 | ERROR 검출 |
+| RG-FE-072-002 | FE-A-072 | `const listSyncObj = payload.result` 중간복사 변수 | ERROR 검출 |
+| RG-FE-073-001 | FE-A-073 | `apiJSON` 응답을 사용하면서 `<apiName>Obj/List.copy(payload.result)` 직동기화 누락 | ERROR 검출 |
+| RG-FE-074-001 | FE-A-074 | `const normalizeText = (value) => value.trim();` 같은 군더더기 1줄 wrapper | ERROR 검출 |
+| RG-FE-074-002 | FE-A-074 | `const mapLabel = (value, suffix) => formatLabel(value, suffix);` 형태의 다중 파라미터 전달 wrapper | ERROR 검출 |
+| RG-FE-074-003 | FE-A-074 | `const normalize = value => String(value).trim();` 형태의 no-paren 파라미터 wrapper | ERROR 검출 |
+| RG-FE-074-004 | FE-A-074 | `const normalize = (value) => { return String(value).trim(); };` 형태의 블록형 return wrapper | ERROR 검출 |
 | RG-FE-047-001 | FE-A-047 | `usePageData({ ..., auto: false })`를 반환값 미사용으로 단독 호출 | WARN 검출 |
 | RG-FE-062-001 | FE-A-062 | BFF `refreshOnce`에 Origin/Referer 보강(set) 로직 누락 | WARN 검출 |
 
@@ -42,6 +61,17 @@
 | RG-FE-064-N001 | FE-A-064 | `<Input dataObj={formObj} dataKey=\"email\" />` 기본 바인딩 사용 | 미검출 |
 | RG-FE-064-N002 | FE-A-064 | `rule-gate: allow-controlled-binding` 예외 마커와 수동 제어 사용 | 미검출 |
 | RG-FE-065-N001 | FE-A-065 | raw `<input type=\"file\">` 인접 주석에 예외 사유 명시 | 미검출 |
+| RG-FE-066-N001 | FE-A-066 | `view.jsx` 10개 섹션 주석을 순서대로 모두 유지 | 미검출 |
+| RG-FE-066-N002 | FE-A-066 | 빈 섹션에 `// 없음`을 명시한 정상 블록 | 미검출 |
+| RG-FE-066-N003 | FE-A-066 | `10. 렌더링` 섹션에서 선언문 없이 즉시 `return` 렌더링 | 미검출 |
+| RG-FE-068-N001 | FE-A-068 | `onClick={() => helper()}`처럼 선언 전 참조하되 즉시 호출이 아닌 콜백 참조 | 미검출 |
+| RG-FE-069-N001 | FE-A-069 | 변수명이 `style`이어도 JSX `style=` 속성을 사용하지 않으면 미검출 | 미검출 |
+| RG-FE-070-N001 | FE-A-070 | `view.jsx`에서 `response?.result?.items || []` fallback만 사용 | 미검출 |
+| RG-FE-071-N001 | FE-A-071 | `ui = EasyObj({ isLoading: false })` 형태로 UI 플래그를 단일 ui에 포함 | 미검출 |
+| RG-FE-072-N001 | FE-A-072 | fallback 재초기화 없이 `obj.copy(...)`만 수행 | 미검출 |
+| RG-FE-072-N002 | FE-A-072 | `SyncObj` 이름의 중간 변수 없이 직접 `copy(payload.result)` 처리 | 미검출 |
+| RG-FE-073-N001 | FE-A-073 | `apiJSON` 직후 `<apiName>Obj.copy(payload.result || {})` 수행 | 미검출 |
+| RG-FE-074-N001 | FE-A-074 | 인접 주석에 `rule-gate: allow-trivial-wrapper` 사유를 명시한 예외 wrapper | 미검출 |
 
 ## 3) 자동 검증 스크립트
 
@@ -53,5 +83,5 @@ bash scripts/cli/check-myweb-rule-gate-regression.sh .
 ```
 
 성공 기준:
-- Must Catch 19건이 모두 검출된다.
-- Must Ignore 11건이 검출되지 않는다.
+- Must Catch 38건이 모두 검출된다.
+- Must Ignore 22건이 검출되지 않는다.

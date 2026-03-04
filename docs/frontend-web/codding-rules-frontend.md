@@ -246,21 +246,25 @@ export const LANG_KO = {
       - 예: `/api/bff/resume/selectResultDetail` → `resultDetailObj`
       - 권장: `apiJSON(...)` 이후 `<apiName>Obj.copy(response?.result || {})`
     - 금지: `obj`, `stateObj`, `tempObj` 같은 제너릭/임시 이름
+  - UI 플래그(`isLoading`, `isSaving`, `isDrawerOpen` 등)는 `ui` 내부 필드로만 둔다.
+    - 금지: `loadingSyncObj`, `submitSyncObj` 같은 별도 EasyObj 추가 선언
   - `apiJSON` 응답 데이터(`result`/리스트/상세)는 `ui/popup`에 직접 대입하지 않는다.
     - 금지: `ui.rows = response?.result`, `ui.profile = nextResult`
-    - 권장: `payload.result` 타입 기준 동기화 규칙을 고정한다.
-      - `result`가 object면 `<apiName>Obj.copy(payload.result)`
-      - `result`가 list면 `<apiName>List.copy(payload.result)`
+    - 고정 계약 API는 “계약 신뢰 모드”로 처리한다.
+      - 응답 직후 `<apiName>Obj.copy(payload.result)` 또는 `<apiName>List.copy(payload.result)` 1회 동기화를 기본으로 한다.
+      - `Array.isArray`, `typeof`로 분기하는 타입 방어 코드는 view endpoint 로직에서 지양한다.
+      - 화면 표시 전 보정이 필요해도 별도 `normalizeXxx`/`mapXxx` helper 함수로 분리하지 않는다.
+        - 원칙: `apiJSON` 직후 `<apiName>Obj`/`<apiName>List`를 바로 수정한다.
     - 공용 유틸 권장: `syncApiResult({ payload, apiObj: <apiName>Obj, apiList: <apiName>List })`
+    - 금지: `obj.list = obj.list || []`, `obj.detail = obj.detail || {}` 같은 fallback 재초기화
+    - 금지: `xxxSyncObj` 중간 복사 객체를 만든 뒤 재대입하는 우회 패턴
     - 권장 예시:
 
       ```jsx
       const payload = await apiJSON(PAGE_CONFIG.API.list, { method: "GET" });
-      if (Array.isArray(payload?.result)) {
-        taskList.copy(payload.result);
-      } else if (payload?.result && typeof payload.result === "object") {
-        taskDetailObj.copy(payload.result);
-      }
+      resultDetailObj.copy(payload.result || {});
+      resultDetailObj.userNm = resultDetailObj.userNm || "-";
+      resultDetailObj.statusNm = resultDetailObj.statusNm || "미정";
       ```
 
   - 공용 입력/선택 컴포넌트는 컴포넌트가 제공하는 바인딩 props(`dataObj + dataKey`, `dataList` 등)를 기본 모드로 사용한다.
@@ -335,6 +339,11 @@ export const LANG_KO = {
   - 페이지/컴포넌트에서 `fetch()` 직접 호출
   - `res.json()` / `JSON.parse()`로 응답을 직접 파싱
     - 백엔드 응답은 “깨진 JSON/중첩 JSON 문자열”이 섞일 수 있으니, `apiJSON` 내부 보정 로직을 우회하지 않는다.
+- 백엔드 API 결과는 “신뢰 모드”로 처리한다.
+- 백엔드 응답 스키마(`payload/result/response`)는 프론트 뷰 레이어에서 재검증하지 않는다.
+  - 지양: `Array.isArray(payload.result)`, `typeof response.result === 'object'`, `Number.isNaN(result.count)` 같은 방어형 타입 체크 반복
+  - 권장: API 계약 스키마를 그대로 사용하고, 기본값 병합은 단순 fallback(`??`, `||`)으로 처리
+  - 예외: 브라우저 API/외부 라이브러리/사용자 입력 경계값 검증처럼 프론트 런타임 안전성에 필수인 경우
 - 예시(권장)
 
   ```js
@@ -360,6 +369,8 @@ export const LANG_KO = {
   - `applyFieldMapping(config, schema, options)`처럼  
     읽었을 때 도메인 의미가 전혀 안 보이는 제너릭 헬퍼.
   - 한 파일에 범용 유틸 10개씩 쌓아두는 스타일.
+  - API 응답 화면 보정을 위해 `normalizeResult`, `mapApiResponse` 같은 보정 전용 helper를 별도로 만드는 패턴.
+    - 보정은 `apiJSON` 직후 `<apiName>Obj/<apiName>List`에 바로 반영한다.
 
 ### 3.2 공통 함수 분리 규칙
 
@@ -372,6 +383,12 @@ export const LANG_KO = {
 
 - 1~3줄짜리 함수는:
   - 최소 3군데 이상에서 재사용되지 않는 한 굳이 분리하지 않는다.
+- 군더더기 한줄/단순 wrapper 함수는 금지한다. (`return` 유무, 메서드/함수 종류와 무관)
+  - 금지: `const normalizeText = (value) => value.trim();`
+  - 금지: `const normalizeText = (value) => { return value.trim(); };`
+  - 금지: `const toDisplayName = (firstName, lastName) => formatDisplayName(firstName, lastName);`
+  - 금지: `const pickUserName = (userObj) => userObj?.profile?.name;`
+  - 권장: 호출 지점에서 `value.trim()`, `formatDisplayName(firstName, lastName)`처럼 직접 사용
 - 함수를 쪼갠 뒤에
   - 가독성이 올라가면 OK
   - 호출 계층만 늘어서 더 헷갈리면 다시 합친다.
@@ -387,6 +404,7 @@ export const LANG_KO = {
     - `const resultData = dataObj.result;`
     - `const first = list[0];`
     - `const name = row.name;`
+    - `const basicListRow = row;`
   - 가능하면 그대로 `dataObj.result`, `list[0]`, `row.name`처럼 사용한다.
 - 허용하는 경우
   - **여러 필드를 조합하거나 가공해서** 새 의미를 만들 때
@@ -634,8 +652,11 @@ export const LANG_KO = {
 ## 9. 스타일(CSS)과 UI
 
 - 우선 Tailwind 유틸 클래스와 프로젝트 공통 유틸 클래스를 사용한다.
+- 스타일링은 Tailwind를 무조건 우선으로 적용한다.
+- Tailwind로 해결 불가능한 경우에만 CSS Module을 사용한다.
 - 반복되는 스타일만 CSS 모듈/공용 클래스 형태로 추출한다.
-- 인라인 스타일은 특별한 이유가 있을 때만 사용한다.
+- 인라인 스타일(`style={...}`, `style={{...}}`)은 예외 없이 금지한다.
+- 동적 스타일이 필요하면 Tailwind 클래스 분기 또는 CSS 모듈 클래스 조합으로 해결한다.
 - 단위는 `px`를 기본으로 사용하고, `rem` 단위는 사용하지 않는다.
 - Tailwind arbitrary value(`w-[...]`, `h-[...]`, `gap-[...]` 등)도 `px` 기준으로 작성한다.
 - 예: `w-[360px]` (O), `w-[22.5rem]` (X)
