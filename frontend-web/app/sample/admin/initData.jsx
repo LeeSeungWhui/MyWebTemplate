@@ -6,6 +6,17 @@
  */
 
 export const PAGE_CONFIG = {
-  MODE: "CSR",
-  API: {},
+  MODE: "SSR",
+  API: {
+    users: {
+      path: "/api/v1/sample/admin/users",
+      method: "GET",
+      authless: true,
+    },
+    settings: {
+      path: "/api/v1/sample/admin/settings",
+      method: "GET",
+      authless: true,
+    },
+  },
 };

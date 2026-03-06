@@ -2,7 +2,7 @@
 /**
  * 파일명: usePageData.jsx
  * 작성자: LSH
- * 갱신일: 2026-03-03
+ * 갱신일: 2026-03-05
  * 설명: PAGE_CONFIG 기반 페이지 데이터 자동 로딩 훅
  */
 
@@ -51,7 +51,7 @@ export const usePageData = ({
   initialDataObj = EMPTY_OBJ,
   initialErrorObj = EMPTY_OBJ,
   auto = true,
-} = {}) => {
+}) => {
   const normalizedConfig = normalizePageConfig(pageConfig);
   const ui = EasyObj({
     isLoading: false,

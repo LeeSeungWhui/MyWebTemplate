@@ -1,7 +1,7 @@
 /**
  * 파일명: api.js
  * 작성자: LSH
- * 갱신일: 2026-03-03
+ * 갱신일: 2026-03-05
  * 설명: SSR/CSR 공통 API 호출 유틸 (isomorphic)
  */
 
@@ -49,7 +49,8 @@ const isTestEnv = () => {
  * @updated 2026-02-27
  */
 const isAbsoluteUrl = (input) => {
-  return typeof input === "string" && /^https?:\/\//i.test(input);
+  if (typeof input !== "string") return false;
+  return /^https?:\/\//i.test(input);
 };
 
 /**
@@ -250,14 +251,13 @@ const isPlainObject = (value) => {
  * @updated 2026-02-27
  */
 const createApiError = (path, response, body) => {
-  const statusCode = response?.status;
   const message =
     (isPlainObject(body) && typeof body.message === "string" && body.message) ||
-    `API request failed (${statusCode || "unknown"})`;
+    `API request failed (${response?.status || "unknown"})`;
 
   const err = new Error(message);
   err.name = "ApiError";
-  err.statusCode = statusCode;
+  err.statusCode = response?.status;
   err.code = isPlainObject(body) ? body.code : undefined;
   err.requestId = isPlainObject(body) ? body.requestId : undefined;
   err.body = body;

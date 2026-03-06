@@ -1,7 +1,7 @@
 /**
  * 파일명: EasyTable.jsx
  * 작성자: LSH
- * 갱신일: 2026-03-04
+ * 갱신일: 2026-03-05
  * 설명: 테이블/카드형 데이터 뷰 컴포넌트 구현
  */
 import { forwardRef, useEffect, useMemo, useState } from 'react';
@@ -81,9 +81,11 @@ const columnWidthClassMap = {
  */
 const resolveColumnWidthClass = (width) => {
   if (width == null || width === '') return columnWidthClassMap.auto;
-  if (typeof width === 'number' && Number.isFinite(width)) {
-    const key = `${Math.floor(width)}px`;
-    return columnWidthClassMap[key] || columnWidthClassMap.auto;
+  if (typeof width === 'number') {
+    if (Number.isFinite(width)) {
+      const key = `${Math.floor(width)}px`;
+      return columnWidthClassMap[key] || columnWidthClassMap.auto;
+    }
   }
   if (typeof width === 'string') {
     const key = width.trim().toLowerCase();

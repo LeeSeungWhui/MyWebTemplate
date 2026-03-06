@@ -32,7 +32,7 @@ links: [CU-WEB-012, CU-WEB-013, CU-WEB-015, CU-WEB-003, CU-WEB-001, CU-WEB-002, 
 - 공개 GNB/푸터에서 로그인/회원가입 링크를 노출하지 않는다.
 - 템플릿 인증 경로는 삭제하지 않고 직접 URL 진입만 허용한다(문서/개발자용).
 - `/portfolio`는 레거시 호환용으로 유지하고 공개 퍼널/GNB에서는 노출하지 않는다.
-- `/sample/dashboard`는 읽기 전용 또는 더미 모드 기본값을 사용한다.
+- `/sample/dashboard`는 읽기 전용이며 공개 sample DB API 기반 집계 데이터를 사용한다.
 - 페이지 우선순위는 다음 기준을 사용한다.
   - P0: `/`, `/sample`, `/sample/dashboard`, `/sample/crud`
   - P1: `/sample/form`, `/sample/admin`, `/component`

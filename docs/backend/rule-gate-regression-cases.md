@@ -25,6 +25,13 @@
 | RG-BE-020-001 | BE-A-020 | Dashboard 라우터 서비스 호출에서 `userId` 전달 누락 | ERROR 검출 |
 | RG-BE-020-002 | BE-A-020 | Dashboard 서비스 함수 시그니처에 `userId` 누락 | ERROR 검출 |
 | RG-BE-020-003 | BE-A-020 | `dashboard.sql` 사용자 데이터 쿼리에 `USER_ID = :userId` 누락 | ERROR 검출 |
+| RG-BE-021-001 | BE-A-021 | `successResponse(result=result["items"])`처럼 result 루트 배열/제너릭 키 전달 | ERROR 검출 |
+| RG-BE-022-001 | BE-A-022 | 독립 주석(`#`) 시작 줄의 윗줄 빈 줄 1줄 누락 | WARN 검출 |
+| RG-BE-023-001 | BE-A-023 | router/lib 계층에서 `commit()/rollback()` 직접 호출 | ERROR 검출 |
+| RG-BE-023-002 | BE-A-023 | service 함수에서 쓰기 작업 2건 이상 + 트랜잭션 경계 누락 | WARN 검출 |
+| RG-BE-024-001 | BE-A-024 | 고위험 mutation 라우트에서 `Idempotency-Key` 계약 누락 | WARN 검출 |
+| RG-BE-025-001 | BE-A-025 | `requests/httpx` 외부 호출 timeout 미지정 | ERROR 검출 |
+| RG-BE-026-001 | BE-A-026 | 목록/검색 함수의 `size` 상한 clamp 누락 | WARN 검출 |
 
 ## 2) 검출되면 안 되는 케이스 (Must Ignore)
 
@@ -33,6 +40,12 @@
 | RG-BE-002-N001 | BE-A-002 | 일반 로그 문자열 `.format(...)` | 미검출 |
 | RG-BE-002-N002 | BE-A-002 | 일반 텍스트 f-string | 미검출 |
 | RG-BE-015-N001 | BE-A-015 | `TYPE_CHECKING` 블록/try-import fallback 패턴 | 미검출 |
+| RG-BE-021-N001 | BE-A-021 | `successResponse(result={"taskList": [], "searchFilterObj": {}, "totalCount": 0})` | 미검출 |
+| RG-BE-022-N001 | BE-A-022 | 독립 주석 시작 줄의 윗줄 빈 줄을 정확히 1줄 유지 | 미검출 |
+| RG-BE-023-N001 | BE-A-023 | service에서 `async with db.transaction(): ...`로 다중 쓰기 묶음 | 미검출 |
+| RG-BE-024-N001 | BE-A-024 | 고위험 mutation 라우트에서 `Idempotency-Key` 수집/검증 명시 | 미검출 |
+| RG-BE-025-N001 | BE-A-025 | 외부 HTTP 호출에 `timeout=` 명시 | 미검출 |
+| RG-BE-026-N001 | BE-A-026 | 목록/검색 함수에서 `size = min(size, listSizeMax)` clamp 적용 | 미검출 |
 
 ## 3) 자동 검증 스크립트
 
@@ -44,5 +57,5 @@ bash scripts/cli/check-myweb-rule-gate-backend-regression.sh .
 ```
 
 성공 기준:
-- Must Catch 18건이 모두 검출된다.
-- Must Ignore 3건이 검출되지 않는다.
+- Must Catch 25건이 모두 검출된다.
+- Must Ignore 9건이 검출되지 않는다.

@@ -1,7 +1,7 @@
 /**
  * 파일명: useEasyUpload.jsx
  * 작성자: LSH
- * 갱신일: 2026-03-03
+ * 갱신일: 2026-03-05
  * 설명: 파일 업로드 유틸. BFF/백엔드 호스트를 자동 해석해 FormData 업로드를 수행
  */
 
@@ -96,7 +96,7 @@ const toArray = (filesInput) => {
  * @param {Object} [options]
  * @returns {Promise<any>}
  */
-const useEasyUpload = async (filesInput, options = {}) => {
+const useEasyUpload = async ({ filesInput, options = {} }) => {
 
   const config = { ...DEFAULT_OPTIONS, ...options };
   if (!config.fileUploadUrl) {

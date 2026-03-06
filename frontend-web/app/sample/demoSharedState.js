@@ -2,7 +2,7 @@
 /**
  * 파일명: sample/demoSharedState.js
  * 작성자: LSH
- * 갱신일: 2026-02-23
+ * 갱신일: 2026-03-05
  * 설명: 공개 샘플 페이지 간 공유 상태(세션 메모리) 유틸
  */
 
@@ -28,7 +28,6 @@ const cloneValue = (value) => {
 export const useDemoSharedState = ({ stateKey, initialValue }) => {
 
   const { shared, setShared } = useSharedData();
-  const sharedValue = shared?.[stateKey];
 
   /**
    * @description useEffect 실행 흐름 관리
@@ -40,9 +39,9 @@ export const useDemoSharedState = ({ stateKey, initialValue }) => {
      * 처리 규칙: sharedValue가 undefined일 때만 cloneValue(initialValue)를 저장.
      * @updated 2026-02-23
      */
-    if (sharedValue !== undefined) return;
+    if (shared?.[stateKey] !== undefined) return;
     setShared({ [stateKey]: cloneValue(initialValue) });
-  }, [initialValue, setShared, sharedValue, stateKey]);
+  }, [initialValue, setShared, shared, stateKey]);
 
   const setValue = useCallback(
     (nextValueOrUpdater) => {
@@ -52,16 +51,16 @@ export const useDemoSharedState = ({ stateKey, initialValue }) => {
        * @updated 2026-02-23
        */
       const currentValue =
-        sharedValue === undefined
+        shared?.[stateKey] === undefined
           ? cloneValue(initialValue)
-          : sharedValue;
+          : shared?.[stateKey];
       const nextValue =
         typeof nextValueOrUpdater === "function"
           ? nextValueOrUpdater(currentValue)
           : nextValueOrUpdater;
       setShared({ [stateKey]: cloneValue(nextValue) });
     },
-    [initialValue, setShared, sharedValue, stateKey],
+    [initialValue, setShared, shared, stateKey],
   );
 
   const resetValue = useCallback(() => {
@@ -74,9 +73,9 @@ export const useDemoSharedState = ({ stateKey, initialValue }) => {
   }, [initialValue, setShared, stateKey]);
 
   return {
-    value: sharedValue === undefined ? initialValue : sharedValue,
+    value: shared?.[stateKey] === undefined ? initialValue : shared?.[stateKey],
     setValue,
     resetValue,
-    isInitialized: sharedValue !== undefined,
+    isInitialized: shared?.[stateKey] !== undefined,
   };
 };

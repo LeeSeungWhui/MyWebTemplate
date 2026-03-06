@@ -47,7 +47,7 @@
 - CU-WEB-010: implemented — `/forgot-password` 템플릿 인증 보조 경로(공개 GNB 비노출)
 - CU-WEB-011: implemented — 공개 퍼널을 `/(랜딩) → /sample/* + /component` 구조로 고정하고 템플릿 인증 경로 비노출 정책 반영
 - CU-WEB-012: implemented — 공개 GNB(샘플 드롭다운/모바일 메뉴) + 랜딩 섹션 + 단일 CTA(`샘플 보기`) 구성 반영
-- CU-WEB-013: implemented — 공개 샘플 5종(`/sample`, `/sample/dashboard`, `/sample/crud`, `/sample/form`, `/sample/admin`) 구현 및 샘플 세션 상태 공유 적용
+- CU-WEB-013: implemented — 공개 샘플 5종(`/sample`, `/sample/dashboard`, `/sample/crud`, `/sample/form`, `/sample/admin`) 구현 및 공개 sample DB API 연동 적용
 - CU-WEB-014: implemented — `/dashboard/tasks`, `/dashboard/settings` UI + API 계약 + 에러/로딩/빈 상태 + 쿼리(`q/status/sort/page`) 동기화
 - CU-WEB-015: implemented — 공개 포트폴리오는 `/sample/portfolio` 기준으로 운영하고, 레거시 `/portfolio`는 템플릿 보호 경로(인증 필요, 공개 메뉴 비노출)로 유지
 - CU-WEB-016: implemented — `/signup` 템플릿 인증 보조 경로 + `/login` 하단 회원가입 링크 + 기본 유효성/API 연동

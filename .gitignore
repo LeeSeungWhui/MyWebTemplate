@@ -138,7 +138,6 @@ venv.bak/
 # Local configs (may contain secrets)
 backend/config.ini
 frontend-web/config.ini
-AGENTS.md
 .gemini/
 .playwright/
 .playwright-cli/

@@ -1,7 +1,7 @@
 /**
  * 파일명: EasyList.jsx
  * 작성자: LSH
- * 갱신일: 2026-03-03
+ * 갱신일: 2026-03-05
  * 설명: 리스트형 반응형 데이터 모델
  */
 
@@ -31,7 +31,10 @@ const isObject = (value) => typeof value === 'object' && value !== null;
  * 처리 규칙: 문자열이면서 정규식 `^\\d+$`에 일치하면 true를 반환한다.
  * @updated 2026-02-27
  */
-const isNumericKey = (key) => typeof key === 'string' && /^\d+$/.test(key);
+const isNumericKey = (key) => {
+    if (typeof key !== 'string') return false;
+    return /^\d+$/.test(key);
+};
 
 /**
  * @description key 입력을 경로 세그먼트 배열로 정규화. 입력/출력 계약을 함께 명시
@@ -75,13 +78,6 @@ const deepCopy = (value) => {
     for (const key of Object.keys(value)) out[key] = deepCopy(value[key]);
     return out;
 };
-
-/**
- * @description 세그먼트 배열을 점(`. `) 경로 문자열로 변환
- * 처리 규칙: symbol 세그먼트는 문자열 경로에서 제외한다.
- * @updated 2026-02-27
- */
-const toPathString = (segments) => segments.filter((segment) => typeof segment !== 'symbol').join('.');
 
 /**
  * @description EasyList 프록시 상태 모델을 생성. 입력/출력 계약을 함께 명시
@@ -146,7 +142,7 @@ const useEasyList = (initialData = []) => {
      */
     const ensureContainer = (cursor, key, nextKey) => {
         if (!isObject(cursor[key])) {
-            const shouldBeArray = typeof nextKey === 'string' && isNumericKey(nextKey);
+            const shouldBeArray = typeof nextKey === 'string' ? isNumericKey(nextKey) : false;
             cursor[key] = shouldBeArray ? [] : {};
         }
         return cursor[key];
@@ -199,10 +195,14 @@ const useEasyList = (initialData = []) => {
             typeof pathSegments[pathSegments.length - 1] === 'symbol'
                 ? pathSegments[pathSegments.length - 1]
                 : String(pathSegments[pathSegments.length - 1]);
-        if (Array.isArray(cursor) && typeof leafKey === 'string' && isNumericKey(leafKey)) {
-            const index = Number(leafKey);
-            if (Number.isNaN(index) || index < 0 || index >= cursor.length) return { prev: undefined, removed: false };
-            return { prev: cursor.splice(index, 1)[0], removed: true };
+        if (Array.isArray(cursor)) {
+            if (typeof leafKey === 'string') {
+                if (isNumericKey(leafKey)) {
+                    const index = Number(leafKey);
+                    if (Number.isNaN(index) || index < 0 || index >= cursor.length) return { prev: undefined, removed: false };
+                    return { prev: cursor.splice(index, 1)[0], removed: true };
+                }
+            }
         }
         if (!Object.prototype.hasOwnProperty.call(cursor ?? {}, leafKey)) {
             return { prev: undefined, removed: false };
@@ -255,11 +255,11 @@ const useEasyList = (initialData = []) => {
         const detail = {
             type,
             path,
-            pathString: toPathString(path),
+            pathString: path.filter((segment) => typeof segment !== 'symbol').join('.'),
             value,
             prev,
             ctx: {
-                dataKey: toPathString(path),
+                dataKey: path.filter((segment) => typeof segment !== 'symbol').join('.'),
                 modelType: 'list',
                 dirty: true,
                 valid: null,
@@ -420,7 +420,9 @@ const useEasyList = (initialData = []) => {
                 if (prop === '__isProxy') return true;
                 if (prop === '__rawObject') return container;
                 if (prop === '__path') return [...basePath];
-                if (prop === 'toString' && isObject(container)) return () => JSON.stringify(container);
+                if (prop === 'toString') {
+                    if (isObject(container)) return () => JSON.stringify(container);
+                }
                 if (prop === 'toJSON') return () => deepCopy(container);
                 if (!isObject(container)) {
                     if (prop === 'valueOf') return () => container;
@@ -514,10 +516,12 @@ const useEasyList = (initialData = []) => {
                         });
                     };
                 }
-                if (typeof prop === 'string' && prop.includes('.')) {
-                    const fullPath = normalizePath(basePath, prop);
-                    const value = readAtPath(fullPath);
-                    return wrapValue(value, fullPath);
+                if (typeof prop === 'string') {
+                    if (prop.includes('.')) {
+                        const fullPath = normalizePath(basePath, prop);
+                        const value = readAtPath(fullPath);
+                        return wrapValue(value, fullPath);
+                    }
                 }
                 const baseObject = isObject(container) ? container : Object(container ?? {});
                 const value = Reflect.get(baseObject, prop, receiver);

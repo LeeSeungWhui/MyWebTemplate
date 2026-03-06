@@ -2,7 +2,7 @@
 /**
  * 파일명: app/login/view.jsx
  * 작성자: LSH
- * 갱신일: 2026-03-04
+ * 갱신일: 2026-03-05
  * 설명: 로그인 페이지 클라이언트 뷰
  */
 
@@ -65,47 +65,15 @@ const Client = ({ initialDataObj, initialErrorObj }) => {
   const passwordErrorId = loginObj.errors.password
     ? "login-password-error"
     : undefined;
-
-  /**
-   * @description 인증 실패 사유(authReason)가 전달되면 토스트로 경고를 노출
-   * 처리 규칙: code/requestId가 있으면 메타 정보까지 함께 표시한다.
-   * @updated 2026-02-28
-   */
-  useEffect(() => {
-    if (!authReason) return;
-    const message = authReason?.message
-      ? String(authReason.message)
-      : LANG_KO.view.toast.sessionExpired;
-    const metaParts = [];
-    if (authReason?.code) metaParts.push(`${LANG_KO.view.toast.codeLabel}: ${authReason.code}`);
-    if (authReason?.requestId) {
-      metaParts.push(`${LANG_KO.view.toast.requestIdLabel}: ${authReason.requestId}`);
-    }
-    const metaText = metaParts.length ? ` (${metaParts.join(", ")})` : "";
-    showToast(`${message}${metaText}`, { type: "error", duration: 5000 });
-  }, [authReason, showToast, LANG_KO.view.toast.sessionExpired]);
-
-  /**
-   * @description 회원가입 완료 쿼리(`signup=done`)를 1회 토스트로 안내하고 URL에서 제거
-   * 처리 규칙: 성공 토스트 노출 후 history.replaceState로 쿼리 파라미터를 정리한다.
-   * @updated 2026-02-28
-   */
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const currentUrl = new URL(window.location.href);
-    const signupStatus = currentUrl.searchParams.get("signup");
-    if (signupStatus !== "done") return;
-    showToast(LANG_KO.view.toast.signupDone, {
-      type: "success",
-      duration: 4000,
-    });
-    currentUrl.searchParams.delete("signup");
-    const nextSearch = currentUrl.searchParams.toString();
-    const nextUrl = nextSearch
-      ? `${currentUrl.pathname}?${nextSearch}`
-      : currentUrl.pathname;
-    window.history.replaceState({}, "", nextUrl);
-  }, [showToast, LANG_KO.view.toast.signupDone]);
+  /* 3. UI ========================================================================================================================= */
+  // 없음
+  /* 4. 팝업 ======================================================================================================================= */
+  // 없음
+  /* 5. 기타 ======================================================================================================================= */
+  // 없음
+  /* 6. 커스텀 훅 =================================================================================================================== */
+  // 없음
+  /* 7. 함수 ======================================================================================================================= */
 
   /**
    * @description 로그인 후 이동할 리다이렉트 경로를 안전한 내부 경로로 제한
@@ -255,30 +223,58 @@ const Client = ({ initialDataObj, initialErrorObj }) => {
     }
   };
 
-  if (isAuthed) {
-    if (typeof window !== "undefined") {
-      const target = sanitizeRedirect(nextHint) || "/dashboard";
-      window.location.replace(target);
-    }
-    return null;
-  }
-
-  /* 3. UI ========================================================================================================================= */
-  // 없음
-  /* 4. 팝업 ======================================================================================================================= */
-  // 없음
-  /* 5. 기타 ======================================================================================================================= */
-  // 없음
-  /* 6. 커스텀 훅 =================================================================================================================== */
-  // 없음
-  /* 7. 함수 ======================================================================================================================= */
-  // 없음
   /* 8. useEffect ================================================================================================================== */
-  // 없음
+  /**
+   * @description 인증 실패 사유(authReason)가 전달되면 토스트로 경고를 노출
+   * 처리 규칙: code/requestId가 있으면 메타 정보까지 함께 표시한다.
+   * @updated 2026-02-28
+   */
+  useEffect(() => {
+    if (!authReason) return;
+    const message = authReason?.message
+      ? String(authReason.message)
+      : LANG_KO.view.toast.sessionExpired;
+    const metaParts = [];
+    if (authReason?.code) metaParts.push(`${LANG_KO.view.toast.codeLabel}: ${authReason.code}`);
+    if (authReason?.requestId) {
+      metaParts.push(`${LANG_KO.view.toast.requestIdLabel}: ${authReason.requestId}`);
+    }
+    const metaText = metaParts.length ? ` (${metaParts.join(", ")})` : "";
+    showToast(`${message}${metaText}`, { type: "error", duration: 5000 });
+  }, [authReason, showToast, LANG_KO.view.toast.sessionExpired]);
+
+  /**
+   * @description 회원가입 완료 쿼리(`signup=done`)를 1회 토스트로 안내하고 URL에서 제거
+   * 처리 규칙: 성공 토스트 노출 후 history.replaceState로 쿼리 파라미터를 정리한다.
+   * @updated 2026-02-28
+   */
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const currentUrl = new URL(window.location.href);
+    const signupStatus = currentUrl.searchParams.get("signup");
+    if (signupStatus !== "done") return;
+    showToast(LANG_KO.view.toast.signupDone, {
+      type: "success",
+      duration: 4000,
+    });
+    currentUrl.searchParams.delete("signup");
+    const nextSearch = currentUrl.searchParams.toString();
+    const nextUrl = nextSearch
+      ? `${currentUrl.pathname}?${nextSearch}`
+      : currentUrl.pathname;
+    window.history.replaceState({}, "", nextUrl);
+  }, [showToast, LANG_KO.view.toast.signupDone]);
+
   /* 9. 내부 컴포넌트 ============================================================================================================== */
   // 없음
 
   /* 10. 렌더링 ==================================================================================================================== */
+  if (isAuthed) {
+    if (typeof window !== "undefined") {
+      window.location.replace(sanitizeRedirect(nextHint) || "/dashboard");
+    }
+    return null;
+  }
   return (
     <main className="min-h-screen flex items-center justify-center bg-gray-50 p-4 sm:p-6">
       <div className="flex w-full max-w-5xl mx-4 shadow-xl rounded-2xl overflow-hidden bg-white">

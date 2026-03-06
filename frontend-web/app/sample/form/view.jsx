@@ -1,9 +1,9 @@
 "use client";
 /**
  * 파일명: sample/form/view.jsx
- * 작성자: LSH
- * 갱신일: 2026-03-04
- * 설명: 공개 복합 폼 샘플 페이지 뷰(스텝 검증/요약 기반)
+ * 작성자: Codex
+ * 갱신일: 2026-03-06
+ * 설명: 공개 복합 폼 샘플 페이지 뷰(DB 폼 메타/제출 연동)
  */
 
 import { useEffect, useMemo } from "react";
@@ -16,19 +16,20 @@ import Select from "@/app/lib/component/Select";
 import Textarea from "@/app/lib/component/Textarea";
 import EasyObj from "@/app/lib/dataset/EasyObj";
 import { PAGE_CONFIG } from "./initData";
-import { normalizePageConfig } from "@/app/lib/runtime/pageData";
 import { usePageData } from "@/app/lib/hooks/usePageData";
+import { apiJSON } from "@/app/lib/runtime/api";
+import syncApiResult from "@/app/lib/runtime/apiResult";
 import LANG_KO from "./lang.ko";
 
+const SAMPLE_FORM_API_PATH = "/api/v1/sample/forms";
 const STEP_LIST = LANG_KO.view.stepList.map((item) => ({ ...item }));
-const CATEGORY_OPTION_LIST = LANG_KO.initData.categoryOptions.map((item) => ({ ...item }));
-const FEATURE_CHECK_LIST = LANG_KO.initData.featureOptions.map((item) => ({ ...item }));
-
+const CATEGORY_SOURCE_LIST = LANG_KO.initData.categoryOptions.map((item) => ({ ...item }));
+const FEATURE_SOURCE_LIST = LANG_KO.initData.featureOptions.map((item) => ({ ...item }));
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 /**
  * @description 공개 복합 폼 샘플 화면을 렌더링. 입력/출력 계약을 함께 명시
- * 처리 규칙: 단계별(step1~3) 입력/검증/요약 상태를 하나의 EasyObj(ui)에서 관리한다.
+ * 처리 규칙: 선택 코드/최근 제출 메타는 DB에서 로드하고, 제출 버튼은 public sample API로 저장한다.
  */
 const FormDemoView = ({ initialDataObj, initialErrorObj }) => {
   /* 1. 상수 ======================================================================================================================= */
@@ -45,7 +46,6 @@ const FormDemoView = ({ initialDataObj, initialErrorObj }) => {
     attachmentName: "",
     selectedFeatures: [],
   };
-
   const defaultStepOneErrors = {
     name: "",
     email: "",
@@ -57,21 +57,35 @@ const FormDemoView = ({ initialDataObj, initialErrorObj }) => {
   };
 
   /* 2. 데이터 ======================================================================================================================= */
+  const { mode: pageMode, dataObj, isLoading } = usePageData({
+    pageConfig: PAGE_CONFIG,
+    initialDataObj,
+    initialErrorObj,
+  });
+  const initialMetaResult = dataObj?.meta?.result || {};
+  const { showToast } = useGlobalUi();
   const ui = EasyObj({
-    isLoading: true,
     step: 1,
+    isSubmitting: false,
     form: { ...defaultForm },
     stepOneErrors: { ...defaultStepOneErrors },
   });
-  const pageMode = normalizePageConfig(PAGE_CONFIG).MODE;
+  const formMetaObj = EasyObj(initialMetaResult);
+  const latestSubmissionObj = EasyObj(initialMetaResult.latestSubmission || {});
+  const categoryCodeList = formMetaObj?.categoryCodeList || [];
+  const featureCodeList = formMetaObj?.featureCodeList || [];
+  const categoryOptionList = CATEGORY_SOURCE_LIST.filter((item) => (
+    item.value === "" || categoryCodeList.includes(item.value)
+  ));
+  const featureOptionList = FEATURE_SOURCE_LIST.filter((item) => featureCodeList.includes(item.key));
+  const categoryLabelMap = Object.fromEntries(
+    categoryOptionList.map((item) => [item.value, item.text]),
+  );
+  const featureLabelMap = Object.fromEntries(
+    featureOptionList.map((item) => [item.key, item.label]),
+  );
 
   /* 3. UI ========================================================================================================================= */
-  // 없음
-
-  /* 4. 팝업 ======================================================================================================================= */
-  // 없음
-
-  /* 5. 기타 ======================================================================================================================= */
   const stepOneErrorIds = {
     name: ui.stepOneErrors.name ? "demo-form-name-error" : undefined,
     email: ui.stepOneErrors.email ? "demo-form-email-error" : undefined,
@@ -81,14 +95,6 @@ const FormDemoView = ({ initialDataObj, initialErrorObj }) => {
     endDate: ui.stepOneErrors.endDate ? "demo-form-end-date-error" : undefined,
     budgetRange: ui.stepOneErrors.budgetRange ? "demo-form-budget-range-error" : undefined,
   };
-
-  /* 6. 커스텀 훅 =================================================================================================================== */
-  usePageData({
-    pageConfig: PAGE_CONFIG,
-    initialDataObj,
-    initialErrorObj,
-  });
-  const { showToast } = useGlobalUi();
   const summaryRows = useMemo(
     () => [
       { label: LANG_KO.view.summaryLabel.name, value: ui.form.name || "-" },
@@ -96,51 +102,57 @@ const FormDemoView = ({ initialDataObj, initialErrorObj }) => {
       { label: LANG_KO.view.summaryLabel.phone, value: ui.form.phone || "-" },
       {
         label: LANG_KO.view.summaryLabel.category,
-        value:
-          CATEGORY_OPTION_LIST.find(
-            (categoryItem) => categoryItem.value === ui.form.category,
-          )?.text || "-",
+        value: categoryLabelMap[ui.form.category] || "-",
       },
-      { label: LANG_KO.view.summaryLabel.period, value: `${ui.form.startDate || "-"} ~ ${ui.form.endDate || "-"}` },
+      {
+        label: LANG_KO.view.summaryLabel.period,
+        value: `${ui.form.startDate || "-"} ~ ${ui.form.endDate || "-"}`,
+      },
       { label: LANG_KO.view.summaryLabel.budgetRange, value: ui.form.budgetRange || "-" },
       {
         label: LANG_KO.view.summaryLabel.features,
-        value:
-          ui.form.selectedFeatures.length > 0
-            ? ui.form.selectedFeatures.join(", ")
-            : "-",
+        value: ui.form.selectedFeatures.length > 0
+          ? ui.form.selectedFeatures.map((featureCode) => featureLabelMap[featureCode] || featureCode).join(", ")
+          : "-",
       },
       { label: LANG_KO.view.summaryLabel.requirement, value: ui.form.requirement || "-" },
       { label: LANG_KO.view.summaryLabel.referenceUrl, value: ui.form.referenceUrl || "-" },
       { label: LANG_KO.view.summaryLabel.attachmentName, value: ui.form.attachmentName || "-" },
     ],
-    [ui.form],
+    [categoryLabelMap, featureLabelMap, ui.form],
   );
+
+  /* 4. 팝업 ======================================================================================================================= */
+  // 없음
+
+  /* 5. 기타 ======================================================================================================================= */
+  // 없음
+
+  /* 6. 커스텀 훅 =================================================================================================================== */
+  // 없음
 
   /* 7. 함수 ======================================================================================================================= */
 
   /**
-   * @description 요청된 단계 번호를 허용 범위(1. 3)로 보정해 현재 단계를 변경
-   * 처리 규칙: 범위를 벗어난 입력은 min/max 경계값으로 clamp 한다.
-   * @updated 2026-02-27
+   * @description 요청 단계 번호를 1~3 범위로 보정해 현재 단계를 갱신
+   * @param {number} nextStep
    */
   const moveStep = (nextStep) => {
-    ui.step = Math.min(3, Math.max(1, nextStep));
+    ui.step = Math.min(3, Math.max(1, Number(nextStep || 1)));
   };
 
   /**
-   * @description 1단계 필드 에러 메시지를 모두 초기화
-   * 부작용: ui.stepOneErrors를 새 기본 모델로 교체한다.
-   * @updated 2026-02-27
+   * @description 1단계 필드 오류 메시지를 모두 초기화
+   * 부작용: stepOneErrors가 기본값으로 교체된다.
    */
   const resetStepOneErrors = () => {
     ui.stepOneErrors = { ...defaultStepOneErrors };
   };
 
   /**
-   * @description 1단계 필수값/형식/기간 규칙을 검증하고 에러 상태를 반영
-   * 실패 동작: 하나라도 실패하면 ui.stepOneErrors를 갱신하고 에러 토스트를 띄운 뒤 false를 반환한다.
-   * @updated 2026-02-27
+   * @description 1단계 입력 유효성을 검사하고 오류 상태를 갱신
+   * 실패 동작: 오류가 하나라도 있으면 토스트를 노출하고 false를 반환한다.
+   * @returns {boolean}
    */
   const validateStepOne = () => {
     const nextErrors = { ...defaultStepOneErrors };
@@ -153,9 +165,7 @@ const FormDemoView = ({ initialDataObj, initialErrorObj }) => {
     const budgetRange = String(ui.form.budgetRange || "").trim();
 
     if (!name) nextErrors.name = LANG_KO.view.validation.nameRequired;
-    if (!email || !EMAIL_RE.test(email)) {
-      nextErrors.email = LANG_KO.view.validation.emailInvalid;
-    }
+    if (!email || !EMAIL_RE.test(email)) nextErrors.email = LANG_KO.view.validation.emailInvalid;
     if (!phone) nextErrors.phone = LANG_KO.view.validation.phoneRequired;
     if (!category) nextErrors.category = LANG_KO.view.validation.categoryRequired;
     if (!startDate) nextErrors.startDate = LANG_KO.view.validation.startDateRequired;
@@ -175,32 +185,62 @@ const FormDemoView = ({ initialDataObj, initialErrorObj }) => {
   };
 
   /**
-   * @description 기능 선택 체크 상태를 토글해 selectedFeatures 목록을 갱신
-   * 처리 규칙: 이미 선택된 라벨은 제거하고, 미선택 라벨은 배열 끝에 추가한다.
-   * @updated 2026-02-27
+   * @description 기능 코드를 selectedFeatures 배열에서 토글
+   * 처리 규칙: 이미 존재하면 제거하고, 없으면 배열 끝에 추가한다.
+   * @param {string} featureCode
    */
-  const toggleFeature = (label) => {
-    const exists = ui.form.selectedFeatures.includes(label);
+  const toggleFeature = (featureCode) => {
+    const exists = ui.form.selectedFeatures.includes(featureCode);
     if (exists) {
-      ui.form.selectedFeatures = ui.form.selectedFeatures.filter(
-        (selectedLabel) => selectedLabel !== label,
-      );
+      ui.form.selectedFeatures = ui.form.selectedFeatures.filter((item) => item !== featureCode);
       return;
     }
-    ui.form.selectedFeatures = [...ui.form.selectedFeatures, label];
+    ui.form.selectedFeatures = [...ui.form.selectedFeatures, featureCode];
+  };
+
+  /**
+   * @description DB에 폼 제출을 저장하고 최신 메타를 로컬 상태에 반영
+   * 실패 동작: API 실패 시 에러 토스트를 노출하고 현재 입력값은 유지한다.
+   */
+  const submitForm = async () => {
+    ui.isSubmitting = true;
+    try {
+      const payload = await apiJSON(
+        SAMPLE_FORM_API_PATH,
+        {
+          method: "POST",
+          body: {
+            ...ui.form,
+            selectedFeatures: [...ui.form.selectedFeatures],
+          },
+        },
+        { authless: true },
+      );
+      syncApiResult({
+        payload,
+        apiObj: latestSubmissionObj,
+      });
+      formMetaObj.submissionCount = Number(formMetaObj.submissionCount || 0) + 1;
+      ui.form = { ...defaultForm };
+      resetStepOneErrors();
+      ui.step = 1;
+      showToast(LANG_KO.view.action.submitSuccessToast, { type: "success" });
+    } catch (err) {
+      showToast(err?.message || LANG_KO.view.error.submitFailed, { type: "error" });
+    } finally {
+      ui.isSubmitting = false;
+    }
   };
 
   /* 8. useEffect ================================================================================================================== */
   /**
-   * @description 초기 로딩 카드 노출 후 본문 전환을 위한 타이머 구독/정리
-   * 처리 규칙: 마운트 시 타이머 등록, 언마운트 시 clearTimeout 실행.
+   * @description SSR 초기 메타 스냅샷이 바뀌면 form 메타/최근 제출 객체를 동기화한다.
+   * 처리 규칙: meta 전체는 formMetaObj.copy, latestSubmission은 별도 copy로 반영한다.
    */
   useEffect(() => {
-    const timer = setTimeout(() => {
-      ui.isLoading = false;
-    }, 160);
-    return () => clearTimeout(timer);
-  }, [ui]);
+    formMetaObj.copy(initialMetaResult);
+    latestSubmissionObj.copy(initialMetaResult.latestSubmission || {});
+  }, [dataObj?.meta?.result, formMetaObj, latestSubmissionObj]);
 
   /* 9. 내부 컴포넌트 ============================================================================================================== */
   // 없음
@@ -213,6 +253,25 @@ const FormDemoView = ({ initialDataObj, initialErrorObj }) => {
         <p className="mt-2 text-sm text-gray-600">
           {LANG_KO.view.page.subtitle}
         </p>
+      </section>
+
+      <section className="mb-5 grid gap-3 md:grid-cols-2">
+        <Card title={`${LANG_KO.view.card.submissionTitlePrefix} ${Number(formMetaObj.submissionCount || 0).toLocaleString("ko-KR")}${LANG_KO.view.card.submissionTitleSuffix}`}>
+          <p className="text-sm text-gray-600">
+            {LANG_KO.view.card.submissionDescription}
+          </p>
+        </Card>
+        <Card title={LANG_KO.view.card.latestSubmissionTitle}>
+          {latestSubmissionObj?.id ? (
+            <div className="space-y-1 text-sm text-gray-700">
+              <p>{latestSubmissionObj?.name || "-"}</p>
+              <p>{latestSubmissionObj?.email || "-"}</p>
+              <p>{latestSubmissionObj?.createdAt || "-"}</p>
+            </div>
+          ) : (
+            <p className="text-sm text-gray-500">{LANG_KO.view.card.latestSubmissionEmpty}</p>
+          )}
+        </Card>
       </section>
 
       <ol className="mb-5 grid gap-2 sm:grid-cols-3">
@@ -230,7 +289,7 @@ const FormDemoView = ({ initialDataObj, initialErrorObj }) => {
         ))}
       </ol>
 
-      {ui.isLoading ? (
+      {isLoading ? (
         <Card title={LANG_KO.view.page.loadingCardTitle}>
           <p className="text-sm text-gray-600">{LANG_KO.view.page.loadingCardBody}</p>
         </Card>
@@ -248,11 +307,7 @@ const FormDemoView = ({ initialDataObj, initialErrorObj }) => {
                 error={ui.stepOneErrors.name}
                 aria-describedby={stepOneErrorIds.name}
               />
-              {ui.stepOneErrors.name ? (
-                <p id={stepOneErrorIds.name} className="text-xs text-red-600">
-                  {ui.stepOneErrors.name}
-                </p>
-              ) : null}
+              {ui.stepOneErrors.name ? <p id={stepOneErrorIds.name} className="text-xs text-red-600">{ui.stepOneErrors.name}</p> : null}
             </label>
 
             <label className="block space-y-1">
@@ -265,11 +320,7 @@ const FormDemoView = ({ initialDataObj, initialErrorObj }) => {
                 error={ui.stepOneErrors.email}
                 aria-describedby={stepOneErrorIds.email}
               />
-              {ui.stepOneErrors.email ? (
-                <p id={stepOneErrorIds.email} className="text-xs text-red-600">
-                  {ui.stepOneErrors.email}
-                </p>
-              ) : null}
+              {ui.stepOneErrors.email ? <p id={stepOneErrorIds.email} className="text-xs text-red-600">{ui.stepOneErrors.email}</p> : null}
             </label>
 
             <label className="block space-y-1">
@@ -281,11 +332,7 @@ const FormDemoView = ({ initialDataObj, initialErrorObj }) => {
                 error={ui.stepOneErrors.phone}
                 aria-describedby={stepOneErrorIds.phone}
               />
-              {ui.stepOneErrors.phone ? (
-                <p id={stepOneErrorIds.phone} className="text-xs text-red-600">
-                  {ui.stepOneErrors.phone}
-                </p>
-              ) : null}
+              {ui.stepOneErrors.phone ? <p id={stepOneErrorIds.phone} className="text-xs text-red-600">{ui.stepOneErrors.phone}</p> : null}
             </label>
 
             <label className="block space-y-1">
@@ -293,15 +340,11 @@ const FormDemoView = ({ initialDataObj, initialErrorObj }) => {
               <Select
                 dataObj={ui}
                 dataKey="form.category"
-                dataList={CATEGORY_OPTION_LIST}
+                dataList={categoryOptionList}
                 error={ui.stepOneErrors.category}
                 aria-describedby={stepOneErrorIds.category}
               />
-              {ui.stepOneErrors.category ? (
-                <p id={stepOneErrorIds.category} className="text-xs text-red-600">
-                  {ui.stepOneErrors.category}
-                </p>
-              ) : null}
+              {ui.stepOneErrors.category ? <p id={stepOneErrorIds.category} className="text-xs text-red-600">{ui.stepOneErrors.category}</p> : null}
             </label>
 
             <label className="block space-y-1">
@@ -313,11 +356,7 @@ const FormDemoView = ({ initialDataObj, initialErrorObj }) => {
                 error={ui.stepOneErrors.startDate}
                 aria-describedby={stepOneErrorIds.startDate}
               />
-              {ui.stepOneErrors.startDate ? (
-                <p id={stepOneErrorIds.startDate} className="text-xs text-red-600">
-                  {ui.stepOneErrors.startDate}
-                </p>
-              ) : null}
+              {ui.stepOneErrors.startDate ? <p id={stepOneErrorIds.startDate} className="text-xs text-red-600">{ui.stepOneErrors.startDate}</p> : null}
             </label>
 
             <label className="block space-y-1">
@@ -329,11 +368,7 @@ const FormDemoView = ({ initialDataObj, initialErrorObj }) => {
                 error={ui.stepOneErrors.endDate}
                 aria-describedby={stepOneErrorIds.endDate}
               />
-              {ui.stepOneErrors.endDate ? (
-                <p id={stepOneErrorIds.endDate} className="text-xs text-red-600">
-                  {ui.stepOneErrors.endDate}
-                </p>
-              ) : null}
+              {ui.stepOneErrors.endDate ? <p id={stepOneErrorIds.endDate} className="text-xs text-red-600">{ui.stepOneErrors.endDate}</p> : null}
             </label>
 
             <label className="block space-y-1 md:col-span-2">
@@ -345,11 +380,7 @@ const FormDemoView = ({ initialDataObj, initialErrorObj }) => {
                 error={ui.stepOneErrors.budgetRange}
                 aria-describedby={stepOneErrorIds.budgetRange}
               />
-              {ui.stepOneErrors.budgetRange ? (
-                <p id={stepOneErrorIds.budgetRange} className="text-xs text-red-600">
-                  {ui.stepOneErrors.budgetRange}
-                </p>
-              ) : null}
+              {ui.stepOneErrors.budgetRange ? <p id={stepOneErrorIds.budgetRange} className="text-xs text-red-600">{ui.stepOneErrors.budgetRange}</p> : null}
             </label>
           </div>
         </Card>
@@ -371,14 +402,14 @@ const FormDemoView = ({ initialDataObj, initialErrorObj }) => {
             <div className="space-y-1">
               <span className="text-sm font-medium text-gray-700">{LANG_KO.view.summaryLabel.features}</span>
               <div className="flex flex-wrap gap-2">
-                {FEATURE_CHECK_LIST.map((featureItem) => {
-                  const selected = ui.form.selectedFeatures.includes(featureItem.label);
-                  // rule-gate: allow-controlled-binding - 다중 선택 토글(배열 포함/제거) 로직을 유지해야 함
+                {featureOptionList.map((featureItem) => {
+                  const selected = ui.form.selectedFeatures.includes(featureItem.key);
+                  // rule-gate: allow-controlled-binding - 다중 선택 토글은 selectedFeatures 배열 포함/제거 제어가 필요함
                   return (
                     <CheckButton
                       key={featureItem.key}
                       checked={selected}
-                      onChange={() => toggleFeature(featureItem.label)}
+                      onChange={() => toggleFeature(featureItem.key)}
                     >
                       {featureItem.label}
                     </CheckButton>
@@ -407,9 +438,7 @@ const FormDemoView = ({ initialDataObj, initialErrorObj }) => {
                   ui.form.attachmentName = nextFile?.name || "";
                 }}
               />
-              {ui.form.attachmentName ? (
-                <p className="text-xs text-gray-500">{ui.form.attachmentName}</p>
-              ) : null}
+              {ui.form.attachmentName ? <p className="text-xs text-gray-500">{ui.form.attachmentName}</p> : null}
             </label>
           </div>
         </Card>
@@ -435,7 +464,7 @@ const FormDemoView = ({ initialDataObj, initialErrorObj }) => {
         <Button
           variant="secondary"
           onClick={() => moveStep(ui.step - 1)}
-          disabled={ui.step === 1}
+          disabled={ui.step === 1 || ui.isSubmitting}
           className="w-full sm:w-auto"
         >
           {LANG_KO.view.action.prev}
@@ -459,12 +488,8 @@ const FormDemoView = ({ initialDataObj, initialErrorObj }) => {
           <Button
             variant="primary"
             className="w-full sm:w-auto"
-            onClick={() => {
-              showToast(LANG_KO.view.action.submitSuccessToast, { type: "success" });
-              ui.form = { ...defaultForm };
-              resetStepOneErrors();
-              ui.step = 1;
-            }}
+            onClick={submitForm}
+            disabled={ui.isSubmitting}
           >
             {LANG_KO.view.action.submit}
           </Button>

@@ -166,6 +166,7 @@ export const LANG_KO = {
       tableTitle: "업무 목록",
       loadingTitle: "로딩 중",
       loadingBody: "데이터를 준비하는 중입니다...",
+      countSuffix: "건",
     },
     action: {
       openCreate: "신규 등록",
@@ -229,6 +230,12 @@ export const LANG_KO = {
       createdRow: "신규 업무가 등록되었습니다.",
       updatedRow: "업무가 수정되었습니다.",
       removedSelectedRows: "선택 항목이 삭제되었습니다.",
+    },
+    error: {
+      listLoadFailed: "목록을 불러오지 못했습니다.",
+      saveFailed: "저장에 실패했습니다.",
+      removeFailed: "삭제에 실패했습니다.",
+      removeManyFailed: "일괄 삭제에 실패했습니다.",
     },
     misc: {
       defaultStatusCode: "ready",

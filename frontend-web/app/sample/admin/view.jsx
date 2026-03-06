@@ -1,14 +1,13 @@
 "use client";
 /**
  * 파일명: sample/admin/view.jsx
- * 작성자: LSH
- * 갱신일: 2026-03-04
- * 설명: 공개 관리자 화면 샘플 페이지 뷰(탭/사용자 Drawer 포함)
+ * 작성자: Codex
+ * 갱신일: 2026-03-06
+ * 설명: 공개 관리자 화면 샘플 페이지 뷰(DB 사용자/설정 연동)
  */
 
 import { useEffect, useMemo } from "react";
 import { useGlobalUi } from "@/app/common/store/SharedStore";
-import { normalizePageConfig } from "@/app/lib/runtime/pageData";
 import Badge from "@/app/lib/component/Badge";
 import Button from "@/app/lib/component/Button";
 import Card from "@/app/lib/component/Card";
@@ -19,64 +18,37 @@ import Input from "@/app/lib/component/Input";
 import Select from "@/app/lib/component/Select";
 import Switch from "@/app/lib/component/Switch";
 import Tab from "@/app/lib/component/Tab";
-import { useDemoSharedState } from "@/app/sample/demoSharedState";
 import EasyObj from "@/app/lib/dataset/EasyObj";
+import { useEasyList } from "@/app/lib/dataset/EasyList";
 import { PAGE_CONFIG } from "./initData";
-import LANG_KO from "./lang.ko";
 import { usePageData } from "@/app/lib/hooks/usePageData";
+import { apiJSON } from "@/app/lib/runtime/api";
+import syncApiResult from "@/app/lib/runtime/apiResult";
+import LANG_KO from "./lang.ko";
 
+const SAMPLE_ADMIN_USER_API_PATH = "/api/v1/sample/admin/users";
+const SAMPLE_ADMIN_SETTING_API_PATH = "/api/v1/sample/admin/settings";
 const ROLE_BADGE_VARIANT_MAP = {
   admin: "primary",
   editor: "warning",
   user: "neutral",
 };
-
 const STATUS_BADGE_VARIANT_MAP = {
   active: "success",
   inactive: "neutral",
 };
-
 const ROLE_PERMISSION_LIST = LANG_KO.view.rolePermissionList.map((item) => ({ ...item }));
 const TAB_LIST = LANG_KO.initData.tabList.map((item) => ({ ...item }));
 const ROLE_OPTION_LIST = LANG_KO.initData.roleOptions.map((item) => ({ ...item }));
 const STATUS_OPTION_LIST = LANG_KO.initData.statusOptions.map((item) => ({ ...item }));
 
-const ROLE_PERMISSION_MAP = {
-  admin: {
-    manageUser: true,
-    editContent: true,
-    changeSetting: true,
-    viewLog: true,
-    deleteData: true,
-  },
-  editor: {
-    manageUser: false,
-    editContent: true,
-    changeSetting: false,
-    viewLog: true,
-    deleteData: false,
-  },
-  user: {
-    manageUser: false,
-    editContent: false,
-    changeSetting: false,
-    viewLog: false,
-    deleteData: false,
-  },
-};
-
-const SYSTEM_DEFAULT = { ...LANG_KO.view.systemDefault };
-const INITIAL_ROW_LIST = LANG_KO.initData.userRows.map((item) => ({ ...item }));
-
 /**
  * @description 공개 관리자 화면 샘플를 렌더링. 입력/출력 계약을 함께 명시
- * 처리 규칙: 사용자 탭은 목록/드로어 CRUD를, 시스템 탭은 설정 토글 상태를 EasyObj 기반으로 유지한다.
+ * 처리 규칙: 사용자 생성/수정과 시스템 설정 저장은 sample 공개 API를 통해 DB에 반영한다.
  * @param {{ initialDataObj?: Object, initialErrorObj?: Object }} props
  */
 const AdminDemoView = ({ initialDataObj, initialErrorObj }) => {
   /* 1. 상수 ======================================================================================================================= */
-  // 없음
-  /* 2. 데이터 ======================================================================================================================= */
   const defaultUserForm = {
     name: "",
     email: "",
@@ -88,10 +60,20 @@ const AdminDemoView = ({ initialDataObj, initialErrorObj }) => {
     profileImageName: "",
   };
 
+  /* 2. 데이터 ======================================================================================================================= */
+  const { showToast } = useGlobalUi();
+  const { mode: pageMode, dataObj, isLoading: pageLoading } = usePageData({
+    pageConfig: PAGE_CONFIG,
+    initialDataObj,
+    initialErrorObj,
+  });
+  const initialUserRowList = dataObj?.users?.result || [];
+  const initialSettingResult = dataObj?.settings?.result || {};
   const ui = EasyObj({
-    isLoading: true,
     tabIndex: 0,
     keyword: "",
+    isSavingUser: false,
+    isSavingSetting: false,
     drawerState: {
       isOpen: false,
       mode: "create",
@@ -100,43 +82,23 @@ const AdminDemoView = ({ initialDataObj, initialErrorObj }) => {
     userForm: { ...defaultUserForm },
     formError: "",
   });
-  const pageMode = normalizePageConfig(PAGE_CONFIG).MODE;
-  usePageData({
-    pageConfig: PAGE_CONFIG,
-    initialDataObj,
-    initialErrorObj,
-  });
-  const { value: rows, setValue: setRows } = useDemoSharedState({
-    stateKey: "demoAdminUsers",
-    initialValue: INITIAL_ROW_LIST,
-  });
-  const { value: systemSetting, setValue: setSystemSetting } =
-    useDemoSharedState({
-      stateKey: "demoAdminSystemSetting",
-      initialValue: SYSTEM_DEFAULT,
-    });
-  const { showToast } = useGlobalUi();
+  const adminUserList = useEasyList(initialUserRowList);
+  const savedAdminUserObj = EasyObj({});
+  const adminSettingResultObj = EasyObj(initialSettingResult);
+  const systemSettingObj = EasyObj(
+    initialSettingResult.systemSetting || { ...LANG_KO.view.systemDefault },
+  );
+  const rolePermissionMapObj = EasyObj(initialSettingResult.rolePermissionMap || {});
 
-  /**
-   * @description 초기 로딩 스켈레톤 표시 후 본문 노출을 위한 타이머 구독/정리
-   * 처리 규칙: 마운트 시 타이머 등록, 언마운트 시 clearTimeout으로 정리.
-   */
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      ui.isLoading = false;
-    }, 180);
-    return () => clearTimeout(timer);
-  }, [ui]);
-
+  /* 3. UI ========================================================================================================================= */
   const filteredRows = useMemo(() => {
-    const normalizedKeyword = ui.keyword.trim().toLowerCase();
-    if (!normalizedKeyword) return rows;
-    return rows.filter((rowItem) => {
+    const normalizedKeyword = String(ui.keyword || "").trim().toLowerCase();
+    if (!normalizedKeyword) return adminUserList;
+    return adminUserList.filter((rowItem) => {
       const targetText = `${rowItem.name} ${rowItem.email} ${LANG_KO.view.roleLabelMap[rowItem.role] || ""}`.toLowerCase();
       return targetText.includes(normalizedKeyword);
     });
-  }, [ui.keyword, rows]);
-
+  }, [adminUserList, ui.keyword]);
   const tableColumns = [
     {
       key: "profile",
@@ -181,24 +143,7 @@ const AdminDemoView = ({ initialDataObj, initialErrorObj }) => {
         <Button
           size="sm"
           variant="secondary"
-          onClick={() => {
-            ui.drawerState = {
-              isOpen: true,
-              mode: "edit",
-              editingId: rowItem.id,
-            };
-            ui.userForm = {
-              name: rowItem.name || "",
-              email: rowItem.email || "",
-              role: rowItem.role || "user",
-              status: rowItem.status || LANG_KO.view.misc.defaultStatusCode,
-              notifyEmail: Boolean(rowItem.notifyEmail),
-              notifySms: Boolean(rowItem.notifySms),
-              notifyPush: Boolean(rowItem.notifyPush),
-              profileImageName: "",
-            };
-            ui.formError = "";
-          }}
+          onClick={() => openEditDrawer(rowItem)}
         >
           {LANG_KO.view.users.editButton}
         </Button>
@@ -206,23 +151,20 @@ const AdminDemoView = ({ initialDataObj, initialErrorObj }) => {
     },
   ];
 
-  /**
-   * @description 현재 날짜의 사용자 생성일 필드용 YYYY-MM-DD 문자열 생성
-   * 반환값: 신규 사용자 createdAt 값으로 쓰는 날짜 텍스트.
-   * @updated 2026-02-27
-   */
-  const toTodayText = () => {
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = String(now.getMonth() + 1).padStart(2, "0");
-    const day = String(now.getDate()).padStart(2, "0");
-    return `${year}-${month}-${day}`;
-  };
+  /* 4. 팝업 ======================================================================================================================= */
+  // 없음
+
+  /* 5. 기타 ======================================================================================================================= */
+  // 없음
+
+  /* 6. 커스텀 훅 =================================================================================================================== */
+  // 없음
+
+  /* 7. 함수 ======================================================================================================================= */
 
   /**
-   * @description 생성 모드 드로어를 열고 폼/에러 상태를 초기화
-   * 부작용: ui.drawerState, ui.userForm, ui.formError 값을 덮어쓴다.
-   * @updated 2026-02-27
+   * @description 사용자 생성 모드 드로어를 열고 폼을 초기화
+   * 부작용: drawer/userForm/formError 상태가 생성 모드 기준으로 초기화된다.
    */
   const openCreateDrawer = () => {
     ui.drawerState = {
@@ -235,9 +177,30 @@ const AdminDemoView = ({ initialDataObj, initialErrorObj }) => {
   };
 
   /**
-   * @description 사용자 편집 드로어를 닫고 에러 문구를 정리
-   * 부작용: ui.drawerState.isOpen=false, ui.formError=''로 변경된다.
-   * @updated 2026-02-27
+   * @description 사용자 수정 모드 드로어를 열고 현재 행 값으로 폼을 채운다.
+   * @param {Object} rowItem
+   */
+  const openEditDrawer = (rowItem) => {
+    ui.drawerState = {
+      isOpen: true,
+      mode: "edit",
+      editingId: rowItem?.id || null,
+    };
+    ui.userForm = {
+      name: rowItem?.name || "",
+      email: rowItem?.email || "",
+      role: rowItem?.role || "user",
+      status: rowItem?.status || LANG_KO.view.misc.defaultStatusCode,
+      notifyEmail: Boolean(rowItem?.notifyEmail),
+      notifySms: Boolean(rowItem?.notifySms),
+      notifyPush: Boolean(rowItem?.notifyPush),
+      profileImageName: "",
+    };
+    ui.formError = "";
+  };
+
+  /**
+   * @description 드로어를 닫고 입력 오류 상태를 지운다.
    */
   const closeDrawer = () => {
     ui.drawerState = {
@@ -249,11 +212,26 @@ const AdminDemoView = ({ initialDataObj, initialErrorObj }) => {
   };
 
   /**
-   * @description 사용자 폼 유효성을 확인한 뒤 생성/수정 모드에 맞춰 목록 데이터를 저장
-   * 실패 동작: name/email 누락 시 ui.formError를 설정하고 저장을 중단한다.
-   * @updated 2026-02-27
+   * @description 사용자 목록을 DB에서 다시 조회한다.
+   * @returns {Promise<void>}
    */
-  const saveUser = () => {
+  const loadAdminUserList = async () => {
+    const payload = await apiJSON(
+      SAMPLE_ADMIN_USER_API_PATH,
+      { method: "GET" },
+      { authless: true },
+    );
+    syncApiResult({
+      payload,
+      apiList: adminUserList,
+    });
+  };
+
+  /**
+   * @description 사용자 폼을 DB에 저장하고 목록을 재조회한다.
+   * 실패 동작: 이름/이메일 누락 또는 API 실패 시 formError와 토스트를 갱신한다.
+   */
+  const saveUser = async () => {
     const name = String(ui.userForm.name || "").trim();
     const email = String(ui.userForm.email || "").trim();
     if (!name) {
@@ -264,57 +242,95 @@ const AdminDemoView = ({ initialDataObj, initialErrorObj }) => {
       ui.formError = LANG_KO.view.users.emailRequired;
       return;
     }
-    if (ui.drawerState.mode === "create") {
-      const nextId = Math.max(0, ...rows.map((rowItem) => Number(rowItem.id || 0))) + 1;
-      setRows((prevRows) => [
+    ui.isSavingUser = true;
+    ui.formError = "";
+    try {
+      const body = {
+        name,
+        email,
+        role: ui.userForm.role,
+        status: ui.userForm.status,
+        notifyEmail: Boolean(ui.userForm.notifyEmail),
+        notifySms: Boolean(ui.userForm.notifySms),
+        notifyPush: Boolean(ui.userForm.notifyPush),
+        profileImageUrl: String(ui.userForm.profileImageName || "").trim(),
+      };
+      const isCreate = ui.drawerState.mode === "create";
+      const requestPath = isCreate
+        ? SAMPLE_ADMIN_USER_API_PATH
+        : `${SAMPLE_ADMIN_USER_API_PATH}/${ui.drawerState.editingId}`;
+      const payload = await apiJSON(
+        requestPath,
         {
-          id: nextId,
-          name,
-          email,
-          role: ui.userForm.role,
-          status: ui.userForm.status,
-          createdAt: toTodayText(),
-          notifyEmail: Boolean(ui.userForm.notifyEmail),
-          notifySms: Boolean(ui.userForm.notifySms),
-          notifyPush: Boolean(ui.userForm.notifyPush),
-          profileImageUrl: "",
+          method: isCreate ? "POST" : "PUT",
+          body,
         },
-        ...prevRows,
-      ]);
-      showToast(LANG_KO.view.users.saveCreatedToast, { type: "success" });
-    } else {
-      setRows((prevRows) =>
-        prevRows.map((prevRow) =>
-          prevRow.id === ui.drawerState.editingId
-            ? {
-                ...prevRow,
-                name,
-                role: ui.userForm.role,
-                status: ui.userForm.status,
-                notifyEmail: Boolean(ui.userForm.notifyEmail),
-                notifySms: Boolean(ui.userForm.notifySms),
-                notifyPush: Boolean(ui.userForm.notifyPush),
-              }
-            : prevRow,
-        ),
+        { authless: true },
       );
-      showToast(LANG_KO.view.users.saveUpdatedToast, { type: "success" });
+      syncApiResult({
+        payload,
+        apiObj: savedAdminUserObj,
+      });
+      showToast(
+        isCreate ? LANG_KO.view.users.saveCreatedToast : LANG_KO.view.users.saveUpdatedToast,
+        { type: "success" },
+      );
+      closeDrawer();
+      await loadAdminUserList();
+    } catch (err) {
+      ui.formError = err?.message || LANG_KO.view.users.saveFailed;
+      showToast(ui.formError, { type: "error" });
+    } finally {
+      ui.isSavingUser = false;
     }
-    closeDrawer();
   };
 
-  /* 3. UI ========================================================================================================================= */
-  // 없음
-  /* 4. 팝업 ======================================================================================================================= */
-  // 없음
-  /* 5. 기타 ======================================================================================================================= */
-  // 없음
-  /* 6. 커스텀 훅 =================================================================================================================== */
-  // 없음
-  /* 7. 함수 ======================================================================================================================= */
-  // 없음
+  /**
+   * @description 시스템 설정을 DB에 저장하고 최신 응답으로 상태를 덮어쓴다.
+   */
+  const saveSettings = async () => {
+    ui.isSavingSetting = true;
+    try {
+      const payload = await apiJSON(
+        SAMPLE_ADMIN_SETTING_API_PATH,
+        {
+          method: "PUT",
+          body: {
+            siteName: String(systemSettingObj.siteName || "").trim(),
+            adminEmail: String(systemSettingObj.adminEmail || "").trim(),
+            maintenanceMode: Boolean(systemSettingObj.maintenanceMode),
+            sessionTimeout: Number(systemSettingObj.sessionTimeout || 0),
+            maxUploadMb: Number(systemSettingObj.maxUploadMb || 0),
+          },
+        },
+        { authless: true },
+      );
+      syncApiResult({
+        payload,
+        apiObj: adminSettingResultObj,
+      });
+      systemSettingObj.copy(adminSettingResultObj.systemSetting || {});
+      rolePermissionMapObj.copy(adminSettingResultObj.rolePermissionMap || {});
+      showToast(LANG_KO.view.settings.saveToast, { type: "success" });
+    } catch (err) {
+      showToast(err?.message || LANG_KO.view.settings.saveFailed, { type: "error" });
+    } finally {
+      ui.isSavingSetting = false;
+    }
+  };
+
   /* 8. useEffect ================================================================================================================== */
-  // 없음
+  /**
+   * @description SSR 초기 적재 스냅샷이 바뀌면 사용자 목록/설정/권한 맵을 반영한다.
+   * 처리 규칙: users는 EasyList.copy, settings는 EasyObj.copy로 각각 동기화한다.
+   */
+  useEffect(() => {
+    adminUserList.copy(initialUserRowList);
+    adminSettingResultObj.copy(initialSettingResult);
+    systemSettingObj.copy(initialSettingResult.systemSetting || { ...LANG_KO.view.systemDefault });
+    rolePermissionMapObj.copy(initialSettingResult.rolePermissionMap || {});
+  }, [adminSettingResultObj, adminUserList, dataObj?.settings?.result, dataObj?.users?.result, initialSettingResult, rolePermissionMapObj, systemSettingObj]);
+
   /* 9. 내부 컴포넌트 ============================================================================================================== */
   // 없음
 
@@ -328,13 +344,7 @@ const AdminDemoView = ({ initialDataObj, initialErrorObj }) => {
         </p>
       </section>
 
-      {ui.isLoading ? (
-        <Card title={LANG_KO.view.card.loadingTitle}>
-          <p className="text-sm text-gray-600">{LANG_KO.view.card.loadingBody}</p>
-        </Card>
-      ) : null}
-
-      <Card title={LANG_KO.view.card.panelTitle}>
+      <Card title={`${LANG_KO.view.card.panelTitle} · ${adminUserList.length.toLocaleString("ko-KR")}${LANG_KO.view.card.userCountSuffix}`}>
         <Tab
           tabIndex={ui.tabIndex}
           onChange={(event) => {
@@ -371,7 +381,7 @@ const AdminDemoView = ({ initialDataObj, initialErrorObj }) => {
               <EasyTable
                 data={filteredRows}
                 columns={tableColumns}
-                loading={ui.isLoading}
+                loading={pageLoading}
                 pageSize={5}
                 empty={LANG_KO.view.table.empty}
                 rowKey={(rowItem, rowIndex) => rowItem?.id ?? rowIndex}
@@ -393,9 +403,7 @@ const AdminDemoView = ({ initialDataObj, initialErrorObj }) => {
                     {ROLE_PERMISSION_LIST.map((permissionItem) => (
                       <div key={permissionItem.key} className="flex items-center">
                         <Checkbox
-                          checked={Boolean(
-                            ROLE_PERMISSION_MAP[roleItem.value]?.[permissionItem.key],
-                          )}
+                          checked={Boolean(rolePermissionMapObj?.[roleItem.value]?.[permissionItem.key])}
                           disabled
                           label={permissionItem.label}
                         />
@@ -411,74 +419,49 @@ const AdminDemoView = ({ initialDataObj, initialErrorObj }) => {
             <div className="grid gap-3 md:grid-cols-2">
               <label className="block space-y-1">
                 <span className="text-sm font-medium text-gray-700">{LANG_KO.view.settings.siteNameLabel}</span>
-                {/* rule-gate: allow-controlled-binding - shared store(systemSetting) 반영은 setSystemSetting updater가 필요 */}
+                {/* rule-gate: allow-controlled-binding - 설정 객체는 부분 갱신이 필요해 setSystemSetting updater 제어 유지 */}
                 <Input
-                  value={systemSetting.siteName}
-                  onChange={(event) =>
-                    setSystemSetting((prevSetting) => ({
-                      ...prevSetting,
-                      siteName: event.target.value,
-                    }))
-                  }
+                  dataObj={systemSettingObj}
+                  dataKey="siteName"
                 />
               </label>
 
               <label className="block space-y-1">
                 <span className="text-sm font-medium text-gray-700">{LANG_KO.view.settings.adminEmailLabel}</span>
-                {/* rule-gate: allow-controlled-binding - shared store(systemSetting) 반영은 setSystemSetting updater가 필요 */}
+                {/* rule-gate: allow-controlled-binding - 설정 객체는 부분 갱신이 필요해 setSystemSetting updater 제어 유지 */}
                 <Input
-                  value={systemSetting.adminEmail}
-                  onChange={(event) =>
-                    setSystemSetting((prevSetting) => ({
-                      ...prevSetting,
-                      adminEmail: event.target.value,
-                    }))
-                  }
+                  dataObj={systemSettingObj}
+                  dataKey="adminEmail"
                   type="email"
                 />
               </label>
 
               <label className="block space-y-1">
                 <span className="text-sm font-medium text-gray-700">{LANG_KO.view.settings.sessionTimeoutLabel}</span>
-                {/* rule-gate: allow-controlled-binding - shared store(systemSetting) 반영은 setSystemSetting updater가 필요 */}
+                {/* rule-gate: allow-controlled-binding - 설정 객체는 부분 갱신이 필요해 setSystemSetting updater 제어 유지 */}
                 <Input
-                  value={String(systemSetting.sessionTimeout)}
-                  onChange={(event) =>
-                    setSystemSetting((prevSetting) => ({
-                      ...prevSetting,
-                      sessionTimeout: Number(event?.target?.value || 0),
-                    }))
-                  }
+                  dataObj={systemSettingObj}
+                  dataKey="sessionTimeout"
                   type="number"
                 />
               </label>
 
               <label className="block space-y-1">
                 <span className="text-sm font-medium text-gray-700">{LANG_KO.view.settings.maxUploadLabel}</span>
-                {/* rule-gate: allow-controlled-binding - shared store(systemSetting) 반영은 setSystemSetting updater가 필요 */}
+                {/* rule-gate: allow-controlled-binding - 설정 객체는 부분 갱신이 필요해 setSystemSetting updater 제어 유지 */}
                 <Input
-                  value={String(systemSetting.maxUploadMb)}
-                  onChange={(event) =>
-                    setSystemSetting((prevSetting) => ({
-                      ...prevSetting,
-                      maxUploadMb: Number(event?.target?.value || 0),
-                    }))
-                  }
+                  dataObj={systemSettingObj}
+                  dataKey="maxUploadMb"
                   type="number"
                 />
               </label>
 
               <div className="md:col-span-2">
                 <label className="flex items-center gap-2 text-sm text-gray-700">
-                  {/* rule-gate: allow-controlled-binding - shared store(systemSetting) 반영은 setSystemSetting updater가 필요 */}
+                  {/* rule-gate: allow-controlled-binding - 설정 객체는 부분 갱신이 필요해 setSystemSetting updater 제어 유지 */}
                   <Switch
-                    checked={Boolean(systemSetting.maintenanceMode)}
-                    onChange={(event) =>
-                      setSystemSetting((prevSetting) => ({
-                        ...prevSetting,
-                        maintenanceMode: Boolean(event?.target?.checked),
-                      }))
-                    }
+                    dataObj={systemSettingObj}
+                    dataKey="maintenanceMode"
                   />
                   {LANG_KO.view.settings.maintenanceModeLabel}
                 </label>
@@ -488,11 +471,8 @@ const AdminDemoView = ({ initialDataObj, initialErrorObj }) => {
               <Button
                 variant="primary"
                 className="w-full sm:w-auto"
-                onClick={() =>
-                  showToast(LANG_KO.view.settings.saveToast, {
-                    type: "success",
-                  })
-                }
+                onClick={saveSettings}
+                disabled={ui.isSavingSetting}
               >
                 {LANG_KO.view.settings.saveButton}
               </Button>
@@ -583,21 +563,9 @@ const AdminDemoView = ({ initialDataObj, initialErrorObj }) => {
           <div className="space-y-2">
             <span className="text-sm font-medium text-gray-700">{LANG_KO.view.drawer.notifyLabel}</span>
             <div className="flex flex-wrap gap-4">
-              <Switch
-                label={LANG_KO.view.drawer.notifyEmailLabel}
-                dataObj={ui}
-                dataKey="userForm.notifyEmail"
-              />
-              <Switch
-                label={LANG_KO.view.drawer.notifySmsLabel}
-                dataObj={ui}
-                dataKey="userForm.notifySms"
-              />
-              <Switch
-                label={LANG_KO.view.drawer.notifyPushLabel}
-                dataObj={ui}
-                dataKey="userForm.notifyPush"
-              />
+              <Switch label={LANG_KO.view.drawer.notifyEmailLabel} dataObj={ui} dataKey="userForm.notifyEmail" />
+              <Switch label={LANG_KO.view.drawer.notifySmsLabel} dataObj={ui} dataKey="userForm.notifySms" />
+              <Switch label={LANG_KO.view.drawer.notifyPushLabel} dataObj={ui} dataKey="userForm.notifyPush" />
             </div>
           </div>
 
@@ -605,7 +573,9 @@ const AdminDemoView = ({ initialDataObj, initialErrorObj }) => {
             <Button variant="secondary" onClick={closeDrawer} className="w-full sm:w-auto">
               {LANG_KO.view.drawer.cancelButton}
             </Button>
-            <Button onClick={saveUser} className="w-full sm:w-auto">{LANG_KO.view.drawer.saveButton}</Button>
+            <Button onClick={saveUser} className="w-full sm:w-auto" disabled={ui.isSavingUser}>
+              {LANG_KO.view.drawer.saveButton}
+            </Button>
           </div>
         </div>
       </Drawer>

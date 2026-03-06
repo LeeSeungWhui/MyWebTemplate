@@ -1,7 +1,7 @@
 /**
  * 파일명: route.js
  * 작성자: LSH
- * 갱신일: 2026-03-03
+ * 갱신일: 2026-03-05
  * 설명: Backend API 프록시(BFF) 라우트. Access/Refresh HttpOnly 쿠키를 받아 Authorization 헤더로 전달
  */
 
@@ -155,15 +155,14 @@ const hasRequestBody = (method) => {
  * @updated 2026-02-27
  */
 const splitRequestBodyForRetry = (req) => {
-  const bodyStream = req?.body;
-  if (!bodyStream) {
+  if (!req?.body) {
     return { primaryBody: undefined, retryBody: undefined, canRetry: true };
   }
-  if (typeof bodyStream.tee === "function") {
-    const [primaryBody, retryBody] = bodyStream.tee();
+  if (typeof req.body.tee === "function") {
+    const [primaryBody, retryBody] = req.body.tee();
     return { primaryBody, retryBody, canRetry: true };
   }
-  return { primaryBody: bodyStream, retryBody: null, canRetry: false };
+  return { primaryBody: req.body, retryBody: null, canRetry: false };
 }
 
 /**
@@ -278,22 +277,24 @@ const proxy = async (req, context = {}) => {
   let refreshResult = { ok: false, accessToken: null, setCookies: [] };
 
   // 401이면 refresh 1회만 수행한 뒤 재시도한다(동시 탭/요청 경합은 singleflight로 흡수).
-  if (backendRes.status === 401 && shouldAttemptRefresh(backendPathname)) {
-    refreshResult = await refreshOnce(req, backendHost);
-    if (refreshResult.ok && refreshResult.accessToken) {
-      const retryHeaders = cloneRequestHeaders(req, refreshResult.accessToken);
-      const retryInit = {
-        method: req.method,
-        headers: retryHeaders,
-        redirect: "manual",
-        cache: "no-store",
-      };
-      if (hasBody && !bodyPair.canRetry) {
-        // 한글설명: 메모리 전체 버퍼링 재시도는 금지한다.
-        // 한글설명: refresh 쿠키만 반영하고 원 요청 재시도는 생략한다.
-      } else {
-        attachBody(retryInit, bodyPair.retryBody);
-        backendRes = await fetch(target, retryInit);
+  if (backendRes.status === 401) {
+    if (shouldAttemptRefresh(backendPathname)) {
+      refreshResult = await refreshOnce(req, backendHost);
+      if (refreshResult.ok && refreshResult.accessToken) {
+        const retryHeaders = cloneRequestHeaders(req, refreshResult.accessToken);
+        const retryInit = {
+          method: req.method,
+          headers: retryHeaders,
+          redirect: "manual",
+          cache: "no-store",
+        };
+        if (hasBody && !bodyPair.canRetry) {
+          // 한글설명: 메모리 전체 버퍼링 재시도는 금지한다.
+          // 한글설명: refresh 쿠키만 반영하고 원 요청 재시도는 생략한다.
+        } else {
+          attachBody(retryInit, bodyPair.retryBody);
+          backendRes = await fetch(target, retryInit);
+        }
       }
     }
   }

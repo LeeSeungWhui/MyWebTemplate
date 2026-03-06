@@ -1,6 +1,63 @@
 # 코딩 스타일 가이드 (정규화 버전)
 
-## [중요/강제] 룰 적용 우선순위
+## FE-R-INDEX 라벨 체계와 조문 인덱스
+
+- 본 문서는 `FE-R-*` 기반 조문 체계를 기준으로 구성한다.
+- `FE-R-*`: 문서 규범(헌법 조문) 라벨
+- `FE-A-*`: 자동 룰게이트 라벨
+- `FE-M-*`: 수동 점검 라벨
+- `CM-A-*`: 공통(도메인 공용) 자동 룰게이트 라벨
+- 라벨 보강 시 `myweb-rule-gate`의 `AUTO_SECTION_RULES`/`MANUAL_RULES`를 함께 갱신한다.
+
+| 조문 라벨 | 조문 제목 | 자동 게이트 라벨 | 수동 점검 라벨 |
+| --- | --- | --- | --- |
+| FE-R-000 | 룰 적용 우선순위 | - | - |
+| FE-R-100 | 코딩 철학 | - | - |
+| FE-R-110 | 간결 구현 원칙 | FE-A-075 | - |
+| FE-R-120 | 룰게이트 구현 강제 원칙 | - | - |
+| FE-R-200 | 페이지 구조와 책임 분리 | - | - |
+| FE-R-210 | 기본 템플릿 | FE-A-005, FE-A-006, FE-A-020, FE-A-021, FE-A-028, FE-A-039, FE-A-047, FE-A-048, FE-A-049, FE-A-057, FE-A-060, FE-A-067 | FE-M-210 |
+| FE-R-220 | 도메인 vs 공통 코드 | - | FE-M-220 |
+| FE-R-230 | `layout.jsx` 사용 규칙 | FE-A-017, FE-A-022 | FE-M-230 |
+| FE-R-300 | 상태 관리와 전역 스토어 | - | - |
+| FE-R-310 | 상태 관리 원칙 | FE-A-013, FE-A-014, FE-A-015, FE-A-016, FE-A-033, FE-A-034, FE-A-035, FE-A-036, FE-A-037, FE-A-038, FE-A-050, FE-A-064, FE-A-065, FE-A-071, FE-A-072, FE-A-073 | FE-M-310 |
+| FE-R-320 | 고급 훅 사용 규칙 | FE-A-029, FE-A-040, FE-A-041 | FE-M-320 |
+| FE-R-330 | 전역 스토어 사용 규칙 | FE-A-023 | FE-M-330 |
+| FE-R-340 | 세션/로그인 정책 | FE-A-003, FE-A-019, FE-A-046, FE-A-062 | FE-M-340 |
+| FE-R-350 | API 통신 규칙 | FE-A-001, FE-A-002, CM-A-001, FE-A-061, FE-A-070 | - |
+| FE-R-355 | API `result` 타입 고정 계약 | FE-A-077 | - |
+| FE-R-360 | API 실행 제어 책임 분리 | FE-A-079 | - |
+| FE-R-400 | 추상화와 유틸 함수 | - | - |
+| FE-R-410 | 추상화 기준 | - | FE-M-410 |
+| FE-R-420 | 공통 함수 분리 규칙 | - | FE-M-420 |
+| FE-R-430 | 함수 쪼개기 | FE-A-051, FE-A-074 | FE-M-430 |
+| FE-R-440 | 얕은 별칭(shallow alias) 금지 | FE-A-024, FE-A-045 | FE-M-440 |
+| FE-R-500 | 표현식과 조건문 스타일 | - | - |
+| FE-R-510 | 삼항 연산자 | FE-A-008 | - |
+| FE-R-520 | 논리 연산자 트릭 | FE-A-009, FE-A-058 | - |
+| FE-R-530 | 조건 이름 붙이기 | - | FE-M-530 |
+| FE-R-600 | 네이밍 규칙 | - | - |
+| FE-R-610 | 변수/상태 이름 | FE-A-007 | - |
+| FE-R-620 | 컴포넌트/파일 이름 | - | - |
+| FE-R-700 | JSX와 파일 레이아웃 | - | - |
+| FE-R-710 | .jsx 파일 구조 | FE-A-004, FE-A-030, FE-A-032, FE-A-056 | - |
+| FE-R-720 | 설정/스펙 분리 | FE-A-055 | FE-M-720 |
+| FE-R-730 | 서브 컴포넌트 위치 | - | FE-M-730 |
+| FE-R-740 | 페이지 뷰(view.jsx) 구현 스타일 | FE-A-025, FE-A-052, FE-A-054, FE-A-066, FE-A-068, FE-A-076 | FE-M-740 |
+| FE-R-750 | 한 파일당 하나의 컴포넌트 | FE-A-012 | FE-M-750 |
+| FE-R-800 | 에러·로딩·알림 처리 | - | - |
+| FE-R-810 | 일관된 처리 | - | FE-M-810 |
+| FE-R-820 | 에러 핸들링 패턴 | - | FE-M-820 |
+| FE-R-900 | 주석 규칙 | - | - |
+| FE-R-910 | 파일 헤더 | FE-A-010 | - |
+| FE-R-920 | 함수/컴포넌트 헤더 | FE-A-011, FE-A-026, FE-A-042, FE-A-043, FE-A-053 | - |
+| FE-R-930 | 유지 원칙 | FE-A-031 | FE-M-930 |
+| FE-R-940 | 주석 윗줄 공백 규칙 | FE-A-078 | - |
+| FE-R-1000 | 스타일(CSS)과 UI | FE-A-044, FE-A-069 | - |
+| FE-R-1010 | 반응형/해상도 규칙 | FE-A-018, FE-A-027 | FE-M-1010 |
+| FE-R-1100 | 작업 플로우에서의 사용 방법 | FE-A-063 | - |
+
+## FE-R-000 룰 적용 우선순위 [중요/강제]
 
 - 코딩룰 관련 수정에서는 `"기존 코드 영향 최소화"`를 이유로 룰 위반 상태를 유지하지 않는다.
 - 우선순위는 항상 `기존 코드 보존`보다 `코딩룰 100% 준수`가 먼저다.
@@ -19,9 +76,35 @@
 
 ---
 
-## 0. 코딩 철학
+## FE-R-100 코딩 철학
 
 > 템플릿은 정형화, 로직은 눈에 보이게, 추상화는 최소, 가독성이 젤 중요
+
+### FE-R-110 간결 구현 원칙
+
+- 목표는 동작을 가장 짧고 명확한 코드로 구현하는 것이다.
+- "혹시 몰라" 방어코드/중간객체/우회 상태를 추가하지 않는다.
+  - 금지: `*SyncObj` 중간 동기화 객체
+  - 금지: 같은 데이터 재복사 후 재대입 패턴
+  - 금지: 의미 없는 응답 폐기 코드 (`void json;`, `void response;`)
+  - 금지: 변형 없는 얕은 복사 반복 (`list.map((row) => ({ ...row }))`)
+  - 금지: 한 줄짜리 단순 래퍼 헬퍼 선언 (`const fn = (...) => target(...);`, `const fn = (v) => String(v ?? "").trim()`)
+  - 금지: 응답 모델 필드 fallback 재초기화 (`obj.field = obj.field || []/{}`)
+  - 금지: 동일 제출 조건식을 `submitEnabled`/`submitHint`/`validateBeforeSubmit`처럼 2개 이상 경로에 중복 선언하는 패턴
+  - 강제: 제출 가능 여부/사유는 단일 판정 함수(또는 단일 판정 객체)에서 계산하고 재사용한다.
+- 룰게이트 회피형 수정(의미 동일 + 형태만 변경)은 금지한다.
+  - 금지: 룰 통과만을 위한 표현식 치환, 래퍼 변형, 조건식 위장.
+  - 금지: 의미 보존 표현식 치환으로 패턴만 회피 (`typeof` ↔ `Object(...)===...` 류)
+  - 금지: 래퍼 함수/조건식을 여러 줄로만 늘려 동일 우회
+  - 코드와 룰이 충돌하면 코드 우회가 아니라 룰게이트를 수정한다.
+  - 위반은 리뷰에서 즉시 반려한다.
+- 고정 계약 API는 계약 신뢰 모드로 구현한다.
+  - 권장: 응답 직후 `<apiName>Obj.copy(payload.result)` 1회 동기화
+  - 금지: `Array.isArray/typeof` 기반 타입 방어 분기 남용
+- 프론트에서 에러를 숨기지 않는다.
+  - 계약 위반은 조용히 보정하지 말고, 실패를 드러내고 수정 지점을 찾게 만든다.
+- 예외는 경계 유틸에서만 허용한다.
+  - 허용 예: 파서/직렬화 유틸(`parseJsonArrayText`류), 브라우저 API 존재 체크
 
 - 너무 똑똑해 보이려는 추상화 ❌
 - 한 줄 아트 코드 ❌
@@ -29,11 +112,18 @@
 
 이 세 가지를 피하는 것만으로도 코드 퀄리티 대부분이 정리된다.
 
+### FE-R-120 룰게이트 구현 강제 원칙
+
+- 룰게이트 작성/보강 시 **AST 우선 기준에 해당하는 규칙은 반드시 AST로 구현**한다.
+- AST 우선 규칙을 regex/grep으로 신규 작성하거나, 기존 regex만 유지하는 행위를 금지한다.
+- AST 우선 규칙에서 regex/grep fallback은 허용하지 않는다. parser 미가용이면 게이트를 즉시 실패시킨다.
+- 문맥 해석이 필요 없는 순수 형태 검사(파일 경로/헤더/주석/고정 문자열)만 regex/grep을 사용한다.
+
 ---
 
-## 1. 페이지 구조와 책임 분리
+## FE-R-200 페이지 구조와 책임 분리
 
-### 1.1 기본 템플릿: `initData / page / view`
+### FE-R-210 기본 템플릿: `initData / page / view`
 
 - 각 페이지(라우트 폴더)는 기본적으로 세 파일을 가진다.
   - `initData.jsx`
@@ -49,18 +139,28 @@
 
 #### 포맷 강제 템플릿(필수)
 
-- `initData.jsx`는 아래 2개 정보만 가진다.
+- `initData.jsx`는 아래 3개 정보만 가진다.
   - `MODE`: `"CSR"` 또는 `"SSR"`
-  - `API`: 엔드포인트 맵
-    - 문자열 엔트리: `{ list: "/...", detail: "/..." }`
-    - 옵션 포함 엔트리: `{ session: { path: "/...", method: "GET", authless: true, init: { headers: { "X-Client-Type": "web" } } } }`
-- `PAGE_CONFIG.API` 엔트리 값은 아래만 허용한다.
+  - `INIT_API`: 초기 자동 로딩용 엔드포인트 맵
+  - `API`: page/view에서 호출하는 전체 엔드포인트 맵
+- `PAGE_CONFIG.INIT_API`는 초기 자동 로딩용 API만 선언한다.
+  - 기준: `loadServerPageData`(SSR) / `usePageData`(CSR)에서 페이지 진입 시 자동 호출되는 API
+  - 예: 목록/상세 초기 조회, 세션 초기 동기화
+  - 비대상: 버튼 클릭/폼 제출/업로드/임시저장 같은 사용자 액션 API
+  - 비대상: `fileView/imageView/proxyBase/fileStatic`처럼 런타임 파라미터 조합용 경로
+- `PAGE_CONFIG.API`는 초기 자동 로딩 여부와 무관하게 page/view에서 호출하는 모든 API를 선언한다.
+  - 강제: page/view에서 호출하는 API는 반드시 `PAGE_CONFIG.API`에 먼저 선언한다.
+  - 강제: `PAGE_CONFIG.INIT_API`에 선언된 경로는 `PAGE_CONFIG.API`에도 동일하게 포함한다.
+- `PAGE_CONFIG.INIT_API`/`PAGE_CONFIG.API` 엔트리 값은 아래만 허용한다.
   - `"/api/..."` 문자열
-  - `{ path: "/api/...", method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE" | "HEAD" | "OPTIONS", authless?: boolean, init?: RequestInit 유사 객체, fetchInit?: RequestInit 유사 객체 }`
+  - `{ path: "/api/...", method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE" | "HEAD" | "OPTIONS", body?: unknown, authless?: boolean, init?: RequestInit 유사 객체, fetchInit?: RequestInit 유사 객체 }`
   - `method`를 생략하면 기본값은 `"GET"`으로 해석한다.
   - `init`/`fetchInit`에는 `headers`, `body`, `cache`, `credentials` 등 API 호출 옵션을 포함할 수 있다.
   - 우선순위: 루트(`method`, `body`, `authless`)가 `init`/`fetchInit`보다 우선한다.
   - 금지: query builder 함수, 함수/동적 계산식
+  - 권장: `apiJSON(PAGE_CONFIG.API.xxx)` 형태로 직접 전달할 수 있도록 object 엔트리(`{ path, method }`)를 기본 사용한다.
+  - 강제(테스트): object 엔트리(`{ path, method }`)를 쓰는 API를 `view.test.jsx`에서 검증할 때, `apiJSON` 첫 인자를 문자열 경로(`"/api/..."`)로 단정 비교하지 않는다.
+    - 권장: `expect(apiJSONMock).toHaveBeenCalledWith(expect.objectContaining({ path: "/...", method: "POST" }), ...)`
 - `initData.jsx` 금지 항목:
   - 정적 UI 데이터(`CARD_LIST`, `TAB_LIST`, `DEFAULT_FORM` 등)
   - 쿼리 파서/유틸 함수
@@ -70,6 +170,18 @@
 ```jsx
 export const PAGE_CONFIG = {
   MODE: "CSR", // or "SSR"
+  INIT_API: {
+    session: {
+      path: "/api/v1/auth/me",
+      method: "GET",
+      authless: true,
+      init: {
+        headers: {
+          "X-Client-Type": "web",
+        },
+      },
+    },
+  },
   API: {
     list: "/api/v1/example",
     detail: "/api/v1/example/:id",
@@ -87,7 +199,7 @@ export const PAGE_CONFIG = {
 };
 ```
 
-- 사용자는 `initData.jsx`에서 `MODE/API`만 채운다.
+- 사용자는 `initData.jsx`에서 `MODE/INIT_API/API`만 채운다.
 - `page/view` 데이터 로딩은 공용 자동 로더를 강제 사용한다.
   - `page.jsx`: `loadServerPageData({ pageConfig: PAGE_CONFIG })`
   - `view.jsx`: `usePageData({ pageConfig: PAGE_CONFIG, initialDataObj, initialErrorObj })`
@@ -125,7 +237,11 @@ const View = ({ initialDataObj, initialErrorObj }) => {
 
 - `view.jsx` 동작 규칙:
   - `MODE === "SSR"`: `page.jsx`에서 주입한 `initialDataObj` 우선 사용.
-  - `MODE === "CSR"`: `usePageData`가 `PAGE_CONFIG.API`를 자동 호출.
+  - `MODE === "CSR"`: `usePageData`가 `PAGE_CONFIG.INIT_API`를 자동 호출.
+  - 사용자 액션 API는 `view.jsx`에서 `apiJSON`/`useEasyUpload`로 직접 호출할 수 있다.
+    - 단, 호출 경로는 반드시 `initData.PAGE_CONFIG.API`에 선언해 둔다.
+    - 권장: `apiJSON(PAGE_CONFIG.API.session)` (GET 고정 호출)
+    - 권장: `apiJSON(PAGE_CONFIG.API.createUser, { body: submitBody })`
   - 화면 컴포넌트는 데이터 로딩 분기(if/else) 구현을 반복 작성하지 않는다.
 - `lang.ko.js`는 사용자 노출 문구 리소스만 담당하고, 모드/API 설정은 두지 않는다.
 
@@ -136,6 +252,7 @@ const View = ({ initialDataObj, initialErrorObj }) => {
 - `initData/page/view`에서 사용자에게 보이는 텍스트는 이 파일(또는 공통 i18n 파일)에서 가져온다.
 - 하드코딩 금지 대상:
   - 제목/설명/버튼 라벨/placeholder/empty/error 안내 문구
+  - `page.jsx`/`layout.jsx`의 `metadata.title`, `metadata.description`
 - `lib/component` 공용 컴포넌트 기본 문구도 같은 기준을 적용한다.
   - 기본값 문자열은 `app/common/i18n/lang.ko.js` 등 공통 i18n 리소스에서 가져온다.
   - 컴포넌트 호출부에서 `props`로 문구를 덮어쓸 수 있게 설계한다.
@@ -157,7 +274,7 @@ export const LANG_KO = {
 #### `initData.jsx`
 
 - 페이지 모드와 API 엔드포인트만 정의한다.
-- 예: `PAGE_CONFIG.MODE`, `PAGE_CONFIG.API`.
+- 예: `PAGE_CONFIG.MODE`, `PAGE_CONFIG.INIT_API`, `PAGE_CONFIG.API`.
 - 이 파일 안에서는 **실제 API 호출·상태 관리 금지**.
 - 페이지 전용 문구/정적 표시 데이터는 `lang.ko.js` 또는 `view.jsx` 내부 상수로 분리한다.
 
@@ -187,7 +304,7 @@ export const LANG_KO = {
   - `MODE === "SSR"`이면 주입된 초기 데이터를 사용한다.
   - `MODE === "CSR"`이면 훅이 API를 자동 호출한다.
 
-### 1.2 도메인 vs 공통 코드
+### FE-R-220 도메인 vs 공통 코드
 
 - 도메인 전용 로직은 그 도메인 폴더 안에서 끝낸다.
 - **애매하면 공통 util로 뺄 생각을 하지 않는다.**
@@ -195,7 +312,7 @@ export const LANG_KO = {
   - 이름만 봐도 역할이 바로 보이고
   - 실제로 **3군데 이상**에서 재사용되는 경우.
 
-### 1.3 `layout.jsx` 사용 규칙 (필요할 때만)
+### FE-R-230 `layout.jsx` 사용 규칙 (필요할 때만)
 
 - 기본은 `initData / page / view` 3개로 끝낸다.
 - `layout.jsx`는 “공통 UI를 묶는 용도”로만 쓴다.
@@ -214,9 +331,9 @@ export const LANG_KO = {
 
 ---
 
-## 2. 상태 관리와 전역 스토어
+## FE-R-300 상태 관리와 전역 스토어
 
-### 2.1 상태 관리 원칙
+### FE-R-310 상태 관리 원칙
 
 - 기본 정책:
   - 도메인 데이터(리스트, 상세, 검색 조건 등)와 페이지 UI 상태(토글/탭/선택/로딩/임시 입력값)는 `EasyObj/EasyList`를 기본으로 사용한다.
@@ -237,6 +354,8 @@ export const LANG_KO = {
   - `EasyList` 변수명은 역할 기반 `...List` 접미사로 선언한다.
     - 권장: `taskList`, `statusOptionList`, `resultDetailList`
     - 금지: `list`, `items`, `rows` 같은 제너릭 이름 (`dataList`는 허용)
+    - 지양: `...Rows` 접미사 (`educationRows`, `careerRows`)
+    - 권장: `...List` 접미사 (`educationList`, `careerList`)
     - API 응답 리스트는 `const <apiName>List = useEasyList([])`로 두고 `apiJSON` 이후 `<apiName>List.copy(...)`로 동기화한다.
   - `EasyObj` 변수명은 목적 기반으로 선언한다.
     - UI 상태 묶음: `const ui = EasyObj({ ... })`
@@ -248,6 +367,11 @@ export const LANG_KO = {
     - 금지: `obj`, `stateObj`, `tempObj` 같은 제너릭/임시 이름
   - UI 플래그(`isLoading`, `isSaving`, `isDrawerOpen` 등)는 `ui` 내부 필드로만 둔다.
     - 금지: `loadingSyncObj`, `submitSyncObj` 같은 별도 EasyObj 추가 선언
+  - `ui`에는 화면 제어 상태만 둔다. 도메인 데이터 필드는 `ui`에 넣지 않는다.
+    - 금지 예: `ui.resumeId`, `ui.fileCd`, `ui.basicForm`, `ui.educationList`, `ui.careerList`, `ui.resultObj`
+    - 권장: 도메인 데이터는 `dataObj`/`<apiName>Obj`/`<apiName>List`로 분리한다.
+    - 권장: 화면 로딩/전개/선택 플래그는 `ui` 내부에 함께 둔다.
+    - 금지: `loadingSyncObj`, `toggleSyncObj`처럼 UI 플래그용 별도 `EasyObj` 선언
   - `apiJSON` 응답 데이터(`result`/리스트/상세)는 `ui/popup`에 직접 대입하지 않는다.
     - 금지: `ui.rows = response?.result`, `ui.profile = nextResult`
     - 고정 계약 API는 “계약 신뢰 모드”로 처리한다.
@@ -255,6 +379,16 @@ export const LANG_KO = {
       - `Array.isArray`, `typeof`로 분기하는 타입 방어 코드는 view endpoint 로직에서 지양한다.
       - 화면 표시 전 보정이 필요해도 별도 `normalizeXxx`/`mapXxx` helper 함수로 분리하지 않는다.
         - 원칙: `apiJSON` 직후 `<apiName>Obj`/`<apiName>List`를 바로 수정한다.
+      - 금지: 응답 모델의 필드 fallback 재초기화 (`obj.list = obj.list || []`, `obj.detail = obj.detail || {}`)
+      - 금지: `const xxxSyncObj = EasyObj({})` 중간 객체를 만들어 복사 후 재대입하는 패턴
+      - 금지: 단순 접근 별칭 (`const basicListRow = resultDetailObj.basicList[0]`)
+      - 예외: 파서/직렬화 경계 유틸(`parseJsonArrayText`류)에서만 제한 허용
+    - 페이지 `view.jsx`의 endpoint별 처리 로직에서는 런타임 타입 가드 남용을 금지한다.
+      - 금지: `if (!Array.isArray(detail.eduList)) throw ...`
+      - 금지: `const eduList = Array.isArray(detail.eduList) ? detail.eduList : []`
+      - 금지: `if (!detail || typeof detail !== "object") throw ...`
+      - 권장: 백엔드 계약을 신뢰하고 응답 직후 `<apiName>Obj.copy(detail)`로 동기화한다.
+      - 예외: 공용 경계 유틸(파서/직렬화, 브라우저 환경 체크)에서만 제한적으로 허용한다.
     - 공용 유틸 권장: `syncApiResult({ payload, apiObj: <apiName>Obj, apiList: <apiName>List })`
     - 금지: `obj.list = obj.list || []`, `obj.detail = obj.detail || {}` 같은 fallback 재초기화
     - 금지: `xxxSyncObj` 중간 복사 객체를 만든 뒤 재대입하는 우회 패턴
@@ -291,7 +425,7 @@ export const LANG_KO = {
   - 외부 라이브러리/DOM과 연동이 필요한 경우
   - 단순 값 저장을 위한 남용 금지.
 
-### 2.2 고급 훅 사용 규칙 (`useCallback`, `useMemo`)
+### FE-R-320 고급 훅 사용 규칙 (`useCallback`, `useMemo`)
 
 - “습관성 최적화”로 쓰지 않는다.
 - 아래 상황 중 하나일 때만 사용을 고려한다.
@@ -299,14 +433,14 @@ export const LANG_KO = {
   - 계산 비용이 아주 크고, 동일 계산을 여러 번 반복하는 구조일 때.
 - 조금이라도 “굳이?” 싶은 경우 → **사용하지 않는다.**
 
-### 2.3 전역 스토어 사용 규칙
+### FE-R-330 전역 스토어 사용 규칙
 
 - 전역 상태는 별도 스토어 모듈에서만 관리한다.
 - 컴포넌트에서는 스토어가 제공하는 **전용 훅**만 사용한다.
   - 예: `useGlobalUi`, `useUser`, `useSharedData` 등.
 - 스토어 구현 내부에 직접 접근하거나, 마음대로 필드를 추가·삭제하지 않는다.
 
-### 2.4 세션/로그인 정책 (필수)
+### FE-R-340 세션/로그인 정책 (필수)
 
 - 인증 토큰은 프론트 JS에서 직접 만지지 않는다.
   - `access_token`/`refresh_token`은 httpOnly 쿠키이며, 클라이언트 코드에서 읽을 수 없다.
@@ -328,13 +462,18 @@ export const LANG_KO = {
   - `csrf: 'skip'`은 현재 인증 우회 신호로 사용하지 않는다.
     - 새 코드에서는 `csrf: 'skip'` 패턴을 추가하지 않는다.
 
-### 2.5 API 통신 규칙 (필수)
+### FE-R-350 API 통신 규칙 (필수)
 
 - 백엔드와 통신(SSR/CSR)은 **lib에 이미 구현된 유틸만 사용**한다.
   - JSON API: `apiJSON` (권장: `apiGet/apiPost/...`)
   - 특수 케이스(다운로드/stream 등): `apiRequest`
   - 파일 업로드(multipart/form-data): `useEasyUpload`
     - 업로드 유틸은 인증 우회용 헤더(`X-CVFIT-AUTHLESS`)를 자동 주입하지 않는다.
+- `initData.PAGE_CONFIG.INIT_API`는 초기 자동 로딩용 엔드포인트만 유지한다.
+  - 사용자 액션 API(`create/update/delete/upload/login/...`)는 `view.jsx`에서 호출해도 된다.
+- `initData.PAGE_CONFIG.API`는 page/view에서 호출하는 모든 API를 포함해야 한다.
+  - 강제: `PAGE_CONFIG.INIT_API` 엔드포인트는 `PAGE_CONFIG.API`에도 동일 경로로 선언한다.
+  - 금지: page/view에서 호출하는 API가 `PAGE_CONFIG.API`에 누락되는 패턴
 - 금지(발견 시 리팩터링 대상):
   - 페이지/컴포넌트에서 `fetch()` 직접 호출
   - `res.json()` / `JSON.parse()`로 응답을 직접 파싱
@@ -344,6 +483,32 @@ export const LANG_KO = {
   - 지양: `Array.isArray(payload.result)`, `typeof response.result === 'object'`, `Number.isNaN(result.count)` 같은 방어형 타입 체크 반복
   - 권장: API 계약 스키마를 그대로 사용하고, 기본값 병합은 단순 fallback(`??`, `||`)으로 처리
   - 예외: 브라우저 API/외부 라이브러리/사용자 입력 경계값 검증처럼 프론트 런타임 안전성에 필수인 경우
+
+### FE-R-355 API `result` 타입 고정 계약 (필수)
+
+- 이 프로젝트의 JSON API는 `result`를 **항상 객체(object)** 로 사용한다.
+- `result` 내부 필드명은 아래 규칙을 강제한다.
+  - 단일 값(문자열/숫자/불리언): `<name>`
+  - JSON 객체: `<name>Obj`
+  - 리스트(배열): `<name>List`
+- `result` 내부에서 제너릭 이름을 금지한다.
+  - 금지: `items`, `list`, `data`, `obj`
+- 목록 API는 `result.<name>List`(배열) 계약을 기본으로 사용한다.
+  - 권장: `response.result.taskList`, `response.result.totalCount`, `response.result.page`, `response.result.size`
+- 금지: `response.result`가 배열인지 객체인지 매번 분기하는 소비 코드
+  - 금지 예: `Array.isArray(response.result) ? response.result : response.result.taskList`
+- 금지: 계약 불일치를 프론트 fallback으로 흡수하는 패턴
+  - 예: `response.result?.taskList || response.result || []`
+- 계약이 깨지면 프론트 우회 코드를 추가하지 말고 백엔드 응답 계약을 수정한다.
+
+### FE-R-360 API 실행 제어 책임 분리 (필수)
+
+- API timeout/retry/size max 실행 정책은 백엔드 설정(`config.ini`) 책임으로 관리한다.
+- 프론트 `view.jsx`에서는 timeout/retry/size max 제어 키를 API 옵션으로 직접 전달하지 않는다.
+  - 금지 예: `apiJSON(path, { timeout: 10_000 })`, `apiJSON(path, { retry: 3 })`
+  - 금지 예: `apiJSON(path, { sizeMax: 500 })`, `apiJSON(path, { listSizeMax: 500 })`
+- 프론트는 사용자 입력 기반 `page/size` 요청만 전달하고, 상한 clamp는 서버 계약을 신뢰한다.
+- 프론트/백 계약이 충돌하면 프론트 우회가 아니라 API 정책(config + 서버 구현)을 수정한다.
 - 예시(권장)
 
   ```js
@@ -360,9 +525,9 @@ export const LANG_KO = {
 
 ---
 
-## 3. 추상화와 유틸 함수
+## FE-R-400 추상화와 유틸 함수
 
-### 3.1 추상화 기준
+### FE-R-410 추상화 기준
 
 - 템플릿은 정형화하되, **로직은 눈에 보이게** 작성한다.
 - 다음과 같은 코드는 지양한다.
@@ -372,14 +537,14 @@ export const LANG_KO = {
   - API 응답 화면 보정을 위해 `normalizeResult`, `mapApiResponse` 같은 보정 전용 helper를 별도로 만드는 패턴.
     - 보정은 `apiJSON` 직후 `<apiName>Obj/<apiName>List`에 바로 반영한다.
 
-### 3.2 공통 함수 분리 규칙
+### FE-R-420 공통 함수 분리 규칙
 
 - 공통 함수로 뺄 때 체크리스트:
   1. **이름만 보고 역할이 바로 이해되는가?**
   2. 같은 로직이 최소 3군데 이상에서 진짜로 반복되는가?
 - 둘 중 하나라도 아니면 그대로 둔다.
 
-### 3.3 함수 쪼개기
+### FE-R-430 함수 쪼개기
 
 - 1~3줄짜리 함수는:
   - 최소 3군데 이상에서 재사용되지 않는 한 굳이 분리하지 않는다.
@@ -397,7 +562,7 @@ export const LANG_KO = {
   - 지양: `function handleSubmit(event) { ... }`, `function UserCard(props) { ... }`
   - 예외: 프레임워크 엔트리 패턴(예: `export default async function Page()`), 호이스팅이 반드시 필요한 경우.
 
-### 3.4 얕은 별칭(shallow alias) 금지
+### FE-R-440 얕은 별칭(shallow alias) 금지
 
 - 단순 프로퍼티/인덱스 별칭은 만들지 않는다.
   - 금지 예시
@@ -415,6 +580,9 @@ export const LANG_KO = {
 - 구조 분해 할당도 같은 규칙을 따른다.
   - 여러 필드를 한꺼번에 꺼내는 용도로는 허용하지만,
     - `const { result: resultData } = dataObj;`처럼 이름만 바꾸는 별칭은 지양한다.
+- 객체 필드 접근은 dot(`obj.key`)을 우선한다.
+  - 강제: 키가 식별자 규칙(`^[A-Za-z_$][A-Za-z0-9_$]*$`)을 만족하면 `obj["key"]` 대신 `obj.key`를 사용한다.
+  - 예외: 동적 키/특수문자 키/예약어 충돌 회피 등 dot 접근이 불가능한 경우에만 bracket 접근을 허용한다.
 - 함수/컴포넌트 파라미터는 **구조분해 할당을 강제**한다.
   - 강제 예시
     - `const PdfViewer = ({ src, initialPage = 1, onLoad }) => { ... };`
@@ -429,15 +597,15 @@ export const LANG_KO = {
 
 ---
 
-## 4. 표현식과 조건문 스타일
+## FE-R-500 표현식과 조건문 스타일
 
-### 4.1 삼항 연산자
+### FE-R-510 삼항 연산자
 
 - 삼항 연산자는 **한 단계까지만 허용**.
   - 예: `const label = isError ? '오류' : '정상';`
 - 삼항 안에 또 삼항, 복잡한 연산이 들어가면 `if / else`로 풀어 쓴다.
 
-### 4.2 논리 연산자 트릭
+### FE-R-520 논리 연산자 트릭
 
 - `cond && doSomething()` 패턴은 최소한으로만 쓴다.
 - 읽기 좋은 스타일 우선:
@@ -447,7 +615,7 @@ export const LANG_KO = {
   - 조건식에서는 `if (value)`처럼 원형을 그대로 사용한다.
   - 타입 정규화가 정말 필요한 경계(API payload/직렬화 직전)에서만 `Boolean(value)`를 제한적으로 사용한다.
 
-### 4.3 조건 이름 붙이기
+### FE-R-530 조건 이름 붙이기
 
 - 조건이 복잡해지면 먼저 변수에 이름을 붙인다.
 
@@ -459,19 +627,27 @@ export const LANG_KO = {
   ```
 
 - “읽으면서 뇌를 두 번 접어야 이해되는 조건”이면 무조건 나눈다.
+- UI 파생값(`className`, `*VariantClass`, `disabled` 등)은 `let` 재대입 패턴을 금지한다.
+  - 금지 예: `let buttonClass = "..."; if (cond) buttonClass = "...";`
+  - 강제: UI 파생값은 `const` 단일식(삼항/불리언식)으로 선언한다.
+  - 강제: `disabled` 값은 `const isEnabled`/`const isDisabled`처럼 불리언 파생값으로 선언한다.
+  - 금지: UI 파생값 계산을 위해 `if/else`로 같은 변수에 재할당하는 패턴
 
 ---
 
-## 5. 네이밍 규칙
+## FE-R-600 네이밍 규칙
 
-### 5.1 변수/상태 이름
+### FE-R-610 변수/상태 이름
 
 - 루프 인덱스(i, index) 말고는 **한 글자 변수 금지**.
   - `r`, `d`, `arr`, `obj` 같은 이름 사용하지 않는다.
 - 데이터/상태는 역할이 드러나게:
   - `list`, `row`, `item`, `detail`, `result`, `filterState`, `modData` 등.
+- 배열/컬렉션 변수명은 `...List`를 우선 사용한다.
+  - 지양: `...Rows`
+  - 권장: `...List`
 
-### 5.2 컴포넌트/파일 이름
+### FE-R-620 컴포넌트/파일 이름
 
 - React 컴포넌트 파일: PascalCase (`ResumeRender.jsx`, `FilterBar.jsx`).
 - 페이지 템플릿 파일: 라우트 폴더 하위에 소문자 예약 이름 사용.
@@ -480,12 +656,17 @@ export const LANG_KO = {
 
 ---
 
-## 6. JSX와 파일 레이아웃
+## FE-R-700 JSX와 파일 레이아웃
 
-### 6.1 .jsx 파일 구조
+### FE-R-710 .jsx 파일 구조
 
 - 최상단: `import` 구문.
 - 그 다음: 바로 컴포넌트/함수 선언.
+- 페이지 템플릿(`view.jsx`, `page.jsx`, `layout.jsx`)은 `import` 아래에 메인 컴포넌트 선언을 바로 배치한다.
+  - 파일 레벨 `const/let/var` 상수 선언, 파일 레벨 헬퍼 함수 선언, 파일 레벨 상태/모델 선언 금지.
+  - 페이지 전용 상수/옵션/파생값은 메인 컴포넌트 내부 상단 선언부에 둔다.
+- `frontend-web/app` 런타임 파일은 JS/JSX/MJS만 허용한다.
+  - `.ts`/`.tsx`는 사용하지 않는다.
 - import 블록 무결성 유지:
   - `'use client'` 같은 지시어 이후에는 import를 연속 배치한다.
   - 실행문(`const`, 함수 선언/호출 등) 이후 정적 import 재선언 금지(`import()` 동적 로딩은 예외).
@@ -495,7 +676,7 @@ export const LANG_KO = {
   - 최상단에 거대한 상수/배열/객체를 쌓아두는 것.
   - 파일 레벨 전역 변수/상태.
 
-### 6.2 설정/스펙 분리
+### FE-R-720 설정/스펙 분리
 
 - 큰 설정 객체나 스펙 의미가 있는 데이터는 별도 모듈로 분리한다.
   - 예: `fieldSpecs.mjs`, `formConfig.mjs` 등.
@@ -515,7 +696,7 @@ export const LANG_KO = {
   - 중요한 화면 흐름(섹션 순서, 헤더 구조, 버튼 역할 등)은  
     그대로 JSX 코드에 남겨둔다.
 
-### 6.3 서브 컴포넌트 위치
+### FE-R-730 서브 컴포넌트 위치
 
 - 새 컴포넌트를 만들기 전에 `lib/component`에서 기존 공용 컴포넌트 존재 여부를 먼저 확인한다.
   - 동일/유사 컴포넌트가 있으면 우선 재사용하고, 필요한 범위만 `props` 확장으로 해결한다.
@@ -525,7 +706,7 @@ export const LANG_KO = {
 - 여러 페이지에서 재사용될 수 있는 컴포넌트:
   - 공용 컴포넌트 폴더(예: `lib/component`)로 승격을 검토한다.
 
-### 6.4 페이지 뷰(view.jsx) 구현 스타일
+### FE-R-740 페이지 뷰(view.jsx) 구현 스타일
 
 - 한 페이지에는 **메인 뷰 컴포넌트 하나**를 두고, 그 안에서 도메인 흐름이 위→아래로 자연스럽게 읽히게 만든다.
   - 예시 구조 ( `app/sample/resumeUpload/view.jsx` 스타일 ):
@@ -533,6 +714,8 @@ export const LANG_KO = {
     - 중간: 도메인 이름이 붙은 헬퍼/이벤트 함수 (`acceptFile`, `onUpload`, `resolvePdfUrl` 등)
     - 하단: `return (…)` 안에서 JSX 렌더링
 - `view.jsx` 내부 선언/렌더링은 아래 섹션 주석 순서를 고정한다. (`/* n. ... === */` 형식)
+  - 적용 범위(강제): `app/**`의 `.jsx` 파일 전체
+  - 제외: `initData.jsx`, `page.jsx`, `layout.jsx`, `loading.jsx`, `error.jsx`, `not-found.jsx`, `route.js`, 테스트 파일, `app/lib/**`, `app/component/**`
   - 섹션 이름/번호는 아래 순서를 기준으로 유지한다.
   - 사용하지 않는 섹션도 주석은 유지하고, 블록 내부에 `// 없음`으로 명시한다.
 
@@ -552,6 +735,10 @@ export const LANG_KO = {
   - 대상: 값/모델/상태 선언 (`const loginObj`, `const ui`, `const emailRef` 등)
   - 지양: 헬퍼 함수 선언보다 아래에 값 선언을 섞어두는 패턴
   - 예외: 함수/컴포넌트 자체 선언(`const sanitizeRedirect = (...) => { ... }`)은 중간 헬퍼 구간에 둘 수 있다.
+- `view.jsx`에서 상수/스펙 값이 필요하더라도 파일 바깥(top-level)에 두지 않고, 메인 컴포넌트 내부 상단에 둔다.
+- `view.jsx`의 `className`은 해당 JSX 요소 안에서 직접 조건식으로 처리한다.
+  - 금지: `const xxxClassName = ...;`/`const xxxVariantClass = ...;`를 상단에 빼고 `className={xxxClassName}`로만 연결하는 패턴
+  - 강제: `className={\`... \${cond ? \"...\" : \"...\"}\`}` 형태로 요소 근처에서 상태 조건을 읽히게 유지한다.
 - `useEffect`는 **useEffect로만 가능한 효과 동작**에 한해 사용한다.
   - 허용 예: 이벤트 구독/해제, 타이머 등록/정리, DOM/브라우저 API 연동, API 호출 후 동기화
   - 지양 예: 단순 계산/파생값 생성/동기 대입만 수행하는 `useEffect`
@@ -561,7 +748,7 @@ export const LANG_KO = {
   - JSX가 너무 길어서 “눈으로 스크롤하며 읽기 힘들어졌을 때”,
   - 혹은 동일한 UI 블록이 여러 페이지에서 반복될 때만 분리한다.
 
-### 6.5 한 파일당 하나의 컴포넌트
+### FE-R-750 한 파일당 하나의 컴포넌트
 
 - 일반 컴포넌트 파일(PascalCase `.jsx`, 예: `ResumeRender.jsx`, `FilterBar.jsx`)은
   - **기본적으로 한 파일당 하나의 React 컴포넌트**만 export 한다.
@@ -581,17 +768,20 @@ export const LANG_KO = {
 
 ---
 
-## 7. 에러·로딩·알림 처리
+## FE-R-800 에러·로딩·알림 처리
 
-### 7.1 일관된 처리
+### FE-R-810 일관된 처리
 
 - `console.error`만 찍고 끝내는 코드 금지.
 - 사용자에게 보여주는 메시지는 전부 공통 UI 훅/컴포넌트를 사용:
   - 로딩: 전역 로딩 상태 또는 공통 로딩 컴포넌트.
   - 에러: Alert/Toast 등 통일된 패턴.
   - 확인: Confirm 다이얼로그.
+- 알림 분기에서 죽은 else/if를 만들지 않는다.
+  - 금지: 상태를 먼저 고정 대입한 뒤 같은 상태로 즉시 삼항/if 분기하는 패턴
+  - 금지 예: `state.done = true; showToast(state.done ? "A" : "B")`
 
-### 7.2 에러 핸들링 패턴
+### FE-R-820 에러 핸들링 패턴
 
 - try/catch 내부:
   - 로그는 `console.error` 또는 로깅 유틸 하나로 통일.
@@ -600,11 +790,13 @@ export const LANG_KO = {
 
 ---
 
-## 8. 주석 규칙
+## FE-R-900 주석 규칙
 
-### 8.1 파일 헤더
+### FE-R-910 파일 헤더
 
 - 모든 런타임 코드 파일 상단에는 헤더 주석을 단다.(작성자 반드시 LSH로)
+  - 적용 범위(강제): `frontend-web/app/**`의 `.js/.jsx/.mjs` 파일 전체
+  - 제외: 테스트 파일(`__tests__/**`, `*.test.*`)
 
   ```jsx
   /**
@@ -617,9 +809,11 @@ export const LANG_KO = {
 
 - 내용은 가능한 한 **한글**로 적고, 변수명/함수명/라이브러리 고유 용어/프로토콜 값 등 코드 식별자는 영어 원문을 유지한다.
 
-### 8.2 함수/컴포넌트 헤더
+### FE-R-920 함수/컴포넌트 헤더
 
 - 모든 함수/컴포넌트에는 JSDoc 스타일 주석을 붙인다.
+  - 적용 범위(강제): `frontend-web/app/**`의 `.js/.jsx/.mjs` 파일 전체
+  - 제외: 테스트 파일(`__tests__/**`, `*.test.*`)
 - 가독성을 위해 각 함수/컴포넌트 선언 블록의 위/아래에는 빈 줄을 정확히 1줄씩 둔다.
 - 함수명 재진술형 주석은 금지한다.
   - 금지 예: `validate email 로직을 수행한다.`, `데이터를 처리한다.`, `조회 함수를 실행한다.`
@@ -642,14 +836,27 @@ export const LANG_KO = {
   const ResumeListView = (props) => { … };
   ```
 
-### 8.3 유지 원칙
+### FE-R-930 유지 원칙
 
 - 구현이 바뀌면 주석도 함께 수정한다.
 - 새로운 파일/함수를 추가할 때는 **헤더 주석부터 작성**하는 습관을 유지한다.
 
+### FE-R-940 주석 윗줄 공백 규칙 (필수)
+
+- 독립 주석(`//`, `/*`)은 바로 윗줄에 빈 줄을 정확히 1줄 둔다.
+- 연속 주석 블록의 2번째 줄부터는 재적용하지 않는다(주석 시작 줄만 적용).
+- 파일 최상단(첫 줄) 헤더 주석 시작은 예외로 둔다.
+
+```jsx
+const LOCAL_DRAFT_KEY = "cvfit.resume.opt.uploadDraft";
+
+/* 2. 데이터 ============================== */
+const uploadDataObj = EasyObj({ ... });
+```
+
 ---
 
-## 9. 스타일(CSS)과 UI
+## FE-R-1000 스타일(CSS)과 UI
 
 - 우선 Tailwind 유틸 클래스와 프로젝트 공통 유틸 클래스를 사용한다.
 - 스타일링은 Tailwind를 무조건 우선으로 적용한다.
@@ -661,7 +868,7 @@ export const LANG_KO = {
 - Tailwind arbitrary value(`w-[...]`, `h-[...]`, `gap-[...]` 등)도 `px` 기준으로 작성한다.
 - 예: `w-[360px]` (O), `w-[22.5rem]` (X)
 
-### 9.1 반응형/해상도 규칙 (공통)
+### FE-R-1010 반응형/해상도 규칙 (공통)
 
 - 기본 원칙은 **유동 레이아웃(반응형) 우선**이다.
   - 모바일/태블릿/일반 데스크톱은 자연스럽게 줄어들고 늘어나는 구조를 먼저 만든다.
@@ -676,11 +883,11 @@ export const LANG_KO = {
 
 ---
 
-## 10. 작업 플로우에서의 사용 방법
+## FE-R-1100 작업 플로우에서의 사용 방법
 
 1. **기능 구현 단계**
    - 이 규칙을 거칠게만 지키면서 먼저 동작을 맞춘다.
-   - 구조/책임 분리(1장)와 네이밍/전역 사용(5·6장)만 특히 신경 쓴다.
+   - 구조/책임 분리(FE-R-200)와 네이밍/전역 사용(FE-R-600, FE-R-700)만 특히 신경 쓴다.
 2. **정리·리팩터링 단계**
    - 기능이 돌아가면 이 문서를 체크리스트처럼 다시 훑으면서 정리한다.
    - 불필요한 추상화/아트 코드/쪼개기를 제거하고,
@@ -690,6 +897,7 @@ export const LANG_KO = {
      `docs/frontend-web/rule-gate-operations.md`를 따른다.
    - 검출/비검출 회귀 기준은
      `docs/frontend-web/rule-gate-regression-cases.md`를 기준으로 유지한다.
+   - AST 우선 기준에 해당하는 규칙을 수정할 때는 regex 우회 보강이 아니라 AST 검사 보강을 기본으로 한다.
 
 이 문서는 “프로젝트마다 조금씩 달라지는 세부 구현”이 아니라  
 **앞으로의 모든 프론트엔드 작업에 공통으로 적용할 기본 규칙**을 정의한다.  

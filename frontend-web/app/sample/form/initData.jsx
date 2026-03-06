@@ -6,6 +6,12 @@
  */
 
 export const PAGE_CONFIG = {
-  MODE: "CSR",
-  API: {},
+  MODE: "SSR",
+  API: {
+    meta: {
+      path: "/api/v1/sample/forms/meta",
+      method: "GET",
+      authless: true,
+    },
+  },
 };

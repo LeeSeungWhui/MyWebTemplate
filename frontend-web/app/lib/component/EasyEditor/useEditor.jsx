@@ -2,7 +2,7 @@
 /**
  * 파일명: useEditor.jsx
  * 작성자: LSH
- * 갱신일: 2026-03-03
+ * 갱신일: 2026-03-05
  * 설명: EasyEditor 전용 훅
  */
 
@@ -159,7 +159,7 @@ export const useEasyEditor = ({
   extensions,
   autofocus = false,
   onReady,
-} = {}) => {
+}) => {
 
   const isBound = Boolean(dataObj && dataKey);
   const lastFingerprint = useRef(null);

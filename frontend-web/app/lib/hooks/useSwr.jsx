@@ -2,7 +2,7 @@
 /**
  * 파일명: useSwr.jsx
  * 작성자: LSH
- * 갱신일: 2026-03-03
+ * 갱신일: 2026-03-05
  * 설명: apiJSON을 fetcher로 사용하는 SWR 래퍼 훅(선택적)
  */
 import useSwrLib from "swr";
@@ -16,10 +16,7 @@ import { apiJSON } from "@/app/lib/runtime/api";
  * @returns {any}
  */
 export const useSwr = (
-  key,
-  path,
-  { method = "GET", body, fetchInit = {}, swr = {} } = {},
-
+  { key, path, method = "GET", body, fetchInit = {}, swr = {} },
 ) => {
 
   /**

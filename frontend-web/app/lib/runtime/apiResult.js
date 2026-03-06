@@ -1,7 +1,7 @@
 /**
  * 파일명: apiResult.js
  * 작성자: LSH
- * 갱신일: 2026-03-03
+ * 갱신일: 2026-03-05
  * 설명: apiJSON 표준 응답(payload.result) 타입별 EasyObj/EasyList 동기화 유틸
  */
 
@@ -37,24 +37,23 @@ export const syncApiResult = ({
   apiObj,
   apiList,
 } = {}) => {
-  const result = payload?.result;
-  if (Array.isArray(result)) {
-    apiList?.copy?.(result);
+  if (Array.isArray(payload?.result)) {
+    apiList?.copy?.(payload.result);
     return {
       resultType: RESULT_TYPE.LIST,
-      result,
+      result: payload.result,
     };
   }
-  if (isPlainObject(result)) {
-    apiObj?.copy?.(result);
+  if (isPlainObject(payload?.result)) {
+    apiObj?.copy?.(payload.result);
     return {
       resultType: RESULT_TYPE.OBJ,
-      result,
+      result: payload.result,
     };
   }
   return {
     resultType: RESULT_TYPE.OTHER,
-    result,
+    result: payload?.result,
   };
 };
 

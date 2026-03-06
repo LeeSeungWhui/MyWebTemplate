@@ -105,6 +105,42 @@ def buildDebugText(userId: str) -> str:
     return f"debug-user:{userId}"
 EOF
 
+cat > "$FIXTURE_REPO/backend/service/ResponseHandlingService.py" <<'EOF'
+"""
+파일명: backend/service/ResponseHandlingService.py
+작성자: LSH
+갱신일: 2026-03-06
+설명: 회귀 검증용 서비스 레이어 Response 직접 처리 fixture
+"""
+
+from fastapi.responses import JSONResponse
+
+
+def makeBadResponse():
+    """
+    설명: 서비스에서 JSONResponse를 직접 생성하는 위반 케이스.
+    갱신일: 2026-03-06
+    """
+    return JSONResponse(status_code=200, content={"status": True})
+EOF
+
+cat > "$FIXTURE_REPO/backend/service/ResponseHandlingSafeService.py" <<'EOF'
+"""
+파일명: backend/service/ResponseHandlingSafeService.py
+작성자: LSH
+갱신일: 2026-03-06
+설명: 회귀 검증용 서비스 레이어 응답 안전 fixture
+"""
+
+
+def makeDomainPayload() -> dict:
+    """
+    설명: 서비스는 도메인 payload만 반환하는 정상 케이스.
+    갱신일: 2026-03-06
+    """
+    return {"status": True}
+EOF
+
 cat > "$FIXTURE_REPO/backend/router/AuthRouter.py" <<'EOF'
 """
 파일명: backend/router/AuthRouter.py
@@ -139,6 +175,254 @@ async def refresh():
         content={"status": False},
         headers={"WWW-Authenticate": "Bearer", "Cache-Control": "no-store"},
     )
+EOF
+
+cat > "$FIXTURE_REPO/backend/router/DirectDbRouter.py" <<'EOF'
+"""
+파일명: backend/router/DirectDbRouter.py
+작성자: LSH
+갱신일: 2026-03-06
+설명: 회귀 검증용 라우터 DB 직접 호출 fixture
+"""
+
+from fastapi import APIRouter
+
+from lib.Database import fetchOneQuery
+
+router = APIRouter(prefix="/api/v1/direct-db", tags=["direct-db"])
+
+
+@router.get("/item")
+async def getItem():
+    """
+    설명: 라우터에서 DB를 직접 조회하는 위반 케이스.
+    갱신일: 2026-03-06
+    """
+    row = await fetchOneQuery("demo.select", {"id": 1})
+    return {"status": True, "result": row}
+EOF
+
+cat > "$FIXTURE_REPO/backend/router/SafeRouter.py" <<'EOF'
+"""
+파일명: backend/router/SafeRouter.py
+작성자: LSH
+갱신일: 2026-03-06
+설명: 회귀 검증용 라우터 서비스 경유 fixture
+"""
+
+from fastapi import APIRouter
+
+from service import DashboardService
+
+router = APIRouter(prefix="/api/v1/safe", tags=["safe"])
+
+
+@router.get("/item")
+async def getItem():
+    """
+    설명: 라우터에서 서비스를 경유하는 정상 케이스.
+    갱신일: 2026-03-06
+    """
+    result = await DashboardService.listDataTemplates(userId="demo", limit=1)
+    return {"status": True, "result": result}
+EOF
+
+cat > "$FIXTURE_REPO/backend/router/TxControlRouter.py" <<'EOF'
+"""
+파일명: backend/router/TxControlRouter.py
+작성자: LSH
+갱신일: 2026-03-06
+설명: BE-A-023 검출 fixture (router commit 제어 금지)
+"""
+
+from fastapi import APIRouter
+
+router = APIRouter(prefix="/api/v1/tx-control", tags=["tx-control"])
+
+
+@router.post("/bad")
+async def badTxControl(db):
+    """
+    설명: router 계층 commit 제어 위반 케이스.
+    갱신일: 2026-03-06
+    """
+    db.commit()
+    return {"status": True}
+EOF
+
+cat > "$FIXTURE_REPO/backend/service/TransactionBoundaryBadService.py" <<'EOF'
+"""
+파일명: backend/service/TransactionBoundaryBadService.py
+작성자: LSH
+갱신일: 2026-03-06
+설명: BE-A-023 검출 fixture (service 다중 쓰기 트랜잭션 누락)
+"""
+
+
+async def createWithAudit(db, payload: dict):
+    """
+    설명: 쓰기 2건 이상을 트랜잭션 경계 없이 수행하는 위반 케이스.
+    갱신일: 2026-03-06
+    """
+    await db.fetchOneQuery("dashboard.create", {"title": payload.get("title", "")})
+    await db.executeQuery("audit.insert", {"event": "dashboard.create"})
+    return {"ok": True}
+EOF
+
+cat > "$FIXTURE_REPO/backend/service/TransactionBoundaryGoodService.py" <<'EOF'
+"""
+파일명: backend/service/TransactionBoundaryGoodService.py
+작성자: LSH
+갱신일: 2026-03-06
+설명: BE-A-023 오탐 방지 fixture (service 트랜잭션 경계 적용)
+"""
+
+
+async def createWithAudit(db, payload: dict):
+    """
+    설명: 다중 쓰기 작업을 단일 트랜잭션으로 묶는 정상 케이스.
+    갱신일: 2026-03-06
+    """
+    async with db.transaction():
+        await db.fetchOneQuery("dashboard.create", {"title": payload.get("title", "")})
+        await db.executeQuery("audit.insert", {"event": "dashboard.create"})
+    return {"ok": True}
+EOF
+
+cat > "$FIXTURE_REPO/backend/router/IdempotencyBadRouter.py" <<'EOF'
+"""
+파일명: backend/router/IdempotencyBadRouter.py
+작성자: LSH
+갱신일: 2026-03-06
+설명: BE-A-024 검출 fixture (고위험 mutation idempotency 누락)
+"""
+
+from fastapi import APIRouter
+
+router = APIRouter(prefix="/api/v1/payment", tags=["payment"])
+
+
+@router.post("/create")
+async def createPayment(payload: dict):
+    """
+    설명: idempotency 계약 없이 생성 mutation을 수행하는 위반 케이스.
+    갱신일: 2026-03-06
+    """
+    return {"status": True, "result": payload}
+EOF
+
+cat > "$FIXTURE_REPO/backend/router/IdempotencyGoodRouter.py" <<'EOF'
+"""
+파일명: backend/router/IdempotencyGoodRouter.py
+작성자: LSH
+갱신일: 2026-03-06
+설명: BE-A-024 오탐 방지 fixture (idempotency 계약 명시)
+"""
+
+from fastapi import APIRouter, Header
+
+router = APIRouter(prefix="/api/v1/payment", tags=["payment"])
+
+
+@router.post("/create")
+async def createPayment(payload: dict, idempotencyKey: str = Header(alias="Idempotency-Key")):
+    """
+    설명: Idempotency-Key 수집/검증을 포함한 정상 케이스.
+    갱신일: 2026-03-06
+    """
+    return {"status": True, "idempotencyKey": idempotencyKey, "result": payload}
+EOF
+
+cat > "$FIXTURE_REPO/backend/service/ExternalIoBadService.py" <<'EOF'
+"""
+파일명: backend/service/ExternalIoBadService.py
+작성자: LSH
+갱신일: 2026-03-06
+설명: BE-A-025 검출 fixture (외부 HTTP timeout 누락)
+"""
+
+import requests
+import httpx
+
+
+async def loadExternalData(url: str) -> dict:
+    """
+    설명: timeout 없이 외부 호출하는 위반 케이스.
+    갱신일: 2026-03-06
+    """
+    requests.get(url)
+    async with httpx.AsyncClient() as client:
+        await client.get(url)
+    return {"ok": True}
+EOF
+
+cat > "$FIXTURE_REPO/backend/service/ExternalIoGoodService.py" <<'EOF'
+"""
+파일명: backend/service/ExternalIoGoodService.py
+작성자: LSH
+갱신일: 2026-03-06
+설명: BE-A-025 오탐 방지 fixture (외부 HTTP timeout 명시)
+"""
+
+import requests
+import httpx
+
+
+async def loadExternalData(url: str) -> dict:
+    """
+    설명: timeout을 명시한 외부 호출 정상 케이스.
+    갱신일: 2026-03-06
+    """
+    requests.get(url, timeout=5)
+    async with httpx.AsyncClient(timeout=5) as client:
+        await client.get(url)
+    return {"ok": True}
+EOF
+
+cat > "$FIXTURE_REPO/backend/router/PageSizeBadRouter.py" <<'EOF'
+"""
+파일명: backend/router/PageSizeBadRouter.py
+작성자: LSH
+갱신일: 2026-03-06
+설명: BE-A-026 검출 fixture (목록 size clamp 누락)
+"""
+
+from fastapi import APIRouter, Query
+
+router = APIRouter(prefix="/api/v1/tasks", tags=["tasks"])
+
+
+@router.get("/list")
+async def listTasks(page: int = Query(default=1), size: int = Query(default=20)):
+    """
+    설명: size 상한 clamp 없이 목록을 반환하는 위반 케이스.
+    갱신일: 2026-03-06
+    """
+    return {"page": page, "size": size}
+EOF
+
+cat > "$FIXTURE_REPO/backend/router/PageSizeGoodRouter.py" <<'EOF'
+"""
+파일명: backend/router/PageSizeGoodRouter.py
+작성자: LSH
+갱신일: 2026-03-06
+설명: BE-A-026 오탐 방지 fixture (목록 size clamp 적용)
+"""
+
+from fastapi import APIRouter, Query
+
+router = APIRouter(prefix="/api/v1/tasks", tags=["tasks"])
+
+
+@router.get("/list")
+async def listTasks(page: int = Query(default=1), size: int = Query(default=20)):
+    """
+    설명: size 상한 clamp를 적용하는 정상 케이스.
+    갱신일: 2026-03-06
+    """
+    listSizeMax = 100
+    safeSize = min(size, listSizeMax)
+    return {"page": page, "size": safeSize}
 EOF
 
 cat > "$FIXTURE_REPO/backend/router/ProfileRouter.py" <<'EOF'
@@ -392,6 +676,47 @@ def testCommentRule() -> str:
     return "ok"
 EOF
 
+cat > "$FIXTURE_REPO/backend/service/CommentSpacingBadService.py" <<'EOF'
+"""
+파일명: backend/service/CommentSpacingBadService.py
+작성자: LSH
+갱신일: 2026-03-06
+설명: BE-A-022 검출 fixture (독립 주석 윗줄 공백 누락)
+"""
+
+
+def useCommentSpacingBad() -> str:
+    """
+    설명: 독립 주석 윗줄 공백 규칙 위반 케이스.
+    갱신일: 2026-03-06
+    """
+    defaultRole = "viewer"
+    # 주석 윗줄 공백 1줄 누락
+    nextRole = f"{defaultRole}-next"
+    return nextRole
+EOF
+
+cat > "$FIXTURE_REPO/backend/service/CommentSpacingGoodService.py" <<'EOF'
+"""
+파일명: backend/service/CommentSpacingGoodService.py
+작성자: LSH
+갱신일: 2026-03-06
+설명: BE-A-022 오탐 방지 fixture (독립 주석 윗줄 공백 1줄 준수)
+"""
+
+
+def useCommentSpacingGood() -> str:
+    """
+    설명: 독립 주석 윗줄 공백 규칙 준수 케이스.
+    갱신일: 2026-03-06
+    """
+    defaultRole = "viewer"
+
+    # 주석 윗줄 공백 1줄 준수
+    nextRole = f"{defaultRole}-next"
+    return nextRole
+EOF
+
 cat > "$FIXTURE_REPO/backend/lib/DocQualityBad.py" <<'EOF'
 """
 파일명: backend/lib/DocQualityBad.py
@@ -512,6 +837,8 @@ assert_count_at_least() {
 # Must Catch
 assert_count_at_least "SQL 문자열 보간/치환 금지. 바인드 파라미터 사용 backend/service/SqlInterpolationService.py" 2
 assert_contains "BE-A-002 (BE 8 DB/SQL 규칙)"
+assert_contains "서비스 레이어에서 Response/쿠키 직접 처리 금지 backend/service/ResponseHandlingService.py"
+assert_contains "라우터에서 DB 직접 호출 지양. 서비스 경유 권장 backend/router/DirectDbRouter.py"
 assert_contains "인증/세션 JSON 응답은 Cache-Control: no-store 권장 backend/router/AuthRouter.py"
 assert_contains "인증 필요 라우터 응답은 Cache-Control: no-store 권장 backend/router/ProfileRouter.py"
 assert_contains "인증 필요 라우터 응답은 Cache-Control: no-store 권장 backend/router/DashboardRouter.py"
@@ -520,6 +847,12 @@ assert_contains "422 표준 에러 응답에 Cache-Control: no-store 권장 back
 assert_contains "함수 'createAccessToken' docstring 갱신일은 YYYY-MM-DD 형식 권장(현재: 2026-02-XX) backend/lib/Auth.py"
 assert_contains "함수 '__init__' docstring(설명/갱신일) 권장 backend/lib/NoDocInit.py"
 assert_contains "주석/문구는 한글 기준 권장(예외: 라이브러리/헤더/코드값) backend/service/EnglishCommentService.py"
+assert_contains "독립 주석(\`#\`) 위에는 빈 줄을 정확히 1줄 둬야 함 backend/service/CommentSpacingBadService.py"
+assert_contains "router/lib 계층에서 commit/rollback 제어 금지. 트랜잭션 경계는 service에서 관리해야 함 backend/router/TxControlRouter.py"
+assert_contains "service 함수 'createWithAudit'에서 쓰기 작업 2건 감지. 단일 트랜잭션 경계(runInTransaction/with transaction)로 묶어야 함 backend/service/TransactionBoundaryBadService.py"
+assert_contains "mutation 라우트 'createPayment'는 Idempotency-Key 계약(수집/검증/중복방지) 필요 backend/router/IdempotencyBadRouter.py"
+assert_contains "외부 HTTP 호출에는 timeout 명시가 필요함(requests/httpx) backend/service/ExternalIoBadService.py"
+assert_contains "목록/검색 함수 'listTasks'에서 size 상한 clamp 누락 가능성. config(API_POLICY) 기반 max 적용 필요 backend/router/PageSizeBadRouter.py"
 assert_contains "DB 오브젝트명 prefix는 T_/V_ 권장(현재: TEST_TRANSACTION) backend/query/bad_naming.sql"
 assert_contains "SQL_LOG_LITERAL_VALUES 활성화 경로에서는 민감 파라미터(PII/시크릿) 마스킹 가드를 함께 구현해야 함 backend/lib/Database.py"
 assert_contains "SQL 로그 리터럴 노출 경로에서는 list/dict 중첩 문자열 민감값도 마스킹해야 함 backend/lib/Database.py"
@@ -534,6 +867,13 @@ assert_contains "dashboard.create는 VALUES 바인딩에 :userId를 포함해야
 
 # Must Ignore
 assert_not_contains "SQL 문자열 보간/치환 금지. 바인드 파라미터 사용 backend/service/SafeTextService.py"
+assert_not_contains "서비스 레이어에서 Response/쿠키 직접 처리 금지 backend/service/ResponseHandlingSafeService.py"
+assert_not_contains "라우터에서 DB 직접 호출 지양. 서비스 경유 권장 backend/router/SafeRouter.py"
 assert_not_contains "import 블록 오염: 선행 실행문 이후 import 선언 금지 backend/lib/ImportIntegrityGood.py"
+assert_not_contains "독립 주석(\`#\`) 위에는 빈 줄을 정확히 1줄 둬야 함 backend/service/CommentSpacingGoodService.py"
+assert_not_contains "service 함수 'createWithAudit'에서 쓰기 작업 2건 감지. 단일 트랜잭션 경계(runInTransaction/with transaction)로 묶어야 함 backend/service/TransactionBoundaryGoodService.py"
+assert_not_contains "mutation 라우트 'createPayment'는 Idempotency-Key 계약(수집/검증/중복방지) 필요 backend/router/IdempotencyGoodRouter.py"
+assert_not_contains "외부 HTTP 호출에는 timeout 명시가 필요함(requests/httpx) backend/service/ExternalIoGoodService.py"
+assert_not_contains "목록/검색 함수 'listTasks'에서 size 상한 clamp 누락 가능성. config(API_POLICY) 기반 max 적용 필요 backend/router/PageSizeGoodRouter.py"
 
 echo "[PASS] backend rule-gate regression fixtures passed"

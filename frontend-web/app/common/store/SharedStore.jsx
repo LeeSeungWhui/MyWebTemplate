@@ -2,11 +2,12 @@
 /**
  * 파일명: SharedStore.jsx
  * 작성자: LSH
- * 갱신일: 2026-03-03
+ * 갱신일: 2026-03-05
  * 설명: Zustand 기반 전역 공유 스토어
  */
 
 import { create } from 'zustand';
+import { COMMON_COMPONENT_LANG_KO } from '@/app/common/i18n/lang.ko';
 
 export const useSharedStore = create((set, get) => ({
   // 세션/사용자 메타
@@ -33,7 +34,7 @@ export const useSharedStore = create((set, get) => ({
   showAlert: (message, opts = {}) => set({
     alert: {
       show: true,
-      title: opts.title || '알림',
+      title: opts.title || COMMON_COMPONENT_LANG_KO.alert.title,
       message,
       type: opts.type || 'info',
       onClick: typeof opts.onClick === 'function' ? opts.onClick : undefined,
@@ -43,18 +44,26 @@ export const useSharedStore = create((set, get) => ({
   hideAlert: () => set({ alert: { show: false, title: '', message: '', type: 'info', onClick: undefined, onFocus: undefined } }),
 
   // 확인(프라미스 기반)
-  confirm: { show: false, title: '', message: '', type: 'info', confirmText: '확인', cancelText: '취소', onFocus: undefined },
+  confirm: {
+    show: false,
+    title: '',
+    message: '',
+    type: 'info',
+    confirmText: COMMON_COMPONENT_LANG_KO.confirm.confirmText,
+    cancelText: COMMON_COMPONENT_LANG_KO.confirm.cancelText,
+    onFocus: undefined,
+  },
   confirmPromiseResolve: null,
   showConfirm: (message, opts = {}) =>
     new Promise((resolve) => {
       set({
         confirm: {
           show: true,
-          title: opts.title || '확인',
+          title: opts.title || COMMON_COMPONENT_LANG_KO.confirm.title,
           message,
           type: opts.type || 'info',
-          confirmText: opts.confirmText || '확인',
-          cancelText: opts.cancelText || '취소',
+          confirmText: opts.confirmText || COMMON_COMPONENT_LANG_KO.confirm.confirmText,
+          cancelText: opts.cancelText || COMMON_COMPONENT_LANG_KO.confirm.cancelText,
           onConfirm: opts.onConfirm,
           onCancel: opts.onCancel,
           onFocus: typeof opts.onFocus === 'function' ? opts.onFocus : undefined,
@@ -70,7 +79,15 @@ export const useSharedStore = create((set, get) => ({
       if (typeof confirmPromiseResolve === 'function') confirmPromiseResolve(Boolean(confirmed));
     } finally {
       set({
-        confirm: { show: false, title: '', message: '', type: 'info', confirmText: '확인', cancelText: '취소', onFocus: undefined },
+        confirm: {
+          show: false,
+          title: '',
+          message: '',
+          type: 'info',
+          confirmText: COMMON_COMPONENT_LANG_KO.confirm.confirmText,
+          cancelText: COMMON_COMPONENT_LANG_KO.confirm.cancelText,
+          onFocus: undefined,
+        },
         confirmPromiseResolve: null,
       });
     }
@@ -151,17 +168,17 @@ export const useGlobalUi = () => {
 
 /**
  * 설명: React 훅 컨텍스트 밖에서 안전하게 config 스냅샷 조회. 입력/출력 계약 명시
- * 갱신일: 2026-03-02
+ * 갱신일: 2026-03-05
  */
 export const getConfigSnapshot = () => {
   const state = useSharedStore.getState?.();
-  const config = state?.config;
-  return config && typeof config === 'object' ? config : {};
+  if (state?.config && typeof state.config === 'object') return state.config;
+  return {};
 };
 
 /**
  * 설명: React 훅 컨텍스트 밖에서 전역 UI 액션 스냅샷 조회. 입력/출력 계약 명시
- * 갱신일: 2026-03-02
+ * 갱신일: 2026-03-05
  */
 export const getGlobalUiActionsSnapshot = () => {
   const state = useSharedStore.getState?.() || {};

@@ -1,11 +1,15 @@
 /**
  * 파일명: app/lang.ko.js
  * 작성자: LSH
- * 갱신일: 2026-02-25
+ * 갱신일: 2026-03-05
  * 설명: app 경로 한국어 리소스
  */
 
 export const LANG_KO = {
+  layout: {
+    metadataTitle: "MyWebTemplate — 풀스택 개발 템플릿",
+    metadataDescription: "FastAPI + Next.js 기반의 인증/컴포넌트/대시보드 템플릿",
+  },
   view: {
     previewBadge: "SAMPLE PREVIEW",
     previewTitle: "CRUD 관리 화면",

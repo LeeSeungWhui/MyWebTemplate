@@ -1,7 +1,7 @@
 /**
  * 파일명: Combobox.jsx
  * 작성자: LSH
- * 갱신일: 2026-03-03
+ * 갱신일: 2026-03-05
  * 설명: EasyList/EasyObj와 동기화되는 필터 가능한 콤보박스
  */
 import {
@@ -141,12 +141,11 @@ const normalizeOptions = (dataList = [], valueKey, textKey) => {
     return []
   }
   return Array.from(dataList).map((item, index) => {
-    const rawValue = item?.[valueKey]
-    const value = Array.isArray(rawValue)
-      ? rawValue.map((rawItemValue) => String(rawItemValue))
-      : String(rawValue ?? '')
+    const value = Array.isArray(item?.[valueKey])
+      ? item?.[valueKey].map((rawItemValue) => String(rawItemValue))
+      : String(item?.[valueKey] ?? '')
     return {
-      key: Object.prototype.hasOwnProperty.call(item, valueKey) ? rawValue : index,
+      key: Object.prototype.hasOwnProperty.call(item, valueKey) ? item?.[valueKey] : index,
       value,
       label: String(item?.[textKey] ?? ''),
       selected: Boolean(item?.selected),
@@ -161,7 +160,7 @@ const normalizeOptions = (dataList = [], valueKey, textKey) => {
  * 처리 규칙: subscribe 함수가 있으면 등록하고, effect cleanup에서 unsubscribe를 보장한다.
  * @updated 2026-02-27
  */
-const useEasySubscription = (model, handler) => {
+const useEasySubscription = ({ model, handler }) => {
 
   /**
    * @description useEffect 실행 흐름 관리
@@ -317,10 +316,12 @@ const Combobox = forwardRef(({
   }, [options, filterable, query])
 
   const selectableOptions = options.filter((opt) => !opt.placeholder)
-  const allSelected =
-    multi &&
-    selectableOptions.length > 0 &&
-    selectableOptions.every((opt) => valueSet.has(String(opt.value)))
+  let allSelected = false
+  if (multi) {
+    if (selectableOptions.length > 0) {
+      allSelected = selectableOptions.every((opt) => valueSet.has(String(opt.value)))
+    }
+  }
 
   const syncDataListSelection = useCallback(
     (nextSet) => {
@@ -416,9 +417,9 @@ const Combobox = forwardRef(({
     })
   }, [deriveBoundValue, isControlled])
 
-  useEasySubscription(
-    dataObj,
-    useCallback(
+  useEasySubscription({
+    model: dataObj,
+    handler: useCallback(
       (detail) => {
         if (!dataKey || !detail) return
         const key = String(dataKey)
@@ -437,11 +438,11 @@ const Combobox = forwardRef(({
       },
       [dataKey, deriveBoundValue, isControlled],
     ),
-  )
+  })
 
-  useEasySubscription(
-    dataList,
-    useCallback(() => {
+  useEasySubscription({
+    model: dataList,
+    handler: useCallback(() => {
       if (isControlled) return
       const next = deriveBoundValue()
       setInnerValue((prev) => {
@@ -450,7 +451,7 @@ const Combobox = forwardRef(({
         return prevString === nextString ? prev : next
       })
     }, [deriveBoundValue, isControlled]),
-  )
+  })
 
   /**
    * @description 선택 결과를 정규화하고 내부 상태/바인딩/핸들러 호출을 동기화

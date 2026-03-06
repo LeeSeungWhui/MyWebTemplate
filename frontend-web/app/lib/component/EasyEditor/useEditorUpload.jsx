@@ -2,7 +2,7 @@
 /**
  * 파일명: useEditorUpload.jsx
  * 작성자: LSH
- * 갱신일: 2026-03-03
+ * 갱신일: 2026-03-05
  * 설명: EasyEditor 이미지 업로드 훅
  */
 
@@ -149,10 +149,13 @@ const createUploader = (uploadUrl, fieldName, transform) => {
   }
   return async (file) => {
     if (!file) return null;
-    const response = await easyUploadRequest(file, {
-      fileUploadUrl: uploadUrl,
-      singleFieldName: fieldName,
-      loading: true,
+    const response = await easyUploadRequest({
+      filesInput: file,
+      options: {
+        fileUploadUrl: uploadUrl,
+        singleFieldName: fieldName,
+        loading: true,
+      },
     });
     return transform(response, file);
   };
@@ -163,7 +166,7 @@ const createUploader = (uploadUrl, fieldName, transform) => {
  * 반환값: EasyEditor에서 사용하는 uploadImage/uploadFile/alertElement API 집합.
  * @updated 2026-02-24
  */
-const useEditorUpload = ({ imageUploadUrl = '', fileUploadUrl = '' } = {}) => {
+const useEditorUpload = ({ imageUploadUrl = '', fileUploadUrl = '' }) => {
 
   const uploadImage = useMemo(
     () => createUploader(imageUploadUrl, DEFAULT_IMAGE_FIELD, (payload) => extractUrl(payload)),

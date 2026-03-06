@@ -1,16 +1,16 @@
 "use client";
 /**
  * 파일명: sample/view.jsx
- * 작성자: LSH
- * 갱신일: 2026-03-04
- * 설명: 공개 샘플 허브 페이지 뷰
+ * 작성자: Codex
+ * 갱신일: 2026-03-06
+ * 설명: 공개 샘플 허브 페이지 뷰(DB overview 연동)
  */
 
 import Link from "next/link";
 import Card from "@/app/lib/component/Card";
 import Icon from "@/app/lib/component/Icon";
+import Stat from "@/app/lib/component/Stat";
 import { PAGE_CONFIG } from "./initData";
-import { normalizePageConfig } from "@/app/lib/runtime/pageData";
 import { usePageData } from "@/app/lib/hooks/usePageData";
 import LANG_KO from "./lang.ko";
 
@@ -25,31 +25,59 @@ const DEMO_HUB_EXTRA_LINK_LIST = initData.extraLinkList.map((item) => ({ ...item
 
 /**
  * @description 공개 샘플 허브 화면을 렌더링. 입력/출력 계약을 함께 명시
+ * 처리 규칙: 허브 카드/링크는 정적 리소스를 유지하고, overview 숫자만 DB 응답을 사용한다.
  * @returns {JSX.Element}
  */
 const DemoHubView = ({ initialDataObj, initialErrorObj }) => {
   /* 1. 상수 ======================================================================================================================= */
   // 없음
+
   /* 2. 데이터 ======================================================================================================================= */
-  const pageMode = normalizePageConfig(PAGE_CONFIG).MODE;
-  usePageData({
+  const { mode: pageMode, dataObj, isLoading } = usePageData({
     pageConfig: PAGE_CONFIG,
     initialDataObj,
     initialErrorObj,
   });
+  const overview = dataObj?.overview?.result || {};
+  const taskCount = Number(overview?.taskCount || 0);
+  const adminUserCount = Number(overview?.adminUserCount || 0);
+  const formSubmissionCount = Number(overview?.formSubmissionCount || 0);
+  const statCardList = [
+    {
+      label: LANG_KO.view.statLabel.taskCount,
+      value: taskCount.toLocaleString("ko-KR"),
+      deltaType: "neutral",
+    },
+    {
+      label: LANG_KO.view.statLabel.adminUserCount,
+      value: adminUserCount.toLocaleString("ko-KR"),
+      deltaType: "neutral",
+    },
+    {
+      label: LANG_KO.view.statLabel.formSubmissionCount,
+      value: formSubmissionCount.toLocaleString("ko-KR"),
+      deltaType: "neutral",
+    },
+  ];
 
   /* 3. UI ========================================================================================================================= */
   // 없음
+
   /* 4. 팝업 ======================================================================================================================= */
   // 없음
+
   /* 5. 기타 ======================================================================================================================= */
   // 없음
+
   /* 6. 커스텀 훅 =================================================================================================================== */
   // 없음
+
   /* 7. 함수 ======================================================================================================================= */
   // 없음
+
   /* 8. useEffect ================================================================================================================== */
   // 없음
+
   /* 9. 내부 컴포넌트 ============================================================================================================== */
   // 없음
 
@@ -66,6 +94,17 @@ const DemoHubView = ({ initialDataObj, initialErrorObj }) => {
         <p className="mt-3 text-sm text-blue-50 sm:text-base">
           {DEMO_HUB_HEADER.subtitle}
         </p>
+      </section>
+
+      <section className="mb-6 grid gap-3 md:grid-cols-3">
+        {statCardList.map((item) => (
+          <Stat
+            key={item.label}
+            {...item}
+            className="p-1"
+            value={isLoading ? "..." : item.value}
+          />
+        ))}
       </section>
 
       <section className="grid gap-4 md:grid-cols-2">

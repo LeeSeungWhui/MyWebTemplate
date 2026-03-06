@@ -2,7 +2,7 @@
 /**
  * 파일명: EasyChart.jsx
  * 작성자: LSH
- * 갱신일: 2026-03-04
+ * 갱신일: 2026-03-05
  * 설명: Recharts 기반 대시보드 차트 카드 래퍼
  */
 
@@ -90,7 +90,9 @@ const resolveHeightClass = (value, { min = 0, fallback = 260 } = {}) => {
    * @updated 2026-03-04
    */
   const toNumber = (raw) => {
-    if (typeof raw === "number" && Number.isFinite(raw)) return Math.floor(raw);
+    if (typeof raw === "number") {
+      if (Number.isFinite(raw)) return Math.floor(raw);
+    }
     if (typeof raw === "string") {
       const normalized = raw.trim().toLowerCase();
       const pxMatch = normalized.match(/^(\d+)(px)?$/);
@@ -353,12 +355,12 @@ const EasyChart = ({
        * @updated 2026-02-27
        */
       const renderPieLabel = (pieLabelProps) => {
-        const { name, value, percent, x: xCoord, y: yCoord } = pieLabelProps;
+        const { name, value, percent, x, y } = pieLabelProps;
         const pct = Math.round((percent || 0) * 100);
         return (
           <text
-            x={xCoord}
-            y={yCoord}
+            x={x}
+            y={y}
             fill="#374151"
             fontSize={pieLabelFontSize}
             textAnchor="middle"

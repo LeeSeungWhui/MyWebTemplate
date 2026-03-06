@@ -71,6 +71,26 @@ SERVICE_ERROR_SPECS: dict[str, ServiceErrorSpec] = {
         responseCode="DASH_500_CREATE_FAILED",
         defaultMessage="create failed",
     ),
+    "SAMPLE_422_INVALID_INPUT": ServiceErrorSpec(
+        statusCode=422,
+        responseCode="SAMPLE_422_INVALID_INPUT",
+        defaultMessage="invalid input",
+    ),
+    "SAMPLE_404_NOT_FOUND": ServiceErrorSpec(
+        statusCode=404,
+        responseCode="SAMPLE_404_NOT_FOUND",
+        defaultMessage="data not found",
+    ),
+    "SAMPLE_409_ALREADY_EXISTS": ServiceErrorSpec(
+        statusCode=409,
+        responseCode="SAMPLE_409_ALREADY_EXISTS",
+        defaultMessage="already exists",
+    ),
+    "SAMPLE_500_CREATE_FAILED": ServiceErrorSpec(
+        statusCode=500,
+        responseCode="SAMPLE_500_CREATE_FAILED",
+        defaultMessage="create failed",
+    ),
     "OBS_503_NOT_READY": ServiceErrorSpec(
         statusCode=503,
         responseCode="OBS_503_NOT_READY",

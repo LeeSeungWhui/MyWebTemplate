@@ -67,6 +67,11 @@ export const LANG_KO = {
       step1Title: "기본 정보",
       step2Title: "상세 정보",
       step3Title: "확인/제출",
+      submissionTitlePrefix: "누적 제출",
+      submissionTitleSuffix: "건",
+      submissionDescription: "공개 sample 폼은 제출 시 DB에 저장되고, 최신 제출 이력도 함께 갱신된다.",
+      latestSubmissionTitle: "최근 제출",
+      latestSubmissionEmpty: "아직 저장된 제출 이력이 없습니다.",
     },
     input: {
       namePlaceholder: "이름",
@@ -81,6 +86,9 @@ export const LANG_KO = {
       next: "다음",
       submit: "제출하기",
       submitSuccessToast: "신청이 완료되었습니다",
+    },
+    error: {
+      submitFailed: "제출에 실패했습니다.",
     },
   },
 };

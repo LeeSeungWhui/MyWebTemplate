@@ -1,7 +1,7 @@
 /**
  * 파일명: Dropdown.jsx
  * 작성자: LSH
- * 갱신일: 2026-03-03
+ * 갱신일: 2026-03-05
  * 설명: 경량 Dropdown 컴포넌트 (EasyList 지원, 접근성 포함)
  */
 import React, { useEffect, useRef, useState } from 'react';
@@ -180,9 +180,8 @@ const Dropdown = ({
       });
     } else if (Array.isArray(dataList)) {
       dataList.forEach((node) => {
-        const nodeValue = node?.[valueKey];
-        const isTarget = String(nodeValue) === String(value);
         if (!node) return;
+        const isTarget = String(node?.[valueKey]) === String(value);
         if (multiSelect) {
           node.selected = isTarget ? !node.selected : Boolean(node.selected);
         } else {

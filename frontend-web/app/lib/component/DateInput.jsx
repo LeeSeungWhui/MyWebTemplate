@@ -1,7 +1,7 @@
 /**
  * 파일명: DateInput.jsx
  * 작성자: LSH
- * 갱신일: 2026-03-03
+ * 갱신일: 2026-03-05
  * 설명: DateInput UI 컴포넌트 구현
  */
 
@@ -11,18 +11,12 @@ import Icon from './Icon';
 import { COMMON_COMPONENT_LANG_KO } from '@/app/common/i18n/lang.ko';
 
 /**
- * @description 월/일 숫자 두 자리 문자열 정규화
- * 처리 규칙: 1자리 숫자는 앞에 0을 붙이고, 2자리 이상은 원문을 유지한다.
- * @updated 2026-02-27
- */
-const pad2 = (numberValue) => String(numberValue).padStart(2, '0');
-
-/**
  * @description 연/월/일 숫자 YYYY-MM-DD 문자열 결합
  * 반환값: DateInput 내부 비교와 바인딩에 사용하는 ISO 날짜 문자열.
  * @updated 2026-02-27
  */
-const fmtISO = (yearValue, monthValue, dayValue) => `${yearValue}-${pad2(monthValue)}-${pad2(dayValue)}`;
+const fmtISO = (yearValue, monthValue, dayValue) =>
+  `${yearValue}-${String(monthValue).padStart(2, '0')}-${String(dayValue).padStart(2, '0')}`;
 
 /**
  * @description MM-DD 텍스트를 Date 객체로 변환. 입력/출력 계약을 함께 명시

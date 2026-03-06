@@ -15,7 +15,7 @@ export const metadata = {
   description: LANG_KO.page.metadataDescription,
 };
 
-export const dynamic = "force-static";
+export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 export const revalidate = 0;
 

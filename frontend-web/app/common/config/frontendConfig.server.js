@@ -1,7 +1,7 @@
 /**
  * 파일명: frontendConfig.server.js
  * 작성자: LSH
- * 갱신일: 2026-03-03
+ * 갱신일: 2026-03-05
  * 설명: 프론트엔드 config.ini 로더
  */
 
@@ -70,12 +70,14 @@ export const parseIni = (iniText) => {
   for (const rawLine of lines) {
     const line = rawLine.trim()
     if (!line || line.startsWith('#') || line.startsWith(';')) continue
-    if (line.startsWith('[') && line.endsWith(']')) {
-      const sectionName = line.slice(1, -1).trim()
-      if (!sectionName) continue
-      if (!result[sectionName]) result[sectionName] = {}
-      currentSection = result[sectionName]
-      continue
+    if (line.startsWith('[')) {
+      if (line.endsWith(']')) {
+        const sectionName = line.slice(1, -1).trim()
+        if (!sectionName) continue
+        if (!result[sectionName]) result[sectionName] = {}
+        currentSection = result[sectionName]
+        continue
+      }
     }
     const equalsIndex = line.indexOf('=')
     if (equalsIndex === -1) continue
@@ -94,7 +96,9 @@ export const parseIni = (iniText) => {
 const coerceValue = (valueRaw) => {
   if (valueRaw === '') return ''
 
-  if ((valueRaw.startsWith("'") && valueRaw.endsWith("'")) || (valueRaw.startsWith('"') && valueRaw.endsWith('"'))) {
+  const isSingleQuoted = valueRaw.startsWith("'") ? valueRaw.endsWith("'") : false
+  const isDoubleQuoted = valueRaw.startsWith('"') ? valueRaw.endsWith('"') : false
+  if (isSingleQuoted || isDoubleQuoted) {
     const inner = valueRaw.slice(1, -1)
     return coerceValue(inner)
   }
@@ -104,9 +108,11 @@ const coerceValue = (valueRaw) => {
   const num = Number(valueRaw)
   if (!Number.isNaN(num) && valueRaw.trim() !== '') return num
   try {
+    const startsWithObject = valueRaw.startsWith('{')
+    const startsWithArray = valueRaw.startsWith('[')
     const looksLikeJson =
-      (valueRaw.startsWith('{') && valueRaw.endsWith('}')) ||
-      (valueRaw.startsWith('[') && valueRaw.endsWith(']'))
+      (startsWithObject ? valueRaw.endsWith('}') : false) ||
+      (startsWithArray ? valueRaw.endsWith(']') : false)
     if (looksLikeJson) {
       const notParsed = Symbol('notParsed')
       const parsedValue = safeJsonParse(valueRaw, notParsed)

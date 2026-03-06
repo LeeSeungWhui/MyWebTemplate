@@ -2,7 +2,7 @@
 /**
  * 파일명: PdfViewer.jsx
  * 작성자: LSH
- * 갱신일: 2026-03-04
+ * 갱신일: 2026-03-05
  * 설명: PDF 렌더링 컴포넌트
  */
 
@@ -102,11 +102,15 @@ const PdfViewer = ({
     const nextFileUrl = toObjectUrl(src);
     setObjectUrl(nextFileUrl);
     return () => {
-      if (nextFileUrl && typeof nextFileUrl === 'string' && nextFileUrl.startsWith('blob:')) {
-        try {
-          URL.revokeObjectURL(nextFileUrl);
-        } catch {
-          // 한글설명: revoke 실패는 화면 동작에 영향 없으므로 무시
+      if (nextFileUrl) {
+        if (typeof nextFileUrl === 'string') {
+          if (nextFileUrl.startsWith('blob:')) {
+            try {
+              URL.revokeObjectURL(nextFileUrl);
+            } catch {
+              // 한글설명: revoke 실패는 화면 동작에 영향 없으므로 무시
+            }
+          }
         }
       }
     };

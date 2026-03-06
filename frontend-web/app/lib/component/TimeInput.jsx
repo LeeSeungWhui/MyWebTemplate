@@ -1,7 +1,7 @@
 /**
  * 파일명: TimeInput.jsx
  * 작성자: LSH
- * 갱신일: 2026-03-03
+ * 갱신일: 2026-03-05
  * 설명: TimeInput UI 컴포넌트 구현
  */
 
@@ -9,13 +9,6 @@ import { forwardRef, useEffect, useMemo, useRef, useState } from 'react';
 import { getBoundValue, setBoundValue, buildCtx, fireValueHandlers } from '../binding';
 import Icon from './Icon';
 import { COMMON_COMPONENT_LANG_KO } from '@/app/common/i18n/lang.ko';
-
-/**
- * @description 시/분 숫자 두 자리 문자열 정규화
- * 처리 규칙: 1자리 값은 앞에 0을 붙여 HH:mm 포맷 정합성을 유지한다.
- * @updated 2026-02-27
- */
-const pad2 = (numberValue) => String(numberValue).padStart(2, '0');
 
 /**
  * @description 렌더링 및 상호작용 처리
@@ -101,7 +94,7 @@ const TimeInput = forwardRef(({
     for (let secondCursor = 0; secondCursor < 24 * 60 * 60; secondCursor += interval * 60) {
       const hourValue = Math.floor(secondCursor / 3600);
       const minuteValue = Math.floor((secondCursor % 3600) / 60);
-      options.push(`${pad2(hourValue)}:${pad2(minuteValue)}`);
+      options.push(`${String(hourValue).padStart(2, '0')}:${String(minuteValue).padStart(2, '0')}`);
     }
     return options;
   }, [interval]);

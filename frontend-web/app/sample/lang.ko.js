@@ -14,6 +14,11 @@ export const LANG_KO = {
     heroBadge: "PUBLIC SAMPLE HUB",
     openSampleButton: "샘플 열기",
     extraSectionTitle: "추가 자료",
+    statLabel: {
+      taskCount: "업무 샘플",
+      adminUserCount: "관리자 사용자",
+      formSubmissionCount: "폼 제출",
+    },
   },
   initData: {
     header: {

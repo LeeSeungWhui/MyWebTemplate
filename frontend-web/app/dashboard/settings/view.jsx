@@ -2,7 +2,7 @@
 /**
  * 파일명: dashboard/settings/view.jsx
  * 작성자: LSH
- * 갱신일: 2026-03-04
+ * 갱신일: 2026-03-05
  * 설명: 대시보드 설정 클라이언트 뷰(프로필/시스템설정 탭)
  */
 
@@ -268,18 +268,18 @@ const SettingsView = ({ initialDataObj, initialErrorObj }) => {
   /* 10. 렌더링 ==================================================================================================================== */
   return (
     <div className="space-y-3" data-page-mode={pageMode}>
-      {ui.error?.message ? (
+      {ui.error?.message && (
         <section aria-label={LANG_KO.view.error.profileLoadFailed}>
           <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700" role="alert">
             <div>{ui.error.message}</div>
-            {ui.error.requestId ? (
+            {ui.error.requestId && (
               <div className="mt-1 text-xs text-red-700/80">
                 {LANG_KO.view.error.requestIdLabel}: {ui.error.requestId}
               </div>
-            ) : null}
+            )}
           </div>
         </section>
-      ) : null}
+      )}
 
       <Card title={LANG_KO.view.card.title}>
         <Tab

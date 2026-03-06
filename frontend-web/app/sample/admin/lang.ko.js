@@ -96,6 +96,7 @@ export const LANG_KO = {
       loadingTitle: "로딩 중",
       loadingBody: "관리자 화면 데이터를 준비하는 중입니다...",
       panelTitle: "관리자 패널",
+      userCountSuffix: "명",
     },
     table: {
       profileHeader: "프로필",
@@ -116,6 +117,7 @@ export const LANG_KO = {
       saveUpdatedToast: "사용자 정보가 저장되었습니다.",
       nameRequired: "이름을 입력해주세요.",
       emailRequired: "이메일을 입력해주세요.",
+      saveFailed: "사용자 저장에 실패했습니다.",
     },
     settings: {
       siteNameLabel: "사이트명",
@@ -125,6 +127,7 @@ export const LANG_KO = {
       maintenanceModeLabel: "점검 모드",
       saveButton: "저장",
       saveToast: "설정이 저장되었습니다",
+      saveFailed: "설정 저장에 실패했습니다.",
     },
     misc: {
       defaultStatusCode: "active",

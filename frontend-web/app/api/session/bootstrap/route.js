@@ -1,7 +1,7 @@
 /**
  * 파일명: route.js
  * 작성자: LSH
- * 갱신일: 2026-03-03
+ * 갱신일: 2026-03-05
  * 설명: /login 진입 시 refresh_token으로 access_token을 재발급하고 next(=nx)/dashboard로 자동 리다이렉트
  */
 
@@ -25,7 +25,7 @@ const REFRESH_PATH = "/api/v1/auth/refresh";
 
 /**
  * 설명: Cookie 헤더 문자열을 단순 파싱(값 디코딩은 별도 처리)
- * 갱신일: 2026-01-18
+ * 갱신일: 2026-03-05
  */
 const parseCookieHeader = (cookieHeader) => {
   const result = {};
@@ -46,7 +46,7 @@ const parseCookieHeader = (cookieHeader) => {
 
 /**
  * 설명: 백엔드 Set-Cookie를 프런트 도메인에 맞게 정리(Domain 제거 + Path 보장)
- * 갱신일: 2026-01-18
+ * 갱신일: 2026-03-05
  */
 const rewriteSetCookie = (rawValue) => {
   if (!rawValue || typeof rawValue !== "string") return null;
@@ -68,7 +68,7 @@ const rewriteSetCookie = (rawValue) => {
 
 /**
  * 설명: 런타임별 Response 헤더 구현 차이 흡수와 Set-Cookie 배열 수집
- * 갱신일: 2026-01-18
+ * 갱신일: 2026-03-05
  */
 const collectSetCookies = (res) => {
   let setCookies = res?.headers?.getSetCookie?.() || [];
@@ -81,36 +81,36 @@ const collectSetCookies = (res) => {
 
 /**
  * 설명: refresh_token 존재 시 access_token 재발급 및 nx(/dashboard) 이동
- * 갱신일: 2026-01-18
+ * 갱신일: 2026-03-05
  */
-export const GET = async (request) => {
-  const cookieHeader = request.headers.get("cookie") || "";
+export const GET = async ({ headers, url }) => {
+  const cookieHeader = headers.get("cookie") || "";
   const cookies = parseCookieHeader(cookieHeader);
   const refreshToken = cookies.refresh_token || null;
   const rawNext = safeDecodeURIComponent(cookies[NX_COOKIE] || null);
   const nextPath = sanitizeInternalPath(rawNext, DEFAULT_NEXT_PATH);
 
   if (!refreshToken) {
-    const res = NextResponse.redirect(new URL("/login", request.url), 307);
+    const res = NextResponse.redirect(new URL("/login", url), 307);
     res.headers.set("Cache-Control", "no-store");
     return res;
   }
 
   const backendHost = await getBackendHost();
   const refreshUrl = new URL(REFRESH_PATH, backendHost);
-  const headers = new Headers();
-  const acceptLanguage = request.headers.get("accept-language");
-  const originHeader = request.headers.get("origin");
-  const refererHeader = request.headers.get("referer");
-  if (acceptLanguage) headers.set("accept-language", acceptLanguage);
-  if (cookieHeader) headers.set("cookie", cookieHeader);
-  if (originHeader) headers.set("origin", originHeader);
-  if (refererHeader) headers.set("referer", refererHeader);
-  headers.set("content-type", "application/json");
+  const requestHeaders = new Headers();
+  const acceptLanguage = headers.get("accept-language");
+  const originHeader = headers.get("origin");
+  const refererHeader = headers.get("referer");
+  if (acceptLanguage) requestHeaders.set("accept-language", acceptLanguage);
+  if (cookieHeader) requestHeaders.set("cookie", cookieHeader);
+  if (originHeader) requestHeaders.set("origin", originHeader);
+  if (refererHeader) requestHeaders.set("referer", refererHeader);
+  requestHeaders.set("content-type", "application/json");
 
   const refreshRes = await fetch(refreshUrl, {
     method: "POST",
-    headers,
+    headers: requestHeaders,
     redirect: "manual",
     cache: "no-store",
   });
@@ -120,7 +120,7 @@ export const GET = async (request) => {
     .filter(Boolean);
   const redirectTo = refreshRes.ok ? nextPath : "/login";
 
-  const res = NextResponse.redirect(new URL(redirectTo, request.url), 307);
+  const res = NextResponse.redirect(new URL(redirectTo, url), 307);
   res.headers.set("Cache-Control", "no-store");
 
   if (refreshRes.ok) {

@@ -1,7 +1,7 @@
 /**
  * 파일명: Input.jsx
  * 작성자: LSH
- * 갱신일: 2026-03-03
+ * 갱신일: 2026-03-05
  * 설명: 필터 및 마스크가 적용된 입력 컴포넌트
  */
 import { useEffect, useState, useRef, forwardRef } from "react";
@@ -102,18 +102,26 @@ const Input = forwardRef(
 
         if (maskPosition >= maskPattern.length) break;
 
-        if (maskPattern[maskPosition] === "#" && /\d/.test(value[i])) {
-          cleanValue += value[i];
-          maskPosition++;
-        } else if (maskPattern[maskPosition] === "A" && /[a-zA-Z]/.test(value[i])) {
-          cleanValue += value[i].toUpperCase();
-          maskPosition++;
-        } else if (maskPattern[maskPosition] === "a" && /[a-zA-Z]/.test(value[i])) {
-          cleanValue += value[i].toLowerCase();
-          maskPosition++;
-        } else if (maskPattern[maskPosition] === "?" && /[a-zA-Z]/.test(value[i])) {
-          cleanValue += value[i];
-          maskPosition++;
+        if (maskPattern[maskPosition] === "#") {
+          if (/\d/.test(value[i])) {
+            cleanValue += value[i];
+            maskPosition++;
+          }
+        } else if (maskPattern[maskPosition] === "A") {
+          if (/[a-zA-Z]/.test(value[i])) {
+            cleanValue += value[i].toUpperCase();
+            maskPosition++;
+          }
+        } else if (maskPattern[maskPosition] === "a") {
+          if (/[a-zA-Z]/.test(value[i])) {
+            cleanValue += value[i].toLowerCase();
+            maskPosition++;
+          }
+        } else if (maskPattern[maskPosition] === "?") {
+          if (/[a-zA-Z]/.test(value[i])) {
+            cleanValue += value[i];
+            maskPosition++;
+          }
         } else if (maskPattern[maskPosition] === "*") {
           cleanValue += value[i];
           maskPosition++;

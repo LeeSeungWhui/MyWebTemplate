@@ -2,7 +2,7 @@
 /**
  * 파일명: dashboard/tasks/view.jsx
  * 작성자: LSH
- * 갱신일: 2026-03-04
+ * 갱신일: 2026-03-05
  * 설명: 업무 관리 클라이언트 뷰(CSR API 연동 CRUD)
  */
 
@@ -100,9 +100,6 @@ const TasksView = ({ initialDataObj, initialErrorObj }) => {
   });
   const hasListEndpoint = Boolean(TASK_LIST_API_PATH);
   const hasDetailEndpoint = Boolean(TASK_DETAIL_API_PATH);
-  const hasCreateEndpoint = hasListEndpoint;
-  const hasUpdateEndpoint = hasDetailEndpoint;
-  const hasRemoveEndpoint = hasDetailEndpoint;
 
   const tableColumns = [
     {
@@ -179,6 +176,15 @@ const TasksView = ({ initialDataObj, initialErrorObj }) => {
     },
   ];
   const pageCount = Math.max(1, Math.ceil(taskMetaObj.totalCount / PAGE_SIZE));
+  /* 3. UI ========================================================================================================================= */
+  // 없음
+  /* 4. 팝업 ======================================================================================================================= */
+  // 없음
+  /* 5. 기타 ======================================================================================================================= */
+  // 없음
+  /* 6. 커스텀 훅 =================================================================================================================== */
+  // 없음
+  /* 7. 함수 ======================================================================================================================= */
 
   /**
    * @description tags 입력값을 문자열 배열로 정규화. 입력/출력 계약을 함께 명시
@@ -416,11 +422,11 @@ const TasksView = ({ initialDataObj, initialErrorObj }) => {
       showToast(LANG_KO.view.validation.invalidStatus, { type: "warning" });
       return;
     }
-    if (ui.drawerMode === "create" && !hasCreateEndpoint) {
+    if (ui.drawerMode === "create" && !hasListEndpoint) {
       showToast(LANG_KO.view.error.createEndpointMissing, { type: "error" });
       return;
     }
-    if (ui.drawerMode === "edit" && (!ui.editingId || !hasUpdateEndpoint)) {
+    if (ui.drawerMode === "edit" && (!ui.editingId || !hasDetailEndpoint)) {
       showToast(LANG_KO.view.error.updateEndpointMissing, { type: "error" });
       return;
     }
@@ -466,7 +472,7 @@ const TasksView = ({ initialDataObj, initialErrorObj }) => {
    * @updated 2026-02-27
    */
   const removeTask = async (row) => {
-    if (!hasRemoveEndpoint) {
+    if (!hasDetailEndpoint) {
       showToast(LANG_KO.view.error.removeEndpointMissing, { type: "error" });
       return;
     }
@@ -495,6 +501,7 @@ const TasksView = ({ initialDataObj, initialErrorObj }) => {
     }
   };
 
+  /* 8. useEffect ================================================================================================================== */
   /**
    * @description 초기 필터 기준으로 목록 API를 호출해 테이블 데이터를 동기화
    * 처리 규칙: 첫 마운트에서는 브라우저 query 재기록 없이 초기 데이터만 조회한다.
@@ -509,36 +516,24 @@ const TasksView = ({ initialDataObj, initialErrorObj }) => {
     });
   }, [hasListEndpoint]);
 
-  /* 3. UI ========================================================================================================================= */
-  // 없음
-  /* 4. 팝업 ======================================================================================================================= */
-  // 없음
-  /* 5. 기타 ======================================================================================================================= */
-  // 없음
-  /* 6. 커스텀 훅 =================================================================================================================== */
-  // 없음
-  /* 7. 함수 ======================================================================================================================= */
-  // 없음
-  /* 8. useEffect ================================================================================================================== */
-  // 없음
   /* 9. 내부 컴포넌트 ============================================================================================================== */
   // 없음
 
   /* 10. 렌더링 ==================================================================================================================== */
   return (
     <div className="space-y-3" data-page-mode={pageMode}>
-      {ui.error?.message ? (
+      {ui.error?.message && (
         <section aria-label={LANG_KO.view.error.listLoadFailed}>
           <div className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700" role="alert">
             <div>{ui.error.message}</div>
-            {ui.error.requestId ? (
+            {ui.error.requestId && (
               <div className="mt-1 text-xs text-red-700/80">
                 {LANG_KO.view.error.requestIdLabel}: {ui.error.requestId}
               </div>
-            ) : null}
+            )}
           </div>
         </section>
-      ) : null}
+      )}
 
       <Card
         title={LANG_KO.view.card.managementTitle}
@@ -637,12 +632,12 @@ const TasksView = ({ initialDataObj, initialErrorObj }) => {
         <div className="p-5 space-y-4">
           <div>
             <h3 className="text-lg font-semibold text-gray-900">
-              {ui.drawerMode === "create" ? LANG_KO.view.drawer.createTitle : LANG_KO.view.drawer.editTitle}
+              {ui.drawerMode === "create" && LANG_KO.view.drawer.createTitle}
+              {ui.drawerMode !== "create" && LANG_KO.view.drawer.editTitle}
             </h3>
             <p className="mt-1 text-sm text-gray-500">
-              {ui.drawerMode === "create"
-                ? LANG_KO.view.drawer.createSubtitle
-                : `${LANG_KO.view.drawer.editSubtitlePrefix}${ui.editingId || LANG_KO.view.misc.dateUnknown}`}
+              {ui.drawerMode === "create" && LANG_KO.view.drawer.createSubtitle}
+              {ui.drawerMode !== "create" && `${LANG_KO.view.drawer.editSubtitlePrefix}${ui.editingId || LANG_KO.view.misc.dateUnknown}`}
             </p>
           </div>
 

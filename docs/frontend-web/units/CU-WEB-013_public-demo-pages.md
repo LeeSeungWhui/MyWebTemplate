@@ -14,13 +14,13 @@ links: [CU-WEB-011, CU-WEB-012, CU-WEB-003, CU-WEB-006, CU-WEB-009]
 ### Scope
 - 포함
   - `GET /sample`: 샘플 허브(카드 네비게이션)
-  - `GET /sample/dashboard`: 읽기 전용 샘플 대시보드(차트/카드/최근 목록)
-  - `GET /sample/crud`: 목록/검색/필터/드로어 CRUD(프론트 상태 기반)
-  - `GET /sample/form`: 다단계 입력 폼(검증/요약/제출 UX)
-  - `GET /sample/admin`: 사용자/역할/설정 탭 기반 관리자 UI
+  - `GET /sample/dashboard`: 읽기 전용 샘플 대시보드(차트/카드/최근 목록, DB 조회 기반)
+  - `GET /sample/crud`: 목록/검색/필터/드로어 CRUD(DB 조회/등록/수정/삭제)
+  - `GET /sample/form`: 다단계 입력 폼(검증/요약/제출 UX, DB 제출 저장)
+  - `GET /sample/admin`: 사용자/역할/설정 탭 기반 관리자 UI(DB 사용자/설정 조회·저장)
   - 공통 레이아웃 재사용(Header/Sidebar/Footer)
 - 제외
-  - 실서버 데이터 영속화(샘플 모드에서는 더미/읽기 전용 허용)
+  - 실운영 비즈니스 데이터 연결
 
 ### Interface
 - 라우트(UI)
@@ -47,7 +47,7 @@ links: [CU-WEB-011, CU-WEB-012, CU-WEB-003, CU-WEB-006, CU-WEB-009]
   - 월별 추이 차트 1개
   - 최근 항목 테이블 1개
   - `업무 상세로 이동` CTA는 `/sample/crud` 또는 `/sample/admin`으로 연결
-  - 기본 정책: 읽기 전용(등록/수정/삭제 버튼 없음)
+  - 기본 정책: 읽기 전용(등록/수정/삭제 버튼 없음), 데이터는 DB 집계 결과 사용
 - `/sample/crud`
   - 상단 검색/필터 바
     - `Input`(placeholder: `검색어를 입력하세요`)
@@ -57,7 +57,7 @@ links: [CU-WEB-011, CU-WEB-012, CU-WEB-003, CU-WEB-006, CU-WEB-009]
   - 목록 테이블(`EasyTable`)
     - 컬럼: 체크박스/번호/제목/상태/담당자/금액/등록일/관리
     - 페이지네이션: 4~5행/페이지
-    - 초기 데이터: 10~15건(더미)
+    - 초기 데이터: DB bootstrap 레코드 10~15건
   - 등록/수정 Drawer
     - 필드: 제목(required), 상태(code), 담당자, 금액, 설명, 첨부파일, 저장/취소
   - 삭제 Confirm 다이얼로그
@@ -83,13 +83,15 @@ links: [CU-WEB-011, CU-WEB-012, CU-WEB-003, CU-WEB-006, CU-WEB-009]
 
 ### Data & Rules
 - 샘플 페이지는 고객 체험 속도를 우선해 즉시 상호작용 가능해야 한다.
-- 브라우저 새로고침 시 더미 초기값으로 재시작을 허용한다.
-- `/sample/crud`에서 변경한 데이터는 같은 세션에서 `/sample/dashboard`와 공유된다.
+- 샘플 페이지 데이터는 공개 sample 전용 DB 테이블/설정(JSON config 포함) 기준으로 조회한다.
+- 브라우저 새로고침 후에도 DB에 저장된 공개 sample 상태가 유지되어야 한다.
+- `/sample/crud`에서 변경한 데이터는 `/sample/dashboard`, `/sample`, `/sample/portfolio`의 집계/최근 목록에 반영된다.
 - 주요 조작(등록/수정/삭제/제출/저장)은 토스트 또는 인라인 메시지로 결과를 명확히 보여준다.
 - 공개 페이지이므로 인증 없이 접근 가능해야 한다.
 - 에러/로딩/빈 상태 처리는 `codding-rules-frontend.md` 7장 규칙(Alert/Toast/Loading)과 동일 패턴을 사용한다.
 - 상태값은 코드 기준(`ready`, `pending`, `running`, `done`, `failed`)으로 저장하고, 화면 표시는 한글 라벨로 매핑한다.
 - 고객 노출 관점에서 샘플 경로는 `/sample/*`만 사용하며, 인증 경로(`/dashboard*`)로 직접 유도하지 않는다.
+- 프론트는 직접 `fetch()`하지 않고 `apiJSON`/`PAGE_CONFIG.API` 기반으로 공개 sample API를 호출한다.
 - i18n 규칙
   - 샘플 페이지의 사용자 노출 문구(카드명/버튼/테이블 헤더/Toast/빈상태/에러)는 `lang.ko.js` 키로 관리한다.
 
@@ -102,6 +104,7 @@ links: [CU-WEB-011, CU-WEB-012, CU-WEB-003, CU-WEB-006, CU-WEB-009]
 - AC-2: `/sample/dashboard` 진입 시 KPI 카드/차트/최근목록이 렌더링되고 비인증 상태에서도 접근 가능하다.
 - AC-3: `/sample/crud` 진입 시 검색바(키워드/상태/기간/검색/신규등록)와 테이블 8개 컬럼이 렌더링된다.
 - AC-4: `/sample/crud`에서 신규 등록 후 목록 건수가 +1, 수정 후 해당 행 값 변경, 삭제 확인 후 목록에서 제거가 즉시 반영된다.
+- AC-4-1: `/sample/crud` 등록/수정/삭제 결과가 새로고침 후에도 유지된다.
 - AC-5: `/sample/crud` 목록이 0건이면 빈 상태 UI(예: `데이터가 없습니다`)가 표시된다.
 - AC-6: `/sample/form`에서 Step 1 필수값 미입력 시 다음 단계 진행이 차단되고 오류 메시지가 표시된다.
 - AC-7: `/sample/form`에서 Step 3 제출 성공 시 Toast `신청이 완료되었습니다`가 노출되고 폼이 초기화된다.
@@ -111,9 +114,11 @@ links: [CU-WEB-011, CU-WEB-012, CU-WEB-003, CU-WEB-006, CU-WEB-009]
 - AC-11: 데이터 초기화 또는 비정상 상태 예외 시 사용자에게 Alert/Toast 에러 메시지를 보여주고 화면은 기본 레이아웃을 유지한다.
 - AC-12: 데이터 준비 중 로딩 컴포넌트(또는 스켈레톤)가 표시되고, 완료 시 콘텐츠로 전환된다.
 - AC-13: 샘플 허브 및 `/sample/*`의 사용자 노출 문구는 `lang.ko.js` 기반으로 렌더링되고 하드코딩 문자열이 없다.
+- AC-14: `/sample`, `/sample/dashboard`, `/sample/portfolio`의 카운트/최근 목록은 공개 sample DB API 응답 기준으로 렌더링된다.
 
 ### Tasks
 - T1: `/sample` 허브 + 4개 샘플 페이지를 `initData/page/view` 구조로 작성한다.
 - T2: 공통 UI 컴포넌트(EasyTable/Drawer/Tab/Toast/EasyChart) 조합으로 페이지 구현.
 - T3: 공개 라우트 Allowlist를 `/sample/:path*` 중심으로 정리하고 링크를 연결한다.
 - T4: 샘플 페이지 공통 텍스트 키를 `lang.ko.js`로 분리하고 적용(카드/필터/테이블/Toast/에러 포함).
+- T5: 공개 sample 전용 API(`overview/dashboard/tasks/forms/admin`)와 화면을 연결하고 SSR 초기 적재를 적용한다.

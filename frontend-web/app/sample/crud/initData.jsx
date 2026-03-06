@@ -6,6 +6,12 @@
  */
 
 export const PAGE_CONFIG = {
-  MODE: "CSR",
-  API: {},
+  MODE: "SSR",
+  API: {
+    list: {
+      path: "/api/v1/sample/tasks?page=1&size=50",
+      method: "GET",
+      authless: true,
+    },
+  },
 };

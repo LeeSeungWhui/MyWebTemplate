@@ -1,7 +1,7 @@
 /**
  * 파일명: Select.jsx
  * 작성자: LSH
- * 갱신일: 2026-03-03
+ * 갱신일: 2026-03-05
  * 설명: EasyObj/EasyList 바운드 및 컨트롤드 모드를 모두 지원하는 Select 컴포넌트
  */
 import { forwardRef, useCallback, useEffect, useId, useMemo, useState } from 'react'
@@ -85,7 +85,7 @@ const normalizeOptions = (dataList = [], valueKey, textKey) => {
  * 처리 규칙: subscribe가 있으면 등록하고 cleanup에서 unsubscribe를 호출한다.
  * @updated 2026-02-27
  */
-const useEasySubscription = (model, handler) => {
+const useEasySubscription = ({ model, handler }) => {
 
   /**
    * @description useEffect 실행 흐름 관리
@@ -195,9 +195,9 @@ const Select = forwardRef(({
   }, [deriveValueFromSources, isControlled])
 
 
-  useEasySubscription(
-    dataObj,
-    useCallback(
+  useEasySubscription({
+    model: dataObj,
+    handler: useCallback(
       (detail) => {
         if (!detail || !dataKey) return
         const key = String(dataKey)
@@ -212,16 +212,16 @@ const Select = forwardRef(({
       },
       [dataKey, deriveValueFromSources],
     ),
-  )
+  })
 
-  useEasySubscription(
-    dataList,
-    useCallback(() => {
+  useEasySubscription({
+    model: dataList,
+    handler: useCallback(() => {
       if (isControlled) return
       const next = deriveValueFromSources()
       setInnerValue((prev) => (prev === next ? prev : next))
     }, [isControlled, deriveValueFromSources]),
-  )
+  })
 
   const normalizedStatus = disabled
     ? 'disabled'

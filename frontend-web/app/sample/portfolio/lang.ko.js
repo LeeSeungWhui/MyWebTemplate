@@ -28,8 +28,16 @@ export const LANG_KO = {
     label: {
       developer: "담당 개발자",
       moveSample: "샘플 이동",
+      status: "상태",
       architectureDescription:
         "화면에서 요청한 정보가 어떤 단계로 처리되는지, 이해하기 쉽게 단순화해서 표현했습니다.",
+    },
+    overviewCard: {
+      taskCount: "업무 샘플 데이터",
+      adminUserCount: "관리자 샘플 사용자",
+      formSubmissionCount: "최근 폼 제출",
+      countSuffix: "건",
+      userSuffix: "명",
     },
   },
   initData: {

@@ -2,7 +2,7 @@
 /**
  * 파일명: dashboard/view.jsx
  * 작성자: LSH
- * 갱신일: 2026-03-04
+ * 갱신일: 2026-03-05
  * 설명: 대시보드 클라이언트 뷰
  */
 
@@ -17,20 +17,14 @@ import Skeleton from "@/app/lib/component/Skeleton";
 import Stat from "@/app/lib/component/Stat";
 import { PAGE_CONFIG } from "./initData";
 import LANG_KO from "./lang.ko";
-import {
-  CHART_HEIGHT,
-  DONUT_HEIGHT,
-  STATUS_ORDER,
-  DASHBOARD_ERROR_KEY,
-  normalizeStatusList,
-  normalizeDashboardItems,
-  monthKey,
-  formatNumber,
-  formatCurrency,
-  resolveErrorText,
-  createTasksPath,
-  normalizeErrorState,
-} from "./viewHelper";
+
+const CHART_HEIGHT = 180;
+const DONUT_HEIGHT = 180;
+const STATUS_ORDER = ["ready", "pending", "running", "done", "failed"];
+const DASHBOARD_ERROR_KEY = {
+  ENDPOINT_MISSING: "ENDPOINT_MISSING",
+  INIT_FETCH_FAILED: "INIT_FETCH_FAILED",
+};
 
 /**
  * @description 대시보드 요약 통계/차트/최근 목록 화면을 렌더링. 입력/출력 계약을 함께 명시
@@ -41,7 +35,8 @@ const DashboardView = ({
   initialErrorObj = {},
 }) => {
   /* 1. 상수 ======================================================================================================================= */
-  // 없음
+  const endpoints = PAGE_CONFIG.API || {};
+  const hasEndpoint = Boolean(endpoints.stats && endpoints.list);
 
   /* 2. 데이터 ======================================================================================================================= */
 
@@ -51,16 +46,68 @@ const DashboardView = ({
     initialDataObj,
     initialErrorObj,
   });
-  const endpoints = PAGE_CONFIG.API || {};
-  const hasEndpoint = Boolean(endpoints.stats && endpoints.list);
-  const statList = normalizeStatusList(dataObj?.stats);
-  const dataList = normalizeDashboardItems(dataObj?.list);
-  const initialErrorState = normalizeErrorState(
-    initialErrorObj?.stats || initialErrorObj?.list || null,
-    DASHBOARD_ERROR_KEY,
-  );
-  const statsErrorState = normalizeErrorState(errorObj?.stats, DASHBOARD_ERROR_KEY);
-  const listErrorState = normalizeErrorState(errorObj?.list, DASHBOARD_ERROR_KEY);
+  const numberLocale = LANG_KO.view.number.locale;
+  const numberZeroText = LANG_KO.view.number.zeroText;
+  const statList = dataObj?.stats?.result?.byStatus || [];
+  const dataList = dataObj?.list?.result?.items || [];
+  const initialErrorValue = initialErrorObj?.stats || initialErrorObj?.list || null;
+  let initialErrorState = null;
+  if (initialErrorValue) {
+    if (typeof initialErrorValue === "string") {
+      initialErrorState = { key: initialErrorValue };
+    } else if (typeof initialErrorValue === "object") {
+      const candidateKey = String(
+        initialErrorValue.key || initialErrorValue.message || "",
+      ).toUpperCase();
+      initialErrorState = {
+        key: candidateKey === DASHBOARD_ERROR_KEY.ENDPOINT_MISSING
+          ? DASHBOARD_ERROR_KEY.ENDPOINT_MISSING
+          : DASHBOARD_ERROR_KEY.INIT_FETCH_FAILED,
+        code: initialErrorValue.code,
+        requestId: initialErrorValue.requestId,
+      };
+    } else {
+      initialErrorState = { key: DASHBOARD_ERROR_KEY.INIT_FETCH_FAILED };
+    }
+  }
+  let statsErrorState = null;
+  if (errorObj?.stats) {
+    if (typeof errorObj.stats === "string") {
+      statsErrorState = { key: errorObj.stats };
+    } else if (typeof errorObj.stats === "object") {
+      const candidateKey = String(
+        errorObj.stats.key || errorObj.stats.message || "",
+      ).toUpperCase();
+      statsErrorState = {
+        key: candidateKey === DASHBOARD_ERROR_KEY.ENDPOINT_MISSING
+          ? DASHBOARD_ERROR_KEY.ENDPOINT_MISSING
+          : DASHBOARD_ERROR_KEY.INIT_FETCH_FAILED,
+        code: errorObj.stats.code,
+        requestId: errorObj.stats.requestId,
+      };
+    } else {
+      statsErrorState = { key: DASHBOARD_ERROR_KEY.INIT_FETCH_FAILED };
+    }
+  }
+  let listErrorState = null;
+  if (errorObj?.list) {
+    if (typeof errorObj.list === "string") {
+      listErrorState = { key: errorObj.list };
+    } else if (typeof errorObj.list === "object") {
+      const candidateKey = String(
+        errorObj.list.key || errorObj.list.message || "",
+      ).toUpperCase();
+      listErrorState = {
+        key: candidateKey === DASHBOARD_ERROR_KEY.ENDPOINT_MISSING
+          ? DASHBOARD_ERROR_KEY.ENDPOINT_MISSING
+          : DASHBOARD_ERROR_KEY.INIT_FETCH_FAILED,
+        code: errorObj.list.code,
+        requestId: errorObj.list.requestId,
+      };
+    } else {
+      listErrorState = { key: DASHBOARD_ERROR_KEY.INIT_FETCH_FAILED };
+    }
+  }
   const errorState = !hasEndpoint
     ? { key: DASHBOARD_ERROR_KEY.ENDPOINT_MISSING }
     : statsErrorState || listErrorState || initialErrorState;
@@ -76,58 +123,81 @@ const DashboardView = ({
     && statList.length === 0
     && dataList.length === 0;
   const loading = isLoading || shouldForceLoading;
-  const byStatus = statList;
-  const totalCount = byStatus.reduce((acc, row) => acc + (row.count ?? 0), 0);
-  const totalAmount = byStatus.reduce(
+  const totalCount = statList.reduce((acc, row) => acc + (row.count ?? 0), 0);
+  const totalAmount = statList.reduce(
     (acc, row) => acc + Number(row.amountSum ?? 0),
     0
   );
-  const runningCount = byStatus.find((row) => row.status === "running")?.count ?? 0;
-  const pendingCount = byStatus.find((row) => row.status === "pending")?.count ?? 0;
+  const runningCount = statList.find((row) => row.status === "running")?.count ?? 0;
+  const pendingCount = statList.find((row) => row.status === "pending")?.count ?? 0;
   const activeCount = runningCount + pendingCount;
+  const totalCountNumber = Number(totalCount || 0);
+  const totalCountText = Number.isNaN(totalCountNumber)
+    ? numberZeroText
+    : totalCountNumber.toLocaleString(numberLocale);
+  const totalAmountNumber = Number(totalAmount || 0);
+  const totalAmountText = Number.isNaN(totalAmountNumber)
+    ? numberZeroText
+    : totalAmountNumber.toLocaleString(numberLocale);
+  const activeCountNumber = Number(activeCount || 0);
+  const activeCountText = Number.isNaN(activeCountNumber)
+    ? numberZeroText
+    : activeCountNumber.toLocaleString(numberLocale);
   const statCards = [
     {
       label: LANG_KO.view.stat.totalCount,
-      value: formatNumber(totalCount, LANG_KO.view.number),
+      value: totalCountText,
       delta: null,
       deltaType: "neutral",
     },
     {
       label: LANG_KO.view.stat.totalAmount,
-      value: `${formatCurrency(totalAmount, LANG_KO.view.number)}`,
+      value: `${totalAmountText}`,
       delta: null,
       deltaType: "neutral",
     },
     {
       label: LANG_KO.view.stat.activeCount,
-      value: formatNumber(activeCount, LANG_KO.view.number),
+      value: activeCountText,
       delta: null,
       deltaType: "neutral",
     },
   ];
 
-  const donutData = byStatus.map((row) => ({
+  const donutData = statList.map((row) => ({
     label: LANG_KO.view.statusLabelMap[row.status] || row.status || LANG_KO.view.unknown,
     value: row.count ?? 0,
   }));
 
   const byStatusMap = new Map(
-    byStatus.map((row) => [String(row.status || ""), Number(row.count || 0)])
+    statList.map((row) => [String(row.status || ""), Number(row.count || 0)])
   );
   const statusQuickList = STATUS_ORDER.map((status) => ({
     status,
     label: LANG_KO.view.statusLabelMap[status],
-    count: byStatusMap.get(status) || 0,
-    href: createTasksPath({
-      status,
-      statusLabelMap: LANG_KO.view.statusLabelMap,
-    }),
+    countText: (() => {
+      const countNumber = Number(byStatusMap.get(status) || 0);
+      return Number.isNaN(countNumber)
+        ? numberZeroText
+        : countNumber.toLocaleString(numberLocale);
+    })(),
+    href: (() => {
+      const params = new URLSearchParams();
+      if (status && LANG_KO.view.statusLabelMap[status]) params.set("status", status);
+      const queryString = params.toString();
+      return queryString ? `/dashboard/tasks?${queryString}` : "/dashboard/tasks";
+    })(),
   }));
 
-  const items = dataList;
   const byMonth = new Map();
-  items.forEach((item) => {
-    const key = monthKey(item.createdAt, LANG_KO.view);
+  dataList.forEach((item) => {
+    let key = LANG_KO.view.unknown;
+    if (item.createdAt) {
+      const date = new Date(item.createdAt);
+      if (!Number.isNaN(date.getTime())) {
+        key = `${date.getMonth() + 1}${LANG_KO.view.monthSuffix}`;
+      }
+    }
     const bucket = byMonth.get(key) || { label: key, count: 0, amount: 0 };
     bucket.count += 1;
     bucket.amount += Number(item.amount || 0);
@@ -136,11 +206,12 @@ const DashboardView = ({
   const lineData = Array.from(byMonth.values());
 
   const legendFontSize = 12;
-  const errorText = resolveErrorText(
-    errorState?.key,
-    LANG_KO.view.error,
-    DASHBOARD_ERROR_KEY,
-  );
+  let errorText = null;
+  if (errorState?.key === DASHBOARD_ERROR_KEY.ENDPOINT_MISSING) {
+    errorText = LANG_KO.view.error.endpointMissing;
+  } else if (errorState?.key === DASHBOARD_ERROR_KEY.INIT_FETCH_FAILED) {
+    errorText = LANG_KO.view.error.fetchFailed;
+  }
 
   /* 3. UI ========================================================================================================================= */
   // 없음
@@ -288,7 +359,7 @@ const DashboardView = ({
                 variant="secondary"
                 onClick={() => router.push(item.href)}
               >
-                {item.label} {formatNumber(item.count, LANG_KO.view.number)}
+                {item.label} {item.countText}
                 {LANG_KO.view.action.countSuffix}
               </Button>
             ))}
@@ -309,17 +380,22 @@ const DashboardView = ({
               {
                 key: "title",
                 header: LANG_KO.view.table.titleHeader,
-                render: (row) => (
-                  <Link
-                    href={createTasksPath({
-                      status: row?.status,
-                      statusLabelMap: LANG_KO.view.statusLabelMap,
-                    })}
-                    className="text-left text-blue-700 hover:underline"
-                  >
-                    {row?.title || "-"}
-                  </Link>
-                ),
+                render: (row) => {
+                  const params = new URLSearchParams();
+                  if (row?.status && LANG_KO.view.statusLabelMap[row.status]) {
+                    params.set("status", row.status);
+                  }
+                  const queryString = params.toString();
+                  const href = queryString ? `/dashboard/tasks?${queryString}` : "/dashboard/tasks";
+                  return (
+                    <Link
+                      href={href}
+                      className="text-left text-blue-700 hover:underline"
+                    >
+                      {row?.title || "-"}
+                    </Link>
+                  );
+                },
               },
               { key: "status", header: LANG_KO.view.table.statusHeader },
               { key: "amount", header: LANG_KO.view.table.amountHeader },
