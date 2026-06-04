@@ -1,7 +1,10 @@
+import asyncio
 import os
 import tempfile
 from pathlib import Path
 import time
+
+import pytest
 
 
 def writeSql(path: Path, content: str) -> None:
@@ -65,7 +68,7 @@ SELECT 2;
 def testBindParameterEnforcement():
     from lib.Database import DatabaseManager
 
-    manager = DatabaseManager("sqlite:///ignored.db")
+    manager = DatabaseManager("postgresql://ignored:ignored@127.0.0.1:5432/ignored")
 
     try:
         import pytest  # raises 컨텍스트 사용 가능 시 활용
@@ -87,7 +90,7 @@ def testBindParameterEnforcement():
 def testBindParameterEnforcementMoreCases():
     from lib.Database import DatabaseManager
 
-    manager = DatabaseManager("sqlite:///ignored.db")
+    manager = DatabaseManager("postgresql://ignored:ignored@127.0.0.1:5432/ignored")
 
     raisedExtraParam = False
     try:
@@ -106,10 +109,112 @@ def testBindParameterEnforcementMoreCases():
     manager.validateBindParameters("SELECT * FROM t WHERE a=:a AND b=:b", {"a": 1, "b": 2})
 
 
+def testInlineLiteralPredicateRequiresBindsForRawSql():
+    from lib.Database import DatabaseManager
+
+    manager = DatabaseManager("postgresql://ignored:ignored@127.0.0.1:5432/ignored")
+
+    with pytest.raises(ValueError):
+        manager.validateBindParameters(
+            "SELECT * FROM T_USER WHERE USER_ID = 'demo@demo.demo'",
+            None,
+        )
+
+    with pytest.raises(ValueError):
+        manager.validateBindParameters(
+            "SELECT * FROM T_USER WHERE USER_NO IN (1, 2, 3)",
+            None,
+        )
+
+
+def testInlineLiteralGuardRejectsDirectNamedStaticSqlAndDoesNotExecute():
+    from lib.Database import DatabaseManager
+
+    manager = DatabaseManager("postgresql://ignored:ignored@127.0.0.1:5432/ignored")
+    query = "SELECT * FROM T_USER WHERE USER_ID = 'demo@demo.demo'"
+
+    with pytest.raises(ValueError):
+        manager.validateBindParameters(
+            query,
+            None,
+            queryName="user.demoLookup",
+        )
+
+    calls: list[str] = []
+
+    async def unexpectedExecute(**kwargs):
+        calls.append(f"execute:{kwargs['query']}")
+        raise AssertionError("database.execute should not be called")
+
+    async def unexpectedFetchOne(**kwargs):
+        calls.append(f"fetchOne:{kwargs['query']}")
+        raise AssertionError("database.fetch_one should not be called")
+
+    async def unexpectedFetchAll(**kwargs):
+        calls.append(f"fetchAll:{kwargs['query']}")
+        raise AssertionError("database.fetch_all should not be called")
+
+    manager.database.execute = unexpectedExecute
+    manager.database.fetch_one = unexpectedFetchOne
+    manager.database.fetch_all = unexpectedFetchAll
+
+    async def runDirectCalls():
+        with pytest.raises(ValueError):
+            await manager.execute(query, None, queryName="user.demoLookup")
+        with pytest.raises(ValueError):
+            await manager.fetchOne(query, None, queryName="user.demoLookup")
+        with pytest.raises(ValueError):
+            await manager.fetchAll(query, None, queryName="user.demoLookup")
+
+    asyncio.run(runDirectCalls())
+    assert calls == []
+
+
+def testInlineLiteralGuardAllowsSafeRawStatements():
+    from lib.Database import DatabaseManager
+
+    manager = DatabaseManager("postgresql://ignored:ignored@127.0.0.1:5432/ignored")
+
+    safeQueries = [
+        "SELECT 1",
+        "CREATE TABLE IF NOT EXISTS T_TEMP (ID INTEGER PRIMARY KEY)",
+        "PRAGMA journal_mode=WAL",
+        "SAVEPOINT unit_sp",
+        "ROLLBACK TO SAVEPOINT unit_sp",
+        "RELEASE SAVEPOINT unit_sp",
+        "DELETE FROM T_USER",
+        "SELECT ROLE_CD, COUNT(*) FROM T_USER GROUP BY ROLE_CD",
+    ]
+
+    for query in safeQueries:
+        manager.validateBindParameters(query, None)
+
+
+def testInlineLiteralGuardAllowsRegistrySourcedStaticSql():
+    from lib.Database import DatabaseManager
+
+    manager = DatabaseManager("postgresql://ignored:ignored@127.0.0.1:5432/ignored")
+    query = "SELECT * FROM T_USER WHERE USER_ID = 'demo@demo.demo'"
+    manager.queryManager.setAll({"user.demoLookup": query}, {}, {})
+
+    calls: list[tuple[str, str, dict[str, object]]] = []
+
+    async def fakeExecute(*, query: str, values: dict[str, object]):
+        calls.append(("execute", query, values))
+        return 1
+
+    manager.database.execute = fakeExecute
+
+    result = asyncio.run(manager.executeQuery("user.demoLookup"))
+
+    assert result == 1
+    assert calls == [("execute", query, {})]
+
+
 def testSqlRenderedLiteralMasksSensitiveParams():
     from lib.Database import DatabaseManager
 
-    manager = DatabaseManager("sqlite:///ignored.db")
+    manager = DatabaseManager("postgresql://ignored:ignored@127.0.0.1:5432/ignored")
     fakeJwt = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJkZW1vQGRlbW8uZGVtbyJ9.sig1234567890123456789012"
     rendered = manager.renderQueryForLog(
         "SELECT :password AS pw, :email AS eml, :title AS ttl, :refreshToken AS rt",
@@ -131,7 +236,7 @@ def testSqlRenderedLiteralMasksSensitiveParams():
 def testSqlRenderedLiteralMasksSensitiveNestedPayload():
     from lib.Database import DatabaseManager
 
-    manager = DatabaseManager("sqlite:///ignored.db")
+    manager = DatabaseManager("postgresql://ignored:ignored@127.0.0.1:5432/ignored")
     rendered = manager.renderQueryForLog(
         "SELECT :payload AS payload",
         {
@@ -152,7 +257,7 @@ def testSqlRenderedLiteralMasksSensitiveNestedPayload():
 def testSqlRenderedLiteralMasksSensitiveNestedListValues():
     from lib.Database import DatabaseManager
 
-    manager = DatabaseManager("sqlite:///ignored.db")
+    manager = DatabaseManager("postgresql://ignored:ignored@127.0.0.1:5432/ignored")
     fakeJwt = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJvd25lckBleGFtcGxlLmNvbSJ9.sig1234567890123456789012"
     rendered = manager.renderQueryForLog(
         "SELECT :payload AS payload",

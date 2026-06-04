@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from functools import wraps
 from contextlib import AsyncExitStack
-from typing import List, Union, Tuple
+from typing import Awaitable, Callable, List, Union, Tuple, TypeVar
 import time
 import uuid
 import re
@@ -22,6 +22,9 @@ from lib.Logger import logger
 
 class TransactionError(Exception):
     pass
+
+
+TransactionResult = TypeVar("TransactionResult")
 
 
 def transaction(
@@ -81,6 +84,7 @@ def transaction(
                 startCount = DB.getSqlCount()
                 try:
                     stack = AsyncExitStack()
+
                     # 중첩된 모든 DB 트랜잭션을 열어 동일 커넥션을 보장
                     for name in dbList:
                         if name not in dbManagers:
@@ -104,6 +108,7 @@ def transaction(
                     return result
 
                 except BaseException as e:
+
                     # 하위 트랜잭션이 예외를 인지해 롤백하도록 보장
                     if stack is not None:
                         try:
@@ -140,6 +145,40 @@ def transaction(
         return wrapper
 
     return decorator
+
+
+async def runInTransaction(
+    dbNames: Union[str, List[str]],
+    operation: Callable[[], Awaitable[TransactionResult]],
+    *,
+    isolation: str | None = None,
+    timeoutMs: int | None = None,
+    retries: int = 0,
+    retryOn: Tuple[type[BaseException], ...] = (),
+) -> TransactionResult:
+    """
+    설명: 비동기 콜백을 단일/다중 DB 트랜잭션 경계 안에서 실행
+    처리 규칙: transaction() 데코레이터 옵션을 그대로 재사용해 operation 실행 결과를 반환
+    반환값: operation 비동기 콜백의 반환값
+    갱신일: 2026-03-06
+    """
+
+    @transaction(
+        dbNames,
+        isolation=isolation,
+        timeoutMs=timeoutMs,
+        retries=retries,
+        retryOn=retryOn,
+    )
+    async def runOperation() -> TransactionResult:
+        """
+        설명: runInTransaction에서 전달된 operation 콜백 실행
+        반환값: operation 호출 결과
+        갱신일: 2026-03-06
+        """
+        return await operation()
+
+    return await runOperation()
 
 
 async def sleepBackoff(attempt: int) -> None:
@@ -196,11 +235,13 @@ class Savepoint:
         갱신일: 2025-11-12
         """
         if exc:
+
             # 부분 작업을 롤백한 뒤 savepoint 해제
             try:
                 await dbManagers[self.dbName].execute(f"ROLLBACK TO SAVEPOINT {self.name}")
             finally:
                 await dbManagers[self.dbName].execute(f"RELEASE SAVEPOINT {self.name}")
+
             # 외부 트랜잭션을 유지하기 위해 예외를 삼킨다
             return True
         else:

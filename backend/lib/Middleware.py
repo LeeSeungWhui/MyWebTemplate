@@ -55,6 +55,7 @@ async def writeUserAccessLogSafely(
             clientIp=clientIp,
         )
     except Exception:
+
         # 사용자 로그 적재 실패가 API 응답/백그라운드 루프를 깨지 않도록 방어
         pass
 
@@ -206,6 +207,7 @@ class RequestLogMiddleware(BaseHTTPMiddleware):
         token = setRequestId(reqId)
         resetSqlCount()
         try:
+
             # 실제 비즈니스 핸들러 호출
             response = await callNext(request)
 
@@ -238,6 +240,7 @@ class RequestLogMiddleware(BaseHTTPMiddleware):
                 logObj["usernameMasked"] = maskedUsername
             if maskedClientIp:
                 logObj["clientIpMasked"] = maskedClientIp
+
             # 구조적 로그를 위해 JSON 문자열로 기록
             msg = json.dumps(logObj, ensure_ascii=False)
             logger.info(msg)
@@ -270,6 +273,7 @@ class RequestLogMiddleware(BaseHTTPMiddleware):
                         )
                     )
                 except Exception:
+
                     # 태스크 생성 실패가 API 응답을 깨지 않도록 방어
                     pass
             return response

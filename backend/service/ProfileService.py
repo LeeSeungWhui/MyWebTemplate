@@ -10,6 +10,7 @@ from typing import Any, Dict
 from lib import Database as DB
 from lib.Casing import convertKeysToCamelCase
 from lib.ServiceError import ServiceError
+from lib.Transaction import transaction
 
 profileNotifyStore: Dict[str, Dict[str, bool]] = {}
 
@@ -111,6 +112,7 @@ async def getMyProfile(user: Any) -> Dict[str, Any]:
     return result
 
 
+@transaction("main_db")
 async def updateMyProfile(user: Any, payload: Dict[str, Any]) -> Dict[str, Any]:
     """
     설명: 현재 인증 사용자 프로필 수정

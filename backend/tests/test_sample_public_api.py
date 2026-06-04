@@ -1,8 +1,9 @@
 import os
-import sqlite3
 import sys
 
 from fastapi.testclient import TestClient
+
+from conftest import resetIntegrationDbState
 
 
 baseDir = os.path.dirname(os.path.dirname(__file__))
@@ -11,17 +12,7 @@ if baseDir not in sys.path:
 
 
 def resetSampleTables():
-    dbPath = os.path.join(baseDir, "data", "test.db")
-    os.makedirs(os.path.dirname(dbPath), exist_ok=True)
-    con = sqlite3.connect(dbPath)
-    try:
-        con.execute("DROP TABLE IF EXISTS T_SAMPLE_TASK")
-        con.execute("DROP TABLE IF EXISTS T_SAMPLE_FORM_SUBMIT")
-        con.execute("DROP TABLE IF EXISTS T_SAMPLE_ADMIN_USER")
-        con.execute("DROP TABLE IF EXISTS T_SAMPLE_CONFIG")
-        con.commit()
-    finally:
-        con.close()
+    resetIntegrationDbState()
 
 
 def testSampleOverviewAndDashboardArePublic():
@@ -39,7 +30,7 @@ def testSampleOverviewAndDashboardArePublic():
         dashboardResponse = client.get("/api/v1/sample/dashboard")
         assert dashboardResponse.status_code == 200
         dashboardResult = dashboardResponse.json()["result"]
-        assert isinstance(dashboardResult["byStatus"], list)
+        assert isinstance(dashboardResult["statusSummaryList"], list)
         assert isinstance(dashboardResult["recentList"], list)
         assert len(dashboardResult["recentList"]) >= 1
 
@@ -126,13 +117,19 @@ def testSampleFormMetaAndSubmit():
         assert submitResponse.status_code == 201
         submitResult = submitResponse.json()["result"]
         assert submitResult["name"] == "홍길동"
+        assert submitResult["email"] == "hong@example.com"
         assert submitResult["selectedFeatures"] == ["login", "chart"]
 
         metaReloadResponse = client.get("/api/v1/sample/forms/meta")
         assert metaReloadResponse.status_code == 200
         metaReloadResult = metaReloadResponse.json()["result"]
         assert metaReloadResult["submissionCount"] == 1
-        assert metaReloadResult["latestSubmission"]["email"] == "hong@example.com"
+        latestSubmission = metaReloadResult["latestSubmission"]
+        assert set(latestSubmission.keys()) == {"id", "category", "selectedFeatures", "createdAt"}
+        assert latestSubmission["category"] == "web"
+        assert latestSubmission["selectedFeatures"] == ["login", "chart"]
+        for piiField in ("name", "email", "phone", "requirement", "referenceUrl", "attachmentName"):
+            assert piiField not in latestSubmission
 
 
 def testSampleAdminUserAndSettingFlow():
@@ -142,8 +139,12 @@ def testSampleAdminUserAndSettingFlow():
     with TestClient(app) as client:
         userListResponse = client.get("/api/v1/sample/admin/users")
         assert userListResponse.status_code == 200
-        userList = userListResponse.json()["result"]
+        userResult = userListResponse.json()["result"]
+        userList = userResult["sampleAdminUserList"]
         assert len(userList) >= 3
+        assert userResult["listMetaObj"]["page"] == 1
+        assert userResult["listMetaObj"]["size"] == 50
+        assert userResult["listMetaObj"]["totalCount"] >= len(userList)
 
         createUserResponse = client.post(
             "/api/v1/sample/admin/users",

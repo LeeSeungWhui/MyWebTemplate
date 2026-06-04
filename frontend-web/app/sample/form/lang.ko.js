@@ -46,6 +46,11 @@ export const LANG_KO = {
       referenceUrl: "참고 URL",
       attachmentName: "첨부파일",
     },
+    latestSubmissionLabel: {
+      category: "분류",
+      features: "우선 기능",
+      createdAt: "제출일",
+    },
     validation: {
       nameRequired: "이름을 입력해주세요.",
       emailInvalid: "올바른 이메일 형식을 입력해주세요.",

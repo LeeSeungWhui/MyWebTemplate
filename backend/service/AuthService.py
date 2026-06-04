@@ -1,7 +1,7 @@
 """
 파일명: backend/service/AuthService.py
 작성자: LSH
-갱신일: 2026-02-25
+갱신일: 2026-04-08
 설명: 인증 도메인 서비스. 비즈니스 로직만 포함(HTTP/세션은 라우터 책임)
 """
 
@@ -26,9 +26,11 @@ from jose import JWTError, jwt
 from lib.Auth import AuthConfig, Token, createAccessToken, createRefreshToken
 from lib import Database as DB
 from lib.Casing import convertKeysToCamelCase
+from lib.Idempotency import beginIdempotencyRequest, completeIdempotencyRequest
 from lib.Logger import logger
 from lib.Masking import maskUserIdentifierForLog
 from lib.RequestContext import getRequestId
+from lib.Transaction import transaction
 
 # 리프레시 토큰 상태 타입
 TOKEN_STATE_REVOKED = "revoked"
@@ -40,6 +42,7 @@ tokenStateStoreReady = False
 # 인메모리 폴백 스토어(DB 저장소 사용 불가 시 사용)
 # 키는 refresh jti, 값은 refresh 만료 기준 ms TTL
 revokedRefreshJtiStore: dict[str, int] = {}
+
 # 키는 이전 refresh jti, 값은 expiresAtMs/tokenPayload 객체
 refreshGraceStore: dict[str, dict[str, Any]] = {}
 
@@ -54,7 +57,7 @@ def tokenStateStoreUnavailableError(reason: str) -> RuntimeError:
     return RuntimeError(message)
 
 
-def _getTokenStateStoreDbManager():
+def getTokenStateStoreDbManager():
     """
     설명: 토큰 상태 저장에 사용할 DB 매니저 조회 헬퍼
     반환값: DB 매니저 또는 None
@@ -76,7 +79,7 @@ async def ensureTokenStateStore() -> bool:
     global tokenStateStoreReady
     if tokenStateStoreReady:
         return True
-    manager = _getTokenStateStoreDbManager()
+    manager = getTokenStateStoreDbManager()
     if not manager:
         raise tokenStateStoreUnavailableError("db manager not ready")
     try:
@@ -103,7 +106,7 @@ async def cleanupTokenStateStore(nowMs: int) -> bool:
     useDbTokenStateStore = await ensureTokenStateStore()
     if not useDbTokenStateStore:
         return False
-    manager = _getTokenStateStoreDbManager()
+    manager = getTokenStateStoreDbManager()
     if not manager:
         raise tokenStateStoreUnavailableError("db manager missing after store ready")
     try:
@@ -122,7 +125,7 @@ async def getTokenStateEntry(stateType: str, tokenJti: str) -> dict[str, Any] | 
     useDbTokenStateStore = await ensureTokenStateStore()
     if not useDbTokenStateStore:
         return None
-    manager = _getTokenStateStoreDbManager()
+    manager = getTokenStateStoreDbManager()
     if not manager:
         raise tokenStateStoreUnavailableError("db manager missing after store ready")
     try:
@@ -148,6 +151,7 @@ async def getTokenStateEntry(stateType: str, tokenJti: str) -> dict[str, Any] | 
         raise tokenStateStoreUnavailableError(f"read_failed:{type(e).__name__}") from e
 
 
+@transaction("main_db")
 async def upsertTokenStateEntry(
     stateType: str,
     tokenJti: str,
@@ -162,7 +166,7 @@ async def upsertTokenStateEntry(
     useDbTokenStateStore = await ensureTokenStateStore()
     if not useDbTokenStateStore:
         return False
-    manager = _getTokenStateStoreDbManager()
+    manager = getTokenStateStoreDbManager()
     if not manager:
         raise tokenStateStoreUnavailableError("db manager missing after store ready")
     payloadJson: str | None = None
@@ -206,7 +210,7 @@ async def deleteTokenStateEntry(stateType: str, tokenJti: str) -> bool:
     useDbTokenStateStore = await ensureTokenStateStore()
     if not useDbTokenStateStore:
         return False
-    manager = _getTokenStateStoreDbManager()
+    manager = getTokenStateStoreDbManager()
     if not manager:
         raise tokenStateStoreUnavailableError("db manager missing after store ready")
     try:
@@ -231,8 +235,10 @@ def cleanupRefreshGraceStore(nowMs: int) -> None:
         ]
         for jti in expired:
             refreshGraceStore.pop(jti, None)
+
         # 과도한 메모리 사용 방지(템플릿 기본값)
         if len(refreshGraceStore) > 5000:
+
             # 임의로 오래된 순서 보장이 없으므로, 일부를 삭제해 폭주만 막는다.
             for jti in list(refreshGraceStore.keys())[:1000]:
                 refreshGraceStore.pop(jti, None)
@@ -252,6 +258,7 @@ def cleanupRevokedRefreshJtiStore(nowMs: int) -> None:
         ]
         for jti in expired:
             revokedRefreshJtiStore.pop(jti, None)
+
         # 과도한 메모리 사용 방지(템플릿 기본값)
         if len(revokedRefreshJtiStore) > 200_000:
             for jti in list(revokedRefreshJtiStore.keys())[:50_000]:
@@ -260,7 +267,7 @@ def cleanupRevokedRefreshJtiStore(nowMs: int) -> None:
         return
 
 
-def _nowMs() -> int:
+def readCurrentEpochMs() -> int:
     """
     설명: 인증 감사/토큰 TTL 계산에 공통으로 쓰는 UTC epoch(ms) 생성 헬퍼
     처리 규칙: 시스템 현재 시각을 timezone.utc 기준으로 계산
@@ -278,18 +285,19 @@ def auditLog(event: str, username: str | None, success: bool, meta: dict[str, An
     """
     try:
         maskedUsername = maskUserIdentifierForLog(username)
-        payload: dict[str, Any] = {
-            "ts": _nowMs(),
+        auditEntry: dict[str, Any] = {
+            "ts": readCurrentEpochMs(),
             "event": event,
             "success": bool(success),
             "requestId": getRequestId(),
         }
         if maskedUsername:
-            payload["usernameMasked"] = maskedUsername
+            auditEntry["usernameMasked"] = maskedUsername
         if meta and isinstance(meta, dict):
-            payload.update(meta)
-        logger.info(json.dumps(payload, ensure_ascii=False))
+            auditEntry.update(meta)
+        logger.info(json.dumps(auditEntry, ensure_ascii=False))
     except Exception:
+
         # 로깅 실패가 인증 흐름을 막지 않도록 방어
         try:
             logger.info("auth_audit_fallback %s %s %s %s", event, maskUserIdentifierForLog(username), success, meta)
@@ -297,7 +305,7 @@ def auditLog(event: str, username: str | None, success: bool, meta: dict[str, An
             pass
 
 
-def _extractExpMs(payload: dict[str, Any], nowMs: int) -> int:
+def extractExpiryMs(payload: dict[str, Any], nowMs: int) -> int:
     """
     설명: JWT payload의 exp를 ms로 변환. 없으면 refreshExpire 설정으로 추정
     반환값: 밀리초 단위 만료 시각(expMs)
@@ -325,12 +333,12 @@ def normalizeLoginUsername(rawValue: Any) -> str | None:
     """
     if not isinstance(rawValue, str):
         return None
-    normalized = rawValue.strip()
-    if not normalized:
+    loginUsername = rawValue.strip()
+    if not loginUsername:
         return None
-    if "@" in normalized:
-        return normalized.lower()
-    return normalized
+    if "@" in loginUsername:
+        return loginUsername.lower()
+    return loginUsername
 
 
 async def me(user):
@@ -359,6 +367,26 @@ async def login(payload: dict, rememberMe: bool = False) -> dict | None:
     tokenPayload = issueTokens(username, rememberMe)
     auditLog("auth.login", username, True, {"remember": bool(rememberMe)})
     return {"user": authUser, "token": tokenPayload}
+
+
+async def requestPasswordReset(payload: dict) -> tuple[dict | None, str | None]:
+    """
+    설명: 비밀번호 재설정 요청 입력을 검증하고 계정 존재 여부를 숨긴 채 성공 응답 반환
+    반환값: (성공 결과 dict, None) 또는 (None, 에러코드)
+    갱신일: 2026-04-08
+    """
+    if not isinstance(payload, dict):
+        return None, "AUTH_422_INVALID_INPUT"
+    rawEmail = payload.get("email")
+    if not isinstance(rawEmail, str):
+        return None, "AUTH_422_INVALID_INPUT"
+    email = rawEmail.strip().lower()
+    if not isValidEmail(email):
+        return None, "AUTH_422_INVALID_INPUT"
+
+    # 계정 존재 여부는 응답에서 노출하지 않는다.
+    auditLog("auth.password_reset.request", email, True, {"accepted": True})
+    return {"accepted": True}, None
 
 
 def hashPasswordPbkdf2(plain: str, iterations: int = 260000) -> str:
@@ -423,7 +451,8 @@ def isDuplicateTokenStateConstraintError(error: Exception) -> bool:
     return False
 
 
-async def signup(payload: dict) -> tuple[dict | None, str | None]:
+@transaction("main_db")
+async def signup(payload: dict, idempotencyKey: str | None = None) -> tuple[dict | None, str | None]:
     """
     설명: 회원가입 입력 검증, 중복 확인, 계정 생성, 결과 코드 매핑까지 처리하 흐름
     반환값: (성공 결과 dict, None) 또는 (None, 에러코드)
@@ -444,11 +473,19 @@ async def signup(payload: dict) -> tuple[dict | None, str | None]:
     if len(name) < 2 or len(password) < 8 or not isValidEmail(email):
         return None, "AUTH_422_INVALID_INPUT"
 
+    signupPayload = {
+        "name": name,
+        "email": email,
+    }
+
     db = DB.getManager()
     if not db:
         return None, "AUTH_503_DB_NOT_READY"
 
     try:
+        replay = await beginIdempotencyRequest("auth.signup", idempotencyKey, signupPayload)
+        if replay.get("status") == "replay":
+            return replay.get("result") or {}, None
         exists = await db.fetchOneQuery("auth.userByUsername", {"u": email})
         if exists:
             auditLog("auth.signup", email, False, {"reason": "user_exists"})
@@ -481,12 +518,67 @@ async def signup(payload: dict) -> tuple[dict | None, str | None]:
             "userId": createdUser.get("userId") or email,
             "userNm": createdUser.get("userNm") or name,
         }
+        await completeIdempotencyRequest("auth.signup", idempotencyKey, result)
         auditLog("auth.signup", email, True, {})
         return result, None
     except Exception as e:
         auditLog("auth.signup", email, False, {"reason": "exception"})
         logger.error(f"signup failed: error={type(e).__name__}")
         return None, "AUTH_500_SIGNUP_FAILED"
+
+
+@transaction("main_db")
+async def ensureSeedUser(payload: dict) -> dict:
+    """
+    설명: 명시적으로 실행되는 데모/샘플 사용자 시드 upsert 수행
+    반환값: action/userId/userNm/roleCd를 포함한 시드 결과 dict
+    실패 동작: 입력 오류는 ValueError, DB 미준비는 RuntimeError, 쓰기 오류는 원본 예외를 전파
+    갱신일: 2026-04-08
+    """
+    if not isinstance(payload, dict):
+        raise ValueError("AUTH_422_INVALID_INPUT")
+
+    rawName = payload.get("name")
+    rawEmail = payload.get("email")
+    rawPassword = payload.get("password")
+    rawRole = payload.get("roleCd")
+
+    if not isinstance(rawName, str) or not isinstance(rawEmail, str) or not isinstance(rawPassword, str):
+        raise ValueError("AUTH_422_INVALID_INPUT")
+
+    name = rawName.strip()
+    email = rawEmail.strip().lower()
+    password = rawPassword
+    roleCd = rawRole.strip() if isinstance(rawRole, str) and rawRole.strip() else "user"
+
+    if len(name) < 2 or len(password) < 8 or not isValidEmail(email):
+        raise ValueError("AUTH_422_INVALID_INPUT")
+
+    db = DB.getManager()
+    if not db:
+        raise RuntimeError("AUTH_503_DB_NOT_READY")
+
+    userParams = {
+        "userId": email,
+        "userPw": hashPasswordPbkdf2(password),
+        "userNm": name,
+        "userEml": email,
+        "roleCd": roleCd,
+    }
+    existing = await db.fetchOneQuery("auth.userByUsername", {"u": email})
+    if existing:
+        await db.executeQuery("auth.updateUserSeed", userParams)
+        action = "updated"
+    else:
+        await db.executeQuery("auth.insertUser", userParams)
+        action = "inserted"
+
+    return {
+        "action": action,
+        "userId": email,
+        "userNm": name,
+        "roleCd": roleCd,
+    }
 
 
 def session(payload: dict) -> dict:
@@ -519,7 +611,7 @@ async def refresh(refreshToken: str) -> dict | None:
     반환값: 재발급 토큰 payload dict 또는 실패 시 None
     갱신일: 2026-02-22
     """
-    nowMs = _nowMs()
+    nowMs = readCurrentEpochMs()
     useDbTokenStateStore = await cleanupTokenStateStore(nowMs)
     cleanupRefreshGraceStore(nowMs)
     cleanupRevokedRefreshJtiStore(nowMs)
@@ -546,11 +638,18 @@ async def refresh(refreshToken: str) -> dict | None:
         revokedExpiresAtMs = int(revokedRefreshJtiStore.get(jti, 0) or 0)
 
     if revokedExpiresAtMs and nowMs < revokedExpiresAtMs:
+
         # 이미 사용됐거나 로그아웃된 리프레시 토큰 재사용 시도
         cached = None
         if useDbTokenStateStore:
             cached = await getTokenStateEntry(TOKEN_STATE_GRACE, jti)
-        if not cached:
+        cachedExpiresAtMs = int(cached.get("expiresAtMs", 0) or 0) if isinstance(cached, dict) else 0
+        cachedTokenPayload = cached.get("tokenPayload") if isinstance(cached, dict) else None
+        if not (
+            cachedExpiresAtMs
+            and nowMs < cachedExpiresAtMs
+            and isinstance(cachedTokenPayload, dict)
+        ):
             cached = refreshGraceStore.get(jti)
         expiresAtMs = int(cached.get("expiresAtMs", 0) or 0) if isinstance(cached, dict) else 0
         tokenPayload = cached.get("tokenPayload") if isinstance(cached, dict) else None
@@ -567,12 +666,13 @@ async def refresh(refreshToken: str) -> dict | None:
         revokedRefreshJtiStore.pop(jti, None)
 
     # 현재 리프레시 토큰은 더 이상 사용하지 못하도록 블랙리스트에 추가
-    revokedExpiresAtMs = _extractExpMs(payload, nowMs)
+    revokedExpiresAtMs = extractExpiryMs(payload, nowMs)
     revokedRefreshJtiStore[jti] = revokedExpiresAtMs
     if useDbTokenStateStore:
         await upsertTokenStateEntry(TOKEN_STATE_REVOKED, jti, revokedExpiresAtMs, None)
 
     tokenPayload = issueTokens(username, remember)
+
     # 다중 탭/네트워크 재시도 경합을 위해 짧은 유예 시간 동안 동일 토큰 페이로드를 재응답할 수 있게 캐시한다.
     graceMs = max(0, int(getattr(AuthConfig, "refreshGraceMs", 0) or 0))
     if graceMs > 0:
@@ -586,7 +686,7 @@ async def refresh(refreshToken: str) -> dict | None:
                 TOKEN_STATE_GRACE,
                 jti,
                 graceExpiresAtMs,
-                tokenPayload,
+                None,
             )
     elif useDbTokenStateStore:
         await deleteTokenStateEntry(TOKEN_STATE_GRACE, jti)
@@ -604,7 +704,7 @@ async def revokeRefreshToken(refreshToken: str | None) -> None:
         auditLog("auth.logout", None, True, {"reason": "no_refresh_cookie"})
         return
 
-    nowMs = _nowMs()
+    nowMs = readCurrentEpochMs()
     useDbTokenStateStore = await cleanupTokenStateStore(nowMs)
     cleanupRefreshGraceStore(nowMs)
     cleanupRevokedRefreshJtiStore(nowMs)
@@ -617,7 +717,7 @@ async def revokeRefreshToken(refreshToken: str | None) -> None:
     username = payload.get("sub") if isinstance(payload.get("sub"), str) else None
     jti = payload.get("jti")
     if isinstance(jti, str) and jti:
-        revokedExpiresAtMs = _extractExpMs(payload, nowMs)
+        revokedExpiresAtMs = extractExpiryMs(payload, nowMs)
         revokedRefreshJtiStore[jti] = revokedExpiresAtMs
         if useDbTokenStateStore:
             await upsertTokenStateEntry(TOKEN_STATE_REVOKED, jti, revokedExpiresAtMs, None)
@@ -638,6 +738,7 @@ def verifyPassword(plain: str, stored: str) -> bool:
             expected = base64.b64decode(parts[3])
             dk = hashlib.pbkdf2_hmac("sha256", plain.encode("utf-8"), salt, iters)
             return hmac.compare_digest(dk, expected)
+
         # bcrypt 해시($2a$/$2b$)일 경우에만 시도. getattr로 안전 호출해 Pylance 경고를 피한다.
         if stored.startswith("$2a$") or stored.startswith("$2b$"):
             fn = getattr(bcrypt, "checkpw", None)
@@ -670,8 +771,11 @@ async def authenticateUser(payload: dict) -> tuple[dict | None, str | None]:
     if not user:
         return None, None
     authUser = convertKeysToCamelCase(user)
-    if not verifyPassword(password, authUser.get("passwordHash") or ""):
+    passwordHash = authUser.get("passwordHash") or authUser.get("userPw") or ""
+    if not verifyPassword(password, passwordHash):
         return None, None
+    authUser.pop("userPw", None)
+    authUser["passwordHash"] = passwordHash
     canonicalUserId = authUser.get("userId")
     if isinstance(canonicalUserId, str) and canonicalUserId.strip():
         return authUser, canonicalUserId.strip()

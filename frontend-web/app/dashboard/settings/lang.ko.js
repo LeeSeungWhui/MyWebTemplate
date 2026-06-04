@@ -1,7 +1,7 @@
 /**
  * 파일명: app/dashboard/settings/lang.ko.js
  * 작성자: LSH
- * 갱신일: 2026-02-25
+ * 갱신일: 2026-05-31
  * 설명: settings 경로 한국어 리소스
  */
 
@@ -25,8 +25,10 @@ export const LANG_KO = {
     },
     error: {
       profileEndpointMissing: "프로필 API 경로가 설정되지 않았습니다.",
+      systemEndpointMissing: "시스템 설정 API 경로가 아직 설정되지 않았습니다.",
       profileLoadFailed: "프로필 정보를 불러오지 못했습니다.",
       profileSaveFailed: "프로필 저장에 실패했습니다.",
+      systemSaveFailed: "시스템 설정 저장에 실패했습니다.",
       requestIdLabel: "requestId",
     },
     validation: {
@@ -34,7 +36,7 @@ export const LANG_KO = {
     },
     toast: {
       profileSaved: "프로필이 저장되었습니다.",
-      systemSaved: "시스템 설정이 저장되었습니다. (로컬 상태)",
+      systemSaved: "시스템 설정이 저장되었습니다.",
     },
     card: {
       title: "설정",

@@ -1,8 +1,9 @@
 "use client";
+
 /**
  * 파일명: sample/DemoLayoutClient.jsx
  * 작성자: LSH
- * 갱신일: 2026-02-23
+ * 갱신일: 2026-05-31
  * 설명: 공개 샘플 공통 레이아웃 클라이언트 컴포넌트
  */
 
@@ -18,36 +19,48 @@ import EasyObj from "@/app/lib/dataset/EasyObj";
 import LANG_KO from "./lang.ko";
 
 /**
- * @description 현재 경로가 샘플 공통 레이아웃을 우회해야 하는 경로인지 판별
- * 반환값: `/sample/portfolio` 경로면 true, 그 외는 false.
- * @updated 2026-02-27
- */
-const isBypassLayoutPath = (pathname) => {
-  const pathText = String(pathname || "");
-  if (!pathText) return false;
-  if (pathText.startsWith("/sample/portfolio")) return true;
-  return false;
-};
-
-/**
  * @description 공개 샘플 페이지 공통 레이아웃을 렌더링. 입력/출력 계약을 함께 명시
  * 처리 규칙: 포트폴리오 경로는 레이아웃을 우회하고, 그 외에는 Header/Sidebar/Footer 셸을 적용한다.
  * @param {{ children: React.ReactNode }} props
  */
 const DemoLayoutClient = ({ children }) => {
 
+  /* 1. 상수 ======================================================================================================================= */
+
+  // 없음
+
+  /* 2. 데이터 ======================================================================================================================= */
   const ui = EasyObj({
     sidebarOpen: false,
     isDesktopViewport: false,
   });
   const pathname = usePathname();
-  const shouldBypassLayout = isBypassLayoutPath(pathname);
   const layoutMeta = resolveDemoLayoutMeta(pathname);
   const currentYear = new Date().getFullYear();
 
+  /* 3. UI ========================================================================================================================= */
+
+  // 없음
+
+  /* 4. 팝업 ======================================================================================================================= */
+
+  // 없음
+
+  /* 5. 기타 ======================================================================================================================= */
+  const shouldBypassLayout = String(pathname || "").startsWith("/sample/portfolio");
+
+  /* 6. 커스텀 훅 =================================================================================================================== */
+
+  // 없음
+
+  /* 7. 함수 ======================================================================================================================= */
+
+  // 없음
+
+  /* 8. useEffect ================================================================================================================== */
   /**
-   * @description useEffect 실행 흐름 관리
-   * 처리 규칙: effect 실행/cleanup 경계를 명시적으로 유지.
+   * @description 1024px media query 변경에 맞춰 데스크톱 여부와 sidebarOpen 동기화
+   * 처리 규칙: cleanup에서 mediaQuery change 리스너를 제거한다.
    */
   useEffect(() => {
     if (typeof window === "undefined") {
@@ -71,15 +84,20 @@ const DemoLayoutClient = ({ children }) => {
   }, [ui]);
 
   /**
-   * @description useEffect 실행 흐름 관리
-   * 처리 규칙: effect 실행/cleanup 경계를 명시적으로 유지.
+   * @description 모바일 뷰포트에서 route 변경 시 사이드바를 닫음
+   * 처리 규칙: pathname 변경마다 ui.sidebarOpen=false를 반영한다.
    */
   useEffect(() => {
     if (!ui.isDesktopViewport) {
       ui.sidebarOpen = false;
     }
-  }, [pathname, ui.isDesktopViewport]);
+  }, [pathname, ui]);
 
+  /* 9. 내부 컴포넌트 ============================================================================================================== */
+
+  // 없음
+
+  /* 10. 렌더링 ==================================================================================================================== */
   if (shouldBypassLayout) {
     return children;
   }

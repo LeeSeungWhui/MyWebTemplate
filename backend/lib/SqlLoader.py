@@ -30,16 +30,19 @@ def parseSqlFile(filePath: str) -> List[Tuple[str, str]]:
         for raw in f:
             line = raw.rstrip("\n")
             if nameMark in line:
+
                 # 이전 버퍼를 먼저 기록
                 if currentName is not None:
                     sql = ("\n".join(currentBuf)).strip()
                     if sql:
                         entries.append((currentName, sql))
                     currentBuf = []
+
                 # 마커 뒤에서 이름 문자열 추출
                 name = line.split(nameMark, 1)[1].strip()
                 if not name:
                     raise ValueError(f"empty query name in file: {filePath}")
+
                 # 동일 파일 내 중복 여부 확인
                 if any(n == name for (n, _) in entries):
                     raise ValueError(f"duplicate query name in {filePath}: {name}")
@@ -79,6 +82,7 @@ def scanSqlQueries(folderPath: str) -> Tuple[Dict[str, str], Dict[str, str], Dic
                 pairs = parseSqlFile(filePath)
                 for name, sql in pairs:
                     if name in queries and nameToFile.get(name) != filePath:
+
                         # 파일 간 중복 발견 시 즉시 실패
                         raise ValueError(
                             f"duplicate query key detected: {name} from {filePath}"

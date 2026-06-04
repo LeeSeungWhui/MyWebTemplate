@@ -6,16 +6,17 @@
  */
 
 import { describe, expect, it, vi } from "vitest";
-import { middleware } from "@/middleware.js";
+import { proxy as middleware } from "@/proxy.js";
+import { sanitizeInternalPath } from "@/app/lib/runtime/authRedirect";
 
 function createJwtWithExp(expSeconds) {
   const header = Buffer.from(
     JSON.stringify({ alg: "none", typ: "JWT" }),
   ).toString("base64url");
-  const payload = Buffer.from(JSON.stringify({ exp: expSeconds })).toString(
+  const jwtPayloadText = Buffer.from(JSON.stringify({ exp: expSeconds })).toString(
     "base64url",
   );
-  return `${header}.${payload}.`;
+  return `${header}.${jwtPayloadText}.`;
 }
 
 function buildReq({ url, cookies = {}, headers = {} }) {
@@ -23,9 +24,9 @@ function buildReq({ url, cookies = {}, headers = {} }) {
     get(name) {
       if (!Object.prototype.hasOwnProperty.call(cookies, name))
         return undefined;
-      const value = cookies[name];
-      if (value == null) return undefined;
-      return { name, value: String(value) };
+      const cookieValueText = cookies[name];
+      if (cookieValueText == null) return undefined;
+      return { name, value: String(cookieValueText) };
     },
   };
   return {
@@ -38,8 +39,8 @@ function buildReq({ url, cookies = {}, headers = {} }) {
 function getSetCookies(res) {
   if (typeof res?.headers?.getSetCookie === "function")
     return res.headers.getSetCookie();
-  const single = res?.headers?.get?.("set-cookie");
-  return single ? [single] : [];
+  const singleSetCookie = res?.headers?.get?.("set-cookie");
+  return singleSetCookie ? [singleSetCookie] : [];
 }
 
 function findCookieValue(setCookies, name) {
@@ -80,13 +81,25 @@ describe("middleware", () => {
     expect(decodeURIComponent(nxValueRaw)).toBe("/dashboard?foo=bar");
   });
 
-  it("프리페치 요청은 리다이렉트하지 않는다", async () => {
+  it("보호 경로 프리페치 요청도 미인증이면 /login으로 리다이렉트한다", async () => {
     const req = buildReq({
       url: "http://localhost:3000/dashboard",
       headers: { purpose: "prefetch" },
     });
     const res = await middleware(req);
-    expect(res.headers.get("location")).toBeNull();
+    expect(res.headers.get("location")).toBe("http://localhost:3000/login");
+  });
+
+  it("보호 경로 sec-purpose 프리페치 요청도 refresh_token만 있으면 bootstrap으로 선회한다", async () => {
+    const req = buildReq({
+      url: "http://localhost:3000/dashboard",
+      cookies: { refresh_token: "rt" },
+      headers: { "sec-purpose": "prefetch" },
+    });
+    const res = await middleware(req);
+    expect(res.headers.get("location")).toBe(
+      "http://localhost:3000/api/session/bootstrap",
+    );
   });
 
   it("/login?next=외부URL이면 nx는 /dashboard로 sanitize된다", async () => {
@@ -99,6 +112,45 @@ describe("middleware", () => {
     const setCookies = getSetCookies(res);
     const nxValueRaw = findCookieValue(setCookies, "nx");
     expect(decodeURIComponent(nxValueRaw)).toBe("/dashboard");
+  });
+
+  it("/login?next=백슬래시/제어문자/인코딩된 외부 형태이면 nx는 /dashboard로 sanitize된다", async () => {
+    const maliciousNextList = [
+      "/\\evil.example",
+      "/%5Cevil.example",
+      "/%250A%250D//evil.example",
+      "//evil.example/a",
+      "https://evil.example/a",
+    ];
+
+    for (const maliciousNext of maliciousNextList) {
+      const req = buildReq({
+        url: `http://localhost:3000/login?next=${encodeURIComponent(maliciousNext)}`,
+      });
+      const res = await middleware(req);
+      expect(res.headers.get("location")).toBe("http://localhost:3000/login");
+
+      const setCookies = getSetCookies(res);
+      const nxValueRaw = findCookieValue(setCookies, "nx");
+      expect(decodeURIComponent(nxValueRaw)).toBe("/dashboard");
+    }
+  });
+
+  it("공용 로그인 리다이렉트 sanitizer는 악성 next 후보를 fallback으로 거른다", () => {
+    const maliciousNextList = [
+      "/\\evil.example",
+      "/%5Cevil.example",
+      "/%250A%250D//evil.example",
+      "//evil.example/a",
+      "https://evil.example/a",
+    ];
+
+    for (const maliciousNext of maliciousNextList) {
+      expect(sanitizeInternalPath(maliciousNext, null)).toBeNull();
+    }
+    expect(sanitizeInternalPath("/settings/profile?foo=bar", null)).toBe(
+      "/settings/profile?foo=bar",
+    );
   });
 
   it("/login?next&reason이면 nx/auth_reason 쿠키로 정리하고 주소창은 /login으로 유지한다", async () => {

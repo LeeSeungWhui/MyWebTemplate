@@ -1,7 +1,7 @@
 /**
  * 파일명: openapiClient.js
  * 작성자: LSH
- * 갱신일: 2026-03-03
+ * 갱신일: 2026-05-31
  * 설명: OpenAPI 스키마(/openapi.json) 기반 JS 클라이언트 유틸. 실제 요청은 apiRequest/apiJSON에 위임
  */
 
@@ -16,25 +16,25 @@ let cachedOpenApiPromise = null;
  * @updated 2026-02-27
  */
 const loadOpenApiClient = async () => {
-  const spec = await apiJSON(
+  const openapiSpecObj = await apiJSON(
     "/openapi.json",
     { method: "GET" },
     { authless: true },
   );
-  if (!spec || typeof spec !== "object") {
+  if (!openapiSpecObj || typeof openapiSpecObj !== "object") {
     throw new Error("Invalid OpenAPI schema");
   }
 
-  const mod = await import("openapi-client-axios");
-  const OpenAPIClientAxios = mod?.default || mod?.OpenAPIClientAxios;
+  const openapiModuleObj = await import("openapi-client-axios");
+  const OpenAPIClientAxios = openapiModuleObj?.default || openapiModuleObj?.OpenAPIClientAxios;
   if (typeof OpenAPIClientAxios !== "function") {
     throw new Error("openapi-client-axios not available");
   }
 
   // 요청 실행은 apiRequest/apiJSON에 위임하므로, 여기서는 스키마 파싱/요청 구성만 사용한다.
-  const client = new OpenAPIClientAxios({ definition: spec, quick: true });
-  client.initSync();
-  return client;
+  const openapiClientObj = new OpenAPIClientAxios({ definition: openapiSpecObj, quick: true });
+  openapiClientObj.initSync();
+  return openapiClientObj;
 }
 
 /**
@@ -62,22 +62,22 @@ const getOpenApiClient = async () => {
  * 처리 규칙: null/undefined 키는 제외하고 배열 값은 같은 키로 반복 append 한다.
  * @updated 2026-02-27
  */
-const buildQueryString = (params) => {
-  if (!params || typeof params !== "object") return "";
-  const sp = new URLSearchParams();
-  for (const [paramKey, paramValue] of Object.entries(params)) {
+const buildQueryString = (queryParamObj) => {
+  if (!queryParamObj || typeof queryParamObj !== "object") return "";
+  const querySearchParams = new URLSearchParams();
+  for (const [paramKey, paramValue] of Object.entries(queryParamObj)) {
     if (!paramKey) continue;
     if (paramValue == null) continue;
     if (Array.isArray(paramValue)) {
-      for (const item of paramValue) {
-        if (item == null) continue;
-        sp.append(paramKey, String(item));
+      for (const paramItem of paramValue) {
+        if (paramItem == null) continue;
+        querySearchParams.append(paramKey, String(paramItem));
       }
       continue;
     }
-    sp.append(paramKey, String(paramValue));
+    querySearchParams.append(paramKey, String(paramValue));
   }
-  return sp.toString();
+  return querySearchParams.toString();
 }
 
 /**
@@ -85,11 +85,11 @@ const buildQueryString = (params) => {
  * 반환값: 파라미터가 없으면 원본 URL, 있으면 `?` 또는 `&`가 반영된 URL.
  * @updated 2026-02-27
  */
-const mergeUrlAndParams = (url, params) => {
-  const base = typeof url === "string" ? url : String(url || "");
-  const qs = buildQueryString(params);
-  if (!qs) return base;
-  return base.includes("?") ? `${base}&${qs}` : `${base}?${qs}`;
+const mergeUrlAndParams = (requestUrl, queryParamObj) => {
+  const baseUrl = typeof requestUrl === "string" ? requestUrl : String(requestUrl || "");
+  const queryText = buildQueryString(queryParamObj);
+  if (!queryText) return baseUrl;
+  return baseUrl.includes("?") ? `${baseUrl}&${queryText}` : `${baseUrl}?${queryText}`;
 }
 
 /**
@@ -99,30 +99,30 @@ const mergeUrlAndParams = (url, params) => {
  */
 export const openapiRequest = async (
   operationId,
-  parameters = null,
-  data = null,
-  config = {},
+  operationParamObj = null,
+  requestBodyObj = null,
+  operationConfigObj = {},
 
 ) => {
-  const api = await getOpenApiClient();
-  const op = api.getOperation?.(operationId);
-  if (!op) {
+  const openapiClientObj = await getOpenApiClient();
+  const operationObj = openapiClientObj.getOperation?.(operationId);
+  if (!operationObj) {
     throw new Error(
       `Unknown OpenAPI operationId: ${String(operationId || "")}`,
     );
   }
-  const axiosConfig = api.getAxiosConfigForOperation(operationId, [
-    parameters,
-    data,
-    config,
+  const axiosConfig = openapiClientObj.getAxiosConfigForOperation(operationId, [
+    operationParamObj,
+    requestBodyObj,
+    operationConfigObj,
   ]);
-  const method = String(axiosConfig?.method || "GET").toUpperCase();
-  const url = mergeUrlAndParams(axiosConfig?.url, axiosConfig?.params);
-  const headers = axiosConfig?.headers || {};
+  const requestMethod = String(axiosConfig?.method || "GET").toUpperCase();
+  const requestUrl = mergeUrlAndParams(axiosConfig?.url, axiosConfig?.params);
+  const axiosHeaderObj = axiosConfig?.headers || {};
   const authless = Boolean(axiosConfig?.authless);
   return apiRequest(
-    url,
-    { method, headers, body: axiosConfig?.data },
+    requestUrl,
+    { method: requestMethod, headers: axiosHeaderObj, body: axiosConfig?.data },
     { authless },
   );
 }
@@ -134,30 +134,30 @@ export const openapiRequest = async (
  */
 export const openapiJSON = async (
   operationId,
-  parameters = null,
-  data = null,
-  config = {},
+  operationParamObj = null,
+  requestBodyObj = null,
+  operationConfigObj = {},
 
 ) => {
-  const api = await getOpenApiClient();
-  const op = api.getOperation?.(operationId);
-  if (!op) {
+  const openapiClientObj = await getOpenApiClient();
+  const operationObj = openapiClientObj.getOperation?.(operationId);
+  if (!operationObj) {
     throw new Error(
       `Unknown OpenAPI operationId: ${String(operationId || "")}`,
     );
   }
-  const axiosConfig = api.getAxiosConfigForOperation(operationId, [
-    parameters,
-    data,
-    config,
+  const axiosConfig = openapiClientObj.getAxiosConfigForOperation(operationId, [
+    operationParamObj,
+    requestBodyObj,
+    operationConfigObj,
   ]);
-  const method = String(axiosConfig?.method || "GET").toUpperCase();
-  const url = mergeUrlAndParams(axiosConfig?.url, axiosConfig?.params);
-  const headers = axiosConfig?.headers || {};
+  const requestMethod = String(axiosConfig?.method || "GET").toUpperCase();
+  const requestUrl = mergeUrlAndParams(axiosConfig?.url, axiosConfig?.params);
+  const axiosHeaderObj = axiosConfig?.headers || {};
   const authless = Boolean(axiosConfig?.authless);
   return apiJSON(
-    url,
-    { method, headers, body: axiosConfig?.data },
+    requestUrl,
+    { method: requestMethod, headers: axiosHeaderObj, body: axiosConfig?.data },
     { authless },
   );
 }

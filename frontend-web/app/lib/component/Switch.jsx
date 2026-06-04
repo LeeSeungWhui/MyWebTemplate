@@ -1,18 +1,13 @@
 /**
  * 파일명: Switch.jsx
  * 작성자: LSH
- * 갱신일: 2026-03-03
+ * 갱신일: 2026-05-31
  * 설명: Switch UI 컴포넌트 구현
  */
 import { useState, forwardRef, useEffect } from 'react';
 import { getBoundValue, setBoundValue, buildCtx, fireValueHandlers } from '../binding';
 
-/**
- * @description 다양한 truthy 표현을 boolean true로 해석
- * 반환값: `true/Y/y/1` 계열 값이면 true, 그 외는 false.
- * @updated 2026-02-27
- */
-const truthy = (value) => [true, 'Y', 'y', '1', 1].includes(value) || value === true;
+const CHECKED_TRUE_LIST = [true, 'Y', 'y', '1', 1];
 
 /**
  * @description 렌더링 및 상호작용 처리
@@ -35,35 +30,24 @@ const Switch = forwardRef(({
 }, ref) => {
 
   const isControlled = propChecked !== undefined;
-  const isDataObj = Boolean(dataObj && dataKey);
+  const isDataBound = Boolean(dataObj && dataKey);
 
   const inputName = name || dataKey;
 
   const [internalChecked, setInternalChecked] = useState(() => {
-    if (isDataObj) return truthy(getBoundValue(dataObj, dataKey));
+    if (isDataBound) return CHECKED_TRUE_LIST.includes(getBoundValue(dataObj, dataKey));
     return Boolean(defaultChecked);
   });
 
   /**
-   * @description useEffect 실행 흐름 관리
-   * 처리 규칙: effect 실행/cleanup 경계를 명시적으로 유지.
+   * @description dataObj 바인딩 checked 값을 internalChecked에 동기화
+   * 처리 규칙: isDataBound일 때 getBoundValue 결과를 CHECKED_TRUE_LIST로 판정한다.
    */
   useEffect(() => {
-    if (isDataObj) {
-      setInternalChecked(truthy(getBoundValue(dataObj, dataKey)));
+    if (isDataBound) {
+      setInternalChecked(CHECKED_TRUE_LIST.includes(getBoundValue(dataObj, dataKey)));
     }
-  }, [isDataObj, dataObj, dataKey]);
-
-  /**
-   * @description checked 값을 controlled/dataObj/local state 우선순위로 계산. 입력/출력 계약을 함께 명시
-   * 처리 규칙: prop checked > bound value > internalChecked 순으로 fallback 한다.
-   * @updated 2026-02-27
-   */
-  const getCheckedState = () => {
-    if (isControlled) return Boolean(propChecked);
-    if (isDataObj) return truthy(getBoundValue(dataObj, dataKey));
-    return internalChecked;
-  };
+  }, [isDataBound, dataObj, dataKey]);
 
   /**
    * @description 스위치 토글 이벤트를 상태/바인딩/핸들러 규약으로 동기화
@@ -72,18 +56,23 @@ const Switch = forwardRef(({
    */
   const handleChange = (event) => {
     event.stopPropagation();
-    const newChecked = event.target.checked;
+    const isNewChecked = event.target.checked;
 
-    if (!isControlled) setInternalChecked(newChecked);
-    if (isDataObj) {
-      setBoundValue(dataObj, dataKey, newChecked);
+    if (!isControlled) setInternalChecked(isNewChecked);
+    if (isDataBound) {
+      setBoundValue(dataObj, dataKey, isNewChecked);
     }
 
-    const ctx = buildCtx({ dataKey, dataObj, source: 'user', dirty: true, valid: null });
-    fireValueHandlers({ onChange, onValueChange, value: newChecked, ctx, event });
+    const bindingCtx = buildCtx({ dataKey, dataObj, source: 'user', dirty: true, valid: null });
+    fireValueHandlers({ onChange, onValueChange, value: isNewChecked, ctx: bindingCtx, event });
   };
 
-  const checked = getCheckedState();
+  let isChecked = internalChecked;
+  if (isControlled) {
+    isChecked = Boolean(propChecked);
+  } else if (isDataBound) {
+    isChecked = CHECKED_TRUE_LIST.includes(getBoundValue(dataObj, dataKey));
+  }
   const switchId = id || (dataKey ? `sw_${String(dataKey).replace(/[^a-zA-Z0-9_]+/g, '_')}` : undefined);
 
   return (
@@ -94,19 +83,19 @@ const Switch = forwardRef(({
         type="checkbox"
         name={inputName}
         className="sr-only"
-        checked={Boolean(checked)}
+        checked={Boolean(isChecked)}
         onChange={handleChange}
         disabled={disabled}
         role="switch"
-        aria-checked={Boolean(checked)}
+        aria-checked={Boolean(isChecked)}
         aria-disabled={disabled}
         {...props}
       />
       <span
         aria-hidden="true"
-        className={`relative inline-flex h-6 w-10 items-center rounded-full transition-colors duration-200 ${checked ? 'bg-blue-600' : 'bg-gray-300'}`}
+        className={`relative inline-flex h-6 w-10 items-center rounded-full transition-colors duration-200 ${isChecked ? 'bg-blue-600' : 'bg-gray-300'}`}
       >
-        <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-200 ${checked ? 'translate-x-5' : 'translate-x-1'}`}></span>
+        <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-200 ${isChecked ? 'translate-x-5' : 'translate-x-1'}`}></span>
       </span>
       {label && (
         <span className="select-none text-sm text-gray-800">{label}</span>

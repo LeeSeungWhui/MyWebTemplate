@@ -41,8 +41,8 @@ describe('EasyObj binding contract', () => {
         });
 
         expect(listener).toHaveBeenCalledTimes(1);
-        const payload = listener.mock.calls[0][0];
-        expect(payload.ctx).toMatchObject({ dataKey: 'profile.name', modelType: 'obj', source: 'program' });
+        const changePayloadObj = listener.mock.calls[0][0];
+        expect(changePayloadObj.ctx).toMatchObject({ dataKey: 'profile.name', modelType: 'obj', source: 'program' });
         expect(getBoundValue(result.current, 'profile.name')).toBe('Zia');
 
         act(() => {
@@ -67,8 +67,8 @@ describe('EasyObj binding contract', () => {
 
         expect(getBoundValue(result.current, 'contact.email')).toBe('ada@example.com');
         expect(listener).toHaveBeenCalled();
-        const payload = listener.mock.calls[listener.mock.calls.length - 1][0];
-        expect(payload.ctx).toMatchObject({ dataKey: '', modelType: 'obj', source: 'program' });
+        const changePayloadObj = listener.mock.calls[listener.mock.calls.length - 1][0];
+        expect(changePayloadObj.ctx).toMatchObject({ dataKey: '', modelType: 'obj', source: 'program' });
 
         act(() => {
             result.current.copy({ contact: { email: 'ivy@example.com' } });
@@ -151,8 +151,8 @@ describe('EasyList binding contract', () => {
         });
 
         expect(listener).toHaveBeenCalled();
-        const payload = listener.mock.calls[0][0];
-        expect(payload.ctx).toMatchObject({ dataKey: '0.name', modelType: 'list', source: 'program' });
+        const changePayloadObj = listener.mock.calls[0][0];
+        expect(changePayloadObj.ctx).toMatchObject({ dataKey: '0.name', modelType: 'list', source: 'program' });
         expect(getBoundValue(result.current, '0.name')).toBe('Gia');
     });
 
@@ -167,8 +167,8 @@ describe('EasyList binding contract', () => {
 
         expect(listener).toHaveBeenCalled();
         expect(getBoundValue(result.current, '0.name')).toBe('Nia');
-        const payload = listener.mock.calls[listener.mock.calls.length - 1][0];
-        expect(payload.ctx).toMatchObject({ dataKey: '', modelType: 'list' });
+        const changePayloadObj = listener.mock.calls[listener.mock.calls.length - 1][0];
+        expect(changePayloadObj.ctx).toMatchObject({ dataKey: '', modelType: 'list' });
     });
 
     it('keeps cached item proxies in sync after root reset', () => {

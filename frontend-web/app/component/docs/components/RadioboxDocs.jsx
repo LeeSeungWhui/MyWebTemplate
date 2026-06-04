@@ -1,10 +1,10 @@
 /**
  * 파일명: RadioboxDocs.jsx
  * 작성자: LSH
- * 갱신일: 2025-09-13
+ * 갱신일: 2026-05-31
  * 설명: Radiobox 컴포넌트 문서
  */
-import { RadioboxExamples } from '../examples/RadioboxExamples';
+import { advancedExampleList, basicExampleList } from '../examples/RadioboxExamples';
 import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';
 
@@ -13,8 +13,6 @@ import CodeBlock from '../shared/CodeBlock';
  * @returns {JSX.Element}
  */
 const RadioboxDocs = () => {
-    const examples = RadioboxExamples();
-
     return (
         <DocSection
             id="radioboxes"
@@ -40,8 +38,8 @@ const RadioboxDocs = () => {
             <div id="radiobox-basic" className="mb-8">
                 <h3 className="text-lg font-medium mb-4">기본 사용법</h3>
                 <div className="grid grid-cols-2 gap-8">
-                    {examples.slice(0, 2).map((example, index) => (
-                        <div key={index}>
+                    {basicExampleList.map((example) => (
+                        <div key={example.exampleId}>
                             {example.component}
                             <div className="mt-2 text-sm text-gray-600">
                                 {example.description}
@@ -52,11 +50,11 @@ const RadioboxDocs = () => {
                 </div>
             </div>
 
-            <div id="radiobox-variants" className="mb-8">
-                <h3 className="text-lg font-medium mb-4">색상 변형</h3>
+            <div id="radiobox-advanced" className="mb-8">
+                <h3 className="text-lg font-medium mb-4">응용 예시</h3>
                 <div className="grid grid-cols-2 gap-8">
-                    {examples.slice(2).map((example, index) => (
-                        <div key={index}>
+                    {advancedExampleList.map((example) => (
+                        <div key={example.exampleId}>
                             {example.component}
                             <div className="mt-2 text-sm text-gray-600">
                                 {example.description}

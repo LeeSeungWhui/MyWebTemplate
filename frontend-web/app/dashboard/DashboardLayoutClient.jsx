@@ -1,8 +1,9 @@
 "use client";
+
 /**
  * 파일명: dashboard/DashboardLayoutClient.jsx
  * 작성자: LSH
- * 갱신일: 2026-02-26
+ * 갱신일: 2026-05-31
  * 설명: 대시보드 레이아웃 클라이언트 컴포넌트
  */
 
@@ -27,6 +28,11 @@ import LANG_KO from "./lang.ko";
  */
 const DashboardLayoutClient = ({ children }) => {
 
+  /* 1. 상수 ======================================================================================================================= */
+
+  // 없음
+
+  /* 2. 데이터 ======================================================================================================================= */
   const ui = EasyObj({
     sidebarOpen: false,
     isDesktopViewport: false,
@@ -34,6 +40,7 @@ const DashboardLayoutClient = ({ children }) => {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const searchParamText = searchParams?.toString() || "";
   const { setUser } = useUser();
   const { setLoading, showToast } = useGlobalUi();
   const layoutMeta = resolveDashboardLayoutMeta({
@@ -42,18 +49,47 @@ const DashboardLayoutClient = ({ children }) => {
   });
   const currentYear = new Date().getFullYear();
 
-  /**
-   * @description 홈 버튼 클릭 시 루트 경로(`/`) 이동
-   * 부작용: Next router push가 실행된다.
-   * @updated 2026-02-27
-   */
-  const handleGoHome = () => {
-    router.push("/");
-  };
+  /* 3. UI ========================================================================================================================= */
+
+  // 없음
+
+  /* 4. 팝업 ======================================================================================================================= */
+
+  // 없음
+
+  /* 5. 기타 ======================================================================================================================= */
+
+  // 없음
+
+  /* 6. 커스텀 훅 =================================================================================================================== */
+
+  // 없음
+
+  /* 7. 함수 ======================================================================================================================= */
 
   /**
-   * @description useEffect 실행 흐름 관리
-   * 처리 규칙: effect 실행/cleanup 경계를 명시적으로 유지.
+   * @description 로그아웃 API 호출 후 사용자 상태를 비우고 로그인 페이지로 이동
+   * 실패 동작: API 실패 시 에러 토스트를 노출하고 로딩 상태를 finally에서 해제한다.
+   * @updated 2026-02-27
+   */
+  const handleLogout = async () => {
+    setLoading(true);
+    try {
+      await apiJSON("/api/v1/auth/logout", { method: "POST" });
+      setUser(null);
+      showToast(LANG_KO.layoutMeta.layoutAction.logoutSuccessToast, { type: "info" });
+      router.push("/login");
+    } catch {
+      showToast(LANG_KO.layoutMeta.layoutAction.logoutFailToast, { type: "error" });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  /* 8. useEffect ================================================================================================================== */
+  /**
+   * @description 1024px media query 변경에 맞춰 데스크톱 여부와 sidebarOpen 동기화
+   * 처리 규칙: cleanup에서 mediaQuery change 리스너를 제거한다.
    */
   useEffect(() => {
     if (typeof window === "undefined") {
@@ -77,35 +113,20 @@ const DashboardLayoutClient = ({ children }) => {
   }, [ui]);
 
   /**
-   * @description useEffect 실행 흐름 관리
-   * 처리 규칙: effect 실행/cleanup 경계를 명시적으로 유지.
+   * @description 모바일 뷰포트에서 route 변경 시 사이드바를 닫음
+   * 처리 규칙: pathname/searchParams 변경마다 ui.sidebarOpen=false를 반영한다.
    */
   useEffect(() => {
     if (!ui.isDesktopViewport) {
       ui.sidebarOpen = false;
     }
-  }, [pathname, searchParams?.toString(), ui.isDesktopViewport]);
+  }, [pathname, searchParamText, ui]);
 
-  /**
-   * @description 로그아웃 API 호출 후 사용자 상태를 비우고 로그인 페이지로 이동
-   * 실패 동작: API 실패 시 에러 토스트를 노출하고 로딩 상태를 finally에서 해제한다.
-   * @updated 2026-02-27
-   */
-  const handleLogout = async () => {
-    setLoading(true);
-    try {
-      await apiJSON("/api/v1/auth/logout", { method: "POST" });
-      setUser(null);
-      showToast(LANG_KO.layoutMeta.layoutAction.logoutSuccessToast, { type: "info" });
-      router.push("/login");
-    } catch (error) {
-      console.error(error);
-      showToast(LANG_KO.layoutMeta.layoutAction.logoutFailToast, { type: "error" });
-    } finally {
-      setLoading(false);
-    }
-  };
+  /* 9. 내부 컴포넌트 ============================================================================================================== */
 
+  // 없음
+
+  /* 10. 렌더링 ==================================================================================================================== */
   return (
     <div className="flex min-h-screen flex-col bg-gray-50">
       <div className="sticky top-0 z-40">
@@ -132,7 +153,9 @@ const DashboardLayoutClient = ({ children }) => {
             size="sm"
             variant="ghost"
             className="px-2 text-gray-600 hover:text-gray-900 sm:px-3"
-            onClick={handleGoHome}
+            onClick={() => {
+              router.push("/");
+            }}
           >
             <Icon icon="ri:RiHome6Line" className="text-base sm:hidden" />
             <span className="hidden sm:inline">{LANG_KO.layoutMeta.layoutAction.goHome}</span>

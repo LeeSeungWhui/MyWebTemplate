@@ -189,6 +189,7 @@ def attachOpenAPI(app: FastAPI, config) -> None:
                     serverSection = config["SERVER"]
                 except Exception:
                     serverSection = None
+
                 # [SERVER].servers 콤마 리스트가 있으면 우선 사용
                 if serverSection is not None:
                     raw = (serverSection.get("servers") or "").strip()
@@ -196,6 +197,7 @@ def attachOpenAPI(app: FastAPI, config) -> None:
                         for u in [x.strip() for x in raw.split(",") if x.strip()]:
                             if u not in urls:
                                 urls.append(u)
+
                     # backendHost/base_url/host 값이 있으면 보조로 삽입
                     bh = (
                         serverSection.get("backendHost")
@@ -205,7 +207,7 @@ def attachOpenAPI(app: FastAPI, config) -> None:
                     if bh and bh not in urls:
                         urls.insert(0, bh)
                 if not urls:
-                    urls = ["http://localhost:2000"]
+                    urls = ["http://localhost:4001"]
                 return [{"url": u} for u in urls]
 
             schema["servers"] = resolveServers()
@@ -252,6 +254,7 @@ def attachOpenAPI(app: FastAPI, config) -> None:
             # 실제 구현은 /api/v1/auth/me 를 사용한다.
             me = paths.get("/api/v1/auth/me", {}).get("get")
             if isinstance(me, dict):
+
                 # backend는 Bearer 토큰을 신뢰한다(Auth.getCurrentUser).
                 me["security"] = [{"bearerAuth": []}, {"OAuth2PasswordBearer": []}]
                 responses = me.setdefault("responses", {})
@@ -264,6 +267,7 @@ def attachOpenAPI(app: FastAPI, config) -> None:
             login = paths.get("/api/v1/auth/login", {}).get("post")
             if isinstance(login, dict):
                 responses = login.setdefault("responses", {})
+
                 # 참고: 실제 구현은 200 JSON(successResponse) + Set-Cookie 이다(AuthRouter.login).
                 responses.pop("204", None)
 
@@ -290,6 +294,7 @@ def attachOpenAPI(app: FastAPI, config) -> None:
 
             refresh = paths.get("/api/v1/auth/refresh", {}).get("post")
             if isinstance(refresh, dict):
+
                 # Refresh는 refresh cookie로 새 토큰 발급 + Set-Cookie 를 반환한다.
                 responses = refresh.setdefault("responses", {})
                 res200 = responses.setdefault("200", {"description": "OK"})
@@ -317,6 +322,7 @@ def attachOpenAPI(app: FastAPI, config) -> None:
 
             logout = paths.get("/api/v1/auth/logout", {}).get("post")
             if isinstance(logout, dict):
+
                 # 실제 구현은 204(No Content).
                 responses = logout.setdefault("responses", {})
                 responses.setdefault("204", {"description": "No Content"})
@@ -391,6 +397,7 @@ def attachOpenAPI(app: FastAPI, config) -> None:
                         "// });"
                     ),
                 )
+
             # 참고: 템플릿 기본(토큰 모드)에서는 CSRF 헤더를 강제하지 않는다.
             # 쿠키가 직접 권한을 갖는 엔드포인트를 추가하는 경우에만,
             # 해당 라우트에 CSRFToken 파라미터를 수동으로 붙여 문서화한다.

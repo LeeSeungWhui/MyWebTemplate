@@ -1,25 +1,16 @@
 import asyncio
 import os
 import sys
-import sqlite3
 from configparser import ConfigParser
 from fastapi.testclient import TestClient
+
+from conftest import pgTestSettings
+from db_support import fetchRowPg
 
 
 baseDir = os.path.dirname(os.path.dirname(__file__))
 if baseDir not in sys.path:
     sys.path.insert(0, baseDir)
-
-
-def resolveTestDbPath() -> str:
-    configPath = os.path.join(baseDir, "config.test.ini")
-    config = ConfigParser()
-    config.read(configPath, encoding="utf-8")
-    dbPathRel = config["DATABASE"].get("database", "./data/test.db")
-    if os.path.isabs(dbPathRel):
-        return dbPathRel
-    return os.path.normpath(os.path.join(baseDir, dbPathRel))
-
 
 def testHealthzOk():
     from server import app
@@ -104,22 +95,19 @@ def testUserAccessLogPersistsToDb():
         meResponse = client.get("/api/v1/auth/me", headers={"Authorization": f"Bearer {accessToken}"})
         assert meResponse.status_code == 200
 
-    dbPath = resolveTestDbPath()
-    con = sqlite3.connect(dbPath)
-    try:
-        row = con.execute(
-            """
-            SELECT USER_ID, REQ_PATH, RES_CD
-              FROM T_USER_LOG
-             WHERE USER_ID = ?
-               AND REQ_PATH = ?
-             ORDER BY REG_DT DESC
-             LIMIT 1
-            """,
-            ("demo@demo.demo", "/api/v1/auth/me"),
-        ).fetchone()
-    finally:
-        con.close()
+    row = fetchRowPg(
+        pgTestSettings,
+        """
+        SELECT USER_ID, REQ_PATH, RES_CD
+          FROM T_USER_LOG
+         WHERE USER_ID = $1
+           AND REQ_PATH = $2
+         ORDER BY REG_DT DESC
+         LIMIT 1
+        """,
+        "demo@demo.demo",
+        "/api/v1/auth/me",
+    )
 
     assert row is not None
     assert row[0] == "demo@demo.demo"
@@ -148,23 +136,21 @@ def testUserAccessLogStoresIpLocationForPrivateRange():
         )
         assert meResponse.status_code == 200
 
-    dbPath = resolveTestDbPath()
-    con = sqlite3.connect(dbPath)
-    try:
-        row = con.execute(
-            """
-            SELECT CLIENT_IP, IP_LOC_TXT, IP_LOC_SRC
-              FROM T_USER_LOG
-             WHERE USER_ID = ?
-               AND REQ_PATH = ?
-               AND CLIENT_IP = ?
-             ORDER BY REG_DT DESC
-             LIMIT 1
-            """,
-            ("demo@demo.demo", "/api/v1/auth/me", "10.23.45.67"),
-        ).fetchone()
-    finally:
-        con.close()
+    row = fetchRowPg(
+        pgTestSettings,
+        """
+        SELECT CLIENT_IP, IP_LOC_TXT, IP_LOC_SRC
+          FROM T_USER_LOG
+         WHERE USER_ID = $1
+           AND REQ_PATH = $2
+           AND CLIENT_IP = $3
+         ORDER BY REG_DT DESC
+         LIMIT 1
+        """,
+        "demo@demo.demo",
+        "/api/v1/auth/me",
+        "10.23.45.67",
+    )
 
     assert row is not None
     assert row[0] == "10.23.45.67"
@@ -190,7 +176,7 @@ def testReadyzFail503(monkeypatch):
 
     class FailingMgr:
         def __init__(self):
-            self.databaseUrl = "sqlite:///test.db"
+            self.databaseUrl = "postgresql://test"
 
         async def fetchOneQuery(self, queryName):
             raise RuntimeError("db down")

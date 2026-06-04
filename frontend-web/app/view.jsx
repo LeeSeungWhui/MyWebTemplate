@@ -1,8 +1,9 @@
 "use client";
+
 /**
  * 파일명: app/view.jsx
  * 작성자: LSH
- * 갱신일: 2026-03-04
+ * 갱신일: 2026-05-31
  * 설명: 루트 랜딩 페이지 뷰
  */
 
@@ -11,58 +12,63 @@ import Image from "next/image";
 import Icon from "@/app/lib/component/Icon";
 import { PAGE_CONFIG } from "@/app/initData";
 import { normalizePageConfig } from "@/app/lib/runtime/pageData";
-import { usePageData } from "@/app/lib/hooks/usePageData";
 import LANG_KO from "@/app/lang.ko";
-
-const { initData } = LANG_KO;
-
-const LANDING_HERO = {
-  title: initData.hero.title,
-  subtitle: initData.hero.subtitle,
-  primaryCta: { href: "/sample", label: initData.hero.primaryCtaLabel },
-  secondaryCta: { href: "/component", label: initData.hero.secondaryCtaLabel },
-  previewImage: {
-    src: "/images/landing/demo-dashboard.png",
-    alt: initData.hero.previewImageAlt,
-  },
-};
-const LANDING_SERVICE_LIST = initData.services.map((item) => ({ ...item }));
-const LANDING_GALLERY_LIST = initData.gallery.map((item) => ({ ...item }));
-const LANDING_STACK_LIST = [...initData.stackList];
-const LANDING_BOTTOM_CTA = {
-  title: initData.bottomCta.title,
-  subtitle: initData.bottomCta.subtitle,
-  demo: { href: "/sample", label: initData.bottomCta.label },
-};
 
 /**
  * @description 루트 랜딩 페이지를 렌더링. 입력/출력 계약을 함께 명시
  * @returns {JSX.Element}
  */
-const HomeView = ({ initialDataObj, initialErrorObj }) => {
+const HomeView = () => {
+
   /* 1. 상수 ======================================================================================================================= */
-  // 없음
+  const landingHeroObj = {
+    title: LANG_KO.initData.hero.title,
+    subtitle: LANG_KO.initData.hero.subtitle,
+    primaryCta: { href: "/sample", label: LANG_KO.initData.hero.primaryCtaLabel },
+    secondaryCta: { href: "/component", label: LANG_KO.initData.hero.secondaryCtaLabel },
+    previewImage: {
+      src: "/images/landing/demo-dashboard.png",
+      alt: LANG_KO.initData.hero.previewImageAlt,
+    },
+  };
+  const landingServiceList = LANG_KO.initData.services;
+  const landingGalleryList = LANG_KO.initData.gallery;
+  const landingStackList = LANG_KO.initData.stackList;
+  const landingBottomCtaObj = {
+    title: LANG_KO.initData.bottomCta.title,
+    subtitle: LANG_KO.initData.bottomCta.subtitle,
+    demo: { href: "/sample", label: LANG_KO.initData.bottomCta.label },
+  };
+
   /* 2. 데이터 ======================================================================================================================= */
   const pageMode = normalizePageConfig(PAGE_CONFIG).MODE;
-  usePageData({
-    pageConfig: PAGE_CONFIG,
-    initialDataObj,
-    initialErrorObj,
-  });
 
   /* 3. UI ========================================================================================================================= */
+
   // 없음
+
   /* 4. 팝업 ======================================================================================================================= */
+
   // 없음
+
   /* 5. 기타 ======================================================================================================================= */
+
   // 없음
+
   /* 6. 커스텀 훅 =================================================================================================================== */
+
   // 없음
+
   /* 7. 함수 ======================================================================================================================= */
+
   // 없음
+
   /* 8. useEffect ================================================================================================================== */
+
   // 없음
+
   /* 9. 내부 컴포넌트 ============================================================================================================== */
+
   // 없음
 
   /* 10. 렌더링 ==================================================================================================================== */
@@ -75,23 +81,23 @@ const HomeView = ({ initialDataObj, initialErrorObj }) => {
         <div className="grid gap-8 lg:grid-cols-[1.2fr_0.8fr] lg:items-center">
           <div>
             <h1 className="text-3xl font-bold leading-tight sm:text-4xl">
-              {LANDING_HERO.title}
+              {landingHeroObj.title}
             </h1>
             <p className="mt-4 text-sm text-white/80 sm:text-base">
-              {LANDING_HERO.subtitle}
+              {landingHeroObj.subtitle}
             </p>
             <div className="mt-6 flex flex-wrap gap-3">
               <Link
-                href={LANDING_HERO.primaryCta.href}
+                href={landingHeroObj.primaryCta.href}
                 className="inline-flex items-center rounded-md bg-blue-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-400"
               >
-                {LANDING_HERO.primaryCta.label}
+                {landingHeroObj.primaryCta.label}
               </Link>
               <Link
-                href={LANDING_HERO.secondaryCta.href}
+                href={landingHeroObj.secondaryCta.href}
                 className="inline-flex items-center rounded-md border border-white/50 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/10"
               >
-                {LANDING_HERO.secondaryCta.label}
+                {landingHeroObj.secondaryCta.label}
               </Link>
             </div>
           </div>
@@ -102,8 +108,8 @@ const HomeView = ({ initialDataObj, initialErrorObj }) => {
               <p className="mt-2 text-sm font-semibold">{LANG_KO.view.previewTitle}</p>
               <div className="relative mt-4 overflow-hidden rounded-lg border border-gray-200">
                 <Image
-                  src={LANDING_HERO.previewImage.src}
-                  alt={LANDING_HERO.previewImage.alt}
+                  src={landingHeroObj.previewImage.src}
+                  alt={landingHeroObj.previewImage.alt}
                   width={640}
                   height={360}
                   className="h-auto w-full"
@@ -118,7 +124,7 @@ const HomeView = ({ initialDataObj, initialErrorObj }) => {
       <section className="mt-10">
         <h2 className="text-2xl font-bold text-gray-900">{LANG_KO.view.section.services}</h2>
         <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {LANDING_SERVICE_LIST.map((serviceItem) => (
+          {landingServiceList.map((serviceItem) => (
             <article
               key={serviceItem.title}
               className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
@@ -143,7 +149,7 @@ const HomeView = ({ initialDataObj, initialErrorObj }) => {
       <section className="mt-10">
         <h2 className="text-2xl font-bold text-gray-900">{LANG_KO.view.section.gallery}</h2>
         <div className="mt-5 grid gap-4 md:grid-cols-3">
-          {LANDING_GALLERY_LIST.map((galleryItem) => (
+          {landingGalleryList.map((galleryItem) => (
             <Link
               key={galleryItem.href}
               href={galleryItem.href}
@@ -172,7 +178,7 @@ const HomeView = ({ initialDataObj, initialErrorObj }) => {
       <section className="mt-10">
         <h2 className="text-2xl font-bold text-gray-900">{LANG_KO.view.section.stack}</h2>
         <div className="mt-5 flex flex-wrap gap-2">
-          {LANDING_STACK_LIST.map((stackName) => (
+          {landingStackList.map((stackName) => (
             <span
               key={stackName}
               className="rounded-full bg-blue-50 px-3 py-1.5 text-sm text-blue-700 transition hover:-translate-y-0.5"
@@ -184,14 +190,14 @@ const HomeView = ({ initialDataObj, initialErrorObj }) => {
       </section>
 
       <section className="mt-10 rounded-2xl bg-blue-50 px-6 py-8">
-        <h2 className="text-2xl font-bold text-gray-900">{LANDING_BOTTOM_CTA.title}</h2>
-        <p className="mt-2 text-sm text-gray-600">{LANDING_BOTTOM_CTA.subtitle}</p>
+        <h2 className="text-2xl font-bold text-gray-900">{landingBottomCtaObj.title}</h2>
+        <p className="mt-2 text-sm text-gray-600">{landingBottomCtaObj.subtitle}</p>
         <div className="mt-5 flex flex-wrap gap-3">
           <Link
-            href={LANDING_BOTTOM_CTA.demo.href}
+            href={landingBottomCtaObj.demo.href}
             className="inline-flex items-center rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700"
           >
-            {LANDING_BOTTOM_CTA.demo.label}
+            {landingBottomCtaObj.demo.label}
           </Link>
         </div>
       </section>

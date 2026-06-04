@@ -1,13 +1,14 @@
 /**
  * 파일명: useEasyUpload.jsx
  * 작성자: LSH
- * 갱신일: 2026-03-05
+ * 갱신일: 2026-05-31
  * 설명: 파일 업로드 유틸. BFF/백엔드 호스트를 자동 해석해 FormData 업로드를 수행
  */
 
-import { getGlobalUiActionsSnapshot } from "@/app/common/store/SharedStore";
+import { getUiActionsSnap } from "@/app/common/store/SharedStore";
 import { getBackendHost } from "@/app/common/config/getBackendHost.client";
 import { COMMON_COMPONENT_LANG_KO } from "@/app/common/i18n/lang.ko";
+import { apiRequest } from "@/app/lib/runtime/api";
 import {
   parseJsonPayload,
   normalizeNestedJsonFields,
@@ -23,68 +24,26 @@ const DEFAULT_OPTIONS = {
 };
 
 /**
- * @description 업로드 실패 응답에서 사용자 노출용 메시지를 추출
- * 처리 규칙: text가 비어 있으면 상태코드 메시지를 만들고, JSON이면 message/result 필드를 우선 사용한다.
- * @updated 2026-02-27
- */
-const normalizeErrorMessage = async (response) => {
-  const text = await response.text().catch(() => "");
-  if (!text) {
-    return `${response.status}${COMMON_COMPONENT_LANG_KO.easyUpload.uploadFailedWithStatusSuffix}`;
-  }
-  const json = parseJsonPayload(text, { context: "EasyUploadError" });
-  if (json && typeof json === "object") {
-    return json?.message || json?.result || text;
-  }
-  return text;
-};
-
-/**
- * @description 업로드 URL을 절대/상대/BFF 규칙에 맞게 정규화. 입력/출력 계약을 함께 명시
- * 처리 규칙: 절대 URL과 `/api/bff/`는 그대로 두고, 나머지 상대경로는 backendHost를 접두한다.
- * @updated 2026-02-27
- */
-const resolveUploadUrl = (url) => {
-  if (!url || typeof url !== "string") return "";
-  if (/^https?:\/\//i.test(url)) return url;
-  if (url.startsWith("/api/bff/")) {
-    return url;
-  }
-  try {
-    const backend = getBackendHost();
-    if (!backend) return url;
-    const normalizedBackend = backend.endsWith("/")
-      ? backend.slice(0, -1)
-      : backend;
-    if (url.startsWith("/")) return `${normalizedBackend}${url}`;
-    return `${normalizedBackend}/${url}`;
-  } catch (backendHostError) {
-    void backendHostError;
-    return url;
-  }
-};
-
-/**
  * @description File/FileList/ArrayLike 입력을 업로드 가능한 파일 배열로 변환. 입력/출력 계약을 함께 명시
  * 반환값: 유효 파일만 포함된 배열(입력이 비어 있으면 빈 배열).
  * @updated 2026-02-27
  */
-const toArray = (filesInput) => {
+const readFileList = (filesInput) => {
   if (!filesInput) return [];
   if (filesInput instanceof File || filesInput instanceof Blob)
     return [filesInput];
-  const result = [];
+  const fileList = [];
   if (typeof filesInput.forEach === "function") {
-    filesInput.forEach((item) => {
-      if (item) result.push(item);
+    filesInput.forEach((fileInputObj) => {
+      if (fileInputObj) fileList.push(fileInputObj);
     });
-    return result;
+    return fileList;
   }
   if (typeof filesInput.length === "number") {
-    for (let idx = 0; idx < filesInput.length; idx += 1) {
-      if (filesInput[idx]) result.push(filesInput[idx]);
+    for (let index = 0; index < filesInput.length; index += 1) {
+      if (filesInput[index]) fileList.push(filesInput[index]);
     }
-    return result;
+    return fileList;
   }
   return [];
 };
@@ -96,42 +55,42 @@ const toArray = (filesInput) => {
  * @param {Object} [options]
  * @returns {Promise<any>}
  */
-const useEasyUpload = async ({ filesInput, options = {} }) => {
+const easyUploadRequest = async ({ filesInput, options = {} }) => {
 
-  const config = { ...DEFAULT_OPTIONS, ...options };
-  if (!config.fileUploadUrl) {
+  const uploadConfigObj = { ...DEFAULT_OPTIONS, ...options };
+  if (!uploadConfigObj.fileUploadUrl) {
     throw new Error(COMMON_COMPONENT_LANG_KO.easyUpload.fileUploadUrlRequired);
   }
-  const extraPayloadCandidates = [];
-  if (config.extraFormData && typeof config.extraFormData === "object") {
-    extraPayloadCandidates.push(config.extraFormData);
+  const extraPayloadList = [];
+  if (uploadConfigObj.extraFormData && typeof uploadConfigObj.extraFormData === "object") {
+    extraPayloadList.push(uploadConfigObj.extraFormData);
   }
-  if (config.etc && typeof config.etc === "object") {
-    extraPayloadCandidates.push(config.etc);
+  if (uploadConfigObj.etc && typeof uploadConfigObj.etc === "object") {
+    extraPayloadList.push(uploadConfigObj.etc);
   }
 
-  const files = toArray(filesInput);
-  if (!files.length) return null;
+  const uploadFileList = readFileList(filesInput);
+  if (!uploadFileList.length) return null;
 
-  const { updateLoading, showAlert } = getGlobalUiActionsSnapshot();
+  const { updateLoading, showAlert } = getUiActionsSnap();
 
   const formData = new FormData();
   const fieldName =
-    files.length === 1 ? config.singleFieldName : config.multiFieldName;
-  files.forEach((file) => {
+    uploadFileList.length === 1 ? uploadConfigObj.singleFieldName : uploadConfigObj.multiFieldName;
+  uploadFileList.forEach((file) => {
     if (file) formData.append(fieldName, file);
   });
 
-  extraPayloadCandidates.forEach((payload) => {
-    Object.entries(payload).forEach(([key, value]) => {
-      if (value == null) return;
-      if (Array.isArray(value)) {
-        value.forEach((item) => {
-          if (item != null) formData.append(key, item);
+  extraPayloadList.forEach((extraPayloadObj) => {
+    Object.entries(extraPayloadObj).forEach(([extraPayloadKey, extraPayloadValue]) => {
+      if (extraPayloadValue == null) return;
+      if (Array.isArray(extraPayloadValue)) {
+        extraPayloadValue.forEach((payloadValue) => {
+          if (payloadValue != null) formData.append(extraPayloadKey, payloadValue);
         });
         return;
       }
-      formData.append(key, value);
+      formData.append(extraPayloadKey, extraPayloadValue);
     });
   });
 
@@ -140,27 +99,56 @@ const useEasyUpload = async ({ filesInput, options = {} }) => {
     updateLoading(1);
   }
   try {
-    const targetUrl = resolveUploadUrl(config.fileUploadUrl);
-    const response = await fetch(targetUrl, {
+    let targetUrl = "";
+    if (typeof uploadConfigObj.fileUploadUrl === "string") {
+      targetUrl = uploadConfigObj.fileUploadUrl;
+      if (!/^https?:\/\//i.test(uploadConfigObj.fileUploadUrl) && !uploadConfigObj.fileUploadUrl.startsWith("/api/bff/")) {
+        const backendHost = getBackendHost();
+        if (backendHost) {
+          const normalizedBackend = backendHost.endsWith("/")
+            ? backendHost.slice(0, -1)
+            : backendHost;
+          targetUrl = uploadConfigObj.fileUploadUrl.startsWith("/")
+            ? `${normalizedBackend}${uploadConfigObj.fileUploadUrl}`
+            : `${normalizedBackend}/${uploadConfigObj.fileUploadUrl}`;
+        }
+      }
+    }
+    const uploadResponse = await apiRequest(targetUrl, {
       method: "POST",
       body: formData,
-      credentials: config.credentials,
-      headers: config.headers,
+      headers: uploadConfigObj.headers,
     });
 
-    if (!response.ok) {
-      const message = await normalizeErrorMessage(response);
-      showAlert(message || COMMON_COMPONENT_LANG_KO.easyUpload.uploadFailedDescription, {
+    if (!uploadResponse.ok) {
+      let uploadErrorText = "";
+      try {
+        uploadErrorText = await uploadResponse.text();
+      } catch {
+        uploadErrorText = "";
+      }
+      let uploadErrorMessage = `${uploadResponse.status}${COMMON_COMPONENT_LANG_KO.easyUpload.uploadFailedWithStatusSuffix}`;
+      if (uploadErrorText) {
+        const uploadErrorObj = parseJsonPayload(uploadErrorText, { context: "EasyUploadError" });
+        if (uploadErrorObj && typeof uploadErrorObj === "object") {
+          const parsedErrorMessage = uploadErrorObj?.message || uploadErrorObj?.result;
+          const isParsedErrorMessage = typeof parsedErrorMessage === "string";
+          if (isParsedErrorMessage) {
+            uploadErrorMessage = parsedErrorMessage;
+          }
+        }
+      }
+      showAlert(uploadErrorMessage || COMMON_COMPONENT_LANG_KO.easyUpload.uploadFailedDescription, {
         title: COMMON_COMPONENT_LANG_KO.easyUpload.uploadFailedTitle,
         type: "error",
       });
-      throw new Error(message || COMMON_COMPONENT_LANG_KO.easyUpload.uploadFailedDefault);
+      throw new Error(uploadErrorMessage || COMMON_COMPONENT_LANG_KO.easyUpload.uploadFailedDefault);
     }
 
     const contentType = (
-      response.headers.get("content-type") || ""
+      uploadResponse.headers.get("content-type") || ""
     ).toLowerCase();
-    const rawText = await response.text().catch(() => "");
+    const rawText = await uploadResponse.text();
 
     if (!contentType.includes("application/json")) {
       return rawText || null;
@@ -183,4 +171,4 @@ const useEasyUpload = async ({ filesInput, options = {} }) => {
   }
 }
 
-export default useEasyUpload;
+export default easyUploadRequest;

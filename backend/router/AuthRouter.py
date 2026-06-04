@@ -1,14 +1,14 @@
 """
 파일명: backend/router/AuthRouter.py
 작성자: LSH
-갱신일: 2025-12-03
+갱신일: 2026-04-08
 설명: 인증 API 라우터. Access/Refresh 쿠키 기반 토큰 흐름 담당
 """
 
-import json
 import os
 import re
 from functools import lru_cache
+from typing import Any
 from urllib.parse import urlparse
 
 from fastapi import APIRouter, Depends, Request
@@ -18,6 +18,7 @@ from lib.Auth import AuthConfig, getCurrentUser
 from lib.Config import getConfig
 from lib.I18n import detectLocale, translate as i18nTranslate
 from lib.RateLimit import checkRateLimit
+from lib.RequestPayloadValidator import readJsonPayloadDict, readOptionalJsonPayloadDict
 from lib.Response import errorResponse, successResponse
 from lib.ServiceError import buildMappedErrorResponse
 from service import AuthService
@@ -68,13 +69,13 @@ def getCorsOriginRules() -> tuple[tuple[str, ...], str | None]:
         부작용: allowOrigins 리스트에 정규화 결과와 localhost/127 alias를 누적
         갱신일: 2026-02-25
         """
-        normalized = normalizeOrigin(candidate)
-        if not normalized:
+        originValue = normalizeOrigin(candidate)
+        if not originValue:
             return
-        if normalized not in allowOrigins:
-            allowOrigins.append(normalized)
+        if originValue not in allowOrigins:
+            allowOrigins.append(originValue)
 
-        parsed = urlparse(normalized)
+        parsed = urlparse(originValue)
         scheme = str(parsed.scheme or "").strip().lower()
         host = str(parsed.hostname or "").strip().lower()
         if not scheme or not host:
@@ -241,19 +242,22 @@ def invalidInputResponse(loc: str, includeAuthHeader: bool = False) -> JSONRespo
     )
 
 
+def parseRememberMe(value: Any) -> bool:
+    """
+    설명: rememberMe를 JSON boolean true일 때만 활성화
+    반환값: bool 타입 True면 True, 그 외 값은 False
+    갱신일: 2026-06-04
+    """
+    return value is True
+
+
 async def parseJsonBody(request: Request) -> dict | None:
     """
     설명: 요청 본문을 JSON dict로 안전하게 파싱하 유틸
     실패 동작: 파싱 실패 또는 dict 타입 불일치 시 None을 반환
     갱신일: 2026-02-23
     """
-    try:
-        body = await request.json()
-    except Exception:
-        return None
-    if not isinstance(body, dict):
-        return None
-    return body
+    return await readJsonPayloadDict(request)
 
 
 def webSessionResult(tokenPayload: dict) -> dict:
@@ -299,7 +303,7 @@ async def login(request: Request):
         "username": body.get("username"),
         "password": body.get("password"),
     }
-    remember = bool(body.get("rememberMe", False))
+    remember = parseRememberMe(body.get("rememberMe", False))
 
     # 간단 입력 검증
     username = payload.get("username")
@@ -320,6 +324,7 @@ async def login(request: Request):
 
     authResult = await AuthService.login(payload, remember)
     if not authResult:
+
         # 레이트리밋(실패 기록): 로그인 실패 시에만 카운트를 증가시킨다.
         limited = checkRateLimit(request, username=username, commit=True)
         if limited is not None:
@@ -361,7 +366,8 @@ async def signup(request: Request):
         "email": body.get("email"),
         "password": body.get("password"),
     }
-    result, errorCode = await AuthService.signup(payload)
+    idempotencyKey = request.headers.get("Idempotency-Key")
+    result, errorCode = await AuthService.signup(payload, idempotencyKey=idempotencyKey)
     if errorCode:
         mappedResponse = buildMappedErrorResponse(
             errorCode,
@@ -388,6 +394,38 @@ async def signup(request: Request):
     return response
 
 
+@router.post("/passwordReset/request")
+@router.post("/password-reset/request")
+async def requestPasswordReset(request: Request):
+    """
+    설명: 비밀번호 재설정 요청을 접수하고 계정 존재 여부를 숨긴 채 동일 성공 응답 반환
+    실패 동작: 입력 형식 오류는 422, 그 외 예외는 500으로 표준 응답화
+    갱신일: 2026-04-08
+    """
+    loc = detectLocale(request)
+    body = await parseJsonBody(request)
+    if body is None:
+        return invalidInputResponse(loc)
+    payload = {
+        "email": body.get("email"),
+    }
+    result, errorCode = await AuthService.requestPasswordReset(payload)
+    if errorCode == "AUTH_422_INVALID_INPUT":
+        return invalidInputResponse(loc)
+    if errorCode:
+        return JSONResponse(
+            status_code=500,
+            content=errorResponse(
+                message=i18nTranslate("error.server_error", "server error", loc),
+                code=errorCode,
+            ),
+            headers={"Cache-Control": "no-store"},
+        )
+    response = JSONResponse(status_code=200, content=successResponse(result=result))
+    response.headers["Cache-Control"] = "no-store"
+    return response
+
+
 @router.post("/refresh")
 async def refresh(request: Request):
     """
@@ -409,6 +447,7 @@ async def refresh(request: Request):
             ),
             headers={"WWW-Authenticate": "Bearer"},
         )
+
         # 브라우저 쿠키가 꼬인 상태(스테일 refresh 등)에서 무한 루프를 방지하기 위해 쿠키를 정리한다.
         clearAuthCookies(response, request)
         response.headers["Cache-Control"] = "no-store"
@@ -473,7 +512,7 @@ async def appLogin(request: Request):
         "username": body.get("username"),
         "password": body.get("password"),
     }
-    remember = bool(body.get("rememberMe", False))
+    remember = parseRememberMe(body.get("rememberMe", False))
 
     username = payload.get("username")
     password = payload.get("password")
@@ -566,16 +605,9 @@ async def appLogout(request: Request):
     갱신일: 2026-02-25
     """
     loc = detectLocale(request)
-    body: dict = {}
-    rawBody = await request.body()
-    if rawBody:
-        try:
-            parsed = json.loads(rawBody.decode("utf-8"))
-        except Exception:
-            return invalidInputResponse(loc)
-        if not isinstance(parsed, dict):
-            return invalidInputResponse(loc)
-        body = parsed
+    body, isBodyValid = await readOptionalJsonPayloadDict(request)
+    if not isBodyValid:
+        return invalidInputResponse(loc)
     refreshToken = body.get("refreshToken")
     if not isinstance(refreshToken, str):
         refreshToken = None

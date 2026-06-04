@@ -1,7 +1,7 @@
 /**
  * 파일명: getFrontendHost.client.js
  * 작성자: LSH
- * 갱신일: 2026-03-03
+ * 갱신일: 2026-05-31
  * 설명: 클라이언트 컨텍스트에서 프론트엔드 호스트를 조회
  */
 
@@ -12,9 +12,9 @@ import { getConfigSnapshot } from '@/app/common/store/SharedStore'
  * @returns {string}
  */
 export const getFrontendHost = () => {
-  const cfg = getConfigSnapshot()
-  const base = cfg?.APP?.frontendHost
-  if (typeof base === 'string' && base) return base.replace(/\/$/, '')
+  const frontendConfigObj = getConfigSnapshot()
+  const frontendHostValue = frontendConfigObj?.APP?.frontendHost
+  if (typeof frontendHostValue === 'string' && frontendHostValue) return frontendHostValue.replace(/\/$/, '')
 
   if (typeof window !== 'undefined' && window.location?.origin) return window.location.origin
   return 'http://localhost:3000'

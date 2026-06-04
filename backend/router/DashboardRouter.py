@@ -1,45 +1,20 @@
 """
 파일명: backend/router/DashboardRouter.py
 작성자: LSH
-갱신일: 2026-02-22
+갱신일: 2026-03-12
 설명: 대시보드용 T_DATA 목록/상세/CRUD/집계 API. 토큰 인증 후 서비스 계층을 통해 처리
 """
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel
 
 from lib.Auth import getCurrentUser
+from lib.RequestPayloadValidator import readJsonPayloadDict, validatePayloadTypes
 from lib.Response import successResponse
 from lib.ServiceError import buildMappedErrorResponse
 from service import DashboardService
 
 router = APIRouter(prefix="/api/v1/dashboard", tags=["dashboard"])
-
-
-class DashboardCreatePayload(BaseModel):
-    title: str
-    description: str | None = None
-    status: str
-    amount: float | None = None
-    tags: list[str] | str | None = None
-
-
-class DashboardUpdatePayload(BaseModel):
-    title: str | None = None
-    description: str | None = None
-    status: str | None = None
-    amount: float | None = None
-    tags: list[str] | str | None = None
-
-
-def toModelDict(model: BaseModel, *, excludeNone: bool = False) -> dict:
-    """
-    설명: Pydantic payload를 dict로 추출
-    반환값: model_dump(dict) 결과를 표준 dict로 통일한 값
-    갱신일: 2026-02-22
-    """
-    return model.model_dump(exclude_none=excludeNone)
 
 
 def handleDashboardError(exc: Exception) -> JSONResponse:
@@ -62,8 +37,6 @@ async def listDataTemplates(
     page: int | None = None,
     size: int | None = None,
     sort: str | None = None,
-    limit: int | None = None,
-    offset: int | None = None,
     user=Depends(getCurrentUser),
 ):
     """
@@ -74,26 +47,31 @@ async def listDataTemplates(
     try:
         result = await DashboardService.listDataTemplates(
             userId=user.username,
-            limit=limit,
-            offset=offset,
             q=q,
             status=status,
             page=page,
             size=size,
             sort=sort,
         )
-        body = successResponse(result=result["items"])
-        body["count"] = result["total"]
-        body["meta"] = {
-            "page": result["page"],
-            "size": result["size"],
-            "limit": result["limit"],
-            "offset": result["offset"],
-            "sort": result["sort"],
-            "q": result["q"],
-            "status": result["status"],
-        }
-        response = JSONResponse(status_code=200, content=body)
+        response = JSONResponse(
+            status_code=200,
+            content={
+                **successResponse(
+                    result={
+                        "dataTemplateList": [*result["dataTemplateList"]],
+                        "listMetaObj": {
+                            "page": result["page"],
+                            "size": result["size"],
+                            "sort": result["sort"],
+                            "q": result["q"],
+                            "status": result["status"],
+                            "totalCount": result["total"],
+                        },
+                    }
+                ),
+                "count": result["total"],
+            },
+        )
         response.headers["Cache-Control"] = "no-store"
         return response
     except Exception as exc:
@@ -133,14 +111,32 @@ async def getDataTemplateDetail(dataId: int, user=Depends(getCurrentUser)):
 
 
 @router.post("")
-async def createDataTemplate(payload: DashboardCreatePayload, user=Depends(getCurrentUser)):
+async def createDataTemplate(request: Request, user=Depends(getCurrentUser)):
     """
     설명: 생성 payload를 서비스 입력으로 변환해 신규 등록 결과를 반환하는 생성 엔드포인트
     반환값: 생성된 엔티티를 포함한 201(successResponse, message=created)
     갱신일: 2026-02-22
     """
     try:
-        result = await DashboardService.createDataTemplate(toModelDict(payload), userId=user.username)
+        payload = validatePayloadTypes(
+            await readJsonPayloadDict(request),
+            requiredFieldTypeMap={
+                "title": "str",
+                "status": "str",
+            },
+            optionalFieldTypeMap={
+                "description": "str",
+                "amount": "number",
+                "tags": "str_or_str_list",
+            },
+            errorCode="DASH_422_INVALID_INPUT",
+        )
+        idempotencyKey = request.headers.get("Idempotency-Key")
+        result = await DashboardService.createDataTemplate(
+            payload,
+            userId=user.username,
+            idempotencyKey=idempotencyKey,
+        )
         response = JSONResponse(status_code=201, content=successResponse(result=result, message="created"))
         response.headers["Cache-Control"] = "no-store"
         return response
@@ -149,16 +145,28 @@ async def createDataTemplate(payload: DashboardCreatePayload, user=Depends(getCu
 
 
 @router.put("/{dataId}")
-async def updateDataTemplate(dataId: int, payload: DashboardUpdatePayload, user=Depends(getCurrentUser)):
+async def updateDataTemplate(dataId: int, request: Request, user=Depends(getCurrentUser)):
     """
     설명: 부분 수정 payload(excludeNone)를 서비스에 위임해 수정 결과를 반환하 엔드포인트
     반환값: 수정 완료 엔티티를 포함한 successResponse(message=updated)
     갱신일: 2026-02-22
     """
     try:
+        payload = validatePayloadTypes(
+            await readJsonPayloadDict(request),
+            optionalFieldTypeMap={
+                "title": "str",
+                "description": "str",
+                "status": "str",
+                "amount": "number",
+                "tags": "str_or_str_list",
+            },
+            excludeNone=True,
+            errorCode="DASH_422_INVALID_INPUT",
+        )
         result = await DashboardService.updateDataTemplate(
             dataId,
-            toModelDict(payload, excludeNone=True),
+            payload,
             userId=user.username,
         )
         response = JSONResponse(

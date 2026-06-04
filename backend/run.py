@@ -33,6 +33,6 @@ if __name__ == "__main__":
     uvicorn.run(
         "server:app",
         host="0.0.0.0",
-        port=serverConfig.getint("port", 2000),
+        port=serverConfig.getint("port", 4001),
         reload=True,
     )

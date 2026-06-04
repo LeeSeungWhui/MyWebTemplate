@@ -1,8 +1,9 @@
 "use client";
+
 /**
  * 파일명: sample/dashboard/view.jsx
- * 작성자: Codex
- * 갱신일: 2026-03-06
+ * 작성자: LSH
+ * 갱신일: 2026-05-31
  * 설명: 공개 샘플 대시보드 페이지 뷰(DB dashboard 연동)
  */
 
@@ -14,19 +15,18 @@ import { PAGE_CONFIG } from "./initData";
 import { usePageData } from "@/app/lib/hooks/usePageData";
 import LANG_KO from "./lang.ko";
 
-const CTA_LINK_LIST = [
-  { href: "/sample/crud", label: LANG_KO.initData.ctaLabels.crud },
-  { href: "/sample/admin", label: LANG_KO.initData.ctaLabels.admin },
-];
-
 /**
  * @description 공개 샘플 대시보드 화면을 렌더링. 입력/출력 계약을 함께 명시
  * 처리 규칙: KPI/차트/최근 업무 목록은 `/api/v1/sample/dashboard` 응답을 그대로 사용한다.
  * @param {{ initialDataObj?: Object, initialErrorObj?: Object }} props
  */
 const DemoDashboardView = ({ initialDataObj, initialErrorObj }) => {
+
   /* 1. 상수 ======================================================================================================================= */
-  // 없음
+  const ctaLinkList = [
+    { href: "/sample/crud", label: LANG_KO.initData.ctaLabels.crud },
+    { href: "/sample/admin", label: LANG_KO.initData.ctaLabels.admin },
+  ];
 
   /* 2. 데이터 ======================================================================================================================= */
   const { mode: pageMode, dataObj, isLoading } = usePageData({
@@ -35,15 +35,15 @@ const DemoDashboardView = ({ initialDataObj, initialErrorObj }) => {
     initialErrorObj,
   });
   const dashboardResult = dataObj?.dashboard?.result || {};
-  const summaryList = dashboardResult?.byStatus || [];
+  const summaryList = dashboardResult?.statusSummaryList || [];
   const trendList = dashboardResult?.trendList || [];
   const recentList = dashboardResult?.recentList || [];
-  const totalCount = summaryList.reduce((total, item) => total + Number(item?.count || 0), 0);
-  const totalAmount = summaryList.reduce((total, item) => total + Number(item?.amountSum || 0), 0);
-  const activeCount = summaryList.reduce((total, item) => {
-    const status = String(item?.status || "");
+  const totalCount = summaryList.reduce((total, summaryItemObj) => total + Number(summaryItemObj?.count || 0), 0);
+  const totalAmount = summaryList.reduce((total, summaryItemObj) => total + Number(summaryItemObj?.amountSum || 0), 0);
+  const activeCount = summaryList.reduce((total, summaryItemObj) => {
+    const status = String(summaryItemObj?.status || "");
     if (status === "running" || status === "pending") {
-      return total + Number(item?.count || 0);
+      return total + Number(summaryItemObj?.count || 0);
     }
     return total;
   }, 0);
@@ -64,11 +64,11 @@ const DemoDashboardView = ({ initialDataObj, initialErrorObj }) => {
       deltaType: "neutral",
     },
   ];
-  const donutData = summaryList.map((item) => ({
-    label: LANG_KO.view.statusLabelMap[item?.status] || item?.status || LANG_KO.view.unknown,
-    value: Number(item?.count || 0),
+  const donutDataList = summaryList.map((summaryItemObj) => ({
+    label: LANG_KO.view.statusLabelMap[summaryItemObj?.status] || summaryItemObj?.status || LANG_KO.view.unknown,
+    value: Number(summaryItemObj?.count || 0),
   }));
-  const tableColumns = [
+  const tableColumnList = [
     { key: "title", header: LANG_KO.view.table.titleHeader, align: "left", width: "2fr" },
     {
       key: "status",
@@ -87,36 +87,43 @@ const DemoDashboardView = ({ initialDataObj, initialErrorObj }) => {
   ];
 
   /* 3. UI ========================================================================================================================= */
+
   // 없음
 
   /* 4. 팝업 ======================================================================================================================= */
+
   // 없음
 
   /* 5. 기타 ======================================================================================================================= */
+
   // 없음
 
   /* 6. 커스텀 훅 =================================================================================================================== */
+
   // 없음
 
   /* 7. 함수 ======================================================================================================================= */
+
   // 없음
 
   /* 8. useEffect ================================================================================================================== */
+
   // 없음
 
   /* 9. 내부 컴포넌트 ============================================================================================================== */
+
   // 없음
 
   /* 10. 렌더링 ==================================================================================================================== */
   return (
     <div className="space-y-3" data-page-mode={pageMode}>
       <section className="grid gap-3 md:grid-cols-3">
-        {statCardList.map((item) => (
+        {statCardList.map((statCardObj) => (
           <Stat
-            key={item.label}
-            {...item}
+            key={statCardObj.label}
+            {...statCardObj}
             className="p-1"
-            value={isLoading ? "..." : item.value}
+            value={isLoading ? "..." : statCardObj.value}
           />
         ))}
       </section>
@@ -146,7 +153,7 @@ const DemoDashboardView = ({ initialDataObj, initialErrorObj }) => {
         />
         <EasyChart
           title={LANG_KO.view.chart.statusTitle}
-          dataList={donutData}
+          dataList={donutDataList}
           seriesList={[
             {
               seriesId: "value",
@@ -166,7 +173,7 @@ const DemoDashboardView = ({ initialDataObj, initialErrorObj }) => {
           title={LANG_KO.view.card.recentTitle}
           description={LANG_KO.view.card.recentSubtitle}
           data={recentList}
-          columns={tableColumns}
+          columns={tableColumnList}
           loading={isLoading}
           empty={LANG_KO.view.table.empty}
           rowKey={(rowItem, rowIndex) => rowItem?.id ?? rowIndex}
@@ -174,13 +181,13 @@ const DemoDashboardView = ({ initialDataObj, initialErrorObj }) => {
         <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
           <p className="text-sm font-semibold text-gray-900">{LANG_KO.view.quickLinkTitle}</p>
           <div className="mt-3 space-y-2">
-            {CTA_LINK_LIST.map((item) => (
+            {ctaLinkList.map((ctaLinkObj) => (
               <Link
-                key={item.href}
-                href={item.href}
+                key={ctaLinkObj.href}
+                href={ctaLinkObj.href}
                 className="flex items-center justify-between rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"
               >
-                <span>{item.label}</span>
+                <span>{ctaLinkObj.label}</span>
                 <span aria-hidden>→</span>
               </Link>
             ))}

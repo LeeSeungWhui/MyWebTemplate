@@ -1,11 +1,11 @@
 /**
  * 파일명: jsonPayload.js
  * 작성자: LSH
- * 갱신일: 2025-01-22
+ * 갱신일: 2026-05-31
  * 설명: 백엔드가 반환하는 JSON 문자열을 보정/정규화하는 공용 유틸
  */
 
-const BROKEN_ARRAY_REGEX = /"([A-Za-z0-9_]+)"\s*:\s*](?=\s*[},])/g;
+const BROKEN_ARRAY_REGEX = /"([^"\\]+)"\s*:\s*](?=\s*[},])/g;
 
 /**
  * 서버가 [] 대신 ]만 내려보내는 경우를 감지해 자동 보정
@@ -39,46 +39,51 @@ export const sanitizeJsonString = (text) => {
    * @description start 인덱스 이후 첫 비공백 문자와 위치를 반환해 문자열 종료 판단에 사용
    * @param {string} input
    * @param {number} start
-   * @returns {{ ch: string, index: number }}
+   * @returns {{ sourceChar: string, index: number }}
    * @updated 2026-02-27
-   */
+  */
   const skipWhitespace = (input, start) => {
-    for (let i = start; i < input.length; i += 1) {
-      if (input[i] === " " || input[i] === "\t" || input[i] === "\r" || input[i] === "\n") continue;
-      return { ch: input[i], index: i };
+    for (let inputIndex = start; inputIndex < input.length; inputIndex += 1) {
+      const isWhitespaceChar =
+        input[inputIndex] === " " ||
+        input[inputIndex] === "\t" ||
+        input[inputIndex] === "\r" ||
+        input[inputIndex] === "\n";
+      if (isWhitespaceChar) continue;
+      return { sourceChar: input[inputIndex], index: inputIndex };
     }
-    return { ch: "", index: input.length };
+    return { sourceChar: "", index: input.length };
   };
 
-  for (let idx = 0; idx < source.length; idx += 1) {
-    const ch = source.charAt(idx);
+  for (let index = 0; index < source.length; index += 1) {
+    const sourceChar = source.charAt(index);
 
     if (inString) {
       if (escapeNext) {
         escapeNext = false;
-        sanitized += ch;
+        sanitized += sourceChar;
         continue;
       }
-      if (ch === "\\") {
+      if (sourceChar === "\\") {
         escapeNext = true;
         sanitized += "\\";
         continue;
       }
 
-      if (ch === '"') {
-        const nextInfo = skipWhitespace(source, idx + 1);
+      if (sourceChar === '"') {
+        const nextInfo = skipWhitespace(source, index + 1);
         let shouldClose;
         if (stringMode === "key") {
-          shouldClose = nextInfo.ch === ":";
+          shouldClose = nextInfo.sourceChar === ":";
         } else {
           shouldClose =
-            nextInfo.ch === "," ||
-            nextInfo.ch === "}" ||
-            nextInfo.ch === "]" ||
-            nextInfo.ch === "";
-          if (nextInfo.ch === "]" || nextInfo.ch === "}") {
-            const after = skipWhitespace(source, nextInfo.index + 1);
-            if (after.ch === '"') {
+            nextInfo.sourceChar === "," ||
+            nextInfo.sourceChar === "}" ||
+            nextInfo.sourceChar === "]" ||
+            nextInfo.sourceChar === "";
+          if (nextInfo.sourceChar === "]" || nextInfo.sourceChar === "}") {
+            const nextTokenInfo = skipWhitespace(source, nextInfo.index + 1);
+            if (nextTokenInfo.sourceChar === '"') {
               shouldClose = false;
             }
           }
@@ -95,72 +100,72 @@ export const sanitizeJsonString = (text) => {
         continue;
       }
 
-      const code = ch.charCodeAt(0);
-      if (code <= 0x1f) {
-        if (ch === "\n") sanitized += "\\n";
-        else if (ch === "\r") sanitized += "\\r";
-        else if (ch === "\t") sanitized += "\\t";
-        else sanitized += `\\u${code.toString(16).padStart(4, "0")}`;
+      const sourceCharCode = sourceChar.charCodeAt(0);
+      if (sourceCharCode <= 0x1f) {
+        if (sourceChar === "\n") sanitized += "\\n";
+        else if (sourceChar === "\r") sanitized += "\\r";
+        else if (sourceChar === "\t") sanitized += "\\t";
+        else sanitized += `\\u${sourceCharCode.toString(16).padStart(4, "0")}`;
         continue;
       }
 
-      sanitized += ch;
+      sanitized += sourceChar;
       continue;
     }
 
-    if (ch === '"') {
+    if (sourceChar === '"') {
       inString = true;
-      const top = stack.at(-1);
+      const topStackItem = stack.at(-1);
       stringMode =
-        top && top.type === "object" && top.expectKey ? "key" : "value";
+        topStackItem && topStackItem.type === "object" && topStackItem.expectKey ? "key" : "value";
       sanitized += '"';
       continue;
     }
 
-    if (ch === "{") {
+    if (sourceChar === "{") {
       stack.push({ type: "object", expectKey: true });
-      sanitized += ch;
+      sanitized += sourceChar;
       continue;
     }
 
-    if (ch === "[") {
+    if (sourceChar === "[") {
       stack.push({ type: "array" });
-      sanitized += ch;
+      sanitized += sourceChar;
       continue;
     }
 
-    if (ch === "}") {
+    if (sourceChar === "}") {
       stack.pop();
-      sanitized += ch;
+      sanitized += sourceChar;
       if (stack.length && stack[stack.length - 1].type === "object") {
         stack[stack.length - 1].expectKey = false;
       }
       continue;
     }
 
-    if (ch === "]") {
+    if (sourceChar === "]") {
       stack.pop();
-      sanitized += ch;
+      sanitized += sourceChar;
       continue;
     }
 
-    if (ch === ":") {
-      sanitized += ch;
+    if (sourceChar === ":") {
+      sanitized += sourceChar;
       if (stack.length && stack[stack.length - 1].type === "object") {
         stack[stack.length - 1].expectKey = false;
       }
       continue;
     }
 
-    if (ch === ",") {
-      sanitized += ch;
+    if (sourceChar === ",") {
+      sanitized += sourceChar;
       if (stack.length && stack[stack.length - 1].type === "object") {
         stack[stack.length - 1].expectKey = true;
       }
       continue;
     }
 
-    sanitized += ch;
+    sanitized += sourceChar;
   }
 
   return sanitized;
@@ -183,23 +188,23 @@ export const parseJsonPayload = (rawText, options = {}) => {
   } catch (error) {
     try {
       return JSON.parse(sanitizeJsonString(rawText));
-    } catch (inner) {
-      const message = inner?.message || "";
-      const posMatch = /position (\d+)/.exec(message);
-      const pos = posMatch ? Number(posMatch[1]) : 0;
-      const start = pos > 120 ? pos - 120 : 0;
-      const end = pos + 120;
+    } catch (innerParseError) {
+      const message = innerParseError?.message || "";
+      const positionMatch = /position (\d+)/.exec(message);
+      const errorPosition = positionMatch ? Number(positionMatch[1]) : 0;
       logger?.error?.(
         `[${context}] JSON parsing failed`,
-        inner,
-        rawText.slice(start, end),
+        {
+          message,
+          position: errorPosition,
+        },
       );
       return null;
     }
   }
 };
 
-const JSON_STRING_KEYS = ["result", "data", "payload"];
+const JSON_STRING_KEY_LIST = ["result", "data", "payload"];
 
 /**
  * @description result/data/payload 문자열 필드를 JSON 객체로 자동 파싱
@@ -211,7 +216,7 @@ const JSON_STRING_KEYS = ["result", "data", "payload"];
 export const normalizeNestedJsonFields = (payload, options = {}) => {
 
   if (!payload || typeof payload !== "object") return payload;
-  const { keys = JSON_STRING_KEYS } = options;
+  const { keys = JSON_STRING_KEY_LIST } = options;
 
   keys.forEach((key) => {
     if (!Object.prototype.hasOwnProperty.call(payload, key)) return;

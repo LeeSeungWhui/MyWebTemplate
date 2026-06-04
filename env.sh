@@ -55,13 +55,13 @@ if JAVA_HOME_PICKED="$(pick_tool_home "jdk-17.0.12")"; then
 fi
 
 # Node
-if NODE_HOME_PICKED="$(pick_tool_home "node-v24.11.0")"; then
+if NODE_HOME_PICKED="$(pick_tool_home "node-v26.3.0")"; then
   export NODE_HOME="$NODE_HOME_PICKED"
   export PATH="$NODE_HOME/bin:$PATH"
 fi
 
 # Python
-if PY_HOME_PICKED="$(pick_tool_home "Python3.12.10")"; then
+if PY_HOME_PICKED="$(pick_tool_home "Python3.14.5")"; then
   export PY_HOME="$PY_HOME_PICKED"
   export PATH="$PY_HOME/bin:$PATH"
 fi
@@ -89,6 +89,21 @@ fi
 
 # 필요하면 venv 자동 활성화
 [ -d ".venv" ] && . ".venv/bin/activate"
+
+# Local AI provider secrets
+if [[ -f "$HOME/.config/deepseek.env" ]]; then
+  _HWI_ENV_SH_ALLEXPORT=0
+  case "$-" in
+    *a*) _HWI_ENV_SH_ALLEXPORT=1 ;;
+  esac
+  set -a
+  # shellcheck disable=SC1090
+  . "$HOME/.config/deepseek.env"
+  if [[ "$_HWI_ENV_SH_ALLEXPORT" -eq 0 ]]; then
+    set +a
+  fi
+  unset _HWI_ENV_SH_ALLEXPORT
+fi
 
 # 현재 PATH 상태 확인용
 echo -e "\n[env.sh] PATH 적용됨:\n$(echo "$PATH" | tr ':' '\n')\n"

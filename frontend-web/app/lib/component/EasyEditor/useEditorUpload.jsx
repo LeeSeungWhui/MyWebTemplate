@@ -1,41 +1,27 @@
 "use client";
+
 /**
  * 파일명: useEditorUpload.jsx
  * 작성자: LSH
- * 갱신일: 2026-03-05
+ * 갱신일: 2026-05-31
  * 설명: EasyEditor 이미지 업로드 훅
  */
 
-import { useMemo } from 'react';
 import easyUploadRequest from '@/app/lib/hooks/useEasyUpload.jsx';
 
 const DEFAULT_IMAGE_FIELD = 'image';
 const DEFAULT_FILE_FIELD = 'file';
 
 /**
- * @description 값이 공백이 아닌 문자열인지 판별
- * 반환값: trim 기준으로 비어 있지 않은 문자열이면 true.
- * @updated 2026-02-27
- */
-const isNonEmptyString = (value) => typeof value === 'string' && value.trim() !== '';
-
-/**
- * @description 값을 trim된 문자열 또는 null로 정규화. 입력/출력 계약을 함께 명시
- * 처리 규칙: 비어 있지 않은 문자열만 반환하고 그 외 타입은 null로 처리한다.
- * @updated 2026-02-27
- */
-const toStringOrNull = (value) => (isNonEmptyString(value) ? value.trim() : null);
-
-/**
  * @description 업로드 응답 래퍼(result/data) 재귀 언래핑 기반 실제 payload 획득
  * 반환값: 더 이상 래핑 키가 없는 원본 payload 객체/값.
  * @updated 2026-02-27
  */
-const unwrapPayload = (payload) => {
-  if (!payload || typeof payload !== 'object') return payload;
-  if ('result' in payload) return unwrapPayload(payload.result);
-  if ('data' in payload) return unwrapPayload(payload.data);
-  return payload;
+const unwrapPayload = (uploadPayload) => {
+  if (!uploadPayload || typeof uploadPayload !== 'object') return uploadPayload;
+  if ('result' in uploadPayload) return unwrapPayload(uploadPayload.result);
+  if ('data' in uploadPayload) return unwrapPayload(uploadPayload.data);
+  return uploadPayload;
 };
 
 /**
@@ -49,23 +35,27 @@ const extractFromUploadInfo = (info) => {
     return extractFromUploadInfo(info[0]);
   }
   if (typeof info === 'object') {
-    const candidate = toStringOrNull(
+    const uploadUrlValue =
       info.fileUrl
-        ?? info.file_url
-        ?? info.url
-        ?? info.previewUrl
-        ?? info.preview_url
-        ?? info.httpUrl
-        ?? info.http_url
-        ?? info.cdnUrl
-        ?? info.cdn_url
-        ?? info.path
-        ?? info.filePath
-        ?? info.file_path,
-    );
-    if (candidate) return candidate;
+      ?? info.file_url
+      ?? info.url
+      ?? info.previewUrl
+      ?? info.preview_url
+      ?? info.httpUrl
+      ?? info.http_url
+      ?? info.cdnUrl
+      ?? info.cdn_url
+      ?? info.path
+      ?? info.filePath
+      ?? info.file_path;
+    if (typeof uploadUrlValue === 'string' && uploadUrlValue.trim() !== '') {
+      return uploadUrlValue.trim();
+    }
   }
-  return toStringOrNull(info);
+  if (typeof info === 'string' && info.trim() !== '') {
+    return info.trim();
+  }
+  return null;
 };
 
 /**
@@ -73,13 +63,17 @@ const extractFromUploadInfo = (info) => {
  * 반환값: 찾은 URL 문자열 또는 null.
  * @updated 2026-02-27
  */
-const extractUrl = (payload) => {
-  if (isNonEmptyString(payload)) return payload.trim();
-  const primary = unwrapPayload(payload);
-  if (isNonEmptyString(primary)) return String(primary).trim();
-  if (!primary || typeof primary !== 'object') return null;
+const extractUrl = (uploadPayload) => {
+  if (typeof uploadPayload === 'string' && uploadPayload.trim() !== '') {
+    return uploadPayload.trim();
+  }
+  const uploadValue = unwrapPayload(uploadPayload);
+  if (typeof uploadValue === 'string' && uploadValue.trim() !== '') {
+    return uploadValue.trim();
+  }
+  if (!uploadValue || typeof uploadValue !== 'object') return null;
 
-  const directKeys = [
+  const directKeyList = [
     'url',
     'fileUrl',
     'file_url',
@@ -95,13 +89,17 @@ const extractUrl = (payload) => {
     'filePath',
     'file_path',
   ];
-  for (const key of directKeys) {
-    const candidate = toStringOrNull(primary[key]);
-    if (candidate) return candidate;
+  for (const uploadUrlKey of directKeyList) {
+    if (
+      typeof uploadValue[uploadUrlKey] === 'string'
+      && uploadValue[uploadUrlKey].trim() !== ''
+    ) {
+      return uploadValue[uploadUrlKey].trim();
+    }
   }
 
-  const viaUploadInfo = extractFromUploadInfo(primary.uploadFileInfo ?? primary.file);
-  if (viaUploadInfo) return viaUploadInfo;
+  const infoUrl = extractFromUploadInfo(uploadValue.uploadFileInfo ?? uploadValue.file);
+  if (infoUrl) return infoUrl;
 
   return null;
 };
@@ -111,54 +109,31 @@ const extractUrl = (payload) => {
  * 실패 동작: URL을 찾지 못하면 null을 반환한다.
  * @updated 2026-02-27
  */
-const toAttachmentDescriptor = (payload, fallbackName) => {
-  if (isNonEmptyString(payload)) {
-    return { url: payload.trim(), name: fallbackName || '' };
+const toAttachmentDescriptor = (uploadPayload, defaultAttachmentName) => {
+  if (typeof uploadPayload === 'string' && uploadPayload.trim() !== '') {
+    return { url: uploadPayload.trim(), name: defaultAttachmentName || '' };
   }
-  const primary = unwrapPayload(payload);
-  if (isNonEmptyString(primary)) {
-    return { url: String(primary).trim(), name: fallbackName || '' };
+  const uploadValue = unwrapPayload(uploadPayload);
+  if (typeof uploadValue === 'string' && uploadValue.trim() !== '') {
+    return { url: uploadValue.trim(), name: defaultAttachmentName || '' };
   }
-  if (!primary || typeof primary !== 'object') return null;
+  if (!uploadValue || typeof uploadValue !== 'object') return null;
 
-  const url = extractUrl(primary);
-  if (!url) return null;
+  const attachmentUrl = extractUrl(uploadValue);
+  if (!attachmentUrl) return null;
 
-  const name =
-    primary.name
-    ?? primary.fileName
-    ?? primary.file_name
-    ?? primary.originalName
-    ?? primary.originalFileName
-    ?? primary.originalFilename
-    ?? primary.original_filename
-    ?? fallbackName
+  const attachmentName =
+    uploadValue.name
+    ?? uploadValue.fileName
+    ?? uploadValue.file_name
+    ?? uploadValue.originalName
+    ?? uploadValue.originalFileName
+    ?? uploadValue.originalFilename
+    ?? uploadValue.original_filename
+    ?? defaultAttachmentName
     ?? '';
 
-  return { url, name };
-};
-
-/**
- * @description 업로드 URL/필드명/변환 함수를 조합해 단일 파일 업로더를 생성. 입력/출력 계약을 함께 명시
- * 처리 규칙: uploadUrl이 없으면 no-op 업로더(null 반환)를 제공한다.
- * @updated 2026-02-27
- */
-const createUploader = (uploadUrl, fieldName, transform) => {
-  if (!uploadUrl) {
-    return async () => null;
-  }
-  return async (file) => {
-    if (!file) return null;
-    const response = await easyUploadRequest({
-      filesInput: file,
-      options: {
-        fileUploadUrl: uploadUrl,
-        singleFieldName: fieldName,
-        loading: true,
-      },
-    });
-    return transform(response, file);
-  };
+  return { url: attachmentUrl, name: attachmentName };
 };
 
 /**
@@ -168,21 +143,47 @@ const createUploader = (uploadUrl, fieldName, transform) => {
  */
 const useEditorUpload = ({ imageUploadUrl = '', fileUploadUrl = '' }) => {
 
-  const uploadImage = useMemo(
-    () => createUploader(imageUploadUrl, DEFAULT_IMAGE_FIELD, (payload) => extractUrl(payload)),
-    [imageUploadUrl],
-  );
+  /**
+   * @description 이미지 파일을 업로드하고 응답에서 최종 URL을 추출
+   * 실패 동작: 업로드 URL이 없거나 file이 비어 있으면 null을 반환한다.
+   * @updated 2026-04-22
+   */
+  const uploadImage = async (file) => {
+    if (!imageUploadUrl || !file) return null;
+    const uploadResponse = await easyUploadRequest({
+      filesInput: file,
+      options: {
+        fileUploadUrl: imageUploadUrl,
+        singleFieldName: DEFAULT_IMAGE_FIELD,
+        loading: true,
+      },
+    });
+    return extractUrl(uploadResponse);
+  };
 
-  const uploadFile = useMemo(
-    () => createUploader(fileUploadUrl, DEFAULT_FILE_FIELD, (payload, file) => toAttachmentDescriptor(payload, file?.name)),
-    [fileUploadUrl],
-  );
+  /**
+   * @description 일반 첨부 파일을 업로드하고 `{url, name}` descriptor로 변환
+   * 실패 동작: 업로드 URL이 없거나 file이 비어 있으면 null을 반환한다.
+   * @updated 2026-04-22
+   */
+  const uploadFile = async (file) => {
+    if (!fileUploadUrl || !file) return null;
+    const uploadResponse = await easyUploadRequest({
+      filesInput: file,
+      options: {
+        fileUploadUrl,
+        singleFieldName: DEFAULT_FILE_FIELD,
+        loading: true,
+      },
+    });
+    return toAttachmentDescriptor(uploadResponse, file?.name);
+  };
 
   return {
     uploadImage,
     uploadFile,
     alertElement: null,
   };
-}
+};
 
 export default useEditorUpload;

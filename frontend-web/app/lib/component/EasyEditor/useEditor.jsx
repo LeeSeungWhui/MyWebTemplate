@@ -1,18 +1,19 @@
 "use client";
+
 /**
  * 파일명: useEditor.jsx
  * 작성자: LSH
- * 갱신일: 2026-03-05
+ * 갱신일: 2026-05-31
  * 설명: EasyEditor 전용 훅
  */
 
-import { useEffect, useMemo, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { useEditor as useTiptapEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import Placeholder from '@tiptap/extension-placeholder';
 import Image from '@tiptap/extension-image';
 import Underline from '@tiptap/extension-underline';
-import TextStyle from '@tiptap/extension-text-style';
+import { TextStyle } from '@tiptap/extension-text-style';
 import Color from '@tiptap/extension-color';
 import TextAlign from '@tiptap/extension-text-align';
 import { Extension } from '@tiptap/core';
@@ -20,7 +21,7 @@ import { getBoundValue, setBoundValue, buildCtx, fireValueHandlers } from '../..
 import { deepCloneValue, safeJsonParse } from '@/app/lib/runtime/json';
 import { COMMON_COMPONENT_LANG_KO } from '@/app/common/i18n/lang.ko';
 
-const EMPTY_EXTENSIONS = [];
+const EMPTY_EXTENSION_LIST = [];
 
 const FontSize = Extension.create({
   name: 'fontSize',
@@ -72,7 +73,8 @@ const createEmptyDoc = () => ({
  * @updated 2026-02-27
  */
 const unwrap = (value) => {
-  if (value && typeof value === 'object' && value.__rawObject) return value.__rawObject;
+  const hasRawObjectValue = value && typeof value === 'object' && value.__rawObject;
+  if (hasRawObjectValue) return value.__rawObject;
   return value;
 };
 
@@ -93,23 +95,21 @@ const serialise = (editor, format) => {
  * @updated 2026-02-27
  */
 const normaliseExternalValue = (value, format) => {
-  const raw = unwrap(value);
+  const unwrappedValue = unwrap(value);
 
-  if (format === 'html' || format === 'text') return raw ? String(raw) : '';
+  if (format === 'html' || format === 'text') return unwrappedValue ? String(unwrappedValue) : '';
 
-  if (!raw) return createEmptyDoc();
+  if (!unwrappedValue) return createEmptyDoc();
 
-  if (typeof raw === 'string') {
-    const parsedValue = safeJsonParse(raw, null);
+  if (typeof unwrappedValue === 'string') {
+    const parsedValue = safeJsonParse(unwrappedValue, null);
     if (parsedValue && typeof parsedValue === 'object') return parsedValue;
-    console.warn('[EasyEditor] Failed to parse JSON content, using empty document instead.');
     return createEmptyDoc();
   }
 
-  if (typeof raw === 'object') {
-    const clonedValue = deepCloneValue(raw, null);
+  if (typeof unwrappedValue === 'object') {
+    const clonedValue = deepCloneValue(unwrappedValue, null);
     if (clonedValue && typeof clonedValue === 'object') return clonedValue;
-    console.warn('[EasyEditor] Unable to clone document, using empty document instead.');
     return createEmptyDoc();
   }
 
@@ -122,10 +122,10 @@ const normaliseExternalValue = (value, format) => {
  * @updated 2026-02-27
  */
 const fingerprint = (value, format) => {
-  const raw = unwrap(value);
-  if (format === 'html' || format === 'text') return String(raw ?? '');
+  const unwrappedValue = unwrap(value);
+  if (format === 'html' || format === 'text') return String(unwrappedValue ?? '');
   try {
-    return JSON.stringify(raw ?? createEmptyDoc());
+    return JSON.stringify(unwrappedValue ?? createEmptyDoc());
   } catch (error) {
     return JSON.stringify(createEmptyDoc());
   }
@@ -137,9 +137,9 @@ const fingerprint = (value, format) => {
  * @updated 2026-02-27
  */
 const cloneForStorage = (value, format) => {
-  const raw = unwrap(value);
-  if (format === 'html' || format === 'text') return String(raw ?? '');
-  return deepCloneValue(raw ?? createEmptyDoc(), createEmptyDoc());
+  const unwrappedValue = unwrap(value);
+  if (format === 'html' || format === 'text') return String(unwrappedValue ?? '');
+  return deepCloneValue(unwrappedValue ?? createEmptyDoc(), createEmptyDoc());
 };
 
 /**
@@ -162,85 +162,85 @@ export const useEasyEditor = ({
 }) => {
 
   const isBound = Boolean(dataObj && dataKey);
-  const lastFingerprint = useRef(null);
-  const extensionList = useMemo(() => extensions ?? EMPTY_EXTENSIONS, [extensions]);
+  const contentPrintRef = useRef(null);
+  const extensionList = extensions ?? EMPTY_EXTENSION_LIST;
 
-  const resolvedExtensions = useMemo(() => {
-    const base = [
-      StarterKit.configure({ history: true }),
-      Underline,
-      Placeholder.configure({ placeholder }),
-      Image.configure({ inline: false }),
-      TextStyle,
-      Color.configure({ types: ['textStyle'] }),
-      TextAlign.configure({ types: ['heading', 'paragraph'] }),
-      FontSize,
-    ];
-    if (extensionList.length > 0) base.push(...extensionList);
-    return base;
-  }, [placeholder, extensionList]);
+  const defaultExtensionList = [
+    StarterKit.configure({ history: true }),
+    Underline,
+    Placeholder.configure({ placeholder }),
+    Image.configure({ inline: false }),
+    TextStyle,
+    Color.configure({ types: ['textStyle'] }),
+    TextAlign.configure({ types: ['heading', 'paragraph'] }),
+    FontSize,
+  ];
+  const editorExtensionList = [
+    ...defaultExtensionList,
+    ...extensionList,
+  ];
 
-  const initialContent = useMemo(() => {
-    const source = isBound ? getBoundValue(dataObj, dataKey) : value;
-    return normaliseExternalValue(source, serialization);
-  }, [isBound, dataObj, dataKey, value, serialization]);
+  const initialContent = normaliseExternalValue(
+    isBound ? getBoundValue(dataObj, dataKey) : value,
+    serialization,
+  );
 
   const editor = useTiptapEditor(
     {
-      extensions: resolvedExtensions,
+      extensions: editorExtensionList,
       content: initialContent,
       autofocus,
       editable: !readOnly,
       immediatelyRender: false,
       onCreate: ({ editor }) => {
         const initialValue = serialise(editor, serialization);
-        lastFingerprint.current = fingerprint(initialValue, serialization);
+        contentPrintRef.current = fingerprint(initialValue, serialization);
         onReady?.(editor);
       },
       onUpdate: ({ editor }) => {
         const nextValue = serialise(editor, serialization);
-        const nextPrint = fingerprint(nextValue, serialization);
-        if (nextPrint === lastFingerprint.current) {
+        const nextFingerprint = fingerprint(nextValue, serialization);
+        if (nextFingerprint === contentPrintRef.current) {
           return;
         }
 
         if (isBound) {
-          const ctx = buildCtx({ dataObj, dataKey, source: 'user', dirty: true, valid: null });
-          const stored = cloneForStorage(nextValue, serialization);
-          const current = normaliseExternalValue(getBoundValue(dataObj, dataKey), serialization);
-          const currentPrint = fingerprint(current, serialization);
-          if (currentPrint !== nextPrint) {
-            setBoundValue(dataObj, dataKey, stored, { source: 'user' });
+          const bindingCtx = buildCtx({ dataObj, dataKey, source: 'user', dirty: true, valid: null });
+          const storedValue = cloneForStorage(nextValue, serialization);
+          const currentContent = normaliseExternalValue(getBoundValue(dataObj, dataKey), serialization);
+          const currentFingerprint = fingerprint(currentContent, serialization);
+          if (currentFingerprint !== nextFingerprint) {
+            setBoundValue(dataObj, dataKey, storedValue, { source: 'user' });
           }
-          lastFingerprint.current = nextPrint;
-          const event = {
+          contentPrintRef.current = nextFingerprint;
+          const editorChangeEventObj = {
             type: 'easyeditor:update',
-            target: { value: stored },
-            detail: { value: stored, ctx, editor },
+            target: { value: storedValue },
+            detail: { value: storedValue, ctx: bindingCtx, editor },
             preventDefault() { },
             stopPropagation() { },
           };
           fireValueHandlers({
             onChange,
             onValueChange,
-            value: stored,
-            ctx,
-            event,
+            value: storedValue,
+            ctx: bindingCtx,
+            event: editorChangeEventObj,
           });
         } else {
-          lastFingerprint.current = nextPrint;
-          const payload = { editor };
-          onChange?.(nextValue, payload);
-          onValueChange?.(nextValue, payload);
+          contentPrintRef.current = nextFingerprint;
+          const editorPayloadObj = { editor };
+          onChange?.(nextValue, editorPayloadObj);
+          onValueChange?.(nextValue, editorPayloadObj);
         }
       },
     },
-    [resolvedExtensions, autofocus, readOnly, serialization, isBound, dataObj, dataKey],
+    [placeholder, extensionList, autofocus, readOnly, serialization, isBound, dataObj, dataKey],
   );
 
   /**
-   * @description useEffect 실행 흐름 관리
-   * 처리 규칙: effect 실행/cleanup 경계를 명시적으로 유지.
+   * @description readOnly 변경 시 TipTap editor editable 상태 동기화
+   * 처리 규칙: editor.setEditable(!readOnly)를 readOnly 의존성마다 호출한다.
    */
   useEffect(() => {
     if (!editor) return;
@@ -248,23 +248,23 @@ export const useEasyEditor = ({
   }, [editor, readOnly]);
 
   /**
-   * @description useEffect 실행 흐름 관리
-   * 처리 규칙: effect 실행/cleanup 경계를 명시적으로 유지.
+   * @description 외부 value/dataKey 변경 시 editor 본문을 fingerprint 기준으로 동기화
+   * 처리 규칙: fingerprint가 바뀔 때만 setContent로 외부 입력을 반영한다.
    */
   useEffect(() => {
     if (!editor) return;
-    const external = isBound ? getBoundValue(dataObj, dataKey) : value;
-    const normalised = normaliseExternalValue(external, serialization);
-    const nextPrint = fingerprint(normalised, serialization);
+    const externalValue = isBound ? getBoundValue(dataObj, dataKey) : value;
+    const externalContent = normaliseExternalValue(externalValue, serialization);
+    const nextFingerprint = fingerprint(externalContent, serialization);
 
-    if (nextPrint === lastFingerprint.current) return;
+    if (nextFingerprint === contentPrintRef.current) return;
 
     if (serialization === 'html' || serialization === 'text') {
-      editor.commands.setContent(normalised || '<p></p>', false);
+      editor.commands.setContent(externalContent || '<p></p>', false);
     } else {
-      editor.commands.setContent(normalised || createEmptyDoc(), false);
+      editor.commands.setContent(externalContent || createEmptyDoc(), false);
     }
-    lastFingerprint.current = nextPrint;
+    contentPrintRef.current = nextFingerprint;
   }, [editor, isBound, dataObj, dataKey, value, serialization]);
 
   return { editor };

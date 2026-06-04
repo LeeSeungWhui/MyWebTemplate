@@ -1,10 +1,10 @@
 /**
  * 파일명: EasyEditorDocs.jsx
  * 작성자: LSH
- * 갱신일: 2025-09-13
+ * 갱신일: 2026-05-31
  * 설명: EasyEditor 컴포넌트 문서
  */
-import { EasyEditorExamples } from '../examples/EasyEditorExamples';
+import { editorExampleList } from '../examples/EasyEditorExamples';
 import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';
 
@@ -13,8 +13,6 @@ import CodeBlock from '../shared/CodeBlock';
  * @returns {JSX.Element}
  */
 const EasyEditorDocs = () => {
-  const examples = EasyEditorExamples();
-
   return (
     <DocSection
       id="editors"
@@ -42,8 +40,8 @@ const EasyEditorDocs = () => {
       }
     >
       <div className="space-y-10">
-        {examples.map((example, index) => (
-          <div key={index} id={example.anchor} className="space-y-3 scroll-mt-24">
+        {editorExampleList.map((example) => (
+          <div key={example.anchor} id={example.anchor} className="space-y-3 scroll-mt-24">
             <div>{example.component}</div>
             <p className="text-sm text-gray-600">{example.description}</p>
             <CodeBlock code={example.code} />

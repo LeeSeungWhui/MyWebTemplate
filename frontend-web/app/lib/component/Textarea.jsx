@@ -1,10 +1,10 @@
 /**
  * 파일명: Textarea.jsx
  * 작성자: LSH
- * 갱신일: 2026-03-03
+ * 갱신일: 2026-05-31
  * 설명: Textarea UI 컴포넌트 구현
  */
-import { useState, forwardRef, useEffect, useRef } from 'react';
+import { useState, forwardRef, useEffect } from 'react';
 import { getBoundValue, setBoundValue, buildCtx, fireValueHandlers } from '../binding';
 
 /**
@@ -29,72 +29,71 @@ const Textarea = forwardRef(({
 }, ref) => {
 
   const isPropControlled = propValue !== undefined;
-  const isData = Boolean(dataObj && dataKey);
+  const isDataBound = Boolean(dataObj && dataKey);
 
   const [innerValue, setInnerValue] = useState(defaultValue);
   const [draftValue, setDraftValue] = useState(undefined);
-  const composingRef = useRef(false);
+  const [isComposing, setIsComposing] = useState(false);
 
   /**
-   * @description prop/dataObj/internal 상태 우선순위에 따라 현재 표시값을 계산. 입력/출력 계약을 함께 명시
-   * @returns {string}
-   * @updated 2026-02-27
-   */
-  const getExternalValue = () => {
-    if (isPropControlled) return propValue ?? '';
-    if (isData) return getBoundValue(dataObj, dataKey) ?? '';
-    return innerValue ?? '';
-  };
-
-  /**
-   * @description useEffect 실행 흐름 관리
-   * 처리 규칙: effect 실행/cleanup 경계를 명시적으로 유지.
+   * @description prop/data/inner 값과 draftValue 일치 시 조합 임시 표시 상태 해제
+   * 처리 규칙: externalValue===draftValue이면 setDraftValue(undefined)를 호출한다.
    */
   useEffect(() => {
-    const external = getExternalValue();
-    if (draftValue !== undefined && draftValue === external) {
+    let externalValue = innerValue ?? '';
+    if (isPropControlled) {
+      externalValue = propValue ?? '';
+    } else if (isDataBound) {
+      externalValue = getBoundValue(dataObj, dataKey) ?? '';
+    }
+    if (draftValue !== undefined && draftValue === externalValue) {
       setDraftValue(undefined);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [propValue, dataObj, dataKey, draftValue]);
+  }, [dataObj, dataKey, draftValue, innerValue, isDataBound, isPropControlled, propValue]);
 
   /**
    * @description 입력값을 저장소(dataObj 또는 내부 state)에 반영하고 상위 폼 동기화를 유지
-   * @param {string} raw
+   * @param {string} rawTextareaValue
    * @param {React.SyntheticEvent | undefined} event
    * @returns {void}
    * @updated 2026-02-27
    */
-  const commit = (raw, event) => {
-    if (isData) setBoundValue(dataObj, dataKey, raw);
-    if (!isPropControlled && !isData) setInnerValue(raw);
-    const ctx = buildCtx({ dataKey, dataObj, source: 'user', dirty: true, valid: null });
-    const evt = event ? { ...event, target: { ...event.target, value: raw } } : { target: { value: raw } };
-    fireValueHandlers({ onChange, onValueChange, value: raw, ctx, event: evt });
+  const commitTextareaValue = (rawTextareaValue, event) => {
+    if (isDataBound) setBoundValue(dataObj, dataKey, rawTextareaValue);
+    if (!isPropControlled && !isDataBound) setInnerValue(rawTextareaValue);
+    const bindingCtx = buildCtx({ dataKey, dataObj, source: 'user', dirty: true, valid: null });
+    const nextEvent = event ? { ...event, target: { ...event.target, value: rawTextareaValue } } : { target: { value: rawTextareaValue } };
+    fireValueHandlers({ onChange, onValueChange, value: rawTextareaValue, ctx: bindingCtx, event: nextEvent });
   };
 
-  const base = 'block w-full px-3 py-2 text-sm rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-0 bg-white';
-  const states = error ? 'border border-red-300 focus:ring-red-500 focus:border-red-500' : 'border border-gray-300 focus:ring-blue-500 focus:border-blue-500';
+  const baseClassName = 'block w-full px-3 py-2 text-sm rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-0 bg-white';
+  const stateClassName = error ? 'border border-red-300 focus:ring-red-500 focus:border-red-500' : 'border border-gray-300 focus:ring-blue-500 focus:border-blue-500';
 
-  const value = draftValue ?? getExternalValue();
+  let externalValue = innerValue ?? '';
+  if (isPropControlled) {
+    externalValue = propValue ?? '';
+  } else if (isDataBound) {
+    externalValue = getBoundValue(dataObj, dataKey) ?? '';
+  }
+  const textareaValue = draftValue ?? externalValue;
 
   return (
     <textarea
       ref={ref}
-      className={`${base} ${states} ${className}`.trim()}
+      className={`${baseClassName} ${stateClassName} ${className}`.trim()}
       rows={rows}
-      value={value}
+      value={textareaValue}
       onChange={(event) => {
-        const composing = event.nativeEvent?.isComposing || composingRef.current;
-        const raw = event.target.value;
-        setDraftValue(raw);
-        if (!composing) {
-          commit(raw, event);
+        const isTextComposing = event.nativeEvent?.isComposing || isComposing;
+        const rawTextareaValue = event.target.value;
+        setDraftValue(rawTextareaValue);
+        if (!isTextComposing) {
+          commitTextareaValue(rawTextareaValue, event);
         }
       }}
-      onCompositionStart={() => { composingRef.current = true; }}
-      onCompositionEnd={(event) => { composingRef.current = false; commit(event.target.value, event); }}
-      onBlur={(event) => { commit(event.target.value, event); }}
+      onCompositionStart={() => { setIsComposing(true); }}
+      onCompositionEnd={(event) => { setIsComposing(false); commitTextareaValue(event.target.value, event); }}
+      onBlur={(event) => { commitTextareaValue(event.target.value, event); }}
       disabled={disabled}
       readOnly={readOnly}
       placeholder={placeholder}

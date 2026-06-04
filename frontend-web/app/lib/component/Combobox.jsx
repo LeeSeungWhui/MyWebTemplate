@@ -1,85 +1,83 @@
 /**
  * 파일명: Combobox.jsx
  * 작성자: LSH
- * 갱신일: 2026-03-05
+ * 갱신일: 2026-05-31
  * 설명: EasyList/EasyObj와 동기화되는 필터 가능한 콤보박스
  */
 import {
   forwardRef,
-  useCallback,
   useEffect,
   useId,
-  useMemo,
   useRef,
   useState,
 } from 'react'
 
 import {
-  getBoundValue,
-  setBoundValue,
   buildCtx,
   fireValueHandlers,
 } from '../binding'
+import { useModelValue } from '../hooks/useModelValue'
+import Icon from './Icon'
 
 import { COMMON_COMPONENT_LANG_KO } from '@/app/common/i18n/lang.ko'
 
 const STATUS_PRESETS = {
   default: {
-    button:
+    buttonClassName:
       'border border-gray-300 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900',
-    message: 'text-gray-600',
+    messageClassName: 'text-gray-600',
     ariaLive: 'polite',
   },
   success: {
-    button:
+    buttonClassName:
       'border border-green-400 focus:ring-green-500 focus:border-green-500 bg-white text-gray-900',
-    message: 'text-green-600',
+    messageClassName: 'text-green-600',
     defaultMessage: COMMON_COMPONENT_LANG_KO.combobox.saved,
     ariaLive: 'polite',
   },
   warning: {
-    button:
+    buttonClassName:
       'border border-yellow-400 focus:ring-yellow-500 focus:border-yellow-500 bg-white text-gray-900',
-    message: 'text-yellow-700',
+    messageClassName: 'text-yellow-700',
     defaultMessage: COMMON_COMPONENT_LANG_KO.combobox.needsConfirm,
     ariaLive: 'polite',
   },
   error: {
-    button:
+    buttonClassName:
       'border border-red-400 focus:ring-red-500 focus:border-red-500 bg-white text-gray-900',
-    message: 'text-red-600',
+    messageClassName: 'text-red-600',
     defaultMessage: COMMON_COMPONENT_LANG_KO.combobox.invalidValue,
     ariaLive: 'assertive',
   },
   info: {
-    button:
+    buttonClassName:
       'border border-blue-300 focus:ring-blue-400 focus:border-blue-400 bg-white text-gray-900',
-    message: 'text-blue-600',
+    messageClassName: 'text-blue-600',
     ariaLive: 'polite',
   },
   loading: {
-    button:
+    buttonClassName:
       'border border-blue-300 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 pr-9',
-    message: 'text-blue-600',
+    messageClassName: 'text-blue-600',
     defaultMessage: COMMON_COMPONENT_LANG_KO.combobox.loading,
     ariaLive: 'polite',
   },
   empty: {
-    button:
+    buttonClassName:
       'border border-gray-300 bg-white text-gray-500 focus:ring-blue-400 focus:border-blue-400',
-    message: 'text-gray-500',
+    messageClassName: 'text-gray-500',
     defaultMessage: COMMON_COMPONENT_LANG_KO.combobox.noItems,
     ariaLive: 'assertive',
   },
   disabled: {
-    button:
+    buttonClassName:
       'border border-gray-300 bg-gray-100 text-gray-500 cursor-not-allowed',
-    message: 'text-gray-500',
+    messageClassName: 'text-gray-500',
     ariaLive: 'polite',
   },
 }
 
-const CHO = [
+const HANGUL_CHOSEONG_LIST = [
   '\u3131',
   '\u3132',
   '\u3134',
@@ -100,25 +98,25 @@ const CHO = [
   '\u314D',
   '\u314E',
 ]
-const H_BASE = 0xac00
-const H_LAST = 0xd7a3
+const HANGUL_BASE_CODE = 0xac00
+const HANGUL_LAST_CODE = 0xd7a3
 
 /**
  * @description 한글 문자열을 초성 검색 가능한 비교 문자열로 바꾸는 변환 유틸
  * 처리 규칙: 완성형 한글은 초성 배열로 치환하고, 비한글 문자는 원문을 유지한다.
  * @updated 2026-02-27
  */
-const getChosung = (str) => {
-  if (!str) return ''
-  let out = ''
-  for (const ch of String(str)) {
-    const code = ch.charCodeAt(0)
-    if (code >= H_BASE && code <= H_LAST) {
-      const idx = Math.floor((code - H_BASE) / 588)
-      out += CHO[idx] || ch
-    } else out += ch
+const getChoseongText = (sourceText) => {
+  if (!sourceText) return ''
+  let choseongText = ''
+  for (const sourceChar of String(sourceText)) {
+    const sourceCharCode = sourceChar.charCodeAt(0)
+    if (sourceCharCode >= HANGUL_BASE_CODE && sourceCharCode <= HANGUL_LAST_CODE) {
+      const choseongIndex = Math.floor((sourceCharCode - HANGUL_BASE_CODE) / 588)
+      choseongText += HANGUL_CHOSEONG_LIST[choseongIndex] || sourceChar
+    } else choseongText += sourceChar
   }
-  return out
+  return choseongText
 }
 
 /**
@@ -126,51 +124,32 @@ const getChosung = (str) => {
  * 반환값: null/undefined 입력도 안전하게 처리한 비교용 문자열.
  * @updated 2026-02-27
  */
-const normalize = (inputText) =>
+const normalizeSearchText = (inputText) =>
   String(inputText ?? '')
     .toLowerCase()
     .replace(/\s+/g, '')
 
 /**
  * @description 입력 옵션 목록을 콤보박스 내부 표준 스키마로 맞추는 매퍼
- * 처리 규칙: iterable만 허용하고 value/label/selected/placeholder/raw 필드를 생성한다.
+ * 처리 규칙: iterable만 허용하고 value/label/selected/placeholder 필드를 생성한다.
  * @updated 2026-02-27
  */
 const normalizeOptions = (dataList = [], valueKey, textKey) => {
   if (!Array.isArray(dataList) && typeof dataList?.[Symbol.iterator] !== 'function') {
     return []
   }
-  return Array.from(dataList).map((item, index) => {
-    const value = Array.isArray(item?.[valueKey])
-      ? item?.[valueKey].map((rawItemValue) => String(rawItemValue))
-      : String(item?.[valueKey] ?? '')
+  return Array.from(dataList).map((optionItemObj, index) => {
+    const optionValue = Array.isArray(optionItemObj?.[valueKey])
+      ? optionItemObj?.[valueKey].map((rawItemValue) => String(rawItemValue))
+      : String(optionItemObj?.[valueKey] ?? '')
     return {
-      key: Object.prototype.hasOwnProperty.call(item, valueKey) ? item?.[valueKey] : index,
-      value,
-      label: String(item?.[textKey] ?? ''),
-      selected: Boolean(item?.selected),
-      placeholder: Boolean(item?.placeholder),
-      raw: item,
+      key: Object.prototype.hasOwnProperty.call(optionItemObj, valueKey) ? optionItemObj?.[valueKey] : index,
+      value: optionValue,
+      label: String(optionItemObj?.[textKey] ?? ''),
+      selected: Boolean(optionItemObj?.selected),
+      placeholder: Boolean(optionItemObj?.placeholder),
     }
   })
-}
-
-/**
- * @description EasyObj/EasyList subscribe API를 React effect로 연결
- * 처리 규칙: subscribe 함수가 있으면 등록하고, effect cleanup에서 unsubscribe를 보장한다.
- * @updated 2026-02-27
- */
-const useEasySubscription = ({ model, handler }) => {
-
-  /**
-   * @description useEffect 실행 흐름 관리
-   * 처리 규칙: effect 실행/cleanup 경계를 명시적으로 유지.
-   */
-  useEffect(() => {
-    if (!model || typeof model.subscribe !== 'function') return undefined
-    const unsubscribe = model.subscribe(handler)
-    return () => unsubscribe?.()
-  }, [model, handler])
 }
 
 /**
@@ -213,78 +192,59 @@ const Combobox = forwardRef(({
   const listboxId = `${buttonId}-listbox`
 
   const isControlled = valueProp !== undefined
+  const [boundValue, setBoundModelValue] = useModelValue({
+    model: dataObj,
+    path: dataKey,
+  })
 
-  const options = useMemo(
-    () => normalizeOptions(dataList, valueKey, textKey),
-    [dataList, valueKey, textKey],
-  )
+  const optionList = normalizeOptions(dataList, valueKey, textKey)
+  const placeholderOption = optionList.find((optionItem) => optionItem.placeholder)
+  const selectedOptionList = optionList.filter((optionItem) => optionItem.selected)
+  const selectedOption = optionList.find((optionItem) => optionItem.selected)
 
-  const placeholderOption = useMemo(
-    () => options.find((opt) => opt.placeholder),
-    [options],
-  )
-
-  const selectedFromList = useMemo(() => {
-    if (multi) return options.filter((opt) => opt.selected)
-    return options.find((opt) => opt.selected)
-  }, [options, multi])
-
-  const deriveBoundValue = useCallback(() => {
-    if (multi) {
-      const bound = dataObj && dataKey ? getBoundValue(dataObj, dataKey) : undefined
-      if (isControlled) {
-        const arr = Array.isArray(valueProp) ? valueProp : []
-        return arr.map((valueItem) => String(valueItem))
-      }
-      if (Array.isArray(bound)) return bound.map((valueItem) => String(valueItem))
-      const selectedList = Array.isArray(selectedFromList) ? selectedFromList : []
-      if (selectedList.length > 0) {
-        return selectedList.map((opt) => opt.value)
-      }
-      if (Array.isArray(defaultValue)) return defaultValue.map((valueItem) => String(valueItem))
-      return []
+  let sourceValue = ''
+  if (multi) {
+    if (isControlled) {
+      const valueList = Array.isArray(valueProp) ? valueProp : []
+      sourceValue = valueList.map((valueItem) => String(valueItem))
+    } else if (Array.isArray(boundValue)) {
+      sourceValue = boundValue.map((valueItem) => String(valueItem))
+    } else if (selectedOptionList.length > 0) {
+      sourceValue = selectedOptionList.map((optionItem) => optionItem.value)
+    } else if (Array.isArray(defaultValue)) {
+      sourceValue = defaultValue.map((valueItem) => String(valueItem))
+    } else {
+      sourceValue = []
     }
-    if (isControlled) return String(valueProp ?? '')
-    const bound = dataObj && dataKey ? getBoundValue(dataObj, dataKey) : undefined
-    if (bound !== undefined && bound !== null) return String(bound)
-    if (selectedFromList && !Array.isArray(selectedFromList)) {
-      return selectedFromList.value
-    }
-    if (defaultValue !== undefined && defaultValue !== null) {
-      return String(defaultValue)
-    }
-    if (placeholderOption) return placeholderOption.value
-    return ''
-  }, [
-    dataObj,
-    dataKey,
-    defaultValue,
-    isControlled,
-    multi,
-    placeholderOption,
-    selectedFromList,
-    valueProp,
-  ])
+  } else if (isControlled) {
+    sourceValue = String(valueProp ?? '')
+  } else if (boundValue !== undefined && boundValue !== null) {
+    sourceValue = String(boundValue)
+  } else if (selectedOption) {
+    sourceValue = selectedOption.value
+  } else if (defaultValue !== undefined && defaultValue !== null) {
+    sourceValue = String(defaultValue)
+  } else if (placeholderOption) {
+    sourceValue = placeholderOption.value
+  }
+  const sourceValueKey = JSON.stringify(sourceValue)
 
-  const [innerValue, setInnerValue] = useState(() => deriveBoundValue())
-
-  const currentValue = useMemo(() => {
-    if (multi) {
-      return (isControlled ? valueProp : innerValue) || []
-    }
-    return isControlled ? String(valueProp ?? '') : innerValue
-  }, [innerValue, isControlled, multi, valueProp])
-
-  const valueSet = useMemo(() => {
-    if (multi) return new Set((currentValue || []).map((valueItem) => String(valueItem)))
-    return new Set([String(currentValue ?? '')])
-  }, [currentValue, multi])
+  const [innerValue, setInnerValue] = useState(sourceValue)
+  let currentValue = isControlled ? sourceValue : innerValue
+  if (multi) {
+    currentValue = currentValue || []
+  } else {
+    currentValue = String(currentValue ?? '')
+  }
+  const selectedValueSet = multi
+    ? new Set((currentValue || []).map((valueItem) => String(valueItem)))
+    : new Set([String(currentValue ?? '')])
 
   const isEmptySelection = multi
-    ? valueSet.size === 0
+    ? selectedValueSet.size === 0
     : !currentValue && placeholderOption
 
-  const [open, setOpen] = useState(false)
+  const [isOpen, setIsOpen] = useState(false)
   const [query, setQuery] = useState('')
   const rootRef = useRef(null)
 
@@ -302,79 +262,74 @@ const Combobox = forwardRef(({
       ? `${buttonId}-status`
       : undefined
 
-  const filtered = useMemo(() => {
-    if (!filterable || !query) return options
-    const normalizedQuery = normalize(query)
-    const normalizedQueryInitial = normalize(getChosung(query))
-    const onlyCho = /^[\u3131-\u314E]+$/.test(query)
-    return options.filter((opt) => {
-      const lower = normalize(opt.label)
-      const init = normalize(getChosung(opt.label))
-      if (onlyCho) return init.includes(normalizedQuery)
-      return lower.includes(normalizedQuery) || init.includes(normalizedQueryInitial)
+  let filteredOptionList = optionList
+  if (filterable && query) {
+    const normalizedQuery = normalizeSearchText(query)
+    const normalizedQueryInitial = normalizeSearchText(getChoseongText(query))
+    const isChoseongQuery = /^[\u3131-\u314E]+$/.test(query)
+    filteredOptionList = optionList.filter((optionItem) => {
+      const normalizedLabel = normalizeSearchText(optionItem.label)
+      const normalizedInitial = normalizeSearchText(getChoseongText(optionItem.label))
+      if (isChoseongQuery) return normalizedInitial.includes(normalizedQuery)
+      return normalizedLabel.includes(normalizedQuery) || normalizedInitial.includes(normalizedQueryInitial)
     })
-  }, [options, filterable, query])
+  }
 
-  const selectableOptions = options.filter((opt) => !opt.placeholder)
-  let allSelected = false
+  const selectableOptionList = optionList.filter((optionItem) => !optionItem.placeholder)
+  let isAllSelected = false
   if (multi) {
-    if (selectableOptions.length > 0) {
-      allSelected = selectableOptions.every((opt) => valueSet.has(String(opt.value)))
+    if (selectableOptionList.length > 0) {
+      isAllSelected = selectableOptionList.every((optionItem) => selectedValueSet.has(String(optionItem.value)))
     }
   }
 
-  const syncDataListSelection = useCallback(
-    (nextSet) => {
-
-      /**
-       * @description 개별 옵션 selected 값을 nextSet 기준으로 동기화하는 내부 updater
-       * 부작용: 원본 item.selected 값을 직접 갱신한다.
-       * @updated 2026-02-27
-       */
-      const updater = (item) => {
-        const key = Array.isArray(item?.[valueKey])
-          ? item?.[valueKey].map((valueItem) => String(valueItem))
-          : String(item?.[valueKey] ?? '')
-        const shouldSelect = Array.isArray(key)
-          ? key.every((selectedKey) => nextSet.has(selectedKey))
-          : nextSet.has(String(key))
-        if (item.selected !== shouldSelect) item.selected = shouldSelect
-        return item
-      }
-
-      if (typeof dataList?.forAll === 'function') {
-        dataList.forAll(updater)
-      } else if (Array.isArray(dataList)) {
-        dataList.forEach(updater)
-      }
-    },
-    [dataList, valueKey],
-  )
-
   /**
-   * @description useEffect 실행 흐름 관리
-   * 처리 규칙: effect 실행/cleanup 경계를 명시적으로 유지.
+   * @description 현재 선택 값을 dataList selected 플래그에 반영
+   * 처리 규칙: 다중 선택은 nextSelectionSet 전체 포함 여부로, 단일 선택은 값 일치 여부로 동기화한다.
    */
   useEffect(() => {
-    const nextSet = new Set(valueSet)
-    syncDataListSelection(nextSet)
-  }, [syncDataListSelection, valueSet])
+    const nextSelectionSet = multi
+      ? new Set((currentValue || []).map((valueItem) => String(valueItem)))
+      : new Set([String(currentValue ?? '')])
+
+    /**
+     * @description 개별 옵션 selected 값을 nextSelectionSet 기준으로 동기화하는 내부 함수
+     * 부작용: 원본 optionItemObj.selected 값을 직접 갱신한다.
+     * @updated 2026-02-27
+     */
+    const syncOptionSelected = (optionItemObj) => {
+      const optionValueKey = Array.isArray(optionItemObj?.[valueKey])
+        ? optionItemObj?.[valueKey].map((valueItem) => String(valueItem))
+        : String(optionItemObj?.[valueKey] ?? '')
+      const shouldSelect = Array.isArray(optionValueKey)
+        ? optionValueKey.every((selectedValue) => nextSelectionSet.has(selectedValue))
+        : nextSelectionSet.has(String(optionValueKey))
+      if (optionItemObj.selected !== shouldSelect) optionItemObj.selected = shouldSelect
+      return optionItemObj
+    }
+
+    if (typeof dataList?.forAll === 'function') {
+      dataList.forAll(syncOptionSelected)
+    } else if (Array.isArray(dataList)) {
+      dataList.forEach(syncOptionSelected)
+    }
+  }, [currentValue, dataList, multi, valueKey])
 
   /**
-   * @description useEffect 실행 흐름 관리
-   * 처리 규칙: effect 실행/cleanup 경계를 명시적으로 유지.
+   * @description isOpen일 때 document mousedown/keydown으로 패널 닫기 처리
+   * 처리 규칙: cleanup에서 outside-click·Escape 리스너를 제거한다.
    */
   useEffect(() => {
-    if (!open) return
+    if (!isOpen) return
 
     /**
      * @description 컴포넌트 외부 클릭 시 드롭다운 닫기
      * 처리 규칙: rootRef 바깥 mousedown 이벤트에서만 close를 수행한다.
      * @updated 2026-02-27
      */
-    const onMouseDown = (event) => {
+    const handleDocMouseDown = (event) => {
       if (rootRef.current && !rootRef.current.contains(event.target)) {
-        setOpen(false)
+        setIsOpen(false)
       }
     }
 
@@ -383,113 +338,137 @@ const Combobox = forwardRef(({
      * 처리 규칙: key 값이 Escape일 때 open=false를 반영한다.
      * @updated 2026-02-27
      */
-    const onKeyDown = (event) => {
-      if (event.key === 'Escape') setOpen(false)
+    const handleDocKeyDown = (event) => {
+      if (event.key === 'Escape') setIsOpen(false)
     }
 
-    document.addEventListener('mousedown', onMouseDown)
-    document.addEventListener('keydown', onKeyDown)
+    document.addEventListener('mousedown', handleDocMouseDown)
+    document.addEventListener('keydown', handleDocKeyDown)
     return () => {
-      document.removeEventListener('mousedown', onMouseDown)
-      document.removeEventListener('keydown', onKeyDown)
+      document.removeEventListener('mousedown', handleDocMouseDown)
+      document.removeEventListener('keydown', handleDocKeyDown)
     }
-  }, [open])
+  }, [isOpen])
 
   /**
-   * @description useEffect 실행 흐름 관리
-   * 처리 규칙: effect 실행/cleanup 경계를 명시적으로 유지.
+   * @description 패널 닫힘 시 검색어 query 초기화
+   * 처리 규칙: isOpen=false 전환마다 setQuery('')를 호출한다.
    */
   useEffect(() => {
-    if (!open) setQuery('')
-  }, [open])
+    if (!isOpen) setQuery('')
+  }, [isOpen])
 
   /**
-   * @description useEffect 실행 흐름 관리
-   * 처리 규칙: effect 실행/cleanup 경계를 명시적으로 유지.
+   * @description 비제어 모드에서 sourceValue 변경을 innerValue에 동기화
+   * 처리 규칙: isControlled=false일 때 JSON 비교 후 변경분만 setInnerValue한다.
    */
   useEffect(() => {
     if (isControlled) return
-    const next = deriveBoundValue()
     setInnerValue((prev) => {
       const prevString = JSON.stringify(prev)
-      const nextString = JSON.stringify(next)
-      return prevString === nextString ? prev : next
+      return prevString === sourceValueKey ? prev : sourceValue
     })
-  }, [deriveBoundValue, isControlled])
+  }, [isControlled, sourceValue, sourceValueKey])
 
-  useEasySubscription({
-    model: dataObj,
-    handler: useCallback(
-      (detail) => {
-        if (!dataKey || !detail) return
-        const key = String(dataKey)
-        const changed = detail?.ctx?.dataKey ?? detail?.pathString ?? ''
-        const isMatch =
-          changed === key || changed.endsWith(`.${key}`)
-        if (isMatch) {
-          if (isControlled) return
-          const next = deriveBoundValue()
-          setInnerValue((prev) => {
-            const prevString = JSON.stringify(prev)
-            const nextString = JSON.stringify(next)
-            return prevString === nextString ? prev : next
-          })
-        }
-      },
-      [dataKey, deriveBoundValue, isControlled],
-    ),
-  })
-
-  useEasySubscription({
-    model: dataList,
-    handler: useCallback(() => {
+  /**
+   * @description EasyList 구독 변경을 내부 선택 값에 반영
+   * 처리 규칙: 비제어 모드에서만 subscribe 변경분을 innerValue에 동기화한다.
+   */
+  useEffect(() => {
+    if (!dataList || typeof dataList.subscribe !== 'function') return undefined
+    const unsubscribe = dataList.subscribe(() => {
       if (isControlled) return
-      const next = deriveBoundValue()
+      const currentOptionList = normalizeOptions(dataList, valueKey, textKey)
+      const pickedPlaceholder = currentOptionList.find((optionItem) => optionItem.placeholder)
+      const pickedOptionList = currentOptionList.filter((optionItem) => optionItem.selected)
+      const pickedOption = currentOptionList.find((optionItem) => optionItem.selected)
+      let nextValue = ''
+      if (multi) {
+        if (Array.isArray(boundValue)) {
+          nextValue = boundValue.map((valueItem) => String(valueItem))
+        } else if (pickedOptionList.length > 0) {
+          nextValue = pickedOptionList.map((optionItem) => optionItem.value)
+        } else if (Array.isArray(defaultValue)) {
+          nextValue = defaultValue.map((valueItem) => String(valueItem))
+        } else {
+          nextValue = []
+        }
+      } else if (boundValue !== undefined && boundValue !== null) {
+        nextValue = String(boundValue)
+      } else if (pickedOption) {
+        nextValue = pickedOption.value
+      } else if (defaultValue !== undefined && defaultValue !== null) {
+        nextValue = String(defaultValue)
+      } else if (pickedPlaceholder) {
+        nextValue = pickedPlaceholder.value
+      }
       setInnerValue((prev) => {
         const prevString = JSON.stringify(prev)
-        const nextString = JSON.stringify(next)
-        return prevString === nextString ? prev : next
+        const nextString = JSON.stringify(nextValue)
+        return prevString === nextString ? prev : nextValue
       })
-    }, [deriveBoundValue, isControlled]),
-  })
+    })
+    return () => unsubscribe?.()
+  }, [boundValue, dataList, defaultValue, isControlled, multi, textKey, valueKey])
 
   /**
    * @description 선택 결과를 정규화하고 내부 상태/바인딩/핸들러 호출을 동기화
    * 부작용: innerValue, dataObj[dataKey], onChange/onValueChange에 반영된다.
    * @updated 2026-02-27
    */
-  const commit = (next, event) => {
-    let normalized = String(next ?? '')
+  const commitSelectionValue = (nextSelectionValue, event) => {
+    let normalizedValue = String(nextSelectionValue ?? '')
     if (multi) {
-      normalized = Array.from(
-        new Set(Array.isArray(next) ? next.map((valueItem) => String(valueItem)) : []),
+      normalizedValue = Array.from(
+        new Set(Array.isArray(nextSelectionValue) ? nextSelectionValue.map((valueItem) => String(valueItem)) : []),
       )
     }
-    const nextSet = new Set(multi ? normalized : [normalized])
-    syncDataListSelection(nextSet)
+    const nextSelectionSet = new Set(multi ? normalizedValue : [normalizedValue])
 
-    if (!isControlled) setInnerValue(normalized)
-    if (dataObj && dataKey) {
-      setBoundValue(dataObj, dataKey, normalized)
+    /**
+     * @description 사용자 선택 결과를 dataList selected 플래그에 즉시 반영
+     * 부작용: 원본 optionItemObj.selected 값을 직접 갱신한다.
+     * @updated 2026-05-02
+     */
+    const syncOptionSelected = (optionItemObj) => {
+      const optionValueKey = Array.isArray(optionItemObj?.[valueKey])
+        ? optionItemObj?.[valueKey].map((valueItem) => String(valueItem))
+        : String(optionItemObj?.[valueKey] ?? '')
+      const shouldSelect = Array.isArray(optionValueKey)
+        ? optionValueKey.every((selectedValue) => nextSelectionSet.has(selectedValue))
+        : nextSelectionSet.has(String(optionValueKey))
+      if (optionItemObj.selected !== shouldSelect) optionItemObj.selected = shouldSelect
+      return optionItemObj
     }
 
-    const ctx = buildCtx({
+    if (typeof dataList?.forAll === 'function') {
+      dataList.forAll(syncOptionSelected)
+    } else if (Array.isArray(dataList)) {
+      dataList.forEach(syncOptionSelected)
+    }
+
+    if (!isControlled) setInnerValue(normalizedValue)
+    if (dataObj && dataKey) {
+      setBoundModelValue(normalizedValue)
+    }
+
+    const bindingCtx = buildCtx({
       dataKey,
       dataObj,
       source: 'user',
       valid: null,
       dirty: true,
     })
-    let normalizedEvent = { target: { value: normalized } }
+    let comboChangeEventObj = { target: { value: normalizedValue } }
     if (event) {
-      normalizedEvent = { ...event, target: { ...event.target, value: normalized } }
+      comboChangeEventObj = { ...event, target: { ...event.target, value: normalizedValue } }
     }
     fireValueHandlers({
       onChange,
       onValueChange,
-      value: normalized,
-      ctx,
-      event: normalizedEvent,
+      value: normalizedValue,
+      ctx: bindingCtx,
+      event: comboChangeEventObj,
     })
   }
 
@@ -498,21 +477,46 @@ const Combobox = forwardRef(({
    * 처리 규칙: multi 모드면 토글 집합을 만들고, 단일 모드면 즉시 선택 후 패널을 닫는다.
    * @updated 2026-02-27
    */
-  const handleSelect = (option) => {
+  const handleSelect = (optionItemObj) => {
     if (multi) {
-      const next = new Set(valueSet)
-      if (next.has(option.value)) next.delete(option.value)
-      else next.add(option.value)
-      commit(Array.from(next), null)
+      const nextSelectionSet = new Set(selectedValueSet)
+      if (nextSelectionSet.has(optionItemObj.value)) nextSelectionSet.delete(optionItemObj.value)
+      else nextSelectionSet.add(optionItemObj.value)
+      commitSelectionValue(Array.from(nextSelectionSet), null)
     } else {
-      commit(option.value, null)
-      setOpen(false)
+      commitSelectionValue(optionItemObj.value, null)
+      setIsOpen(false)
     }
   }
 
   const ariaDescribedBy = [ariaDescribedByProp, messageId]
     .filter(Boolean)
     .join(' ') || undefined
+  let triggerContent = placeholderOption?.label || placeholder
+  if (multi) {
+    if (selectedValueSet.size > 0) {
+      if (multiSummary) {
+        triggerContent = (
+          <span className="inline-flex items-center rounded-full bg-blue-50 text-blue-700 text-xs font-medium px-2 py-0.5">
+            {summaryText.replace('{count}', String(selectedValueSet.size))}
+          </span>
+        )
+      } else {
+        const selectedLabelList = optionList
+          .filter((optionItem) => selectedValueSet.has(String(optionItem.value)))
+          .map((optionItem) => optionItem.label)
+        triggerContent = selectedLabelList.join(', ')
+      }
+    }
+  } else {
+    const selectedOptionObj = optionList.find((optionItem) =>
+      selectedValueSet.has(String(optionItem.value)),
+    )
+    triggerContent =
+      selectedOptionObj?.label ||
+      placeholderOption?.label ||
+      placeholder
+  }
 
   return (
     <div
@@ -524,15 +528,15 @@ const Combobox = forwardRef(({
         type="button"
         id={buttonId}
         className={`w-full text-left px-3 py-2 text-sm rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-0 transition-colors ${
-          statusMeta.button
+          statusMeta.buttonClassName
         }`}
         onClick={() => {
           if (disabled) return
-          setOpen((isOpen) => !isOpen)
+          setIsOpen((wasOpen) => !wasOpen)
         }}
         aria-haspopup="listbox"
-        aria-expanded={open}
-        aria-controls={open ? listboxId : undefined}
+        aria-expanded={isOpen}
+        aria-controls={isOpen ? listboxId : undefined}
         disabled={disabled || normalizedStatus === 'disabled'}
         aria-invalid={normalizedStatus === 'error' ? true : undefined}
         aria-busy={normalizedStatus === 'loading' ? true : undefined}
@@ -540,32 +544,7 @@ const Combobox = forwardRef(({
         ref={ref}
       >
         <span className="flex items-center justify-between gap-2">
-          <span>
-            {(() => {
-              if (multi) {
-                if (valueSet.size === 0) {
-                  return placeholderOption?.label || placeholder
-                }
-                if (multiSummary) {
-                  return (
-                    <span className="inline-flex items-center rounded-full bg-blue-50 text-blue-700 text-xs font-medium px-2 py-0.5">
-                      {summaryText.replace('{count}', String(valueSet.size))}
-                    </span>
-                  )
-                }
-                const labels = options.filter((opt) => valueSet.has(String(opt.value))).map((opt) => opt.label)
-                return labels.join(', ')
-              }
-              const selected = options.find((opt) =>
-                valueSet.has(String(opt.value)),
-              )
-              return (
-                selected?.label ||
-                placeholderOption?.label ||
-                placeholder
-              )
-            })()}
-          </span>
+          <span>{triggerContent}</span>
           <span className="flex items-center gap-1 text-gray-400">
             {normalizedStatus === 'loading' && (
               <span
@@ -573,42 +552,31 @@ const Combobox = forwardRef(({
                 aria-hidden="true"
               />
             )}
-            <svg
-              className="h-4 w-4"
-              viewBox="0 0 20 20"
-              fill="currentColor"
-              aria-hidden="true"
-            >
-              <path
-                fillRule="evenodd"
-                d="M5.23 7.21a.75.75 0 011.06.02L10 11.185l3.71-3.954a.75.75 0 011.08 1.04l-4.243 4.52a.75.75 0 01-1.08 0L5.21 8.27a.75.75 0 01.02-1.06z"
-                clipRule="evenodd"
-              />
-            </svg>
+            <Icon icon="hi:HiChevronDown" className="h-4 w-4" size="1em" />
           </span>
         </span>
       </button>
 
-      {open && (
+      {isOpen && (
         <div className="absolute z-20 mt-1 w-full rounded-md border border-gray-200 bg-white shadow-lg">
           {(multi && showSelectAll) && (
             <div className="px-3 py-2 flex items-center justify-between text-sm border-b border-gray-200">
               <span className="text-gray-700">
-                {allSelected ? clearAllText : selectAllText}
+                {isAllSelected ? clearAllText : selectAllText}
               </span>
               <button
                 type="button"
                 className="px-2 py-0.5 text-xs rounded border border-gray-300 hover:bg-gray-50"
                 onClick={() => {
-                  if (allSelected) commit([], null)
+                  if (isAllSelected) commitSelectionValue([], null)
                   else
-                    commit(
-                      selectableOptions.map((opt) => String(opt.value)),
+                    commitSelectionValue(
+                      selectableOptionList.map((optionItem) => String(optionItem.value)),
                       null,
                     )
                 }}
               >
-                {allSelected ? COMMON_COMPONENT_LANG_KO.combobox.toggleClear : COMMON_COMPONENT_LANG_KO.combobox.toggleAll}
+                {isAllSelected ? COMMON_COMPONENT_LANG_KO.combobox.toggleClear : COMMON_COMPONENT_LANG_KO.combobox.toggleAll}
               </button>
             </div>
           )}
@@ -629,29 +597,29 @@ const Combobox = forwardRef(({
             className="max-h-60 overflow-auto py-1"
             aria-multiselectable={multi || undefined}
           >
-            {filtered.length === 0 && (
+            {filteredOptionList.length === 0 && (
               <li className="px-3 py-2 text-sm text-gray-500 select-none">
                 {noResultsText}
               </li>
             )}
-            {filtered.map((opt) => {
-              let selected = valueSet.has(String(opt.value))
+            {filteredOptionList.map((optionItem) => {
+              let isSelected = selectedValueSet.has(String(optionItem.value))
               if (multi) {
                 if (Array.isArray(currentValue)) {
-                  selected = valueSet.has(String(opt.value))
+                  isSelected = selectedValueSet.has(String(optionItem.value))
                 }
               }
               return (
                 <li
-                  key={opt.value}
+                  key={optionItem.value}
                   role="option"
-                  aria-selected={selected}
+                  aria-selected={isSelected}
                   className={`cursor-pointer px-3 py-2 text-sm hover:bg-blue-50 ${
-                    selected ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-900'
+                    isSelected ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-900'
                   }`}
-                  onClick={() => handleSelect(opt)}
+                  onClick={() => handleSelect(optionItem)}
                 >
-                  {opt.label}
+                  {optionItem.label}
                 </li>
               )
             })}
@@ -663,7 +631,7 @@ const Combobox = forwardRef(({
         <p
           id={messageId}
           className={`mt-1 text-xs ${
-            messageText ? statusMeta.message : 'sr-only'
+            messageText ? statusMeta.messageClassName : 'sr-only'
           }`}
           aria-live={statusMeta.ariaLive || 'polite'}
         >

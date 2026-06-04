@@ -1,7 +1,7 @@
 /**
  * 파일명: Stat.jsx
  * 작성자: LSH
- * 갱신일: 2025-09-13
+ * 갱신일: 2026-05-31
  * 설명: Stat UI 컴포넌트 구현
  */
 import React from 'react';
@@ -25,15 +25,11 @@ const Stat = ({
   className = '',
 }) => {
 
-  let deltaColor = 'text-gray-500';
-  let deltaPrefix = '';
-  if (deltaType === 'up') {
-    deltaColor = 'text-green-600';
-    deltaPrefix = '▲ ';
-  } else if (deltaType === 'down') {
-    deltaColor = 'text-red-600';
-    deltaPrefix = '▼ ';
-  }
+  const deltaMetaObj = {
+    down: { className: 'text-red-600', prefix: '▼ ' },
+    neutral: { className: 'text-gray-500', prefix: '' },
+    up: { className: 'text-green-600', prefix: '▲ ' },
+  }[deltaType] ?? { className: 'text-gray-500', prefix: '' };
   return (
     <div className={`border rounded-lg p-4 bg-white shadow-sm ${className}`.trim()}>
       <div className="flex items-center justify-between">
@@ -43,7 +39,7 @@ const Stat = ({
       <div className="mt-1 flex items-end gap-2">
         <div className="text-2xl font-bold" aria-label={COMMON_COMPONENT_LANG_KO.stat.valueAriaLabel}>{value}</div>
         {delta != null && (
-          <div className={`${deltaColor} text-sm`} aria-label={COMMON_COMPONENT_LANG_KO.stat.deltaAriaLabel}>{deltaPrefix}{delta}</div>
+          <div className={`${deltaMetaObj.className} text-sm`} aria-label={COMMON_COMPONENT_LANG_KO.stat.deltaAriaLabel}>{deltaMetaObj.prefix}{delta}</div>
         )}
       </div>
       {helpText && <div className="mt-1 text-xs text-gray-500">{helpText}</div>}

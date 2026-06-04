@@ -1,7 +1,7 @@
 /**
  * 파일명: CheckButton.jsx
  * 작성자: LSH
- * 갱신일: 2026-03-04
+ * 갱신일: 2026-05-31
  * 설명: CheckButton UI 컴포넌트 구현
  */
 import React, { useState, useEffect } from 'react';
@@ -40,62 +40,27 @@ const CheckButton = React.forwardRef(({
     });
 
     /**
-     * @description useEffect 실행 흐름 관리
-     * 처리 규칙: effect 실행/cleanup 경계를 명시적으로 유지.
+     * @description dataObj 바인딩 checked 값을 internalChecked에 동기화
+     * 처리 규칙: isDataObjControlled일 때 getBoundValue 결과를 boolean으로 변환한다.
      */
     useEffect(() => {
         if (isDataObjControlled) {
-            const value = getBoundValue(dataObj, dataKeyName);
-            const next = [true, 'Y', 'y', '1', 1].includes(value);
-            setInternalChecked(next);
+            const boundValue = getBoundValue(dataObj, dataKeyName);
+            const isNextChecked = [true, 'Y', 'y', '1', 1].includes(boundValue);
+            setInternalChecked(isNextChecked);
         }
     }, [isDataObjControlled, dataObj, dataKeyName]);
 
-    /**
-     * @description 버튼 클릭 값을 토글하고 bound 데이터/콜백으로 변경 이벤트를 전파
-     * @param {React.MouseEvent<HTMLButtonElement>} event
-     * @returns {void}
-     * @updated 2026-02-27
-     */
-    const handleChange = (event) => {
-        event.stopPropagation();
-        const newChecked = !getCheckedState(); // 토글
-
-        if (!isControlled) {
-            setInternalChecked(newChecked);
-        }
-
-        if (isDataObjControlled) {
-            setBoundValue(dataObj, dataKeyName, newChecked, { source: 'user' });
-        }
-
-        const ctx = buildCtx({ dataKey: dataKeyName, dataObj, source: 'user', dirty: true, valid: null });
-        try { event.target.value = newChecked; } catch (eventSyncError) { void eventSyncError; }
-        fireValueHandlers({
-            onChange,
-            onValueChange,
-            value: newChecked,
-            ctx,
-            event,
-        });
-    };
-
-    /**
-     * @description controlled/dataObj/internal 우선순위로 현재 체크 상태를 계산. 입력/출력 계약을 함께 명시
-     * @returns {boolean}
-     * @updated 2026-02-27
-     */
-    const getCheckedState = () => {
-        if (isControlled) return propChecked;
-        if (isDataObjControlled) return [true, 'Y', 'y', '1', 1].includes(getBoundValue(dataObj, dataKeyName));
-        return internalChecked;
-    };
-
-    const checked = getCheckedState();
-    const baseStyle = "inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md transition-all duration-200 border";
-    const disabledStyle = disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer";
+    let isChecked = internalChecked;
+    if (isControlled) {
+        isChecked = Boolean(propChecked);
+    } else if (isDataObjControlled) {
+        isChecked = [true, 'Y', 'y', '1', 1].includes(getBoundValue(dataObj, dataKeyName));
+    }
+    const baseClassName = "inline-flex items-center justify-center px-4 py-2 text-sm font-medium rounded-md transition-all duration-200 border";
+    const disabledClassName = disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer";
     const colorKey = typeof color === "string" ? color.toLowerCase() : "primary";
-    const colorPresetMap = {
+    const colorClassMapObj = {
         primary: {
             checked: "bg-blue-500 text-white hover:bg-blue-600 border-blue-500",
             unchecked: "bg-white border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-blue-500",
@@ -117,8 +82,37 @@ const CheckButton = React.forwardRef(({
             unchecked: "bg-white border-gray-300 text-gray-700 hover:bg-gray-50 hover:border-gray-500",
         },
     };
-    const colorPreset = colorPresetMap[colorKey] || colorPresetMap.primary;
-    const colorStyle = checked ? colorPreset.checked : colorPreset.unchecked;
+    const colorClassObj = colorClassMapObj[colorKey] || colorClassMapObj.primary;
+    const colorClassName = isChecked ? colorClassObj.checked : colorClassObj.unchecked;
+
+    /**
+     * @description 버튼 클릭 값을 토글하고 bound 데이터/콜백으로 변경 이벤트를 전파
+     * @param {React.MouseEvent<HTMLButtonElement>} event
+     * @returns {void}
+     * @updated 2026-02-27
+     */
+    const handleChange = (event) => {
+        event.stopPropagation();
+        const isNewChecked = !isChecked; // 토글
+
+        if (!isControlled) {
+            setInternalChecked(isNewChecked);
+        }
+
+        if (isDataObjControlled) {
+            setBoundValue(dataObj, dataKeyName, isNewChecked, { source: 'user' });
+        }
+
+        const bindingCtx = buildCtx({ dataKey: dataKeyName, dataObj, source: 'user', dirty: true, valid: null });
+        event.target.value = isNewChecked;
+        fireValueHandlers({
+            onChange,
+            onValueChange,
+            value: isNewChecked,
+            ctx: bindingCtx,
+            event,
+        });
+    };
 
     return (
         <button
@@ -127,11 +121,11 @@ const CheckButton = React.forwardRef(({
             name={inputName}
             onClick={handleChange}
             disabled={disabled}
-            aria-pressed={checked}
+            aria-pressed={isChecked}
             className={`
-                ${baseStyle}
-                ${colorStyle}
-                ${disabledStyle}
+                ${baseClassName}
+                ${colorClassName}
+                ${disabledClassName}
                 ${className}
             `.trim()}
             {...props}

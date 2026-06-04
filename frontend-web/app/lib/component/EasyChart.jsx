@@ -1,8 +1,9 @@
 "use client";
+
 /**
  * 파일명: EasyChart.jsx
  * 작성자: LSH
- * 갱신일: 2026-03-05
+ * 갱신일: 2026-05-31
  * 설명: Recharts 기반 대시보드 차트 카드 래퍼
  */
 
@@ -23,13 +24,13 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Card from "./Card";
 import Skeleton from "./Skeleton";
 import Empty from "./Empty";
 import { COMMON_COMPONENT_LANG_KO } from "@/app/common/i18n/lang.ko";
 
-const palette = [
+const chartColorList = [
   "#2563eb",
   "#10b981",
   "#f59e0b",
@@ -38,8 +39,8 @@ const palette = [
   "#0ea5e9",
   "#14b8a6",
 ];
-const defaultMargin = { top: 12, right: 20, left: 10, bottom: 12 };
-const donutMargin = { top: 36, right: 16, bottom: 24, left: 16 };
+const defaultMarginObj = { top: 12, right: 20, left: 10, bottom: 12 };
+const donutMarginObj = { top: 36, right: 16, bottom: 24, left: 16 };
 const chartHeightClassMap = {
   160: "h-40",
   180: "h-[180px]",
@@ -52,64 +53,29 @@ const chartHeightClassMap = {
   320: "h-[320px]",
   360: "h-[360px]",
 };
+const heightBucketList = [180, 220, 260, 300, 320];
 
 /**
- * @description 입력 데이터가 EasyList/배열처럼 순회 가능한 구조인지 판별
- * 반환값: size API 또는 배열 타입이면 true.
- * @updated 2026-02-27
- */
-const isListLike = (list) =>
-  Boolean(list) && (typeof list.size === "function" || Array.isArray(list));
-
-/**
- * @description 배열 또는 EasyList류 입력을 실제 배열로 평탄화하는 데이터 어댑터.
+ * @description 배열 또는 EasyList류 차트 입력을 실제 배열로 평탄화하는 데이터 어댑터.
  * 처리 규칙: 배열은 그대로 반환하고, list-like는 size/get 기반으로 새 배열을 구성한다.
- * @updated 2026-02-27
+ * @updated 2026-04-18
  */
-const toArray = (list) => {
-  if (Array.isArray(list)) return list;
-  if (isListLike(list)) {
-    const size = typeof list.size === "function" ? list.size() : 0;
-    return Array.from({ length: size }, (unusedItem, idx) =>
-      typeof list.get === "function" ? list.get(idx) : undefined,
-    );
+const readChartList = (chartList) => {
+  if (Array.isArray(chartList)) return chartList;
+  const hasChartListShape =
+    Boolean(chartList) &&
+    (typeof chartList.size === "function" || Array.isArray(chartList));
+  if (hasChartListShape) {
+    const chartItemCount = typeof chartList.size === "function" ? chartList.size() : 0;
+    const chartItemList = [];
+    for (let chartIndex = 0; chartIndex < chartItemCount; chartIndex += 1) {
+      chartItemList.push(
+        typeof chartList.get === "function" ? chartList.get(chartIndex) : undefined,
+      );
+    }
+    return chartItemList;
   }
   return [];
-};
-
-/**
- * @description height 입력값을 Tailwind 고정 높이 클래스로 매핑
- * 처리 규칙: number 또는 px 문자열만 허용하고, 미지원 값은 가장 가까운 프리셋 높이로 보정한다.
- * @updated 2026-03-04
- */
-const resolveHeightClass = (value, { min = 0, fallback = 260 } = {}) => {
-
-  /**
-   * @description number/px 문자열을 차트 높이 숫자값으로 파싱
-   * 반환값: 파싱 성공 시 정수 높이, 실패 시 null.
-   * @updated 2026-03-04
-   */
-  const toNumber = (raw) => {
-    if (typeof raw === "number") {
-      if (Number.isFinite(raw)) return Math.floor(raw);
-    }
-    if (typeof raw === "string") {
-      const normalized = raw.trim().toLowerCase();
-      const pxMatch = normalized.match(/^(\d+)(px)?$/);
-      if (pxMatch) return Number(pxMatch[1]);
-    }
-    return null;
-  };
-
-  const parsed = toNumber(value);
-  const target = Math.max(min, parsed ?? fallback);
-  if (chartHeightClassMap[target]) return chartHeightClassMap[target];
-  if (target <= 180) return chartHeightClassMap[180];
-  if (target <= 220) return chartHeightClassMap[220];
-  if (target <= 260) return chartHeightClassMap[260];
-  if (target <= 300) return chartHeightClassMap[300];
-  if (target <= 320) return chartHeightClassMap[320];
-  return chartHeightClassMap[360];
 };
 
 /**
@@ -135,7 +101,6 @@ const EasyChart = ({
   errorText,
   empty = COMMON_COMPONENT_LANG_KO.easyChart.empty,
   hideLegend = false,
-  legendFontSize = 12,
   pieLabelFontSize = 12,
   xLabelFormatter,
   yLabelFormatter,
@@ -148,46 +113,67 @@ const EasyChart = ({
   const [hostSize, setHostSize] = useState({ width: 0, height: 0 });
   const dataSource = dataList ?? data ?? [];
   const seriesSource = seriesList ?? series ?? [];
-  const resolvedSeries = useMemo(() => {
-    return toArray(seriesSource)
-      .map((item, idx) => ({
-        key: item.seriesId ?? item.key ?? item.dataKey,
-        name: item.seriesNm ?? item.name ?? item.label ?? item.dataKey,
-        color: item.color || palette[idx % palette.length],
-        type: item.type || type,
-        stackId: item.stackId,
-        strokeWidth: item.strokeWidth,
-        dot: item.dot,
-      }))
-      .filter((item) => item.key);
-  }, [seriesSource, type]);
+  const resolvedSeries = readChartList(seriesSource)
+    .map((seriesItemObj, index) => ({
+      key: seriesItemObj.seriesId ?? seriesItemObj.key ?? seriesItemObj.dataKey,
+      name: seriesItemObj.seriesNm ?? seriesItemObj.name ?? seriesItemObj.label ?? seriesItemObj.dataKey,
+      color: seriesItemObj.color || chartColorList[index % chartColorList.length],
+      type: seriesItemObj.type || type,
+      stackId: seriesItemObj.stackId,
+      strokeWidth: seriesItemObj.strokeWidth,
+      dot: seriesItemObj.dot,
+    }))
+    .filter((seriesItemObj) => seriesItemObj.key);
 
-  const resolvedData = toArray(dataSource);
+  const resolvedDataList = readChartList(dataSource);
+  const chartCellIndexList = [];
+  for (let dataIndex = 0; dataIndex < resolvedDataList.length; dataIndex += 1) {
+    chartCellIndexList.push(dataIndex);
+  }
 
   const hasSeries = resolvedSeries.length > 0;
   const chartType = resolvedSeries[0]?.type || type;
   const isPie = chartType === "pie";
   const isDonut = chartType === "donut";
-  const isEmpty = resolvedData.length === 0 || status === "empty";
+  const isEmpty = resolvedDataList.length === 0 || status === "empty";
   const isLoading = loading || status === "loading";
   const isError = status === "error";
-  const useComposed = resolvedSeries.some((seriesItem) => seriesItem.type && seriesItem.type !== type);
+  const isComposed = resolvedSeries.some((seriesItem) => seriesItem.type && seriesItem.type !== type);
   const pieValueKey = resolvedSeries[0]?.key;
   const hasHostSize = hostSize.width > 0 && hostSize.height > 0;
-  const hostHeightClassName = resolveHeightClass(height, { fallback: 260 });
-  const pieHeightClassName = resolveHeightClass(height, { min: 180, fallback: 260 });
+  let parsedHeight = null;
+  if (typeof height === "number") {
+    if (Number.isFinite(height)) parsedHeight = Math.floor(height);
+  } else if (typeof height === "string") {
+    const normalizedHeight = height.trim().toLowerCase();
+    const heightMatch = normalizedHeight.match(/^(\d+)(px)?$/);
+    if (heightMatch) parsedHeight = Number(heightMatch[1]);
+  }
+  const resolvedHeight = parsedHeight ?? 260;
+  const hostTargetHeight = Math.max(0, resolvedHeight);
+  const pieTargetHeight = Math.max(180, resolvedHeight);
+  const hostBucketKey = heightBucketList.find(
+    (heightKey) => hostTargetHeight <= heightKey,
+  ) ?? 360;
+  const pieBucketKey = heightBucketList.find(
+    (heightKey) => pieTargetHeight <= heightKey,
+  ) ?? 360;
+  const hostHeightClassName = chartHeightClassMap[hostTargetHeight]
+    ?? chartHeightClassMap[hostBucketKey];
+  const pieHeightClassName = chartHeightClassMap[pieTargetHeight]
+    ?? chartHeightClassMap[pieBucketKey];
 
   /**
-   * @description useEffect 실행 흐름 관리
-   * 처리 규칙: effect 실행/cleanup 경계를 명시적으로 유지.
+   * @description 클라이언트 마운트 후 차트 렌더 가능 상태로 전환
+   * 처리 규칙: 최초 마운트에서 setIsClient(true)를 1회 호출한다.
    */
   useEffect(() => {
     setIsClient(true);
   }, []);
 
   /**
-   * @description useEffect 실행 흐름 관리
-   * 처리 규칙: effect 실행/cleanup 경계를 명시적으로 유지.
+   * @description isClient일 때 ResizeObserver로 차트 호스트 width/height 동기화
+   * 처리 규칙: cleanup에서 observer disconnect를 수행한다.
    */
   useEffect(() => {
     if (!isClient) return undefined;
@@ -201,18 +187,18 @@ const EasyChart = ({
     const updateHostSize = () => {
       if (!chartHostRef.current) return;
       const rect = chartHostRef.current.getBoundingClientRect();
-      const nextSize = {
+      const nextSizeObj = {
         width: Math.round(rect.width || 0),
         height: Math.round(rect.height || 0),
       };
       setHostSize((prevSize) => {
         if (
-          prevSize.width === nextSize.width &&
-          prevSize.height === nextSize.height
+          prevSize.width === nextSizeObj.width &&
+          prevSize.height === nextSizeObj.height
         ) {
           return prevSize;
         }
-        return nextSize;
+        return nextSizeObj;
       });
     };
 
@@ -229,94 +215,100 @@ const EasyChart = ({
     return () => observer.disconnect();
   }, [isClient, height, isPie, isDonut]);
 
-  const ChartComponent =
-    useComposed && hasSeries
-      ? ComposedChart
-      : type === "bar"
-        ? BarChart
-        : type === "area"
-          ? AreaChart
-          : LineChart;
-
-  /**
-   * @description resolvedSeries 정의를 Recharts 시리즈 컴포넌트(Line/Bar/Area)로 치환하는 렌더러.
-   * 반환값: 현재 차트 타입과 시리즈 옵션이 반영된 JSX 배열 또는 null.
-   * @updated 2026-02-27
-   */
-  const renderSeries = () => {
-    if (!hasSeries) return null;
-    return resolvedSeries.map((seriesItem, idx) => {
-      const key = seriesItem.key || seriesItem.name || `series-${idx}`;
-      const common = {
-        name: seriesItem.name,
-        dataKey: seriesItem.key,
-        stroke: seriesItem.color,
-        fill: seriesItem.color,
-        strokeWidth: seriesItem.strokeWidth || 2,
-      };
-      let targetType = type;
-      if (isPie || isDonut) {
-        targetType = chartType;
-      } else if (useComposed) {
-        targetType = seriesItem.type;
-      }
-      if (targetType === "bar") {
+  let ChartComponent = LineChart;
+  if (isComposed && hasSeries) {
+    ChartComponent = ComposedChart;
+  } else if (type === "bar") {
+    ChartComponent = BarChart;
+  } else if (type === "area") {
+    ChartComponent = AreaChart;
+  }
+  const seriesNodes = hasSeries
+    ? resolvedSeries.map((seriesItem, index) => {
+        const seriesKey = seriesItem.key || seriesItem.name || `series-${index}`;
+        const seriesPropsObj = {
+          name: seriesItem.name,
+          dataKey: seriesItem.key,
+          stroke: seriesItem.color,
+          fill: seriesItem.color,
+          strokeWidth: seriesItem.strokeWidth || 2,
+        };
+        let seriesType = chartType;
+        const shouldUseSeriesType = !isPie && !isDonut && isComposed;
+        if (shouldUseSeriesType) {
+          seriesType = seriesItem.type;
+        }
+        if (seriesType === "bar") {
+          return (
+            <Bar
+              key={seriesKey}
+              {...seriesPropsObj}
+              stackId={seriesItem.stackId}
+              radius={[4, 4, 0, 0]}
+            />
+          );
+        }
+        if (seriesType === "area") {
+          return (
+            <Area key={seriesKey} {...seriesPropsObj} type="monotone" fillOpacity={0.12} />
+          );
+        }
+        if (seriesType === "pie" || seriesType === "donut") {
+          return null;
+        }
         return (
-          <Bar
-            key={key}
-            {...common}
-            stackId={seriesItem.stackId}
-            radius={[4, 4, 0, 0]}
+          <Line
+            key={seriesKey}
+            {...seriesPropsObj}
+            type="monotone"
+            dot={seriesItem.dot ?? false}
+            activeDot={{ r: 4 }}
           />
         );
-      }
-      if (targetType === "area") {
-        return (
-          <Area key={key} {...common} type="monotone" fillOpacity={0.12} />
-        );
-      }
-      if (targetType === "pie" || targetType === "donut") {
-        return null;
-      }
-      return (
-        <Line
-          key={key}
-          {...common}
-          type="monotone"
-          dot={seriesItem.dot ?? false}
-          activeDot={{ r: 4 }}
-        />
-      );
-    });
-  };
+      })
+    : null;
 
-  /**
-   * @description 로딩/에러/빈상태/차트 본문 우선순위에 따라 카드 본문을 결정하는 렌더러.
-   * 처리 규칙: loading > error > no-series > empty > chart 순으로 우선순위를 적용한다.
-   * @updated 2026-02-27
-   */
-  const renderBody = () => {
-    if (isLoading) {
-      return (
-        <div className="space-y-4" aria-live="polite">
-          <Skeleton variant="text" lines={2} />
-          <Skeleton className="h-40 w-full rounded-lg" />
-        </div>
+  let bodyContent = null;
+  if (isLoading) {
+    bodyContent = (
+      <div className="space-y-4" aria-live="polite">
+        <Skeleton variant="text" lines={2} />
+        <Skeleton className="h-40 w-full rounded-lg" />
+      </div>
+    );
+  } else if (isError) {
+    bodyContent = (
+      <div
+        className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+        role="alert"
+      >
+        {errorText ||
+          COMMON_COMPONENT_LANG_KO.easyChart.loadFailed}
+      </div>
+    );
+  } else if (!hasSeries) {
+    bodyContent = (
+      <div
+        className="rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700"
+        role="status"
+      >
+        {COMMON_COMPONENT_LANG_KO.easyChart.seriesRequired}
+      </div>
+    );
+  } else if (!isClient) {
+    bodyContent = (
+      <div className={`min-w-0 w-full pt-1 ${hostHeightClassName}`.trim()} />
+    );
+  } else if (isEmpty) {
+    bodyContent =
+      typeof empty === "string" ? (
+        <Empty title={empty} className="bg-gray-50" />
+      ) : (
+        empty
       );
-    }
-    if (isError) {
-      return (
-        <div
-          className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
-          role="alert"
-        >
-          {errorText ||
-            COMMON_COMPONENT_LANG_KO.easyChart.loadFailed}
-        </div>
-      );
-    }
-    if (!hasSeries) {
-      return (
+  } else if (isPie || isDonut) {
+    if (!pieValueKey) {
+      bodyContent = (
         <div
           className="rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700"
           role="status"
@@ -324,54 +316,8 @@ const EasyChart = ({
           {COMMON_COMPONENT_LANG_KO.easyChart.seriesRequired}
         </div>
       );
-    }
-    if (!isClient) {
-      return (
-        <div className={`min-w-0 w-full pt-1 ${hostHeightClassName}`.trim()} />
-      );
-    }
-    if (isEmpty) {
-      return typeof empty === "string" ? (
-        <Empty title={empty} className="bg-gray-50" />
-      ) : (
-        empty
-      );
-    }
-    if (isPie || isDonut) {
-      if (!pieValueKey) {
-        return (
-          <div
-            className="rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700"
-            role="status"
-          >
-            {COMMON_COMPONENT_LANG_KO.easyChart.seriesRequired}
-          </div>
-        );
-      }
-
-      /**
-       * @description 파이/도넛 섹터 라벨 텍스트(`이름 값 (퍼센트)`) 생성 렌더러.
-       * 반환값: 중앙 정렬된 `<text>` SVG 노드.
-       * @updated 2026-02-27
-       */
-      const renderPieLabel = (pieLabelProps) => {
-        const { name, value, percent, x, y } = pieLabelProps;
-        const pct = Math.round((percent || 0) * 100);
-        return (
-          <text
-            x={x}
-            y={y}
-            fill="#374151"
-            fontSize={pieLabelFontSize}
-            textAnchor="middle"
-            dominantBaseline="central"
-          >
-            {`${name ?? ""} ${value} (${pct}%)`}
-          </text>
-        );
-      };
-
-      return (
+    } else {
+      bodyContent = (
         <div
           ref={chartHostRef}
           className={`min-w-0 w-full ${pieHeightClassName}`.trim()}
@@ -380,41 +326,47 @@ const EasyChart = ({
             <PieChart
               width={hostSize.width}
               height={hostSize.height}
-              margin={donutMargin}
+              margin={donutMarginObj}
             >
-              <Tooltip
-                contentStyle={{ borderRadius: 8, borderColor: "#e5e7eb" }}
-                labelStyle={{ color: "#111827", fontWeight: 600 }}
-              />
+              <Tooltip />
               {!hideLegend && (
                 <Legend
                   verticalAlign="bottom"
                   align="center"
-                  wrapperStyle={{
-                    paddingTop: 6,
-                    bottom: 8,
-                    fontSize: legendFontSize,
-                  }}
                   iconType="circle"
                   iconSize={10}
                 />
               )}
               <Pie
-                data={resolvedData}
+                data={resolvedDataList}
                 dataKey={pieValueKey}
                 nameKey={xKey}
                 innerRadius={isDonut ? "55%" : undefined}
                 outerRadius={isDonut ? "82%" : "80%"}
                 paddingAngle={isDonut ? 3 : 0}
                 labelLine={!isDonut}
-                label={renderPieLabel}
+                label={(pieLabelObj) => {
+                  const pct = Math.round((pieLabelObj.percent || 0) * 100);
+                  return (
+                    <text
+                      x={pieLabelObj.x}
+                      y={pieLabelObj.y}
+                      fill="#374151"
+                      fontSize={pieLabelFontSize}
+                      textAnchor="middle"
+                      dominantBaseline="central"
+                    >
+                      {`${pieLabelObj.name ?? ""} ${pieLabelObj.value} (${pct}%)`}
+                    </text>
+                  );
+                }}
               >
-                {resolvedData.map((unusedItem, idx) => (
+                {chartCellIndexList.map((dataIndex) => (
                   <Cell
-                    key={`cell-${idx}`}
+                    key={`cell-${dataIndex}`}
                     fill={
-                      resolvedSeries[idx]?.color ||
-                      palette[idx % palette.length]
+                      resolvedSeries[dataIndex]?.color ||
+                      chartColorList[dataIndex % chartColorList.length]
                     }
                     stroke={isDonut ? "#ffffff" : undefined}
                     strokeWidth={isDonut ? 1.4 : undefined}
@@ -426,15 +378,16 @@ const EasyChart = ({
         </div>
       );
     }
-    return (
+  } else {
+    bodyContent = (
       <div
         ref={chartHostRef}
         className={`min-w-0 w-full ${hostHeightClassName}`.trim()}
       >
         {hasHostSize ? (
           <ChartComponent
-            data={resolvedData}
-            margin={defaultMargin}
+            data={resolvedDataList}
+            margin={defaultMarginObj}
             width={hostSize.width}
             height={hostSize.height}
           >
@@ -453,8 +406,6 @@ const EasyChart = ({
               tick={{ fontSize: 12, fill: "#6b7280" }}
             />
             <Tooltip
-              contentStyle={{ borderRadius: 8, borderColor: "#e5e7eb" }}
-              labelStyle={{ color: "#111827", fontWeight: 600 }}
               formatter={(value, name) => [value, name]}
               labelFormatter={xLabelFormatter}
             />
@@ -462,21 +413,16 @@ const EasyChart = ({
               <Legend
                 verticalAlign="bottom"
                 align="center"
-                wrapperStyle={{
-                  paddingTop: 6,
-                  bottom: 8,
-                  fontSize: legendFontSize,
-                }}
                 iconType="circle"
                 iconSize={10}
               />
             )}
-            {renderSeries()}
+            {seriesNodes}
           </ChartComponent>
         ) : null}
       </div>
     );
-  };
+  }
 
   return (
     <Card
@@ -487,7 +433,7 @@ const EasyChart = ({
       bodyClassName="space-y-2"
       {...cardProps}
     >
-      {renderBody()}
+      {bodyContent}
     </Card>
   );
 };

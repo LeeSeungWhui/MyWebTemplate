@@ -36,9 +36,9 @@ describe('Select & Combobox binding contracts', () => {
     let bound = null
     const Harness = ({ onReady }) => {
       const jobs = EasyList(
-        JobsFixture.map((item) => ({
-          ...item,
-          selected: item.id === 'developer',
+        JobsFixture.map((jobFixtureObj) => ({
+          ...jobFixtureObj,
+          selected: jobFixtureObj.id === 'developer',
         })),
       )
       useEffect(() => {
@@ -62,10 +62,45 @@ describe('Select & Combobox binding contracts', () => {
     await waitFor(() => expect(select).toHaveValue('pm'))
 
     const selectedIds = []
-    bound.jobs.forAll((item) => {
-      if (item.selected) selectedIds.push(item.id)
+    bound.jobs.forAll((jobItemObj) => {
+      if (jobItemObj.selected) selectedIds.push(jobItemObj.id)
     })
     expect(selectedIds).toEqual(['pm'])
+  })
+
+  test('Select reacts to external EasyObj bound value updates', async () => {
+    let exposed = null
+    const Harness = ({ onReady }) => {
+      const filterStoreObj = EasyObj({ filters: { job: 'developer' } })
+      const jobs = EasyList(JobsFixture)
+      useEffect(() => {
+        onReady?.({ filterStoreObj })
+      }, [filterStoreObj, onReady])
+      return (
+        <Select
+          dataObj={filterStoreObj.filters}
+          dataKey="job"
+          dataList={jobs}
+          valueKey="id"
+          textKey="label"
+        />
+      )
+    }
+
+    render(<Harness onReady={(value) => { exposed = value }} />)
+
+    await waitFor(() => expect(exposed).not.toBeNull())
+
+    const select = screen.getByRole('combobox')
+    expect(select).toHaveValue('developer')
+
+    await act(async () => {
+      exposed.filterStoreObj.filters.job = 'pm'
+    })
+
+    await waitFor(() => {
+      expect(select).toHaveValue('pm')
+    })
   })
 
   test('Select controlled mode uses value/onValueChange contract', () => {
@@ -97,19 +132,19 @@ describe('Select & Combobox binding contracts', () => {
   test('Combobox multi-select synchronises with EasyObj array', async () => {
     let exposed = null
     const Harness = ({ onReady }) => {
-      const store = EasyObj({ filters: { tags: ['seoul'] } })
+      const filterStoreObj = EasyObj({ filters: { tags: ['seoul'] } })
       const cities = EasyList([
         { value: 'seoul', text: '서울' },
         { value: 'busan', text: '부산' },
         { value: 'incheon', text: '인천' },
       ])
       useEffect(() => {
-        onReady?.({ store, cities })
-      }, [store, cities, onReady])
+        onReady?.({ filterStoreObj, cities })
+      }, [filterStoreObj, cities, onReady])
       return (
         <Combobox
           dataList={cities}
-          dataObj={store.filters}
+          dataObj={filterStoreObj.filters}
           dataKey="tags"
           multi
           placeholder="도시 선택"
@@ -127,12 +162,12 @@ describe('Select & Combobox binding contracts', () => {
 
     const busanOption = screen.getByRole('option', { name: '부산' })
     fireEvent.click(busanOption)
-    expect(exposed.store.filters.tags).toEqual(
+    expect(exposed.filterStoreObj.filters.tags).toEqual(
       expect.arrayContaining(['seoul', 'busan']),
     )
 
     await act(async () => {
-      exposed.store.filters.set('tags', ['incheon'])
+      exposed.filterStoreObj.filters.set('tags', ['incheon'])
     })
 
     await waitFor(() =>

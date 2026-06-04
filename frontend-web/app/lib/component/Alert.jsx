@@ -1,9 +1,10 @@
 /**
  * 파일명: Alert.jsx
  * 작성자: LSH
- * 갱신일: 2025-09-13
+ * 갱신일: 2026-05-31
  * 설명: Alert UI 컴포넌트 구현
  */
+import { useId } from 'react';
 import Icon from './Icon';
 import Button from './Button';
 import { COMMON_COMPONENT_LANG_KO } from '@/app/common/i18n/lang.ko';
@@ -23,8 +24,11 @@ const Alert = ({
     onClick        // 확인 버튼 클릭 핸들러
 }) => {
 
+    const titleId = useId();
+    const descriptionId = useId();
+
     // 타입별 스타일 및 아이콘 설정
-    const styles = {
+    const alertTypeMetaObj = {
         info: {
             icon: 'ri:RiInformationLine',
             iconColor: 'text-blue-500',
@@ -55,23 +59,28 @@ const Alert = ({
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-500/70">
-            <div className={`
-                w-[calc(100vw-32px)] max-w-xl rounded-lg shadow-lg border ${styles[type]?.borderColor || styles.info.borderColor}
-                ${styles[type]?.bgColor || styles.info.bgColor} backdrop-blur-sm
+            <div
+                role="alertdialog"
+                aria-modal="true"
+                aria-labelledby={titleId}
+                aria-describedby={descriptionId}
+                className={`
+                w-[calc(100vw-32px)] max-w-xl rounded-lg shadow-lg border ${alertTypeMetaObj[type]?.borderColor || alertTypeMetaObj.info.borderColor}
+                ${alertTypeMetaObj[type]?.bgColor || alertTypeMetaObj.info.bgColor} backdrop-blur-sm
                 animate-fade-in-up
             `}>
                 <div className="p-6">
                     <div className="flex items-start mb-4">
                         <Icon
-                            icon={styles[type]?.icon || styles.info.icon}
+                            icon={alertTypeMetaObj[type]?.icon || alertTypeMetaObj.info.icon}
                             size="1.5em"
-                            className={`mr-3 mt-0.5 ${styles[type]?.iconColor || styles.info.iconColor}`}
+                            className={`mr-3 mt-0.5 ${alertTypeMetaObj[type]?.iconColor || alertTypeMetaObj.info.iconColor}`}
                         />
                         <div className="flex-1">
-                            <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                            <h3 id={titleId} className="text-lg font-semibold text-gray-900 mb-1">
                                 {title}
                             </h3>
-                            <p className="text-gray-600 whitespace-pre-line break-words max-h-[50vh] overflow-y-auto pr-1">
+                            <p id={descriptionId} className="text-gray-600 whitespace-pre-line break-words max-h-[50vh] overflow-y-auto pr-1">
                                 {displayText}
                             </p>
                         </div>

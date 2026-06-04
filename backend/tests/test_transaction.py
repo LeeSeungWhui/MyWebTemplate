@@ -3,6 +3,9 @@ import sys
 import time
 from fastapi.testclient import TestClient
 
+from conftest import pgTestSettings
+from db_support import fetchValPg
+
 baseDir = os.path.dirname(os.path.dirname(__file__))
 if baseDir not in sys.path:
     sys.path.insert(0, baseDir)
@@ -10,7 +13,6 @@ if baseDir not in sys.path:
 
 def testTransactionSingleAndUniqueRollback():
     from server import app
-    from lib import Database as DB
 
     with TestClient(app) as client:
         loginResponse = client.post(
@@ -34,7 +36,8 @@ def testTransactionSingleAndUniqueRollback():
             response = client.post("/api/v1/transaction/test/unique-violation", headers=authHeaders)
             if response.status_code == 409:
                 break
-            # sqlite test 런타임에서 일시적 "database is locked" 500이 나올 수 있어 짧게 재시도한다.
+
+            # 테스트 DB 런타임에서 일시적 잠금/경합이 날 수 있어 짧게 재시도한다.
             time.sleep(0.05)
         assert response is not None
         assert response.status_code == 409
@@ -42,18 +45,11 @@ def testTransactionSingleAndUniqueRollback():
         assert j["status"] is False
         assert j["code"] == "TX_409_UNIQUE"
 
-        db = DB.dbManagers["main_db"]
-
-        import anyio
-
-        async def countRows():
-            rows = await db.fetchAll(
-                "SELECT COUNT(*) as cnt FROM T_TEST_TRANSACTION WHERE VALUE = :v",
-                {"v": "tx-dup"},
-            )
-            return rows[0]["cnt"] if rows else 0
-
-        cnt = anyio.run(countRows)
+        cnt = fetchValPg(
+            pgTestSettings,
+            "SELECT COUNT(*) FROM T_TEST_TRANSACTION WHERE VALUE = $1",
+            "tx-dup",
+        )
         assert cnt == 0
 
 

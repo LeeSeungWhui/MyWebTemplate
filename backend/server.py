@@ -108,7 +108,6 @@ async def onShutdown():
         sqlObserver.stop()
         sqlObserver.join()
 
-
 # ---------------------------------------------------------------------------
 # 스타트업 작업
 # ---------------------------------------------------------------------------
@@ -132,11 +131,8 @@ async def onStartup():
         dbName = dbConfig.get("name", section.lower())
         dbType = dbConfig.get("type")
 
-        # 이미 등록된 매니저는 다시 초기화하지 않음
-        if dbName in DB.dbManagers:
-            continue
-
         if dbType == "sqlite":
+
             # 데이터베이스 파일 경로 안전 처리(None/빈문자열 대비)
             rawPath = dbConfig.get("database")
             baseDir = os.path.dirname(__file__)
@@ -154,6 +150,7 @@ async def onStartup():
             database = dbConfig.get("database")
             user = dbConfig.get("user")
             password = dbConfig.get("password")
+
             # databases 패키지와의 호환을 위해 async 드라이버를 사용
             dbUrl = buildNetworkDbUrl(
                 scheme="mysql+aiomysql",
@@ -234,6 +231,7 @@ async def onStartup():
     config = getConfig()
     authConfig = config["AUTH"]
     serverConfig = config["SERVER"] if "SERVER" in config else {}
+
     # Refresh 토큰 회전 직후 경합(동시 탭/네트워크 재시도)을 완화하기 위한 유예 시간(ms)
     try:
         refreshGraceMs = authConfig.getint("refresh_grace_ms", 10_000)
@@ -278,7 +276,6 @@ async def onStartup():
         attachOpenAPI(app, getConfig())
     except Exception:
         pass
-
 
 # ---------------------------------------------------------------------------
 # 애플리케이션 설정
@@ -337,16 +334,42 @@ app.add_middleware(RequestLogMiddleware)
 
 # 라우터 로딩
 logger.info("router load start")
-# 설정값에 따라 데모 라우터를 비활성화할 수 있음
+
+# 설정값에 따라 레거시 demo/sample/transaction 라우터를 개별 비활성화할 수 있음
 disableDemoRoutes = True
+disableSampleRoutes = True
+disableTransactionRoutes = True
 try:
-    disableDemoRoutes = config["SERVER"].getboolean("disable_demo_routes", True)
+    serverConfig = config["SERVER"]
+except Exception:
+    serverConfig = {}
+
+try:
+    disableDemoRoutes = serverConfig.getboolean("disable_demo_routes", True)
 except Exception:
     disableDemoRoutes = True
 
+try:
+    disableSampleRoutes = serverConfig.getboolean(
+        "disable_sample_routes",
+        disableDemoRoutes,
+    )
+except Exception:
+    disableSampleRoutes = disableDemoRoutes
+
+try:
+    disableTransactionRoutes = serverConfig.getboolean(
+        "disable_transaction_routes",
+        disableDemoRoutes,
+    )
+except Exception:
+    disableTransactionRoutes = disableDemoRoutes
+
 for _, moduleName, _ in pkgutil.iter_modules(router.__path__, router.__name__ + "."):
-    # 데모 TransactionRouter는 비활성화 시 제외
-    if disableDemoRoutes and moduleName.endswith(".TransactionRouter"):
+
+    if disableSampleRoutes and moduleName.endswith(".SampleRouter"):
+        continue
+    if disableTransactionRoutes and moduleName.endswith(".TransactionRouter"):
         continue
     module = importlib.import_module(moduleName)
     if hasattr(module, "router"):
@@ -364,6 +387,7 @@ async def globalExceptionHandler(request: Request, exc: Exception):
     갱신일: 2026-02-28
     """
     try:
+
         # 내부 예외 메시지는 응답에 노출하지 않고, 로그로만 남긴다.
         logger.exception(f"unhandled_exception path={request.url.path}")
     except Exception:

@@ -1,89 +1,18 @@
 "use client";
+
 /**
  * 파일명: common/layout/PublicGnb.jsx
  * 작성자: LSH
- * 갱신일: 2026-02-22
+ * 갱신일: 2026-05-31
  * 설명: 공개 페이지 공통 GNB(샘플 드롭다운/모바일 드로어 포함)
  */
 
-import { useCallback, useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Icon from "@/app/lib/component/Icon";
 import EasyObj from "@/app/lib/dataset/EasyObj";
 import { COMMON_COMPONENT_LANG_KO } from "@/app/common/i18n/lang.ko";
-
-const DEMO_MENU_LIST = COMMON_COMPONENT_LANG_KO.publicLayout.demoMenuList;
-const PUBLIC_MENU_LIST = COMMON_COMPONENT_LANG_KO.publicLayout.publicMenuList;
-
-/**
- * @description 현재 경로가 데모 드롭다운 그룹에 해당하는지 판별
- * 반환값: `/sample` 하위(단, `/sample/portfolio` 제외)면 true.
- * @updated 2026-02-27
- */
-const isDemoPath = (pathname) => {
-  const pathText = String(pathname || "");
-  if (pathText === "/sample") {
-    return true;
-  }
-  if (!pathText.startsWith("/sample/")) {
-    return false;
-  }
-  if (pathText.startsWith("/sample/portfolio")) {
-    return false;
-  }
-  return true;
-};
-
-/**
- * @description 메뉴 href가 현재 pathname과 활성 매칭되는지 계산. 입력/출력 계약을 함께 명시
- * 처리 규칙: 루트(`/`)와 샘플 루트(`/sample`)는 정확 일치, 그 외는 하위 경로 prefix까지 허용한다.
- * @updated 2026-02-27
- */
-const isActiveMenu = (pathname, href) => {
-  if (href === "/sample") {
-    return pathname === "/sample";
-  }
-  if (href === "/") return pathname === "/";
-  return pathname === href || pathname.startsWith(`${href}/`);
-};
-
-/**
- * @description 상단 메뉴 항목의 active 상태에 맞는 클래스를 조합
- * 반환값: hover/active 시각 상태가 포함된 className 문자열.
- * @updated 2026-02-27
- */
-const getTopMenuClassName = (active) =>
-  [
-    "inline-flex items-center rounded-md px-3 py-2 text-sm font-medium transition-colors",
-    active
-      ? "bg-blue-50 text-blue-700 ring-1 ring-blue-100"
-      : "text-gray-700 hover:bg-gray-100 hover:text-blue-600",
-  ].join(" ");
-
-/**
- * @description 데모 드롭다운 버튼의 active 상태 클래스를 조합
- * 반환값: 드롭다운 트리거 버튼용 className 문자열.
- * @updated 2026-02-27
- */
-const getDemoButtonClassName = (active) =>
-  [
-    "inline-flex items-center gap-1 rounded-md px-3 py-2 text-sm font-medium transition-colors",
-    active
-      ? "bg-blue-50 text-blue-700 ring-1 ring-blue-100"
-      : "text-gray-700 hover:bg-gray-100 hover:text-blue-600",
-  ].join(" ");
-
-/**
- * @description 드롭다운 항목의 활성 상태에 맞는 텍스트/배경 클래스를 조합
- * 반환값: 활성/비활성 스타일이 반영된 className 문자열.
- * @updated 2026-02-27
- */
-const getDropdownItemClassName = (active) =>
-  [
-    "block rounded-md px-3 py-2 text-sm transition-colors",
-    active ? "bg-blue-50 text-blue-700" : "text-gray-700 hover:bg-gray-50 hover:text-blue-600",
-  ].join(" ");
 
 /**
  * @description 공개 페이지에서 사용하는 상단 GNB를 렌더링. 입력/출력 계약을 함께 명시
@@ -94,16 +23,17 @@ const PublicGnb = () => {
   const ui = EasyObj({
     mobileOpen: false,
     demoMenuOpen: false,
+    demoMenuPinned: false,
   });
   const demoMenuRef = useRef(null);
-  const demoMenuPinnedRef = useRef(false);
 
-  const isDemoActive = isDemoPath(pathname);
-
-  const closeDemoMenu = useCallback(() => {
-    demoMenuPinnedRef.current = false;
-    ui.demoMenuOpen = false;
-  }, [ui]);
+  const demoPathText = String(pathname || "");
+  const isDemoActive =
+    demoPathText === "/sample" ||
+    (
+      demoPathText.startsWith("/sample/") &&
+      !demoPathText.startsWith("/sample/portfolio")
+    );
 
   /**
    * @description 데모 메뉴 버튼 클릭 시 pinned/open 상태를 토글
@@ -111,17 +41,18 @@ const PublicGnb = () => {
    * @updated 2026-02-27
    */
   const handleToggleDemoMenu = () => {
-    if (ui.demoMenuOpen && demoMenuPinnedRef.current) {
-      closeDemoMenu();
+    if (ui.demoMenuOpen && ui.demoMenuPinned) {
+      ui.demoMenuPinned = false;
+      ui.demoMenuOpen = false;
       return;
     }
-    demoMenuPinnedRef.current = true;
+    ui.demoMenuPinned = true;
     ui.demoMenuOpen = true;
   };
 
   /**
-   * @description useEffect 실행 흐름 관리
-   * 처리 규칙: effect 실행/cleanup 경계를 명시적으로 유지.
+   * @description document pointerdown/keydown으로 데모 드롭다운 닫기 처리
+   * 처리 규칙: cleanup에서 outside-click·Escape 리스너를 제거한다.
    */
   useEffect(() => {
 
@@ -130,40 +61,42 @@ const PublicGnb = () => {
      * 처리 규칙: demoMenuRef 외부 pointerdown 이벤트만 close 대상으로 본다.
      * @updated 2026-02-27
      */
-    const handleClickOutside = (event) => {
-      const target = event.target;
-      if (!demoMenuRef.current || demoMenuRef.current.contains(target)) {
+    const handleDocPointerDown = (event) => {
+      if (!demoMenuRef.current || demoMenuRef.current.contains(event.target)) {
         return;
       }
-      closeDemoMenu();
+      ui.demoMenuPinned = false;
+      ui.demoMenuOpen = false;
     };
 
     /**
      * @description Escape 키 입력으로 데모 드롭다운 닫기
-     * 처리 규칙: key 값이 Escape일 때 closeDemoMenu를 호출한다.
+     * 처리 규칙: key 값이 Escape일 때 pinned/open 상태를 직접 해제한다.
      * @updated 2026-02-27
      */
     const handleEscape = (event) => {
       if (event.key === "Escape") {
-        closeDemoMenu();
+        ui.demoMenuPinned = false;
+        ui.demoMenuOpen = false;
       }
     };
 
-    document.addEventListener("pointerdown", handleClickOutside);
+    document.addEventListener("pointerdown", handleDocPointerDown);
     document.addEventListener("keydown", handleEscape);
     return () => {
-      document.removeEventListener("pointerdown", handleClickOutside);
+      document.removeEventListener("pointerdown", handleDocPointerDown);
       document.removeEventListener("keydown", handleEscape);
     };
-  }, [closeDemoMenu]);
+  }, [ui]);
 
   /**
-   * @description useEffect 실행 흐름 관리
-   * 처리 규칙: effect 실행/cleanup 경계를 명시적으로 유지.
+   * @description route 변경 시 데모 드롭다운 pinned/open 상태 초기화
+   * 처리 규칙: pathname 변경마다 demoMenuPinned/demoMenuOpen을 false로 설정한다.
    */
   useEffect(() => {
-    closeDemoMenu();
-  }, [pathname, closeDemoMenu]);
+    ui.demoMenuPinned = false;
+    ui.demoMenuOpen = false;
+  }, [pathname, ui]);
 
   return (
     <header className="sticky top-0 z-50 border-b border-white/20 bg-white/80 backdrop-blur">
@@ -199,14 +132,18 @@ const PublicGnb = () => {
               ui.demoMenuOpen = true;
             }}
             onMouseLeave={() => {
-              if (!demoMenuPinnedRef.current) {
+              if (!ui.demoMenuPinned) {
                 ui.demoMenuOpen = false;
               }
             }}
           >
             <button
               type="button"
-              className={getDemoButtonClassName(isDemoActive)}
+              className={`inline-flex items-center gap-1 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+                isDemoActive
+                  ? "bg-blue-50 text-blue-700 ring-1 ring-blue-100"
+                  : "text-gray-700 hover:bg-gray-100 hover:text-blue-600"
+              }`.trim()}
               aria-haspopup="menu"
               aria-expanded={ui.demoMenuOpen}
               onClick={handleToggleDemoMenu}
@@ -223,35 +160,61 @@ const PublicGnb = () => {
               role="menu"
               aria-label={COMMON_COMPONENT_LANG_KO.publicLayout.demoMenuAriaLabel}
             >
-              {DEMO_MENU_LIST.map((menuItem) => {
-                const menuActive = isActiveMenu(pathname, menuItem.href);
+              {COMMON_COMPONENT_LANG_KO.publicLayout.demoMenuList.map((menuItemObj) => {
+                let isMenuActive = false;
+                if (menuItemObj.href === "/sample") {
+                  isMenuActive = pathname === "/sample";
+                } else if (menuItemObj.href === "/") {
+                  isMenuActive = pathname === "/";
+                } else {
+                  isMenuActive = pathname === menuItemObj.href || pathname.startsWith(`${menuItemObj.href}/`);
+                }
                 return (
                   <Link
-                    key={menuItem.href}
-                    href={menuItem.href}
-                    className={getDropdownItemClassName(menuActive)}
-                    onClick={closeDemoMenu}
-                    aria-current={menuActive ? "page" : undefined}
+                    key={menuItemObj.href}
+                    href={menuItemObj.href}
+                    className={`block rounded-md px-3 py-2 text-sm transition-colors ${
+                      isMenuActive
+                        ? "bg-blue-50 text-blue-700"
+                        : "text-gray-700 hover:bg-gray-50 hover:text-blue-600"
+                    }`.trim()}
+                    onClick={() => {
+                      ui.demoMenuPinned = false;
+                      ui.demoMenuOpen = false;
+                    }}
+                    aria-current={isMenuActive ? "page" : undefined}
                   >
-                    {menuItem.label}
+                    {menuItemObj.label}
                   </Link>
                 );
               })}
             </div>
           </div>
 
-          {PUBLIC_MENU_LIST.map((menuItem) => (
-            <Link
-              key={menuItem.href}
-              href={menuItem.href}
-              className={getTopMenuClassName(isActiveMenu(pathname, menuItem.href))}
-              aria-current={
-                isActiveMenu(pathname, menuItem.href) ? "page" : undefined
-              }
-            >
-              {menuItem.label}
-            </Link>
-          ))}
+          {COMMON_COMPONENT_LANG_KO.publicLayout.publicMenuList.map((menuItemObj) => {
+            let isMenuActive = false;
+            if (menuItemObj.href === "/sample") {
+              isMenuActive = pathname === "/sample";
+            } else if (menuItemObj.href === "/") {
+              isMenuActive = pathname === "/";
+            } else {
+              isMenuActive = pathname === menuItemObj.href || pathname.startsWith(`${menuItemObj.href}/`);
+            }
+            return (
+              <Link
+                key={menuItemObj.href}
+                href={menuItemObj.href}
+                className={`inline-flex items-center rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+                  isMenuActive
+                    ? "bg-blue-50 text-blue-700 ring-1 ring-blue-100"
+                    : "text-gray-700 hover:bg-gray-100 hover:text-blue-600"
+                }`.trim()}
+                aria-current={isMenuActive ? "page" : undefined}
+              >
+                {menuItemObj.label}
+              </Link>
+            );
+          })}
         </nav>
 
       </div>
@@ -262,41 +225,61 @@ const PublicGnb = () => {
             <p className="px-2 py-1 text-xs font-semibold tracking-wide text-gray-500">
               {COMMON_COMPONENT_LANG_KO.publicLayout.demoMenuLabel}
             </p>
-            {DEMO_MENU_LIST.map((menuItem) => (
-              <Link
-                key={menuItem.href}
-                href={menuItem.href}
-                className={`block rounded-md px-2 py-2 text-sm ${
-                  isActiveMenu(pathname, menuItem.href)
-                    ? "bg-blue-50 text-blue-700"
-                    : "text-gray-700"
-                }`}
-                onClick={() => {
-                  ui.mobileOpen = false;
-                }}
-              >
-                {menuItem.label}
-              </Link>
-            ))}
+            {COMMON_COMPONENT_LANG_KO.publicLayout.demoMenuList.map((menuItemObj) => {
+              let isMenuActive = false;
+              if (menuItemObj.href === "/sample") {
+                isMenuActive = pathname === "/sample";
+              } else if (menuItemObj.href === "/") {
+                isMenuActive = pathname === "/";
+              } else {
+                isMenuActive = pathname === menuItemObj.href || pathname.startsWith(`${menuItemObj.href}/`);
+              }
+              return (
+                <Link
+                  key={menuItemObj.href}
+                  href={menuItemObj.href}
+                  className={`block rounded-md px-2 py-2 text-sm ${
+                    isMenuActive
+                      ? "bg-blue-50 text-blue-700"
+                      : "text-gray-700"
+                  }`}
+                  onClick={() => {
+                    ui.mobileOpen = false;
+                  }}
+                >
+                  {menuItemObj.label}
+                </Link>
+              );
+            })}
           </div>
 
           <div className="mt-3 space-y-1">
-            {PUBLIC_MENU_LIST.map((menuItem) => (
-              <Link
-                key={menuItem.href}
-                href={menuItem.href}
-                className={`block rounded-md px-2 py-2 text-sm ${
-                  isActiveMenu(pathname, menuItem.href)
-                    ? "bg-blue-50 text-blue-700"
-                    : "text-gray-700"
-                }`}
-                onClick={() => {
-                  ui.mobileOpen = false;
-                }}
-              >
-                {menuItem.label}
-              </Link>
-            ))}
+            {COMMON_COMPONENT_LANG_KO.publicLayout.publicMenuList.map((menuItemObj) => {
+              let isMenuActive = false;
+              if (menuItemObj.href === "/sample") {
+                isMenuActive = pathname === "/sample";
+              } else if (menuItemObj.href === "/") {
+                isMenuActive = pathname === "/";
+              } else {
+                isMenuActive = pathname === menuItemObj.href || pathname.startsWith(`${menuItemObj.href}/`);
+              }
+              return (
+                <Link
+                  key={menuItemObj.href}
+                  href={menuItemObj.href}
+                  className={`block rounded-md px-2 py-2 text-sm ${
+                    isMenuActive
+                      ? "bg-blue-50 text-blue-700"
+                      : "text-gray-700"
+                  }`}
+                  onClick={() => {
+                    ui.mobileOpen = false;
+                  }}
+                >
+                  {menuItemObj.label}
+                </Link>
+              );
+            })}
           </div>
         </div>
       ) : null}

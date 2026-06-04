@@ -26,11 +26,13 @@ class TokenData(BaseModel):
 
 
 class AuthConfig:
+
     # JWT 시크릿은 배포 환경에서 강한 랜덤 키를 사용해야 한다.
     secretKey: str | None = None
     algorithm: str = "HS256"
     accessTokenExpireMinutes: int = 60
     refreshTokenExpireMinutes: int = 60 * 24 * 7
+
     # refresh 토큰 회전 직후, 동일 refresh 토큰 재시도(탭 경합/네트워크 재시도)를 허용하는 유예 시간(ms)
     refreshGraceMs: int = 10_000
     accessCookieName: str = "access_token"
@@ -63,7 +65,6 @@ class AuthConfig:
         cls.refreshCookieName = refreshCookie
         cls.tokenEnable = tokenEnable
         cls.strictSecretValidation = bool(strictSecretValidation)
-
 
 # OpenAPI 문서용 tokenUrl은 Bearer 토큰(JSON 계약) 로그인 엔드포인트와 일치시킨다.
 oauth2Scheme = OAuth2PasswordBearer(tokenUrl="/api/v1/auth/app/login", auto_error=False)
@@ -125,6 +126,7 @@ def createAccessToken(data: dict, *, tokenType: str = "access", expireMinutes: i
     now = datetime.now(timezone.utc)
     expireMinutes = expireMinutes if expireMinutes is not None else AuthConfig.accessTokenExpireMinutes
     expire = now + timedelta(minutes=expireMinutes)
+
     # 표준 클레임: exp, iat, jti, typ
     toEncode.update(
         {
@@ -175,6 +177,7 @@ async def getCurrentUser(request: Request, token: str | None = Depends(oauth2Sch
         raise credentialsException
 
     try:
+
         # SECRET_KEY가 None일 수 있다는 Pylance 경고를 없애기 위해 런타임 가드를 추가한다.
         secret = AuthConfig.secretKey
         if not secret:
@@ -184,6 +187,7 @@ async def getCurrentUser(request: Request, token: str | None = Depends(oauth2Sch
             logger.error("AuthConfig.secretKey too weak for strict mode")
             raise HTTPException(status_code=500, detail="server misconfigured")
         payload = jwt.decode(token, secret, algorithms=[AuthConfig.algorithm])
+
         # payload.get 반환값은 런타임 타입 검사로 보수적으로 검증한다.
         username = payload.get("sub")
         tokenType = payload.get("typ")

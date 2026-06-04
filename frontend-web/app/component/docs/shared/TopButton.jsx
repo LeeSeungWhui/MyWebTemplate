@@ -1,11 +1,12 @@
 /**
  * 파일명: TopButton.jsx
  * 작성자: LSH
- * 갱신일: 2025-09-13
+ * 갱신일: 2026-05-31
  * 설명: 문서 상단 이동 버튼
  */
 import { useState, useEffect } from 'react';
 import * as Lib from '@/app/lib';
+import LANG_KO from "../../lang.ko";
 
 /**
  * @description 문서 페이지 우하단에 스크롤-투-탑 버튼을 표시하는 TopButton 컴포넌트를 렌더링. 입력/출력 계약을 함께 명시
@@ -15,8 +16,8 @@ const TopButton = () => {
     const [isVisible, setIsVisible] = useState(false);
 
     /**
-     * @description useEffect 실행 흐름 관리
-     * 처리 규칙: effect 실행/cleanup 경계를 명시적으로 유지.
+     * @description window scroll 이벤트로 300px 초과 시 버튼 표시 상태 갱신
+     * 처리 규칙: cleanup에서 scroll 리스너를 제거한다.
      */
     useEffect(() => {
 
@@ -60,7 +61,7 @@ const TopButton = () => {
             <Lib.Button
                 onClick={scrollToTop}
                 className="rounded-full w-12 h-12 shadow-lg"
-                aria-label="맨 위로 이동"
+                aria-label={LANG_KO.view.scrollTopAriaLabel}
             >
                 <Lib.Icon icon="ri:RiArrowUpLine" size="1.5em" />
             </Lib.Button>

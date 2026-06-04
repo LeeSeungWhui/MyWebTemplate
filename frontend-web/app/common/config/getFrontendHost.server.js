@@ -1,7 +1,7 @@
 /**
  * 파일명: getFrontendHost.server.js
  * 작성자: LSH
- * 갱신일: 2026-03-03
+ * 갱신일: 2026-05-31
  * 설명: 프론트엔드 호스트 주소를 로드/캐시
  */
 
@@ -19,17 +19,11 @@ const DEFAULT_FRONTEND = 'http://localhost:3000'
 export const getFrontendHost = async () => {
   if (cachedFrontendHost) return cachedFrontendHost
   try {
-    const cfg = await loadFrontendConfig()
-    const base = cfg?.APP?.frontendHost
-    cachedFrontendHost = typeof base === 'string' && base ? base.replace(/\/$/, '') : DEFAULT_FRONTEND
+    const frontendConfigObj = await loadFrontendConfig()
+    const frontendHostValue = frontendConfigObj?.APP?.frontendHost
+    cachedFrontendHost = typeof frontendHostValue === 'string' && frontendHostValue ? frontendHostValue.replace(/\/$/, '') : DEFAULT_FRONTEND
   } catch {
     cachedFrontendHost = DEFAULT_FRONTEND
-  }
-  if (typeof globalThis !== 'undefined') {
-    globalThis.__APP_FRONTEND_HOST__ = cachedFrontendHost
-  }
-  if (typeof process !== 'undefined' && process?.env && !process.env.APP_FRONTEND_HOST) {
-    process.env.APP_FRONTEND_HOST = cachedFrontendHost
   }
   return cachedFrontendHost
 }

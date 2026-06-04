@@ -1,37 +1,20 @@
 """
 파일명: backend/router/ProfileRouter.py
 작성자: LSH
-갱신일: 2026-02-22
+갱신일: 2026-03-12
 설명: /api/v1/profile/me 조회/수정 API 라우터
 """
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel
 
 from lib.Auth import getCurrentUser
+from lib.RequestPayloadValidator import readJsonPayloadDict, validatePayloadTypes
 from lib.Response import successResponse
 from lib.ServiceError import buildMappedErrorResponse
 from service import ProfileService
 
 router = APIRouter(prefix="/api/v1/profile", tags=["profile"])
-
-
-class ProfileUpdatePayload(BaseModel):
-    userNm: str | None = None
-    notifyEmail: bool | None = None
-    notifySms: bool | None = None
-    notifyPush: bool | None = None
-
-
-def toModelDict(model: BaseModel, *, excludeNone: bool = False) -> dict:
-    """
-    설명: Pydantic payload를 dict로 추출
-    처리 규칙: model_dump(exclude_none=...)로 서비스 입력을 직렬화
-    반환값: 업데이트 서비스에 바로 전달 가능한 plain dict를 반환
-    갱신일: 2026-02-22
-    """
-    return model.model_dump(exclude_none=excludeNone)
 
 
 def handleProfileError(exc: Exception) -> JSONResponse:
@@ -66,7 +49,7 @@ async def getMyProfile(user=Depends(getCurrentUser)):
 
 
 @router.put("/me")
-async def updateMyProfile(payload: ProfileUpdatePayload, user=Depends(getCurrentUser)):
+async def updateMyProfile(request: Request, user=Depends(getCurrentUser)):
     """
     설명: 인증 사용자 프로필 수정
     처리 규칙: None 필드는 제외한 payload만 서비스로 전달
@@ -74,7 +57,18 @@ async def updateMyProfile(payload: ProfileUpdatePayload, user=Depends(getCurrent
     갱신일: 2026-02-22
     """
     try:
-        result = await ProfileService.updateMyProfile(user, toModelDict(payload, excludeNone=True))
+        payload = validatePayloadTypes(
+            await readJsonPayloadDict(request),
+            optionalFieldTypeMap={
+                "userNm": "str",
+                "notifyEmail": "bool",
+                "notifySms": "bool",
+                "notifyPush": "bool",
+            },
+            excludeNone=True,
+            errorCode="AUTH_422_INVALID_INPUT",
+        )
+        result = await ProfileService.updateMyProfile(user, payload)
         response = JSONResponse(
             status_code=200,
             content=successResponse(result=result, message="updated"),

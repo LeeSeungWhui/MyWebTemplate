@@ -8,19 +8,19 @@ CREATE TABLE IF NOT EXISTS T_SAMPLE_CONFIG (
 
 -- name: sampleBootstrap.createTaskTable
 CREATE TABLE IF NOT EXISTS T_SAMPLE_TASK (
-       TASK_NO INTEGER PRIMARY KEY AUTOINCREMENT,
+       TASK_NO BIGSERIAL PRIMARY KEY,
        DATA_NM TEXT NOT NULL,
        DATA_DESC TEXT,
        OWNER_NM TEXT,
        STAT_CD TEXT NOT NULL,
        AMT REAL,
        ATTACH_NM TEXT,
-       REG_DT TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+       REG_DT TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 -- name: sampleBootstrap.createFormTable
 CREATE TABLE IF NOT EXISTS T_SAMPLE_FORM_SUBMIT (
-       FORM_NO INTEGER PRIMARY KEY AUTOINCREMENT,
+       FORM_NO BIGSERIAL PRIMARY KEY,
        USER_NM TEXT NOT NULL,
        USER_EML TEXT NOT NULL,
        PHONE_TXT TEXT NOT NULL,
@@ -32,12 +32,12 @@ CREATE TABLE IF NOT EXISTS T_SAMPLE_FORM_SUBMIT (
        FEATURE_JSON TEXT,
        REF_URL TEXT,
        ATTACH_NM TEXT,
-       REG_DT TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+       REG_DT TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 -- name: sampleBootstrap.createAdminUserTable
 CREATE TABLE IF NOT EXISTS T_SAMPLE_ADMIN_USER (
-       USER_NO INTEGER PRIMARY KEY AUTOINCREMENT,
+       USER_NO BIGSERIAL PRIMARY KEY,
        USER_NM TEXT NOT NULL,
        USER_EML TEXT NOT NULL UNIQUE,
        ROLE_CD TEXT NOT NULL,
@@ -46,7 +46,7 @@ CREATE TABLE IF NOT EXISTS T_SAMPLE_ADMIN_USER (
        NOTIFY_SMS INTEGER NOT NULL DEFAULT 0,
        NOTIFY_PUSH INTEGER NOT NULL DEFAULT 0,
        PROFILE_IMG_URL TEXT,
-       REG_DT TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+       REG_DT TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 );
 
 -- name: sampleBootstrap.seedTasks
@@ -91,52 +91,52 @@ VALUES ( '김관리', 'admin@demo.demo', 'admin', 'active', 1, 0, 1, '', '2026-0
 -- name: sample.overview
 SELECT ( SELECT COUNT(*)
            FROM T_SAMPLE_TASK
-       ) AS TASK_COUNT,
-       ( SELECT COUNT(*)
+       ) AS "taskCount"
+     , ( SELECT COUNT(*)
            FROM T_SAMPLE_ADMIN_USER
-       ) AS ADMIN_USER_COUNT,
-       ( SELECT COUNT(*)
+       ) AS "adminUserCount"
+     , ( SELECT COUNT(*)
            FROM T_SAMPLE_FORM_SUBMIT
-       ) AS FORM_SUBMISSION_COUNT;
+       ) AS "formSubmissionCount";
 
 -- name: sample.dashboardStatusSummary
-SELECT STAT_CD AS STATUS,
-       COUNT(*) AS COUNT,
-       COALESCE(SUM(AMT), 0) AS AMOUNT_SUM
+SELECT STAT_CD AS "statCd"
+     , COUNT(*) AS "count"
+     , COALESCE(SUM(AMT), 0) AS "amountSum"
   FROM T_SAMPLE_TASK
  GROUP BY STAT_CD;
 
 -- name: sample.dashboardMonthlyTrend
-SELECT SUBSTR(REG_DT, 1, 7) AS MONTH_KEY,
-       COUNT(*) AS COUNT,
-       COALESCE(SUM(AMT), 0) AS AMOUNT_SUM
+SELECT TO_CHAR(REG_DT, 'YYYY-MM') AS "monthKey"
+     , COUNT(*) AS "count"
+     , COALESCE(SUM(AMT), 0) AS "amountSum"
   FROM T_SAMPLE_TASK
- GROUP BY SUBSTR(REG_DT, 1, 7)
- ORDER BY MONTH_KEY ASC;
+ GROUP BY TO_CHAR(REG_DT, 'YYYY-MM')
+ ORDER BY "monthKey" ASC;
 
 -- name: sample.dashboardRecent
-SELECT TASK_NO AS ID,
-       DATA_NM AS TITLE,
-       DATA_DESC AS DESCRIPTION,
-       OWNER_NM AS OWNER,
-       STAT_CD AS STATUS,
-       AMT AS AMOUNT,
-       ATTACH_NM AS ATTACHMENT_NAME,
-       REG_DT AS CREATED_AT
+SELECT TASK_NO AS "taskNo"
+     , DATA_NM AS "dataNm"
+     , DATA_DESC AS "dataDesc"
+     , OWNER_NM AS "ownerNm"
+     , STAT_CD AS "statCd"
+     , AMT AS "amt"
+     , ATTACH_NM AS "attachNm"
+     , REG_DT AS "regDt"
   FROM T_SAMPLE_TASK
  ORDER BY REG_DT DESC,
        TASK_NO DESC
  LIMIT 5;
 
 -- name: sample.taskList
-SELECT TASK_NO AS ID,
-       DATA_NM AS TITLE,
-       DATA_DESC AS DESCRIPTION,
-       OWNER_NM AS OWNER,
-       STAT_CD AS STATUS,
-       AMT AS AMOUNT,
-       ATTACH_NM AS ATTACHMENT_NAME,
-       REG_DT AS CREATED_AT
+SELECT TASK_NO AS "taskNo"
+     , DATA_NM AS "dataNm"
+     , DATA_DESC AS "dataDesc"
+     , OWNER_NM AS "ownerNm"
+     , STAT_CD AS "statCd"
+     , AMT AS "amt"
+     , ATTACH_NM AS "attachNm"
+     , REG_DT AS "regDt"
   FROM T_SAMPLE_TASK
  WHERE ( :q = ''
          OR LOWER(DATA_NM) LIKE LOWER(:qLike)
@@ -146,19 +146,15 @@ SELECT TASK_NO AS ID,
    AND ( :status = ''
          OR STAT_CD = :status
        )
-   AND ( :fromDate = ''
-         OR REG_DT >= :fromDate
-       )
-   AND ( :toDate = ''
-         OR REG_DT <= :toDate
-       )
+   AND REG_DT >= :fromDate
+   AND REG_DT < :toDateExclusive
  ORDER BY REG_DT DESC,
        TASK_NO DESC
  LIMIT :limit
 OFFSET :offset;
 
 -- name: sample.taskListCount
-SELECT COUNT(*) AS TOTAL_COUNT
+SELECT COUNT(*) AS "totalCount"
   FROM T_SAMPLE_TASK
  WHERE ( :q = ''
          OR LOWER(DATA_NM) LIKE LOWER(:qLike)
@@ -168,22 +164,18 @@ SELECT COUNT(*) AS TOTAL_COUNT
    AND ( :status = ''
          OR STAT_CD = :status
        )
-   AND ( :fromDate = ''
-         OR REG_DT >= :fromDate
-       )
-   AND ( :toDate = ''
-         OR REG_DT <= :toDate
-       );
+   AND REG_DT >= :fromDate
+   AND REG_DT < :toDateExclusive;
 
 -- name: sample.taskDetail
-SELECT TASK_NO AS ID,
-       DATA_NM AS TITLE,
-       DATA_DESC AS DESCRIPTION,
-       OWNER_NM AS OWNER,
-       STAT_CD AS STATUS,
-       AMT AS AMOUNT,
-       ATTACH_NM AS ATTACHMENT_NAME,
-       REG_DT AS CREATED_AT
+SELECT TASK_NO AS "taskNo"
+     , DATA_NM AS "dataNm"
+     , DATA_DESC AS "dataDesc"
+     , OWNER_NM AS "ownerNm"
+     , STAT_CD AS "statCd"
+     , AMT AS "amt"
+     , ATTACH_NM AS "attachNm"
+     , REG_DT AS "regDt"
   FROM T_SAMPLE_TASK
  WHERE TASK_NO = :id;
 
@@ -205,14 +197,14 @@ VALUES ( :title,
        );
 
 -- name: sample.taskFindCreatedCandidate
-SELECT TASK_NO AS ID,
-       DATA_NM AS TITLE,
-       DATA_DESC AS DESCRIPTION,
-       OWNER_NM AS OWNER,
-       STAT_CD AS STATUS,
-       AMT AS AMOUNT,
-       ATTACH_NM AS ATTACHMENT_NAME,
-       REG_DT AS CREATED_AT
+SELECT TASK_NO AS "taskNo"
+     , DATA_NM AS "dataNm"
+     , DATA_DESC AS "dataDesc"
+     , OWNER_NM AS "ownerNm"
+     , STAT_CD AS "statCd"
+     , AMT AS "amt"
+     , ATTACH_NM AS "attachNm"
+     , REG_DT AS "regDt"
   FROM T_SAMPLE_TASK
  WHERE DATA_NM = :title
    AND COALESCE(DATA_DESC, '') = COALESCE(:description, '')
@@ -266,57 +258,63 @@ VALUES ( :name,
        );
 
 -- name: sample.formSubmitLatest
-SELECT FORM_NO AS ID,
-       USER_NM AS NAME,
-       USER_EML AS EMAIL,
-       PHONE_TXT AS PHONE,
-       CATEGORY_CD AS CATEGORY,
-       START_DT AS START_DATE,
-       END_DT AS END_DATE,
-       BUDGET_RANGE_TXT AS BUDGET_RANGE,
-       REQUIREMENT_TXT AS REQUIREMENT,
-       FEATURE_JSON AS SELECTED_FEATURES,
-       REF_URL AS REFERENCE_URL,
-       ATTACH_NM AS ATTACHMENT_NAME,
-       REG_DT AS CREATED_AT
+SELECT FORM_NO AS "formNo"
+     , USER_NM AS "userNm"
+     , USER_EML AS "userEml"
+     , PHONE_TXT AS "phoneTxt"
+     , CATEGORY_CD AS "categoryCd"
+     , START_DT AS "startDt"
+     , END_DT AS "endDt"
+     , BUDGET_RANGE_TXT AS "budgetRangeTxt"
+     , REQUIREMENT_TXT AS "requirementTxt"
+     , FEATURE_JSON AS "featureJson"
+     , REF_URL AS "refUrl"
+     , ATTACH_NM AS "attachNm"
+     , REG_DT AS "regDt"
   FROM T_SAMPLE_FORM_SUBMIT
  ORDER BY FORM_NO DESC
  LIMIT 1;
 
 -- name: sample.formSubmitCount
-SELECT COUNT(*) AS TOTAL_COUNT
+SELECT COUNT(*) AS "totalCount"
   FROM T_SAMPLE_FORM_SUBMIT;
 
 -- name: sample.adminUserList
-SELECT USER_NO AS ID,
-       USER_NM AS NAME,
-       USER_EML AS EMAIL,
-       ROLE_CD AS ROLE,
-       STAT_CD AS STATUS,
-       NOTIFY_EMAIL AS NOTIFY_EMAIL,
-       NOTIFY_SMS AS NOTIFY_SMS,
-       NOTIFY_PUSH AS NOTIFY_PUSH,
-       PROFILE_IMG_URL AS PROFILE_IMAGE_URL,
-       REG_DT AS CREATED_AT
+SELECT USER_NO AS "userNo"
+     , USER_NM AS "userNm"
+     , USER_EML AS "userEml"
+     , ROLE_CD AS "roleCd"
+     , STAT_CD AS "statCd"
+     , NOTIFY_EMAIL AS "notifyEmail"
+     , NOTIFY_SMS AS "notifySms"
+     , NOTIFY_PUSH AS "notifyPush"
+     , PROFILE_IMG_URL AS "profileImgUrl"
+     , REG_DT AS "regDt"
   FROM T_SAMPLE_ADMIN_USER
- ORDER BY USER_NO DESC;
+ ORDER BY USER_NO DESC
+ LIMIT :limit
+OFFSET :offset;
+
+-- name: sample.adminUserListCount
+SELECT COUNT(*) AS "totalCount"
+  FROM T_SAMPLE_ADMIN_USER;
 
 -- name: sample.adminUserDetail
-SELECT USER_NO AS ID,
-       USER_NM AS NAME,
-       USER_EML AS EMAIL,
-       ROLE_CD AS ROLE,
-       STAT_CD AS STATUS,
-       NOTIFY_EMAIL AS NOTIFY_EMAIL,
-       NOTIFY_SMS AS NOTIFY_SMS,
-       NOTIFY_PUSH AS NOTIFY_PUSH,
-       PROFILE_IMG_URL AS PROFILE_IMAGE_URL,
-       REG_DT AS CREATED_AT
+SELECT USER_NO AS "userNo"
+     , USER_NM AS "userNm"
+     , USER_EML AS "userEml"
+     , ROLE_CD AS "roleCd"
+     , STAT_CD AS "statCd"
+     , NOTIFY_EMAIL AS "notifyEmail"
+     , NOTIFY_SMS AS "notifySms"
+     , NOTIFY_PUSH AS "notifyPush"
+     , PROFILE_IMG_URL AS "profileImgUrl"
+     , REG_DT AS "regDt"
   FROM T_SAMPLE_ADMIN_USER
  WHERE USER_NO = :id;
 
 -- name: sample.adminUserExistsByEmail
-SELECT USER_NO AS ID
+SELECT USER_NO AS "userNo"
   FROM T_SAMPLE_ADMIN_USER
  WHERE LOWER(USER_EML) = LOWER(:email)
  LIMIT 1;
@@ -343,16 +341,16 @@ VALUES ( :name,
        );
 
 -- name: sample.adminUserFindCreatedCandidate
-SELECT USER_NO AS ID,
-       USER_NM AS NAME,
-       USER_EML AS EMAIL,
-       ROLE_CD AS ROLE,
-       STAT_CD AS STATUS,
-       NOTIFY_EMAIL AS NOTIFY_EMAIL,
-       NOTIFY_SMS AS NOTIFY_SMS,
-       NOTIFY_PUSH AS NOTIFY_PUSH,
-       PROFILE_IMG_URL AS PROFILE_IMAGE_URL,
-       REG_DT AS CREATED_AT
+SELECT USER_NO AS "userNo"
+     , USER_NM AS "userNm"
+     , USER_EML AS "userEml"
+     , ROLE_CD AS "roleCd"
+     , STAT_CD AS "statCd"
+     , NOTIFY_EMAIL AS "notifyEmail"
+     , NOTIFY_SMS AS "notifySms"
+     , NOTIFY_PUSH AS "notifyPush"
+     , PROFILE_IMG_URL AS "profileImgUrl"
+     , REG_DT AS "regDt"
   FROM T_SAMPLE_ADMIN_USER
  WHERE LOWER(USER_EML) = LOWER(:email)
  LIMIT 1;
@@ -369,10 +367,10 @@ UPDATE T_SAMPLE_ADMIN_USER
  WHERE USER_NO = :id;
 
 -- name: sample.configByKey
-SELECT CONFIG_KEY AS CONFIG_KEY,
-       CONFIG_JSON AS CONFIG_JSON,
-       REG_DT AS CREATED_AT,
-       UPD_DT AS UPDATED_AT
+SELECT CONFIG_KEY AS "configKey"
+     , CONFIG_JSON AS "configJson"
+     , REG_DT AS "regDt"
+     , UPD_DT AS "updDt"
   FROM T_SAMPLE_CONFIG
  WHERE CONFIG_KEY = :configKey;
 

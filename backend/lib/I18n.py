@@ -7,12 +7,12 @@
 
 from __future__ import annotations
 
+from types import MappingProxyType
 from typing import Optional, Any
 
-
 # 최소 메시지 카탈로그 정의
-MESSAGES = {
-    "en": {
+MESSAGES = MappingProxyType({
+    "en": MappingProxyType({
         "success": "success",
         "error.invalid_input": "invalid input",
         "error.invalid_credentials": "invalid credentials",
@@ -20,8 +20,8 @@ MESSAGES = {
         "db.unavailable": "db unavailable",
         "obs.not_ready": "not ready",
         "auth.state_store_unavailable": "temporary auth state storage unavailable",
-    },
-    "ko": {
+    }),
+    "ko": MappingProxyType({
         "success": "성공",
         "error.invalid_input": "잘못된 입력",
         "error.invalid_credentials": "아이디 또는 비밀번호가 올바르지 않습니다",
@@ -29,8 +29,8 @@ MESSAGES = {
         "db.unavailable": "DB를 사용할 수 없습니다",
         "obs.not_ready": "준비되지 않았습니다",
         "auth.state_store_unavailable": "인증 상태 저장소를 일시적으로 사용할 수 없습니다",
-    },
-}
+    }),
+})
 
 
 def detectLocale(request: Any) -> str:

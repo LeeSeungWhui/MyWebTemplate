@@ -1,10 +1,10 @@
 /**
  * 파일명: Badge.jsx
  * 작성자: LSH
- * 갱신일: 2025-09-13
+ * 갱신일: 2026-05-31
  * 설명: Badge UI 컴포넌트 구현
  */
-const variants = {
+const badgeVariantClassMap = {
   neutral: 'bg-gray-100 text-gray-800 border-transparent',
   primary: 'bg-blue-100 text-blue-800 border-transparent',
   success: 'bg-green-100 text-green-800 border-transparent',
@@ -13,7 +13,7 @@ const variants = {
   outline: 'bg-transparent text-gray-800 border-gray-300',
 };
 
-const sizes = {
+const badgeSizeClassMap = {
   sm: 'text-xs px-2 py-0.5',
   md: 'text-sm px-2.5 py-0.5',
 };
@@ -24,11 +24,11 @@ const sizes = {
  */
 const Badge = ({ children, variant = 'neutral', size = 'sm', pill = false, className = '', ...props }) => {
 
-  const base = 'inline-flex items-center border font-medium';
-  const radius = pill ? 'rounded-full' : 'rounded-md';
-  const cls = `${base} ${radius} ${variants[variant] || variants.neutral} ${sizes[size] || sizes.sm} ${className}`.trim();
+  const baseClassName = 'inline-flex items-center border font-medium';
+  const radiusClassName = pill ? 'rounded-full' : 'rounded-md';
+  const badgeClassName = `${baseClassName} ${radiusClassName} ${badgeVariantClassMap[variant] || badgeVariantClassMap.neutral} ${badgeSizeClassMap[size] || badgeSizeClassMap.sm} ${className}`.trim();
   return (
-    <span className={cls} {...props}>{children}</span>
+    <span className={badgeClassName} {...props}>{children}</span>
   );
 };
 

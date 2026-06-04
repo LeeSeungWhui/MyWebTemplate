@@ -7,7 +7,6 @@
 
 import contextvars
 
-
 # 요청ID 등 요청 스코프 값을 저장하는 컨텍스트 변수
 requestIdVar: contextvars.ContextVar[str | None] = contextvars.ContextVar(
     "request_id", default=None

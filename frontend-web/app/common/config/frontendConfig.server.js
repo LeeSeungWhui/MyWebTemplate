@@ -1,7 +1,7 @@
 /**
  * 파일명: frontendConfig.server.js
  * 작성자: LSH
- * 갱신일: 2026-03-05
+ * 갱신일: 2026-05-31
  * 설명: 프론트엔드 config.ini 로더
  */
 
@@ -10,17 +10,11 @@ import { safeJsonParse } from "@/app/lib/runtime/json";
 let cachedConfig = null
 
 /**
- * @description 서버 런타임 여부를 반환. 입력/출력 계약을 함께 명시
- * @returns {boolean}
- */
-const isServerRuntime = () => typeof window === 'undefined'
-
-/**
  * 설명: config.ini 파일을 읽어 JSON 객체로 변환. 입력/출력 계약 명시
  * 우선순위: config.ini > config_prod.ini > config_dev.ini (env 변수 미사용)
  */
 export const loadFrontendConfig = async () => {
-  if (!isServerRuntime()) {
+  if (typeof window !== 'undefined') {
     return cachedConfig ?? {}
   }
   if (cachedConfig) return cachedConfig
@@ -28,14 +22,15 @@ export const loadFrontendConfig = async () => {
   const { existsSync, readFileSync } = await import('node:fs')
   const { join } = await import('node:path')
 
-  const cwd = process.cwd()
+  const projectRootPath = process.cwd()
+
   // 환경 변수 의존 제거. 운영/개발 선택은 배포 환경에서 config.ini 계열 파일로 결정한다.
   // 존재 순서: config.ini > config_prod.ini > config_dev.ini
   const candidates = [
-    join(cwd, 'config.ini'),
-    join(cwd, 'config_prod.ini'),
-    join(cwd, 'config_qa.ini'),
-    join(cwd, 'config_dev.ini'),
+    join(projectRootPath, 'config.ini'),
+    join(projectRootPath, 'config_prod.ini'),
+    join(projectRootPath, 'config_qa.ini'),
+    join(projectRootPath, 'config_dev.ini'),
   ]
 
   for (const candidatePath of candidates) {
@@ -43,19 +38,13 @@ export const loadFrontendConfig = async () => {
       if (existsSync(candidatePath)) {
         const iniText = readFileSync(candidatePath, 'utf-8')
         cachedConfig = parseIni(iniText)
-        if (typeof globalThis !== 'undefined') {
-          globalThis.__APP_RUNTIME_CONFIG__ = cachedConfig
-        }
         return cachedConfig
       }
-    } catch (error) {
-      console.warn('[config] 읽기 실패, 다음 후보로 진행:', candidatePath, error)
+    } catch {
+      continue
     }
   }
   cachedConfig = {}
-  if (typeof globalThis !== 'undefined') {
-    globalThis.__APP_RUNTIME_CONFIG__ = cachedConfig
-  }
   return cachedConfig
 }
 
@@ -64,29 +53,30 @@ export const loadFrontendConfig = async () => {
  * 섹션([SECTION])은 객체 키, 섹션 밖 키는 최상위 매핑
  */
 export const parseIni = (iniText) => {
-  const result = {}
-  let currentSection = result
-  const lines = iniText.split(/\r?\n/)
-  for (const rawLine of lines) {
+  const iniConfigObj = {}
+  let currentSection = iniConfigObj
+  const iniLineList = iniText.split(/\r?\n/)
+  for (const rawLine of iniLineList) {
     const line = rawLine.trim()
-    if (!line || line.startsWith('#') || line.startsWith(';')) continue
+    const isIgnorableLine = !line || line.startsWith('#') || line.startsWith(';')
+    if (isIgnorableLine) continue
     if (line.startsWith('[')) {
       if (line.endsWith(']')) {
         const sectionName = line.slice(1, -1).trim()
         if (!sectionName) continue
-        if (!result[sectionName]) result[sectionName] = {}
-        currentSection = result[sectionName]
+        if (!iniConfigObj[sectionName]) iniConfigObj[sectionName] = {}
+        currentSection = iniConfigObj[sectionName]
         continue
       }
     }
     const equalsIndex = line.indexOf('=')
     if (equalsIndex === -1) continue
-    const key = line.slice(0, equalsIndex).trim()
+    const configKey = line.slice(0, equalsIndex).trim()
     const valueRaw = line.slice(equalsIndex + 1).trim()
-    if (!key) continue
-    currentSection[key] = coerceValue(valueRaw)
+    if (!configKey) continue
+    currentSection[configKey] = coerceValue(valueRaw)
   }
-  return result
+  return iniConfigObj
 }
 
 /**
@@ -99,14 +89,14 @@ const coerceValue = (valueRaw) => {
   const isSingleQuoted = valueRaw.startsWith("'") ? valueRaw.endsWith("'") : false
   const isDoubleQuoted = valueRaw.startsWith('"') ? valueRaw.endsWith('"') : false
   if (isSingleQuoted || isDoubleQuoted) {
-    const inner = valueRaw.slice(1, -1)
-    return coerceValue(inner)
+    const unquotedValue = valueRaw.slice(1, -1)
+    return coerceValue(unquotedValue)
   }
-  const lower = valueRaw.toLowerCase()
-  if (lower === 'true') return true
-  if (lower === 'false') return false
-  const num = Number(valueRaw)
-  if (!Number.isNaN(num) && valueRaw.trim() !== '') return num
+  const lowerCaseValue = valueRaw.toLowerCase()
+  if (lowerCaseValue === 'true') return true
+  if (lowerCaseValue === 'false') return false
+  const numericValue = Number(valueRaw)
+  if (!Number.isNaN(numericValue) && valueRaw.trim() !== '') return numericValue
   try {
     const startsWithObject = valueRaw.startsWith('{')
     const startsWithArray = valueRaw.startsWith('[')
@@ -118,8 +108,8 @@ const coerceValue = (valueRaw) => {
       const parsedValue = safeJsonParse(valueRaw, notParsed)
       if (parsedValue !== notParsed) return parsedValue
     }
-  } catch (error) {
-    console.warn('[config] JSON 파싱 실패', valueRaw, error)
+  } catch {
+    return valueRaw
   }
   return valueRaw
 }

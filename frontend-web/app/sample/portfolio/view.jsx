@@ -1,8 +1,9 @@
 "use client";
+
 /**
  * 파일명: sample/portfolio/view.jsx
  * 작성자: LSH
- * 갱신일: 2026-03-05
+ * 갱신일: 2026-05-31
  * 설명: 공개 포트폴리오 페이지 뷰(시각 중심 리뉴얼)
  */
 
@@ -12,17 +13,15 @@ import { PAGE_CONFIG } from "./initData";
 import { usePageData } from "@/app/lib/hooks/usePageData";
 import LANG_KO from "./lang.ko";
 
-const flowItemClassName =
-  "relative rounded-xl border border-blue-100 bg-white px-4 py-4 text-center shadow-sm";
-const SAMPLE_PORTFOLIO_CONTENT = { ...LANG_KO.initData.content };
-
 /**
  * @description 공개 포트폴리오 콘텐츠를 시각 섹션으로 구성해 렌더링. 입력/출력 계약을 함께 명시
  * @returns {JSX.Element}
  */
 const PortfolioView = ({ initialDataObj, initialErrorObj }) => {
+
   /* 1. 상수 ======================================================================================================================= */
-  // 없음
+  const samplePortfolioContent = LANG_KO.initData.content;
+
   /* 2. 데이터 ======================================================================================================================= */
   const { mode: pageMode, dataObj } = usePageData({
     pageConfig: PAGE_CONFIG,
@@ -48,18 +47,31 @@ const PortfolioView = ({ initialDataObj, initialErrorObj }) => {
   const recentTaskList = (dashboard?.recentList || []).slice(0, 3);
 
   /* 3. UI ========================================================================================================================= */
+
   // 없음
+
   /* 4. 팝업 ======================================================================================================================= */
+
   // 없음
+
   /* 5. 기타 ======================================================================================================================= */
+
   // 없음
+
   /* 6. 커스텀 훅 =================================================================================================================== */
+
   // 없음
+
   /* 7. 함수 ======================================================================================================================= */
+
   // 없음
+
   /* 8. useEffect ================================================================================================================== */
+
   // 없음
+
   /* 9. 내부 컴포넌트 ============================================================================================================== */
+
   // 없음
 
   /* 10. 렌더링 ==================================================================================================================== */
@@ -73,13 +85,13 @@ const PortfolioView = ({ initialDataObj, initialErrorObj }) => {
           {LANG_KO.view.heroBadge}
         </p>
         <h1 className="mt-3 text-3xl font-bold leading-tight sm:text-4xl">
-          {SAMPLE_PORTFOLIO_CONTENT.hero.title}
+          {samplePortfolioContent.hero.title}
         </h1>
         <p className="mt-4 max-w-3xl text-sm text-blue-50 sm:text-base">
-          {SAMPLE_PORTFOLIO_CONTENT.hero.subtitle}
+          {samplePortfolioContent.hero.subtitle}
         </p>
         <ul className="mt-5 space-y-2 text-sm text-blue-50">
-          {SAMPLE_PORTFOLIO_CONTENT.hero.summary.map((line) => (
+          {samplePortfolioContent.hero.summary.map((line) => (
             <li key={line} className="flex items-start gap-2">
               <span className="mt-1 h-1.5 w-1.5 rounded-full bg-blue-200" aria-hidden />
               <span>{line}</span>
@@ -87,7 +99,7 @@ const PortfolioView = ({ initialDataObj, initialErrorObj }) => {
           ))}
         </ul>
         <div className="mt-6 flex flex-wrap gap-3">
-          {SAMPLE_PORTFOLIO_CONTENT.hero.cta.map((ctaItem) => (
+          {samplePortfolioContent.hero.cta.map((ctaItem) => (
             <Link
               key={ctaItem.href}
               href={ctaItem.href}
@@ -106,27 +118,27 @@ const PortfolioView = ({ initialDataObj, initialErrorObj }) => {
       <section className="mt-8">
         <h2 className="text-2xl font-bold text-gray-900">{LANG_KO.view.sectionTitle.overview}</h2>
         <div className="mt-4 grid gap-3 sm:grid-cols-3">
-          {overviewCardList.map((item) => (
+          {overviewCardList.map((overviewCardObj) => (
             <article
-              key={item.label}
+              key={overviewCardObj.label}
               className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm"
             >
-              <p className="text-xs text-gray-500">{item.label}</p>
-              <p className="mt-2 text-sm font-semibold text-gray-900">{item.value}</p>
+              <p className="text-xs text-gray-500">{overviewCardObj.label}</p>
+              <p className="mt-2 text-sm font-semibold text-gray-900">{overviewCardObj.value}</p>
             </article>
           ))}
         </div>
         {recentTaskList.length > 0 ? (
           <div className="mt-4 grid gap-3 md:grid-cols-3">
-            {recentTaskList.map((item) => (
+            {recentTaskList.map((recentTaskObj) => (
               <article
-                key={item.id}
+                key={recentTaskObj.id}
                 className="rounded-xl border border-blue-100 bg-blue-50 p-4"
               >
-                <p className="text-xs text-blue-700">{item.createdAt || "-"}</p>
-                <p className="mt-2 text-sm font-semibold text-gray-900">{item.title || "-"}</p>
+                <p className="text-xs text-blue-700">{recentTaskObj.createdAt || "-"}</p>
+                <p className="mt-2 text-sm font-semibold text-gray-900">{recentTaskObj.title || "-"}</p>
                 <p className="mt-1 text-xs text-gray-600">
-                  {LANG_KO.view.label.status}: {item.status || "-"}
+                  {LANG_KO.view.label.status}: {recentTaskObj.status || "-"}
                 </p>
               </article>
             ))}
@@ -139,16 +151,16 @@ const PortfolioView = ({ initialDataObj, initialErrorObj }) => {
           <summary className="cursor-pointer list-none text-2xl font-bold text-gray-900">
             {LANG_KO.view.sectionTitle.profile}
           </summary>
-          <p className="mt-2 text-sm text-gray-600">{SAMPLE_PORTFOLIO_CONTENT.profile.tagline}</p>
+          <p className="mt-2 text-sm text-gray-600">{samplePortfolioContent.profile.tagline}</p>
           <div className="mt-4">
             <p className="text-sm text-gray-500">{LANG_KO.view.label.developer}</p>
             <p className="text-lg font-semibold text-gray-900">
-              {SAMPLE_PORTFOLIO_CONTENT.profile.name} · {SAMPLE_PORTFOLIO_CONTENT.profile.role}
+              {samplePortfolioContent.profile.name} · {samplePortfolioContent.profile.role}
             </p>
           </div>
 
           <div className="mt-4 flex flex-wrap gap-2">
-            {(SAMPLE_PORTFOLIO_CONTENT.profile.quickFacts || []).map((fact) => (
+            {(samplePortfolioContent.profile.quickFacts || []).map((fact) => (
               <span
                 key={fact}
                 className="rounded-full border border-blue-200 bg-blue-50 px-3 py-1 text-xs font-semibold text-blue-700"
@@ -159,7 +171,7 @@ const PortfolioView = ({ initialDataObj, initialErrorObj }) => {
           </div>
 
           <ul className="mt-4 space-y-2 text-sm text-gray-700">
-            {(SAMPLE_PORTFOLIO_CONTENT.profile.strengths || []).map((line) => (
+            {(samplePortfolioContent.profile.strengths || []).map((line) => (
               <li key={line} className="flex items-start gap-2">
                 <span className="mt-1 h-1.5 w-1.5 rounded-full bg-blue-500" aria-hidden />
                 <span>{line}</span>
@@ -170,7 +182,7 @@ const PortfolioView = ({ initialDataObj, initialErrorObj }) => {
           <div className="mt-6">
             <h3 className="text-base font-semibold text-gray-900">{LANG_KO.view.sectionTitle.featuredProjects}</h3>
             <div className="mt-3 grid gap-3 md:grid-cols-2">
-              {(SAMPLE_PORTFOLIO_CONTENT.profile.featuredProjects || []).map((projectItem) => (
+              {(samplePortfolioContent.profile.featuredProjects || []).map((projectItem) => (
                 <article
                   key={projectItem.title}
                   className="rounded-xl border border-gray-200 bg-gray-50 p-4"
@@ -187,7 +199,7 @@ const PortfolioView = ({ initialDataObj, initialErrorObj }) => {
           <div className="mt-6">
             <h3 className="text-base font-semibold text-gray-900">{LANG_KO.view.sectionTitle.careerTimeline}</h3>
             <div className="mt-3 space-y-2">
-              {(SAMPLE_PORTFOLIO_CONTENT.profile.careerTimeline || []).map((companyItem) => (
+              {(samplePortfolioContent.profile.careerTimeline || []).map((companyItem) => (
                 <details
                   key={companyItem.company}
                   className="rounded-lg border border-gray-200 bg-white p-3"
@@ -214,7 +226,7 @@ const PortfolioView = ({ initialDataObj, initialErrorObj }) => {
           <div className="mt-6">
             <h3 className="text-base font-semibold text-gray-900">{LANG_KO.view.sectionTitle.education}</h3>
             <div className="mt-3 grid gap-2 md:grid-cols-2">
-              {(SAMPLE_PORTFOLIO_CONTENT.profile.education || []).map((educationItem) => (
+              {(samplePortfolioContent.profile.education || []).map((educationItem) => (
                 <article
                   key={educationItem.school}
                   className="rounded-lg border border-gray-200 bg-white p-3"
@@ -232,7 +244,7 @@ const PortfolioView = ({ initialDataObj, initialErrorObj }) => {
           <div className="mt-6">
             <h3 className="text-base font-semibold text-gray-900">{LANG_KO.view.sectionTitle.research}</h3>
             <ul className="mt-2 space-y-1 text-sm text-gray-700">
-              {(SAMPLE_PORTFOLIO_CONTENT.profile.research || []).map((line) => (
+              {(samplePortfolioContent.profile.research || []).map((line) => (
                 <li key={line} className="flex items-start gap-2">
                   <span className="mt-1 h-1.5 w-1.5 rounded-full bg-indigo-500" aria-hidden />
                   <span>{line}</span>
@@ -246,13 +258,13 @@ const PortfolioView = ({ initialDataObj, initialErrorObj }) => {
       <section className="mt-8">
         <h2 className="text-2xl font-bold text-gray-900">{LANG_KO.view.sectionTitle.strengths}</h2>
         <div className="mt-4 grid gap-3 sm:grid-cols-3">
-          {SAMPLE_PORTFOLIO_CONTENT.features.map((item) => (
+          {samplePortfolioContent.features.map((featureObj) => (
             <article
-              key={item.title}
+              key={featureObj.title}
               className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm"
             >
-              <h3 className="text-sm font-semibold text-gray-900">{item.title}</h3>
-              <p className="mt-2 text-sm leading-6 text-gray-600">{item.detail}</p>
+              <h3 className="text-sm font-semibold text-gray-900">{featureObj.title}</h3>
+              <p className="mt-2 text-sm leading-6 text-gray-600">{featureObj.detail}</p>
             </article>
           ))}
         </div>
@@ -264,16 +276,16 @@ const PortfolioView = ({ initialDataObj, initialErrorObj }) => {
           {LANG_KO.view.label.architectureDescription}
         </p>
         <div className="mt-5 grid gap-3 md:grid-cols-[1fr_auto_1fr_auto_1fr]">
-          {SAMPLE_PORTFOLIO_CONTENT.architectureFlow.map((stepItem, index) => (
+          {samplePortfolioContent.architectureFlow.map((stepItem, index) => (
             <div key={stepItem.title} className="contents">
-              <div className={`${flowItemClassName} min-h-[116px]`}>
+              <div className="relative min-h-[116px] rounded-xl border border-blue-100 bg-white px-4 py-4 text-center shadow-sm">
                 <p className="text-2xl" aria-hidden>
                   {stepItem.icon}
                 </p>
                 <p className="mt-2 text-sm font-semibold text-gray-900">{stepItem.title}</p>
                 <p className="mt-1 text-xs text-gray-600">{stepItem.description}</p>
               </div>
-              {index < SAMPLE_PORTFOLIO_CONTENT.architectureFlow.length - 1 ? (
+              {index < samplePortfolioContent.architectureFlow.length - 1 ? (
                 <div className="hidden items-center justify-center text-xl text-gray-400 md:flex">
                   →
                 </div>
@@ -286,25 +298,25 @@ const PortfolioView = ({ initialDataObj, initialErrorObj }) => {
       <section className="mt-8">
         <h2 className="text-2xl font-bold text-gray-900">{LANG_KO.view.sectionTitle.demoFlow}</h2>
         <div className="mt-4 grid gap-3 md:grid-cols-3">
-          {SAMPLE_PORTFOLIO_CONTENT.demoFlow.map((item) => (
+          {samplePortfolioContent.demoFlow.map((demoFlowObj) => (
             <article
-              key={item.path}
+              key={demoFlowObj.path}
               className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm"
             >
               <div className="relative h-40 w-full bg-gray-100">
                 <Image
-                  src={item.imageSrc}
-                  alt={item.imageAlt}
+                  src={demoFlowObj.imageSrc}
+                  alt={demoFlowObj.imageAlt}
                   fill
                   className="object-cover"
                   sizes="(max-width: 768px) 100vw, 33vw"
                 />
               </div>
               <div className="space-y-2 p-4">
-                <h3 className="text-base font-semibold text-gray-900">{item.name}</h3>
-                <p className="text-sm text-gray-600">{item.note}</p>
+                <h3 className="text-base font-semibold text-gray-900">{demoFlowObj.name}</h3>
+                <p className="text-sm text-gray-600">{demoFlowObj.note}</p>
                 <Link
-                  href={item.path}
+                  href={demoFlowObj.path}
                   className="inline-flex items-center rounded-md bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-blue-700"
                 >
                   {LANG_KO.view.label.moveSample}
@@ -321,7 +333,7 @@ const PortfolioView = ({ initialDataObj, initialErrorObj }) => {
             {LANG_KO.view.sectionTitle.technicalNotes}
           </summary>
           <ul className="mt-3 space-y-2 text-sm text-gray-700">
-            {SAMPLE_PORTFOLIO_CONTENT.technicalNotes.map((line) => (
+            {samplePortfolioContent.technicalNotes.map((line) => (
               <li key={line} className="flex items-start gap-2">
                 <span className="mt-1 h-1.5 w-1.5 rounded-full bg-indigo-500" aria-hidden />
                 <span>{line}</span>

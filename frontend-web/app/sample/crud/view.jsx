@@ -1,12 +1,13 @@
 "use client";
+
 /**
  * 파일명: sample/crud/view.jsx
- * 작성자: Codex
- * 갱신일: 2026-03-06
+ * 작성자: LSH
+ * 갱신일: 2026-05-31
  * 설명: 공개 CRUD 샘플 페이지 뷰(DB CRUD 연동)
  */
 
-import { useEffect, useMemo } from "react";
+import { useEffect } from "react";
 import { useGlobalUi } from "@/app/common/store/SharedStore";
 import Badge from "@/app/lib/component/Badge";
 import Button from "@/app/lib/component/Button";
@@ -17,6 +18,7 @@ import Drawer from "@/app/lib/component/Drawer";
 import EasyTable from "@/app/lib/component/EasyTable";
 import Input from "@/app/lib/component/Input";
 import NumberInput from "@/app/lib/component/NumberInput";
+import Pagination from "@/app/lib/component/Pagination";
 import Select from "@/app/lib/component/Select";
 import Textarea from "@/app/lib/component/Textarea";
 import EasyObj from "@/app/lib/dataset/EasyObj";
@@ -24,11 +26,7 @@ import { useEasyList } from "@/app/lib/dataset/EasyList";
 import { PAGE_CONFIG } from "./initData";
 import { usePageData } from "@/app/lib/hooks/usePageData";
 import { apiJSON } from "@/app/lib/runtime/api";
-import syncApiResult from "@/app/lib/runtime/apiResult";
 import LANG_KO from "./lang.ko";
-
-const SAMPLE_TASK_LIST_API_PATH = "/api/v1/sample/tasks";
-const STATUS_FILTER_LIST = LANG_KO.initData.statusFilterList.map((item) => ({ ...item }));
 
 /**
  * @description 공개 CRUD 샘플 화면을 렌더링. 입력/출력 계약을 함께 명시
@@ -36,8 +34,9 @@ const STATUS_FILTER_LIST = LANG_KO.initData.statusFilterList.map((item) => ({ ..
  * @param {{ initialDataObj?: Object, initialErrorObj?: Object }} props
  */
 const CrudDemoView = ({ initialDataObj, initialErrorObj }) => {
+
   /* 1. 상수 ======================================================================================================================= */
-  const defaultForm = {
+  const taskFormSeedObj = {
     title: "",
     status: LANG_KO.view.misc.defaultStatusCode,
     owner: "",
@@ -45,6 +44,7 @@ const CrudDemoView = ({ initialDataObj, initialErrorObj }) => {
     description: "",
     attachmentName: "",
   };
+  const statusFilterList = LANG_KO.initData.statusFilterList;
 
   /* 2. 데이터 ======================================================================================================================= */
   const { showToast, showConfirm } = useGlobalUi();
@@ -53,6 +53,8 @@ const CrudDemoView = ({ initialDataObj, initialErrorObj }) => {
     initialDataObj,
     initialErrorObj,
   });
+  const pageApi = PAGE_CONFIG.API || {};
+  const initialTaskListMetaObj = dataObj?.list?.result?.listMetaObj || {};
   const ui = EasyObj({
     isLoading: false,
     isSaving: false,
@@ -72,31 +74,51 @@ const CrudDemoView = ({ initialDataObj, initialErrorObj }) => {
       mode: "create",
       editingId: null,
     },
-    form: { ...defaultForm },
+    form: { ...taskFormSeedObj },
     formError: "",
   });
-  const taskList = useEasyList(dataObj?.list?.result || []);
+  const taskList = useEasyList(dataObj?.list?.result?.sampleTaskList || []);
   const taskMetaObj = EasyObj({
-    totalCount: Number(dataObj?.list?.count || 0),
+    page: Number(initialTaskListMetaObj.page || 1),
+    size: Number(initialTaskListMetaObj.size || 50),
+    totalCount: Number(dataObj?.list?.result?.listMetaObj?.totalCount || 0),
   });
-  const selectedIdSet = useMemo(() => new Set(ui.selectedIdList), [ui.selectedIdList]);
-  let allRowSelected = false;
-  if (taskList.length > 0) {
-    allRowSelected = taskList.every((rowItem) => selectedIdSet.has(rowItem.id));
-  }
+  const taskPageCount = Math.max(
+    1,
+    Math.ceil(Number(taskMetaObj.totalCount || 0) / Math.max(1, Number(taskMetaObj.size || 50))),
+  );
+  const taskRangeStart = taskList.length > 0
+    ? ((Number(taskMetaObj.page || 1) - 1) * Math.max(1, Number(taskMetaObj.size || 50))) + 1
+    : 0;
+  const taskRangeEnd = taskList.length > 0
+    ? taskRangeStart + taskList.length - 1
+    : 0;
+  const taskTotalText = Number(taskMetaObj.totalCount || 0).toLocaleString("ko-KR");
+  const taskRangeText = taskRangeStart > 0
+    ? LANG_KO.view.card.totalRangeTemplate
+      .replace("{total}", taskTotalText)
+      .replace("{start}", taskRangeStart.toLocaleString("ko-KR"))
+      .replace("{end}", taskRangeEnd.toLocaleString("ko-KR"))
+    : LANG_KO.view.card.totalOnlyTemplate.replace("{total}", taskTotalText);
+  const selectedIdSet = new Set(ui.selectedIdList);
+  const hasTaskList = taskList.length > 0;
+  const isAllRowSelected = hasTaskList
+    ? taskList.every((rowItem) => selectedIdSet.has(rowItem.id))
+    : false;
 
   /* 3. UI ========================================================================================================================= */
-  const tableColumns = [
+  const tableColumnList = [
     {
       key: "selected",
       header: (
         <div className="flex items-center justify-center">
+
           {/* rule-gate: allow-controlled-binding - 목록 전체 선택은 selectedIdList 집합 계산이 필요해 checked/onChange 제어 유지 */}
           <Checkbox
-            checked={allRowSelected}
+            checked={isAllRowSelected}
             onChange={(event) => {
-              const checked = Boolean(event?.target?.checked);
-              ui.selectedIdList = checked ? taskList.map((rowItem) => rowItem.id) : [];
+              const isChecked = Boolean(event?.target?.checked);
+              ui.selectedIdList = isChecked ? taskList.map((rowItem) => rowItem.id) : [];
             }}
             aria-label={LANG_KO.view.table.selectAllAriaLabel}
           />
@@ -105,12 +127,13 @@ const CrudDemoView = ({ initialDataObj, initialErrorObj }) => {
       width: 70,
       render: (rowItem) => (
         <div className="flex items-center justify-center">
+
           {/* rule-gate: allow-controlled-binding - 행 선택 여부를 selectedIdList 포함/제거로 직접 제어 */}
           <Checkbox
             checked={selectedIdSet.has(rowItem.id)}
             onChange={(event) => {
-              const checked = Boolean(event?.target?.checked);
-              if (checked) {
+              const isChecked = Boolean(event?.target?.checked);
+              if (isChecked) {
                 ui.selectedIdList = Array.from(new Set([...ui.selectedIdList, rowItem.id]));
                 return;
               }
@@ -184,35 +207,47 @@ const CrudDemoView = ({ initialDataObj, initialErrorObj }) => {
   ];
 
   /* 4. 팝업 ======================================================================================================================= */
+
   // 없음
 
   /* 5. 기타 ======================================================================================================================= */
+
   // 없음
 
   /* 6. 커스텀 훅 =================================================================================================================== */
+
   // 없음
 
   /* 7. 함수 ======================================================================================================================= */
 
   /**
    * @description 현재 필터 상태를 query string으로 직렬화
-   * 처리 규칙: 빈 필드는 생략하고 DB 목록 API는 항상 page=1,size=50으로 고정 조회한다.
+   * 처리 규칙: 빈 필드는 생략하고 전달된 page/size를 sample 목록 query에 반영한다.
    * @param {{ keyword?: string, status?: string, fromDate?: string, toDate?: string }} filterValue
+   * @param {number} pageValue
+   * @param {number} sizeValue
    * @returns {string}
    */
-  const buildListPath = (filterValue = {}) => {
-    const params = new URLSearchParams();
-    params.set("page", "1");
-    params.set("size", "50");
+  const buildListPath = (
+    filterValue = {},
+    pageValue = Number(taskMetaObj.page || 1),
+    sizeValue = Number(taskMetaObj.size || 50),
+  ) => {
+    const taskQueryParams = new URLSearchParams();
+    taskQueryParams.set("page", String(Math.max(1, Number(pageValue || 1))));
+    taskQueryParams.set("size", String(Math.max(1, Number(sizeValue || 50))));
     const keyword = String(filterValue?.keyword || "").trim();
     const status = String(filterValue?.status || "").trim();
     const fromDate = String(filterValue?.fromDate || "").trim();
     const toDate = String(filterValue?.toDate || "").trim();
-    if (keyword) params.set("q", keyword);
-    if (status) params.set("status", status);
-    if (fromDate) params.set("fromDate", fromDate);
-    if (toDate) params.set("toDate", toDate);
-    return `${SAMPLE_TASK_LIST_API_PATH}?${params.toString()}`;
+    if (keyword) taskQueryParams.set("q", keyword);
+    if (status) taskQueryParams.set("status", status);
+    if (fromDate) taskQueryParams.set("fromDate", fromDate);
+    if (toDate) taskQueryParams.set("toDate", toDate);
+    const listBasePath = typeof pageApi.list === "string"
+      ? String(pageApi.list || "").split("?", 1)[0]
+      : String(pageApi.list?.path || "").split("?", 1)[0];
+    return `${listBasePath}?${taskQueryParams.toString()}`;
   };
 
   /**
@@ -221,19 +256,34 @@ const CrudDemoView = ({ initialDataObj, initialErrorObj }) => {
    * @param {{ keyword?: string, status?: string, fromDate?: string, toDate?: string }} filterValue
    * @returns {Promise<void>}
    */
-  const loadTaskList = async (filterValue = ui.appliedFilter) => {
+  const loadTaskList = async (
+    filterValue = ui.appliedFilter,
+    pageValue = Number(taskMetaObj.page || 1),
+  ) => {
     ui.isLoading = true;
     try {
-      const payload = await apiJSON(
-        buildListPath(filterValue),
-        { method: "GET" },
-        { authless: true },
+      const listPath = buildListPath(filterValue, pageValue, taskMetaObj.size);
+      const listRequestSpec = typeof pageApi.list === "string" || !pageApi.list || typeof pageApi.list !== "object"
+        ? listPath
+        : { ...pageApi.list, path: listPath };
+      const taskListResponse = await apiJSON(
+        listRequestSpec,
       );
-      syncApiResult({
-        payload,
-        apiList: taskList,
+      const nextListMetaObj = taskListResponse?.result?.listMetaObj || {};
+      const nextTotalCount = Number(nextListMetaObj.totalCount || 0);
+      const nextPage = Number(nextListMetaObj.page || pageValue || 1);
+      const nextSize = Number(nextListMetaObj.size || taskMetaObj.size || 50);
+      const nextPageCount = Math.max(1, Math.ceil(nextTotalCount / Math.max(1, nextSize)));
+      if (nextTotalCount > 0 && nextPage > nextPageCount) {
+        await loadTaskList(filterValue, nextPageCount);
+        return;
+      }
+      taskList.copy(taskListResponse?.result?.sampleTaskList || []);
+      taskMetaObj.copy({
+        page: nextPage,
+        size: nextSize,
+        totalCount: nextTotalCount,
       });
-      taskMetaObj.totalCount = Number(payload?.count || 0);
       ui.selectedIdList = [];
     } catch (err) {
       showToast(err?.message || LANG_KO.view.error.listLoadFailed, { type: "error" });
@@ -252,12 +302,12 @@ const CrudDemoView = ({ initialDataObj, initialErrorObj }) => {
       mode: "create",
       editingId: null,
     };
-    ui.form = { ...defaultForm };
+    ui.form = { ...taskFormSeedObj };
     ui.formError = "";
   };
 
   /**
-   * @description 수정 모드 드로어를 열고 행 데이터를 폼에 채운다.
+   * @description 수정 모드 드로어 열기와 행 데이터 주입
    * 부작용: drawer/form/formError 상태가 선택한 행 기준으로 갱신된다.
    * @param {Object} rowItem
    */
@@ -279,7 +329,7 @@ const CrudDemoView = ({ initialDataObj, initialErrorObj }) => {
   };
 
   /**
-   * @description 드로어를 닫고 오류 상태를 지운다.
+   * @description 드로어 닫기와 오류 상태 초기화
    * 부작용: drawer/formError 상태를 초기화한다.
    */
   const closeDrawer = () => {
@@ -292,26 +342,27 @@ const CrudDemoView = ({ initialDataObj, initialErrorObj }) => {
   };
 
   /**
-   * @description 검색 입력의 날짜 범위를 검증하고 DB 조회를 실행
+   * @description 검색 입력 날짜 범위 검증과 목록 재조회
    * 실패 동작: 기간 역전이면 토스트만 노출하고 조회를 실행하지 않는다.
    */
   const validateAndSearch = async () => {
-    if (ui.fromDate && ui.toDate && ui.fromDate > ui.toDate) {
+    const hasInvalidDateRange = ui.fromDate && ui.toDate && ui.fromDate > ui.toDate;
+    if (hasInvalidDateRange) {
       showToast(LANG_KO.view.validation.dateRangeInvalid, { type: "error" });
       return;
     }
-    const nextFilter = {
+    const nextFilterObj = {
       keyword: ui.keyword,
       status: ui.status,
       fromDate: ui.fromDate,
       toDate: ui.toDate,
     };
-    ui.appliedFilter = { ...nextFilter };
-    await loadTaskList(nextFilter);
+    ui.appliedFilter = { ...nextFilterObj };
+    await loadTaskList(nextFilterObj, 1);
   };
 
   /**
-   * @description 검색 입력과 적용 필터를 초기화한 뒤 기본 목록을 재조회
+   * @description 검색 입력과 적용 필터 초기화 후 기본 목록 재조회
    * 부작용: 검색 관련 필드와 선택 상태를 모두 기본값으로 덮어쓴다.
    */
   const resetFilter = async () => {
@@ -325,11 +376,11 @@ const CrudDemoView = ({ initialDataObj, initialErrorObj }) => {
       fromDate: "",
       toDate: "",
     };
-    await loadTaskList(ui.appliedFilter);
+    await loadTaskList(ui.appliedFilter, 1);
   };
 
   /**
-   * @description 드로어 폼을 DB에 저장하고 목록을 재조회
+   * @description 드로어 폼 저장과 목록 재조회
    * 실패 동작: 제목 누락 또는 API 실패 시 formError/토스트를 갱신한다.
    */
   const saveDrawer = async () => {
@@ -342,7 +393,7 @@ const CrudDemoView = ({ initialDataObj, initialErrorObj }) => {
     ui.isSaving = true;
     ui.formError = "";
     try {
-      const body = {
+      const taskBodyObj = {
         title,
         status: ui.form.status || LANG_KO.view.misc.defaultStatusCode,
         owner: String(ui.form.owner || "").trim() || LANG_KO.view.validation.ownerFallback,
@@ -351,14 +402,21 @@ const CrudDemoView = ({ initialDataObj, initialErrorObj }) => {
         attachmentName: String(ui.form.attachmentName || "").trim(),
       };
       const isCreate = ui.drawerState.mode === "create";
-      const requestPath = isCreate
-        ? SAMPLE_TASK_LIST_API_PATH
-        : `${SAMPLE_TASK_LIST_API_PATH}/${ui.drawerState.editingId}`;
+      let requestSpec = pageApi.create;
+      if (!isCreate) {
+        const detailTemplatePath = typeof pageApi.detail === "string"
+          ? pageApi.detail
+          : String(pageApi.detail?.path || "");
+        const detailPath = detailTemplatePath.replace(":id", String(ui.drawerState.editingId));
+        requestSpec = typeof pageApi.detail === "string" || !pageApi.detail || typeof pageApi.detail !== "object"
+          ? detailPath
+          : { ...pageApi.detail, path: detailPath };
+      }
       await apiJSON(
-        requestPath,
+        requestSpec,
         {
           method: isCreate ? "POST" : "PUT",
-          body,
+          body: taskBodyObj,
         },
         { authless: true },
       );
@@ -377,7 +435,8 @@ const CrudDemoView = ({ initialDataObj, initialErrorObj }) => {
   };
 
   /**
-   * @description 단건 삭제 확인 후 DB에서 행을 삭제하고 목록을 재조회
+   * @description 단건 삭제 확인 후 행 삭제와 목록 재조회
+   * 실패 동작: 확인 취소 시 즉시 반환하고, API 실패 시 에러 토스트만 갱신한다.
    * @param {Object} rowItem
    */
   const removeSingleRow = async (rowItem) => {
@@ -390,8 +449,15 @@ const CrudDemoView = ({ initialDataObj, initialErrorObj }) => {
     if (!confirmed) return;
     ui.isLoading = true;
     try {
+      const detailTemplatePath = typeof pageApi.detail === "string"
+        ? pageApi.detail
+        : String(pageApi.detail?.path || "");
+      const detailPath = String(detailTemplatePath.replace(":id", String(rowItem?.id)));
+      const detailRequestSpec = typeof pageApi.detail === "string" || !pageApi.detail || typeof pageApi.detail !== "object"
+        ? detailPath
+        : { ...pageApi.detail, path: detailPath };
       await apiJSON(
-        `${SAMPLE_TASK_LIST_API_PATH}/${rowItem?.id}`,
+        detailRequestSpec,
         { method: "DELETE" },
         { authless: true },
       );
@@ -414,7 +480,7 @@ const CrudDemoView = ({ initialDataObj, initialErrorObj }) => {
       return;
     }
     const confirmed = await showConfirm(
-      `선택된 ${ui.selectedIdList.length}${LANG_KO.view.confirm.removeManyTextSuffix}`,
+      LANG_KO.view.confirm.removeManyTemplate.replace("{count}", ui.selectedIdList.length),
       {
         title: LANG_KO.view.confirm.removeManyTitle,
         type: "warning",
@@ -425,12 +491,21 @@ const CrudDemoView = ({ initialDataObj, initialErrorObj }) => {
     if (!confirmed) return;
     ui.isLoading = true;
     try {
+      const detailTemplatePath = typeof pageApi.detail === "string"
+        ? pageApi.detail
+        : String(pageApi.detail?.path || "");
       await Promise.all(
-        ui.selectedIdList.map((rowId) => apiJSON(
-          `${SAMPLE_TASK_LIST_API_PATH}/${rowId}`,
-          { method: "DELETE" },
-          { authless: true },
-        )),
+        ui.selectedIdList.map((rowId) => {
+          const detailPath = String(detailTemplatePath.replace(":id", String(rowId)));
+          const detailRequestSpec = typeof pageApi.detail === "string" || !pageApi.detail || typeof pageApi.detail !== "object"
+            ? detailPath
+            : { ...pageApi.detail, path: detailPath };
+          return apiJSON(
+            detailRequestSpec,
+            { method: "DELETE" },
+            { authless: true },
+          );
+        }),
       );
       showToast(LANG_KO.view.toast.removedSelectedRows, { type: "success" });
       await loadTaskList(ui.appliedFilter);
@@ -443,15 +518,20 @@ const CrudDemoView = ({ initialDataObj, initialErrorObj }) => {
 
   /* 8. useEffect ================================================================================================================== */
   /**
-   * @description SSR 초기 적재 스냅샷이 바뀌면 목록/건수를 EasyList/EasyObj에 반영한다.
-   * 처리 규칙: dataObj.list 스냅샷을 그대로 copy하고 count만 별도 숫자 필드로 동기화한다.
+   * @description SSR 초기 적재 스냅샷 변경 시 목록/건수 EasyList/EasyObj 반영
+   * 처리 규칙: dataObj.list 스냅샷 copy 후 count만 별도 숫자 필드로 동기화
    */
   useEffect(() => {
-    taskList.copy(dataObj?.list?.result || []);
-    taskMetaObj.totalCount = Number(dataObj?.list?.count || 0);
-  }, [dataObj?.list?.result, dataObj?.list?.count, taskList, taskMetaObj]);
+    taskList.copy(dataObj?.list?.result?.sampleTaskList || []);
+    taskMetaObj.copy(dataObj?.list?.result?.listMetaObj || {
+      page: 1,
+      size: 50,
+      totalCount: 0,
+    });
+  }, [dataObj?.list?.result?.listMetaObj, dataObj?.list?.result?.listMetaObj?.page, dataObj?.list?.result?.listMetaObj?.size, dataObj?.list?.result?.listMetaObj?.totalCount, dataObj?.list?.result?.sampleTaskList, taskList, taskMetaObj]);
 
   /* 9. 내부 컴포넌트 ============================================================================================================== */
+
   // 없음
 
   /* 10. 렌더링 ==================================================================================================================== */
@@ -494,11 +574,11 @@ const CrudDemoView = ({ initialDataObj, initialErrorObj }) => {
             />
           </div>
           <div>
-            <Select
-              dataObj={ui}
-              dataKey="status"
-              dataList={STATUS_FILTER_LIST}
-            />
+              <Select
+                dataObj={ui}
+                dataKey="status"
+                dataList={statusFilterList}
+              />
           </div>
           <DateInput
             dataObj={ui}
@@ -530,19 +610,32 @@ const CrudDemoView = ({ initialDataObj, initialErrorObj }) => {
       <Card title={LANG_KO.view.card.tableTitle} className="mt-4">
         <EasyTable
           loading={Boolean(pageLoading || ui.isLoading)}
-          data={taskList}
-          columns={tableColumns}
-          pageSize={5}
+          dataList={taskList}
+          columns={tableColumnList}
+          pageSize={Math.max(1, taskList.length || 1)}
+          preserveRowSpace={false}
           empty={LANG_KO.view.table.empty}
           rowKey={(rowItem, rowIndex) => rowItem?.id ?? rowIndex}
         />
+        <div className="mt-3 flex flex-col gap-3 text-sm text-gray-500 md:flex-row md:items-center md:justify-between">
+          <p>{taskRangeText}</p>
+          {taskPageCount > 1 ? (
+            <Pagination
+              page={Number(taskMetaObj.page || 1)}
+              pageCount={taskPageCount}
+              onChange={(nextPage) => {
+                loadTaskList(ui.appliedFilter, nextPage);
+              }}
+            />
+          ) : null}
+        </div>
       </Card>
 
       <Drawer
         isOpen={ui.drawerState.isOpen}
         onClose={closeDrawer}
         side="right"
-        size={520}
+        size="min-[1468px]:w-[520px]"
         collapseButton
       >
         <div className="space-y-4 p-5">
@@ -568,7 +661,7 @@ const CrudDemoView = ({ initialDataObj, initialErrorObj }) => {
             <Select
               dataObj={ui}
               dataKey="form.status"
-              dataList={STATUS_FILTER_LIST.filter((item) => item.value)}
+              dataList={statusFilterList.filter((statusFilterObj) => statusFilterObj.value)}
             />
           </label>
 
@@ -607,6 +700,7 @@ const CrudDemoView = ({ initialDataObj, initialErrorObj }) => {
 
           <label className="block space-y-1">
             <span className="text-sm font-medium text-gray-700">{LANG_KO.view.drawer.attachmentLabel}</span>
+
             {/* raw file input 예외 사유: 공용 lib/component에 파일 선택 전용 컴포넌트가 없어 브라우저 기본 picker 사용 */}
             <input
               type="file"

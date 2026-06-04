@@ -1,19 +1,18 @@
 /**
  * 파일명: ComboboxDocs.jsx
  * 작성자: LSH
- * 갱신일: 2025-09-13
+ * 갱신일: 2026-05-31
  * 설명: Combobox 컴포넌트 문서
  */
 import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';
-import { ComboboxExamples } from '../examples/ComboboxExamples';
+import { basicExampleObj, boundExampleObj, multiExampleObj, summaryExampleObj } from '../examples/ComboboxExamples';
 
 /**
  * @description Combobox 문서 섹션을 구성하고 예제 목록을 렌더링. 입력/출력 계약을 함께 명시
  * @returns {JSX.Element}
  */
 const ComboboxDocs = () => {
-  const ex = ComboboxExamples();
   return (
     <DocSection
       id="comboboxes"
@@ -44,36 +43,36 @@ const ComboboxDocs = () => {
       <div id="combobox-basic" className="mb-8">
         <h3 className="text-lg font-medium mb-4">기본</h3>
         <div>
-          {ex[0]?.component}
-          <div className="mt-2 text-sm text-gray-600">{ex[0]?.description}</div>
-          <CodeBlock code={ex[0]?.code || ''} />
+          {basicExampleObj.component}
+          <div className="mt-2 text-sm text-gray-600">{basicExampleObj.description}</div>
+          <CodeBlock code={basicExampleObj.code} />
         </div>
       </div>
 
       <div id="combobox-bound" className="mb-8">
         <h3 className="text-lg font-medium mb-4">바운드</h3>
         <div>
-          {ex[1]?.component}
-          <div className="mt-2 text-sm text-gray-600">{ex[1]?.description}</div>
-          <CodeBlock code={ex[1]?.code || ''} />
+          {boundExampleObj.component}
+          <div className="mt-2 text-sm text-gray-600">{boundExampleObj.description}</div>
+          <CodeBlock code={boundExampleObj.code} />
         </div>
       </div>
 
       <div id="combobox-multi" className="mb-8">
         <h3 className="text-lg font-medium mb-4">다중 선택</h3>
         <div>
-          {ex[2]?.component}
-          <div className="mt-2 text-sm text-gray-600">{ex[2]?.description}</div>
-          <CodeBlock code={ex[2]?.code || ''} />
+          {multiExampleObj.component}
+          <div className="mt-2 text-sm text-gray-600">{multiExampleObj.description}</div>
+          <CodeBlock code={multiExampleObj.code} />
         </div>
       </div>
 
       <div id="combobox-multi-advanced" className="mb-8">
         <h3 className="text-lg font-medium mb-4">요약/전체 선택</h3>
         <div>
-          {ex[3]?.component}
-          <div className="mt-2 text-sm text-gray-600">{ex[3]?.description}</div>
-          <CodeBlock code={ex[3]?.code || ''} />
+          {summaryExampleObj.component}
+          <div className="mt-2 text-sm text-gray-600">{summaryExampleObj.description}</div>
+          <CodeBlock code={summaryExampleObj.code} />
         </div>
       </div>
     </DocSection>

@@ -1,8 +1,9 @@
 "use client";
+
 /**
  * 파일명: dashboard/settings/view.jsx
  * 작성자: LSH
- * 갱신일: 2026-03-05
+ * 갱신일: 2026-05-31
  * 설명: 대시보드 설정 클라이언트 뷰(프로필/시스템설정 탭)
  */
 
@@ -23,21 +24,20 @@ import { PAGE_CONFIG } from "./initData";
 import LANG_KO from "./lang.ko";
 import EasyObj from "@/app/lib/dataset/EasyObj";
 
-const SETTINGS_TAB = {
-  PROFILE: "profile",
-  SYSTEM: "system",
-};
-const SYSTEM_SETTING_DEFAULT = {
-  ...LANG_KO.initData.systemDefault,
-};
-const PROFILE_ME_API_PATH = "/api/v1/profile/me";
-
 /**
  * @description 설정 페이지의 프로필/시스템 탭 UI를 렌더링. 입력/출력 계약을 함께 명시
  * 처리 규칙: 프로필 API 응답은 profileMeObj에 복사하고 탭 상태는 query `tab`과 양방향 동기화한다.
  */
 const SettingsView = ({ initialDataObj, initialErrorObj }) => {
+
   /* 1. 상수 ======================================================================================================================= */
+  const settingsTabObj = {
+    PROFILE: "profile",
+    SYSTEM: "system",
+  };
+  const systemSettingSeedObj = {
+    ...LANG_KO.initData.systemDefault,
+  };
   const defaultProfileObj = {
     userId: "",
     userNm: "",
@@ -47,16 +47,19 @@ const SettingsView = ({ initialDataObj, initialErrorObj }) => {
     notifySms: false,
     notifyPush: false,
   };
-  const hasProfileEndpoint = Boolean(PROFILE_ME_API_PATH);
 
   /* 2. 데이터 ======================================================================================================================= */
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
+  const searchParamText = searchParams?.toString() || "";
   const { showToast } = useGlobalUi();
+  const pageApi = PAGE_CONFIG.API || {};
+  const hasProfileEndpoint = Boolean(pageApi.profileMe);
+  const hasSystemEndpoint = Boolean(pageApi.settingsUpdate);
   const profileMeObj = EasyObj({ ...defaultProfileObj });
   const ui = EasyObj({
-    systemSetting: { ...SYSTEM_SETTING_DEFAULT },
+    systemSetting: { ...systemSettingSeedObj },
     activeTabIndex: 0,
     isLoadingProfile: true,
     isSavingProfile: false,
@@ -64,101 +67,28 @@ const SettingsView = ({ initialDataObj, initialErrorObj }) => {
     error: null,
   });
   const pageMode = normalizePageConfig(PAGE_CONFIG).MODE;
-
-  /* 3. UI ========================================================================================================================= */
-  // 없음
-
-  /* 4. 팝업 ======================================================================================================================= */
-  // 없음
-
-  /* 5. 기타 ======================================================================================================================= */
-  // 없음
-
-  /* 6. 커스텀 훅 =================================================================================================================== */
-  usePageData({
+  const { dataObj, errorObj, isLoading: pageLoading } = usePageData({
     pageConfig: PAGE_CONFIG,
     initialDataObj,
     initialErrorObj,
   });
 
+  /* 3. UI ========================================================================================================================= */
+
+  // 없음
+
+  /* 4. 팝업 ======================================================================================================================= */
+
+  // 없음
+
+  /* 5. 기타 ======================================================================================================================= */
+
+  // 없음
+
+  /* 6. 커스텀 훅 =================================================================================================================== */
+  // 없음
+
   /* 7. 함수 ======================================================================================================================= */
-
-  /**
-   * @description 검색 파라미터에서 key 값을 문자열로 안전 조회
-   * 처리 규칙: URLSearchParams.get/배열/단일값 순으로 읽고 없으면 빈 문자열 반환.
-   * @updated 2026-02-28
-   */
-  const pickQueryValue = (targetSearchParams, key) => {
-    if (!targetSearchParams || !key) return "";
-    if (typeof targetSearchParams.get === "function") {
-      return String(targetSearchParams.get(key) || "");
-    }
-    if (Array.isArray(targetSearchParams[key])) return String(targetSearchParams[key][0] || "");
-    if (targetSearchParams[key] == null) return "";
-    return String(targetSearchParams[key]);
-  };
-
-  /**
-   * @description 검색 파라미터 tab 값을 설정 탭 코드로 정규화
-   * 처리 규칙: system 외 입력은 profile로 기본 보정.
-   * @updated 2026-02-28
-   */
-  const normalizeSettingsTab = (targetSearchParams) => {
-    const tab = pickQueryValue(targetSearchParams, "tab").trim().toLowerCase();
-    return tab === SETTINGS_TAB.SYSTEM ? SETTINGS_TAB.SYSTEM : SETTINGS_TAB.PROFILE;
-  };
-
-  /**
-   * @description 설정 탭 코드를 Tab 컴포넌트 인덱스로 변환
-   * 반환값: system은 1, 그 외는 0.
-   * @updated 2026-02-28
-   */
-  const toSettingsTabIndex = (tab) => {
-    return tab === SETTINGS_TAB.SYSTEM ? 1 : 0;
-  };
-
-  /**
-   * @description 탭 인덱스를 URL query tab 값으로 직렬화
-   * 처리 규칙: 기본 탭(0)은 빈 문자열 반환으로 query 제거 유도.
-   * @updated 2026-02-28
-   */
-  const toSettingsTabQueryValue = (tabIndex) => {
-    return Number(tabIndex) === 1 ? SETTINGS_TAB.SYSTEM : "";
-  };
-
-  /**
-   * @description API 예외 객체를 화면 표시용 에러 메타로 정규화. 입력/출력 계약을 함께 명시
-   * 반환값: message/requestId 필드를 갖는 단순 객체.
-   * @updated 2026-02-27
-   */
-  const toApiError = (error, fallbackMessage) => ({
-    message: error?.message || fallbackMessage,
-    requestId: error?.requestId,
-  });
-
-  /**
-   * @description 프로필 조회 API를 호출해 profileMeObj와 로딩/에러 상태를 갱신
-   * 실패 동작: API 실패 시 ui.error에 message/requestId를 저장하고 로딩을 종료한다.
-   * @updated 2026-02-27
-   */
-  const loadProfile = async () => {
-    if (!hasProfileEndpoint) {
-      ui.error = { message: LANG_KO.view.error.profileEndpointMissing };
-      ui.isLoadingProfile = false;
-      return;
-    }
-    ui.isLoadingProfile = true;
-    ui.error = null;
-    try {
-      const response = await apiJSON(PROFILE_ME_API_PATH);
-      profileMeObj.copy(response?.result || {});
-    } catch (err) {
-      console.error(LANG_KO.view.error.profileLoadFailed, err);
-      ui.error = toApiError(err, LANG_KO.view.error.profileLoadFailed);
-    } finally {
-      ui.isLoadingProfile = false;
-    }
-  };
 
   /**
    * @description 탭 인덱스를 URL query(`tab`) 값으로 동기화
@@ -167,10 +97,10 @@ const SettingsView = ({ initialDataObj, initialErrorObj }) => {
    */
   const syncTabQuery = (nextTabIndex) => {
     if (!pathname) return;
-    const queryValue = toSettingsTabQueryValue(nextTabIndex);
+    const nextQueryValue = Number(nextTabIndex) === 1 ? settingsTabObj.SYSTEM : "";
     const nextParams = new URLSearchParams(searchParams?.toString() || "");
-    if (queryValue) {
-      nextParams.set("tab", queryValue);
+    if (nextQueryValue) {
+      nextParams.set("tab", nextQueryValue);
     } else {
       nextParams.delete("tab");
     }
@@ -207,7 +137,7 @@ const SettingsView = ({ initialDataObj, initialErrorObj }) => {
     ui.isSavingProfile = true;
     ui.error = null;
     try {
-      const response = await apiJSON(PROFILE_ME_API_PATH, {
+      const profileResponse = await apiJSON(pageApi.profileMe, {
         method: "PUT",
         body: {
           userNm: String(profileMeObj.userNm || "").trim(),
@@ -216,11 +146,13 @@ const SettingsView = ({ initialDataObj, initialErrorObj }) => {
           notifyPush: Boolean(profileMeObj.notifyPush),
         },
       });
-      profileMeObj.copy(response?.result || {});
+      profileMeObj.copy(profileResponse?.result || {});
       showToast(LANG_KO.view.toast.profileSaved, { type: "success" });
     } catch (err) {
-      console.error(LANG_KO.view.error.profileSaveFailed, err);
-      ui.error = toApiError(err, LANG_KO.view.error.profileSaveFailed);
+      ui.error = {
+        message: err?.message || LANG_KO.view.error.profileSaveFailed,
+        requestId: err?.requestId,
+      };
       showToast(err?.message || LANG_KO.view.error.profileSaveFailed, { type: "error" });
     } finally {
       ui.isSavingProfile = false;
@@ -228,15 +160,30 @@ const SettingsView = ({ initialDataObj, initialErrorObj }) => {
   };
 
   /**
-   * @description 시스템 설정 저장 시뮬레이션을 수행하고 저장 상태 표시를 관리
-   * 부작용: ui.isSavingSystem true/false 전환 및 성공 토스트를 발생시킨다.
+   * @description 시스템 설정 저장 API를 호출하고 저장 상태 표시를 관리
+   * 실패 동작: API 미연동 또는 저장 실패 시 에러 토스트를 노출한다.
    * @updated 2026-02-27
    */
   const saveSystemSetting = async () => {
+    if (!hasSystemEndpoint) {
+      showToast(LANG_KO.view.error.systemEndpointMissing, { type: "error" });
+      return;
+    }
     ui.isSavingSystem = true;
     try {
-      await new Promise((resolve) => setTimeout(resolve, 200));
+      await apiJSON(pageApi.settingsUpdate, {
+        method: "PUT",
+        body: {
+          siteName: String(ui.systemSetting.siteName || "").trim(),
+          adminEmail: String(profileMeObj.userEml || "").trim(),
+          maintenanceMode: Boolean(ui.systemSetting.maintenanceMode),
+          sessionTimeout: Number(ui.systemSetting.sessionTimeoutMinutes || 0),
+          maxUploadMb: Number(ui.systemSetting.maxUploadMb || 0),
+        },
+      });
       showToast(LANG_KO.view.toast.systemSaved, { type: "success" });
+    } catch (err) {
+      showToast(err?.message || LANG_KO.view.error.systemSaveFailed, { type: "error" });
     } finally {
       ui.isSavingSystem = false;
     }
@@ -248,21 +195,40 @@ const SettingsView = ({ initialDataObj, initialErrorObj }) => {
    * 처리 규칙: 동일 인덱스면 상태 갱신을 생략한다.
    */
   useEffect(() => {
-    const tabIndex = toSettingsTabIndex(normalizeSettingsTab(searchParams));
-    if (ui.activeTabIndex !== tabIndex) {
-      ui.activeTabIndex = tabIndex;
+    const queryTab = String(searchParams?.get("tab") || "").trim().toLowerCase();
+    const nextTabIndex = queryTab === settingsTabObj.SYSTEM ? 1 : 0;
+    if (ui.activeTabIndex !== nextTabIndex) {
+      ui.activeTabIndex = nextTabIndex;
     }
-  }, [searchParams?.toString(), ui]);
+  }, [searchParams, searchParamText, settingsTabObj.SYSTEM, ui]);
 
   /**
-   * @description 초기 마운트 시 프로필 조회 API를 1회 호출
-   * 처리 규칙: profile endpoint 유효성은 loadProfile 내부에서 다시 검증한다.
+   * @description 페이지 자동 로더 상태를 프로필 로딩 플래그와 에러로 반영
+   * 처리 규칙: INIT_API profileMe 성공 시 모델 copy, 실패 시 ui.error를 표준 에러 형태로 저장한다.
    */
   useEffect(() => {
-    loadProfile();
-  }, [hasProfileEndpoint]);
+    ui.isLoadingProfile = Boolean(pageLoading);
+    if (!hasProfileEndpoint) {
+      ui.error = { message: LANG_KO.view.error.profileEndpointMissing };
+      ui.isLoadingProfile = false;
+      return;
+    }
+    if (errorObj?.profileMe) {
+      ui.error = {
+        message: errorObj.profileMe?.message || LANG_KO.view.error.profileLoadFailed,
+        requestId: errorObj.profileMe?.requestId,
+      };
+      ui.isLoadingProfile = false;
+      return;
+    }
+    if (dataObj?.profileMe?.result) {
+      profileMeObj.copy(dataObj.profileMe.result);
+      ui.error = null;
+    }
+  }, [dataObj?.profileMe?.result, errorObj?.profileMe, hasProfileEndpoint, pageLoading, profileMeObj, ui]);
 
   /* 9. 내부 컴포넌트 ============================================================================================================== */
+
   // 없음
 
   /* 10. 렌더링 ==================================================================================================================== */

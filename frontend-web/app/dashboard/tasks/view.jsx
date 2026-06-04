@@ -1,16 +1,16 @@
 "use client";
+
 /**
  * 파일명: dashboard/tasks/view.jsx
  * 작성자: LSH
- * 갱신일: 2026-03-05
+ * 갱신일: 2026-05-31
  * 설명: 업무 관리 클라이언트 뷰(CSR API 연동 CRUD)
  */
 
-import { useEffect } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useGlobalUi } from "@/app/common/store/SharedStore";
 import { normalizePageConfig } from "@/app/lib/runtime/pageData";
-import { usePageData } from "@/app/lib/hooks/usePageData";
 import Badge from "@/app/lib/component/Badge";
 import Button from "@/app/lib/component/Button";
 import Card from "@/app/lib/component/Card";
@@ -28,47 +28,47 @@ import { useEasyList } from "@/app/lib/dataset/EasyList";
 import { PAGE_CONFIG } from "./initData";
 import LANG_KO from "./lang.ko";
 
-const PAGE_SIZE = 10;
-const DEFAULT_SORT = "reg_dt_desc";
-const STATUS_FILTER_LIST = LANG_KO.initData.statusFilterList.map((item) => ({ ...item }));
-const SORT_FILTER_LIST = LANG_KO.initData.sortFilterList.map((item) => ({ ...item }));
-const ALLOWED_STATUS = new Set(
-  STATUS_FILTER_LIST.map((item) => item.value).filter(Boolean),
-);
-const ALLOWED_SORT = new Set(SORT_FILTER_LIST.map((item) => item.value));
-
-const STATUS_BADGE_VARIANT = {
-  ready: "neutral",
-  pending: "warning",
-  running: "primary",
-  done: "success",
-  failed: "danger",
-};
-
-const STATUS_FORM_LIST = STATUS_FILTER_LIST.filter((item) => item.value);
-const TASK_LIST_API_PATH = "/api/v1/dashboard";
-const TASK_DETAIL_API_PATH = "/api/v1/dashboard/:id";
-
 /**
  * @description 업무 관리 페이지의 CSR 뷰를 렌더링. 입력/출력 계약을 함께 명시
  * 처리 규칙: 목록 조회/드로어 CRUD/브라우저 쿼리 동기화를 단일 컴포넌트에서 제어한다.
  */
-const TasksView = ({ initialDataObj, initialErrorObj }) => {
+const TasksView = () => {
+
   /* 1. 상수 ======================================================================================================================= */
-  // 없음
+  const pageSize = 10;
+  const defaultSort = "reg_dt_desc";
+  const statusFilterList = useMemo(() => LANG_KO.initData.statusFilterList, []);
+  const sortFilterList = useMemo(() => LANG_KO.initData.sortFilterList, []);
+  const allowedStatus = useMemo(
+    () => new Set(statusFilterList.map((statusFilterObj) => statusFilterObj.value).filter(Boolean)),
+    [statusFilterList],
+  );
+  const allowedSort = useMemo(
+    () => new Set(sortFilterList.map((sortFilterObj) => sortFilterObj.value)),
+    [sortFilterList],
+  );
+  const statusBadgeMapObj = {
+    ready: "neutral",
+    pending: "warning",
+    running: "primary",
+    done: "success",
+    failed: "danger",
+  };
+  const statusFormList = statusFilterList.filter((statusFilterObj) => statusFilterObj.value);
+
   /* 2. 데이터 ======================================================================================================================= */
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const keywordValue = String(searchParams?.get("q") || "").trim();
   const statusCandidate = String(searchParams?.get("status") || "").trim().toLowerCase();
-  const statusValue = ALLOWED_STATUS.has(statusCandidate) ? statusCandidate : "";
+  const statusValue = allowedStatus.has(statusCandidate) ? statusCandidate : "";
   const sortCandidate = String(searchParams?.get("sort") || "").trim().toLowerCase();
-  const sortValue = ALLOWED_SORT.has(sortCandidate) ? sortCandidate : DEFAULT_SORT;
+  const sortValue = allowedSort.has(sortCandidate) ? sortCandidate : defaultSort;
   const pageCandidate = Number.parseInt(String(searchParams?.get("page") || ""), 10);
   const pageValue = Number.isFinite(pageCandidate) && pageCandidate > 0 ? pageCandidate : 1;
   const { showToast, showConfirm } = useGlobalUi();
-  const defaultTaskForm = {
+  const taskFormSeedObj = {
     title: "",
     status: "ready",
     amount: 0,
@@ -87,21 +87,22 @@ const TasksView = ({ initialDataObj, initialErrorObj }) => {
     isDrawerOpen: false,
     drawerMode: "create",
     editingId: null,
-    form: { ...defaultTaskForm },
+    form: { ...taskFormSeedObj },
   });
   const taskList = useEasyList([]);
   const taskMetaObj = EasyObj({ totalCount: 0 });
   const taskDetailObj = EasyObj({});
+  const initialLoadQueryRef = useRef(null);
+  const taskTotalText = LANG_KO.view.action.totalCountTemplate.replace(
+    "{total}",
+    taskMetaObj.totalCount.toLocaleString("ko-KR"),
+  );
   const pageMode = normalizePageConfig(PAGE_CONFIG).MODE;
-  usePageData({
-    pageConfig: PAGE_CONFIG,
-    initialDataObj,
-    initialErrorObj,
-  });
-  const hasListEndpoint = Boolean(TASK_LIST_API_PATH);
-  const hasDetailEndpoint = Boolean(TASK_DETAIL_API_PATH);
+  const pageApi = PAGE_CONFIG.API || {};
+  const hasListEndpoint = Boolean(pageApi.list);
+  const hasDetailEndpoint = Boolean(pageApi.detail);
 
-  const tableColumns = [
+  const tableColumnList = [
     {
       key: "title",
       header: LANG_KO.view.table.titleHeader,
@@ -122,7 +123,7 @@ const TasksView = ({ initialDataObj, initialErrorObj }) => {
       header: LANG_KO.view.table.statusHeader,
       width: 140,
       render: (row) => (
-        <Badge variant={STATUS_BADGE_VARIANT[row?.status] || "neutral"} pill>
+        <Badge variant={statusBadgeMapObj[row?.status] || "neutral"} pill>
           {LANG_KO.view.statusLabelMap[row?.status] || row?.status || LANG_KO.view.misc.noData}
         </Badge>
       ),
@@ -132,7 +133,11 @@ const TasksView = ({ initialDataObj, initialErrorObj }) => {
       header: LANG_KO.view.table.amountHeader,
       width: 140,
       align: "right",
-      render: (row) => toCurrencyText(row?.amount),
+      render: (row) => {
+        const amount = Number(row?.amount || 0);
+        if (Number.isNaN(amount)) return LANG_KO.view.misc.currencyZero;
+        return amount.toLocaleString("ko-KR");
+      },
     },
     {
       key: "tags",
@@ -157,7 +162,12 @@ const TasksView = ({ initialDataObj, initialErrorObj }) => {
       key: "createdAt",
       header: LANG_KO.view.table.createdAtHeader,
       width: 140,
-      render: (row) => toDateText(row?.createdAt),
+      render: (row) => {
+        if (!row?.createdAt) return LANG_KO.view.misc.dateUnknown;
+        const createdAtDate = new Date(row.createdAt);
+        if (Number.isNaN(createdAtDate.getTime())) return LANG_KO.view.misc.dateUnknown;
+        return createdAtDate.toISOString().slice(0, 10);
+      },
     },
     {
       key: "actions",
@@ -175,15 +185,24 @@ const TasksView = ({ initialDataObj, initialErrorObj }) => {
       ),
     },
   ];
-  const pageCount = Math.max(1, Math.ceil(taskMetaObj.totalCount / PAGE_SIZE));
+  const pageCount = Math.max(1, Math.ceil(taskMetaObj.totalCount / pageSize));
+
   /* 3. UI ========================================================================================================================= */
+
   // 없음
+
   /* 4. 팝업 ======================================================================================================================= */
+
   // 없음
+
   /* 5. 기타 ======================================================================================================================= */
+
   // 없음
+
   /* 6. 커스텀 훅 =================================================================================================================== */
+
   // 없음
+
   /* 7. 함수 ======================================================================================================================= */
 
   /**
@@ -203,81 +222,40 @@ const TasksView = ({ initialDataObj, initialErrorObj }) => {
   };
 
   /**
-   * @description 금액 값을 로케일 통화 문자열로 변환. 입력/출력 계약을 함께 명시
-   * 처리 규칙: 숫자 변환 실패 시 0원 문구를 반환하고, 정상 값은 `ko-KR` 포맷으로 반환한다.
-   * @updated 2026-02-27
-   */
-  const toCurrencyText = (value) => {
-    const amount = Number(value || 0);
-    if (Number.isNaN(amount)) return LANG_KO.view.misc.currencyZero;
-    return amount.toLocaleString("ko-KR");
-  };
-
-  /**
-   * @description 날짜 값을 `YYYY-MM-DD` 문자열로 변환
-   * 처리 규칙: 값이 없거나 Date 파싱 실패면 `dateUnknown` 문구를 반환한다.
-   * @updated 2026-02-27
-   */
-  const toDateText = (value) => {
-    if (!value) return LANG_KO.view.misc.dateUnknown;
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) return LANG_KO.view.misc.dateUnknown;
-    return date.toISOString().slice(0, 10);
-  };
-
-  /**
-   * @description 템플릿 경로의 `:id` 플레이스홀더를 실제 ID로 치환
-   * 처리 규칙: path/id를 문자열로 변환한 뒤 첫 `:id` 토큰을 치환해 반환한다.
-   * @updated 2026-02-27
-   */
-  const toPathWithId = (templatePath, id) =>
-    String(templatePath || "").replace(":id", String(id));
-
-  /**
-   * @description API 예외를 UI 표시용 에러 객체로 정규화. 입력/출력 계약을 함께 명시
-   * 처리 규칙: 에러 message/requestId를 우선 사용하고 없으면 fallbackMessage를 message로 사용한다.
-   * @updated 2026-02-27
-   */
-  const toApiError = (error, fallbackMessage) => ({
-    message: error?.message || fallbackMessage,
-    requestId: error?.requestId,
-  });
-
-  /**
    * @description 업무 목록 필터 모델을 URL query 문자열로 직렬화
    * 처리 규칙: 기본 sort/page는 query에서 생략해 URL 노이즈를 줄인다.
    * @updated 2026-02-28
    */
-  const buildTasksQueryString = (options = {}) => {
+  const buildTasksQueryString = useCallback((options = {}) => {
     const {
       keyword = "",
       status = "",
-      sort = DEFAULT_SORT,
+      sort = defaultSort,
       page = 1,
     } = options;
-    const params = new URLSearchParams();
+    const taskQueryParams = new URLSearchParams();
     const keywordText = String(keyword || "").trim();
     const statusText = String(status || "").trim().toLowerCase();
-    const sortText = String(sort || DEFAULT_SORT).trim().toLowerCase();
+    const sortText = String(sort || defaultSort).trim().toLowerCase();
     const pageValue = Number.parseInt(String(page || 1), 10);
 
-    if (keywordText) params.set("q", keywordText);
-    if (ALLOWED_STATUS.has(statusText)) params.set("status", statusText);
-    if (ALLOWED_SORT.has(sortText) && sortText !== DEFAULT_SORT) {
-      params.set("sort", sortText);
+    if (keywordText) taskQueryParams.set("q", keywordText);
+    if (allowedStatus.has(statusText)) taskQueryParams.set("status", statusText);
+    if (allowedSort.has(sortText) && sortText !== defaultSort) {
+      taskQueryParams.set("sort", sortText);
     }
     if (Number.isFinite(pageValue) && pageValue > 1) {
-      params.set("page", String(pageValue));
+      taskQueryParams.set("page", String(pageValue));
     }
-    return params.toString();
-  };
+    return taskQueryParams.toString();
+  }, [allowedSort, allowedStatus, defaultSort]);
 
   /**
    * @description 현재 필터/페이지 상태를 브라우저 쿼리스트링과 동기화
    * 처리 규칙: pathname이 존재할 때만 queryString을 생성하고 `router.replace(..., { scroll: false })`를 호출한다.
    * @updated 2026-02-27
    */
-  const syncBrowserQuery = ({ nextKeyword, nextStatus, nextSort, nextPage }) => {
+  const syncBrowserQuery = useCallback(({ nextKeyword, nextStatus, nextSort, nextPage }) => {
 
     if (!pathname) return;
     const queryString = buildTasksQueryString({
@@ -288,7 +266,7 @@ const TasksView = ({ initialDataObj, initialErrorObj }) => {
     });
     const href = queryString ? `${pathname}?${queryString}` : pathname;
     router.replace(href, { scroll: false });
-  };
+  }, [buildTasksQueryString, pathname, router]);
 
   /**
    * @description 업무 목록 엔드포인트를 호출해 taskList/taskMetaObj와 화면 상태를 동기화
@@ -296,7 +274,7 @@ const TasksView = ({ initialDataObj, initialErrorObj }) => {
    * 부작용: ui.isLoading/ui.page/ui.sort 상태와 브라우저 query를 갱신할 수 있다.
    * @updated 2026-02-27
    */
-  const loadTasks = async (options = {}) => {
+  const loadTasks = useCallback(async (options = {}) => {
 
     const {
       nextKeyword = ui.keyword,
@@ -312,42 +290,48 @@ const TasksView = ({ initialDataObj, initialErrorObj }) => {
       ui.isLoading = false;
       return;
     }
-    const params = new URLSearchParams();
-    params.set("page", String(nextPage));
-    params.set("size", String(PAGE_SIZE));
-    params.set("sort", nextSort || DEFAULT_SORT);
-    if (nextKeyword?.trim()) params.set("q", nextKeyword.trim());
-    if (nextStatus) params.set("status", nextStatus);
-    const queryString = params.toString();
-    const url = queryString ? `${TASK_LIST_API_PATH}?${queryString}` : TASK_LIST_API_PATH;
+    const taskQueryParams = new URLSearchParams();
+    taskQueryParams.set("page", String(nextPage));
+    taskQueryParams.set("size", String(pageSize));
+    taskQueryParams.set("sort", nextSort || defaultSort);
+    if (nextKeyword?.trim()) taskQueryParams.set("q", nextKeyword.trim());
+    if (nextStatus) taskQueryParams.set("status", nextStatus);
+    const queryString = taskQueryParams.toString();
+    const listPath = typeof pageApi.list === "string" ? pageApi.list : String(pageApi.list?.path || "");
+    const requestPath = queryString ? `${listPath}?${queryString}` : listPath;
+    const requestSpec = typeof pageApi.list === "string" || !pageApi.list || typeof pageApi.list !== "object"
+      ? requestPath
+      : { ...pageApi.list, path: requestPath };
 
     ui.isLoading = true;
     ui.error = null;
     try {
-      const response = await apiJSON(url);
-      taskList.copy(response?.result?.items || []);
-      const totalSource = response?.count ?? response?.result?.total ?? taskList.size();
+      const taskListResponse = await apiJSON(requestSpec);
+      taskList.copy(taskListResponse?.result?.dataTemplateList || []);
+      const totalSource = taskListResponse?.count ?? taskListResponse?.result?.listMetaObj?.totalCount ?? taskList.size();
       const total = Number(totalSource || 0);
       taskMetaObj.totalCount = total;
       ui.page = nextPage;
-      ui.sort = nextSort || DEFAULT_SORT;
+      ui.sort = nextSort || defaultSort;
       if (syncQuery) {
         syncBrowserQuery({
           nextKeyword,
           nextStatus,
-          nextSort: nextSort || DEFAULT_SORT,
+          nextSort: nextSort || defaultSort,
           nextPage,
         });
       }
     } catch (err) {
-      console.error(LANG_KO.view.error.listLoadFailed, err);
       taskList.copy([]);
       taskMetaObj.totalCount = 0;
-      ui.error = toApiError(err, LANG_KO.view.error.listLoadFailed);
+      ui.error = {
+        message: err?.message || LANG_KO.view.error.listLoadFailed,
+        requestId: err?.requestId,
+      };
     } finally {
       ui.isLoading = false;
     }
-  };
+  }, [hasListEndpoint, pageApi.list, syncBrowserQuery, taskList, taskMetaObj, ui]);
 
   /**
    * @description 신규 생성 모드 드로어 열기
@@ -357,7 +341,7 @@ const TasksView = ({ initialDataObj, initialErrorObj }) => {
   const openCreateDrawer = () => {
     ui.drawerMode = "create";
     ui.editingId = null;
-    ui.form = { ...defaultTaskForm };
+    ui.form = { ...taskFormSeedObj };
     ui.isDrawerOpen = true;
     ui.isDrawerLoading = false;
   };
@@ -377,9 +361,15 @@ const TasksView = ({ initialDataObj, initialErrorObj }) => {
     ui.isDrawerOpen = true;
     ui.isDrawerLoading = true;
     try {
-      const detailPath = toPathWithId(TASK_DETAIL_API_PATH, id);
-      const response = await apiJSON(detailPath);
-      taskDetailObj.copy(response?.result || {});
+      const detailTemplatePath = typeof pageApi.detail === "string"
+        ? pageApi.detail
+        : String(pageApi.detail?.path || "");
+      const detailPath = String(detailTemplatePath || "").replace(":id", String(id));
+      const requestSpec = typeof pageApi.detail === "string" || !pageApi.detail || typeof pageApi.detail !== "object"
+        ? detailPath
+        : { ...pageApi.detail, path: detailPath };
+      const taskDetailResponse = await apiJSON(requestSpec);
+      taskDetailObj.copy(taskDetailResponse?.result || {});
       ui.form = {
         title: taskDetailObj.title || "",
         status: taskDetailObj.status || LANG_KO.view.misc.defaultStatusCode,
@@ -388,7 +378,6 @@ const TasksView = ({ initialDataObj, initialErrorObj }) => {
         description: taskDetailObj.description || "",
       };
     } catch (err) {
-      console.error(LANG_KO.view.error.detailLoadFailed, err);
       showToast(err?.message || LANG_KO.view.error.detailLoadFailed, { type: "error" });
       ui.isDrawerOpen = false;
     } finally {
@@ -422,16 +411,19 @@ const TasksView = ({ initialDataObj, initialErrorObj }) => {
       showToast(LANG_KO.view.validation.invalidStatus, { type: "warning" });
       return;
     }
-    if (ui.drawerMode === "create" && !hasListEndpoint) {
+    const isCreateApiMissing = ui.drawerMode === "create" && !hasListEndpoint;
+    if (isCreateApiMissing) {
       showToast(LANG_KO.view.error.createEndpointMissing, { type: "error" });
       return;
     }
-    if (ui.drawerMode === "edit" && (!ui.editingId || !hasDetailEndpoint)) {
+    const isMissingEditTarget = !ui.editingId || !hasDetailEndpoint;
+    const isEditApiMissing = ui.drawerMode === "edit" && isMissingEditTarget;
+    if (isEditApiMissing) {
       showToast(LANG_KO.view.error.updateEndpointMissing, { type: "error" });
       return;
     }
 
-    const payload = {
+    const taskPayloadObj = {
       title,
       status: ui.form.status,
       amount: Number(ui.form.amount || 0),
@@ -439,14 +431,21 @@ const TasksView = ({ initialDataObj, initialErrorObj }) => {
       description: String(ui.form.description || "").trim(),
     };
     const isCreate = ui.drawerMode === "create";
-    const path = isCreate
-      ? TASK_LIST_API_PATH
-      : toPathWithId(TASK_DETAIL_API_PATH, ui.editingId);
-    const method = isCreate ? "POST" : "PUT";
+    let requestSpec = pageApi.list;
+    if (!isCreate) {
+      const detailTemplatePath = typeof pageApi.detail === "string"
+        ? pageApi.detail
+        : String(pageApi.detail?.path || "");
+      const detailPath = String(detailTemplatePath || "").replace(":id", String(ui.editingId));
+      requestSpec = typeof pageApi.detail === "string" || !pageApi.detail || typeof pageApi.detail !== "object"
+        ? detailPath
+        : { ...pageApi.detail, path: detailPath };
+    }
+    const submitMethod = isCreate ? "POST" : "PUT";
 
     ui.isSaving = true;
     try {
-      await apiJSON(path, { method, body: payload });
+      await apiJSON(requestSpec, { method: submitMethod, body: taskPayloadObj });
       showToast(isCreate ? LANG_KO.view.toast.savedCreated : LANG_KO.view.toast.savedUpdated, {
         type: "success",
       });
@@ -458,9 +457,11 @@ const TasksView = ({ initialDataObj, initialErrorObj }) => {
         nextPage: isCreate ? 1 : ui.page,
       });
     } catch (err) {
-      console.error(LANG_KO.view.error.saveFailed, err);
       showToast(err?.message || LANG_KO.view.error.saveFailed, { type: "error" });
-      ui.error = toApiError(err, LANG_KO.view.error.saveFailed);
+      ui.error = {
+        message: err?.message || LANG_KO.view.error.saveFailed,
+        requestId: err?.requestId,
+      };
     } finally {
       ui.isSaving = false;
     }
@@ -485,7 +486,14 @@ const TasksView = ({ initialDataObj, initialErrorObj }) => {
     if (!confirmed) return;
 
     try {
-      await apiJSON(toPathWithId(TASK_DETAIL_API_PATH, row?.id), { method: "DELETE" });
+      const detailTemplatePath = typeof pageApi.detail === "string"
+        ? pageApi.detail
+        : String(pageApi.detail?.path || "");
+      const detailPath = String(detailTemplatePath || "").replace(":id", String(row?.id));
+      const requestSpec = typeof pageApi.detail === "string" || !pageApi.detail || typeof pageApi.detail !== "object"
+        ? detailPath
+        : { ...pageApi.detail, path: detailPath };
+      await apiJSON(requestSpec, { method: "DELETE" });
       showToast(LANG_KO.view.toast.removed, { type: "success" });
       const nextPage = ui.page > 1 && taskList.length === 1 ? ui.page - 1 : ui.page;
       await loadTasks({
@@ -495,9 +503,11 @@ const TasksView = ({ initialDataObj, initialErrorObj }) => {
         nextPage,
       });
     } catch (err) {
-      console.error(LANG_KO.view.error.removeFailed, err);
       showToast(err?.message || LANG_KO.view.error.removeFailed, { type: "error" });
-      ui.error = toApiError(err, LANG_KO.view.error.removeFailed);
+      ui.error = {
+        message: err?.message || LANG_KO.view.error.removeFailed,
+        requestId: err?.requestId,
+      };
     }
   };
 
@@ -507,16 +517,29 @@ const TasksView = ({ initialDataObj, initialErrorObj }) => {
    * 처리 규칙: 첫 마운트에서는 브라우저 query 재기록 없이 초기 데이터만 조회한다.
    */
   useEffect(() => {
+    const initialQueryKey = buildTasksQueryString({
+      keyword: keywordValue,
+      status: statusValue,
+      sort: sortValue,
+      page: pageValue,
+    });
+    if (initialLoadQueryRef.current === initialQueryKey) return;
+    initialLoadQueryRef.current = initialQueryKey;
+    ui.keyword = keywordValue;
+    ui.status = statusValue;
+    ui.sort = sortValue;
+    ui.page = pageValue;
     loadTasks({
-      nextKeyword: ui.keyword,
-      nextStatus: ui.status,
-      nextSort: ui.sort,
-      nextPage: ui.page,
+      nextKeyword: keywordValue,
+      nextStatus: statusValue,
+      nextSort: sortValue,
+      nextPage: pageValue,
       syncQuery: false,
     });
-  }, [hasListEndpoint]);
+  }, [buildTasksQueryString, keywordValue, loadTasks, pageValue, sortValue, statusValue, ui]);
 
   /* 9. 내부 컴포넌트 ============================================================================================================== */
+
   // 없음
 
   /* 10. 렌더링 ==================================================================================================================== */
@@ -555,14 +578,14 @@ const TasksView = ({ initialDataObj, initialErrorObj }) => {
             <Select
               dataObj={ui}
               dataKey="status"
-              dataList={STATUS_FILTER_LIST}
+              dataList={statusFilterList}
             />
           </div>
           <div className="w-full md:w-52">
             <Select
               dataObj={ui}
               dataKey="sort"
-              dataList={SORT_FILTER_LIST}
+              dataList={sortFilterList}
             />
           </div>
           <Button
@@ -584,11 +607,11 @@ const TasksView = ({ initialDataObj, initialErrorObj }) => {
             onClick={() => {
               ui.keyword = "";
               ui.status = "";
-              ui.sort = DEFAULT_SORT;
+              ui.sort = defaultSort;
               loadTasks({
                 nextKeyword: "",
                 nextStatus: "",
-                nextSort: DEFAULT_SORT,
+                nextSort: defaultSort,
                 nextPage: 1,
               });
             }}
@@ -602,16 +625,16 @@ const TasksView = ({ initialDataObj, initialErrorObj }) => {
 
       <Card title={LANG_KO.view.card.tableTitle}>
         <EasyTable
-          data={taskList}
+          dataList={taskList}
           loading={ui.isLoading}
-          columns={tableColumns}
-          pageSize={PAGE_SIZE}
+          columns={tableColumnList}
+          pageSize={pageSize}
           empty={LANG_KO.view.table.emptyFallback}
-          rowKey={(row, idx) => row?.id ?? idx}
+          rowKey={(row, index) => row?.id ?? index}
         />
         <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
           <div className="text-sm text-gray-600">
-            {`총 ${taskMetaObj.totalCount.toLocaleString("ko-KR")}${LANG_KO.view.action.totalCountSuffix}`}
+            {taskTotalText}
           </div>
           <Pagination
             page={ui.page}
@@ -628,7 +651,7 @@ const TasksView = ({ initialDataObj, initialErrorObj }) => {
         </div>
       </Card>
 
-      <Drawer isOpen={ui.isDrawerOpen} onClose={closeDrawer} side="right" size={460} collapseButton>
+      <Drawer isOpen={ui.isDrawerOpen} onClose={closeDrawer} side="right" size="min-[1468px]:w-[460px]" collapseButton>
         <div className="p-5 space-y-4">
           <div>
             <h3 className="text-lg font-semibold text-gray-900">
@@ -661,8 +684,8 @@ const TasksView = ({ initialDataObj, initialErrorObj }) => {
                 <Select
                   dataObj={ui}
                   dataKey="form.status"
-                  dataList={STATUS_FORM_LIST}
-                />
+                  dataList={statusFormList}
+            />
               </label>
 
               <label className="block space-y-1">

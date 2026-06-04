@@ -1,65 +1,24 @@
 "use client";
+
 /**
  * 파일명: PdfViewer.jsx
  * 작성자: LSH
- * 갱신일: 2026-03-05
+ * 갱신일: 2026-05-31
  * 설명: PDF 렌더링 컴포넌트
  */
 
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
 import '@react-pdf-viewer/core/lib/styles/index.css';
 import '@react-pdf-viewer/default-layout/lib/styles/index.css';
 import { defaultLayoutPlugin } from '@react-pdf-viewer/default-layout';
 import Empty from '../Empty.jsx';
+import Icon from '../Icon';
 import { COMMON_COMPONENT_LANG_KO } from '@/app/common/i18n/lang.ko';
 
 // 한글설명: SSR 환경(node-canvas 충돌) 회피를 위해 Viewer/Worker는 클라이언트 전용으로 로드
 const Viewer = dynamic(() => import('@react-pdf-viewer/core').then((moduleExports) => moduleExports.Viewer), { ssr: false });
 const Worker = dynamic(() => import('@react-pdf-viewer/core').then((moduleExports) => moduleExports.Worker), { ssr: false });
-
-/**
- * @description 값이 Blob/File 계열 객체인지 판별
- * 처리 규칙: object 타입이면서 `instanceof Blob|File`인 경우만 true를 반환한다.
- * @updated 2026-02-27
- */
-const isBlobLike = (value) => value && typeof value === 'object' && (value instanceof Blob || value instanceof File);
-
-/**
- * @description src 입력을 Viewer가 읽을 수 있는 URL 문자열로 맞추는 변환 유틸.
- * 처리 규칙: string은 그대로, ArrayBuffer/Blob/File은 `URL.createObjectURL`로 변환한다.
- * @updated 2026-02-27
- */
-const toObjectUrl = (src) => {
-  if (!src) return null;
-  if (typeof src === 'string') return src;
-  if (src instanceof ArrayBuffer) {
-    return URL.createObjectURL(new Blob([src], { type: 'application/pdf' }));
-  }
-  if (isBlobLike(src)) return URL.createObjectURL(src);
-  return null;
-};
-
-/**
- * @description 문서 상태 기본값 객체(currentPage/totalPages/zoom) 팩토리.
- * 처리 규칙: currentPage/totalPages/zoom 기본 필드를 초기 페이지 기준으로 구성해 반환한다.
- * @updated 2026-02-27
- */
-const initialDocumentState = (initialPage = 1) => ({
-  currentPage: initialPage,
-  totalPages: 0,
-  zoom: 1,
-});
-
-/**
- * @description 초기 페이지 번호를 안전한 정수 범위로 보정하는 정규화 유틸.
- * 처리 규칙: 숫자가 아니거나 NaN이면 1, 1 미만 값은 1로 보정한다.
- * @updated 2026-02-27
- */
-const normalizeInitialPage = (page) => {
-  if (typeof page !== 'number' || Number.isNaN(page)) return 1;
-  return page < 1 ? 1 : Math.floor(page);
-};
 
 /**
  * @description PDF 파일 소스 렌더링, 로딩 상태, 에러 패널을 통합 제공하는 뷰어 컴포넌트.
@@ -79,27 +38,43 @@ const PdfViewer = ({
   onError,
 }) => {
 
-  const normalizedInitialPage = normalizeInitialPage(initialPage);
+  let normalizedInitialPage = 1;
+  if (typeof initialPage === 'number' && !Number.isNaN(initialPage)) {
+    normalizedInitialPage = initialPage < 1 ? 1 : Math.floor(initialPage);
+  }
   const [objectUrl, setObjectUrl] = useState(null);
   const [viewerError, setViewerError] = useState(null);
   const [isLoading, setIsLoading] = useState(Boolean(src));
-  const [documentState, setDocumentState] = useState(() => initialDocumentState(normalizedInitialPage));
+  const [documentState, setDocumentState] = useState(() => ({
+    currentPage: normalizedInitialPage,
+    totalPages: 0,
+    zoom: 1,
+  }));
 
   // 한글설명: 툴바 플러그인은 다른 훅 내부가 아닌 컴포넌트 최상위에서 초기화
   const defaultLayoutPluginInstance = Boolean(withToolbar)
     ? defaultLayoutPlugin({ renderToolbar: (Toolbar) => <Toolbar /> })
     : null;
 
-  const plugins = useMemo(() => (defaultLayoutPluginInstance ? [defaultLayoutPluginInstance] : []), [defaultLayoutPluginInstance]);
+  const plugins = defaultLayoutPluginInstance ? [defaultLayoutPluginInstance] : [];
 
   // 한글설명: 플러그인은 동적 import 없이 위에서 동기 생성
 
   /**
-   * @description useEffect 실행 흐름 관리
-   * 처리 규칙: effect 실행/cleanup 경계를 명시적으로 유지.
+   * @description src 변경 시 objectUrl 생성 및 blob URL revoke
+   * 처리 규칙: cleanup에서 blob: URL에 대해 revokeObjectURL을 시도한다.
    */
   useEffect(() => {
-    const nextFileUrl = toObjectUrl(src);
+    let nextFileUrl = null;
+    if (typeof src === 'string') {
+      nextFileUrl = src;
+    } else if (src instanceof ArrayBuffer) {
+      nextFileUrl = URL.createObjectURL(new Blob([src], { type: 'application/pdf' }));
+    } else if (src) {
+      const isFileLikeSource =
+        typeof src === 'object' && (src instanceof Blob || src instanceof File);
+      if (isFileLikeSource) nextFileUrl = URL.createObjectURL(src);
+    }
     setObjectUrl(nextFileUrl);
     return () => {
       if (nextFileUrl) {
@@ -108,6 +83,7 @@ const PdfViewer = ({
             try {
               URL.revokeObjectURL(nextFileUrl);
             } catch {
+
               // 한글설명: revoke 실패는 화면 동작에 영향 없으므로 무시
             }
           }
@@ -117,8 +93,8 @@ const PdfViewer = ({
   }, [src]);
 
   /**
-   * @description useEffect 실행 흐름 관리
-   * 처리 규칙: effect 실행/cleanup 경계를 명시적으로 유지.
+   * @description objectUrl 변경 시 viewer 로딩·문서 상태 초기화
+   * 처리 규칙: objectUrl이 없으면 isLoading=false, 있으면 documentState를 reset한다.
    */
   useEffect(() => {
     if (!objectUrl) {
@@ -127,26 +103,12 @@ const PdfViewer = ({
     }
     setViewerError(null);
     setIsLoading(true);
-    setDocumentState(initialDocumentState(normalizedInitialPage));
+    setDocumentState({
+      currentPage: normalizedInitialPage,
+      totalPages: 0,
+      zoom: 1,
+    });
   }, [objectUrl, normalizedInitialPage]);
-
-  /**
-   * @description 현재 PDF 뷰어 상태를 접근성 안내 문구(aria-live)로 직렬화하는 포매터.
-   * 처리 규칙: error/source/loading/ready 상태 우선순위로 분기해 aria-live용 문자열을 반환한다.
-   * @updated 2026-02-27
-   */
-  const describeDocumentStatus = () => {
-    if (viewerError) return COMMON_COMPONENT_LANG_KO.pdfViewer.loadFailedStatus;
-    if (!objectUrl) return COMMON_COMPONENT_LANG_KO.pdfViewer.sourceUnavailableStatus;
-    if (isLoading || documentState.totalPages === 0) {
-      return COMMON_COMPONENT_LANG_KO.pdfViewer.loadingStatus;
-    }
-    if (documentState.totalPages > 0) {
-      const zoomPercent = Math.round(documentState.zoom * 100);
-      return `총 ${documentState.totalPages}페이지 중 ${documentState.currentPage}페이지, 확대 ${zoomPercent}%`;
-    }
-    return COMMON_COMPONENT_LANG_KO.pdfViewer.readyStatus;
-  };
 
   /**
    * @description 문서 로드 성공 이벤트를 반영
@@ -160,17 +122,6 @@ const PdfViewer = ({
       totalPages: event?.doc?.numPages ?? prev.totalPages,
     }));
     onLoad?.(event);
-  };
-
-  /**
-   * @description 문서 로드 실패 이벤트를 반영
-   * 처리 규칙: loading을 해제하고 viewerError를 저장한 뒤 외부 onError 콜백을 호출한다.
-   * @updated 2026-02-27
-   */
-  const handleDocumentLoadFailed = (event) => {
-    setIsLoading(false);
-    setViewerError(event?.error ?? event);
-    onError?.(event);
   };
 
   /**
@@ -202,30 +153,45 @@ const PdfViewer = ({
   /**
    * @description 에러 객체에서 HTTP 상태코드를 추출
    * 처리 규칙: `status` 우선, 없으면 `statusCode`를 확인하고 둘 다 없으면 null을 반환한다.
-   * @updated 2026-02-27
-   */
-  const errorStatusCode = (() => {
-    const { status, statusCode } = viewerError ?? {};
-    if (typeof status === 'number') return status;
-    if (typeof statusCode === 'number') return statusCode;
-    return null;
-  })();
+  * @updated 2026-02-27
+  */
+  const viewerErrorObj = viewerError ?? {};
+  let errorStatusCode = null;
+  if (typeof viewerErrorObj.status === 'number') {
+    errorStatusCode = viewerErrorObj.status;
+  } else if (typeof viewerErrorObj.statusCode === 'number') {
+    errorStatusCode = viewerErrorObj.statusCode;
+  }
 
   /**
    * @description 에러 객체를 사용자 표시용 문자열로 직렬화하는 메시지 포매터.
    * 처리 규칙: string > message > name 순서로 fallback 하며 모두 없으면 기본 문구를 반환한다.
    * @updated 2026-02-27
    */
-  const errorMessage = (() => {
-    if (!viewerError) return null;
-    if (typeof viewerError === 'string') return viewerError;
-    if (viewerError?.message) return viewerError.message;
-    if (viewerError?.name) return `${viewerError.name} error`;
-    return COMMON_COMPONENT_LANG_KO.pdfViewer.loadFailedDescription;
-  })();
+  let errorMessage = null;
+  if (viewerError) {
+    if (typeof viewerError === 'string') errorMessage = viewerError;
+    else if (viewerError.message) errorMessage = viewerError.message;
+    else if (viewerError.name) errorMessage = `${viewerError.name} error`;
+    else errorMessage = COMMON_COMPONENT_LANG_KO.pdfViewer.loadFailedDescription;
+  }
 
   const shouldRenderViewer = Boolean(objectUrl) && !viewerError;
   const showMissingSource = !viewerError && !objectUrl && !isLoading;
+  let documentStatusText = COMMON_COMPONENT_LANG_KO.pdfViewer.readyStatus;
+  if (viewerError) {
+    documentStatusText = COMMON_COMPONENT_LANG_KO.pdfViewer.loadFailedStatus;
+  } else if (!objectUrl) {
+    documentStatusText = COMMON_COMPONENT_LANG_KO.pdfViewer.sourceUnavailableStatus;
+  } else if (isLoading || documentState.totalPages === 0) {
+    documentStatusText = COMMON_COMPONENT_LANG_KO.pdfViewer.loadingStatus;
+  } else if (documentState.totalPages > 0) {
+    const zoomPercent = Math.round(documentState.zoom * 100);
+    documentStatusText = COMMON_COMPONENT_LANG_KO.pdfViewer.pageStatusTemplate
+      .replace("{totalPages}", String(documentState.totalPages))
+      .replace("{currentPage}", String(documentState.currentPage))
+      .replace("{zoomPercent}", `${zoomPercent}%`);
+  }
 
   return (
     <div
@@ -238,21 +204,13 @@ const PdfViewer = ({
       data-zoom={documentState.zoom.toFixed(2)}
     >
       <span className="sr-only" aria-live="polite">
-        {describeDocumentStatus()}
+        {documentStatusText}
       </span>
 
       {isLoading && !viewerError && (
         <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/75 backdrop-blur-sm" aria-hidden="true">
           <div className="flex flex-col items-center gap-3 text-gray-600">
-            <svg
-              className="h-6 w-6 animate-spin text-blue-500"
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-            >
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
-            </svg>
+            <Icon icon="ri:RiLoader4Line" className="h-6 w-6 animate-spin text-blue-500" size="1.5em" />
             <span className="text-sm font-medium">{COMMON_COMPONENT_LANG_KO.pdfViewer.loadingText}</span>
           </div>
         </div>
@@ -289,7 +247,11 @@ const PdfViewer = ({
             defaultScale={1}
             initialPage={normalizedInitialPage - 1}
             onDocumentLoad={handleDocumentLoad}
-            onDocumentLoadFailed={handleDocumentLoadFailed}
+            onDocumentLoadFailed={(event) => {
+              setIsLoading(false);
+              setViewerError(event?.error ?? event);
+              onError?.(event);
+            }}
             onPageChange={handlePageChange}
             onZoom={handleZoom}
             plugins={plugins}

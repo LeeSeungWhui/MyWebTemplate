@@ -1,9 +1,18 @@
+"""
+파일명: backend/tests/test_auth.py
+작성자: LSH
+갱신일: 2026-04-08
+설명: 인증 Web/App 계약, 비밀번호 재설정 요청, 회원가입 API 통합테스트
+"""
+
 import os
 import sys
-import sqlite3
 import uuid
 import importlib
 from fastapi.testclient import TestClient
+
+from conftest import pgTestSettings
+from db_support import executePg, fetchValPg
 
 baseDir = os.path.dirname(os.path.dirname(__file__))
 if baseDir not in sys.path:
@@ -217,6 +226,41 @@ def testWebLogoutRequiresAllowedOriginHeader():
         assert deniedBody["code"] == "AUTH_403_ORIGIN_DENIED"
 
 
+def testPasswordResetRequestAlwaysReturnsSuccessForValidEmail():
+    from server import app
+    with TestClient(app) as client:
+        existingResponse = client.post(
+            "/api/v1/auth/password-reset/request",
+            json={"email": "demo@demo.demo"},
+        )
+        assert existingResponse.status_code == 200
+        existingBody = existingResponse.json()
+        assert existingBody["status"] is True
+        assert existingBody["result"]["accepted"] is True
+
+        missingResponse = client.post(
+            "/api/v1/auth/password-reset/request",
+            json={"email": "missing@demo.demo"},
+        )
+        assert missingResponse.status_code == 200
+        missingBody = missingResponse.json()
+        assert missingBody["status"] is True
+        assert missingBody["result"]["accepted"] is True
+
+
+def testPasswordResetRequestRejectsInvalidEmail():
+    from server import app
+    with TestClient(app) as client:
+        response = client.post(
+            "/api/v1/auth/password-reset/request",
+            json={"email": "not-an-email"},
+        )
+        assert response.status_code == 422
+        body = response.json()
+        assert body["status"] is False
+        assert body["code"] == "AUTH_422_INVALID_INPUT"
+
+
 def testWebOriginAllowsServerFrontendHostFallback(monkeypatch):
     from router import AuthRouter
 
@@ -344,7 +388,7 @@ def testRefreshReturns503WhenTokenStateCleanupFails(monkeypatch):
         return True
 
     monkeypatch.setattr(AuthService, "ensureTokenStateStore", alwaysReadyStore)
-    monkeypatch.setattr(AuthService, "_getTokenStateStoreDbManager", lambda: BrokenTokenStateDbManager())
+    monkeypatch.setattr(AuthService, "getTokenStateStoreDbManager", lambda: BrokenTokenStateDbManager())
 
     with TestClient(app) as client:
         loginResponse = client.post(
@@ -380,7 +424,7 @@ def testRefreshReturns503WhenTokenStateWriteFails(monkeypatch):
         return True
 
     monkeypatch.setattr(AuthService, "ensureTokenStateStore", alwaysReadyStore)
-    monkeypatch.setattr(AuthService, "_getTokenStateStoreDbManager", lambda: BrokenTokenStateDbManager())
+    monkeypatch.setattr(AuthService, "getTokenStateStoreDbManager", lambda: BrokenTokenStateDbManager())
 
     with TestClient(app) as client:
         loginResponse = client.post(
@@ -401,13 +445,7 @@ def testRefreshAutoCreatesTokenStateTableWhenMissing(monkeypatch):
     from server import app
     from service import AuthService
 
-    dbPath = os.path.join(baseDir, "data", "test.db")
-    con = sqlite3.connect(dbPath)
-    try:
-        con.execute("DROP TABLE IF EXISTS T_TOKEN")
-        con.commit()
-    finally:
-        con.close()
+    executePg(pgTestSettings, "DROP TABLE IF EXISTS T_TOKEN")
 
     monkeypatch.setattr(AuthService, "tokenStateStoreReady", False)
 
@@ -421,14 +459,8 @@ def testRefreshAutoCreatesTokenStateTableWhenMissing(monkeypatch):
         refreshResponse = client.post("/api/v1/auth/refresh", headers=WEB_ORIGIN_HEADERS)
         assert refreshResponse.status_code == 200
 
-    con = sqlite3.connect(dbPath)
-    try:
-        cursor = con.execute(
-            "SELECT name FROM sqlite_master WHERE type = 'table' AND upper(name) = 'T_TOKEN'"
-        )
-        assert cursor.fetchone() is not None
-    finally:
-        con.close()
+    tableName = fetchValPg(pgTestSettings, "SELECT to_regclass('public.t_token')")
+    assert tableName is not None
 
 
 def testLogoutReturns503WhenTokenStateStoreUnavailable(monkeypatch):
@@ -468,7 +500,7 @@ def testLogoutReturns503WhenTokenStateCleanupFails(monkeypatch):
         return True
 
     monkeypatch.setattr(AuthService, "ensureTokenStateStore", alwaysReadyStore)
-    monkeypatch.setattr(AuthService, "_getTokenStateStoreDbManager", lambda: BrokenTokenStateDbManager())
+    monkeypatch.setattr(AuthService, "getTokenStateStoreDbManager", lambda: BrokenTokenStateDbManager())
 
     with TestClient(app) as client:
         loginResponse = client.post(
@@ -504,7 +536,7 @@ def testLogoutReturns503WhenTokenStateWriteFails(monkeypatch):
         return True
 
     monkeypatch.setattr(AuthService, "ensureTokenStateStore", alwaysReadyStore)
-    monkeypatch.setattr(AuthService, "_getTokenStateStoreDbManager", lambda: BrokenTokenStateDbManager())
+    monkeypatch.setattr(AuthService, "getTokenStateStoreDbManager", lambda: BrokenTokenStateDbManager())
 
     with TestClient(app) as client:
         loginResponse = client.post(
@@ -542,13 +574,93 @@ def testRefreshPreservesSessionCookieWhenNotRemember():
         assert "max-age" not in refreshedCookieHeader.lower()
 
 
+def testLoginRememberMeNonBooleanDoesNotPersistRefreshCookie():
+    from server import app
+    from lib.Auth import AuthConfig
+
+    with TestClient(app) as client:
+        for rememberValue in ["false", "0", {}, []]:
+            response = client.post(
+                "/api/v1/auth/login",
+                json={
+                    "username": "demo@demo.demo",
+                    "password": "password123",
+                    "rememberMe": rememberValue,
+                },
+            )
+            assert response.status_code == 200
+            refreshCookieHeader = findCookie(response.headers, AuthConfig.refreshCookieName)
+            assert refreshCookieHeader
+            assert "max-age" not in refreshCookieHeader.lower()
+
+
+def testAppLoginRememberMeNonBooleanIssuesNonPersistentTokenPayload():
+    from server import app
+    from service import AuthService
+
+    with TestClient(app) as client:
+        response = client.post(
+            "/api/v1/auth/app/login",
+            json={"username": "demo@demo.demo", "password": "password123", "rememberMe": "false"},
+        )
+        assert response.status_code == 200
+        refreshToken = response.json()["result"]["refreshToken"]
+        payload = AuthService.decodeRefreshTokenPayload(refreshToken)
+        assert payload is not None
+        assert payload.get("remember") is False
+
+
+def testRefreshDbGraceStateDoesNotPersistRawTokenPayload(monkeypatch):
+    from server import app
+    from lib.Auth import AuthConfig
+    from service import AuthService
+
+    capturedTokenStateParams = []
+
+    class CapturingTokenStateDbManager:
+        async def executeQuery(self, queryName, bindValues=None):
+            if queryName in {"auth.insertTokenState", "auth.updateTokenState"}:
+                capturedTokenStateParams.append(dict(bindValues or {}))
+            return True
+
+        async def fetchOneQuery(self, queryName, bindValues=None):
+            return None
+
+    async def alwaysReadyStore():
+        return True
+
+    AuthService.refreshGraceStore.clear()
+    AuthService.revokedRefreshJtiStore.clear()
+    monkeypatch.setattr(AuthConfig, "refreshGraceMs", 500)
+    monkeypatch.setattr(AuthService, "ensureTokenStateStore", alwaysReadyStore)
+    monkeypatch.setattr(AuthService, "getTokenStateStoreDbManager", lambda: CapturingTokenStateDbManager())
+
+    with TestClient(app) as client:
+        response = client.post(
+            "/api/v1/auth/login",
+            json={"username": "demo@demo.demo", "password": "password123", "rememberMe": True},
+        )
+        assert response.status_code == 200
+
+        refreshResponse = client.post("/api/v1/auth/refresh", headers=WEB_ORIGIN_HEADERS)
+        assert refreshResponse.status_code == 200
+
+    graceWrites = [
+        params
+        for params in capturedTokenStateParams
+        if params.get("stateType") == AuthService.TOKEN_STATE_GRACE
+    ]
+    assert graceWrites
+    assert all(params.get("tokenPayloadJson") is None for params in graceWrites)
+
+
 def testRefreshTokenReuseGraceWindow(monkeypatch):
     from server import app
     from lib.Auth import AuthConfig
     from service import AuthService
 
     now = {"ms": 1_700_000_000_000}
-    monkeypatch.setattr(AuthService, "_nowMs", lambda: now["ms"])
+    monkeypatch.setattr(AuthService, "readCurrentEpochMs", lambda: now["ms"])
 
     with TestClient(app) as client:
         monkeypatch.setattr(AuthConfig, "refreshGraceMs", 500)

@@ -40,12 +40,15 @@ except Exception:
 # =========================
 
 dbManagers: dict[str, "DatabaseManager"] = {}
+
 # 기본 DB 이름(템플릿 기본값은 main_db)
 primaryDbName: str | None = None
+
 # 일부 서드파티 패키지는 PEP 561 타입 스텁이 없어 Pylance가 Unknown으로 인식한다.
 sqlObserver: Any | None = None
 
 baseDir = os.path.dirname(__file__)
+
 # 기본 쿼리 디렉터리: backend/query
 queryDir: str = os.path.normpath(os.path.join(baseDir, "..", "query"))
 queryWatch: bool = True
@@ -62,6 +65,23 @@ SENSITIVE_SQL_PARAM_NAME_PATTERN = re.compile(
 )
 EMAIL_LITERAL_PATTERN = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 JWT_LITERAL_PATTERN = re.compile(r"^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$")
+INLINE_SQL_STRING_LITERAL_PATTERN = r"'(?:''|[^'])*'"
+INLINE_SQL_NUMERIC_LITERAL_PATTERN = r"-?\d+(?:\.\d+)?"
+UNSAFE_INLINE_LITERAL_PREDICATE_PATTERN = re.compile(
+    rf"""
+    \b(?:where|having)\b
+    [\s\S]*?
+    (?:
+        (?:=|<>|!=|<=|>=|<|>|\blike\b)\s*(?:{INLINE_SQL_STRING_LITERAL_PATTERN}|{INLINE_SQL_NUMERIC_LITERAL_PATTERN})
+        |
+        \bin\s*\(
+            \s*(?:{INLINE_SQL_STRING_LITERAL_PATTERN}|{INLINE_SQL_NUMERIC_LITERAL_PATTERN})
+            (?:\s*,\s*(?:{INLINE_SQL_STRING_LITERAL_PATTERN}|{INLINE_SQL_NUMERIC_LITERAL_PATTERN}))*
+            \s*\)
+    )
+    """,
+    re.IGNORECASE | re.VERBOSE,
+)
 
 
 def maskDatabaseUrl(url: str) -> str:
@@ -117,6 +137,7 @@ def getPrimaryDbName() -> str:
     반환값: 현재 프로세스에서 사용할 기본 DB 키 문자열
     갱신일: 2025-11-12
     """
+
     # 우선순위: 명시적 설정 → 환경변수 → 템플릿 기본값 → 등록된 첫 DB
     if primaryDbName:
         return primaryDbName
@@ -126,6 +147,7 @@ def getPrimaryDbName() -> str:
     if "main_db" in dbManagers:
         return "main_db"
     if dbManagers:
+
         # 키가 여러 개면 사전순 첫 번째를 사용
         try:
             return sorted(dbManagers.keys())[0]
@@ -207,6 +229,7 @@ class DatabaseManager:
 
     def extractPlaceholders(self, query: str) -> set[str]:
         """설명: 쿼리에서 :name 형 플레이스홀더 목록 추출 반환값: 바인딩 이름 집합(set). 갱신일: 2025-11-12"""
+
         # 예시: :id, :user_name 등 명명 파라미터
         # PostgreSQL 캐스트(::jsonb)와 구분하기 위해 단일 ':'만 파라미터로 본다.
         return set(re.findall(r"(?<!:):([a-zA-Z_][a-zA-Z0-9_]*)", query or ""))
@@ -340,6 +363,13 @@ class DatabaseManager:
 
         return pattern.sub(replace, normalizedQuery)
 
+    def hasUnsafeInlineLiteralPredicate(self, query: str) -> bool:
+        """설명: raw SQL의 WHERE/HAVING 절에 직접 박힌 문자열/숫자 리터럴 조건이 있는지 판별 반환값: 위험 패턴이면 True. 갱신일: 2026-06-04"""
+        normalized = self.normalizeQueryForLog(query)
+        if not normalized:
+            return False
+        return UNSAFE_INLINE_LITERAL_PREDICATE_PATTERN.search(normalized) is not None
+
     def logQuery(self, op: str, query: str, values: dict[str, Any] | None = None, queryName: str | None = None) -> None:
         """설명: SQL 로그 읽기 쉬운 최소 필드(queryName/sqlRendered)로 구성 부작용: logger.info로 단일 JSON 로그 기록. 갱신일: 2026-02-22"""
         normalized = self.normalizeQueryForLog(query)
@@ -352,13 +382,46 @@ class DatabaseManager:
         payload["queryName"] = queryName or op
         logger.info(json.dumps(payload, ensure_ascii=False))
 
-    def validateBindParameters(self, query: str, values: dict[str, Any] | None):
+    def validateBindParameters(
+        self,
+        query: str,
+        values: dict[str, Any] | None,
+        queryName: str | None = None,
+    ):
         """설명: 제공된 파라미터와 플레이스홀더 일치 여부 검사 실패 동작: 누락/미사용/치환오용이면 ValueError 발생. 갱신일: 2025-11-12"""
+        self._validateBindParameters(query, values, queryName=queryName, allowStaticSqlLiteralPredicate=False)
+
+    def _validateBindParameters(
+        self,
+        query: str,
+        values: dict[str, Any] | None,
+        queryName: str | None = None,
+        allowStaticSqlLiteralPredicate: bool = False,
+    ):
+        """설명: 내부 SQL 실행 경로용 바인드/리터럴 검증 헬퍼 실패 동작: 누락/미사용/치환오용이면 ValueError 발생. 갱신일: 2026-06-04"""
         values = values or {}
         placeholders = self.extractPlaceholders(query)
         provided = set(values.keys())
 
+        if (
+            not allowStaticSqlLiteralPredicate
+            and not provided
+            and not placeholders
+            and self.hasUnsafeInlineLiteralPredicate(query)
+        ):
+            logger.warning(
+                json.dumps(
+                    {
+                        "event": "db.bind.warn",
+                        "msg": "unsafe inline literal predicate without bind params",
+                    },
+                    ensure_ascii=False,
+                )
+            )
+            raise ValueError("DB_400_INLINE_LITERAL_UNSAFE")
+
         if provided and not placeholders:
+
             # 값만 있고 바인딩이 없으면 문자열 치환 오용 가능성
             logger.warning(
                 json.dumps(
@@ -403,6 +466,7 @@ class DatabaseManager:
         """설명: DB 연결 시작 및 SQLite 튜닝 적용 부작용: 연결 성립 후 WAL/timeout/synchronous pragma 시도. 갱신일: 2025-11-12"""
         await self.database.connect()
         logger.info(f"Connected to database {maskDatabaseUrl(self.databaseUrl)}")
+
         # SQLite 잠금 오류를 줄이기 위한 pragma 적용
         try:
             if (self.databaseUrl or "").startswith("sqlite"):
@@ -423,7 +487,7 @@ class DatabaseManager:
         반환값: DB 드라이버가 반환한 영향 행 수 또는 실행 결과 값
         갱신일: 2025-11-12
         """
-        self.validateBindParameters(query, values)
+        self._validateBindParameters(query, values, queryName=queryName, allowStaticSqlLiteralPredicate=False)
         self.logQuery("execute", query, values, queryName)
         result = await self.database.execute(query=query, values=values or {})
         logger.info(f"rows_affected={result}")
@@ -439,7 +503,7 @@ class DatabaseManager:
         반환값: 조회된 단일 행(dict) 또는 None
         갱신일: 2025-11-12
         """
-        self.validateBindParameters(query, values)
+        self._validateBindParameters(query, values, queryName=queryName, allowStaticSqlLiteralPredicate=False)
         self.logQuery("fetchOne", query, values, queryName)
         result = await self.database.fetch_one(query=query, values=values or {})
         if result is not None:
@@ -461,7 +525,7 @@ class DatabaseManager:
         반환값: dict 리스트 또는 None
         갱신일: 2025-11-12
         """
-        self.validateBindParameters(query, values)
+        self._validateBindParameters(query, values, queryName=queryName, allowStaticSqlLiteralPredicate=False)
         self.logQuery("fetchAll", query, values, queryName)
         result = await self.database.fetch_all(query=query, values=values or {})
         if result is not None:
@@ -480,7 +544,12 @@ class DatabaseManager:
         if not query:
             logger.info(f"cannot find query name : {queryName}")
             raise ValueError(f"Query not found: {queryName}")
-        return await self.execute(query, values, queryName=queryName)
+        self._validateBindParameters(query, values, queryName=queryName, allowStaticSqlLiteralPredicate=True)
+        self.logQuery("execute", query, values, queryName)
+        result = await self.database.execute(query=query, values=values or {})
+        logger.info(f"rows_affected={result}")
+        incSqlCount()
+        return result
 
     async def fetchOneQuery(self, queryName: str, values: dict[str, Any] | None = None) -> dict[str, Any] | None:
         """설명: 등록 쿼리 중 단일 행 조회 실패 동작: queryName 미등록이면 ValueError 발생. 갱신일: 2025-11-12"""
@@ -488,7 +557,18 @@ class DatabaseManager:
         if not query:
             logger.info(f"cannot find query name : {queryName}")
             raise ValueError(f"Query not found: {queryName}")
-        return await self.fetchOne(query, values, queryName=queryName)
+        self._validateBindParameters(query, values, queryName=queryName, allowStaticSqlLiteralPredicate=True)
+        self.logQuery("fetchOne", query, values, queryName)
+        result = await self.database.fetch_one(query=query, values=values or {})
+        if result is not None:
+            data: dict[str, Any] = dict(result)
+            logger.info("rows_returned=1")
+            incSqlCount()
+            return data
+        else:
+            logger.info("rows_returned=0")
+            incSqlCount()
+            return None
 
     async def fetchAllQuery(
         self, queryName: str, values: dict[str, Any] | None = None
@@ -498,8 +578,18 @@ class DatabaseManager:
         if not query:
             logger.info(f"cannot find query name : {queryName}")
             raise ValueError(f"Query not found: {queryName}")
-        return await self.fetchAll(query, values, queryName=queryName)
-
+        self._validateBindParameters(query, values, queryName=queryName, allowStaticSqlLiteralPredicate=True)
+        self.logQuery("fetchAll", query, values, queryName)
+        result = await self.database.fetch_all(query=query, values=values or {})
+        if result is not None:
+            data: list[dict[str, Any]] = [{column: row[column] for column in row.keys()} for row in result]  # type: ignore[index]
+            logger.info(f"rows_returned={len(data)}")
+            incSqlCount()
+            return data
+        else:
+            logger.info("rows_returned=0")
+            incSqlCount()
+            return None
 
 # =========================
 # 쿼리 로더 설정 및 동작
@@ -557,17 +647,21 @@ def doReload() -> bool:
     try:
         qm = QueryManager.getInstance()
         if changedFile and os.path.isfile(changedFile):
+
             # 특정 파일만 부분 재로딩
             pairs = parseSqlFile(changedFile)
+
             # 기존 상태를 복사
             newQueries = dict(qm.queries)
             newNameToFile = dict(qm.nameToFile)
             newFileToNames = {fp: set(names) for fp, names in qm.fileToNames.items()}
+
             # 해당 파일에서 이전 키 삭제
             oldNames = newFileToNames.get(changedFile, set())
             for n in oldNames:
                 newQueries.pop(n, None)
                 newNameToFile.pop(n, None)
+
             # 새 항목 추가 + 파일 간 중복 검사
             for name, sql in pairs:
                 owner = newNameToFile.get(name)
@@ -587,6 +681,7 @@ def doReload() -> bool:
             "duration_ms": durationMs,
         }
         logger.error(json.dumps(errPayload, ensure_ascii=False))
+
         # 실패 시 기존 상태 유지
         return False
 

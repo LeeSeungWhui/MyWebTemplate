@@ -18,9 +18,9 @@ describe("dashboard layout meta", () => {
     expect(layoutMeta.subtitle).toContain("정렬: 금액 높은순");
     expect(layoutMeta.subtitle).toContain("검색: 로그");
     expect(layoutMeta.subtitle).toContain("페이지: 2");
-    expect(layoutMeta.menuList.find((item) => item.menuId === "tasks")?.active).toBe(true);
+    expect(layoutMeta.menuList.find((menuItemObj) => menuItemObj.menuId === "tasks")?.active).toBe(true);
     expect(
-      layoutMeta.subMenuList.find((item) => item.subMenuId === "running")?.active
+      layoutMeta.subMenuList.find((subMenuItemObj) => subMenuItemObj.subMenuId === "running")?.active
     ).toBe(true);
   });
 
@@ -32,7 +32,7 @@ describe("dashboard layout meta", () => {
 
     expect(layoutMeta.title).toBe("대시보드");
     expect(layoutMeta.subtitle).toBe("대시보드 > 요약");
-    expect(layoutMeta.menuList.find((item) => item.menuId === "dashboard")?.active).toBe(
+    expect(layoutMeta.menuList.find((menuItemObj) => menuItemObj.menuId === "dashboard")?.active).toBe(
       true
     );
     expect(layoutMeta.subMenuList).toEqual([]);
@@ -46,7 +46,7 @@ describe("dashboard layout meta", () => {
 
     expect(layoutMeta.title).toBe("설정");
     expect(layoutMeta.subtitle).toBe("대시보드 > 설정 > 시스템 설정");
-    expect(layoutMeta.menuList.find((item) => item.menuId === "settings")?.active).toBe(
+    expect(layoutMeta.menuList.find((menuItemObj) => menuItemObj.menuId === "settings")?.active).toBe(
       true
     );
   });

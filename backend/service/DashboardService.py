@@ -7,23 +7,26 @@
 
 import json
 import sqlite3
+from decimal import Decimal
 from typing import Any, Dict, List, Optional
 
 from lib import Database as DB
 from lib.Casing import convertKeysToCamelCase
+from lib.Config import getConfig
+from lib.Idempotency import beginIdempotencyRequest, completeIdempotencyRequest
 from lib.ServiceError import ServiceError
 from lib.Transaction import transaction
 
-ALLOWED_STATUS = {"ready", "pending", "running", "done", "failed"}
+ALLOWED_STATUS = frozenset(("ready", "pending", "running", "done", "failed"))
 SQLITE_LOCK_RETRY_COUNT = 8
-ALLOWED_SORT = {
+ALLOWED_SORT = frozenset((
     "reg_dt_desc",
     "reg_dt_asc",
     "amt_desc",
     "amt_asc",
     "title_desc",
     "title_asc",
-}
+))
 
 
 def toIntOrDefault(rawValue: Optional[Any], defaultValue: int) -> int:
@@ -106,6 +109,31 @@ def parseTagList(rawTags: Any) -> List[str]:
             pass
         return [tag.strip() for tag in text.split(",") if tag.strip()]
     raise ServiceError("DASH_422_INVALID_INPUT")
+
+
+def normalizeDashboardJsonValue(value: Any) -> Any:
+    """
+    설명: asyncpg/PostgreSQL numeric 등 JSONResponse가 직접 직렬화하지 못하는 값을 JSON-safe 값으로 변환
+    반환값: dict/list 구조를 유지하되 Decimal을 int 또는 float으로 변환한 값
+    갱신일: 2026-06-04
+    """
+    if isinstance(value, Decimal):
+        integralValue = value.to_integral_value()
+        return int(integralValue) if value == integralValue else float(value)
+    if isinstance(value, list):
+        return [normalizeDashboardJsonValue(item) for item in value]
+    if isinstance(value, dict):
+        return {key: normalizeDashboardJsonValue(itemValue) for key, itemValue in value.items()}
+    return value
+
+
+def convertDashboardRow(row: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    설명: DB row를 대시보드 응답용 camelCase + JSON-safe 값으로 변환
+    반환값: JSONResponse content에 바로 넣을 수 있는 dict
+    갱신일: 2026-06-04
+    """
+    return normalizeDashboardJsonValue(convertKeysToCamelCase(row))
 
 
 def normalizeTitle(rawTitle: Any) -> str:
@@ -256,8 +284,6 @@ def normalizeUserId(rawUserId: Any) -> str:
 
 async def listDataTemplates(
     userId: str,
-    limit: Optional[int] = None,
-    offset: Optional[int] = None,
     q: Optional[str] = None,
     status: Optional[str] = None,
     page: Optional[int] = None,
@@ -266,56 +292,64 @@ async def listDataTemplates(
 ) -> Dict[str, Any]:
     """
     설명: 검색/필터/페이지네이션 파라미터를 안전값으로 보정해 업무 목록을 조회하 서비스
-    반환값: items/total/page/size/sort를 포함한 목록 조회 결과 dict
+    반환값: dataTemplateList/total/page/size/sort를 포함한 목록 조회 결과 dict
     갱신일: 2026-02-22
     """
     db = ensureDbManager()
     ownerUserId = normalizeUserId(userId)
-    safeSort = normalizeSort(sort)
-    safeQ = normalizeKeyword(q)
-    safeStatus = normalizeStatus(status)
+    sortValue = normalizeSort(sort)
+    keywordValue = normalizeKeyword(q)
+    statusValue = normalizeStatus(status)
+    listPolicy = getConfig()
+    globalPolicy = listPolicy["API_POLICY"] if "API_POLICY" in listPolicy else None
+    dashboardListPolicy = listPolicy["API_POLICY.dashboard.list"] if "API_POLICY.dashboard.list" in listPolicy else None
+    absoluteListSizeCap = clampValue(
+        globalPolicy.get("absolute_list_size_cap") if globalPolicy else None,
+        500,
+        1,
+        500,
+    )
+    listSizeMax = clampValue(
+        dashboardListPolicy.get("list_size_max") if dashboardListPolicy else (globalPolicy.get("list_size_max") if globalPolicy else None),
+        50,
+        1,
+        absoluteListSizeCap,
+    )
 
-    if page is not None or size is not None:
-        safePage = clampValue(page, 1, 1, 100000)
-        safeSize = clampValue(size, 20, 1, 200)
-        safeOffset = (safePage - 1) * safeSize
-    else:
-        safeSize = clampValue(limit, 50, 1, 200)
-        safeOffset = clampValue(offset, 0, 0, 10_000_000)
-        safePage = (safeOffset // safeSize) + 1
+    pageValue = clampValue(page, 1, 1, 100000)
+    sizeValue = min(clampValue(size, 20, 1, absoluteListSizeCap), listSizeMax)
+    offsetValue = (pageValue - 1) * sizeValue
 
     binds = {
         "userId": ownerUserId,
-        "q": safeQ,
-        "qLike": f"%{safeQ}%" if safeQ else "",
-        "status": safeStatus,
-        "sort": safeSort,
-        "limit": safeSize,
-        "offset": safeOffset,
+        "q": keywordValue,
+        "qLike": f"%{keywordValue}%" if keywordValue else "",
+        "status": statusValue,
+        "sort": sortValue,
+        "limit": sizeValue,
+        "offset": offsetValue,
     }
     countBinds = {
         "userId": ownerUserId,
-        "q": safeQ,
-        "qLike": f"%{safeQ}%" if safeQ else "",
-        "status": safeStatus,
+        "q": keywordValue,
+        "qLike": f"%{keywordValue}%" if keywordValue else "",
+        "status": statusValue,
     }
     rows = await db.fetchAllQuery("dashboard.list", binds) or []
     countRow = await db.fetchOneQuery("dashboard.listCount", countBinds) or {}
-    items = [convertKeysToCamelCase(row) for row in rows]
+    dataTemplateList = [convertDashboardRow(row) for row in rows]
     countResult = convertKeysToCamelCase(countRow)
     totalCount = int(countResult.get("totalCount", 0) or 0)
 
     return {
-        "items": items,
-        "count": len(items),
+        "dataTemplateList": dataTemplateList,
+        "count": len(dataTemplateList),
         "total": totalCount,
-        "page": safePage,
-        "size": safeSize,
-        "limit": safeSize,
-        "offset": safeOffset,
-        "sort": safeSort,
-        "q": safeQ,
-        "status": safeStatus,
+        "page": pageValue,
+        "size": sizeValue,
+        "sort": sortValue,
+        "q": keywordValue,
+        "status": statusValue,
     }
 
 
@@ -330,11 +364,11 @@ async def getDataTemplateDetail(dataId: int, userId: str) -> Dict[str, Any]:
     row = await db.fetchOneQuery("dashboard.detail", {"id": int(dataId), "userId": ownerUserId})
     if not row:
         raise ServiceError("DASH_404_NOT_FOUND")
-    return convertKeysToCamelCase(row)
+    return convertDashboardRow(row)
 
 
 @transaction("main_db", retries=SQLITE_LOCK_RETRY_COUNT, retryOn=(sqlite3.OperationalError,))
-async def createDataTemplate(payload: Dict[str, Any], userId: str) -> Dict[str, Any]:
+async def createDataTemplate(payload: Dict[str, Any], userId: str, idempotencyKey: str | None = None) -> Dict[str, Any]:
     """
     설명: 업무를 신규 등록
     반환값: 신규 생성된 업무 상세 dict, 생성 후보 확인 실패 시 ServiceError를 발생시킨
@@ -342,21 +376,28 @@ async def createDataTemplate(payload: Dict[str, Any], userId: str) -> Dict[str, 
     """
     if not isinstance(payload, dict):
         raise ServiceError("DASH_422_INVALID_INPUT")
-    db = ensureDbManager()
     ownerUserId = normalizeUserId(userId)
     insertPayload = buildCreatePayload(payload)
     insertPayload["userId"] = ownerUserId
-    inserted = await db.executeQuery("dashboard.create", insertPayload)
+    scopeType = f"dashboard.create.{ownerUserId}"
 
+    replay = await beginIdempotencyRequest(scopeType, idempotencyKey, insertPayload)
+    if replay.get("status") == "replay":
+        return replay.get("result") or {}
+    db = ensureDbManager()
+    inserted = await db.executeQuery("dashboard.create", insertPayload)
     createdId = parseInsertedId(inserted)
     if createdId:
         row = await db.fetchOneQuery("dashboard.detail", {"id": createdId, "userId": ownerUserId})
         if row:
-            return convertKeysToCamelCase(row)
-
+            result = convertDashboardRow(row)
+            await completeIdempotencyRequest(scopeType, idempotencyKey, result)
+            return result
     candidate = await db.fetchOneQuery("dashboard.findCreatedCandidate", insertPayload)
     if candidate:
-        return convertKeysToCamelCase(candidate)
+        result = convertDashboardRow(candidate)
+        await completeIdempotencyRequest(scopeType, idempotencyKey, result)
+        return result
     raise ServiceError("DASH_500_CREATE_FAILED")
 
 
@@ -373,7 +414,7 @@ async def updateDataTemplate(dataId: int, payload: Dict[str, Any], userId: str) 
     current = await db.fetchOneQuery("dashboard.detail", {"id": int(dataId), "userId": ownerUserId})
     if not current:
         raise ServiceError("DASH_404_NOT_FOUND")
-    currentCamel = convertKeysToCamelCase(current)
+    currentCamel = convertDashboardRow(current)
     nextPayload = buildUpdatePayload(payload, currentCamel)
     nextPayload["id"] = int(dataId)
     nextPayload["userId"] = ownerUserId
@@ -381,7 +422,7 @@ async def updateDataTemplate(dataId: int, payload: Dict[str, Any], userId: str) 
     row = await db.fetchOneQuery("dashboard.detail", {"id": int(dataId), "userId": ownerUserId})
     if not row:
         raise ServiceError("DASH_404_NOT_FOUND")
-    return convertKeysToCamelCase(row)
+    return convertDashboardRow(row)
 
 
 async def deleteDataTemplate(dataId: int, userId: str) -> Dict[str, Any]:
@@ -402,17 +443,17 @@ async def deleteDataTemplate(dataId: int, userId: str) -> Dict[str, Any]:
 async def dataTemplateStats(userId: str) -> Dict[str, Any]:
     """
     설명: 상태별 count/amount 집계를 합산해 대시보드 통계 payload를 구성하 서비스
-    반환값: totalCount/totalAmount/byStatus를 포함한 통계 결과 dict
+    반환값: totalCount/totalAmount/statusSummaryList를 포함한 통계 결과 dict
     갱신일: 2026-02-22
     """
     db = ensureDbManager()
     ownerUserId = normalizeUserId(userId)
     rows: List[Dict[str, Any]] = await db.fetchAllQuery("dashboard.statusSummary", {"userId": ownerUserId}) or []
-    byStatus = [convertKeysToCamelCase(row) for row in rows]
-    totalCount = sum(int(row.get("count", 0) or 0) for row in byStatus)
-    totalAmount = float(sum(row.get("amountSum", 0) or 0 for row in byStatus))
+    statusSummaryList = [convertDashboardRow(row) for row in rows]
+    totalCount = sum(int(row.get("count", 0) or 0) for row in statusSummaryList)
+    totalAmount = float(sum(row.get("amountSum", 0) or 0 for row in statusSummaryList))
     return {
         "totalCount": totalCount,
         "totalAmount": totalAmount,
-        "byStatus": byStatus,
+        "statusSummaryList": statusSummaryList,
     }

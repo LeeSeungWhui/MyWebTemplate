@@ -1,7 +1,7 @@
 /**
  * 파일명: Tab.jsx
  * 작성자: LSH
- * 갱신일: 2026-03-03
+ * 갱신일: 2026-05-31
  * 설명: Tab UI 컴포넌트 구현
  */
 import { useState } from 'react';
@@ -46,7 +46,7 @@ const Tab = ({
     }
 
     // children이 없거나 배열이 아닐 경우 처리
-    const items = Array.isArray(children) ? children : [children].filter(Boolean);
+    const tabItemList = Array.isArray(children) ? children : [children].filter(Boolean);
 
     /**
      * @description 탭 인덱스를 변경하고 dataObj/콜백으로 변경 이벤트를 전파
@@ -61,7 +61,7 @@ const Tab = ({
         } else {
             setInternalTab(index);
         }
-        const ctx = buildCtx({ dataKey, dataObj, source: 'user', dirty: true, valid: null });
+        const bindingCtx = buildCtx({ dataKey, dataObj, source: 'user', dirty: true, valid: null });
         const emittedEvent = event ?? {
             type: 'tabchange',
             target: { value: index },
@@ -69,13 +69,13 @@ const Tab = ({
             stopPropagation() {},
         };
         if (event) {
-            try { event.target.value = index; } catch (eventSyncError) { void eventSyncError; /* 무시 */ }
+            event.target.value = index;
         }
         fireValueHandlers({
             onChange,
             onValueChange,
             value: index,
-            ctx,
+            ctx: bindingCtx,
             event: emittedEvent,
         });
     };
@@ -84,10 +84,11 @@ const Tab = ({
         <div className={`flex flex-col ${className}`}>
 
             <div className="flex border-b border-gray-200">
-                {items.map((item, index) => (
+                {tabItemList.map((tabItemObj, index) => (
                     <button
+                        type="button"
                         key={index}
-                        onClick={(evt) => handleTabChange(index, evt)}
+                        onClick={(event) => handleTabChange(index, event)}
                         className={`
                             px-4 py-2 -mb-px text-sm font-medium inline-flex items-center
                             ${currentTab === index
@@ -96,14 +97,14 @@ const Tab = ({
                             }
                         `}
                     >
-                        {item.props.title}
+                        {tabItemObj.props.title}
                     </button>
                 ))}
             </div>
 
 
             <div className="py-4">
-                {items[currentTab]}
+                {tabItemList[currentTab]}
             </div>
         </div>
     );

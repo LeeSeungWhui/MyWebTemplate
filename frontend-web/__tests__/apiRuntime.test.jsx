@@ -1,7 +1,7 @@
 /**
  * 파일명: apiRuntime.test.jsx
  * 작성자: LSH
- * 갱신일: 2026-03-03
+ * 갱신일: 2026-05-03
  * 설명: apiRequest/apiJSON(SSR/CSR 공통 유틸) 동작 테스트
  */
 
@@ -21,8 +21,8 @@ function decodeBase64UrlJson(encoded) {
     .replace(/-/g, "+")
     .replace(/_/g, "/");
   const padded = base64 + "===".slice((base64.length + 3) % 4);
-  const text = Buffer.from(padded, "base64").toString("utf8");
-  return JSON.parse(text);
+  const decodedText = Buffer.from(padded, "base64").toString("utf8");
+  return JSON.parse(decodedText);
 }
 
 describe("runtime api", () => {
@@ -43,9 +43,9 @@ describe("runtime api", () => {
     await apiRequest("/api/v1/auth/me", { method: "GET" });
 
     expect(fetch).toHaveBeenCalledTimes(1);
-    const [url, init] = fetch.mock.calls[0];
-    expect(url).toBe("/api/bff/api/v1/auth/me");
-    expect(init).toMatchObject({ method: "GET", credentials: "include" });
+    const [requestUrl, requestInitObj] = fetch.mock.calls[0];
+    expect(requestUrl).toBe("/api/bff/api/v1/auth/me");
+    expect(requestInitObj).toMatchObject({ method: "GET", credentials: "include" });
   });
 
   it("JSON body는 Content-Type=application/json으로 전송한다", async () => {
@@ -54,15 +54,53 @@ describe("runtime api", () => {
     );
     await apiRequest("/api/v1/auth/login", { method: "POST", body: { a: 1 } });
 
-    const [, init] = fetch.mock.calls[0];
+    const [, requestInitObj] = fetch.mock.calls[0];
     expect(
       String(
-        init?.headers?.["Content-Type"] ||
-          init?.headers?.["content-type"] ||
+        requestInitObj?.headers?.["Content-Type"] ||
+          requestInitObj?.headers?.["content-type"] ||
           "",
       ),
     ).toBe("application/json");
-    expect(init.body).toBe(JSON.stringify({ a: 1 }));
+    expect(requestInitObj.body).toBe(JSON.stringify({ a: 1 }));
+  });
+
+  it("PAGE_CONFIG API object 엔트리를 첫 인자로 받아 path/method/authless를 해석한다", async () => {
+    fetch.mockResolvedValueOnce(
+      buildJsonResponse({ status: true, result: { ok: true } }),
+    );
+
+    await apiRequest({
+      path: "/api/v1/auth/me",
+      method: "GET",
+      authless: true,
+    });
+
+    expect(fetch).toHaveBeenCalledTimes(1);
+    const [requestUrl, requestInitObj] = fetch.mock.calls[0];
+    expect(requestUrl).toBe("/api/bff/api/v1/auth/me");
+    expect(requestInitObj).toMatchObject({ method: "GET", credentials: "include" });
+  });
+
+  it("PAGE_CONFIG API object 엔트리의 params를 query string으로 병합한다", async () => {
+    fetch.mockResolvedValueOnce(
+      buildJsonResponse({ status: true, result: { ok: true } }),
+    );
+
+    await apiRequest({
+      path: "/api/v1/sample/tasks",
+      method: "GET",
+      params: {
+        page: 1,
+        size: 50,
+      },
+      authless: true,
+    });
+
+    expect(fetch).toHaveBeenCalledTimes(1);
+    const [requestUrl, requestInitObj] = fetch.mock.calls[0];
+    expect(requestUrl).toBe("/api/bff/api/v1/sample/tasks?page=1&size=50");
+    expect(requestInitObj).toMatchObject({ method: "GET", credentials: "include" });
   });
 
   it("FormData body는 Content-Type을 강제로 지정하지 않는다", async () => {
@@ -74,11 +112,11 @@ describe("runtime api", () => {
     );
     await apiRequest("/api/v1/upload", { method: "POST", body: form });
 
-    const [, init] = fetch.mock.calls[0];
-    const headers = init?.headers || {};
-    const keys = Object.keys(headers).map((k) => k.toLowerCase());
+    const [, requestInitObj] = fetch.mock.calls[0];
+    const requestHeaders = requestInitObj?.headers || {};
+    const keys = Object.keys(requestHeaders).map((k) => k.toLowerCase());
     expect(keys).not.toContain("content-type");
-    expect(init.body).toBe(form);
+    expect(requestInitObj.body).toBe(form);
   });
 
   it("401 + 로그인 페이지 밖이면 UnauthorizedError로 끊고 redirectTo를 제공한다", async () => {

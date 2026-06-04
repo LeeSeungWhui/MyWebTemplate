@@ -1,19 +1,18 @@
 /**
  * 파일명: TableDocs.jsx
  * 작성자: LSH
- * 갱신일: 2025-09-13
+ * 갱신일: 2026-05-31
  * 설명: Table 컴포넌트 문서
  */
 import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';
-import { TableExamples } from '../examples/TableExamples';
+import { basicExampleObj, cardExampleObj, controlExampleObj, emptyExampleObj, styleExampleObj } from '../examples/TableExamples';
 
 /**
  * @description Table 문서 섹션을 구성하고 예제 목록을 렌더링. 입력/출력 계약을 함께 명시
  * @returns {JSX.Element}
  */
 const TableDocs = () => {
-  const examples = TableExamples();
   return (
     <DocSection id="tables" title="26. 테이블 (Table)" description={
       <div>
@@ -40,41 +39,41 @@ const TableDocs = () => {
       <div id="table-basic" className="mb-8">
         <h3 className="text-lg font-medium mb-4">기본</h3>
         <div>
-          {examples[0]?.component}
-          <div className="mt-2 text-sm text-gray-600">{examples[0]?.description}</div>
-          <CodeBlock code={examples[0]?.code || ''} />
+          {basicExampleObj.component}
+          <div className="mt-2 text-sm text-gray-600">{basicExampleObj.description}</div>
+          <CodeBlock code={basicExampleObj.code} />
         </div>
       </div>
       <div id="table-controlled" className="mb-8">
         <h3 className="text-lg font-medium mb-4">제어형 페이지</h3>
         <div>
-          {examples[1]?.component}
-          <div className="mt-2 text-sm text-gray-600">{examples[1]?.description}</div>
-          <CodeBlock code={examples[1]?.code || ''} />
+          {controlExampleObj.component}
+          <div className="mt-2 text-sm text-gray-600">{controlExampleObj.description}</div>
+          <CodeBlock code={controlExampleObj.code} />
         </div>
       </div>
       <div id="table-card" className="mb-8">
         <h3 className="text-lg font-medium mb-4">카드</h3>
         <div>
-          {examples[2]?.component}
-          <div className="mt-2 text-sm text-gray-600">{examples[2]?.description}</div>
-          <CodeBlock code={examples[2]?.code || ''} />
+          {cardExampleObj.component}
+          <div className="mt-2 text-sm text-gray-600">{cardExampleObj.description}</div>
+          <CodeBlock code={cardExampleObj.code} />
         </div>
       </div>
       <div id="table-styled" className="mb-8">
         <h3 className="text-lg font-medium mb-4">커스텀 스타일</h3>
         <div>
-          {examples[3]?.component}
-          <div className="mt-2 text-sm text-gray-600">{examples[3]?.description}</div>
-          <CodeBlock code={examples[3]?.code || ''} />
+          {styleExampleObj.component}
+          <div className="mt-2 text-sm text-gray-600">{styleExampleObj.description}</div>
+          <CodeBlock code={styleExampleObj.code} />
         </div>
       </div>
       <div id="table-empty" className="mb-8">
         <h3 className="text-lg font-medium mb-4">빈 상태</h3>
         <div>
-          {examples[4]?.component}
-          <div className="mt-2 text-sm text-gray-600">{examples[4]?.description}</div>
-          <CodeBlock code={examples[4]?.code || ''} />
+          {emptyExampleObj.component}
+          <div className="mt-2 text-sm text-gray-600">{emptyExampleObj.description}</div>
+          <CodeBlock code={emptyExampleObj.code} />
         </div>
       </div>
     </DocSection>

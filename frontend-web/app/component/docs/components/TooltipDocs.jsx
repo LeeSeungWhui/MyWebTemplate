@@ -1,12 +1,12 @@
 /**
  * 파일명: TooltipDocs.jsx
  * 작성자: LSH
- * 갱신일: 2025-09-13
+ * 갱신일: 2026-05-31
  * 설명: 툴팁 문서 섹션
  */
 import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';
-import { TooltipExamples } from '../examples/TooltipExamples';
+import { basicExampleList, directionExampleList, triggerExampleList } from '../examples/TooltipExamples';
 
 /**
  * Tooltip 문서 섹션
@@ -18,10 +18,7 @@ import { TooltipExamples } from '../examples/TooltipExamples';
  * @returns {JSX.Element}
  */
 const TooltipDocs = () => {
-  const examples = TooltipExamples();
-  return (
-    <DocSection id="tooltips" title="20. 툴팁 (Tooltip)" description={
-      <div>
+  return <DocSection id="tooltips" title="20. 툴팁 (Tooltip)" description={<div>
         <p>hover, focus 또는 클릭에 반응하는 간단한 툴팁입니다.</p>
         <ul className="list-disc pl-5 mt-2 text-sm text-gray-600">
           <li><code>content</code>: 툴팁 내용</li>
@@ -33,34 +30,32 @@ const TooltipDocs = () => {
           <li><code>className?</code>: 추가 Tailwind 클래스</li>
           <li><code>children?</code>: 트리거 요소</li>
         </ul>
-      </div>
-    }>
+      </div>}>
       <div id="tooltip-basic" className="mb-8">
         <h3 className="text-lg font-medium mb-4">기본</h3>
         <div>
-          {examples[0]?.component}
-          <div className="mt-2 text-sm text-gray-600">{examples[0]?.description}</div>
-          <CodeBlock code={examples[0]?.code || ''} />
+          {basicExampleList[0]?.component}
+          <div className="mt-2 text-sm text-gray-600">{basicExampleList[0]?.description}</div>
+          <CodeBlock code={basicExampleList[0]?.code || ''} />
         </div>
       </div>
       <div id="tooltip-placement" className="mb-8">
         <h3 className="text-lg font-medium mb-4">방향</h3>
         <div>
-          {examples[1]?.component}
-          <div className="mt-2 text-sm text-gray-600">{examples[1]?.description}</div>
-          <CodeBlock code={examples[1]?.code || ''} />
+          {directionExampleList[0]?.component}
+          <div className="mt-2 text-sm text-gray-600">{directionExampleList[0]?.description}</div>
+          <CodeBlock code={directionExampleList[0]?.code || ''} />
         </div>
       </div>
       <div id="tooltip-trigger" className="mb-8">
         <h3 className="text-lg font-medium mb-4">트리거</h3>
         <div>
-          {examples[2]?.component}
-          <div className="mt-2 text-sm text-gray-600">{examples[2]?.description}</div>
-          <CodeBlock code={examples[2]?.code || ''} />
+          {triggerExampleList[0]?.component}
+          <div className="mt-2 text-sm text-gray-600">{triggerExampleList[0]?.description}</div>
+          <CodeBlock code={triggerExampleList[0]?.code || ''} />
         </div>
       </div>
-    </DocSection>
-  );
+    </DocSection>;
 };
 
 export default TooltipDocs;

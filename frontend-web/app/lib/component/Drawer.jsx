@@ -1,12 +1,13 @@
 /**
  * 파일명: Drawer.jsx
  * 작성자: LSH
- * 갱신일: 2025-09-13
+ * 갱신일: 2026-05-31
  * 설명: Drawer UI 컴포넌트 구현
  */
 import { forwardRef, useEffect } from 'react';
+import Icon from './Icon';
 
-const sides = {
+const drawerSideMapObj = {
   right: {
     base: 'inset-y-0 right-0 w-80 max-w-full rounded-l-2xl',
     transform: { open: 'translate-x-0', closed: 'translate-x-full' }
@@ -24,6 +25,10 @@ const sides = {
     transform: { open: 'translate-y-0', closed: 'translate-y-full' }
   }
 };
+const resizeClassMapObj = {
+  horizontal: 'resize-x overflow-auto',
+  vertical: 'resize-y overflow-auto',
+};
 
 /**
  * @description 렌더링 및 열림 상태 전환 처리
@@ -35,7 +40,7 @@ const Drawer = forwardRef(function Drawer(
     isOpen = false,
     onClose,
     side = 'right',
-    size,
+    size = '',
     closeOnBackdrop = true,
     closeOnEsc = true,
     resizable = false,
@@ -48,12 +53,11 @@ const Drawer = forwardRef(function Drawer(
   ref
 ) {
 
-  const conf = sides[side] || sides.right;
-
+  const sideConfigObj = drawerSideMapObj[side] || drawerSideMapObj.right;
 
   /**
-   * @description useEffect 실행 흐름 관리
-   * 처리 규칙: effect 실행/cleanup 경계를 명시적으로 유지.
+   * @description isOpen일 때 document keydown으로 Escape 닫기 처리
+   * 처리 규칙: cleanup에서 keydown 리스너를 제거하고 closeOnEsc일 때 onClose를 호출한다.
    */
   useEffect(() => {
     if (!isOpen) return undefined;
@@ -64,78 +68,57 @@ const Drawer = forwardRef(function Drawer(
      * @returns {void}
      * @updated 2026-02-27
      */
-    const onKey = (keyboardEvent) => {
+    const handleDocKeyDown = (keyboardEvent) => {
       if (closeOnEsc && keyboardEvent.key === 'Escape') onClose?.();
     };
 
-    document.addEventListener('keydown', onKey);
-    const prev = document.body.style.overflow;
+    document.addEventListener('keydown', handleDocKeyDown);
+    const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
     return () => {
-      document.removeEventListener('keydown', onKey);
-      document.body.style.overflow = prev;
+      document.removeEventListener('keydown', handleDocKeyDown);
+      document.body.style.overflow = previousOverflow;
     };
   }, [isOpen, closeOnEsc, onClose]);
 
 
 
-  let numericSize = null;
-  let sizeCls = '';
-  if (size != null) {
-    if (typeof size === 'number') {
-      numericSize = size;
-    } else if (typeof size === 'string') {
-      const trimmedSize = size.trim();
-      const pxSuffix = trimmedSize.endsWith('px');
-      const numericText = pxSuffix ? trimmedSize.slice(0, -2) : trimmedSize;
-      const numericCandidate = Number(numericText);
-      if (numericText && !Number.isNaN(numericCandidate)) {
-        numericSize = numericCandidate;
-      } else {
-        sizeCls = size;
-      }
-    }
-  }
-  let resizeCls = '';
-  if (resizable) {
-    if (side === 'top' || side === 'bottom') resizeCls = 'resize-y overflow-auto';
-    else resizeCls = 'resize-x overflow-auto';
-  }
-  const transformCls = isOpen ? conf.transform.open : conf.transform.closed;
+  const sizeClassName = typeof size === 'string' ? size.trim() : '';
+  const resizeAxisKey = side === 'top' || side === 'bottom' ? 'vertical' : 'horizontal';
+  const resizeClassName = resizable ? resizeClassMapObj[resizeAxisKey] : '';
+  const transformClassName = isOpen ? sideConfigObj.transform.open : sideConfigObj.transform.closed;
 
 
-  let cornerBoost = '';
-  if (collapseButton) {
-    if (side === 'right') cornerBoost = 'rounded-l-2xl';
-    else if (side === 'left') cornerBoost = 'rounded-r-2xl';
-    else if (side === 'top') cornerBoost = 'rounded-b-2xl';
-    else cornerBoost = 'rounded-t-2xl';
-  }
+  const cornerBoostClassName = collapseButton ? {
+    bottom: 'rounded-t-2xl',
+    left: 'rounded-r-2xl',
+    right: 'rounded-l-2xl',
+    top: 'rounded-b-2xl',
+  }[side] : '';
 
 
-  const handlePos = {
+  const handlePositionMapObj = {
     right: 'absolute left-1 top-1/2 -translate-y-1/2',
     left: 'absolute right-1 top-1/2 -translate-y-1/2',
     top: 'absolute bottom-1 left-1/2 -translate-x-1/2',
     bottom: 'absolute top-1 left-1/2 -translate-x-1/2'
   };
 
-  const handleShape = {
+  const handleShapeMapObj = {
     right: 'h-16 w-7 rounded-r-lg border-l',
     left: 'h-16 w-7 rounded-l-lg border-r',
     top: 'w-16 h-7 rounded-b-lg border-t',
     bottom: 'w-16 h-7 rounded-t-lg border-b'
   };
-  const handleBase = 'bg-gray-100/90 hover:bg-gray-200 text-gray-500 border-gray-200 shadow-sm flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-blue-500/30';
-  const arrowRotate = { right: '', left: 'rotate-180', top: '-rotate-90', bottom: 'rotate-90' };
+  const handleBaseClassName = 'bg-gray-100/90 hover:bg-gray-200 text-gray-500 border-gray-200 shadow-sm flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-blue-500/30';
+  const arrowRotateClassMap = { right: '', left: 'rotate-180', top: '-rotate-90', bottom: 'rotate-90' };
 
-  let contentPad = '';
-  if (collapseButton) {
-    if (side === 'right') contentPad = 'pl-10';
-    else if (side === 'left') contentPad = 'pr-10';
-    else if (side === 'top') contentPad = 'pb-10';
-    else contentPad = 'pt-10';
-  }
+  const contentPadClassName = collapseButton ? {
+    bottom: 'pt-10',
+    left: 'pr-10',
+    right: 'pl-10',
+    top: 'pb-10',
+  }[side] : '';
 
   /**
    * @description forwardRef가 함수형/객체형인 경우를 모두 지원해 패널 DOM 참조를 전달
@@ -148,11 +131,15 @@ const Drawer = forwardRef(function Drawer(
     else if (ref) ref.current = el;
   };
 
+  const drawerPropsObj = { ...(props || {}) };
+  delete drawerPropsObj.style;
+
   return (
     <div
       className={`fixed inset-0 z-50 transition-opacity duration-300 ease-in-out ${isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
       aria-hidden={!isOpen}
     >
+
       {/* 배경 레이어 */}
       <div
         className={`absolute inset-0 bg-black/40 transition-opacity duration-300 ease-in-out ${isOpen ? 'opacity-100' : 'opacity-0'}`}
@@ -163,18 +150,10 @@ const Drawer = forwardRef(function Drawer(
       {/* 패널 */}
       <div
         ref={assignRef}
-        className={`absolute bg-white shadow-xl transform-gpu will-change-transform transition-transform duration-300 ease-in-out ${conf.base} ${cornerBoost} ${transformCls} ${sizeCls} ${resizeCls} ${className}`.trim()}
-        {...(() => {
-          const { style: userStyle, ...rest } = props || {};
-          const dim = (numericSize != null)
-            ? (side === 'left' || side === 'right'
-                ? { width: `${numericSize}px` }
-                : { height: `${numericSize}px` })
-            : {};
-          return { ...rest, style: { ...dim, ...(userStyle || {}) } };
-        })()}
+        className={`absolute bg-white shadow-xl transform-gpu will-change-transform transition-transform duration-300 ease-in-out ${sideConfigObj.base} ${cornerBoostClassName} ${transformClassName} ${sizeClassName} ${resizeClassName} ${className}`.trim()}
+        {...drawerPropsObj}
       >
-        <div className={contentPad}>
+        <div className={contentPadClassName}>
           {children}
         </div>
 
@@ -182,13 +161,11 @@ const Drawer = forwardRef(function Drawer(
           <button
             type="button"
             aria-label="collapse"
-            className={`${handleBase} ${handleShape[side]} ${handlePos[side]} z-10`}
+            className={`${handleBaseClassName} ${handleShapeMapObj[side]} ${handlePositionMapObj[side]} z-10`}
             onClick={() => onClose?.()}
           >
 
-            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg" className={arrowRotate[side]} aria-hidden>
-              <path d="M4 2L8 6L4 10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
+            <Icon icon="hi:HiChevronRight" className={arrowRotateClassMap[side]} size="12px" />
           </button>
         )}
       </div>

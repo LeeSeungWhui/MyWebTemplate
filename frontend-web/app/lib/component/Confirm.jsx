@@ -1,9 +1,10 @@
 /**
  * 파일명: Confirm.jsx
  * 작성자: LSH
- * 갱신일: 2025-09-13
+ * 갱신일: 2026-05-31
  * 설명: Confirm UI 컴포넌트 구현
  */
+import { useId } from 'react';
 import Icon from './Icon';
 import Button from './Button';
 import { COMMON_COMPONENT_LANG_KO } from '@/app/common/i18n/lang.ko';
@@ -26,8 +27,10 @@ const Confirm = ({
     cancelText = COMMON_COMPONENT_LANG_KO.confirm.cancelText
 }) => {
 
+    const titleId = useId();
+    const descriptionId = useId();
     const displayText = typeof text === 'string' ? text.replaceAll('\\n', '\n') : text;
-    const styles = {
+    const confirmTypeMetaObj = {
         info: {
             icon: 'ri:RiQuestionLine',
             iconColor: 'text-blue-500',
@@ -50,23 +53,28 @@ const Confirm = ({
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-500/70">
-            <div className={`
-                w-[calc(100vw-32px)] max-w-md rounded-lg shadow-lg border ${styles[type]?.borderColor || styles.info.borderColor}
-                ${styles[type]?.bgColor || styles.info.bgColor} backdrop-blur-sm
+            <div
+                role="dialog"
+                aria-modal="true"
+                aria-labelledby={titleId}
+                aria-describedby={descriptionId}
+                className={`
+                w-[calc(100vw-32px)] max-w-md rounded-lg shadow-lg border ${confirmTypeMetaObj[type]?.borderColor || confirmTypeMetaObj.info.borderColor}
+                ${confirmTypeMetaObj[type]?.bgColor || confirmTypeMetaObj.info.bgColor} backdrop-blur-sm
                 animate-fade-in-up
             `}>
                 <div className="p-6">
                     <div className="flex items-start mb-4">
                         <Icon
-                            icon={styles[type]?.icon || styles.info.icon}
+                            icon={confirmTypeMetaObj[type]?.icon || confirmTypeMetaObj.info.icon}
                             size="1.5em"
-                            className={`mr-3 mt-0.5 ${styles[type]?.iconColor || styles.info.iconColor}`}
+                            className={`mr-3 mt-0.5 ${confirmTypeMetaObj[type]?.iconColor || confirmTypeMetaObj.info.iconColor}`}
                         />
                         <div className="flex-1">
-                            <h3 className="text-lg font-semibold text-gray-900 mb-1">
+                            <h3 id={titleId} className="text-lg font-semibold text-gray-900 mb-1">
                                 {title}
                             </h3>
-                            <p className="text-gray-600 whitespace-pre-line">
+                            <p id={descriptionId} className="text-gray-600 whitespace-pre-line">
                                 {displayText}
                             </p>
                         </div>

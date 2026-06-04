@@ -1,7 +1,7 @@
 /**
  * 파일명: api.js
  * 작성자: LSH
- * 갱신일: 2026-03-05
+ * 갱신일: 2026-05-31
  * 설명: SSR/CSR 공통 API 호출 유틸 (isomorphic)
  */
 
@@ -22,12 +22,13 @@ const EMPTY_BODY_STATUS = new Set([204, 205, 304]);
 const LOGIN_PATH = "/login";
 
 /**
- * @description 현재 실행 환경이 서버 런타임인지 판별
- * 처리 규칙: `window` 전역이 없으면 서버 환경으로 간주한다.
- * @updated 2026-02-27
+ * @description PAGE_CONFIG 엔드포인트 object 여부를 판별
+ * 처리 규칙: plain object이면서 path 키가 있으면 PAGE_CONFIG 엔트리로 간주한다.
+ * @updated 2026-03-12
  */
-const isServer = () => {
-  return typeof window === "undefined";
+const isEndpointLike = (value) => {
+  if (!isPlainObject(value)) return false;
+  return Object.prototype.hasOwnProperty.call(value, "path");
 };
 
 /**
@@ -62,6 +63,40 @@ const toBffPath = (path) => {
   const normalizedPath = String(path || "");
   if (normalizedPath.startsWith(BFF_PREFIX)) return normalizedPath;
   return `${BFF_PREFIX}${normalizedPath.startsWith("/") ? normalizedPath : `/${normalizedPath}`}`;
+};
+
+/**
+ * @description 엔드포인트 query/params 객체를 쿼리 문자열로 변환
+ * 처리 규칙: undefined/null/빈 문자열은 제외하고 배열은 동일 키를 반복해 직렬화한다.
+ * @updated 2026-06-05
+ */
+const buildQueryString = (queryObj) => {
+  if (!isPlainObject(queryObj)) return "";
+  const searchParams = new URLSearchParams();
+  Object.entries(queryObj).forEach(([queryKey, queryValue]) => {
+    if (queryValue == null || queryValue === "") return;
+    if (Array.isArray(queryValue)) {
+      queryValue.forEach((entryValue) => {
+        if (entryValue == null || entryValue === "") return;
+        searchParams.append(queryKey, String(entryValue));
+      });
+      return;
+    }
+    searchParams.append(queryKey, String(queryValue));
+  });
+  return searchParams.toString();
+};
+
+/**
+ * @description 엔드포인트 path에 query/params 값을 병합
+ * 처리 규칙: 기존 query가 있으면 `&`, 없으면 `?`로 추가한다.
+ * @updated 2026-06-05
+ */
+const appendQueryParams = (path, queryObj) => {
+  const queryString = buildQueryString(queryObj);
+  if (!queryString) return path;
+  const separator = String(path || "").includes("?") ? "&" : "?";
+  return `${path}${separator}${queryString}`;
 };
 
 /**
@@ -127,7 +162,7 @@ const serializeBody = (input) => {
  * 처리 규칙: `(path, init|body, mode|options)` 입력을 `{ path, init, options }` 형태로 통일한다.
  * @updated 2026-02-27
  */
-const normalizeArgs = (path, a2, a3) => {
+const normalizeArgs = (path, initOrBody, modeOrOptions) => {
 
   /**
    * @description 값이 RequestInit 유사 객체인지 판별
@@ -137,48 +172,74 @@ const normalizeArgs = (path, a2, a3) => {
   const isInitLike = (value) => {
     if (!value || typeof value !== "object") return false;
     if (isBodyLike(value)) return false;
-    const keys = Object.keys(value);
+    const valueKeyList = Object.keys(value);
     return (
       "method" in value ||
       "headers" in value ||
       "body" in value ||
       "authless" in value ||
-      keys.length === 0
+      valueKeyList.length === 0
     );
   };
 
-  let init = {};
-  let options = {};
+  const endpointPath = isEndpointLike(path)
+    ? appendQueryParams(
+      String(path.path || ""),
+      isPlainObject(path.params) ? path.params : path.query,
+    )
+    : String(path || "");
+  let endpointInitObj = {};
+  if (isEndpointLike(path)) {
+    if (isPlainObject(path.init)) {
+      endpointInitObj = { ...path.init };
+    } else if (isPlainObject(path.fetchInit)) {
+      endpointInitObj = { ...path.fetchInit };
+    }
+  }
+  let requestInitObj = { ...endpointInitObj };
+  let requestOptionsObj = {};
 
   /**
-   * @description 모드 문자열을 options 객체에 반영
-   * 처리 규칙: 현재는 `authless` 모드만 해석해 `options.authless=true`로 설정한다.
+   * @description 모드 문자열을 요청 options 객체에 반영
+   * 처리 규칙: 현재는 `authless` 모드만 해석해 `requestOptionsObj.authless=true`로 설정한다.
    * @updated 2026-02-27
    */
   const applyMode = (mode) => {
     if (!mode) return;
-    if (mode === "authless") options.authless = true;
+    if (mode === "authless") requestOptionsObj.authless = true;
   };
 
-  if (typeof a2 === "string") applyMode(a2);
-  else if (isInitLike(a2)) init = { ...a2 };
-  else if (typeof a2 !== "undefined") {
-    init = { method: "POST", body: a2 };
+  if (isEndpointLike(path)) {
+    if (Object.prototype.hasOwnProperty.call(path, "method")) {
+      requestInitObj.method = path.method;
+    }
+    if (Object.prototype.hasOwnProperty.call(path, "body")) {
+      requestInitObj.body = path.body;
+    }
+    if (typeof path.authless === "boolean") {
+      requestOptionsObj.authless = path.authless;
+    }
   }
 
-  if (typeof a3 === "string") applyMode(a3);
-  else if (a3 && typeof a3 === "object") {
-    const { authless, ...rest } = a3;
-    if (typeof authless === "boolean") options.authless = authless;
-    if (Object.keys(rest).length) init = { ...init, ...rest };
+  if (typeof initOrBody === "string") applyMode(initOrBody);
+  else if (isInitLike(initOrBody)) requestInitObj = { ...requestInitObj, ...initOrBody };
+  else if (typeof initOrBody !== "undefined") {
+    requestInitObj = { ...requestInitObj, method: requestInitObj.method || "POST", body: initOrBody };
   }
 
-  if (typeof init.authless === "boolean") {
-    options.authless = init.authless;
-    delete init.authless;
+  if (typeof modeOrOptions === "string") applyMode(modeOrOptions);
+  else if (modeOrOptions && typeof modeOrOptions === "object") {
+    const { authless, ...remainingInitObj } = modeOrOptions;
+    if (typeof authless === "boolean") requestOptionsObj.authless = authless;
+    if (Object.keys(remainingInitObj).length) requestInitObj = { ...requestInitObj, ...remainingInitObj };
   }
 
-  return { path, init, options };
+  if (typeof requestInitObj.authless === "boolean") {
+    requestOptionsObj.authless = requestInitObj.authless;
+    delete requestInitObj.authless;
+  }
+
+  return { path: endpointPath, init: requestInitObj, options: requestOptionsObj };
 };
 
 /**
@@ -188,12 +249,12 @@ const normalizeArgs = (path, a2, a3) => {
  */
 const hasHeader = (headers, name) => {
   if (!headers) return false;
-  const target = String(name || "").toLowerCase();
-  if (!target) return false;
+  const headerNameLower = String(name || "").toLowerCase();
+  if (!headerNameLower) return false;
   if (headers instanceof Headers) {
-    return headers.has(target);
+    return headers.has(headerNameLower);
   }
-  return Object.keys(headers).some((headerKey) => String(headerKey).toLowerCase() === target);
+  return Object.keys(headers).some((headerKey) => String(headerKey).toLowerCase() === headerNameLower);
 };
 
 /**
@@ -219,7 +280,7 @@ const readResponseText = async (response) => {
  * @param {Response} response fetch Response
  * @returns {Promise<object|null>} 파싱 결과
  * @description 응답 JSON 문자열을 파싱하고 중첩 JSON 문자열 필드를 정규화. 입력/출력 계약을 함께 명시
- * 처리 규칙: 파싱 실패 시 SyntaxError를 던지고 원문 텍스트를 `cause`에 보관한다.
+ * 처리 규칙: 파싱 실패 시 원문 텍스트를 노출하지 않는 SyntaxError를 던진다.
  * @updated 2026-02-27
  */
 const parseJsonResponseBody = async (response) => {
@@ -228,7 +289,8 @@ const parseJsonResponseBody = async (response) => {
   const parsed = parseJsonPayload(rawText, { context: "apiJSON" });
   if (!parsed) {
     const syntaxError = new SyntaxError("Invalid JSON response");
-    syntaxError.cause = rawText;
+    syntaxError.name = "ApiParseError";
+    syntaxError.statusCode = response?.status;
     throw syntaxError;
   }
   return normalizeNestedJsonFields(parsed);
@@ -255,14 +317,13 @@ const createApiError = (path, response, body) => {
     (isPlainObject(body) && typeof body.message === "string" && body.message) ||
     `API request failed (${response?.status || "unknown"})`;
 
-  const err = new Error(message);
-  err.name = "ApiError";
-  err.statusCode = response?.status;
-  err.code = isPlainObject(body) ? body.code : undefined;
-  err.requestId = isPlainObject(body) ? body.requestId : undefined;
-  err.body = body;
-  err.path = typeof path === "string" ? path : String(path || "");
-  return err;
+  const apiErrorObj = new Error(message);
+  apiErrorObj.name = "ApiError";
+  apiErrorObj.statusCode = response?.status;
+  apiErrorObj.code = isPlainObject(body) ? body.code : undefined;
+  apiErrorObj.requestId = isPlainObject(body) ? body.requestId : undefined;
+  apiErrorObj.path = typeof path === "string" ? path : String(path || "");
+  return apiErrorObj;
 };
 
 /**
@@ -274,11 +335,11 @@ const createApiError = (path, response, body) => {
  */
 export const apiRequest = async (path, initOrBody = {}, modeOrOptions) => {
 
-  const { init, options } = normalizeArgs(path, initOrBody, modeOrOptions);
-  const method = (init.method || "GET").toUpperCase();
-  const headersIn = init.headers || {};
-  const absoluteUrl = isAbsoluteUrl(path);
-  const authless = Boolean(options?.authless);
+  const { path: requestPath, init: requestInitObj, options: requestOptionsObj } = normalizeArgs(path, initOrBody, modeOrOptions);
+  const requestMethod = (requestInitObj.method || "GET").toUpperCase();
+  const headersIn = requestInitObj.headers || {};
+  const absoluteUrl = isAbsoluteUrl(requestPath);
+  const authless = Boolean(requestOptionsObj?.authless);
 
   /**
    * @description SSR에서 사용할 프론트엔드 origin을 결정
@@ -298,82 +359,72 @@ export const apiRequest = async (path, initOrBody = {}, modeOrOptions) => {
     return `http://127.0.0.1:${port}`;
   };
 
-  if (isServer()) {
+  if (typeof window === "undefined") {
     const { buildSSRHeaders } = await import("@/app/lib/runtime/ssr");
-    const baseHeaders = { ...headersIn };
+    const baseHeaderObj = { ...headersIn };
     if (
-      method !== "GET" &&
-      method !== "HEAD" &&
-      !hasHeader(baseHeaders, "content-type")
+      requestMethod !== "GET" &&
+      requestMethod !== "HEAD" &&
+      !hasHeader(baseHeaderObj, "content-type")
     ) {
-      if (!(isFormBody(init.body) || isBinaryBody(init.body))) {
-        baseHeaders["Content-Type"] = "application/json";
+      if (!(isFormBody(requestInitObj.body) || isBinaryBody(requestInitObj.body))) {
+        baseHeaderObj["Content-Type"] = "application/json";
       }
     }
-    const headers = await buildSSRHeaders(baseHeaders);
-    const body = serializeBody(init.body);
-    const requestInit = {
-      method,
+    const ssrHeaders = await buildSSRHeaders(baseHeaderObj);
+    const serializedBodyText = serializeBody(requestInitObj.body);
+    const ssrFetchInitObj = {
+      method: requestMethod,
       credentials: "include",
-      headers,
+      headers: ssrHeaders,
       cache: "no-store",
     };
-    if (method !== "GET" && method !== "HEAD" && typeof body !== "undefined") {
-      requestInit.body = body;
+    if (
+      requestMethod !== "GET" &&
+      requestMethod !== "HEAD" &&
+      typeof serializedBodyText !== "undefined"
+    ) {
+      ssrFetchInitObj.body = serializedBodyText;
     }
     const targetUrl = absoluteUrl
-      ? path
-      : new URL(toBffPath(path), resolveFrontendOrigin());
+      ? requestPath
+      : new URL(toBffPath(requestPath), resolveFrontendOrigin());
 
-    /**
-     * @description SSR fetch 호출 지연 실행 함수 래핑
-     * 처리 규칙: targetUrl/requestInit 스냅샷을 사용해 단일 fetch 요청을 수행한다.
-     * @updated 2026-02-27
-     */
-    const doFetch = () => fetch(targetUrl, requestInit);
-    return doFetch();
+    return fetch(targetUrl, ssrFetchInitObj);
   }
 
 
-  const targetUrl = absoluteUrl ? path : toBffPath(path);
-  const headers = { ...headersIn };
+  const targetUrl = absoluteUrl ? requestPath : toBffPath(requestPath);
+  const clientHeaderObj = { ...headersIn };
 
-  if (!hasHeader(headers, "accept-language"))
-    headers["Accept-Language"] = navigator.language || "en";
+  if (!hasHeader(clientHeaderObj, "accept-language"))
+    clientHeaderObj["Accept-Language"] = navigator.language || "en";
   if (
-    method !== "GET" &&
-    method !== "HEAD" &&
-    !hasHeader(headers, "content-type")
+    requestMethod !== "GET" &&
+    requestMethod !== "HEAD" &&
+    !hasHeader(clientHeaderObj, "content-type")
   ) {
-    if (!(isFormBody(init.body) || isBinaryBody(init.body))) {
-      headers["Content-Type"] = "application/json";
+    if (!(isFormBody(requestInitObj.body) || isBinaryBody(requestInitObj.body))) {
+      clientHeaderObj["Content-Type"] = "application/json";
     }
   }
 
-  /**
-   * @description CSR fetch 요청 초기값 구성 후 네트워크 요청 전송
-   * 처리 규칙: 비-GET/HEAD 메서드에서 body 미지정 시 `"{}"`를 기본 body로 사용한다.
-   * @updated 2026-02-27
-   */
-  const doFetch = async () => {
-    const reqInit = {
-      method,
-      credentials: "include",
-      headers,
-    };
-    if (method !== "GET" && method !== "HEAD") {
-      reqInit.body = serializeBody(init.body) ?? "{}";
-    }
-    return fetch(targetUrl, reqInit);
+  const clientFetchInitObj = {
+    method: requestMethod,
+    credentials: "include",
+    headers: clientHeaderObj,
   };
+  if (requestMethod !== "GET" && requestMethod !== "HEAD") {
+    clientFetchInitObj.body = serializeBody(requestInitObj.body) ?? "{}";
+  }
 
-  const res = await doFetch();
-  if (res.status !== 401) return res;
+  const apiResponse = await fetch(targetUrl, clientFetchInitObj);
+  if (apiResponse.status !== 401) return apiResponse;
 
   const { pathname, search } = window.location;
   const isOnLogin = pathname.startsWith(LOGIN_PATH);
   const nextPath = pathname + (search || "");
-  const reason = await extractUnauthorizedReason(res);
+  const reason = await extractUnauthorizedReason(apiResponse);
   const reasonEncoded = reason
     ? base64UrlEncodeUtf8(JSON.stringify(reason))
     : null;
@@ -387,15 +438,16 @@ export const apiRequest = async (path, initOrBody = {}, modeOrOptions) => {
       try {
         window.location.assign(redirectTo);
       } catch {
+
         // navigation 실패는 무시(테스트/특수 환경)
       }
     }
-    const err = new Error("UNAUTHORIZED");
-    err.name = "UnauthorizedError";
-    err.redirectTo = redirectTo;
-    throw err;
+    const unauthorizedErrorObj = new Error("UNAUTHORIZED");
+    unauthorizedErrorObj.name = "UnauthorizedError";
+    unauthorizedErrorObj.redirectTo = redirectTo;
+    throw unauthorizedErrorObj;
   }
-  return res;
+  return apiResponse;
 };
 
 /**
@@ -407,16 +459,16 @@ export const apiRequest = async (path, initOrBody = {}, modeOrOptions) => {
  * @returns {Promise<any>}
  */
 export const apiJSON = async (path, initOrBody = {}, modeOrOptions) => {
-
-  const res = await apiRequest(path, initOrBody, modeOrOptions);
-  const body = await parseJsonResponseBody(res);
-  if (!res?.ok) {
-    throw createApiError(path, res, body);
+  const normalizedArgs = normalizeArgs(path, initOrBody, modeOrOptions);
+  const apiResponse = await apiRequest(path, initOrBody, modeOrOptions);
+  const responseBodyObj = await parseJsonResponseBody(apiResponse);
+  if (!apiResponse?.ok) {
+    throw createApiError(normalizedArgs.path, apiResponse, responseBodyObj);
   }
-  if (isPlainObject(body) && body.status === false) {
-    throw createApiError(path, res, body);
+  if (isPlainObject(responseBodyObj) && responseBodyObj.status === false) {
+    throw createApiError(normalizedArgs.path, apiResponse, responseBodyObj);
   }
-  return body;
+  return responseBodyObj;
 };
 
 /**
@@ -424,9 +476,9 @@ export const apiJSON = async (path, initOrBody = {}, modeOrOptions) => {
  * 처리 규칙: init에 method를 강제로 `GET`으로 주입해 `apiJSON`으로 위임한다.
  * @returns {Promise<any>} JSON 응답 페이로드
  */
-export const apiGet = (path, init = {}) => {
+export const apiGet = (path, requestInitObj = {}) => {
 
-  return apiJSON(path, { ...init, method: "GET" });
+  return apiJSON(path, { ...requestInitObj, method: "GET" });
 };
 
 /**
@@ -434,9 +486,9 @@ export const apiGet = (path, init = {}) => {
  * 처리 규칙: 전달 body를 포함해 method=`POST`로 고정한 뒤 `apiJSON`으로 위임한다.
  * @returns {Promise<any>} JSON 응답 페이로드
  */
-export const apiPost = (path, body, init = {}) => {
+export const apiPost = (path, body, requestInitObj = {}) => {
 
-  return apiJSON(path, { ...init, method: "POST", body });
+  return apiJSON(path, { ...requestInitObj, method: "POST", body });
 };
 
 /**
@@ -444,9 +496,9 @@ export const apiPost = (path, body, init = {}) => {
  * 처리 규칙: 전달 body를 포함해 method=`PUT`으로 고정한 뒤 `apiJSON`으로 위임한다.
  * @returns {Promise<any>} JSON 응답 페이로드
  */
-export const apiPut = (path, body, init = {}) => {
+export const apiPut = (path, body, requestInitObj = {}) => {
 
-  return apiJSON(path, { ...init, method: "PUT", body });
+  return apiJSON(path, { ...requestInitObj, method: "PUT", body });
 };
 
 /**
@@ -454,9 +506,9 @@ export const apiPut = (path, body, init = {}) => {
  * 처리 규칙: 전달 body를 포함해 method=`PATCH`로 고정한 뒤 `apiJSON`으로 위임한다.
  * @returns {Promise<any>} JSON 응답 페이로드
  */
-export const apiPatch = (path, body, init = {}) => {
+export const apiPatch = (path, body, requestInitObj = {}) => {
 
-  return apiJSON(path, { ...init, method: "PATCH", body });
+  return apiJSON(path, { ...requestInitObj, method: "PATCH", body });
 };
 
 /**
@@ -464,7 +516,7 @@ export const apiPatch = (path, body, init = {}) => {
  * 처리 규칙: 전달 body를 포함해 method=`DELETE`로 고정한 뒤 `apiJSON`으로 위임한다.
  * @returns {Promise<any>} JSON 응답 페이로드
  */
-export const apiDelete = (path, body, init = {}) => {
+export const apiDelete = (path, body, requestInitObj = {}) => {
 
-  return apiJSON(path, { ...init, method: "DELETE", body });
+  return apiJSON(path, { ...requestInitObj, method: "DELETE", body });
 };

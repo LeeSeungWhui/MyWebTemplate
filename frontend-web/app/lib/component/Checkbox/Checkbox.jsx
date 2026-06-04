@@ -1,11 +1,11 @@
 /**
  * 파일명: Checkbox.jsx
  * 작성자: LSH
- * 갱신일: 2026-03-04
+ * 갱신일: 2026-05-31
  * 설명: Checkbox UI 컴포넌트 구현
  */
 import { useState, useEffect, forwardRef } from 'react';
-import styles from './Checkbox.module.css';
+import checkboxCssModule from './Checkbox.module.css';
 import { getBoundValue, setBoundValue, buildCtx, fireValueHandlers } from '../../binding';
 
 /**
@@ -42,14 +42,14 @@ const Checkbox = forwardRef(({
     });
 
     /**
-     * @description useEffect 실행 흐름 관리
-     * 처리 규칙: effect 실행/cleanup 경계를 명시적으로 유지.
+     * @description dataObj 바인딩 checked 값을 internalChecked에 동기화
+     * 처리 규칙: isDataObjControlled일 때 getBoundValue 결과를 boolean으로 변환한다.
      */
     useEffect(() => {
         if (isDataObjControlled) {
-            const value = getBoundValue(dataObj, dataKeyName);
-            const next = [true, 'Y', 'y', '1', 1].includes(value);
-            setInternalChecked(next);
+            const boundValue = getBoundValue(dataObj, dataKeyName);
+            const isNextChecked = [true, 'Y', 'y', '1', 1].includes(boundValue);
+            setInternalChecked(isNextChecked);
         }
     }, [isDataObjControlled, dataObj, dataKeyName]);
 
@@ -61,57 +61,52 @@ const Checkbox = forwardRef(({
      */
     const handleChange = (event) => {
         event.stopPropagation();
-        const newChecked = event.target.checked;
+        const isNewChecked = event.target.checked;
 
         if (!isControlled) {
-            setInternalChecked(newChecked);
+            setInternalChecked(isNewChecked);
         }
 
         if (isDataObjControlled) {
-            setBoundValue(dataObj, dataKeyName, newChecked);
+            setBoundValue(dataObj, dataKeyName, isNewChecked);
         }
 
-        const ctx = buildCtx({ dataKey: dataKeyName, dataObj, source: 'user', dirty: true, valid: null });
-        fireValueHandlers({ onChange, onValueChange, value: newChecked, ctx, event });
-    };
-
-    /**
-     * @description controlled/dataObj/internal 우선순위로 렌더링 체크 상태를 결정
-     * @returns {boolean}
-     * @updated 2026-02-27
-     */
-    const getCheckedState = () => {
-        if (isControlled) return propChecked;
-        if (isDataObjControlled) return [true, 'Y', 'y', '1', 1].includes(getBoundValue(dataObj, dataKeyName));
-        return internalChecked;
+        const bindingCtx = buildCtx({ dataKey: dataKeyName, dataObj, source: 'user', dirty: true, valid: null });
+        fireValueHandlers({ onChange, onValueChange, value: isNewChecked, ctx: bindingCtx, event });
     };
 
     const colorKey = typeof color === "string" ? color.toLowerCase() : "primary";
     const colorClassMap = {
-        primary: styles.checkboxPrimary,
-        success: styles.checkboxSuccess,
-        warning: styles.checkboxWarning,
-        danger: styles.checkboxDanger,
-        neutral: styles.checkboxNeutral,
+        primary: checkboxCssModule.checkboxPrimary,
+        success: checkboxCssModule.checkboxSuccess,
+        warning: checkboxCssModule.checkboxWarning,
+        danger: checkboxCssModule.checkboxDanger,
+        neutral: checkboxCssModule.checkboxNeutral,
     };
-    const colorClassName = colorClassMap[colorKey] || styles.checkboxPrimary;
+    const colorClassName = colorClassMap[colorKey] || checkboxCssModule.checkboxPrimary;
+    let isChecked = internalChecked;
+    if (isControlled) {
+        isChecked = Boolean(propChecked);
+    } else if (isDataObjControlled) {
+        isChecked = [true, 'Y', 'y', '1', 1].includes(getBoundValue(dataObj, dataKeyName));
+    }
 
     return (
-        <label className={`${styles.wrapper} ${className}`}>
+        <label className={`${checkboxCssModule.wrapper} ${className}`}>
             <input
                 ref={ref}
                 type="checkbox"
                 name={inputName}
-                checked={getCheckedState()}
+                checked={isChecked}
                 disabled={disabled}
                 onChange={handleChange}
-                className={`${styles.checkbox} ${colorClassName}`.trim()}
+                className={`${checkboxCssModule.checkbox} ${colorClassName}`.trim()}
                 role="checkbox"
-                aria-checked={getCheckedState()}
+                aria-checked={isChecked}
                 aria-disabled={disabled}
                 {...props}
             />
-            {label && <span className={styles.label}>{label}</span>}
+            {label && <span className={checkboxCssModule.label}>{label}</span>}
         </label>
     );
 });

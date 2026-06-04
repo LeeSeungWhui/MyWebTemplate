@@ -1,7 +1,7 @@
 /**
  * 파일명: tests/dashboard.view.test.jsx
  * 작성자: LSH
- * 갱신일: 2026-03-03
+ * 갱신일: 2026-05-03
  * 설명: 대시보드 뷰 에러/빈상태 렌더링 테스트
  */
 
@@ -60,12 +60,12 @@ describe("dashboard view", () => {
   } = {}) => ({
     stats: {
       result: {
-        byStatus: statList,
+        statusSummaryList: statList,
       },
     },
     list: {
       result: {
-        items: dataList,
+        dataTemplateList: dataList,
       },
     },
   });
@@ -152,11 +152,11 @@ describe("dashboard view", () => {
 
     await act(async () => {
       resolveStats({
-        result: { byStatus: [{ status: "ready", count: 1, amountSum: 1000 }] },
+        result: { statusSummaryList: [{ status: "ready", count: 1, amountSum: 1000 }] },
       });
       resolveList({
         result: {
-          items: [
+          dataTemplateList: [
             {
               id: 1,
               title: "지연 테스트",
@@ -200,11 +200,11 @@ describe("dashboard view", () => {
     apiJSON.mockReset();
     apiJSON
       .mockResolvedValueOnce({
-        result: { byStatus: [{ status: "ready", count: 1, amountSum: 1000 }] },
+        result: { statusSummaryList: [{ status: "ready", count: 1, amountSum: 1000 }] },
       })
       .mockResolvedValueOnce({
         result: {
-          items: [
+          dataTemplateList: [
             {
               id: 1,
               title: "복구 테스트",
@@ -232,8 +232,8 @@ describe("dashboard view", () => {
   test("목록 0건이면 빈 상태 메시지를 표시한다", async () => {
     PAGE_CONFIG.MODE = "CSR";
     apiJSON
-      .mockResolvedValueOnce({ result: { byStatus: [] } })
-      .mockResolvedValueOnce({ result: { items: [] } });
+      .mockResolvedValueOnce({ result: { statusSummaryList: [] } })
+      .mockResolvedValueOnce({ result: { dataTemplateList: [] } });
 
     render(
       <DashboardView

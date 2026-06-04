@@ -15,8 +15,8 @@ vi.mock("@/app/common/config/getBackendHost.server", () => ({
 function getSetCookies(res) {
   if (typeof res?.headers?.getSetCookie === "function")
     return res.headers.getSetCookie();
-  const single = res?.headers?.get?.("set-cookie");
-  return single ? [single] : [];
+  const singleSetCookie = res?.headers?.get?.("set-cookie");
+  return singleSetCookie ? [singleSetCookie] : [];
 }
 
 function findCookieValue(setCookies, name) {
@@ -34,8 +34,8 @@ function decodeBase64UrlJson(encoded) {
     .replace(/-/g, "+")
     .replace(/_/g, "/");
   const padded = base64 + "===".slice((base64.length + 3) % 4);
-  const text = Buffer.from(padded, "base64").toString("utf8");
-  return JSON.parse(text);
+  const decodedText = Buffer.from(padded, "base64").toString("utf8");
+  return JSON.parse(decodedText);
 }
 
 describe("/api/session/bootstrap", () => {
@@ -60,19 +60,19 @@ describe("/api/session/bootstrap", () => {
       headers: { cookie: `refresh_token=rt; nx=${nx}` },
     });
 
-    const headers = new Headers();
-    headers.append(
+    const refreshHeaders = new Headers();
+    refreshHeaders.append(
       "set-cookie",
       "access_token=at; Path=/; HttpOnly; SameSite=Lax",
     );
-    headers.append(
+    refreshHeaders.append(
       "set-cookie",
       "refresh_token=rt2; Path=/; HttpOnly; SameSite=Lax",
     );
-    headers.set("content-type", "application/json");
+    refreshHeaders.set("content-type", "application/json");
 
     fetch.mockResolvedValueOnce(
-      new Response(JSON.stringify({ status: true }), { status: 200, headers }),
+      new Response(JSON.stringify({ status: true }), { status: 200, headers: refreshHeaders }),
     );
 
     const res = await GET(req);
@@ -87,6 +87,40 @@ describe("/api/session/bootstrap", () => {
     expect(setCookies.toLowerCase()).toContain("max-age=0");
   });
 
+  it("refresh 성공 시 악성 nx는 /dashboard로 sanitize한다", async () => {
+    const maliciousNxList = [
+      "/\\evil.example",
+      "/%5Cevil.example",
+      "/%250A%250D//evil.example",
+      "//evil.example/a",
+      "https://evil.example/a",
+    ];
+
+    for (const maliciousNx of maliciousNxList) {
+      const req = new Request("http://localhost:3000/api/session/bootstrap", {
+        headers: {
+          cookie: `refresh_token=rt; nx=${encodeURIComponent(maliciousNx)}`,
+        },
+      });
+      const refreshHeaders = new Headers();
+      refreshHeaders.append(
+        "set-cookie",
+        "access_token=at; Path=/; HttpOnly; SameSite=Lax",
+      );
+      refreshHeaders.set("content-type", "application/json");
+
+      fetch.mockResolvedValueOnce(
+        new Response(JSON.stringify({ status: true }), {
+          status: 200,
+          headers: refreshHeaders,
+        }),
+      );
+
+      const res = await GET(req);
+      expect(res.headers.get("location")).toBe("http://localhost:3000/dashboard");
+    }
+  });
+
   it("refresh 실패 시 /login으로 보내고, 백엔드 Set-Cookie(삭제 포함)는 전달한다", async () => {
     const req = new Request("http://localhost:3000/api/session/bootstrap", {
       headers: {
@@ -94,13 +128,13 @@ describe("/api/session/bootstrap", () => {
       },
     });
 
-    const headers = new Headers();
-    headers.append("set-cookie", "access_token=; Path=/; Max-Age=0");
-    headers.append("set-cookie", "refresh_token=; Path=/; Max-Age=0");
-    headers.set("content-type", "application/json");
+    const refreshHeaders = new Headers();
+    refreshHeaders.append("set-cookie", "access_token=; Path=/; Max-Age=0");
+    refreshHeaders.append("set-cookie", "refresh_token=; Path=/; Max-Age=0");
+    refreshHeaders.set("content-type", "application/json");
 
     fetch.mockResolvedValueOnce(
-      new Response(JSON.stringify({ status: false }), { status: 401, headers }),
+      new Response(JSON.stringify({ status: false }), { status: 401, headers: refreshHeaders }),
     );
 
     const res = await GET(req);
@@ -119,10 +153,10 @@ describe("/api/session/bootstrap", () => {
       },
     });
 
-    const headers = new Headers();
-    headers.append("set-cookie", "access_token=; Path=/; Max-Age=0");
-    headers.append("set-cookie", "refresh_token=; Path=/; Max-Age=0");
-    headers.set("content-type", "application/json");
+    const refreshHeaders = new Headers();
+    refreshHeaders.append("set-cookie", "access_token=; Path=/; Max-Age=0");
+    refreshHeaders.append("set-cookie", "refresh_token=; Path=/; Max-Age=0");
+    refreshHeaders.set("content-type", "application/json");
 
     fetch.mockResolvedValueOnce(
       new Response(
@@ -132,7 +166,7 @@ describe("/api/session/bootstrap", () => {
           requestId: "req-123",
           message: "expired",
         }),
-        { status: 401, headers },
+        { status: 401, headers: refreshHeaders },
       ),
     );
 

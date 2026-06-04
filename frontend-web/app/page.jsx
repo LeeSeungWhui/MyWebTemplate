@@ -15,7 +15,7 @@ export const runtime = "nodejs";
 
 /**
  * @description 공개 랜딩 화면을 렌더링. 입력/출력 계약을 함께 명시
- * @note 인증 분기는 middleware.js에서 단일 처리한다.
+ * @note 인증 분기는 proxy.js에서 단일 처리한다.
  * @returns {Promise<JSX.Element>}
  */
 const HomePage = async () => {

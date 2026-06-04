@@ -61,6 +61,7 @@ def loadConfig(filename: str) -> ConfigParser:
             pass
 
     config = ConfigParser()
+
 # backend/lib 경로를 backend 기준으로 보정
     configPath = resolvePath(filename)
     with open(configPath, "r", encoding="utf-8") as f:

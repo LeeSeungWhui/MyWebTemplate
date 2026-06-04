@@ -1,7 +1,7 @@
 /**
  * 파일명: EasyList.jsx
  * 작성자: LSH
- * 갱신일: 2026-03-05
+ * 갱신일: 2026-05-31
  * 설명: 리스트형 반응형 데이터 모델
  */
 
@@ -67,16 +67,58 @@ const isNativeFileLike = (value) => {
 };
 
 /**
+ * @description Proxy get trap이 ECMAScript 불변식을 따라야 하는 own data/accessor 값을 조회
+ * 처리 규칙: non-configurable + non-writable data property는 원본 값을 그대로 반환해야 하며, getter가 없는 non-configurable accessor는 undefined만 허용한다.
+ * @updated 2026-06-04
+ */
+const getInvariantValue = (target, prop) => {
+    const descriptor = Reflect.getOwnPropertyDescriptor(target, prop);
+    if (!descriptor) return { mustReturnExact: false, value: undefined };
+    if ('value' in descriptor && descriptor.configurable === false && descriptor.writable === false) {
+        return { mustReturnExact: true, value: descriptor.value };
+    }
+    if (!('value' in descriptor) && descriptor.configurable === false && typeof descriptor.get === 'undefined') {
+        return { mustReturnExact: true, value: undefined };
+    }
+    return { mustReturnExact: false, value: undefined };
+};
+
+/**
+ * @description Proxy ownProperty 계열 trap이 반드시 target 기준으로 유지해야 하는지 판별
+ * 처리 규칙: non-configurable own property가 있거나 target이 non-extensible이면 target 기반 응답만 허용한다.
+ * @updated 2026-06-04
+ */
+const mustUseTargetOwnPropertyInvariants = (target, prop) => {
+    const descriptor = Reflect.getOwnPropertyDescriptor(target, prop);
+    if (descriptor?.configurable === false) return true;
+    if (!Reflect.isExtensible(target)) return true;
+    return false;
+};
+
+/**
+ * @description Proxy ownKeys trap이 target 키 집합을 그대로 유지해야 하는지 판별
+ * 처리 규칙: target이 non-extensible이거나 non-configurable own property를 가지면 target 키 집합을 반환해야 한다.
+ * @updated 2026-06-04
+ */
+const mustUseTargetOwnKeysInvariants = (target) => {
+    if (!Reflect.isExtensible(target)) return true;
+    return Reflect.ownKeys(target).some((propertyKey) => {
+        const descriptor = Reflect.getOwnPropertyDescriptor(target, propertyKey);
+        return descriptor?.configurable === false;
+    });
+};
+
+/**
  * @description 리스트 데이터의 깊은 복사본을 생성. 입력/출력 계약을 함께 명시
  * 처리 규칙: primitive와 파일류 객체는 원본을 유지하고, 배열/일반 객체만 재귀 복사한다.
  * @updated 2026-02-27
  */
 const deepCopy = (value) => {
     if (!isObject(value) || isNativeFileLike(value)) return value;
-    if (Array.isArray(value)) return value.map((item) => deepCopy(item));
-    const out = {};
-    for (const key of Object.keys(value)) out[key] = deepCopy(value[key]);
-    return out;
+    if (Array.isArray(value)) return value.map((listValue) => deepCopy(listValue));
+    const copiedObj = {};
+    for (const propertyKey of Object.keys(value)) copiedObj[propertyKey] = deepCopy(value[propertyKey]);
+    return copiedObj;
 };
 
 /**
@@ -91,7 +133,7 @@ const useEasyList = (initialData = []) => {
     const rawToProxyRef = useRef(new WeakMap());
     const proxyToRawRef = useRef(new WeakMap());
     const rootProxyRef = useRef(null);
-    const dirtyFlagRef = useRef(false);
+    const renderJobRef = useRef(null);
 
     /**
      * @description 변경 플래그를 세우고 렌더 갱신을 예약
@@ -99,10 +141,9 @@ const useEasyList = (initialData = []) => {
      * @updated 2026-02-27
      */
     const markDirty = () => {
-        if (dirtyFlagRef.current) return;
-        dirtyFlagRef.current = true;
-        scheduleUpdate(() => {
-            dirtyFlagRef.current = false;
+        if (renderJobRef.current !== null) return;
+        renderJobRef.current = scheduleUpdate(() => {
+            renderJobRef.current = null;
             forceRender({});
         });
     };
@@ -129,8 +170,8 @@ const useEasyList = (initialData = []) => {
         let cursor = rootRef.current;
         for (const segment of pathSegments) {
             if (cursor == null) return undefined;
-            const key = typeof segment === 'symbol' ? segment : String(segment);
-            cursor = cursor[key];
+            const pathKey = typeof segment === 'symbol' ? segment : String(segment);
+            cursor = cursor[pathKey];
         }
         return cursor;
     };
@@ -155,27 +196,27 @@ const useEasyList = (initialData = []) => {
      */
     const assignAtPath = (pathSegments, value) => {
         if (!pathSegments.length) {
-            const result = { prev: rootRef.current };
+            const prevValueObj = { prev: rootRef.current };
             rootRef.current = Array.isArray(value) ? value : [];
-            return result;
+            return prevValueObj;
         }
         if (!Array.isArray(rootRef.current)) rootRef.current = [];
         let cursor = rootRef.current;
-        for (let idx = 0; idx < pathSegments.length - 1; idx += 1) {
-            const key = typeof pathSegments[idx] === 'symbol' ? pathSegments[idx] : String(pathSegments[idx]);
+        for (let index = 0; index < pathSegments.length - 1; index += 1) {
+            const pathKey = typeof pathSegments[index] === 'symbol' ? pathSegments[index] : String(pathSegments[index]);
             cursor = ensureContainer(
                 cursor,
-                key,
-                typeof pathSegments[idx + 1] === 'symbol' ? undefined : String(pathSegments[idx + 1]),
+                pathKey,
+                typeof pathSegments[index + 1] === 'symbol' ? undefined : String(pathSegments[index + 1]),
             );
         }
         const lastKey =
             typeof pathSegments[pathSegments.length - 1] === 'symbol'
                 ? pathSegments[pathSegments.length - 1]
                 : String(pathSegments[pathSegments.length - 1]);
-        const result = { prev: cursor[lastKey] };
+        const prevValueObj = { prev: cursor[lastKey] };
         cursor[lastKey] = value;
-        return result;
+        return prevValueObj;
     };
 
     /**
@@ -186,9 +227,9 @@ const useEasyList = (initialData = []) => {
     const removeAtPath = (pathSegments) => {
         if (!pathSegments.length) return { prev: undefined, removed: false };
         let cursor = rootRef.current;
-        for (let idx = 0; idx < pathSegments.length - 1; idx += 1) {
-            const key = typeof pathSegments[idx] === 'symbol' ? pathSegments[idx] : String(pathSegments[idx]);
-            cursor = cursor?.[key];
+        for (let index = 0; index < pathSegments.length - 1; index += 1) {
+            const pathKey = typeof pathSegments[index] === 'symbol' ? pathSegments[index] : String(pathSegments[index]);
+            cursor = cursor?.[pathKey];
             if (cursor == null) return { prev: undefined, removed: false };
         }
         const leafKey =
@@ -199,7 +240,9 @@ const useEasyList = (initialData = []) => {
             if (typeof leafKey === 'string') {
                 if (isNumericKey(leafKey)) {
                     const index = Number(leafKey);
-                    if (Number.isNaN(index) || index < 0 || index >= cursor.length) return { prev: undefined, removed: false };
+                    const isIndexOutOfRange =
+                        Number.isNaN(index) || index < 0 || index >= cursor.length;
+                    if (isIndexOutOfRange) return { prev: undefined, removed: false };
                     return { prev: cursor.splice(index, 1)[0], removed: true };
                 }
             }
@@ -252,7 +295,7 @@ const useEasyList = (initialData = []) => {
      */
     const emitChange = ({ type, path, value, prev, source = 'program' }) => {
 
-        const detail = {
+        const changeDetailObj = {
             type,
             path,
             pathString: path.filter((segment) => typeof segment !== 'symbol').join('.'),
@@ -268,7 +311,7 @@ const useEasyList = (initialData = []) => {
         };
         listenersRef.current.forEach((listener) => {
             try {
-                listener(detail);
+                listener(changeDetailObj);
             } catch {
 
             }
@@ -355,14 +398,14 @@ const useEasyList = (initialData = []) => {
             applySet(basePath, plain, options);
             return;
         }
-        const nextKeys = new Set(Object.keys(plain));
-        const current = readAtPath(basePath);
-        const currentKeys = isObject(current) ? Object.keys(current) : [];
-        currentKeys.forEach((key) => {
-            if (!nextKeys.has(key)) applyDelete([...basePath, key], options);
+        const nextKeySet = new Set(Object.keys(plain));
+        const currentBranchValue = readAtPath(basePath);
+        const currentKeyList = isObject(currentBranchValue) ? Object.keys(currentBranchValue) : [];
+        currentKeyList.forEach((currentKey) => {
+            if (!nextKeySet.has(currentKey)) applyDelete([...basePath, currentKey], options);
         });
-        Object.entries(plain).forEach(([key, value]) => {
-            applySet([...basePath, key], value, options);
+        Object.entries(plain).forEach(([plainKey, plainValue]) => {
+            applySet([...basePath, plainKey], plainValue, options);
         });
     };
 
@@ -406,15 +449,15 @@ const useEasyList = (initialData = []) => {
 
     /**
      * @description raw 객체에 대한 프록시를 조회하거나 생성. 입력/출력 계약을 함께 명시
-     * 처리 규칙: WeakMap 캐시를 우선 사용하고, handler에서 리스트 조작(push/pop/splice 등)을 EasyList 규약으로 통합한다.
+     * 처리 규칙: WeakMap 캐시를 우선 사용하고, proxy handler에서 리스트 조작(push/pop/splice 등)을 EasyList 규약으로 통합한다.
      * @updated 2026-02-27
      */
-    const getOrCreateProxy = (raw, basePath = []) => {
-        if (!isObject(raw)) return raw;
-        const cached = rawToProxyRef.current.get(raw);
+    const getOrCreateProxy = (rawObj, basePath = []) => {
+        if (!isObject(rawObj)) return rawObj;
+        const cached = rawToProxyRef.current.get(rawObj);
         if (cached) return cached;
         let proxy;
-        const handler = {
+        const proxyHandlerObj = {
             get(target, prop, receiver) {
                 const container = resolveContainer(target, proxy, basePath);
                 if (prop === '__isProxy') return true;
@@ -442,11 +485,11 @@ const useEasyList = (initialData = []) => {
                     return (sourceList) => replaceBranch(basePath, deepCopy(sourceList ?? []), { source: 'program' });
                 }
                 if (prop === 'get') {
-                    return (key, fallback) => {
+                    return (key, defaultValue) => {
                         const fullPath = normalizePath(basePath, key);
-                        const result = readAtPath(fullPath);
-                        if (typeof result === 'undefined') return fallback;
-                        return wrapValue(result, fullPath);
+                        const pathValue = readAtPath(fullPath);
+                        if (typeof pathValue === 'undefined') return defaultValue;
+                        return wrapValue(pathValue, fullPath);
                     };
                 }
                 if (prop === 'set') {
@@ -470,8 +513,8 @@ const useEasyList = (initialData = []) => {
                         } else if (Array.isArray(target)) {
                             start = target.length;
                         }
-                        items.forEach((item, offset) => {
-                            applySet([...basePath, String(start + offset)], item, { source: 'program' });
+                        items.forEach((insertItemValue, offset) => {
+                            applySet([...basePath, String(start + offset)], insertItemValue, { source: 'program' });
                         });
                         const latest = readAtPath(basePath);
                         return Array.isArray(latest) ? latest.length : start + items.length;
@@ -479,57 +522,59 @@ const useEasyList = (initialData = []) => {
                 }
                 if (prop === 'pop') {
                     return () => {
-                        const arr = readAtPath(basePath);
-                        if (!Array.isArray(arr) || !arr.length) return undefined;
-                        const index = arr.length - 1;
-                        const value = wrapValue(arr[index], [...basePath, String(index)]);
+                        const targetList = readAtPath(basePath);
+                        if (!Array.isArray(targetList) || !targetList.length) return undefined;
+                        const index = targetList.length - 1;
+                        const poppedValue = wrapValue(targetList[index], [...basePath, String(index)]);
                         applyDelete([...basePath, String(index)], { source: 'program' });
-                        return value;
+                        return poppedValue;
                     };
                 }
                 if (prop === 'splice') {
                     return (start, deleteCount, ...items) => {
-                        const arr = readAtPath(basePath);
-                        const normalizedStart = Math.max(0, Math.min(arr.length, Number(start) || 0));
+                        const targetList = readAtPath(basePath);
+                        const normalizedStart = Math.max(0, Math.min(targetList.length, Number(start) || 0));
                         const toDelete = Math.max(0, Number(deleteCount) || 0);
-                        const removed = [];
-                        for (let idx = 0; idx < toDelete; idx += 1) {
-                            const path = [...basePath, String(normalizedStart)];
-                            const current = readAtPath(path);
-                            removed.push(wrapValue(current, path));
-                            applyDelete(path, { source: 'program' });
+                        const removedItemList = [];
+                        for (let index = 0; index < toDelete; index += 1) {
+                            const removePathList = [...basePath, String(normalizedStart)];
+                            const removedItemValue = readAtPath(removePathList);
+                            removedItemList.push(wrapValue(removedItemValue, removePathList));
+                            applyDelete(removePathList, { source: 'program' });
                         }
-                        items.forEach((item, offset) => {
-                            const path = [...basePath, String(normalizedStart + offset)];
-                            applySet(path, item, { source: 'program' });
+                        items.forEach((insertItemValue, offset) => {
+                            const insertPathList = [...basePath, String(normalizedStart + offset)];
+                            applySet(insertPathList, insertItemValue, { source: 'program' });
                         });
-                        return removed;
+                        return removedItemList;
                     };
                 }
                 if (prop === 'forAll') {
                     return (callback) => {
                         if (typeof callback !== 'function') return;
-                        const arr = readAtPath(basePath);
-                        if (!Array.isArray(arr)) return;
-                        arr.forEach((item, index) => {
-                            callback(wrapValue(item, [...basePath, String(index)]), index);
+                        const targetList = readAtPath(basePath);
+                        if (!Array.isArray(targetList)) return;
+                        targetList.forEach((targetItemValue, index) => {
+                            callback(wrapValue(targetItemValue, [...basePath, String(index)]), index);
                         });
                     };
                 }
+                const invariantValue = getInvariantValue(target, prop);
+                if (invariantValue.mustReturnExact) return invariantValue.value;
                 if (typeof prop === 'string') {
                     if (prop.includes('.')) {
                         const fullPath = normalizePath(basePath, prop);
-                        const value = readAtPath(fullPath);
-                        return wrapValue(value, fullPath);
+                        const pathValue = readAtPath(fullPath);
+                        return wrapValue(pathValue, fullPath);
                     }
                 }
                 const baseObject = isObject(container) ? container : Object(container ?? {});
-                const value = Reflect.get(baseObject, prop, receiver);
-                if (isObject(value) && !isNativeFileLike(value)) {
+                const propertyValue = Reflect.get(baseObject, prop, receiver);
+                if (isObject(propertyValue) && !isNativeFileLike(propertyValue)) {
                     const nextContainer = readAtPath(normalizePath(basePath, prop));
-                    return getOrCreateProxy(nextContainer ?? value, [...basePath, typeof prop === 'symbol' ? prop : String(prop)]);
+                    return getOrCreateProxy(nextContainer ?? propertyValue, [...basePath, typeof prop === 'symbol' ? prop : String(prop)]);
                 }
-                return value;
+                return propertyValue;
             },
             set(target, prop, value) {
                 applySet(normalizePath(basePath, prop), value, { source: 'program' });
@@ -540,6 +585,9 @@ const useEasyList = (initialData = []) => {
                 return true;
             },
             has(target, prop) {
+                if (mustUseTargetOwnPropertyInvariants(target, prop)) {
+                    return Reflect.has(target, prop);
+                }
                 const container = resolveContainer(target, proxy, basePath);
                 if (!isObject(container)) {
                     const boxed = Object(container ?? {});
@@ -548,6 +596,9 @@ const useEasyList = (initialData = []) => {
                 return Reflect.has(container, prop);
             },
             ownKeys(target) {
+                if (mustUseTargetOwnKeysInvariants(target)) {
+                    return Reflect.ownKeys(target);
+                }
                 const container = resolveContainer(target, proxy, basePath);
                 if (!isObject(container)) {
                     const boxed = Object(container ?? {});
@@ -556,6 +607,9 @@ const useEasyList = (initialData = []) => {
                 return Reflect.ownKeys(container);
             },
             getOwnPropertyDescriptor(target, prop) {
+                if (mustUseTargetOwnPropertyInvariants(target, prop)) {
+                    return Reflect.getOwnPropertyDescriptor(target, prop);
+                }
                 const container = resolveContainer(target, proxy, basePath);
                 if (!isObject(container)) {
                     const boxed = Object(container ?? {});
@@ -564,9 +618,9 @@ const useEasyList = (initialData = []) => {
                 return Object.getOwnPropertyDescriptor(container, prop);
             },
         };
-        proxy = new Proxy(raw, handler);
-        rawToProxyRef.current.set(raw, proxy);
-        proxyToRawRef.current.set(proxy, raw);
+        proxy = new Proxy(rawObj, proxyHandlerObj);
+        rawToProxyRef.current.set(rawObj, proxy);
+        proxyToRawRef.current.set(proxy, rawObj);
         if (!basePath.length) rootProxyRef.current = proxy;
         return proxy;
     }
@@ -594,13 +648,5 @@ const useEasyList = (initialData = []) => {
     return rootProxyRef.current;
 }
 
-/**
- * @description EasyList 생성 진입 함수를 외부에 노출
- * 처리 규칙: 전달받은 초기값으로 useEasyList를 호출해 프록시 리스트 모델을 반환한다.
- */
-const EasyList = (initialData = []) => {
-    return useEasyList(initialData);
-}
-
-export default EasyList;
+export default useEasyList;
 export { useEasyList };

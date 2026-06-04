@@ -1,12 +1,13 @@
 /**
  * 파일명: Toast.jsx
  * 작성자: LSH
- * 갱신일: 2025-09-13
+ * 갱신일: 2026-05-31
  * 설명: Toast UI 컴포넌트 구현
  */
-import { forwardRef, useEffect } from 'react';
+import { forwardRef } from 'react';
 import Icon from '../Icon';
-import styles from './Toast.module.css';
+import toastCssModule from './Toast.module.css';
+import { COMMON_LANG_KO } from '@/app/common/i18n/lang.ko';
 
 /**
  * @description 렌더링 및 상호작용 처리
@@ -23,7 +24,7 @@ const Toast = forwardRef(({
     ...props
 }, ref) => {
 
-    const types = {
+    const toastTypeMetaObj = {
         info: {
             icon: 'ri:RiInformationLine',
             iconColor: 'text-blue-500',
@@ -50,7 +51,7 @@ const Toast = forwardRef(({
         }
     };
 
-    const positions = {
+    const toastPlaceClassMap = {
         'top-left': 'top-4 left-4',
         'top-center': 'top-4 left-1/2 -translate-x-1/2',
         'top-right': 'top-4 right-4',
@@ -61,44 +62,21 @@ const Toast = forwardRef(({
 
     // 위치에 따른 슬라이드 방향 결정
     const isTopPosition = position.startsWith('top-');
-    const slideInAnimation = isTopPosition ? styles.slideDown : styles.slideUp;
-    const slideOutAnimation = isTopPosition ? styles.slideUpExit : styles.slideDownExit;
-
-    /**
-     * @description 닫기 버튼 클릭 시 상위 onClose를 통해 토스트 제거 흐름을 트리거
-     * @returns {void}
-     * @updated 2026-02-27
-     */
-    const handleClose = () => {
-        onClose?.();
-    };
-
-    /**
-     * @description useEffect 실행 흐름 관리
-     * 처리 규칙: effect 실행/cleanup 경계를 명시적으로 유지.
-     */
-    useEffect(() => {
-        if (onClose) {
-            const closeButton = document.querySelector(`[data-toast-close="${message}"]`);
-            if (closeButton) {
-                closeButton.addEventListener('click', handleClose);
-                return () => closeButton.removeEventListener('click', handleClose);
-            }
-        }
-    }, [onClose, message]);
+    const slideInAnimation = isTopPosition ? toastCssModule.slideDown : toastCssModule.slideUp;
+    const slideOutAnimation = isTopPosition ? toastCssModule.slideUpExit : toastCssModule.slideDownExit;
 
     return (
         <div
             ref={ref}
             className={`
                 fixed z-50
-                ${positions[position] || positions['bottom-center']}
+                ${toastPlaceClassMap[position] || toastPlaceClassMap['bottom-center']}
                 flex items-center
                 w-[calc(100vw-32px)] max-w-md
                 px-4 py-3
                 rounded-lg shadow-lg
-                border ${(types[type] || types.info).borderColor}
-                ${(types[type] || types.info).bgColor}
+                border ${(toastTypeMetaObj[type] || toastTypeMetaObj.info).borderColor}
+                ${(toastTypeMetaObj[type] || toastTypeMetaObj.info).bgColor}
                 backdrop-blur-sm
                 ${isExiting ? slideOutAnimation : slideInAnimation}
                 ${className}
@@ -107,16 +85,18 @@ const Toast = forwardRef(({
             {...props}
         >
             <Icon
-                icon={(types[type] || types.info).icon}
+                icon={(toastTypeMetaObj[type] || toastTypeMetaObj.info).icon}
                 size="1.25em"
-                className={`mr-3 ${(types[type] || types.info).iconColor} flex-shrink-0`}
+                className={`mr-3 ${(toastTypeMetaObj[type] || toastTypeMetaObj.info).iconColor} flex-shrink-0`}
             />
             <div className="flex-1 text-sm text-gray-600">
                 {message}
             </div>
             {onClose && (
                 <button
-                    data-toast-close={message}
+                    type="button"
+                    onClick={onClose}
+                    aria-label={COMMON_LANG_KO.action.close}
                     className="ml-3 text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 rounded-full p-1"
                 >
                     <Icon icon="ri:RiCloseLine" size="1.25em" />

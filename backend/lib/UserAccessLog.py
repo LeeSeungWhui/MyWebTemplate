@@ -77,19 +77,26 @@ def getIpGeoEnabled() -> bool:
 def getIpGeoTimeoutMs() -> int:
     """
     설명: 외부 IP 위치 조회 타임아웃(ms) 결정 규칙(환경변수 우선) 유틸
-    우선순위: 환경변수(IP_GEO_TIMEOUT_MS) > config(OBSERVABILITY.ip_geo_timeout_ms)
+    우선순위: 환경변수(IP_GEO_TIMEOUT_MS) > config(API_POLICY.ipGeoLookup.request_timeout_sec) > config(API_POLICY.request_timeout_sec)
     갱신일: 2026-02-22
     """
     envValue = os.getenv("IP_GEO_TIMEOUT_MS")
     if envValue is not None:
-        return parsePositiveInt(envValue, 700)
+        return parsePositiveInt(envValue, 5000)
     try:
         config = getConfig()
-        if "OBSERVABILITY" in config:
-            return parsePositiveInt(config["OBSERVABILITY"].get("ip_geo_timeout_ms"), 700)
+        globalPolicy = config["API_POLICY"] if "API_POLICY" in config else None
+        ipGeoPolicy = config["API_POLICY.ipGeoLookup"] if "API_POLICY.ipGeoLookup" in config else None
+        timeoutSec = None
+        if ipGeoPolicy:
+            timeoutSec = ipGeoPolicy.get("request_timeout_sec")
+        if timeoutSec is None and globalPolicy:
+            timeoutSec = globalPolicy.get("request_timeout_sec")
+        if timeoutSec is not None:
+            return max(100, parsePositiveInt(timeoutSec, 5) * 1000)
     except Exception:
         pass
-    return 700
+    return 5000
 
 
 def getIpGeoCacheTtlSec() -> int:
@@ -122,6 +129,7 @@ def normalizeIp(clientIp: Optional[str]) -> Optional[str]:
     rawIp = (clientIp or "").strip()
     if not rawIp:
         return None
+
     # IPv6 bracket 제거([::1] 형태 대비)
     if rawIp.startswith("[") and rawIp.endswith("]"):
         rawIp = rawIp[1:-1]
@@ -178,7 +186,7 @@ def buildLocationText(geoJson: dict) -> str:
     return "PUBLIC_IP"
 
 
-async def getIpGeoFromRemote(ipValue: str) -> Optional[dict]:
+async def getIpGeoFromRemote(ipValue: str, requestId: Optional[str] = None) -> Optional[dict]:
     """
     설명: 외부 API(ipwho.is) 호출로 공인 IP의 대략 위치를 가져오는 원격 조회 함수
     처리 규칙: 200 응답 + success=true dict일 때만 결과를 채택
@@ -188,19 +196,70 @@ async def getIpGeoFromRemote(ipValue: str) -> Optional[dict]:
     timeoutMs = getIpGeoTimeoutMs()
     timeoutSec = max(0.1, timeoutMs / 1000.0)
     url = f"https://ipwho.is/{ipValue}"
-    async with httpx.AsyncClient(timeout=timeoutSec) as client:
-        response = await client.get(url, headers={"Accept": "application/json"})
-        if response.status_code != 200:
-            return None
-        data = response.json()
-        if not isinstance(data, dict):
-            return None
-        if data.get("success") is False:
-            return None
-        return data
+    try:
+        async with httpx.AsyncClient(timeout=timeoutSec) as client:
+            response = await client.get(url, headers={"Accept": "application/json"})
+            if response.status_code != 200:
+                logger.warning(
+                    json.dumps(
+                        {
+                            "event": "ip_geo.lookup.failed",
+                            "target": url,
+                            "timeoutMs": timeoutMs,
+                            "requestId": requestId,
+                            "statusCode": response.status_code,
+                        },
+                        ensure_ascii=False,
+                    )
+                )
+                return None
+            data = response.json()
+            if not isinstance(data, dict):
+                logger.warning(
+                    json.dumps(
+                        {
+                            "event": "ip_geo.lookup.failed",
+                            "target": url,
+                            "timeoutMs": timeoutMs,
+                            "requestId": requestId,
+                            "reason": "INVALID_JSON_BODY",
+                        },
+                        ensure_ascii=False,
+                    )
+                )
+                return None
+            if data.get("success") is False:
+                logger.warning(
+                    json.dumps(
+                        {
+                            "event": "ip_geo.lookup.failed",
+                            "target": url,
+                            "timeoutMs": timeoutMs,
+                            "requestId": requestId,
+                            "reason": "REMOTE_SUCCESS_FALSE",
+                        },
+                        ensure_ascii=False,
+                    )
+                )
+                return None
+            return data
+    except Exception as exc:
+        logger.warning(
+            json.dumps(
+                {
+                    "event": "ip_geo.lookup.failed",
+                    "target": url,
+                    "timeoutMs": timeoutMs,
+                    "requestId": requestId,
+                    "reason": str(exc),
+                },
+                ensure_ascii=False,
+            )
+        )
+        raise
 
 
-async def resolveIpLocation(clientIp: Optional[str]) -> tuple[Optional[str], Optional[str]]:
+async def resolveIpLocation(clientIp: Optional[str], requestId: Optional[str] = None) -> tuple[Optional[str], Optional[str]]:
     """
     설명: IP 기반 위치 텍스트/소스 해석 파이프라인 처리
     반환값: (ipLocTxt, ipLocSrc)
@@ -229,7 +288,7 @@ async def resolveIpLocation(clientIp: Optional[str]) -> tuple[Optional[str], Opt
             ipGeoCache.pop(ipValue, None)
 
     try:
-        geoJson = await getIpGeoFromRemote(ipValue)
+        geoJson = await getIpGeoFromRemote(ipValue, requestId=requestId)
         if not geoJson:
             return ("PUBLIC_IP", "IP_GEO_MISS")
         ipLocTxt = buildLocationText(geoJson)
@@ -287,7 +346,7 @@ async def writeUserAccessLog(
         "ipLocTxt": None,
         "ipLocSrc": None,
     }
-    ipLocTxt, ipLocSrc = await resolveIpLocation(bindValues["clientIp"])
+    ipLocTxt, ipLocSrc = await resolveIpLocation(bindValues["clientIp"], requestId=bindValues["reqId"])
     bindValues["ipLocTxt"] = ipLocTxt
     bindValues["ipLocSrc"] = ipLocSrc
     try:

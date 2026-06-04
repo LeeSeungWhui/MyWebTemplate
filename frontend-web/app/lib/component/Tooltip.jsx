@@ -1,12 +1,12 @@
 /**
  * 파일명: Tooltip.jsx
  * 작성자: LSH
- * 갱신일: 2026-03-04
+ * 갱신일: 2026-05-31
  * 설명: hover/click에 반응하는 툴팁 컴포넌트
  */
 import { forwardRef, useEffect, useId, useRef, useState } from 'react';
 
-const placements = {
+const tooltipSideClassMap = {
   top: 'bottom-full left-1/2 -translate-x-1/2 mb-2',
   bottom: 'top-full left-1/2 -translate-x-1/2 mt-2',
   left: 'right-full top-1/2 -translate-y-1/2 mr-2',
@@ -20,10 +20,9 @@ const placements = {
  */
 const Tooltip = forwardRef(({ content, placement = 'top', delay = 150, disabled = false, trigger = 'hover', className = '', children, textDirection = 'lr' }, ref) => {
 
-  const [open, setOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(false);
   const id = useId();
-  const timer = useRef(null);
-  const rootRef = useRef(null);
+  const timerRef = useRef(null);
 
   /**
    * @description 지연 시간(delay) 이후 툴팁 표시 상태 열기
@@ -32,25 +31,15 @@ const Tooltip = forwardRef(({ content, placement = 'top', delay = 150, disabled 
    */
   const show = () => {
     if (disabled) return;
-    clearTimeout(timer.current);
-    timer.current = setTimeout(() => setOpen(true), delay);
+    clearTimeout(timerRef.current);
+    timerRef.current = setTimeout(() => setIsOpen(true), delay);
   };
 
   /**
-   * @description 툴팁을 즉시 닫고 대기 중인 표시 타이머를 정리
-   * 부작용: open=false, timer.current clearTimeout이 반영된다.
-   * @updated 2026-02-27
+   * @description 언마운트 시 지연 표시 timerRef clearTimeout
+   * 처리 규칙: cleanup에서 timerRef.current를 해제해 누수를 방지한다.
    */
-  const hide = () => {
-    clearTimeout(timer.current);
-    setOpen(false);
-  };
-
-  /**
-   * @description useEffect 실행 흐름 관리
-   * 처리 규칙: effect 실행/cleanup 경계를 명시적으로 유지.
-   */
-  useEffect(() => () => clearTimeout(timer.current), []);
+  useEffect(() => () => clearTimeout(timerRef.current), []);
 
   /**
    * @description click 트리거 모드에서 툴팁 열림 상태를 토글
@@ -59,29 +48,34 @@ const Tooltip = forwardRef(({ content, placement = 'top', delay = 150, disabled 
    */
   const clickToggle = () => {
     if (disabled) return;
-    setOpen((prev) => !prev);
+    setIsOpen((wasOpen) => !wasOpen);
   };
 
   return (
     <span
-      ref={rootRef}
       className={`relative inline-flex ${className}`.trim()}
       onMouseEnter={trigger === 'hover' ? show : undefined}
-      onMouseLeave={trigger === 'hover' ? hide : undefined}
+      onMouseLeave={trigger === 'hover' ? () => {
+        clearTimeout(timerRef.current);
+        setIsOpen(false);
+      } : undefined}
       onFocus={show}
-      onBlur={hide}
+      onBlur={() => {
+        clearTimeout(timerRef.current);
+        setIsOpen(false);
+      }}
       onClick={trigger === 'click' ? clickToggle : undefined}
     >
       {children && (
-        <span ref={ref} aria-describedby={open ? id : undefined}>
+        <span ref={ref} aria-describedby={isOpen ? id : undefined}>
           {children}
         </span>
       )}
-      {open && content && (
+      {isOpen && content && (
         <span
           id={id}
           role="tooltip"
-          className={`pointer-events-none absolute z-20 px-2 py-1 text-xs rounded-md bg-gray-900 text-white shadow ${placements[placement] || placements.top} ${textDirection === 'tb' ? '[writing-mode:vertical-rl] [text-orientation:upright]' : ''}`.trim()}
+          className={`pointer-events-none absolute z-20 px-2 py-1 text-xs rounded-md bg-gray-900 text-white shadow ${tooltipSideClassMap[placement] || tooltipSideClassMap.top} ${textDirection === 'tb' ? '[writing-mode:vertical-rl] [text-orientation:upright]' : ''}`.trim()}
         >
           {content}
         </span>

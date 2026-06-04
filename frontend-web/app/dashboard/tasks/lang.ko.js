@@ -1,7 +1,7 @@
 /**
  * 파일명: app/dashboard/tasks/lang.ko.js
  * 작성자: LSH
- * 갱신일: 2026-02-25
+ * 갱신일: 2026-05-31
  * 설명: tasks 경로 한국어 리소스
  */
 
@@ -104,6 +104,7 @@ export const LANG_KO = {
       bulkRemoveButton: "선택 삭제",
       selectedCountSuffix: "건 선택",
       totalCountSuffix: "건",
+      totalCountTemplate: "총 {total}건",
     },
     misc: {
       unknownOwner: "담당자 미지정",

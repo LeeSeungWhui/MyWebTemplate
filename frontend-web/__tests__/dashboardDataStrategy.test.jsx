@@ -49,11 +49,11 @@ describe("dashboard data strategy", () => {
     const fetcher = vi
       .fn()
       .mockResolvedValueOnce({
-        result: { byStatus: [{ status: "ready", count: 2, amountSum: 12000 }] },
+        result: { statusSummaryList: [{ status: "ready", count: 2, amountSum: 12000 }] },
       })
       .mockResolvedValueOnce({
         result: {
-          items: [{ id: 11, title: "테스트 업무", status: "ready", amount: 12000 }],
+          dataTemplateList: [{ id: 11, title: "테스트 업무", status: "ready", amount: 12000 }],
         },
       });
 
@@ -70,11 +70,11 @@ describe("dashboard data strategy", () => {
       method: "GET",
     });
     expect(result.dataObj.stats).toEqual({
-      result: { byStatus: [{ status: "ready", count: 2, amountSum: 12000 }] },
+      result: { statusSummaryList: [{ status: "ready", count: 2, amountSum: 12000 }] },
     });
     expect(result.dataObj.list).toEqual({
       result: {
-        items: [{ id: 11, title: "테스트 업무", status: "ready", amount: 12000 }],
+        dataTemplateList: [{ id: 11, title: "테스트 업무", status: "ready", amount: 12000 }],
       },
     });
     expect(result.errorObj).toEqual({});
@@ -91,7 +91,7 @@ describe("dashboard data strategy", () => {
       .mockRejectedValueOnce(fetchError)
       .mockResolvedValueOnce({
         result: {
-          items: [{ id: 1, title: "백업", status: "running", amount: 1000 }],
+          dataTemplateList: [{ id: 1, title: "백업", status: "running", amount: 1000 }],
         },
       });
 
@@ -102,7 +102,7 @@ describe("dashboard data strategy", () => {
 
     expect(result.dataObj.list).toEqual({
       result: {
-        items: [{ id: 1, title: "백업", status: "running", amount: 1000 }],
+        dataTemplateList: [{ id: 1, title: "백업", status: "running", amount: 1000 }],
       },
     });
     expect(result.errorObj.stats).toMatchObject({

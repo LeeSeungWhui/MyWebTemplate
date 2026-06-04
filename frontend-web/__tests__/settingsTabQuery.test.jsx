@@ -1,7 +1,7 @@
 /**
  * 파일명: __tests__/settingsTabQuery.test.jsx
  * 작성자: LSH
- * 갱신일: 2026-03-03
+ * 갱신일: 2026-05-03
  * 설명: 설정 페이지 탭-쿼리 동기화 동작 테스트
  */
 
@@ -60,15 +60,28 @@ vi.mock("@/app/lib/component/Card", () => ({
 
 vi.mock("@/app/lib/component/Input", () => ({
   __esModule: true,
-  default: ({ value = "", onChange, readOnly, placeholder }) => (
-    <input value={value} onChange={onChange} readOnly={readOnly} placeholder={placeholder} />
-  ),
+  default: ({ value, dataObj, dataKey, onChange, readOnly, placeholder }) => {
+    const inputValue = value ?? (dataObj && dataKey ? dataObj[dataKey] ?? "" : "");
+    const handleChange = onChange || (dataObj && dataKey
+      ? (event) => {
+        dataObj[dataKey] = event.target.value;
+      }
+      : undefined);
+    return (
+      <input
+        value={inputValue}
+        onChange={handleChange}
+        readOnly={Boolean(readOnly || !handleChange)}
+        placeholder={placeholder}
+      />
+    );
+  },
 }));
 
 vi.mock("@/app/lib/component/NumberInput", () => ({
   __esModule: true,
   default: ({ value = 0, onChange }) => (
-    <input type="number" value={value} onChange={onChange} />
+    <input type="number" value={value} onChange={onChange} readOnly={!onChange} />
   ),
 }));
 
@@ -76,7 +89,7 @@ vi.mock("@/app/lib/component/Switch", () => ({
   __esModule: true,
   default: ({ checked = false, onChange, label }) => (
     <label>
-      <input type="checkbox" checked={checked} onChange={onChange} />
+      <input type="checkbox" checked={checked} onChange={onChange} readOnly={!onChange} />
       {label}
     </label>
   ),
@@ -96,7 +109,9 @@ vi.mock("@/app/lib/component/Tab", () => {
     </div>
   );
 
-  Tab.Item = ({ children }) => <div>{children}</div>;
+  const TabItem = ({ children }) => <div>{children}</div>;
+  TabItem.displayName = "MockTabItem";
+  Tab.Item = TabItem;
   return {
     __esModule: true,
     default: Tab,
@@ -163,6 +178,25 @@ describe("settings tab query helpers", () => {
     await waitFor(() => {
       expect(screen.getByTestId("active-tab")).toHaveTextContent("1");
     });
+  });
+
+  test("초기 프로필 자동 로드는 한 번만 실행되고 로딩 상태를 벗어난다", async () => {
+    setSearchParams();
+
+    render(<SettingsView initialDataObj={{}} initialErrorObj={{}} />);
+
+    await waitFor(() => {
+      expect(apiJSON).toHaveBeenCalledTimes(1);
+    });
+    await waitFor(() => {
+      expect(screen.getAllByRole("textbox").length).toBeGreaterThan(0);
+    });
+    await waitFor(() => {
+      expect(screen.getByDisplayValue("demo@demo.demo")).toBeTruthy();
+    });
+    await waitFor(() => {
+      expect(apiJSON).toHaveBeenCalledTimes(1);
+    }, { timeout: 50 });
   });
 
   test("탭 인덱스 변경 시 쿼리값 변환이 일관된다", async () => {

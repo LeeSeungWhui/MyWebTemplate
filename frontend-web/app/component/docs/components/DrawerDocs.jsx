@@ -1,29 +1,28 @@
 /**
  * 파일명: DrawerDocs.jsx
  * 작성자: LSH
- * 갱신일: 2025-09-13
+ * 갱신일: 2026-05-31
  * 설명: Drawer 컴포넌트 문서
  */
 
 import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';
-import { DrawerExamples } from '../examples/DrawerExamples';
+import { basicExampleObj, bottomExampleObj, cardExampleObj, leftSizeExampleObj, menuExampleObj, rightSizeExampleObj, topExampleObj } from '../examples/DrawerExamples';
 
 /**
  * @description Drawer 문서 섹션을 구성하고 예제 목록을 렌더링. 입력/출력 계약을 함께 명시
  * @returns {JSX.Element}
  */
 const DrawerDocs = () => {
-  const examples = DrawerExamples();
   return (
     <DocSection id="drawers" title="29. 드로어 (Drawer)" description={
       <div>
-        <p>화면 측면에서 슬라이드 인 되는 패널입니다. 외부 Collapse 탭과 리사이즈를 지원하며 숫자 크기(px) 설정이 가능합니다.</p>
+        <p>화면 측면에서 슬라이드 인 되는 패널입니다. 외부 Collapse 탭과 리사이즈를 지원하며 Tailwind px 클래스 기반 크기 설정이 가능합니다.</p>
         <ul className="list-disc pl-5 mt-2 text-sm text-gray-600">
           <li><code>isOpen</code>: 열림 상태</li>
           <li><code>onClose?</code>: 닫힘 콜백</li>
           <li><code>side?</code>: 위치 'right' | 'left' | 'top' | 'bottom'</li>
-          <li><code>size?</code>: 패널 크기(px 또는 문자열)</li>
+          <li><code>size?</code>: 패널 크기 Tailwind 클래스 문자열(<code>min-[1468px]:w-[360px]</code>, <code>min-[1468px]:h-[220px]</code> 등)</li>
           <li><code>closeOnBackdrop?</code>: 배경 클릭 시 닫힘</li>
           <li><code>closeOnEsc?</code>: ESC 키로 닫힘</li>
           <li><code>resizable?</code>: 드래그로 크기 조절</li>
@@ -36,57 +35,57 @@ const DrawerDocs = () => {
       <div id="drawer-right" className="mb-8">
         <h3 className="text-lg font-medium mb-4">오른쪽 (기본)</h3>
         <div>
-          {examples[0]?.component}
-          <div className="mt-2 text-sm text-gray-600">{examples[0]?.description}</div>
-          <CodeBlock code={examples[0]?.code || ''} />
+          {basicExampleObj.component}
+          <div className="mt-2 text-sm text-gray-600">{basicExampleObj.description}</div>
+          <CodeBlock code={basicExampleObj.code} />
         </div>
       </div>
       <div id="drawer-right-sized" className="mb-8">
-        <h3 className="text-lg font-medium mb-4">오른쪽 (size=360px)</h3>
+        <h3 className="text-lg font-medium mb-4">오른쪽 (size="min-[1468px]:w-[360px]")</h3>
         <div>
-          {examples[1]?.component}
-          <div className="mt-2 text-sm text-gray-600">{examples[1]?.description}</div>
-          <CodeBlock code={examples[1]?.code || ''} />
+          {rightSizeExampleObj.component}
+          <div className="mt-2 text-sm text-gray-600">{rightSizeExampleObj.description}</div>
+          <CodeBlock code={rightSizeExampleObj.code} />
         </div>
       </div>
       <div id="drawer-left" className="mb-8">
-        <h3 className="text-lg font-medium mb-4">왼쪽 (size="420px")</h3>
+        <h3 className="text-lg font-medium mb-4">왼쪽 (size="min-[1468px]:w-[420px]")</h3>
         <div>
-          {examples[2]?.component}
-          <div className="mt-2 text-sm text-gray-600">{examples[2]?.description}</div>
-          <CodeBlock code={examples[2]?.code || ''} />
+          {leftSizeExampleObj.component}
+          <div className="mt-2 text-sm text-gray-600">{leftSizeExampleObj.description}</div>
+          <CodeBlock code={leftSizeExampleObj.code} />
         </div>
       </div>
       <div id="drawer-top" className="mb-8">
-        <h3 className="text-lg font-medium mb-4">위쪽 (size=220px)</h3>
+        <h3 className="text-lg font-medium mb-4">위쪽 (size="min-[1468px]:h-[220px]")</h3>
         <div>
-          {examples[3]?.component}
-          <div className="mt-2 text-sm text-gray-600">{examples[3]?.description}</div>
-          <CodeBlock code={examples[3]?.code || ''} />
+          {topExampleObj.component}
+          <div className="mt-2 text-sm text-gray-600">{topExampleObj.description}</div>
+          <CodeBlock code={topExampleObj.code} />
         </div>
       </div>
       <div id="drawer-bottom" className="mb-8">
-        <h3 className="text-lg font-medium mb-4">아래쪽 (size="260")</h3>
+        <h3 className="text-lg font-medium mb-4">아래쪽 (size="min-[1468px]:h-[260px]")</h3>
         <div>
-          {examples[4]?.component}
-          <div className="mt-2 text-sm text-gray-600">{examples[4]?.description}</div>
-          <CodeBlock code={examples[4]?.code || ''} />
+          {bottomExampleObj.component}
+          <div className="mt-2 text-sm text-gray-600">{bottomExampleObj.description}</div>
+          <CodeBlock code={bottomExampleObj.code} />
         </div>
       </div>
       <div id="drawer-card" className="mb-8">
         <h3 className="text-lg font-medium mb-4">카드 샘플</h3>
         <div>
-          {examples[5]?.component}
-          <div className="mt-2 text-sm text-gray-600">{examples[5]?.description}</div>
-          <CodeBlock code={examples[5]?.code || ''} />
+          {cardExampleObj.component}
+          <div className="mt-2 text-sm text-gray-600">{cardExampleObj.description}</div>
+          <CodeBlock code={cardExampleObj.code} />
         </div>
       </div>
       <div id="drawer-menu" className="mb-8">
         <h3 className="text-lg font-medium mb-4">메뉴 샘플</h3>
         <div>
-          {examples[6]?.component}
-          <div className="mt-2 text-sm text-gray-600">{examples[6]?.description}</div>
-          <CodeBlock code={examples[6]?.code || ''} />
+          {menuExampleObj.component}
+          <div className="mt-2 text-sm text-gray-600">{menuExampleObj.description}</div>
+          <CodeBlock code={menuExampleObj.code} />
         </div>
       </div>
     </DocSection>

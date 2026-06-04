@@ -1,12 +1,13 @@
 "use client";
+
 /**
  * 파일명: EasyEditor.jsx
  * 작성자: LSH
- * 갱신일: 2026-03-04
+ * 갱신일: 2026-05-31
  * 설명: EasyEditor UI 컴포넌트
  */
 
-import { useCallback, useMemo, useRef, useState, useEffect } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { EditorContent } from '@tiptap/react';
 import clsx from 'clsx';
 import useEasyEditor from './useEditor';
@@ -41,23 +42,23 @@ const ToolbarButton = ({ active, label, onClick, children, disabled }) => (
   </button>
 );
 
-const baseContainer =
+const editorRootClassName =
   'flex flex-col border rounded-lg bg-white shadow-sm focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500 transition';
 
-const editorBody =
+const editorBodyClassName =
   'prose max-w-none min-h-[200px] p-4 outline-none text-gray-900';
 
-const toolbarClass =
+const toolbarClassName =
   'flex flex-wrap items-center gap-2 border-b px-3 py-2 bg-gray-50';
 
-const statusStyles = {
+const statusClassMap = {
   idle: '',
   loading: 'opacity-70 pointer-events-none',
   error: 'border-red-300 focus-within:ring-red-500',
   success: 'border-green-300 focus-within:ring-green-500',
 };
 
-const fontSizeOptions = [
+const fontSizeOptionList = [
   { label: COMMON_COMPONENT_LANG_KO.easyEditor.fontSizeDefault, value: 'default' },
   { label: '12px', value: '12px' },
   { label: '14px', value: '14px' },
@@ -66,14 +67,14 @@ const fontSizeOptions = [
   { label: '24px', value: '24px' },
 ];
 
-const alignments = [
+const alignmentList = [
   { label: COMMON_COMPONENT_LANG_KO.easyEditor.alignLeft, value: 'left', icon: 'L' },
   { label: COMMON_COMPONENT_LANG_KO.easyEditor.alignCenter, value: 'center', icon: 'C' },
   { label: COMMON_COMPONENT_LANG_KO.easyEditor.alignRight, value: 'right', icon: 'R' },
   { label: COMMON_COMPONENT_LANG_KO.easyEditor.alignJustify, value: 'justify', icon: 'J' },
 ];
 
-const EMPTY_EXTENSIONS = [];
+const EMPTY_EXTENSION_LIST = [];
 
 /**
  * @description Tiptap 기반 에디터 본문/툴바/업로드 동작을 통합해 렌더링. 입력/출력 계약을 함께 명시
@@ -110,7 +111,7 @@ const EasyEditor = ({
 
   const fileInputRef = useRef(null);
   const attachmentInputRef = useRef(null);
-  const extensionList = useMemo(() => extensions ?? EMPTY_EXTENSIONS, [extensions]);
+  const extensionList = extensions ?? EMPTY_EXTENSION_LIST;
 
   const { uploadImage, uploadFile, alertElement } = useEditorUpload({ imageUploadUrl, fileUploadUrl });
 
@@ -129,13 +130,14 @@ const EasyEditor = ({
 
   const [mode, setMode] = useState('editor');
   const [htmlDraft, setHtmlDraft] = useState('');
+  const [uploadErrorText, setUploadErrorText] = useState('');
 
   const isHtmlMode = mode === 'html';
   const toolbarDisabled = readOnly || isHtmlMode;
 
   /**
-   * @description useEffect 실행 흐름 관리
-   * 처리 규칙: effect 실행/cleanup 경계를 명시적으로 유지.
+   * @description html 모드 전환 시 editor HTML을 htmlDraft 상태에 동기화
+   * 처리 규칙: mode/editor 변경마다 setHtmlDraft(editor.getHTML())를 호출한다.
    */
   useEffect(() => {
     if (!editor) return;
@@ -145,8 +147,8 @@ const EasyEditor = ({
   }, [mode, editor]);
 
   /**
-   * @description useEffect 실행 흐름 관리
-   * 처리 규칙: effect 실행/cleanup 경계를 명시적으로 유지.
+   * @description readOnly 변경 시 TipTap editor editable 상태 동기화
+   * 처리 규칙: editor.setEditable(!readOnly)를 readOnly 의존성마다 호출한다.
    */
   useEffect(() => {
     if (!editor) return;
@@ -154,133 +156,168 @@ const EasyEditor = ({
   }, [editor, readOnly]);
 
   /**
-   * @description useEffect 실행 흐름 관리
-   * 처리 규칙: effect 실행/cleanup 경계를 명시적으로 유지.
+   * @description htmlDraft 변경을 html 모드 editor 본문에 반영
+   * 처리 규칙: mode=html일 때만 setContent(htmlDraft)로 사용자 편집을 동기화한다.
    */
   useEffect(() => {
     if (!editor || mode !== 'html') return;
     editor.commands.setContent(htmlDraft || '<p></p>', false);
   }, [htmlDraft, mode, editor]);
 
-  const handleToggle = useCallback(
-    (command) => {
-      if (!editor || toolbarDisabled) return;
-      editor.chain().focus()[command]().run();
-    },
-    [editor, toolbarDisabled],
-  );
-
-  const handleSetLink = useCallback(() => {
+  /**
+   * @description 툴바 토글 명령의 editor chain 전달
+   * 처리 규칙: 에디터가 없거나 툴바가 잠겨 있으면 명령을 실행하지 않는다.
+   */
+  const handleToggle = (command) => {
     if (!editor || toolbarDisabled) return;
-    const previous = editor.getAttributes('link')?.href;
-    const url = window.prompt(COMMON_COMPONENT_LANG_KO.easyEditor.promptLinkUrl, previous || 'https://');
-    if (url === null) return;
-    if (url === '') {
+    editor.chain().focus()[command]().run();
+  };
+
+  /**
+   * @description 링크 입력 프롬프트 결과의 editor link mark 반영
+   * 처리 규칙: 빈 문자열은 링크 제거, 취소는 상태 유지로 처리한다.
+   */
+  const handleSetLink = () => {
+    if (!editor || toolbarDisabled) return;
+    const previousLinkUrl = editor.getAttributes('link')?.href;
+    const linkUrl = window.prompt(COMMON_COMPONENT_LANG_KO.easyEditor.promptLinkUrl, previousLinkUrl || 'https://');
+    if (linkUrl === null) return;
+    if (linkUrl === '') {
       editor.chain().focus().unsetLink().run();
       return;
     }
-    editor.chain().focus().extendMarkRange('link').setLink({ href: url }).run();
-  }, [editor, toolbarDisabled]);
+    editor.chain().focus().extendMarkRange('link').setLink({ href: linkUrl }).run();
+  };
 
   const imageUploadHandler = onUploadImage ?? uploadImage;
   const fileUploadHandler = onUploadFile ?? uploadFile;
 
-  const handleImageSelect = useCallback(async (event) => {
+  /**
+   * @description 이미지 파일 선택 결과의 업로드와 editor image 노드 삽입
+   * 처리 규칙: 처리 후 input 값을 비워 같은 파일을 다시 선택할 수 있게 한다.
+   */
+  const handleImageSelect = async (event) => {
     if (!editor || readOnly) return;
-    const files = Array.from(event.target.files || []);
-    if (!files.length) return;
+    const selectedFileList = Array.from(event.target.files || []);
+    if (!selectedFileList.length) return;
+    setUploadErrorText('');
 
-    for (const file of files) {
+    for (const file of selectedFileList) {
       try {
-        const src = await imageUploadHandler(file);
-        if (src) {
-          editor.chain().focus().setImage({ src }).run();
+        const imageUrl = await imageUploadHandler(file);
+        if (imageUrl) {
+          editor.chain().focus().setImage({ src: imageUrl }).run();
         }
       } catch (error) {
-        console.error('[EasyEditor] 이미지 업로드 실패', error);
+        setUploadErrorText(error?.message || COMMON_COMPONENT_LANG_KO.easyEditor.imageUploadFailed);
       }
     }
 
     event.target.value = '';
-  }, [editor, readOnly, imageUploadHandler]);
+  };
 
-  const handleFileSelect = useCallback(async (event) => {
+  /**
+   * @description 첨부 파일 선택 결과의 업로드와 editor 링크 콘텐츠 삽입
+   * 처리 규칙: 업로드 응답 문자열과 객체 응답을 모두 링크 descriptor로 맞춘다.
+   */
+  const handleFileSelect = async (event) => {
     if (!editor || readOnly) return;
-    const files = Array.from(event.target.files || []);
-    if (!files.length) return;
+    const selectedFileList = Array.from(event.target.files || []);
+    if (!selectedFileList.length) return;
+    setUploadErrorText('');
 
-    for (const file of files) {
+    for (const file of selectedFileList) {
       try {
-        const response = await fileUploadHandler(file);
-        if (!response) continue;
-        const descriptor = typeof response === 'string'
-          ? { url: response, name: file.name }
-          : { url: response.url, name: response.name ?? file.name };
-        if (descriptor?.url) {
+        const uploadResultObj = await fileUploadHandler(file);
+        if (!uploadResultObj) continue;
+        const fileLinkObj = typeof uploadResultObj === 'string'
+          ? { url: uploadResultObj, name: file.name }
+          : { url: uploadResultObj.url, name: uploadResultObj.name ?? file.name };
+        if (fileLinkObj?.url) {
           editor.chain().focus().insertContent(
-            `<a href="${descriptor.url}" target="_blank" rel="noopener noreferrer" class="text-blue-600 underline">${descriptor.name}</a>`
+            `<a href="${fileLinkObj.url}" target="_blank" rel="noopener noreferrer" class="text-blue-600 underline">${fileLinkObj.name}</a>`
           ).run();
         }
       } catch (error) {
-        console.error('[EasyEditor] 파일 업로드 실패', error);
+        setUploadErrorText(error?.message || COMMON_COMPONENT_LANG_KO.easyEditor.fileUploadFailed);
       }
     }
 
     event.target.value = '';
-  }, [editor, readOnly, fileUploadHandler]);
+  };
 
-  const triggerImageDialog = useCallback(() => {
+  /**
+   * @description 숨겨진 이미지 업로드 input 파일 선택 창 열기
+   * 처리 규칙: 툴바가 잠겨 있으면 input click을 실행하지 않는다.
+   */
+  const triggerImageDialog = () => {
     if (toolbarDisabled) return;
     fileInputRef.current?.click();
-  }, [toolbarDisabled]);
+  };
 
-  const triggerFileDialog = useCallback(() => {
+  /**
+   * @description 숨겨진 첨부 업로드 input 파일 선택 창 열기
+   * 처리 규칙: 툴바가 잠겨 있으면 input click을 실행하지 않는다.
+   */
+  const triggerFileDialog = () => {
     if (toolbarDisabled) return;
     attachmentInputRef.current?.click();
-  }, [toolbarDisabled]);
+  };
 
-  const containerClasses = useMemo(
-    () =>
-      clsx(
-        baseContainer,
-        invalid ? 'border-red-300 focus-within:ring-red-500' : 'border-gray-200',
-        statusStyles[status] || statusStyles.idle,
-        className,
-      ),
-    [invalid, status, className],
+  const containerClassName = clsx(
+    editorRootClassName,
+    invalid ? 'border-red-300 focus-within:ring-red-500' : 'border-gray-200',
+    statusClassMap[status] || statusClassMap.idle,
+    className,
   );
 
   const currentFontSize = editor?.getAttributes('textStyle')?.fontSize || 'default';
-  const fontSizeValue = fontSizeOptions.some((option) => option.value === currentFontSize)
+  const fontSizeValue = fontSizeOptionList.some((option) => option.value === currentFontSize)
     ? currentFontSize
     : 'default';
 
-  const handleFontSizeChange = useCallback((event) => {
+  /**
+   * @description 폰트 크기 select 값의 editor textStyle mark 반영
+   * 처리 규칙: default 선택 시 fontSize mark를 제거한다.
+   */
+  const handleFontSizeChange = (event) => {
     if (!editor || toolbarDisabled) return;
-    const value = event.target.value;
-    if (value === 'default') {
+    const nextFontSize = event.target.value;
+    if (nextFontSize === 'default') {
       editor.chain().focus().setMark('textStyle', { fontSize: null }).removeEmptyTextStyle().run();
     } else {
-      editor.chain().focus().setMark('textStyle', { fontSize: value }).run();
+      editor.chain().focus().setMark('textStyle', { fontSize: nextFontSize }).run();
     }
-  }, [editor, toolbarDisabled]);
+  };
 
   const currentColor = editor?.getAttributes('textStyle')?.color || '#000000';
 
-  const handleColorChange = useCallback((event) => {
+  /**
+   * @description color input 값의 editor text color mark 반영
+   * 처리 규칙: 툴바가 잠겨 있으면 색상 변경을 실행하지 않는다.
+   */
+  const handleColorChange = (event) => {
     if (!editor || toolbarDisabled) return;
     editor.chain().focus().setColor(event.target.value).run();
-  }, [editor, toolbarDisabled]);
+  };
 
-  const handleResetColor = useCallback(() => {
+  /**
+   * @description editor text color mark 기본값 복원
+   * 처리 규칙: color 제거 후 빈 textStyle mark도 함께 정리한다.
+   */
+  const handleResetColor = () => {
     if (!editor || toolbarDisabled) return;
     editor.chain().focus().setColor(null).removeEmptyTextStyle().run();
-  }, [editor, toolbarDisabled]);
+  };
 
-  const handleTextAlign = useCallback((value) => {
+  /**
+   * @description 정렬 버튼 값의 editor textAlign 명령 반영
+   * 처리 규칙: 툴바가 잠겨 있으면 정렬 명령을 실행하지 않는다.
+   */
+  const handleTextAlign = (value) => {
     if (!editor || toolbarDisabled) return;
     editor.chain().focus().setTextAlign(value).run();
-  }, [editor, toolbarDisabled]);
+  };
 
   const minHeightClassMap = {
     "180px": "min-h-[180px]",
@@ -293,23 +330,13 @@ const EasyEditor = ({
     "320px": "min-h-[320px]",
     "360px": "min-h-[360px]",
   };
-
-  /**
-   * @description 에디터 최소 높이 입력값을 Tailwind 클래스 키로 정규화
-   * 처리 규칙: number 또는 px 문자열을 허용하고, 미지원 값은 기본 240px 클래스로 보정한다.
-   * @updated 2026-03-04
-   */
-  const resolveMinHeightClass = (value) => {
-    if (typeof value === "number") {
-      const key = `${Math.floor(value)}px`;
-      return minHeightClassMap[key] || minHeightClassMap["240px"];
-    }
-    if (typeof value === "string") {
-      const normalized = value.trim().toLowerCase();
-      if (minHeightClassMap[normalized]) return minHeightClassMap[normalized];
-    }
-    return minHeightClassMap["240px"];
-  };
+  let minHeightKey = "";
+  if (typeof minHeight === "number") {
+    minHeightKey = `${Math.floor(minHeight)}px`;
+  } else if (typeof minHeight === "string") {
+    minHeightKey = minHeight.trim().toLowerCase();
+  }
+  const minHeightClassName = minHeightClassMap[minHeightKey] || minHeightClassMap["240px"];
 
   return (
     <div className="space-y-2">
@@ -318,9 +345,9 @@ const EasyEditor = ({
           {label}
         </label>
       )}
-      <div className={containerClasses}>
+      <div className={containerClassName}>
         {toolbar && editor && (
-          <div className={toolbarClass}>
+          <div className={toolbarClassName}>
             <div className="flex items-center gap-2">
               <ToolbarButton
                 label={COMMON_COMPONENT_LANG_KO.easyEditor.toolbarBold}
@@ -363,7 +390,7 @@ const EasyEditor = ({
                 onChange={handleFontSizeChange}
                 disabled={toolbarDisabled}
               >
-                {fontSizeOptions.map((option) => (
+                {fontSizeOptionList.map((option) => (
                   <option key={option.value} value={option.value}>
                     {option.label}
                   </option>
@@ -389,15 +416,15 @@ const EasyEditor = ({
             </div>
 
             <div className="flex items-center gap-1">
-              {alignments.map((item) => (
+              {alignmentList.map((alignmentItem) => (
                 <ToolbarButton
-                  key={item.value}
-                  label={`${item.label}${COMMON_COMPONENT_LANG_KO.easyEditor.alignSuffix}`}
-                  active={editor.isActive({ textAlign: item.value })}
-                  onClick={() => handleTextAlign(item.value)}
+                  key={alignmentItem.value}
+                  label={`${alignmentItem.label}${COMMON_COMPONENT_LANG_KO.easyEditor.alignSuffix}`}
+                  active={editor.isActive({ textAlign: alignmentItem.value })}
+                  onClick={() => handleTextAlign(alignmentItem.value)}
                   disabled={toolbarDisabled}
                 >
-                  {item.icon}
+                  {alignmentItem.icon}
                 </ToolbarButton>
               ))}
             </div>
@@ -450,7 +477,7 @@ const EasyEditor = ({
           aria-readonly={readOnly || undefined}
           aria-hidden={isHtmlMode ? 'true' : undefined}
           data-name={name}
-          className={clsx(editorBody, resolveMinHeightClass(minHeight), isHtmlMode && 'hidden')}
+          className={clsx(editorBodyClassName, minHeightClassName, isHtmlMode && 'hidden')}
         />
         {isHtmlMode && (
           <textarea
@@ -478,6 +505,11 @@ const EasyEditor = ({
           onChange={handleFileSelect}
         />
       </div>
+      {uploadErrorText && (
+        <p role="alert" className="text-sm text-red-600">
+          {uploadErrorText}
+        </p>
+      )}
       {helperText && (
         <p className={clsx('text-sm', invalid ? 'text-red-600' : 'text-gray-500')}>
           {helperText}

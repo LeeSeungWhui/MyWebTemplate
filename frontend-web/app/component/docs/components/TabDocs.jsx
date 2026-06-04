@@ -1,10 +1,10 @@
 /**
  * 파일명: TabDocs.jsx
  * 작성자: LSH
- * 갱신일: 2025-09-13
+ * 갱신일: 2026-05-31
  * 설명: Tab 컴포넌트 문서
  */
-import { TabExamples } from '../examples/TabExamples';
+import { basicExampleObj, controlExampleObj, iconExampleObj, styleExampleObj } from '../examples/TabExamples';
 import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';
 
@@ -13,15 +13,13 @@ import CodeBlock from '../shared/CodeBlock';
  * @returns {JSX.Element}
  */
 const TabDocs = () => {
-    const examples = TabExamples();
-
     return (
         <DocSection
             id="tabs"
             title="28. 탭 (Tab)" description={
                 <div>
                     <p>Tab 컴포넌트는 Tab.Item을 사용하여 탭 패널을 구성합니다.</p>
-                    <p>EasyObj를 사용하거나 일반 useState로도 상태 관리가 가능합니다.</p>
+                    <p>기본 상태는 EasyObj 바인딩을 우선 사용하고, 제어 props 동작 설명용 예제에서만 useState를 함께 보여줍니다.</p>
                     <p>className prop을 통해 커스텀 스타일링을 지원합니다.</p>
                     <ul className="list-disc pl-5 mt-2 text-sm text-gray-600">
                         <li><code>dataObj?/dataKey?</code>: 현재 탭 인덱스 바인딩</li>
@@ -37,11 +35,11 @@ const TabDocs = () => {
                 <h3 className="text-lg font-medium mb-4">기본 사용법</h3>
                 <div className="grid grid-cols-1 gap-8">
                     <div>
-                        {examples[0].component}
+                        {basicExampleObj.component}
                         <div className="mt-2 text-sm text-gray-600">
-                            {examples[0].description}
+                            {basicExampleObj.description}
                         </div>
-                        <CodeBlock code={examples[0].code} />
+                        <CodeBlock code={basicExampleObj.code} />
                     </div>
                 </div>
             </div>
@@ -50,11 +48,11 @@ const TabDocs = () => {
                 <h3 className="text-lg font-medium mb-4">제어 컴포넌트</h3>
                 <div className="grid grid-cols-1 gap-8">
                     <div>
-                        {examples[1].component}
+                        {controlExampleObj.component}
                         <div className="mt-2 text-sm text-gray-600">
-                            {examples[1].description}
+                            {controlExampleObj.description}
                         </div>
-                        <CodeBlock code={examples[1].code} />
+                        <CodeBlock code={controlExampleObj.code} />
                     </div>
                 </div>
             </div>
@@ -63,11 +61,11 @@ const TabDocs = () => {
                 <h3 className="text-lg font-medium mb-4">스타일링</h3>
                 <div className="grid grid-cols-1 gap-8">
                     <div>
-                        {examples[2].component}
+                        {styleExampleObj.component}
                         <div className="mt-2 text-sm text-gray-600">
-                            {examples[2].description}
+                            {styleExampleObj.description}
                         </div>
-                        <CodeBlock code={examples[2].code} />
+                        <CodeBlock code={styleExampleObj.code} />
                     </div>
                 </div>
             </div>
@@ -76,11 +74,11 @@ const TabDocs = () => {
                 <h3 className="text-lg font-medium mb-4">아이콘 탭</h3>
                 <div className="grid grid-cols-1 gap-8">
                     <div>
-                        {examples[3].component}
+                        {iconExampleObj.component}
                         <div className="mt-2 text-sm text-gray-600">
-                            {examples[3].description}
+                            {iconExampleObj.description}
                         </div>
-                        <CodeBlock code={examples[3].code} />
+                        <CodeBlock code={iconExampleObj.code} />
                     </div>
                 </div>
             </div>

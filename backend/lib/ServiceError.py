@@ -51,6 +51,21 @@ SERVICE_ERROR_SPECS: dict[str, ServiceErrorSpec] = {
         responseCode="AUTH_503_DB_NOT_READY",
         defaultMessage="database not ready",
     ),
+    "IDEMPOTENCY_422_INVALID_INPUT": ServiceErrorSpec(
+        statusCode=422,
+        responseCode="IDEMPOTENCY_422_INVALID_INPUT",
+        defaultMessage="invalid idempotency key",
+    ),
+    "IDEMPOTENCY_409_IN_PROGRESS": ServiceErrorSpec(
+        statusCode=409,
+        responseCode="IDEMPOTENCY_409_IN_PROGRESS",
+        defaultMessage="request already in progress",
+    ),
+    "IDEMPOTENCY_409_PAYLOAD_MISMATCH": ServiceErrorSpec(
+        statusCode=409,
+        responseCode="IDEMPOTENCY_409_PAYLOAD_MISMATCH",
+        defaultMessage="idempotency key payload mismatch",
+    ),
     "DASH_422_INVALID_INPUT": ServiceErrorSpec(
         statusCode=422,
         responseCode="DASH_422_INVALID_INPUT",
@@ -174,4 +189,6 @@ def buildMappedErrorResponse(
     if headers:
         for key, value in headers.items():
             response.headers[key] = value
+    if spec.statusCode == 401 and "WWW-Authenticate" not in response.headers:
+        response.headers["WWW-Authenticate"] = "Bearer"
     return response

@@ -1,8 +1,9 @@
 'use client'
+
 /**
  * 파일명: SharedHydrator.jsx
  * 작성자: LSH
- * 갱신일: 2025-09-13
+ * 갱신일: 2026-05-31
  * 설명: 공유 스토어 하이드레이터
  */
 
@@ -21,14 +22,15 @@ const SharedHydrator = ({ userJson, sharedPatch, config }) => {
   const { setUserJson, setUser, setShared, setConfig } = useSharedStore()
 
   /**
-   * @description useEffect 실행 흐름 관리
-   * 처리 규칙: effect 실행/cleanup 경계를 명시적으로 유지.
+   * @description SSR bootstrap userJson/sharedPatch/config를 SharedStore에 반영
+   * 처리 규칙: props 변경 시 setUserJson/setUser/setShared/setConfig를 순서대로 호출한다.
    */
   useEffect(() => {
     if (typeof userJson !== 'undefined') {
       setUserJson(userJson || null)
 
-      if (userJson && (userJson.userId || userJson.name)) {
+      const hasUserIdentity = userJson && (userJson.userId || userJson.name)
+      if (hasUserIdentity) {
         setUser({ userId: userJson.userId, name: userJson.name })
       } else {
         setUser(null)

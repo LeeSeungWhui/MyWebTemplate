@@ -66,9 +66,9 @@ describe("openapiClient", () => {
       );
 
     const { openapiJSON } = await import("@/app/lib/runtime/openapiClient");
-    const body = await openapiJSON("auth_me");
+    const authMeBodyObj = await openapiJSON("auth_me");
 
-    expect(body?.result?.username).toBe("u");
+    expect(authMeBodyObj?.result?.username).toBe("u");
     expect(fetch).toHaveBeenCalledTimes(2);
     expect(fetch.mock.calls[0][0]).toBe("/api/bff/openapi.json");
     expect(fetch.mock.calls[1][0]).toBe("/api/bff/api/v1/auth/me");

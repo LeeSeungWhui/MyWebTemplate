@@ -1,7 +1,7 @@
 /**
  * 파일명: getBackendHost.server.js
  * 작성자: LSH
- * 갱신일: 2026-03-03
+ * 갱신일: 2026-05-31
  * 설명: 백엔드 호스트 주소를 로드/캐시
  */
 
@@ -9,7 +9,7 @@ import { loadFrontendConfig } from './frontendConfig.server'
 
 let cachedBackendHost = null
 
-const DEFAULT_BACKEND = 'http://localhost:2000'
+const DEFAULT_BACKEND = 'http://localhost:4001'
 
 /**
  * @description getBackendHost 구성 데이터를 반환. 입력/출력 계약을 함께 명시
@@ -19,20 +19,14 @@ const DEFAULT_BACKEND = 'http://localhost:2000'
 export const getBackendHost = async () => {
   if (cachedBackendHost) return cachedBackendHost
   try {
-    const cfg = await loadFrontendConfig()
-    const base = cfg?.API?.base
-      ?? cfg?.APP?.backendHost
-      ?? cfg?.APP?.api_base_url
-      ?? cfg?.APP?.serverHost
-    cachedBackendHost = typeof base === 'string' && base ? base : DEFAULT_BACKEND
+    const frontendConfigObj = await loadFrontendConfig()
+    const backendHostValue = frontendConfigObj?.API?.base
+      ?? frontendConfigObj?.APP?.backendHost
+      ?? frontendConfigObj?.APP?.api_base_url
+      ?? frontendConfigObj?.APP?.serverHost
+    cachedBackendHost = typeof backendHostValue === 'string' && backendHostValue ? backendHostValue : DEFAULT_BACKEND
   } catch {
     cachedBackendHost = DEFAULT_BACKEND
-  }
-  if (typeof globalThis !== 'undefined') {
-    globalThis.__APP_BACKEND_HOST__ = cachedBackendHost
-  }
-  if (typeof process !== 'undefined' && process?.env && !process.env.APP_BACKEND_HOST) {
-    process.env.APP_BACKEND_HOST = cachedBackendHost
   }
   return cachedBackendHost
 }

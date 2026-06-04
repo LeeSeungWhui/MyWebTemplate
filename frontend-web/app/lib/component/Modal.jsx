@@ -1,12 +1,13 @@
 /**
  * 파일명: Modal.jsx
  * 작성자: LSH
- * 갱신일: 2026-03-04
+ * 갱신일: 2026-05-31
  * 설명: Modal UI 컴포넌트 구현
  */
-import { forwardRef, useEffect, useRef, useState } from 'react';
+import { forwardRef, useCallback, useEffect, useRef, useState } from 'react';
 import Icon from './Icon';
 import React from 'react';
+import { COMMON_LANG_KO } from '@/app/common/i18n/lang.ko';
 
 /**
  * @description 를 렌더링. 입력/출력 계약을 함께 명시
@@ -32,7 +33,9 @@ const Header = ({ className = '', children, onClose, draggable = false, ...props
                 </div>
                 {onClose && (
                     <button
+                        type="button"
                         onClick={onClose}
+                        aria-label={COMMON_LANG_KO.action.close}
                         className="p-1 ml-4 text-gray-400 hover:text-gray-600 rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                     >
                         <Icon icon="ri:RiCloseLine" size="1.5em" />
@@ -108,11 +111,12 @@ const Modal = forwardRef(({
 
     const modalRef = useRef(null);
     const lastFocusedRef = useRef(null);
-    const dragRef = useRef({ isDragging: false, startX: 0, startY: 0 });
+    const dragStartRef = useRef({ startX: 0, startY: 0 });
+    const modalFocusTimerRef = useRef(null);
     const [position, setPosition] = useState(null);
     const [isDragging, setIsDragging] = useState(false);
 
-    const sizes = {
+    const modalSizeClassMap = {
         sm: 'max-w-md',
         md: 'max-w-lg',
         lg: 'max-w-2xl',
@@ -120,23 +124,27 @@ const Modal = forwardRef(({
         full: 'max-w-full mx-4'
     };
 
-    // 스크롤 잠금 관리
+    const focusableSelector =
+        'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])';
 
     /**
-     * @description useEffect 실행 흐름 관리
-     * 처리 규칙: effect 실행/cleanup 경계를 명시적으로 유지.
+     * @description isOpen일 때 body 스크롤 잠금·초점 이동·이전 포커스 복원
+     * 처리 규칙: cleanup에서 overflow 복구와 modalFocusTimer clearTimeout을 수행한다.
      */
     useEffect(() => {
         if (isOpen) {
             try { lastFocusedRef.current = document.activeElement; } catch {}
             document.body.style.overflow = 'hidden';
-            setTimeout(() => {
+            clearTimeout(modalFocusTimerRef.current);
+            modalFocusTimerRef.current = setTimeout(() => {
                 if (!modalRef.current) return;
-                const focusables = modalRef.current.querySelectorAll('a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])');
+                const focusables = Array.from(modalRef.current.querySelectorAll(focusableSelector));
                 if (focusables.length) { try { focusables[0].focus(); } catch {} }
             }, 0);
         }
         return () => {
+            clearTimeout(modalFocusTimerRef.current);
+            modalFocusTimerRef.current = null;
             document.body.style.overflow = '';
             if (lastFocusedRef.current && typeof lastFocusedRef.current.focus === 'function') {
                 try { lastFocusedRef.current.focus(); } catch {}
@@ -144,11 +152,9 @@ const Modal = forwardRef(({
         };
     }, [isOpen]);
 
-    // 모달이 닫힐 때 position 초기화
-
     /**
-     * @description useEffect 실행 흐름 관리
-     * 처리 규칙: effect 실행/cleanup 경계를 명시적으로 유지.
+     * @description 모달 닫힘 시 드래그 position·dragging 상태 초기화
+     * 처리 규칙: isOpen=false 전환마다 setPosition(null)과 setIsDragging(false)를 호출한다.
      */
     useEffect(() => {
         if (!isOpen) {
@@ -179,11 +185,9 @@ const Modal = forwardRef(({
         modalRef.current.style.removeProperty('--modal-left');
     }, [isOpen, position, top, left]);
 
-    // ESC 키 이벤트 처리
-
     /**
-     * @description useEffect 실행 흐름 관리
-     * 처리 규칙: effect 실행/cleanup 경계를 명시적으로 유지.
+     * @description isOpen일 때 document keydown으로 ESC 닫기 처리
+     * 처리 규칙: cleanup에서 keydown 리스너를 제거하고 closeOnEsc일 때만 onClose를 호출한다.
      */
     useEffect(() => {
 
@@ -221,8 +225,7 @@ const Modal = forwardRef(({
         if (!isHeader) return;
 
         const rect = modalRef.current.getBoundingClientRect();
-        dragRef.current = {
-            isDragging: true,
+        dragStartRef.current = {
             startX: event.clientX - rect.left,
             startY: event.clientY - rect.top
         };
@@ -239,45 +242,42 @@ const Modal = forwardRef(({
      * 처리 규칙: 화면 경계(0~viewport-size) 안으로 x/y를 clamp 한다.
      * @updated 2026-02-27
      */
-    const handleMouseMove = (event) => {
-        if (!dragRef.current.isDragging) return;
+    const handleMouseMove = useCallback((event) => {
+        if (!isDragging) return;
         if (!modalRef.current) return;
 
-        const newX = event.clientX - dragRef.current.startX;
-        const newY = event.clientY - dragRef.current.startY;
+        const newX = event.clientX - dragStartRef.current.startX;
+        const newY = event.clientY - dragStartRef.current.startY;
 
         // 화면 밖으로 나가지 않도록 제한
         const rect = modalRef.current.getBoundingClientRect();
-        const maxX = window.innerWidth - rect.width;
-        const maxY = window.innerHeight - rect.height;
+        const maxX = Math.max(0, window.innerWidth - rect.width);
+        const maxY = Math.max(0, window.innerHeight - rect.height);
 
         setPosition({
             x: Math.min(Math.max(0, newX), maxX),
             y: Math.min(Math.max(0, newY), maxY)
         });
-    };
+    }, [isDragging]);
 
     // 드래그 종료
 
     /**
      * @description 드래그 상태를 종료하고 텍스트 선택 잠금을 해제
-     * 부작용: dragRef.current.isDragging=false, body.userSelect=''로 복구한다.
+     * 부작용: body.userSelect=''로 복구하고 dragging 상태를 false로 전환한다.
      * @updated 2026-02-27
      */
     const handleMouseUp = () => {
-        dragRef.current.isDragging = false;
         document.body.style.userSelect = '';
         setIsDragging(false);
     };
 
-    // 드래그 이벤트 리스너
-
     /**
-     * @description useEffect 실행 흐름 관리
-     * 처리 규칙: effect 실행/cleanup 경계를 명시적으로 유지.
+     * @description 드래그 중 document mousemove/mouseup 리스너 등록
+     * 처리 규칙: cleanup에서 mousemove/mouseup 리스너를 제거한다.
      */
     useEffect(() => {
-        if (draggable) {
+        if (draggable && isDragging) {
             document.addEventListener('mousemove', handleMouseMove);
             document.addEventListener('mouseup', handleMouseUp);
             return () => {
@@ -285,7 +285,7 @@ const Modal = forwardRef(({
                 document.removeEventListener('mouseup', handleMouseUp);
             };
         }
-    }, [draggable]);
+    }, [draggable, isDragging, handleMouseMove]);
 
     /**
      * @description 백드롭 직접 클릭 시 모달을 닫고 위치 상태를 초기화
@@ -296,6 +296,32 @@ const Modal = forwardRef(({
         if (closeOnBackdrop && event.target === event.currentTarget) {
             onClose?.();
             setPosition(null);  // 백드롭 클릭으로 닫을 때도 position 초기화
+        }
+    };
+
+    /**
+     * @description Tab 키가 모달 안에서 순환하도록 포커스 이동을 제어
+     * 처리 규칙: 첫/마지막 focusable 요소 경계에서 기본 Tab 이동을 막고 반대쪽 요소로 보낸다.
+     * @updated 2026-05-31
+     */
+    const handleDialogKeyDown = (keyboardEvent) => {
+        if (keyboardEvent.key !== 'Tab') return;
+
+        if (!modalRef.current) return;
+        const focusables = Array.from(modalRef.current.querySelectorAll(focusableSelector));
+        if (!focusables.length) return;
+
+        if (keyboardEvent.shiftKey) {
+            if (document.activeElement === focusables[0]) {
+                keyboardEvent.preventDefault();
+                try { focusables[focusables.length - 1].focus(); } catch {}
+            }
+            return;
+        }
+
+        if (document.activeElement === focusables[focusables.length - 1]) {
+            keyboardEvent.preventDefault();
+            try { focusables[0].focus(); } catch {}
         }
     };
 
@@ -315,7 +341,7 @@ const Modal = forwardRef(({
                     else if (ref) ref.current = el;
                 }}
                 className={`
-                    absolute w-full ${sizes[size]}
+                    absolute w-full ${modalSizeClassMap[size]}
                     bg-white rounded-lg shadow-xl
                     animate-fade-in-up
                     ${isCentered ? 'top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2' : 'top-[var(--modal-top)] left-[var(--modal-left)]'}
@@ -327,6 +353,7 @@ const Modal = forwardRef(({
                 aria-label={ariaLabel}
                 aria-labelledby={ariaLabelledBy}
                 onMouseDown={handleMouseDown}
+                onKeyDown={handleDialogKeyDown}
                 {...props}
             >
                 {React.Children.map(children, child => {

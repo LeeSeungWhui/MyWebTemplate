@@ -1,42 +1,20 @@
 "use client";
+
 /**
  * 파일명: common/layout/Sidebar.jsx
  * 작성자: LSH
- * 갱신일: 2026-03-04
+ * 갱신일: 2026-05-31
  * 설명: 햄버거/화살표 토글이 가능한 공용 사이드바(EasyList 기반)
  */
 
-import { useEffect, useMemo } from "react";
+import { useCallback, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Icon from "@/app/lib/component/Icon";
 import { getBoundValue, setBoundValue } from "@/app/lib/binding";
 import EasyObj from "@/app/lib/dataset/EasyObj";
 import { COMMON_COMPONENT_LANG_KO } from "@/app/common/i18n/lang.ko";
-
-/**
- * @description 값이 배열 또는 EasyList 형태인지 판별
- * 처리 규칙: 배열이거나 `size()` 메서드를 보유한 경우 list-like로 간주한다.
- * @updated 2026-02-27
- */
-const isListLike = (list) =>
-  Boolean(list) && (typeof list.size === "function" || Array.isArray(list));
-
-/**
- * @description menu/subMenu 입력을 순회 가능한 배열로 맞추는 데이터 정규화 유틸.
- * 처리 규칙: 배열은 그대로 사용하고 EasyList는 size/get으로 풀어 배열로 변환한다.
- * @updated 2026-02-27
- */
-const toArray = (list) => {
-  if (Array.isArray(list)) return list;
-  if (isListLike(list)) {
-    const size = typeof list.size === "function" ? list.size() : 0;
-    return Array.from({ length: size }, (unusedItem, idx) =>
-      typeof list.get === "function" ? list.get(idx) : undefined,
-    );
-  }
-  return [];
-};
+import { readMenuList, readSubMenuList } from "@/app/common/layout/layoutListReader";
 
 /**
  * @description 햄버거/접힘/하위 메뉴 토글을 지원하는 공용 사이드바 컴포넌트.
@@ -71,50 +49,42 @@ const Sidebar = ({
   });
   const pathname = usePathname();
 
-  const resolvedItems = useMemo(() => {
-    return toArray(menuList).map((item) => ({
-      key: item.menuId ?? item.key ?? item.id ?? item.menuNm,
-      label: item.menuNm ?? item.label ?? COMMON_COMPONENT_LANG_KO.sidebar.defaultMenuLabel,
-      href: item.href,
-      active: Boolean(item.active),
-      icon: item.icon,
-      badge: item.badge ?? item.count,
-      description: item.description,
-    }));
-  }, [menuList]);
+  const resolvedItems = readMenuList(menuList).map((menuItemObj) => ({
+    key: menuItemObj.menuId ?? menuItemObj.key ?? menuItemObj.id ?? menuItemObj.menuNm,
+    label: menuItemObj.menuNm ?? menuItemObj.label ?? COMMON_COMPONENT_LANG_KO.sidebar.defaultMenuLabel,
+    href: menuItemObj.href,
+    active: Boolean(menuItemObj.active),
+    icon: menuItemObj.icon,
+    badge: menuItemObj.badge ?? menuItemObj.count,
+    description: menuItemObj.description,
+  }));
 
-  const subMenuMap = useMemo(() => {
-    return toArray(subMenuList).reduce((acc, cur) => {
-      const menuId = cur.menuId ?? cur.parentMenuId;
-      if (!menuId) return acc;
-      const list = acc.get(menuId) || [];
-      list.push({
-        key: cur.subMenuId ?? cur.subMenuNm ?? cur.menuId,
-        label: cur.subMenuNm ?? cur.label ?? COMMON_COMPONENT_LANG_KO.sidebar.defaultSubMenuLabel,
-        href: cur.href,
-        active: Boolean(cur.active),
-        icon: cur.icon,
-        badge: cur.badge ?? cur.count,
-        description: cur.description,
-      });
-      acc.set(menuId, list);
-      return acc;
-    }, new Map());
-  }, [subMenuList]);
+  const subMenuMap = readSubMenuList(subMenuList).reduce((subMenuMapObj, subMenuItem) => {
+    const menuId = subMenuItem.menuId ?? subMenuItem.parentMenuId;
+    if (!menuId) return subMenuMapObj;
+    const subMenuItemList = subMenuMapObj.get(menuId) || [];
+    subMenuItemList.push({
+      key: subMenuItem.subMenuId ?? subMenuItem.subMenuNm ?? subMenuItem.menuId,
+      label: subMenuItem.subMenuNm ?? subMenuItem.label ?? COMMON_COMPONENT_LANG_KO.sidebar.defaultSubMenuLabel,
+      href: subMenuItem.href,
+      active: Boolean(subMenuItem.active),
+      icon: subMenuItem.icon,
+      badge: subMenuItem.badge ?? subMenuItem.count,
+      description: subMenuItem.description,
+    });
+    subMenuMapObj.set(menuId, subMenuItemList);
+    return subMenuMapObj;
+  }, new Map());
 
-  const hasExplicitActive = useMemo(() => {
-    const menuActiveExists = resolvedItems.some((item) => Boolean(item.active));
-    if (menuActiveExists) {
-      return true;
-    }
-    return Array.from(subMenuMap.values()).some((children) =>
-      children.some((child) => Boolean(child.active)),
+  const hasExplicitActive =
+    resolvedItems.some((menuItemObj) => Boolean(menuItemObj.active)) ||
+    Array.from(subMenuMap.values()).some((childMenuList) =>
+      childMenuList.some((child) => Boolean(child.active)),
     );
-  }, [resolvedItems, subMenuMap]);
 
   /**
-   * @description useEffect 실행 흐름 관리
-   * 처리 규칙: effect 실행/cleanup 경계를 명시적으로 유지.
+   * @description dataObj collapsedKey 바인딩 값을 ui.collapsed에 동기화
+   * 처리 규칙: dataObj/collapsedKey 변경마다 getBoundValue 결과를 ui.collapsed에 반영한다.
    */
   useEffect(() => {
     if (!dataObj || !collapsedKey) return;
@@ -127,9 +97,9 @@ const Sidebar = ({
    * @updated 2026-02-27
    */
   const toggleCollapsed = () => {
-    const next = !ui.collapsed;
-    ui.collapsed = next;
-    if (dataObj && collapsedKey) setBoundValue(dataObj, collapsedKey, next);
+    const nextCollapsed = !ui.collapsed;
+    ui.collapsed = nextCollapsed;
+    if (dataObj && collapsedKey) setBoundValue(dataObj, collapsedKey, nextCollapsed);
   };
 
   /**
@@ -146,7 +116,7 @@ const Sidebar = ({
    * 처리 규칙: 완전 일치 또는 하위 경로(prefix/) 일치를 활성으로 처리한다.
    * @updated 2026-02-27
    */
-  const isPathActive = (href) => {
+  const isPathActive = useCallback((href) => {
     if (!href || !pathname) {
       return false;
     }
@@ -157,14 +127,14 @@ const Sidebar = ({
       return true;
     }
     return false;
-  };
+  }, [pathname]);
 
   /**
    * @description 하위 메뉴 항목 활성 여부를 판정하는 내부 규칙 함수.
    * 처리 규칙: child.active 우선, 명시 active가 없을 때만 pathname 매칭으로 활성 여부를 추론한다.
    * @updated 2026-02-27
    */
-  const isChildActive = (child) => {
+  const isChildActive = useCallback((child) => {
     if (child.active) {
       return true;
     }
@@ -172,72 +142,54 @@ const Sidebar = ({
       return false;
     }
     return isPathActive(child.href);
-  };
+  }, [hasExplicitActive, isPathActive]);
 
   /**
    * @description 상위 메뉴 항목 활성 여부를 계산하는 내부 규칙 함수.
-   * 처리 규칙: item.active 우선, child 활성 여부를 반영하고 명시 active가 없을 때만 경로 매칭을 사용한다.
+   * 처리 규칙: menuItemObj.active 우선, child 활성 여부를 반영하고 명시 active가 없을 때만 경로 매칭을 사용한다.
    * @updated 2026-02-27
    */
-  const isItemActive = (item, children = []) => {
-    if (item.active) {
+  const isItemActive = (menuItemObj, childMenuList = []) => {
+    if (menuItemObj.active) {
       return true;
     }
-    if (children.some((child) => isChildActive(child))) {
+    if (childMenuList.some((child) => isChildActive(child))) {
       return true;
     }
     if (hasExplicitActive) {
       return false;
     }
-    return isPathActive(item.href);
+    return isPathActive(menuItemObj.href);
   };
 
   /**
-   * @description useEffect 실행 흐름 관리
-   * 처리 규칙: effect 실행/cleanup 경계를 명시적으로 유지.
-   */
+   * @description 활성 하위 메뉴가 있으면 해당 그룹 ui.expanded를 자동으로 펼침
+   * 처리 규칙: pathname/resolvedItems 변경 시 활성 child가 있는 menuKey만 true로 설정한다.
+  */
   useEffect(() => {
-    const next = { ...ui.expanded };
-    let changed = false;
-    resolvedItems.forEach((item) => {
-      const key = item.key || item.label || item.href;
-      const children = subMenuMap.get(item.key) || [];
-      if (children.some((child) => isChildActive(child))) {
-        if (!next[key]) {
-          next[key] = true;
-          changed = true;
+    const nextExpandedObj = { ...ui.expanded };
+    let hasChanged = false;
+    resolvedItems.forEach((menuItemObj) => {
+      const menuKey = menuItemObj.key || menuItemObj.label || menuItemObj.href;
+      const childMenuList = subMenuMap.get(menuItemObj.key) || [];
+      if (childMenuList.some((child) => isChildActive(child))) {
+        if (!nextExpandedObj[menuKey]) {
+          nextExpandedObj[menuKey] = true;
+          hasChanged = true;
         }
       }
     });
-    if (changed) {
-      ui.expanded = next;
+    if (hasChanged) {
+      ui.expanded = nextExpandedObj;
     }
-  }, [resolvedItems, pathname, subMenuMap, ui]);
+  }, [resolvedItems, pathname, subMenuMap, ui, isChildActive]);
 
-  /**
-   * @description 메뉴 항목 상태별 className 문자열 생성 유틸.
-   * 처리 규칙: active=true면 강조 스타일, false면 hover 중심 기본 스타일을 반환한다.
-   * @updated 2026-02-27
-   */
-  const navItemClass = (active) =>
-    [
-      "group flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors",
-      active
-        ? "bg-blue-50 text-blue-700 font-semibold ring-1 ring-blue-100"
-        : "text-gray-700 hover:bg-gray-50",
-    ].join(" ");
-
-  /**
-   * @description 사이드바 본문 UI를 미니/확장 모드별로 구성하는 렌더러.
-   * 처리 규칙: logo/토글 버튼/메뉴 목록/하위 메뉴를 isMini 상태에 따라 조건부로 구성한다.
-   * @updated 2026-02-27
-   */
-  const renderContent = (isMini) => (
+  const sidebarContent = (
     <>
       {logo ? (
         <div className="px-4 py-3">
           <div
-            className={`${isMini ? "sr-only" : ""} text-sm font-semibold text-gray-900`}
+            className={`${ui.collapsed ? "sr-only" : ""} text-sm font-semibold text-gray-900`}
           >
             {logo}
           </div>
@@ -248,14 +200,14 @@ const Sidebar = ({
         type="button"
         onClick={toggleCollapsed}
         aria-label={
-          isMini
+          ui.collapsed
             ? COMMON_COMPONENT_LANG_KO.sidebar.expandAriaLabel
             : COMMON_COMPONENT_LANG_KO.sidebar.collapseAriaLabel
         }
         className="absolute -right-3 top-1/2 -translate-y-1/2 hidden h-8 w-8 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-600 shadow-sm hover:bg-gray-50 lg:flex"
       >
         <Icon
-          icon={isMini ? "ri:RiArrowRightSLine" : "ri:RiArrowLeftSLine"}
+          icon={ui.collapsed ? "ri:RiArrowRightSLine" : "ri:RiArrowLeftSLine"}
           size="1.2em"
         />
       </button>
@@ -274,26 +226,32 @@ const Sidebar = ({
         aria-label={COMMON_COMPONENT_LANG_KO.sidebar.menuAriaLabel}
       >
         <ul className="space-y-1">
-          {resolvedItems.map((item) => {
-            const key = item.key || item.label || item.href;
-            const children = subMenuMap.get(item.key) || [];
-            const active = isItemActive(item, children);
-            const hasChildren = children.length > 0;
-            const isOpenGroup = ui.expanded[key] || false;
+          {resolvedItems.map((menuItemObj) => {
+            const menuKey = menuItemObj.key || menuItemObj.label || menuItemObj.href;
+            const childMenuList = subMenuMap.get(menuItemObj.key) || [];
+            const isActive = isItemActive(menuItemObj, childMenuList);
+            const hasChildren = childMenuList.length > 0;
+            const isOpenGroup = ui.expanded[menuKey] || false;
             const childListClassName = isOpenGroup ? "mt-1 space-y-1" : "hidden";
-            const childListPaddingClassName = isMini ? "" : "pl-3";
+            const childListPaddingClassName = ui.collapsed ? "" : "pl-3";
+            const navItemClassName = [
+              "group flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors",
+              isActive
+                ? "bg-blue-50 text-blue-700 font-semibold ring-1 ring-blue-100"
+                : "text-gray-700 hover:bg-gray-50",
+            ].join(" ");
 
-            const content = (
+            const menuContent = (
               <div className="flex w-full items-center gap-3">
-                {item.icon ? (
-                  <Icon icon={item.icon} size="1.1em" ariaLabel={item.label} />
+                {menuItemObj.icon ? (
+                  <Icon icon={menuItemObj.icon} size="1.1em" ariaLabel={menuItemObj.label} />
                 ) : null}
-                <span className={`${isMini ? "sr-only" : "truncate"}`}>
-                  {item.label}
+                <span className={`${ui.collapsed ? "sr-only" : "truncate"}`}>
+                  {menuItemObj.label}
                 </span>
-                {item.badge && !isMini ? (
+                {menuItemObj.badge && !ui.collapsed ? (
                   <span className="ml-auto rounded-full bg-gray-100 px-2 py-0.5 text-xs text-gray-700">
-                    {item.badge}
+                    {menuItemObj.badge}
                   </span>
                 ) : null}
                 {hasChildren ? (
@@ -302,109 +260,123 @@ const Sidebar = ({
                       isOpenGroup ? "ri:RiArrowUpSLine" : "ri:RiArrowDownSLine"
                     }
                     size="1em"
-                    className={`ml-auto text-gray-500 ${isMini ? "hidden" : ""}`}
+                    className={`ml-auto text-gray-500 ${ui.collapsed ? "hidden" : ""}`}
                   />
                 ) : null}
               </div>
             );
 
-            return (
-              <li key={key}>
-                {hasChildren ? (
-                  <>
-                    <button
-                      type="button"
-                      className={navItemClass(active)}
-                      onClick={() => toggleGroup(key)}
-                      aria-expanded={isOpenGroup ? "true" : "false"}
-                      aria-controls={`${key}-children-${isMini ? "mini" : "full"}`}
-                      title={item.label}
-                    >
-                      {content}
-                    </button>
-                    <ul
-                      id={`${key}-children-${isMini ? "mini" : "full"}`}
-                      className={`${childListClassName} ${childListPaddingClassName}`}
-                      aria-label={`${item.label} ${COMMON_COMPONENT_LANG_KO.sidebar.subMenuAriaSuffix}`}
-                    >
-                      {children.map((child) => {
-                        const childKey = child.key || child.label || child.href;
-                        const childActive = isChildActive(child);
-                        const childClass = navItemClass(childActive);
-                        const childContent = (
-                          <div className="flex w-full items-center gap-3 pl-2">
-                            {child.icon ? (
-                              <Icon
-                                icon={child.icon}
-                                size="1.05em"
-                                ariaLabel={child.label}
-                              />
-                            ) : (
-                              <span
-                                className="h-1.5 w-1.5 rounded-full bg-gray-300"
-                                aria-hidden
-                              />
-                            )}
-                            <span
-                              className={`${isMini ? "sr-only" : "truncate"}`}
-                            >
-                              {child.label}
-                            </span>
-                            {child.badge && !isMini ? (
-                              <span className="ml-auto rounded-full bg-gray-50 px-2 py-0.5 text-xs text-gray-600">
-                                {child.badge}
-                              </span>
-                            ) : null}
-                          </div>
-                        );
-                        if (child.href) {
-                          return (
-                            <li key={childKey}>
-                              <Link
-                                href={child.href}
-                                className={childClass}
-                                aria-current={childActive ? "page" : undefined}
-                                title={child.label}
-                              >
-                                {childContent}
-                              </Link>
-                            </li>
-                          );
-                        }
-                        return (
-                          <li key={childKey}>
-                            <button
-                              type="button"
-                              className={childClass}
-                              onClick={child.onClick}
-                              title={child.label}
-                            >
-                              {childContent}
-                            </button>
-                          </li>
-                        );
-                      })}
-                    </ul>
-                  </>
-                ) : item.href ? (
-                  <Link
-                    href={item.href}
-                    className={navItemClass(active)}
-                    aria-current={active ? "page" : undefined}
-                    title={item.label}
-                  >
-                    {content}
-                  </Link>
-                ) : (
+            let menuActionNode = null;
+            if (hasChildren) {
+              menuActionNode = (
+                <>
                   <button
                     type="button"
-                    onClick={item.onClick}
-                    className={navItemClass(active)}
-                    title={item.label}
+                    className={navItemClassName}
+                    onClick={() => toggleGroup(menuKey)}
+                    aria-expanded={isOpenGroup ? "true" : "false"}
+                    aria-controls={`${menuKey}-children-${ui.collapsed ? "mini" : "full"}`}
+                    title={menuItemObj.label}
                   >
-                    {content}
+                    {menuContent}
                   </button>
-                )}
+                  <ul
+                    id={`${menuKey}-children-${ui.collapsed ? "mini" : "full"}`}
+                    className={`${childListClassName} ${childListPaddingClassName}`}
+                    aria-label={`${menuItemObj.label} ${COMMON_COMPONENT_LANG_KO.sidebar.subMenuAriaSuffix}`}
+                  >
+                    {childMenuList.map((child) => {
+                      const childKey = child.key || child.label || child.href;
+                      const isChildMenuActive = isChildActive(child);
+                      const childClassName = [
+                        "group flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors",
+                        isChildMenuActive
+                          ? "bg-blue-50 text-blue-700 font-semibold ring-1 ring-blue-100"
+                          : "text-gray-700 hover:bg-gray-50",
+                      ].join(" ");
+                      const subMenuContent = (
+                        <div className="flex w-full items-center gap-3 pl-2">
+                          {child.icon ? (
+                            <Icon
+                              icon={child.icon}
+                              size="1.05em"
+                              ariaLabel={child.label}
+                            />
+                          ) : (
+                            <span
+                              className="h-1.5 w-1.5 rounded-full bg-gray-300"
+                              aria-hidden
+                            />
+                          )}
+                          <span
+                            className={`${ui.collapsed ? "sr-only" : "truncate"}`}
+                          >
+                            {child.label}
+                          </span>
+                          {child.badge && !ui.collapsed ? (
+                            <span className="ml-auto rounded-full bg-gray-50 px-2 py-0.5 text-xs text-gray-600">
+                              {child.badge}
+                            </span>
+                          ) : null}
+                        </div>
+                      );
+                      if (child.href) {
+                        return (
+                          <li key={childKey}>
+                            <Link
+                              href={child.href}
+                              className={childClassName}
+                              aria-current={isChildMenuActive ? "page" : undefined}
+                              title={child.label}
+                            >
+                              {subMenuContent}
+                            </Link>
+                          </li>
+                        );
+                      }
+                      return (
+                        <li key={childKey}>
+                          <button
+                            type="button"
+                            className={childClassName}
+                            onClick={child.onClick}
+                            title={child.label}
+                          >
+                            {subMenuContent}
+                          </button>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </>
+              );
+            } else if (menuItemObj.href) {
+              menuActionNode = (
+                <Link
+                  href={menuItemObj.href}
+                  className={navItemClassName}
+                  aria-current={isActive ? "page" : undefined}
+                  title={menuItemObj.label}
+                >
+                  {menuContent}
+                </Link>
+              );
+            } else {
+              menuActionNode = (
+                <button
+                  type="button"
+                  onClick={menuItemObj.onClick}
+                  className={navItemClassName}
+                  title={menuItemObj.label}
+                >
+                  {menuContent}
+                </button>
+              );
+            }
+
+            return (
+              <li key={menuKey}>
+                {menuActionNode}
               </li>
             );
           })}
@@ -419,8 +391,8 @@ const Sidebar = ({
     </>
   );
 
-  const sidebarWidthClass = ui.collapsed ? "w-16" : "w-64";
-  const sidebarTranslateClass = isOpen
+  const sideWidthClassName = ui.collapsed ? "w-16" : "w-64";
+  const sideShiftClassName = isOpen
     ? "translate-x-0"
     : "-translate-x-full pointer-events-none lg:pointer-events-auto lg:translate-x-0";
 
@@ -432,10 +404,10 @@ const Sidebar = ({
         aria-hidden="true"
       />
       <aside
-        className={`fixed bottom-0 left-0 top-16 z-40 flex h-auto flex-none flex-col overflow-visible border-r border-gray-200 bg-white shadow-sm transition-all duration-200 lg:static lg:top-auto lg:bottom-auto lg:left-auto lg:min-h-full ${sidebarWidthClass} ${sidebarTranslateClass} ${className}`.trim()}
+        className={`fixed bottom-0 left-0 top-16 z-40 flex h-auto flex-none flex-col overflow-visible border-r border-gray-200 bg-white shadow-sm transition-all duration-200 lg:static lg:top-auto lg:bottom-auto lg:left-auto lg:min-h-full ${sideWidthClassName} ${sideShiftClassName} ${className}`.trim()}
         aria-label={COMMON_COMPONENT_LANG_KO.sidebar.navigationAriaLabel}
       >
-        {renderContent(ui.collapsed)}
+        {sidebarContent}
       </aside>
     </>
   );

@@ -1,10 +1,10 @@
 /**
  * 파일명: InputDocs.jsx
  * 작성자: LSH
- * 갱신일: 2025-09-13
+ * 갱신일: 2026-05-31
  * 설명: Input 컴포넌트 문서
  */
-import { InputExamples } from '../examples/InputExamples';
+import { advancedExampleList, basicExampleList, filterExampleList, maskExampleList } from '../examples/InputExamples';
 import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';
 
@@ -13,8 +13,6 @@ import CodeBlock from '../shared/CodeBlock';
  * @returns {JSX.Element}
  */
 const InputDocs = () => {
-    const examples = InputExamples();  // 컴포넌트 실행
-
     return (
         <DocSection
             id="inputs"
@@ -52,8 +50,8 @@ const InputDocs = () => {
                     가장 기본적인 텍스트 입력과 이메일 입력 예시입니다.
                 </div>
                 <div className="grid grid-cols-3 gap-8">
-                    {examples.slice(0, 2).map((example, index) => (
-                        <div key={index}>
+                    {basicExampleList.map((example) => (
+                        <div key={example.exampleId}>
                             {example.component}
                             <div className="mt-2 text-sm text-gray-600">
                                 {example.description}
@@ -71,8 +69,8 @@ const InputDocs = () => {
                     마스크 패턴: # (숫자), A (대문자), a (소문자), ? (대소문자), * (모든문자)
                 </div>
                 <div className="grid grid-cols-3 gap-8">
-                    {examples.slice(2, 4).map((example, index) => (
-                        <div key={index}>
+                    {maskExampleList.map((example) => (
+                        <div key={example.exampleId}>
                             {example.component}
                             <div className="mt-2 text-sm text-gray-600">
                                 {example.description}
@@ -84,14 +82,14 @@ const InputDocs = () => {
             </div>
 
             <div id="input-filter" className="mb-8">
-                <h3 className="text-lg font-medium mb-4">필터 입력</h3>
+                <h3 className="text-lg font-medium mb-4">필터/숫자 입력</h3>
                 <div className="mb-2 text-sm text-gray-600">
-                    특정 문자만 입력 가능하도록 필터링합니다.
+                    숫자 자릿수 제한과 문자 필터 입력을 함께 보여줍니다.
                     한글, 영문, 숫자 등 원하는 문자셋을 지정할 수 있습니다.
                 </div>
                 <div className="grid grid-cols-3 gap-8">
-                    {examples.slice(4).map((example, index) => (
-                        <div key={index}>
+                    {filterExampleList.map((example) => (
+                        <div key={example.exampleId}>
                             {example.component}
                             <div className="mt-2 text-sm text-gray-600">
                                 {example.description}
@@ -107,7 +105,17 @@ const InputDocs = () => {
                 <div className="mb-2 text-sm text-gray-600">
                     접두어/접미어, 아이콘, 비밀번호 토글 등 고급 기능을 제공합니다.
                 </div>
-                {/* 고급 기능 예시들 */}
+                <div className="grid grid-cols-3 gap-8">
+                    {advancedExampleList.map((example) => (
+                        <div key={example.exampleId}>
+                            {example.component}
+                            <div className="mt-2 text-sm text-gray-600">
+                                {example.description}
+                            </div>
+                            <CodeBlock code={example.code} />
+                        </div>
+                    ))}
+                </div>
             </div>
         </DocSection>
     );

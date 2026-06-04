@@ -1,101 +1,84 @@
 /**
  * 파일명: Select.jsx
  * 작성자: LSH
- * 갱신일: 2026-03-05
+ * 갱신일: 2026-05-31
  * 설명: EasyObj/EasyList 바운드 및 컨트롤드 모드를 모두 지원하는 Select 컴포넌트
  */
-import { forwardRef, useCallback, useEffect, useId, useMemo, useState } from 'react'
-import { getBoundValue, setBoundValue, buildCtx, fireValueHandlers } from '../binding'
+import { forwardRef, useEffect, useId, useState } from 'react'
+import { buildCtx, fireValueHandlers } from '../binding'
+import { useModelValue } from '../hooks/useModelValue'
+import Icon from './Icon'
 import { COMMON_COMPONENT_LANG_KO } from '@/app/common/i18n/lang.ko'
 
 const STATUS_PRESETS = {
   default: {
-    select: 'border border-gray-300 focus:ring-blue-500 focus:border-blue-500',
-    message: 'text-gray-600',
+    selectClassName: 'border border-gray-300 focus:ring-blue-500 focus:border-blue-500',
+    messageClassName: 'text-gray-600',
     ariaLive: 'polite',
   },
   success: {
-    select:
+    selectClassName:
       'border border-green-400 focus:ring-green-500 focus:border-green-500',
-    message: 'text-green-600',
+    messageClassName: 'text-green-600',
     defaultMessage: COMMON_COMPONENT_LANG_KO.select.saved,
     ariaLive: 'polite',
   },
   warning: {
-    select:
+    selectClassName:
       'border border-yellow-400 focus:ring-yellow-500 focus:border-yellow-500',
-    message: 'text-yellow-700',
+    messageClassName: 'text-yellow-700',
     defaultMessage: COMMON_COMPONENT_LANG_KO.select.needsConfirm,
     ariaLive: 'polite',
   },
   error: {
-    select: 'border border-red-400 focus:ring-red-500 focus:border-red-500',
-    message: 'text-red-600',
+    selectClassName: 'border border-red-400 focus:ring-red-500 focus:border-red-500',
+    messageClassName: 'text-red-600',
     defaultMessage: COMMON_COMPONENT_LANG_KO.select.invalidValue,
     ariaLive: 'assertive',
   },
   info: {
-    select: 'border border-blue-300 focus:ring-blue-400 focus:border-blue-400',
-    message: 'text-blue-600',
+    selectClassName: 'border border-blue-300 focus:ring-blue-400 focus:border-blue-400',
+    messageClassName: 'text-blue-600',
     ariaLive: 'polite',
   },
   loading: {
-    select:
+    selectClassName:
       'border border-blue-300 focus:ring-blue-500 focus:border-blue-500 pr-9',
-    message: 'text-blue-600',
+    messageClassName: 'text-blue-600',
     defaultMessage: COMMON_COMPONENT_LANG_KO.select.loading,
     ariaLive: 'polite',
   },
   empty: {
-    select:
+    selectClassName:
       'border border-gray-300 bg-white text-gray-500 focus:ring-blue-400 focus:border-blue-400',
-    message: 'text-gray-500',
+    messageClassName: 'text-gray-500',
     defaultMessage: COMMON_COMPONENT_LANG_KO.select.noItems,
     ariaLive: 'assertive',
   },
   disabled: {
-    select:
+    selectClassName:
       'bg-gray-100 text-gray-500 border border-gray-300 cursor-not-allowed',
-    message: 'text-gray-500',
+    messageClassName: 'text-gray-500',
     ariaLive: 'polite',
   },
 }
 
 /**
  * @description 입력 옵션 목록을 Select 내부 표준 구조로 정규화. 입력/출력 계약을 함께 명시
- * 반환값: `{key,value,label,placeholder,selected,raw}` 형태의 옵션 배열.
+ * 반환값: `{key,value,label,placeholder,selected}` 형태의 옵션 배열.
  * @updated 2026-02-27
  */
 const normalizeOptions = (dataList = [], valueKey, textKey) => {
   if (!Array.isArray(dataList) && typeof dataList?.[Symbol.iterator] !== 'function') {
     return []
   }
-  return Array.from(dataList).map((item, index) => ({
-    key: Object.prototype.hasOwnProperty.call(item, valueKey) ? item[valueKey] : index,
-    value: String(item?.[valueKey] ?? ''),
-    label: String(item?.[textKey] ?? ''),
-    placeholder: Boolean(item?.placeholder),
-    selected: Boolean(item?.selected),
-    raw: item,
+  return Array.from(dataList).map((optionItemObj, index) => ({
+    key: Object.prototype.hasOwnProperty.call(optionItemObj, valueKey) ? optionItemObj[valueKey] : index,
+    value: String(optionItemObj?.[valueKey] ?? ''),
+    label: String(optionItemObj?.[textKey] ?? ''),
+    placeholder: Boolean(optionItemObj?.placeholder),
+    selected: Boolean(optionItemObj?.selected),
   }))
-}
-
-/**
- * @description EasyObj/EasyList subscribe API를 React effect 수명주기에 연결
- * 처리 규칙: subscribe가 있으면 등록하고 cleanup에서 unsubscribe를 호출한다.
- * @updated 2026-02-27
- */
-const useEasySubscription = ({ model, handler }) => {
-
-  /**
-   * @description useEffect 실행 흐름 관리
-   * 처리 규칙: effect 실행/cleanup 경계를 명시적으로 유지.
-   */
-  useEffect(() => {
-    if (!model || typeof model.subscribe !== 'function') return undefined
-    const unsubscribe = model.subscribe(handler)
-    return () => unsubscribe?.()
-  }, [model, handler])
 }
 
 /**
@@ -128,100 +111,96 @@ const Select = forwardRef(({
   const isControlled = valueProp !== undefined
   const reactId = useId()
   const selectId = id || `select-${reactId}`
+  const [boundValue, setBoundModelValue] = useModelValue({
+    model: dataObj,
+    path: dataKey,
+  })
 
-  const normalizedOptions = useMemo(
-    () => normalizeOptions(dataList, valueKey, textKey),
-    [dataList, valueKey, textKey],
-  )
-  const placeholderOption = useMemo(
-    () => normalizedOptions.find((opt) => opt.placeholder),
-    [normalizedOptions],
-  )
+  const optionList = normalizeOptions(dataList, valueKey, textKey)
+  const placeholderOption = optionList.find((optionItem) => optionItem.placeholder)
 
-  const deriveValueFromSources = useCallback(() => {
-    if (isControlled) return String(valueProp ?? '')
-    const hasBoundSrc = dataObj && dataKey
-    if (hasBoundSrc) {
-      const bound = getBoundValue(dataObj, dataKey)
-      if (bound !== undefined && bound !== null) return String(bound)
-    }
-    const selectedFromList =
-      normalizedOptions.find((opt) => opt.raw?.selected) ||
-      normalizedOptions.find((opt) => opt.selected)
-    if (selectedFromList) return selectedFromList.value
-    if (defaultValue !== undefined && defaultValue !== null) return String(defaultValue)
-    if (placeholderOption) return placeholderOption.value
-    return ''
-  }, [isControlled, valueProp, dataObj, dataKey, normalizedOptions, defaultValue, placeholderOption])
+  const selectedOption =
+    optionList.find((optionItem) => optionItem.selected)
+  const hasBoundModelValue =
+    dataObj && dataKey && boundValue !== undefined && boundValue !== null
+  let sourceValue = ''
+  if (isControlled) {
+    sourceValue = String(valueProp ?? '')
+  } else if (hasBoundModelValue) {
+    sourceValue = String(boundValue)
+  } else if (selectedOption) {
+    sourceValue = selectedOption.value
+  } else if (defaultValue !== undefined && defaultValue !== null) {
+    sourceValue = String(defaultValue)
+  } else if (placeholderOption) {
+    sourceValue = placeholderOption.value
+  }
 
-  const [innerValue, setInnerValue] = useState(() => deriveValueFromSources())
-  const currentValue = isControlled ? String(valueProp ?? '') : innerValue
-
+  const [innerValue, setInnerValue] = useState(sourceValue)
+  const currentValue = isControlled ? sourceValue : innerValue
 
   /**
-   * @description useEffect 실행 흐름 관리
-   * 처리 규칙: effect 실행/cleanup 경계를 명시적으로 유지.
+   * @description currentValue 변경 시 option selected 플래그 재계산
+   * 처리 규칙: dataList.forAll/forEach로 valueKey 일치 항목만 selected=true로 맞춘다.
    */
   useEffect(() => {
-    const normalized = String(currentValue ?? '')
+    const selectedValue = String(currentValue ?? '')
 
     /**
      * @description 현재 값과 일치하는 항목의 selected 플래그를 재계산. 입력/출력 계약을 함께 명시
-     * 부작용: item.selected 값을 직접 갱신한다.
+     * 부작용: optionItemObj.selected 값을 직접 갱신한다.
      * @updated 2026-02-27
      */
-    const updater = (item) => {
-      const nextSelected = String(item?.[valueKey] ?? '') === normalized
-      if (item.selected !== nextSelected) item.selected = nextSelected
-      return item
+    const syncOptionSelected = (optionItemObj) => {
+      const isNextSelected = String(optionItemObj?.[valueKey] ?? '') === selectedValue
+      if (optionItemObj.selected !== isNextSelected) optionItemObj.selected = isNextSelected
+      return optionItemObj
     }
 
     if (typeof dataList?.forAll === 'function') {
-      dataList.forAll(updater)
+      dataList.forAll(syncOptionSelected)
     } else if (Array.isArray(dataList)) {
-      dataList.forEach(updater)
+      dataList.forEach(syncOptionSelected)
     }
   }, [dataList, valueKey, currentValue])
 
-
   /**
-   * @description useEffect 실행 흐름 관리
-   * 처리 규칙: effect 실행/cleanup 경계를 명시적으로 유지.
+   * @description 비제어 모드에서 sourceValue 변경을 innerValue에 동기화
+   * 처리 규칙: isControlled=false일 때만 setInnerValue로 외부 값을 반영한다.
    */
   useEffect(() => {
     if (isControlled) return
-    const next = deriveValueFromSources()
-    setInnerValue((prev) => (prev === next ? prev : next))
-  }, [deriveValueFromSources, isControlled])
+    setInnerValue((prev) => (prev === sourceValue ? prev : sourceValue))
+  }, [isControlled, sourceValue])
 
-
-  useEasySubscription({
-    model: dataObj,
-    handler: useCallback(
-      (detail) => {
-        if (!detail || !dataKey) return
-        const key = String(dataKey)
-        const changedKey =
-          detail?.ctx?.dataKey ?? detail?.pathString ?? ''
-        const isMatch =
-          changedKey === key || changedKey.endsWith(`.${key}`)
-        if (isMatch) {
-          const next = deriveValueFromSources()
-          setInnerValue((prev) => (prev === next ? prev : next))
-        }
-      },
-      [dataKey, deriveValueFromSources],
-    ),
-  })
-
-  useEasySubscription({
-    model: dataList,
-    handler: useCallback(() => {
+  /**
+   * @description EasyList 구독 변경을 내부 선택 값에 반영
+   * 처리 규칙: 비제어 모드에서만 subscribe 변경분을 innerValue에 동기화한다.
+   */
+  useEffect(() => {
+    if (!dataList || typeof dataList.subscribe !== 'function') return undefined
+    const unsubscribe = dataList.subscribe(() => {
       if (isControlled) return
-      const next = deriveValueFromSources()
-      setInnerValue((prev) => (prev === next ? prev : next))
-    }, [isControlled, deriveValueFromSources]),
-  })
+      const currentOptionList = normalizeOptions(dataList, valueKey, textKey)
+      const pickedPlaceholder = currentOptionList.find((optionItem) => optionItem.placeholder)
+      const pickedOption =
+        currentOptionList.find((optionItem) => optionItem.selected)
+      const hasBoundValueNow =
+        dataObj && dataKey && boundValue !== undefined && boundValue !== null
+      let nextValue = ''
+      if (hasBoundValueNow) {
+        nextValue = String(boundValue)
+      } else if (pickedOption) {
+        nextValue = pickedOption.value
+      } else if (defaultValue !== undefined && defaultValue !== null) {
+        nextValue = String(defaultValue)
+      } else if (pickedPlaceholder) {
+        nextValue = pickedPlaceholder.value
+      }
+      setInnerValue((prev) => (prev === nextValue ? prev : nextValue))
+    })
+    return () => unsubscribe?.()
+  }, [boundValue, dataKey, dataList, dataObj, defaultValue, isControlled, textKey, valueKey])
 
   const normalizedStatus = disabled
     ? 'disabled'
@@ -253,27 +232,27 @@ const Select = forwardRef(({
     const nextValue = event.target.value
     if (!isControlled) setInnerValue(nextValue)
     if (typeof dataList?.forAll === 'function') {
-      dataList.forAll((item) => {
-        const match = String(item?.[valueKey] ?? '') === String(nextValue)
-        if (item.selected !== match) item.selected = match
-        return item
+      dataList.forAll((optionItemObj) => {
+        const isSelected = String(optionItemObj?.[valueKey] ?? '') === String(nextValue)
+        if (optionItemObj.selected !== isSelected) optionItemObj.selected = isSelected
+        return optionItemObj
       })
     } else if (Array.isArray(dataList)) {
-      dataList.forEach((item) => {
-        item.selected = String(item?.[valueKey] ?? '') === String(nextValue)
+      dataList.forEach((optionItemObj) => {
+        optionItemObj.selected = String(optionItemObj?.[valueKey] ?? '') === String(nextValue)
       })
     }
     if (dataObj && dataKey) {
-      setBoundValue(dataObj, dataKey, nextValue)
+      setBoundModelValue(nextValue)
     }
-    const ctx = buildCtx({
+    const bindingCtx = buildCtx({
       dataKey,
       dataObj,
       source: 'user',
       valid: null,
       dirty: true,
     })
-    const modifiedEvent = {
+    const selectChangeEventObj = {
       ...event,
       target: { ...event.target, value: nextValue },
     }
@@ -281,16 +260,16 @@ const Select = forwardRef(({
       onChange,
       onValueChange,
       value: nextValue,
-      ctx,
-      event: modifiedEvent,
+      ctx: bindingCtx,
+      event: selectChangeEventObj,
     })
   }
 
-  const baseStyle =
+  const baseClassName =
     'block w-full px-3 py-2 text-sm rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-0 appearance-none bg-white transition-colors'
-  const selectClass = [
-    baseStyle,
-    statusMeta.select,
+  const selectClassName = [
+    baseClassName,
+    statusMeta.selectClassName,
     isPlaceholderSelected ? 'text-gray-400' : 'text-gray-900',
     className,
   ]
@@ -305,25 +284,25 @@ const Select = forwardRef(({
         value={currentValue}
         onChange={handleChange}
         disabled={disabled || normalizedStatus === 'disabled'}
-        className={selectClass}
+        className={selectClassName}
         aria-invalid={normalizedStatus === 'error' ? true : undefined}
         aria-busy={normalizedStatus === 'loading' ? true : undefined}
         aria-describedby={ariaDescribedBy}
         {...rest}
       >
         {placeholder &&
-          !normalizedOptions.some((opt) => opt.placeholder) && (
+          !optionList.some((optionItem) => optionItem.placeholder) && (
             <option value="" className="text-gray-400">
               {placeholder}
             </option>
           )}
-        {normalizedOptions.map((opt) => (
+        {optionList.map((optionItem) => (
           <option
-            key={opt.key}
-            value={opt.value}
-            className={opt.placeholder ? 'text-gray-400' : 'text-gray-900'}
+            key={optionItem.key}
+            value={optionItem.value}
+            className={optionItem.placeholder ? 'text-gray-400' : 'text-gray-900'}
           >
-            {opt.label}
+            {optionItem.label}
           </option>
         ))}
       </select>
@@ -334,26 +313,14 @@ const Select = forwardRef(({
             aria-hidden="true"
           />
         ) : (
-          <svg
-            className="h-5 w-5 text-gray-400"
-            xmlns="http://www.w3.org/2000/svg"
-            viewBox="0 0 20 20"
-            fill="currentColor"
-            aria-hidden="true"
-          >
-            <path
-              fillRule="evenodd"
-              d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-              clipRule="evenodd"
-            />
-          </svg>
+          <Icon icon="hi:HiChevronDown" className="h-5 w-5 text-gray-400" size="1.25em" />
         )}
       </div>
       {messageId && (
         <p
           id={messageId}
           className={`mt-1 text-xs ${
-            messageText ? statusMeta.message : 'sr-only'
+            messageText ? statusMeta.messageClassName : 'sr-only'
           }`}
           aria-live={statusMeta.ariaLive || 'polite'}
         >

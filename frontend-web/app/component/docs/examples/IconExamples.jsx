@@ -1,21 +1,19 @@
 /**
  * 파일명: IconExamples.jsx
  * 작성자: LSH
- * 갱신일: 2025-09-13
+ * 갱신일: 2026-05-31
  * 설명: Icon 컴포넌트 예제
  */
 import * as Lib from '@/app/lib';
 
 /**
- * @description IconExamples 구성 데이터를 반환. 입력/출력 계약을 함께 명시
- * @returns {Array<{ component: JSX.Element, code: string }>}
+ * @description Icon 예제 계약을 정의. 입력/출력 계약을 함께 명시
  * @updated 2026-02-24
+ * 처리 규칙: 예제 계약은 zero-arg provider 없이 모듈 export const로 직접 노출한다.
  */
-export const IconExamples = () => {
-    const examples = [
-        {
-            component: (
-                <div>
+export const iconExampleList = [{
+  exampleId: 'material',
+  component: <div>
                     <div className="space-x-4 mb-2">
                         <Lib.Icon icon="md:MdHome" size="24px" />
                         <Lib.Icon icon="md:MdPerson" size="24px" />
@@ -27,10 +25,9 @@ export const IconExamples = () => {
                         <Lib.Icon icon="md:MdHome" size="32px" />
                         <Lib.Icon icon="md:MdHome" size="48px" />
                     </div>
-                </div>
-            ),
-            description: "기본 Material 아이콘과 크기 변형",
-            code: `// 기본 아이콘
+                </div>,
+  description: "기본 Material 아이콘과 크기 변형",
+  code: `// 기본 아이콘
 <Lib.Icon icon="md:MdHome" size="24px" />
 
 // 다양한 크기
@@ -38,10 +35,9 @@ export const IconExamples = () => {
 <Lib.Icon icon="md:MdHome" size="24px" />  // 기본 크기
 <Lib.Icon icon="md:MdHome" size="32px" />  // 큰 크기
 <Lib.Icon icon="md:MdHome" size="48px" />  // 더 큰 크기`
-        },
-        {
-            component: (
-                <div>
+}, {
+  exampleId: 'bootstrapColor',
+  component: <div>
                     <div className="space-x-4 mb-2">
                         <Lib.Icon icon="bs:BsCheckCircle" className="text-green-500" size="24px" />
                         <Lib.Icon icon="bs:BsExclamationCircle" className="text-yellow-500" size="24px" />
@@ -53,10 +49,9 @@ export const IconExamples = () => {
                         <Lib.Icon icon="bs:BsCheckCircle" className="text-green-500" size="32px" />
                         <Lib.Icon icon="bs:BsCheckCircle" className="text-green-500" size="48px" />
                     </div>
-                </div>
-            ),
-            description: "색상이 있는 Bootstrap 아이콘과 크기 변형",
-            code: `// 색상이 있는 아이콘
+                </div>,
+  description: "색상이 있는 Bootstrap 아이콘과 크기 변형",
+  code: `// 색상이 있는 아이콘
 <Lib.Icon icon="bs:BsCheckCircle" className="text-green-500" size="24px" />
 
 // 다양한 크기
@@ -64,10 +59,9 @@ export const IconExamples = () => {
 <Lib.Icon icon="bs:BsCheckCircle" className="text-green-500" size="24px" />
 <Lib.Icon icon="bs:BsCheckCircle" className="text-green-500" size="32px" />
 <Lib.Icon icon="bs:BsCheckCircle" className="text-green-500" size="48px" />`
-        },
-        {
-            component: (
-                <div>
+}, {
+  exampleId: 'social',
+  component: <div>
                     <div className="space-x-4 mb-2">
                         <Lib.Icon icon="fi:FiGithub" size="24px" />
                         <Lib.Icon icon="fi:FiTwitter" size="24px" />
@@ -79,10 +73,9 @@ export const IconExamples = () => {
                         <Lib.Icon icon="fi:FiGithub" size="32px" />
                         <Lib.Icon icon="fi:FiGithub" size="48px" />
                     </div>
-                </div>
-            ),
-            description: "소셜 미디어 아이콘 (Feather)과 크기 변형",
-            code: `// 소셜 미디어 아이콘
+                </div>,
+  description: "소셜 미디어 아이콘 (Feather)과 크기 변형",
+  code: `// 소셜 미디어 아이콘
 <Lib.Icon icon="fi:FiGithub" size="24px" />
 
 // 다양한 크기
@@ -90,8 +83,4 @@ export const IconExamples = () => {
 <Lib.Icon icon="fi:FiGithub" size="24px" />
 <Lib.Icon icon="fi:FiGithub" size="32px" />
 <Lib.Icon icon="fi:FiGithub" size="48px" />`
-        }
-    ];
-
-    return examples;
-};
+}];

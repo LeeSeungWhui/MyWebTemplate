@@ -1,7 +1,7 @@
 /**
  * 파일명: app/sample/crud/lang.ko.js
  * 작성자: LSH
- * 갱신일: 2026-03-04
+ * 갱신일: 2026-05-31
  * 설명: crud 경로 한국어 리소스
  */
 
@@ -167,6 +167,8 @@ export const LANG_KO = {
       loadingTitle: "로딩 중",
       loadingBody: "데이터를 준비하는 중입니다...",
       countSuffix: "건",
+      totalRangeTemplate: "총 {total}건 중 {start}-{end}건",
+      totalOnlyTemplate: "총 {total}건",
     },
     action: {
       openCreate: "신규 등록",
@@ -221,6 +223,7 @@ export const LANG_KO = {
       removeOne: "정말 삭제하시겠습니까?",
       removeOneTitle: "샘플 삭제",
       removeManyTitle: "일괄 삭제",
+      removeManyTemplate: "선택된 {count}건을 삭제하시겠습니까?",
       removeManyTextSuffix: "건을 삭제하시겠습니까?",
       confirmText: "삭제",
       cancelText: "취소",

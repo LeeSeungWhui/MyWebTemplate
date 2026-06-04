@@ -1,26 +1,11 @@
 /**
  * 파일명: binding.js
  * 작성자: LSH
- * 갱신일: 2026-03-03
+ * 갱신일: 2026-05-31
  * 설명: 바인딩 유틸 함수
  */
 
-
 // 바인딩 유틸 함수 선언 구간
-
-/**
- * @description 입력 객체가 EasyObj/EasyList 프록시 래퍼인지 판별
- * 반환값: `__isProxy` 또는 `__rawObject` 메타 필드가 있으면 true.
- * @updated 2026-02-27
- */
-const isProxyLike = (obj) => obj && typeof obj === 'object' && (obj.__isProxy || obj.__rawObject);
-
-/**
- * @description 프록시 래퍼 객체에서 원본(raw) 참조를 추출
- * 반환값: `__rawObject`가 있으면 raw, 없으면 입력 객체 자체.
- * @updated 2026-02-27
- */
-const getRaw = (obj) => (obj && obj.__rawObject) ? obj.__rawObject : obj;
 
 /**
  * @description 바인딩 객체에서 key 경로 값 조회
@@ -32,13 +17,13 @@ export const getBoundValue = (dataObj, dataKey) => {
 
   if (typeof dataObj.get === 'function') return dataObj.get(dataKey);
 
-  const parts = String(dataKey).split('.');
-  let cur = dataObj;
-  for (const segment of parts) {
-    if (cur == null) return undefined;
-    cur = cur[segment];
+  const pathSegmentList = String(dataKey).split('.');
+  let currentValue = dataObj;
+  for (const pathSegment of pathSegmentList) {
+    if (currentValue == null) return undefined;
+    currentValue = currentValue[pathSegment];
   }
-  return cur;
+  return currentValue;
 }
 
 /**
@@ -51,15 +36,15 @@ export const setBoundValue = (dataObj, dataKey, value, options = {}) => {
   if (!dataObj || !dataKey) return;
   const meta = typeof options === 'object' && options !== null ? options : {};
   if (typeof dataObj.set === 'function') return dataObj.set(dataKey, value, { source: meta.source ?? 'user' });
-  const parts = String(dataKey).split('.');
-  let cur = dataObj;
-  for (let i = 0; i < parts.length - 1; i++) {
-    if (cur[parts[i]] == null || typeof cur[parts[i]] !== 'object') {
-      cur[parts[i]] = {};
+  const pathSegmentList = String(dataKey).split('.');
+  let currentObj = dataObj;
+  for (const pathSegment of pathSegmentList.slice(0, -1)) {
+    if (currentObj[pathSegment] == null || typeof currentObj[pathSegment] !== 'object') {
+      currentObj[pathSegment] = {};
     }
-    cur = cur[parts[i]];
+    currentObj = currentObj[pathSegment];
   }
-  cur[parts[parts.length - 1]] = value;
+  currentObj[pathSegmentList[pathSegmentList.length - 1]] = value;
   return value;
 }
 
@@ -70,11 +55,11 @@ export const setBoundValue = (dataObj, dataKey, value, options = {}) => {
  */
 export const buildCtx = ({ dataKey, dataObj, source = 'user', valid = null, dirty = true }) => {
 
-  const raw = getRaw(dataObj);
+  const modelSource = dataObj && dataObj.__rawObject ? dataObj.__rawObject : dataObj;
   let modelType = null;
-  if (Array.isArray(raw)) {
+  if (Array.isArray(modelSource)) {
     modelType = 'list';
-  } else if (raw && typeof raw === 'object') {
+  } else if (modelSource && typeof modelSource === 'object') {
     modelType = 'obj';
   }
   return { dataKey, modelType, dirty: Boolean(dirty), valid, source };
@@ -85,39 +70,27 @@ export const buildCtx = ({ dataKey, dataObj, source = 'user', valid = null, dirt
  * 처리 규칙: event.detail에 value/ctx를 주입하고 onChange(event) → onValueChange(value, ctx) 순으로 호출한다.
  * @updated 2026-02-24
  */
-export const fireValueHandlers = ({ onChange, onValueChange, value, ctx, event }) => {
+export const fireValueHandlers = ({ onChange, onValueChange, value: handlerValue, ctx: bindingCtx, event }) => {
 
 
   if (event) {
     try {
       if (!Object.prototype.hasOwnProperty.call(event, 'detail') || event.detail == null) {
-        Object.defineProperty(event, 'detail', { value: { value, ctx }, configurable: true, writable: true });
+        Object.defineProperty(event, 'detail', { value: { value: handlerValue, ctx: bindingCtx }, configurable: true, writable: true });
       } else if (typeof event.detail === 'object') {
-        event.detail.value = value;
-        event.detail.ctx = ctx;
+        event.detail.value = handlerValue;
+        event.detail.ctx = bindingCtx;
       }
-    } catch (error) {
+    } catch {
       try {
-        event.detail = { value, ctx };
-      } catch (detailAssignError) {
-        void detailAssignError;
-
+        event.detail = { value: handlerValue, ctx: bindingCtx };
+      } catch {
+        if (bindingCtx && typeof bindingCtx === 'object') {
+          bindingCtx.eventDetailSynced = false;
+        }
       }
     }
   }
   if (typeof onChange === 'function' && event) onChange(event);
-  if (typeof onValueChange === 'function') onValueChange(value, ctx);
+  if (typeof onValueChange === 'function') onValueChange(handlerValue, bindingCtx);
 }
-
-const bindingUtils = {
-  getBoundValue,
-  setBoundValue,
-  buildCtx,
-  fireValueHandlers,
-};
-
-/**
- * @description 바인딩 유틸 묶음 객체(bindingUtils)를 default export로 노출
- * 반환값: get/set/ctx/handler 함수를 담은 bindingUtils.
- */
-export default bindingUtils

@@ -1,10 +1,10 @@
 /**
  * 파일명: CheckboxDocs.jsx
  * 작성자: LSH
- * 갱신일: 2025-09-13
+ * 갱신일: 2026-05-31
  * 설명: Checkbox 컴포넌트 문서
  */
-import { CheckboxExamples } from '../examples/CheckboxExamples';
+import { advancedExampleList, basicExampleList } from '../examples/CheckboxExamples';
 import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';
 
@@ -13,8 +13,6 @@ import CodeBlock from '../shared/CodeBlock';
  * @returns {JSX.Element}
  */
 const CheckboxDocs = () => {
-    const examples = CheckboxExamples();
-
     return (
         <DocSection
             id="checkboxes"
@@ -38,8 +36,8 @@ const CheckboxDocs = () => {
             <div id="checkbox-basic" className="mb-8">
                 <h3 className="text-lg font-medium mb-4">기본 사용법</h3>
                 <div className="grid grid-cols-2 gap-8">
-                    {examples.slice(0, 2).map((example, index) => (
-                        <div key={index}>
+                    {basicExampleList.map((example) => (
+                        <div key={example.exampleId}>
                             {example.component}
                             <div className="mt-2 text-sm text-gray-600">
                                 {example.description}
@@ -50,11 +48,11 @@ const CheckboxDocs = () => {
                 </div>
             </div>
 
-            <div id="checkbox-variants" className="mb-8">
-                <h3 className="text-lg font-medium mb-4">색상 변형</h3>
+            <div id="checkbox-advanced" className="mb-8">
+                <h3 className="text-lg font-medium mb-4">응용 예시</h3>
                 <div className="grid grid-cols-2 gap-8">
-                    {examples.slice(2).map((example, index) => (
-                        <div key={index}>
+                    {advancedExampleList.map((example) => (
+                        <div key={example.exampleId}>
                             {example.component}
                             <div className="mt-2 text-sm text-gray-600">
                                 {example.description}

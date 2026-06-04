@@ -1,7 +1,7 @@
 /**
  * 파일명: app/sample/admin/lang.ko.js
  * 작성자: LSH
- * 갱신일: 2026-03-04
+ * 갱신일: 2026-05-31
  * 설명: admin 경로 한국어 리소스
  */
 
@@ -112,7 +112,10 @@ export const LANG_KO = {
       searchPlaceholder: "이름/이메일/역할 검색",
       resetButton: "초기화",
       addButton: "사용자 추가",
+      totalRangeTemplate: "총 {total}명 중 {start}-{end}명",
+      totalOnlyTemplate: "총 {total}명",
       editButton: "수정",
+      listLoadFailed: "사용자 목록을 불러오지 못했습니다.",
       saveCreatedToast: "사용자가 등록되었습니다.",
       saveUpdatedToast: "사용자 정보가 저장되었습니다.",
       nameRequired: "이름을 입력해주세요.",

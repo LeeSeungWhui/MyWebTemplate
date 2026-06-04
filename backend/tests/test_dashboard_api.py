@@ -1,7 +1,9 @@
 import os
 import sys
-import sqlite3
 from fastapi.testclient import TestClient
+
+from conftest import pgTestSettings
+from db_support import executePg
 
 
 baseDir = os.path.dirname(os.path.dirname(__file__))
@@ -15,49 +17,61 @@ def authHeaderFromCookie(client):
 
 
 def ensureDataTableAndSeed():
-    dbPath = os.path.join(baseDir, "data", "test.db")
-    os.makedirs(os.path.dirname(dbPath), exist_ok=True)
-    con = sqlite3.connect(dbPath)
-    try:
-        con.execute("DROP TABLE IF EXISTS T_DATA")
-        con.execute(
-            """
-            CREATE TABLE T_DATA (
-                DATA_NO INTEGER PRIMARY KEY AUTOINCREMENT,
-                USER_ID TEXT NOT NULL,
-                DATA_NM TEXT NOT NULL,
-                DATA_DESC TEXT,
-                STAT_CD TEXT NOT NULL,
-                AMT REAL,
-                TAG_JSON TEXT,
-                REG_DT TEXT DEFAULT CURRENT_TIMESTAMP
-            )
-            """
+    executePg(pgTestSettings, "DROP TABLE IF EXISTS T_DATA")
+    executePg(
+        pgTestSettings,
+        """
+        CREATE TABLE T_DATA (
+            DATA_NO BIGSERIAL PRIMARY KEY,
+            USER_ID TEXT NOT NULL,
+            DATA_NM TEXT NOT NULL,
+            DATA_DESC TEXT,
+            STAT_CD TEXT NOT NULL,
+            AMT NUMERIC,
+            TAG_JSON TEXT,
+            REG_DT TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
-        con.execute(
-            """
-            INSERT INTO T_DATA (USER_ID, DATA_NM, DATA_DESC, STAT_CD, AMT, TAG_JSON)
-            VALUES (?, ?, ?, ?, ?, ?)
-            """,
-            ("demo@demo.demo", "테스트 업무", "REST 경로 검증", "ready", 1000, '["qa"]'),
-        )
-        con.execute(
-            """
-            INSERT INTO T_DATA (USER_ID, DATA_NM, DATA_DESC, STAT_CD, AMT, TAG_JSON)
-            VALUES (?, ?, ?, ?, ?, ?)
-            """,
-            ("demo@demo.demo", "운영 점검", "필터용 샘플", "pending", 2000, '["ops","night"]'),
-        )
-        con.execute(
-            """
-            INSERT INTO T_DATA (USER_ID, DATA_NM, DATA_DESC, STAT_CD, AMT, TAG_JSON)
-            VALUES (?, ?, ?, ?, ?, ?)
-            """,
-            ("viewer@demo.demo", "다른 사용자 업무", "소유권 검증 샘플", "ready", 500, '["other"]'),
-        )
-        con.commit()
-    finally:
-        con.close()
+        """,
+    )
+    executePg(
+        pgTestSettings,
+        """
+        INSERT INTO T_DATA (USER_ID, DATA_NM, DATA_DESC, STAT_CD, AMT, TAG_JSON)
+        VALUES ($1, $2, $3, $4, $5, $6)
+        """,
+        "demo@demo.demo",
+        "테스트 업무",
+        "REST 경로 검증",
+        "ready",
+        1000,
+        '["qa"]',
+    )
+    executePg(
+        pgTestSettings,
+        """
+        INSERT INTO T_DATA (USER_ID, DATA_NM, DATA_DESC, STAT_CD, AMT, TAG_JSON)
+        VALUES ($1, $2, $3, $4, $5, $6)
+        """,
+        "demo@demo.demo",
+        "운영 점검",
+        "필터용 샘플",
+        "pending",
+        2000,
+        '["ops","night"]',
+    )
+    executePg(
+        pgTestSettings,
+        """
+        INSERT INTO T_DATA (USER_ID, DATA_NM, DATA_DESC, STAT_CD, AMT, TAG_JSON)
+        VALUES ($1, $2, $3, $4, $5, $6)
+        """,
+        "viewer@demo.demo",
+        "다른 사용자 업무",
+        "소유권 검증 샘플",
+        "ready",
+        500,
+        '["other"]',
+    )
 
 
 def loginAs(client, username: str, password: str):
@@ -94,10 +108,17 @@ def testDashboardListRestPath():
         assert response.status_code == 200
         body = response.json()
         assert body["status"] is True
-        result = body["result"]
+        result = body["result"]["dataTemplateList"]
         assert isinstance(result, list)
         assert body["count"] >= 1
         assert result[0]["title"] == "테스트 업무"
+        assert isinstance(result[0]["amount"], (int, float))
+
+        statsResponse = client.get("/api/v1/dashboard/stats", headers=authHeaderFromCookie(client))
+        assert statsResponse.status_code == 200
+        statusSummaryList = statsResponse.json()["result"]["statusSummaryList"]
+        assert statusSummaryList
+        assert isinstance(statusSummaryList[0]["amountSum"], (int, float))
 
 
 def testDashboardCrudFlow():
@@ -126,7 +147,7 @@ def testDashboardCrudFlow():
 
         listResponse = client.get("/api/v1/dashboard?q=신규 업무&size=10&page=1", headers=headers)
         assert listResponse.status_code == 200
-        listItems = listResponse.json()["result"]
+        listItems = listResponse.json()["result"]["dataTemplateList"]
         assert len(listItems) >= 1
         dataId = int(listItems[0]["id"])
 
@@ -194,7 +215,7 @@ def testDashboardRejectsCrossUserDetailAccess():
         ownerHeaders = authHeaderFromCookie(client)
         ownerList = client.get("/api/v1/dashboard?q=테스트 업무&size=10&page=1", headers=ownerHeaders)
         assert ownerList.status_code == 200
-        ownerItems = ownerList.json()["result"]
+        ownerItems = ownerList.json()["result"]["dataTemplateList"]
         assert len(ownerItems) == 1
         ownerDataId = int(ownerItems[0]["id"])
 

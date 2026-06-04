@@ -1,35 +1,13 @@
 /**
  * 파일명: NumberInput.jsx
  * 작성자: LSH
- * 갱신일: 2026-03-03
+ * 갱신일: 2026-05-31
  * 설명: NumberInput UI 컴포넌트 구현
  */
 
 import { forwardRef, useEffect, useRef, useState } from 'react';
 import Icon from './Icon';
 import { getBoundValue, setBoundValue, buildCtx, fireValueHandlers } from '../binding';
-
-/**
- * @description 숫자 값을 min/max 범위 안으로 보정
- * 반환값: 범위를 벗어나면 경계값(min/max), 아니면 원래 숫자.
- * @updated 2026-02-27
- */
-const clamp = (numberValue, min, max) => {
-  if (min !== undefined && numberValue < min) return min;
-  if (max !== undefined && numberValue > max) return max;
-  return numberValue;
-};
-
-/**
- * @description 사용자 입력 문자열을 숫자로 파싱
- * 실패 동작: 빈값/NaN 입력은 빈 문자열을 반환한다.
- * @updated 2026-02-27
- */
-const parseNum = (rawValue) => {
-  if (rawValue === '' || rawValue === null || rawValue === undefined) return '';
-  const parsedNumber = Number(rawValue);
-  return Number.isFinite(parsedNumber) ? parsedNumber : '';
-};
 
 /**
  * @description 렌더링 및 상호작용 처리
@@ -55,94 +33,107 @@ const NumberInput = forwardRef(({
 }, ref) => {
 
   const isPropControlled = propValue !== undefined;
-  const isData = Boolean(dataObj && dataKey);
+  const isDataBound = Boolean(dataObj && dataKey);
 
-  const [inner, setInner] = useState(defaultValue);
-  const inputRef = useRef(null);
-
-  /**
-   * @description 현재 값을 prop/dataObj/local state 우선순위로 조회. 입력/출력 계약을 함께 명시
-   * 처리 규칙: controlled > EasyObj 바인딩 > 내부 상태 순으로 fallback 한다.
-   * @updated 2026-02-27
-   */
-  const getExternal = () => {
-    if (isPropControlled) return propValue ?? '';
-    if (isData) return getBoundValue(dataObj, dataKey) ?? '';
-    return inner ?? '';
-  };
-
-  /**
-   * @description useEffect 실행 흐름 관리
-   * 처리 규칙: effect 실행/cleanup 경계를 명시적으로 유지.
-   */
-  useEffect(() => {
-
-  }, [propValue, dataObj, dataKey]);
+  const [innerValue, setInnerValue] = useState(defaultValue);
 
   /**
    * @description 입력값을 정규화해 상태/바인딩/핸들러로 확정 반영
-   * 부작용: inner, dataObj[dataKey], onChange/onValueChange 이벤트 값이 함께 갱신된다.
+   * 부작용: innerValue, dataObj[dataKey], onChange/onValueChange 이벤트 값이 함께 갱신된다.
    * @updated 2026-02-27
    */
-  const commit = (raw, event) => {
-    const parsedNumber = raw === '' ? '' : parseNum(raw);
-    const next = parsedNumber === '' ? '' : clamp(parsedNumber, min, max);
-    if (!isPropControlled && !isData) setInner(next);
-    if (isData) setBoundValue(dataObj, dataKey, next);
-    const ctx = buildCtx({ dataKey, dataObj, source: 'user', dirty: true, valid: null });
-    const evt = event ? { ...event, target: { ...event.target, value: next } } : { target: { value: next } };
-    fireValueHandlers({ onChange, onValueChange, value: next, ctx, event: evt });
+  const commitNumberValue = (rawInputValue, event) => {
+    let parsedNumber = '';
+    const hasRawNumberInput =
+      rawInputValue !== '' && rawInputValue !== null && typeof rawInputValue !== 'undefined';
+    if (hasRawNumberInput) {
+      const rawNumber = Number(rawInputValue);
+      if (Number.isFinite(rawNumber)) {
+        parsedNumber = rawNumber;
+      }
+    }
+    let nextValue = parsedNumber;
+    const isBelowMin = nextValue !== '' && min !== undefined && nextValue < min;
+    if (isBelowMin) nextValue = min;
+    const isAboveMax = nextValue !== '' && max !== undefined && nextValue > max;
+    if (isAboveMax) nextValue = max;
+    if (!isPropControlled && !isDataBound) setInnerValue(nextValue);
+    if (isDataBound) setBoundValue(dataObj, dataKey, nextValue);
+    const bindingCtx = buildCtx({ dataKey, dataObj, source: 'user', dirty: true, valid: null });
+    const nextEvent = event ? { ...event, target: { ...event.target, value: nextValue } } : { target: { value: nextValue } };
+    fireValueHandlers({ onChange, onValueChange, value: nextValue, ctx: bindingCtx, event: nextEvent });
   };
 
   /**
-   * @description step 증감(delta)으로 숫자 값을 변경
-   * 처리 규칙: disabled/readOnly면 중단하고, 그 외에는 clamp 후 commit을 호출한다.
+   * @description stepDelta 증감값으로 숫자 값을 변경
+   * 처리 규칙: disabled/readOnly면 중단하고, 그 외에는 min/max 보정 후 commit을 호출한다.
    * @updated 2026-02-27
    */
-  const changeBy = (delta) => {
+  const changeByStep = (stepDelta) => {
     if (disabled || readOnly) return;
-    const cur = getExternal();
-    const base = cur === '' ? 0 : Number(cur) || 0;
-    const next = clamp(base + delta, min, max);
-    commit(next);
+    let currentValue = innerValue ?? '';
+    if (isPropControlled) {
+      currentValue = propValue ?? '';
+    } else if (isDataBound) {
+      currentValue = getBoundValue(dataObj, dataKey) ?? '';
+    }
+    const baseNumber = currentValue === '' ? 0 : Number(currentValue) || 0;
+    let nextValue = baseNumber + stepDelta;
+    if (min !== undefined && nextValue < min) nextValue = min;
+    if (max !== undefined && nextValue > max) nextValue = max;
+    commitNumberValue(nextValue);
   };
 
-  const holdRef = useRef(null);       // 반복 증감 인터벌
+  const holdIntervalRef = useRef(null);
   const holdTimerRef = useRef(null);
-  const heldStartedRef = useRef(false);
+  const [hasHeldStarted, setHasHeldStarted] = useState(false);
 
   /**
    * @description 증감 버튼 long-press 반복 입력을 시작
    * 처리 규칙: 300ms 지연 후 120ms 간격 반복 호출로 연속 증감을 수행한다.
    * @updated 2026-02-27
    */
-  const startHold = (delta) => {
-    clearInterval(holdRef.current);
+  const startHold = (stepDelta) => {
+    clearInterval(holdIntervalRef.current);
     clearTimeout(holdTimerRef.current);
-    heldStartedRef.current = false;
+    setHasHeldStarted(false);
     holdTimerRef.current = setTimeout(() => {
-      heldStartedRef.current = true;
-      changeBy(delta);
-      holdRef.current = setInterval(() => changeBy(delta), 120);
+      setHasHeldStarted(true);
+      changeByStep(stepDelta);
+      holdIntervalRef.current = setInterval(() => changeByStep(stepDelta), 120);
     }, 300);
   };
 
   /**
    * @description press 관련 타이머와 반복 인터벌 정리
-   * 부작용: holdRef/holdTimerRef를 null로 초기화한다.
+   * 부작용: holdIntervalRef/holdTimerRef를 null로 초기화한다.
    * @updated 2026-02-27
    */
   const stopHold = () => {
-    clearInterval(holdRef.current);
+    clearInterval(holdIntervalRef.current);
     clearTimeout(holdTimerRef.current);
-    holdRef.current = null;
+    holdIntervalRef.current = null;
     holdTimerRef.current = null;
   };
 
-  const value = getExternal();
+  /**
+   * @description 컴포넌트 해제 시 long-press 타이머를 정리
+   * 처리 규칙: pending timeout/interval이 unmount 뒤 상태를 갱신하지 못하게 차단한다.
+   */
+  useEffect(() => () => {
+    clearInterval(holdIntervalRef.current);
+    clearTimeout(holdTimerRef.current);
+  }, []);
 
-  const baseCls = 'block w-full h-10 px-3 text-sm rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-0 bg-white border';
-  const stateCls = 'border-gray-300 focus:ring-blue-500 focus:border-blue-500';
+  let currentNumberValue = innerValue ?? '';
+  if (isPropControlled) {
+    currentNumberValue = propValue ?? '';
+  } else if (isDataBound) {
+    currentNumberValue = getBoundValue(dataObj, dataKey) ?? '';
+  }
+
+  const baseClassName = 'block w-full h-10 px-3 text-sm rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-0 bg-white border';
+  const stateClassName = 'border-gray-300 focus:ring-blue-500 focus:border-blue-500';
 
   const inputId = id || (dataKey ? `num_${String(dataKey).replace(/[^a-zA-Z0-9_]+/g, '_')}` : undefined);
 
@@ -154,7 +145,7 @@ const NumberInput = forwardRef(({
         onMouseDown={() => startHold(-step)}
         onMouseUp={stopHold}
         onMouseLeave={stopHold}
-        onClick={(event) => { if (heldStartedRef.current) { event.preventDefault(); heldStartedRef.current = false; return; } changeBy(-step); }}
+        onClick={(event) => { if (hasHeldStarted) { event.preventDefault(); setHasHeldStarted(false); return; } changeByStep(-step); }}
         disabled={disabled || readOnly}
         aria-label="decrement"
       >
@@ -162,33 +153,35 @@ const NumberInput = forwardRef(({
       </button>
 
       <input
-        ref={(node) => { inputRef.current = node; if (typeof ref === 'function') ref(node); else if (ref) ref.current = node; }}
+        ref={ref}
         id={inputId}
         type="text"
         inputMode="decimal"
         pattern="[0-9.-]*"
         placeholder={placeholder}
-        value={value}
+        value={currentNumberValue}
         onChange={(event) => {
           const nextInputValue = event.target.value;
           if (nextInputValue === '' || /^-?\d*(?:\.\d*)?$/.test(nextInputValue)) {
-            if (!isPropControlled && !isData) setInner(nextInputValue);
+            if (!isPropControlled && !isDataBound) setInnerValue(nextInputValue);
           }
         }}
         onKeyDown={(event) => {
-          if (event.key === 'ArrowUp') { event.preventDefault(); changeBy(+step); }
-          if (event.key === 'ArrowDown') { event.preventDefault(); changeBy(-step); }
-          if (event.key === 'PageUp') { event.preventDefault(); changeBy(+step * 10); }
-          if (event.key === 'PageDown') { event.preventDefault(); changeBy(-step * 10); }
+          if (event.key === 'ArrowUp') { event.preventDefault(); changeByStep(+step); }
+          if (event.key === 'ArrowDown') { event.preventDefault(); changeByStep(-step); }
+          if (event.key === 'PageUp') { event.preventDefault(); changeByStep(+step * 10); }
+          if (event.key === 'PageDown') { event.preventDefault(); changeByStep(-step * 10); }
         }}
-        onBlur={(event) => commit(event.target.value, event)}
-        className={`${baseCls} ${stateCls} flex-1`.trim()}
+        onBlur={(event) => commitNumberValue(event.target.value, event)}
+        className={`${baseClassName} ${stateClassName} flex-1`.trim()}
         disabled={disabled}
         readOnly={readOnly}
         role="spinbutton"
         aria-valuemin={min}
         aria-valuemax={max}
-        aria-valuenow={value === '' ? undefined : Number(value)}
+        aria-valuenow={
+          currentNumberValue === '' ? undefined : Number(currentNumberValue)
+        }
       />
 
       <button
@@ -197,7 +190,7 @@ const NumberInput = forwardRef(({
         onMouseDown={() => startHold(+step)}
         onMouseUp={stopHold}
         onMouseLeave={stopHold}
-        onClick={(event) => { if (heldStartedRef.current) { event.preventDefault(); heldStartedRef.current = false; return; } changeBy(+step); }}
+        onClick={(event) => { if (hasHeldStarted) { event.preventDefault(); setHasHeldStarted(false); return; } changeByStep(+step); }}
         disabled={disabled || readOnly}
         aria-label="increment"
       >

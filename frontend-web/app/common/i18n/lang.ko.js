@@ -1,7 +1,7 @@
 /**
  * 파일명: common/i18n/lang.ko.js
  * 작성자: LSH
- * 갱신일: 2026-02-25
+ * 갱신일: 2026-05-31
  * 설명: frontend-web 공통 한국어 리소스 템플릿
  */
 
@@ -96,6 +96,8 @@ export const COMMON_COMPONENT_LANG_KO = {
     defaultLinkLabel: "링크",
   },
   publicLayout: {
+    brandLabel: "MyWebTemplate",
+    copyrightTemplate: "© {year} MyWebTemplate. All rights reserved.",
     footerLinkList: [
       { href: "/sample", label: "샘플 허브" },
       { href: "/component", label: "컴포넌트" },
@@ -125,6 +127,7 @@ export const COMMON_COMPONENT_LANG_KO = {
     loadFailedStatus: "PDF 문서를 불러오지 못했습니다.",
     sourceUnavailableStatus: "PDF 소스를 확인할 수 없습니다.",
     loadingStatus: "PDF 문서를 불러오는 중입니다.",
+    pageStatusTemplate: "총 {totalPages}페이지 중 {currentPage}페이지, 확대 {zoomPercent}%",
     readyStatus: "PDF 문서 준비가 완료되었습니다.",
     loadingText: "PDF 불러오는 중...",
     loadFailedTitle: "PDF를 불러오지 못했습니다",
@@ -185,6 +188,8 @@ export const COMMON_COMPONENT_LANG_KO = {
     attachFile: "파일 첨부",
     modeEditor: "에디터 모드",
     modeHtml: "HTML 모드",
+    imageUploadFailed: "이미지 업로드에 실패했습니다.",
+    fileUploadFailed: "파일 업로드에 실패했습니다.",
   },
 };
 

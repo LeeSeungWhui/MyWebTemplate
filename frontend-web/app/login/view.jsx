@@ -1,8 +1,9 @@
 "use client";
+
 /**
  * 파일명: app/login/view.jsx
  * 작성자: LSH
- * 갱신일: 2026-03-05
+ * 갱신일: 2026-05-31
  * 설명: 로그인 페이지 클라이언트 뷰
  */
 
@@ -16,19 +17,19 @@ import usePageData from "@/app/lib/hooks/usePageData";
 import { PAGE_CONFIG } from "./initData";
 import Link from "next/link";
 import { useGlobalUi } from "@/app/common/store/SharedStore";
+import { sanitizeInternalPath } from "@/app/lib/runtime/authRedirect";
 import LANG_KO from "./lang.ko";
-
-const MIN_USERNAME_LENGTH = 3;
-const MIN_PASSWORD_LENGTH = 8;
-const LOGIN_API_PATH = "/api/v1/auth/login";
 
 /**
  * @description 로그인 폼 검증/제출 및 세션 상태 기반 리다이렉트를 담당하는 페이지 뷰를 렌더링. 입력/출력 계약을 함께 명시
  * 처리 규칙: 로그인 성공 시 nextHint(안전 경로) 또는 `/dashboard`로 이동한다.
  */
-const Client = ({ initialDataObj, initialErrorObj }) => {
+const LoginView = ({ initialDataObj, initialErrorObj }) => {
+
   /* 1. 상수 ======================================================================================================================= */
-  // 없음
+  const minUsernameLength = 3;
+  const minPasswordLength = 8;
+
   /* 2. 데이터 ======================================================================================================================= */
   const loginObj = EasyObj({
     email: "",
@@ -46,6 +47,7 @@ const Client = ({ initialDataObj, initialErrorObj }) => {
   const emailRef = useRef(null);
   const passwordRef = useRef(null);
   const errorSummaryRef = useRef(null);
+  const focusFrameRef = useRef(null);
   const { showToast } = useGlobalUi();
   const pageMetaObj = initialDataObj?.__pageMeta || {};
   const nextHint = pageMetaObj.nextHint || null;
@@ -65,14 +67,23 @@ const Client = ({ initialDataObj, initialErrorObj }) => {
   const passwordErrorId = loginObj.errors.password
     ? "login-password-error"
     : undefined;
+
   /* 3. UI ========================================================================================================================= */
+
   // 없음
+
   /* 4. 팝업 ======================================================================================================================= */
+
   // 없음
+
   /* 5. 기타 ======================================================================================================================= */
+
   // 없음
+
   /* 6. 커스텀 훅 =================================================================================================================== */
+
   // 없음
+
   /* 7. 함수 ======================================================================================================================= */
 
   /**
@@ -81,61 +92,7 @@ const Client = ({ initialDataObj, initialErrorObj }) => {
    * @updated 2026-02-27
    */
   const sanitizeRedirect = (candidate) => {
-    if (!candidate || typeof candidate !== "string") return null;
-    if (!candidate.startsWith("/")) return null;
-    if (candidate.startsWith("//")) return null;
-    if (/^https?:/i.test(candidate)) return null;
-    return candidate;
-  };
-
-  /**
-   * @description 필드 에러와 폼 공통 에러 메시지를 초기화
-   * 부작용: loginObj.errors(email/password)와 ui.formError를 빈 문자열로 덮어쓴다.
-   * @updated 2026-02-27
-   */
-  const resetErrors = () => {
-    loginObj.errors.email = "";
-    loginObj.errors.password = "";
-    ui.formError = "";
-  };
-
-  /**
-   * @description 오류 입력 요소 포커스 이동
-   * 처리 규칙: ref.current가 있을 때 requestAnimationFrame 타이밍으로 focus를 호출한다.
-   * @updated 2026-02-27
-   */
-  const focusOnError = (ref) => {
-    if (!ref || !ref.current) return;
-    requestAnimationFrame(() => {
-      ref.current?.focus();
-    });
-  };
-
-  /**
-   * @description 백엔드 에러 코드를 사용자 메시지/포커스 대상 필드로 매핑. 입력/출력 계약을 함께 명시
-   * 반환값: `{ message, field? }` 형태의 에러 표시 메타.
-   * @updated 2026-02-27
-   */
-  const resolveBackendError = (error) => {
-    if (error?.code === "AUTH_429_RATE_LIMIT") {
-      return { message: LANG_KO.view.error.tooManyAttempts };
-    }
-    if (error?.code === "AUTH_422_INVALID_INPUT") {
-      return { message: LANG_KO.view.error.invalidInput };
-    }
-    if (error?.code === "AUTH_401_INVALID") {
-      return {
-        message: LANG_KO.view.error.invalidCredential,
-        field: "password",
-      };
-    }
-    if (error?.statusCode === 401) {
-      return { message: LANG_KO.view.toast.sessionExpired };
-    }
-    if (error?.message) {
-      return { message: error.message };
-    }
-    return { message: LANG_KO.view.error.loginFailed };
+    return sanitizeInternalPath(candidate, null);
   };
 
   /**
@@ -144,8 +101,10 @@ const Client = ({ initialDataObj, initialErrorObj }) => {
    * @updated 2026-02-27
    */
   const validateForm = () => {
-    resetErrors();
-    const issues = [];
+    loginObj.errors.email = "";
+    loginObj.errors.password = "";
+    ui.formError = "";
+    let firstIssueObj = null;
 
     const email = String(loginObj.email || "").trim();
     const password = String(loginObj.password || "");
@@ -154,26 +113,29 @@ const Client = ({ initialDataObj, initialErrorObj }) => {
 
     if (!email) {
       loginObj.errors.email = LANG_KO.view.validation.emailRequired;
-      issues.push({ ref: emailRef, summary: loginObj.errors.email });
-    } else if (email.length < MIN_USERNAME_LENGTH) {
+      if (!firstIssueObj) firstIssueObj = { ref: emailRef, summary: loginObj.errors.email };
+    } else if (email.length < minUsernameLength) {
       loginObj.errors.email = LANG_KO.view.validation.emailMinLength;
-      issues.push({ ref: emailRef, summary: loginObj.errors.email });
+      if (!firstIssueObj) firstIssueObj = { ref: emailRef, summary: loginObj.errors.email };
     } else if (!/\S+@\S+\.\S+/.test(email)) {
       loginObj.errors.email = LANG_KO.view.validation.emailInvalid;
-      issues.push({ ref: emailRef, summary: loginObj.errors.email });
+      if (!firstIssueObj) firstIssueObj = { ref: emailRef, summary: loginObj.errors.email };
     }
 
     if (!password) {
       loginObj.errors.password = LANG_KO.view.validation.passwordRequired;
-      issues.push({ ref: passwordRef, summary: loginObj.errors.password });
-    } else if (password.length < MIN_PASSWORD_LENGTH) {
+      if (!firstIssueObj) firstIssueObj = { ref: passwordRef, summary: loginObj.errors.password };
+    } else if (password.length < minPasswordLength) {
       loginObj.errors.password = LANG_KO.view.validation.passwordMinLength;
-      issues.push({ ref: passwordRef, summary: loginObj.errors.password });
+      if (!firstIssueObj) firstIssueObj = { ref: passwordRef, summary: loginObj.errors.password };
     }
 
-    if (issues.length) {
-      ui.formError = issues[0].summary || LANG_KO.view.error.invalidInput;
-      focusOnError(issues[0].ref);
+    if (firstIssueObj) {
+      ui.formError = firstIssueObj.summary || LANG_KO.view.error.invalidInput;
+      cancelAnimationFrame(focusFrameRef.current);
+      focusFrameRef.current = requestAnimationFrame(() => {
+        firstIssueObj.ref.current?.focus();
+      });
       return false;
     }
     return true;
@@ -181,7 +143,7 @@ const Client = ({ initialDataObj, initialErrorObj }) => {
 
   /**
    * @description 로그인 제출 요청을 보내고 성공/실패 분기를 적용
-   * 실패 동작: API 예외 시 resolveBackendError 결과를 필드/폼 에러로 반영하고 pending 상태를 해제한다.
+   * 실패 동작: API 예외 시 code/statusCode 기준으로 필드/폼 에러를 반영하고 pending 상태를 해제한다.
    * @updated 2026-02-27
    */
   const handleSubmit = async (event) => {
@@ -190,32 +152,53 @@ const Client = ({ initialDataObj, initialErrorObj }) => {
 
     ui.pending = true;
     try {
-      const payload = {
+      const loginPayloadObj = {
         username: loginObj.email,
         password: loginObj.password,
         rememberMe: Boolean(loginObj.rememberMe),
       };
-      await apiJSON(LOGIN_API_PATH, {
+      await apiJSON(PAGE_CONFIG.API.login, {
         method: "POST",
-        body: payload,
+        body: loginPayloadObj,
       }, { authless: true });
       await reload?.();
-      const target = sanitizeRedirect(nextHint) || "/dashboard";
-      window.location.assign(target);
+      const redirectPath = sanitizeRedirect(nextHint) || "/dashboard";
+      window.location.assign(redirectPath);
       return;
     } catch (error) {
-      if (process.env.NODE_ENV !== "production") {
-        console.error("login submit failed", error);
+      let backendErrorObj = { message: LANG_KO.view.error.loginFailed };
+      if (error?.code === "AUTH_429_RATE_LIMIT") {
+        backendErrorObj = { message: LANG_KO.view.error.tooManyAttempts };
+      } else if (error?.code === "AUTH_422_INVALID_INPUT") {
+        backendErrorObj = { message: LANG_KO.view.error.invalidInput };
+      } else if (error?.code === "AUTH_401_INVALID") {
+        backendErrorObj = {
+          message: LANG_KO.view.error.invalidCredential,
+          field: "password",
+        };
+      } else if (error?.statusCode === 401) {
+        backendErrorObj = { message: LANG_KO.view.toast.sessionExpired };
+      } else if (error?.message) {
+        backendErrorObj = { message: error.message };
       }
-      const { message, field } = resolveBackendError(error);
+      const { message, field } = backendErrorObj;
       if (field === "email") {
         loginObj.errors.email = message;
-        focusOnError(emailRef);
+        cancelAnimationFrame(focusFrameRef.current);
+        focusFrameRef.current = requestAnimationFrame(() => {
+          emailRef.current?.focus();
+        });
       } else if (field === "password") {
         loginObj.errors.password = message;
-        focusOnError(passwordRef);
+        cancelAnimationFrame(focusFrameRef.current);
+        focusFrameRef.current = requestAnimationFrame(() => {
+          passwordRef.current?.focus();
+        });
       } else {
-        focusOnError(errorSummaryRef);
+        cancelAnimationFrame(focusFrameRef.current);
+        focusFrameRef.current = requestAnimationFrame(() => {
+          errorSummaryRef.current?.focus();
+        });
       }
       ui.formError = message;
     } finally {
@@ -224,6 +207,23 @@ const Client = ({ initialDataObj, initialErrorObj }) => {
   };
 
   /* 8. useEffect ================================================================================================================== */
+  /**
+   * @description 페이지 해제 시 pending focus frame을 정리
+   * 처리 규칙: 검증/에러 처리 직후 예약된 focus 콜백이 unmount 뒤 실행되지 않게 차단한다.
+   */
+  useEffect(() => () => cancelAnimationFrame(focusFrameRef.current), []);
+
+  /**
+   * @description 이미 인증된 사용자는 로그인 화면 렌더 후 대시보드로 이동
+   * 처리 규칙: 렌더링 중 navigation 부작용을 만들지 않고 effect에서만 이동한다.
+   * @updated 2026-05-31
+   */
+  useEffect(() => {
+    if (!isAuthed) return;
+    if (typeof window === "undefined") return;
+    window.location.replace(sanitizeRedirect(nextHint) || "/dashboard");
+  }, [isAuthed, nextHint]);
+
   /**
    * @description 인증 실패 사유(authReason)가 전달되면 토스트로 경고를 노출
    * 처리 규칙: code/requestId가 있으면 메타 정보까지 함께 표시한다.
@@ -234,14 +234,14 @@ const Client = ({ initialDataObj, initialErrorObj }) => {
     const message = authReason?.message
       ? String(authReason.message)
       : LANG_KO.view.toast.sessionExpired;
-    const metaParts = [];
-    if (authReason?.code) metaParts.push(`${LANG_KO.view.toast.codeLabel}: ${authReason.code}`);
+    const metaPartList = [];
+    if (authReason?.code) metaPartList.push(`${LANG_KO.view.toast.codeLabel}: ${authReason.code}`);
     if (authReason?.requestId) {
-      metaParts.push(`${LANG_KO.view.toast.requestIdLabel}: ${authReason.requestId}`);
+      metaPartList.push(`${LANG_KO.view.toast.requestIdLabel}: ${authReason.requestId}`);
     }
-    const metaText = metaParts.length ? ` (${metaParts.join(", ")})` : "";
+    const metaText = metaPartList.length ? ` (${metaPartList.join(", ")})` : "";
     showToast(`${message}${metaText}`, { type: "error", duration: 5000 });
-  }, [authReason, showToast, LANG_KO.view.toast.sessionExpired]);
+  }, [authReason, showToast]);
 
   /**
    * @description 회원가입 완료 쿼리(`signup=done`)를 1회 토스트로 안내하고 URL에서 제거
@@ -263,16 +263,14 @@ const Client = ({ initialDataObj, initialErrorObj }) => {
       ? `${currentUrl.pathname}?${nextSearch}`
       : currentUrl.pathname;
     window.history.replaceState({}, "", nextUrl);
-  }, [showToast, LANG_KO.view.toast.signupDone]);
+  }, [showToast]);
 
   /* 9. 내부 컴포넌트 ============================================================================================================== */
+
   // 없음
 
   /* 10. 렌더링 ==================================================================================================================== */
   if (isAuthed) {
-    if (typeof window !== "undefined") {
-      window.location.replace(sanitizeRedirect(nextHint) || "/dashboard");
-    }
     return null;
   }
   return (
@@ -407,4 +405,4 @@ const Client = ({ initialDataObj, initialErrorObj }) => {
   );
 };
 
-export default Client;
+export default LoginView;

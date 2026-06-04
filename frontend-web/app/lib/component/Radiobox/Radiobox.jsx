@@ -1,12 +1,12 @@
 /**
  * 파일명: Radiobox.jsx
  * 작성자: LSH
- * 갱신일: 2026-03-04
+ * 갱신일: 2026-05-31
  * 설명: Radiobox UI 컴포넌트 구현
  */
 import { useState, useEffect, forwardRef } from 'react';
 import { getBoundValue, setBoundValue, buildCtx, fireValueHandlers } from '../../binding';
-import styles from './Radiobox.module.css';
+import radioboxCssModule from './Radiobox.module.css';
 
 /**
  * @description 렌더링 및 상호작용 처리
@@ -44,14 +44,14 @@ const Radiobox = forwardRef(({
     });
 
     /**
-     * @description useEffect 실행 흐름 관리
-     * 처리 규칙: effect 실행/cleanup 경계를 명시적으로 유지.
+     * @description dataObj 바인딩 값이 value와 일치하는지 internalChecked에 동기화
+     * 처리 규칙: isDataObjControlled일 때 getBoundValue===value 결과를 반영한다.
      */
     useEffect(() => {
         if (isDataObjControlled) {
             const currentValue = getBoundValue(dataObj, dataKeyName);
-            const next = currentValue === value;
-            setInternalChecked(next);
+            const isNextChecked = currentValue === value;
+            setInternalChecked(isNextChecked);
         }
     }, [isDataObjControlled, dataObj, dataKeyName, value]);
 
@@ -63,64 +63,59 @@ const Radiobox = forwardRef(({
      */
     const handleChange = (event) => {
         event.stopPropagation();
-        const newChecked = event.target.checked;
+        const isNewChecked = event.target.checked;
 
         if (!isControlled) {
-            setInternalChecked(newChecked);
+            setInternalChecked(isNewChecked);
         }
 
-        if (isDataObjControlled && newChecked) {
+        if (isDataObjControlled && isNewChecked) {
             setBoundValue(dataObj, dataKeyName, value, { source: 'user' });
         }
 
-        const ctx = buildCtx({ dataKey: dataKeyName, dataObj, source: 'user', dirty: true, valid: null });
-        if (newChecked) {
-            try { event.target.value = value; } catch (eventSyncError) { void eventSyncError; /* 무시 */ }
+        const bindingCtx = buildCtx({ dataKey: dataKeyName, dataObj, source: 'user', dirty: true, valid: null });
+        if (isNewChecked) {
+            event.target.value = value;
         }
         fireValueHandlers({
             onChange,
             onValueChange,
-            value: newChecked ? value : undefined,
-            ctx,
+            value: isNewChecked ? value : undefined,
+            ctx: bindingCtx,
             event,
         });
     };
 
-    /**
-     * @description controlled/dataObj/internal 우선순위에 맞춰 선택 상태를 계산. 입력/출력 계약을 함께 명시
-     * @returns {boolean}
-     * @updated 2026-02-27
-     */
-    const getCheckedState = () => {
-        if (isControlled) return propChecked;
-        if (isDataObjControlled) return getBoundValue(dataObj, dataKeyName) === value;
-        return internalChecked;
-    };
-
     const colorKey = typeof color === "string" ? color.toLowerCase() : "primary";
     const radioColorClassMap = {
-        primary: styles.radioPrimary,
-        success: styles.radioSuccess,
-        warning: styles.radioWarning,
-        danger: styles.radioDanger,
-        neutral: styles.radioNeutral,
+        primary: radioboxCssModule.radioPrimary,
+        success: radioboxCssModule.radioSuccess,
+        warning: radioboxCssModule.radioWarning,
+        danger: radioboxCssModule.radioDanger,
+        neutral: radioboxCssModule.radioNeutral,
     };
     const radioColorClassName = radioColorClassMap[colorKey] || radioColorClassMap.primary;
+    let isChecked = internalChecked;
+    if (isControlled) {
+        isChecked = Boolean(propChecked);
+    } else if (isDataObjControlled) {
+        isChecked = getBoundValue(dataObj, dataKeyName) === value;
+    }
 
     return (
-        <label className={`${styles.wrapper} ${className}`}>
+        <label className={`${radioboxCssModule.wrapper} ${className}`}>
             <input
                 ref={ref}
                 type="radio"
                 name={inputName}
                 value={value}
-                checked={getCheckedState()}
+                checked={isChecked}
                 disabled={disabled}
                 onChange={handleChange}
-                className={`${styles.radio} ${radioColorClassName}`.trim()}
+                className={`${radioboxCssModule.radio} ${radioColorClassName}`.trim()}
                 {...props}
             />
-            {label && <span className={styles.label}>{label}</span>}
+            {label && <span className={radioboxCssModule.label}>{label}</span>}
         </label>
     );
 });

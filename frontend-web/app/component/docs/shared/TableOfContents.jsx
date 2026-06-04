@@ -1,262 +1,263 @@
 /**
  * 파일명: TableOfContents.jsx
  * 작성자: LSH
- * 갱신일: 2025-12-04
+ * 갱신일: 2026-05-31
  * 설명: 컴포넌트 문서 목차 (경량 버전)
  */
+import LANG_KO from "../../lang.ko";
 
 const tocItems = [
   {
     id: "dataclass",
-    label: "1. 데이터 클래스 (Data Class)",
+    label: LANG_KO.view.tocLabels.dataclass,
     children: [
-      { id: "dataclass-easyobj", label: "- EasyObj" },
-      { id: "dataclass-easylist", label: "- EasyList" },
+      { id: "dataclass-easyobj", label: LANG_KO.view.tocLabels.dataclassEasyObj },
+      { id: "dataclass-easylist", label: LANG_KO.view.tocLabels.dataclassEasyList },
     ],
   },
   {
     id: "buttons",
-    label: "2. 버튼 (Button)",
+    label: LANG_KO.view.tocLabels.buttons,
     children: [
-      { id: "button-variants", label: "- 버튼 종류" },
-      { id: "button-sizes", label: "- 버튼 크기" },
+      { id: "button-variants", label: LANG_KO.view.tocLabels.buttonVariants },
+      { id: "button-sizes", label: LANG_KO.view.tocLabels.buttonSizes },
     ],
   },
   {
     id: "icons",
-    label: "3. 아이콘 (Icon)",
-    children: [{ id: "icon-basic", label: "- 기본 사용" }],
+    label: LANG_KO.view.tocLabels.icons,
+    children: [{ id: "icon-basic", label: LANG_KO.view.tocLabels.iconBasic }],
   },
   {
     id: "inputs",
-    label: "4. 입력 (Input)",
+    label: LANG_KO.view.tocLabels.inputs,
     children: [
-      { id: "input-basic", label: "- 기본 입력" },
-      { id: "input-mask", label: "- 마스킹 입력" },
-      { id: "input-filter", label: "- 필터 입력" },
-      { id: "input-advanced", label: "- 고급 입력" },
+      { id: "input-basic", label: LANG_KO.view.tocLabels.inputBasic },
+      { id: "input-mask", label: LANG_KO.view.tocLabels.inputMask },
+      { id: "input-filter", label: LANG_KO.view.tocLabels.inputFilter },
+      { id: "input-advanced", label: LANG_KO.view.tocLabels.inputAdvanced },
     ],
   },
   {
     id: "textareas",
-    label: "5. 멀티라인 입력 (Textarea)",
+    label: LANG_KO.view.tocLabels.textareas,
     children: [
-      { id: "textarea-basic", label: "- 기본" },
-      { id: "textarea-states", label: "- 상태" },
+      { id: "textarea-basic", label: LANG_KO.view.tocLabels.textareaBasic },
+      { id: "textarea-states", label: LANG_KO.view.tocLabels.textareaStates },
     ],
   },
   {
     id: "selects",
-    label: "6. 선택 (Select)",
+    label: LANG_KO.view.tocLabels.selects,
     children: [
-      { id: "select-basic", label: "- 기본 사용" },
-      { id: "select-states", label: "- 상태" },
+      { id: "select-basic", label: LANG_KO.view.tocLabels.selectBasic },
+      { id: "select-states", label: LANG_KO.view.tocLabels.selectStates },
     ],
   },
   {
     id: "checkboxes",
-    label: "7. 체크박스 (Checkbox)",
+    label: LANG_KO.view.tocLabels.checkboxes,
     children: [
-      { id: "checkbox-basic", label: "- 기본 사용" },
-      { id: "checkbox-variants", label: "- 변형" },
+      { id: "checkbox-basic", label: LANG_KO.view.tocLabels.checkboxBasic },
+      { id: "checkbox-variants", label: LANG_KO.view.tocLabels.checkboxVariants },
     ],
   },
   {
     id: "checkbuttons",
-    label: "8. 체크버튼 (CheckButton)",
+    label: LANG_KO.view.tocLabels.checkbuttons,
     children: [
-      { id: "checkbutton-basic", label: "- 기본 사용" },
-      { id: "checkbutton-variants", label: "- 변형" },
+      { id: "checkbutton-basic", label: LANG_KO.view.tocLabels.checkbuttonBasic },
+      { id: "checkbutton-variants", label: LANG_KO.view.tocLabels.checkbuttonVariants },
     ],
   },
   {
     id: "radioboxes",
-    label: "9. 라디오박스 (Radiobox)",
+    label: LANG_KO.view.tocLabels.radioboxes,
     children: [
-      { id: "radiobox-basic", label: "- 기본 사용" },
-      { id: "radiobox-variants", label: "- 변형" },
+      { id: "radiobox-basic", label: LANG_KO.view.tocLabels.radioboxBasic },
+      { id: "radiobox-variants", label: LANG_KO.view.tocLabels.radioboxVariants },
     ],
   },
   {
     id: "radiobuttons",
-    label: "10. 라디오버튼 (RadioButton)",
+    label: LANG_KO.view.tocLabels.radiobuttons,
     children: [
-      { id: "radiobutton-basic", label: "- 기본 사용" },
-      { id: "radiobutton-variants", label: "- 변형" },
+      { id: "radiobutton-basic", label: LANG_KO.view.tocLabels.radiobuttonBasic },
+      { id: "radiobutton-variants", label: LANG_KO.view.tocLabels.radiobuttonVariants },
     ],
   },
   {
     id: "switches",
-    label: "11. 스위치 (Switch)",
+    label: LANG_KO.view.tocLabels.switches,
     children: [
-      { id: "switch-basic", label: "- 기본 사용" },
-      { id: "switch-states", label: "- 상태" },
+      { id: "switch-basic", label: LANG_KO.view.tocLabels.switchBasic },
+      { id: "switch-states", label: LANG_KO.view.tocLabels.switchStates },
     ],
   },
   {
     id: "number-inputs",
-    label: "12. 숫자 입력 (NumberInput)",
+    label: LANG_KO.view.tocLabels.numberInputs,
     children: [
-      { id: "number-basic", label: "- 기본" },
-      { id: "number-range", label: "- 범위" },
-      { id: "number-unbound", label: "- 언바운드" },
+      { id: "number-basic", label: LANG_KO.view.tocLabels.numberBasic },
+      { id: "number-range", label: LANG_KO.view.tocLabels.numberRange },
+      { id: "number-unbound", label: LANG_KO.view.tocLabels.numberUnbound },
     ],
   },
   {
     id: "datetime-inputs",
-    label: "13. 날짜/시간 (Date/Time)",
+    label: LANG_KO.view.tocLabels.datetimeInputs,
     children: [
-      { id: "date-basic", label: "- 날짜 기본" },
-      { id: "time-basic", label: "- 시간 기본" },
+      { id: "date-basic", label: LANG_KO.view.tocLabels.dateBasic },
+      { id: "time-basic", label: LANG_KO.view.tocLabels.timeBasic },
     ],
   },
   {
     id: "comboboxes",
-    label: "14. 콤보박스 (Combobox)",
+    label: LANG_KO.view.tocLabels.comboboxes,
     children: [
-      { id: "combobox-basic", label: "- 기본" },
-      { id: "combobox-bound", label: "- 바운드" },
-      { id: "combobox-multi", label: "- 멀티" },
+      { id: "combobox-basic", label: LANG_KO.view.tocLabels.comboboxBasic },
+      { id: "combobox-bound", label: LANG_KO.view.tocLabels.comboboxBound },
+      { id: "combobox-multi", label: LANG_KO.view.tocLabels.comboboxMulti },
     ],
   },
   {
     id: "dropdowns",
-    label: "15. 드롭다운 (Dropdown)",
+    label: LANG_KO.view.tocLabels.dropdowns,
     children: [
-      { id: "dropdown-basic", label: "- 기본" },
-      { id: "dropdown-styles", label: "- 스타일" },
+      { id: "dropdown-basic", label: LANG_KO.view.tocLabels.dropdownBasic },
+      { id: "dropdown-styles", label: LANG_KO.view.tocLabels.dropdownStyles },
     ],
   },
   {
     id: "loading",
-    label: "16. 로딩 (Loading)",
-    children: [{ id: "loading-basic", label: "- 기본 사용" }],
+    label: LANG_KO.view.tocLabels.loading,
+    children: [{ id: "loading-basic", label: LANG_KO.view.tocLabels.loadingBasic }],
   },
   {
     id: "alerts",
-    label: "17. 알림 (Alert)",
+    label: LANG_KO.view.tocLabels.alerts,
     children: [
-      { id: "alert-basic", label: "- 기본" },
-      { id: "alert-types", label: "- 유형" },
+      { id: "alert-basic", label: LANG_KO.view.tocLabels.alertBasic },
+      { id: "alert-types", label: LANG_KO.view.tocLabels.alertTypes },
     ],
   },
   {
     id: "confirms",
-    label: "18. 확인 (Confirm)",
-    children: [{ id: "confirm-basic", label: "- 기본" }],
+    label: LANG_KO.view.tocLabels.confirms,
+    children: [{ id: "confirm-basic", label: LANG_KO.view.tocLabels.confirmBasic }],
   },
   {
     id: "toasts",
-    label: "19. 토스트 (Toast)",
-    children: [{ id: "toast-basic", label: "- 기본" }],
+    label: LANG_KO.view.tocLabels.toasts,
+    children: [{ id: "toast-basic", label: LANG_KO.view.tocLabels.toastBasic }],
   },
   {
     id: "tooltips",
-    label: "20. 툴팁 (Tooltip)",
+    label: LANG_KO.view.tocLabels.tooltips,
     children: [
-      { id: "tooltip-basic", label: "- 기본" },
-      { id: "tooltip-placement", label: "- 위치" },
+      { id: "tooltip-basic", label: LANG_KO.view.tocLabels.tooltipBasic },
+      { id: "tooltip-placement", label: LANG_KO.view.tocLabels.tooltipPlacement },
     ],
   },
   {
     id: "badges",
-    label: "21. 배지 (Badge)",
+    label: LANG_KO.view.tocLabels.badges,
     children: [
-      { id: "badge-basic", label: "- 기본" },
-      { id: "badge-variants", label: "- 변형" },
+      { id: "badge-basic", label: LANG_KO.view.tocLabels.badgeBasic },
+      { id: "badge-variants", label: LANG_KO.view.tocLabels.badgeVariants },
     ],
   },
   {
     id: "stats",
-    label: "22. 통계 (Stat)",
-    children: [{ id: "stat-basic", label: "- 기본" }],
+    label: LANG_KO.view.tocLabels.stats,
+    children: [{ id: "stat-basic", label: LANG_KO.view.tocLabels.statBasic }],
   },
   {
     id: "skeletons",
-    label: "23. 스켈레톤 (Skeleton)",
+    label: LANG_KO.view.tocLabels.skeletons,
     children: [
-      { id: "skeleton-text", label: "- 텍스트" },
-      { id: "skeleton-card", label: "- 카드" },
+      { id: "skeleton-text", label: LANG_KO.view.tocLabels.skeletonText },
+      { id: "skeleton-card", label: LANG_KO.view.tocLabels.skeletonCard },
     ],
   },
   {
     id: "empties",
-    label: "24. 빈 상태 (Empty)",
+    label: LANG_KO.view.tocLabels.empties,
     children: [
-      { id: "empty-basic", label: "- 기본" },
-      { id: "empty-action", label: "- 액션" },
+      { id: "empty-basic", label: LANG_KO.view.tocLabels.emptyBasic },
+      { id: "empty-action", label: LANG_KO.view.tocLabels.emptyAction },
     ],
   },
   {
     id: "cards",
-    label: "25. 카드 (Card)",
+    label: LANG_KO.view.tocLabels.cards,
     children: [
-      { id: "card-basic", label: "- 기본" },
-      { id: "card-layouts", label: "- 레이아웃" },
+      { id: "card-basic", label: LANG_KO.view.tocLabels.cardBasic },
+      { id: "card-layouts", label: LANG_KO.view.tocLabels.cardLayouts },
     ],
   },
   {
     id: "tables",
-    label: "26. 테이블 (Table)",
+    label: LANG_KO.view.tocLabels.tables,
     children: [
-      { id: "table-basic", label: "- 기본" },
-      { id: "table-controlled", label: "- 컨트롤드" },
+      { id: "table-basic", label: LANG_KO.view.tocLabels.tableBasic },
+      { id: "table-controlled", label: LANG_KO.view.tocLabels.tableControlled },
     ],
   },
   {
     id: "pagination",
-    label: "27. 페이지네이션 (Pagination)",
+    label: LANG_KO.view.tocLabels.pagination,
     children: [
-      { id: "pagination-basic", label: "- 기본" },
-      { id: "pagination-advanced", label: "- 고급" },
+      { id: "pagination-basic", label: LANG_KO.view.tocLabels.paginationBasic },
+      { id: "pagination-advanced", label: LANG_KO.view.tocLabels.paginationAdvanced },
     ],
   },
   {
     id: "tabs",
-    label: "28. 탭 (Tab)",
+    label: LANG_KO.view.tocLabels.tabs,
     children: [
-      { id: "tab-basic", label: "- 기본" },
-      { id: "tab-variants", label: "- 변형" },
+      { id: "tab-basic", label: LANG_KO.view.tocLabels.tabBasic },
+      { id: "tab-variants", label: LANG_KO.view.tocLabels.tabVariants },
     ],
   },
   {
     id: "drawers",
-    label: "29. 드로어 (Drawer)",
+    label: LANG_KO.view.tocLabels.drawers,
     children: [
-      { id: "drawer-right", label: "- 오른쪽" },
-      { id: "drawer-left", label: "- 왼쪽" },
+      { id: "drawer-right", label: LANG_KO.view.tocLabels.drawerRight },
+      { id: "drawer-left", label: LANG_KO.view.tocLabels.drawerLeft },
     ],
   },
   {
     id: "modals",
-    label: "30. 모달 (Modal)",
+    label: LANG_KO.view.tocLabels.modals,
     children: [
-      { id: "modal-basic", label: "- 기본" },
-      { id: "modal-sizes", label: "- 크기" },
+      { id: "modal-basic", label: LANG_KO.view.tocLabels.modalBasic },
+      { id: "modal-sizes", label: LANG_KO.view.tocLabels.modalSizes },
     ],
   },
   {
     id: "editors",
-    label: "31. 리치 에디터 (EasyEditor)",
+    label: LANG_KO.view.tocLabels.editors,
     children: [
-      { id: "editor-basic", label: "- 기본" },
-      { id: "editor-bound", label: "- 바운드" },
+      { id: "editor-basic", label: LANG_KO.view.tocLabels.editorBasic },
+      { id: "editor-bound", label: LANG_KO.view.tocLabels.editorBound },
     ],
   },
   {
     id: "easychart",
-    label: "32. 차트 (EasyChart)",
+    label: LANG_KO.view.tocLabels.easychart,
     children: [
-      { id: "easychart-line", label: "- 라인" },
-      { id: "easychart-bar", label: "- 바" },
+      { id: "easychart-line", label: LANG_KO.view.tocLabels.easychartLine },
+      { id: "easychart-bar", label: LANG_KO.view.tocLabels.easychartBar },
     ],
   },
   {
     id: "pdfviewer",
-    label: "33. PDF 뷰어 (PdfViewer)",
+    label: LANG_KO.view.tocLabels.pdfviewer,
     children: [
-      { id: "pdf-basic", label: "- 기본" },
-      { id: "pdf-remote", label: "- 원격" },
+      { id: "pdf-basic", label: LANG_KO.view.tocLabels.pdfBasic },
+      { id: "pdf-remote", label: LANG_KO.view.tocLabels.pdfRemote },
     ],
   },
 ];
@@ -268,19 +269,19 @@ const tocItems = [
 const TableOfContents = () => {
   return (
     <section className="bg-white">
-      <h2 className="text-xl font-semibold mb-4">목차</h2>
+      <h2 className="text-xl font-semibold mb-4">{LANG_KO.view.tocLabel}</h2>
       <ul className="space-y-2">
-        {tocItems.map((item) => (
-          <li key={item.id}>
+        {tocItems.map((tocItemObj) => (
+          <li key={tocItemObj.id}>
             <a
-              href={`#${item.id}`}
+              href={`#${tocItemObj.id}`}
               className="text-blue-600 hover:text-blue-800"
             >
-              {item.label}
+              {tocItemObj.label}
             </a>
-            {item.children && item.children.length > 0 && (
+            {tocItemObj.children && tocItemObj.children.length > 0 && (
               <ul className="ml-4 mt-1 space-y-1">
-                {item.children.map((child) => (
+                {tocItemObj.children.map((child) => (
                   <li key={child.id}>
                     <a
                       href={`#${child.id}`}

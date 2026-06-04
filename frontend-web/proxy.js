@@ -1,8 +1,8 @@
 /**
- * 파일명: middleware.js
+ * 파일명: proxy.js
  * 작성자: LSH
- * 갱신일: 2026-02-22
- * 설명: Next 미들웨어 인증 가드 및 리다이렉트 로직
+ * 갱신일: 2026-06-04
+ * 설명: Next proxy 인증 가드 및 리다이렉트 로직
  */
 
 import { NextResponse } from "next/server";
@@ -49,8 +49,8 @@ function getJwtExpSeconds(token) {
   const payloadText = base64UrlDecodeUtf8(parts[1]);
   if (!payloadText || payloadText.length > JWT_PAYLOAD_MAX_LENGTH) return null;
   try {
-    const payload = JSON.parse(payloadText);
-    const exp = payload?.exp;
+    const jwtPayloadObj = JSON.parse(payloadText);
+    const exp = jwtPayloadObj?.exp;
     if (typeof exp !== "number" || !Number.isFinite(exp)) return null;
     const normalizedExp = Math.trunc(exp);
     if (normalizedExp <= 0) return null;
@@ -77,26 +77,20 @@ function isJwtNotExpired(token, leewaySeconds = 30) {
  * @description 공개/보호 경로 접근 시 인증 쿠키 상태에 맞는 리다이렉트 정책을 수행
  * 처리 규칙: refresh/access 쿠키와 요청 경로를 기준으로 next/login/bootstrap/dashboard 분기를 적용한다.
  * 반환값: NextResponse.next() 또는 NextResponse.redirect() 응답 객체
- * @updated 2026-02-28
+ * @updated 2026-06-04
  */
-export async function middleware(req) {
-  const url = new URL(req.url);
-  const path = url.pathname;
+export async function proxy(req) {
+  const requestUrlObj = new URL(req.url);
+  const requestPath = requestUrlObj.pathname;
+
   // refresh_token이 있어야 인증 상태로 간주한다(access_token 단독/없는 경우는 재인증 유도)
   const hasAuthCookie = Boolean(req.cookies.get("refresh_token"));
   const accessToken = req.cookies.get("access_token")?.value || null;
   const hasValidAccessToken = accessToken
     ? isJwtNotExpired(accessToken, 30)
     : false;
-  const purpose = (
-    req.headers.get("purpose") ||
-    req.headers.get("sec-purpose") ||
-    ""
-  ).toLowerCase();
-  if (purpose.includes("prefetch")) return NextResponse.next();
+  if (requestPath.startsWith("/login")) {
 
-
-  if (path.startsWith("/login")) {
     // access_token이 유효한 경우에만 /login에서 대시보드로 보낸다(스테일 refresh_token 루프 방지)
     if (hasValidAccessToken) {
       const res = NextResponse.redirect(new URL("/dashboard", req.url));
@@ -105,8 +99,8 @@ export async function middleware(req) {
       return res;
     }
 
-    const nextParam = url.searchParams.get(NEXT_QUERY_PARAM);
-    const reasonParam = url.searchParams.get(AUTH_REASON_QUERY_PARAM);
+    const nextParam = requestUrlObj.searchParams.get(NEXT_QUERY_PARAM);
+    const reasonParam = requestUrlObj.searchParams.get(AUTH_REASON_QUERY_PARAM);
     if (nextParam || reasonParam) {
       const res = NextResponse.redirect(new URL("/login", req.url));
       if (nextParam) {
@@ -128,6 +122,7 @@ export async function middleware(req) {
       }
       return res;
     }
+
     // refresh_token만 있고 access_token이 없는/만료된 상태면, 서버에서 access 재발급 후 목적지로 보내준다.
     if (hasAuthCookie) {
       const res = NextResponse.redirect(
@@ -138,6 +133,7 @@ export async function middleware(req) {
       }
       return res;
     }
+
     // login 페이지에서 표시 후 1회성 정리(요청에는 남아있어 SSR에서 읽을 수 있음)
     if (req.cookies.get(AUTH_REASON_COOKIE)) {
       const res = NextResponse.next();
@@ -147,7 +143,7 @@ export async function middleware(req) {
     return NextResponse.next();
   }
 
-  if (path === "/") {
+  if (requestPath === "/") {
     if (hasValidAccessToken) {
       const res = NextResponse.redirect(new URL("/dashboard", req.url));
       res.cookies.set(NX_COOKIE, "", { path: "/", maxAge: 0 });
@@ -172,8 +168,7 @@ export async function middleware(req) {
     return NextResponse.next();
   }
 
-
-  if (isPublicPath(path)) {
+  if (isPublicPath(requestPath)) {
     if (hasAuthCookie && req.cookies.get(NX_COOKIE)) {
       const res = NextResponse.next();
       res.cookies.set(NX_COOKIE, "", { path: "/", maxAge: 0 });
@@ -188,7 +183,7 @@ export async function middleware(req) {
     const res = NextResponse.redirect(
       new URL("/api/session/bootstrap", req.url),
     );
-    const nextValue = sanitizeInternalPath(path + (url.search || ""));
+    const nextValue = sanitizeInternalPath(requestPath + (requestUrlObj.search || ""));
     res.cookies.set(NX_COOKIE, nextValue, {
       path: "/",
       httpOnly: true,
@@ -203,7 +198,7 @@ export async function middleware(req) {
 
   if (!hasAuthCookie) {
     const res = NextResponse.redirect(new URL("/login", req.url));
-    const nextValue = sanitizeInternalPath(path + (url.search || ""));
+    const nextValue = sanitizeInternalPath(requestPath + (requestUrlObj.search || ""));
 
     res.cookies.set(NX_COOKIE, nextValue, {
       path: "/",

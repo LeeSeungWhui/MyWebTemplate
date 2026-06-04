@@ -1,30 +1,31 @@
 "use client";
+
 /**
  * 파일명: forgot-password/view.jsx
  * 작성자: LSH
- * 갱신일: 2026-03-05
+ * 갱신일: 2026-05-31
  * 설명: 비밀번호 찾기 페이지 클라이언트 뷰
  */
 
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import EasyObj from "@/app/lib/dataset/EasyObj";
 import Button from "@/app/lib/component/Button";
 import Input from "@/app/lib/component/Input";
 import Link from "next/link";
 import { PAGE_CONFIG } from "./initData";
 import { normalizePageConfig } from "@/app/lib/runtime/pageData";
-import { usePageData } from "@/app/lib/hooks/usePageData";
+import { apiJSON } from "@/app/lib/runtime/api";
 import LANG_KO from "./lang.ko";
-
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 /**
  * @description 비밀번호 찾기 이메일 입력/검증/제출 상태를 관리하는 화면을 렌더링. 입력/출력 계약을 함께 명시
  * 처리 규칙: 유효한 이메일 제출 시 submitted 상태로 전환해 안내 메시지를 노출한다.
  */
-const ForgotPasswordView = ({ initialDataObj, initialErrorObj }) => {
+const ForgotPasswordView = () => {
+
   /* 1. 상수 ======================================================================================================================= */
-  // 없음
+  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
   /* 2. 데이터 ======================================================================================================================= */
   const formObj = EasyObj({
     email: "",
@@ -39,43 +40,25 @@ const ForgotPasswordView = ({ initialDataObj, initialErrorObj }) => {
   });
   const emailRef = useRef(null);
   const errorSummaryRef = useRef(null);
+  const focusFrameRef = useRef(null);
   const pageMode = normalizePageConfig(PAGE_CONFIG).MODE;
 
   /* 3. UI ========================================================================================================================= */
+
   // 없음
+
   /* 4. 팝업 ======================================================================================================================= */
+
   // 없음
+
   /* 5. 기타 ======================================================================================================================= */
+
   // 없음
+
   /* 6. 커스텀 훅 =================================================================================================================== */
-  usePageData({
-    pageConfig: PAGE_CONFIG,
-    initialDataObj,
-    initialErrorObj,
-  });
+  // 없음
+
   /* 7. 함수 ======================================================================================================================= */
-
-  /**
-   * @description 이메일 필드 에러와 폼 공통 에러 메시지를 초기화
-   * 부작용: formObj.errors.email, ui.formError 값을 빈 문자열로 덮어쓴다.
-   * @updated 2026-02-27
-   */
-  const resetErrors = () => {
-    formObj.errors.email = "";
-    ui.formError = "";
-  };
-
-  /**
-   * @description 오류 발생 요소 포커스 이동
-   * 처리 규칙: ref.current가 있을 때 requestAnimationFrame 타이밍으로 focus를 호출한다.
-   * @updated 2026-02-27
-   */
-  const focusOnError = (ref) => {
-    if (!ref || !ref.current) return;
-    requestAnimationFrame(() => {
-      ref.current?.focus();
-    });
-  };
 
   /**
    * @description 이메일 입력값을 trim/lowercase 후 형식을 점검
@@ -83,13 +66,17 @@ const ForgotPasswordView = ({ initialDataObj, initialErrorObj }) => {
    * @updated 2026-02-27
    */
   const validate = () => {
-    resetErrors();
+    formObj.errors.email = "";
+    ui.formError = "";
     const email = String(formObj.email || "").trim().toLowerCase();
     formObj.email = email;
-    if (!email || !EMAIL_RE.test(email)) {
+    if (!email || !emailPattern.test(email)) {
       formObj.errors.email = LANG_KO.view.validation.emailInvalid;
       ui.formError = formObj.errors.email;
-      focusOnError(emailRef);
+      cancelAnimationFrame(focusFrameRef.current);
+      focusFrameRef.current = requestAnimationFrame(() => {
+        emailRef.current?.focus();
+      });
       return false;
     }
     return true;
@@ -106,19 +93,37 @@ const ForgotPasswordView = ({ initialDataObj, initialErrorObj }) => {
     ui.pending = true;
     ui.submitted = false;
     try {
-      await new Promise((resolve) => setTimeout(resolve, 300));
+      await apiJSON(
+        PAGE_CONFIG.API.requestPasswordReset,
+        {
+          method: "POST",
+          body: {
+            email: formObj.email,
+          },
+        },
+        { authless: true },
+      );
       ui.submitted = true;
     } catch {
       ui.formError = LANG_KO.view.error.requestFailed;
-      focusOnError(errorSummaryRef);
+      cancelAnimationFrame(focusFrameRef.current);
+      focusFrameRef.current = requestAnimationFrame(() => {
+        errorSummaryRef.current?.focus();
+      });
     } finally {
       ui.pending = false;
     }
   };
 
   /* 8. useEffect ================================================================================================================== */
-  // 없음
+  /**
+   * @description 페이지 해제 시 pending focus frame을 정리
+   * 처리 규칙: 검증/에러 처리 직후 예약된 focus 콜백이 unmount 뒤 실행되지 않게 차단한다.
+   */
+  useEffect(() => () => cancelAnimationFrame(focusFrameRef.current), []);
+
   /* 9. 내부 컴포넌트 ============================================================================================================== */
+
   // 없음
 
   /* 10. 렌더링 ==================================================================================================================== */

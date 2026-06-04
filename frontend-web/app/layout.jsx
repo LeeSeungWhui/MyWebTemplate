@@ -1,7 +1,7 @@
 /**
  * 파일명: layout.jsx
  * 작성자: LSH
- * 갱신일: 2026-03-05
+ * 갱신일: 2026-05-31
  * 설명: 앱 전역 레이아웃
  */
 import { Geist, Geist_Mono } from "next/font/google";
@@ -32,11 +32,11 @@ export const metadata = {
  */
 const RootLayout = async ({ children }) => {
 
-  const config = await loadFrontendConfig()
+  const frontendConfigObj = await loadFrontendConfig()
   return (
     <html lang="ko">
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
-        <SharedHydrator config={config} />
+        <SharedHydrator config={frontendConfigObj} />
         <AppShell>
           <div className="bg-gray-50 text-gray-950 min-h-screen">{children}</div>
         </AppShell>

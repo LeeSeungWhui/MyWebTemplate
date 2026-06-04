@@ -85,8 +85,8 @@ wait_until_started() {
 }
 
 SERVER_PORT_PROD="$(parse_port)"
-SERVER_PORT_PROD="${SERVER_PORT_PROD:-2000}"
-SERVER_PORT_DEV="${BACKEND_DEV_PORT:-2100}"
+SERVER_PORT_PROD="${SERVER_PORT_PROD:-4001}"
+SERVER_PORT_DEV="${BACKEND_DEV_PORT:-4001}"
 
 start_mode() {
   local mode="${1:-prod}"

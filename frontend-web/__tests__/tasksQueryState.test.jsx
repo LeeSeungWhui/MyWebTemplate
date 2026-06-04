@@ -67,14 +67,14 @@ vi.mock("@/app/lib/component/EasyTable", () => ({
 vi.mock("@/app/lib/component/Input", () => ({
   __esModule: true,
   default: ({ value = "", onChange, placeholder }) => (
-    <input value={value} onChange={onChange} placeholder={placeholder} />
+    <input value={value} onChange={onChange} placeholder={placeholder} readOnly={!onChange} />
   ),
 }));
 
 vi.mock("@/app/lib/component/NumberInput", () => ({
   __esModule: true,
   default: ({ value = 0, onChange }) => (
-    <input type="number" value={value} onChange={onChange} />
+    <input type="number" value={value} onChange={onChange} readOnly={!onChange} />
   ),
 }));
 
@@ -86,10 +86,10 @@ vi.mock("@/app/lib/component/Pagination", () => ({
 vi.mock("@/app/lib/component/Select", () => ({
   __esModule: true,
   default: ({ value = "", onChange, dataList = [] }) => (
-    <select value={value} onChange={onChange}>
-      {dataList.map((item, index) => (
-        <option key={`${String(item?.value)}-${index}`} value={item?.value}>
-          {item?.text || item?.label || String(item?.value)}
+    <select value={value} onChange={onChange} disabled={!onChange}>
+      {dataList.map((optionItemObj, index) => (
+        <option key={`${String(optionItemObj?.value)}-${index}`} value={optionItemObj?.value}>
+          {optionItemObj?.text || optionItemObj?.label || String(optionItemObj?.value)}
         </option>
       ))}
     </select>
@@ -99,7 +99,7 @@ vi.mock("@/app/lib/component/Select", () => ({
 vi.mock("@/app/lib/component/Textarea", () => ({
   __esModule: true,
   default: ({ value = "", onChange, placeholder }) => (
-    <textarea value={value} onChange={onChange} placeholder={placeholder} />
+    <textarea value={value} onChange={onChange} placeholder={placeholder} readOnly={!onChange} />
   ),
 }));
 
@@ -109,7 +109,12 @@ describe("tasks query state", () => {
     setSearchParams();
     apiJSON.mockResolvedValue({
       count: 0,
-      result: { items: [], total: 0 },
+      result: {
+        dataTemplateList: [],
+        listMetaObj: {
+          totalCount: 0,
+        },
+      },
     });
   });
 
@@ -126,7 +131,8 @@ describe("tasks query state", () => {
     await waitFor(() => {
       expect(apiJSON).toHaveBeenCalled();
     });
-    const requestUrl = apiJSON.mock.calls[0][0];
+    const requestSpec = apiJSON.mock.calls[0][0];
+    const requestUrl = typeof requestSpec === "string" ? requestSpec : requestSpec.path;
     const decodedRequestUrl = decodeURIComponent(requestUrl);
     expect(decodedRequestUrl).toContain("q=백엔드");
     expect(requestUrl).toContain("status=running");
@@ -148,7 +154,8 @@ describe("tasks query state", () => {
     await waitFor(() => {
       expect(apiJSON).toHaveBeenCalled();
     });
-    const requestUrl = apiJSON.mock.calls[0][0];
+    const requestSpec = apiJSON.mock.calls[0][0];
+    const requestUrl = typeof requestSpec === "string" ? requestSpec : requestSpec.path;
     expect(requestUrl).toContain("q=first");
     expect(requestUrl).not.toContain("status=");
     expect(requestUrl).toContain("sort=reg_dt_desc");
@@ -166,6 +173,19 @@ describe("tasks query state", () => {
     expect(replaceMock).not.toHaveBeenCalled();
   });
 
+  test("초기 목록 조회는 성공 후에도 반복 호출되지 않는다", async () => {
+    setSearchParams({ q: "테스트", status: "ready", sort: "amt_desc", page: "2" });
+
+    render(<TasksView initialDataObj={{}} initialErrorObj={{}} />);
+
+    await waitFor(() => {
+      expect(apiJSON).toHaveBeenCalledTimes(1);
+    });
+    await waitFor(() => {
+      expect(apiJSON).toHaveBeenCalledTimes(1);
+    }, { timeout: 50 });
+  });
+
   test("유효 상태값이면 상태 필터를 유지한다", async () => {
     setSearchParams({ status: "pending" });
 
@@ -174,7 +194,8 @@ describe("tasks query state", () => {
     await waitFor(() => {
       expect(apiJSON).toHaveBeenCalled();
     });
-    const requestUrl = apiJSON.mock.calls[0][0];
+    const requestSpec = apiJSON.mock.calls[0][0];
+    const requestUrl = typeof requestSpec === "string" ? requestSpec : requestSpec.path;
     expect(requestUrl).toContain("status=pending");
   });
 });

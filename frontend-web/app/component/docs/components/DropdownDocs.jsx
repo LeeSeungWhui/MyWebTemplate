@@ -1,25 +1,18 @@
 /**
  * 파일명: DropdownDocs.jsx
  * 작성자: LSH
- * 갱신일: 2025-09-13
+ * 갱신일: 2026-05-31
  * 설명: Dropdown 문서 (EasyList 기반)
  */
-import { DropdownExamples } from '../examples/DropdownExamples';
+import { alignExampleObj, basicExampleObj, presetExampleObj, styledExampleObj, triggerExampleObj, variantExampleObj } from '../examples/DropdownExamples';
 import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';
-
-/**
- * Dropdown 문서 섹션
- * @date 2025-09-13
- */
 
 /**
  * @description Dropdown 문서 섹션을 구성하고 예제 목록을 렌더링. 입력/출력 계약을 함께 명시
  * @returns {JSX.Element}
  */
 const DropdownDocs = () => {
-  const examples = DropdownExamples();
-
   return (
     <DocSection id="dropdowns" title="15. 드롭다운 (Dropdown)" description={<div>
       <p>EasyList(dataList) 기반. 선택 상태는 dataList.selected에 반영되므로 별도 useState가 필요 없습니다. 키보드(↑/↓/Enter/ESC)와 외부 클릭 닫힘 지원.</p>
@@ -50,49 +43,49 @@ const DropdownDocs = () => {
       <div id="dropdown-basic" className="mb-8">
         <h3 className="text-lg font-medium mb-4">기본</h3>
         <div>
-          {examples[0]?.component}
-          <div className="mt-2 text-sm text-gray-600">{examples[0]?.description}</div>
-          <CodeBlock code={examples[0]?.code || ''} />
+          {basicExampleObj.component}
+          <div className="mt-2 text-sm text-gray-600">{basicExampleObj.description}</div>
+          <CodeBlock code={basicExampleObj.code} />
         </div>
       </div>
       <div id="dropdown-custom-style" className="mb-8">
         <h3 className="text-lg font-medium mb-4">커스텀 스타일</h3>
         <div>
-          {examples[5]?.component}
-          <div className="mt-2 text-sm text-gray-600">{examples[5]?.description}</div>
-          <CodeBlock code={examples[5]?.code || ''} />
+          {styledExampleObj.component}
+          <div className="mt-2 text-sm text-gray-600">{styledExampleObj.description}</div>
+          <CodeBlock code={styledExampleObj.code} />
         </div>
       </div>
       <div id="dropdown-styles" className="mb-8">
         <h3 className="text-lg font-medium mb-4">스타일 변형</h3>
         <div>
-          {examples[1]?.component}
-          <div className="mt-2 text-sm text-gray-600">{examples[1]?.description}</div>
-          <CodeBlock code={examples[1]?.code || ''} />
+          {variantExampleObj.component}
+          <div className="mt-2 text-sm text-gray-600">{variantExampleObj.description}</div>
+          <CodeBlock code={variantExampleObj.code} />
         </div>
       </div>
       <div id="dropdown-custom-trigger" className="mb-8">
         <h3 className="text-lg font-medium mb-4">커스텀 트리거</h3>
         <div>
-          {examples[2]?.component}
-          <div className="mt-2 text-sm text-gray-600">{examples[2]?.description}</div>
-          <CodeBlock code={examples[2]?.code || ''} />
+          {triggerExampleObj.component}
+          <div className="mt-2 text-sm text-gray-600">{triggerExampleObj.description}</div>
+          <CodeBlock code={triggerExampleObj.code} />
         </div>
       </div>
       <div id="dropdown-placement" className="mb-8">
         <h3 className="text-lg font-medium mb-4">위치/정렬</h3>
         <div>
-          {examples[3]?.component}
-          <div className="mt-2 text-sm text-gray-600">{examples[3]?.description}</div>
-          <CodeBlock code={examples[3]?.code || ''} />
+          {alignExampleObj.component}
+          <div className="mt-2 text-sm text-gray-600">{alignExampleObj.description}</div>
+          <CodeBlock code={alignExampleObj.code} />
         </div>
       </div>
       <div id="dropdown-preselected" className="mb-8">
         <h3 className="text-lg font-medium mb-4">사전 선택</h3>
         <div>
-          {examples[4]?.component}
-          <div className="mt-2 text-sm text-gray-600">{examples[4]?.description}</div>
-          <CodeBlock code={examples[4]?.code || ''} />
+          {presetExampleObj.component}
+          <div className="mt-2 text-sm text-gray-600">{presetExampleObj.description}</div>
+          <CodeBlock code={presetExampleObj.code} />
         </div>
       </div>
     </DocSection>

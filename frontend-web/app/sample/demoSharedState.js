@@ -1,13 +1,14 @@
 "use client";
+
 /**
  * 파일명: sample/demoSharedState.js
  * 작성자: LSH
- * 갱신일: 2026-03-05
+ * 갱신일: 2026-05-31
  * 설명: 공개 샘플 페이지 간 공유 상태(세션 메모리) 유틸
  */
 
-import { useCallback, useEffect } from "react";
-import { useSharedData } from "@/app/common/store/SharedStore";
+import { useEffect } from "react";
+import { getSharedSnapshot, useSharedData } from "@/app/common/store/SharedStore";
 import { deepCloneValue } from "@/app/lib/runtime/json";
 
 /**
@@ -30,10 +31,11 @@ export const useDemoSharedState = ({ stateKey, initialValue }) => {
   const { shared, setShared } = useSharedData();
 
   /**
-   * @description useEffect 실행 흐름 관리
-   * 처리 규칙: effect 실행/cleanup 경계를 명시적으로 유지.
+   * @description shared[stateKey]가 없을 때 initialValue를 1회 주입
+   * 처리 규칙: sharedValue가 undefined일 때만 cloneValue(initialValue)를 저장한다.
    */
   useEffect(() => {
+
     /**
      * @description 공유 상태 미존재 시 초기값 1회 채움
      * 처리 규칙: sharedValue가 undefined일 때만 cloneValue(initialValue)를 저장.
@@ -43,34 +45,32 @@ export const useDemoSharedState = ({ stateKey, initialValue }) => {
     setShared({ [stateKey]: cloneValue(initialValue) });
   }, [initialValue, setShared, shared, stateKey]);
 
-  const setValue = useCallback(
-    (nextValueOrUpdater) => {
-      /**
-       * @description 현재 공유 상태를 기준으로 다음 상태를 계산해 저장
-       * 처리 규칙: updater 함수/직접값 입력을 분기해 cloneValue(nextValue)로 저장.
-       * @updated 2026-02-23
-       */
-      const currentValue =
-        shared?.[stateKey] === undefined
-          ? cloneValue(initialValue)
-          : shared?.[stateKey];
-      const nextValue =
-        typeof nextValueOrUpdater === "function"
-          ? nextValueOrUpdater(currentValue)
-          : nextValueOrUpdater;
-      setShared({ [stateKey]: cloneValue(nextValue) });
-    },
-    [initialValue, setShared, shared, stateKey],
-  );
+  /**
+   * @description 최신 공유 상태를 기준으로 다음 상태를 계산해 저장
+   * 처리 규칙: 스토어 스냅샷에서 현재값을 읽어 updater 함수/직접값 입력을 분기한다.
+   * @updated 2026-04-08
+   */
+  const setValue = (nextValueOrUpdater) => {
+    const latestShared = getSharedSnapshot();
+    const currentValue =
+      latestShared[stateKey] === undefined
+        ? cloneValue(initialValue)
+        : latestShared[stateKey];
+    const nextValue =
+      typeof nextValueOrUpdater === "function"
+        ? nextValueOrUpdater(currentValue)
+        : nextValueOrUpdater;
+    setShared({ [stateKey]: cloneValue(nextValue) });
+  };
 
-  const resetValue = useCallback(() => {
-    /**
-     * @description 공유 상태 초기값 복원
-     * 처리 규칙: stateKey 슬롯을 cloneValue(initialValue)로 덮어쓰기.
-     * @updated 2026-02-23
-     */
+  /**
+   * @description 공유 상태 초기값 복원
+   * 처리 규칙: stateKey 슬롯을 cloneValue(initialValue)로 덮어쓰기.
+   * @updated 2026-02-23
+   */
+  const resetValue = () => {
     setShared({ [stateKey]: cloneValue(initialValue) });
-  }, [initialValue, setShared, stateKey]);
+  };
 
   return {
     value: shared?.[stateKey] === undefined ? initialValue : shared?.[stateKey],
