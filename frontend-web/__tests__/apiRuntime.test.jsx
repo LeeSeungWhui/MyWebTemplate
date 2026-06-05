@@ -8,6 +8,14 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 import { apiJSON, apiRequest } from "@/app/lib/runtime/api";
 
+vi.mock("@/app/lib/runtime/ssr", () => ({
+  buildSSRHeaders: vi.fn(async (extra = {}) => ({
+    "Accept-Language": "ko-KR",
+    Cookie: "refresh_token=rt",
+    ...extra,
+  })),
+}));
+
 function buildJsonResponse(payload, init = {}) {
   return new Response(JSON.stringify(payload), {
     status: 200,
@@ -34,6 +42,27 @@ describe("runtime api", () => {
 
   afterEach(() => {
     vi.unstubAllGlobals();
+    delete process.env.APP_FRONTEND_ORIGIN;
+  });
+
+  it("same-origin 절대 URL은 pathname+search로 축소해 /api/bff로 요청한다", async () => {
+    window.history.replaceState({}, "", "http://localhost:3000/dashboard");
+    fetch.mockResolvedValueOnce(
+      buildJsonResponse({ status: true, result: { ok: true } }),
+    );
+
+    await apiRequest("http://localhost:3000/api/v1/auth/me?x=1", { method: "GET" });
+
+    expect(fetch).toHaveBeenCalledTimes(1);
+    const [requestUrl] = fetch.mock.calls[0];
+    expect(requestUrl).toBe("/api/bff/api/v1/auth/me?x=1");
+  });
+
+  it("cross-origin 절대 URL은 InvalidRequestUrlError로 거부한다", async () => {
+    await expect(
+      apiRequest("https://evil.example/api/v1/auth/me", { method: "GET" }),
+    ).rejects.toMatchObject({ name: "InvalidRequestUrlError" });
+    expect(fetch).not.toHaveBeenCalled();
   });
 
   it("상대 경로는 /api/bff 프록시로 요청한다", async () => {
@@ -46,6 +75,39 @@ describe("runtime api", () => {
     const [requestUrl, requestInitObj] = fetch.mock.calls[0];
     expect(requestUrl).toBe("/api/bff/api/v1/auth/me");
     expect(requestInitObj).toMatchObject({ method: "GET", credentials: "include" });
+  });
+
+  it("/api/bff 경계가 아닌 유사 prefix는 다시 /api/bff 프록시로 감싼다", async () => {
+    fetch.mockResolvedValueOnce(
+      buildJsonResponse({ status: true, result: { ok: true } }),
+    );
+    await apiRequest("/api/bffextra/test", { method: "GET" });
+
+    const [requestUrl] = fetch.mock.calls[0];
+    expect(requestUrl).toBe("/api/bff/api/bffextra/test");
+  });
+
+  it("SSR same-origin 절대 URL은 localhost/127.0.0.1 alias를 허용하고 /api/bff로 요청한다", async () => {
+    const originalPort = process.env.PORT;
+    delete process.env.APP_FRONTEND_ORIGIN;
+    delete process.env.FRONTEND_ORIGIN;
+    delete process.env.NEXT_PUBLIC_SITE_URL;
+    delete process.env.VERCEL_URL;
+    process.env.PORT = "3000";
+    vi.stubGlobal("window", undefined);
+    fetch.mockResolvedValueOnce(
+      buildJsonResponse({ status: true, result: { ok: true } }),
+    );
+
+    try {
+      await apiRequest("http://localhost:3000/api/v1/auth/me?x=1", { method: "GET" });
+    } finally {
+      if (originalPort == null) delete process.env.PORT;
+      else process.env.PORT = originalPort;
+    }
+
+    const [requestUrl] = fetch.mock.calls[0];
+    expect(String(requestUrl)).toBe("http://127.0.0.1:3000/api/bff/api/v1/auth/me?x=1");
   });
 
   it("JSON body는 Content-Type=application/json으로 전송한다", async () => {

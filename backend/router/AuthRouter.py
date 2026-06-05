@@ -19,6 +19,7 @@ from lib.Config import getConfig
 from lib.I18n import detectLocale, translate as i18nTranslate
 from lib.RateLimit import checkRateLimit
 from lib.RequestPayloadValidator import readJsonPayloadDict, readOptionalJsonPayloadDict
+from lib.RequestTrust import trustProxyHeaders
 from lib.Response import errorResponse, successResponse
 from lib.ServiceError import buildMappedErrorResponse
 from service import AuthService
@@ -167,21 +168,22 @@ def ensureWebCookieOrigin(request: Request, loc: str) -> JSONResponse | None:
 def isSecureRequest(request: Request) -> bool:
     """
     설명: 프록시 환경을 포함해 HTTPS 요청 여부 판정
-    처리 규칙: URL scheme, 프록시 헤더, 운영 ENV 값을 순서대로 확인
-    갱신일: 2026-02-24
+    처리 규칙: URL scheme, TRUST_PROXY_HEADERS=true일 때만 프록시 헤더, 운영 ENV 값을 순서대로 확인
+    갱신일: 2026-06-05
     """
     scheme = str(getattr(request.url, "scheme", "") or "").strip().lower()
     if scheme == "https":
         return True
 
-    forwardedProto = request.headers.get("X-Forwarded-Proto", "")
-    forwardedFirst = str(forwardedProto).split(",")[0].strip().lower()
-    if forwardedFirst == "https":
-        return True
-    if str(request.headers.get("X-Forwarded-Ssl", "")).strip().lower() == "on":
-        return True
-    if str(request.headers.get("Front-End-Https", "")).strip().lower() == "on":
-        return True
+    if trustProxyHeaders():
+        forwardedProto = request.headers.get("X-Forwarded-Proto", "")
+        forwardedFirst = str(forwardedProto).split(",")[0].strip().lower()
+        if forwardedFirst == "https":
+            return True
+        if str(request.headers.get("X-Forwarded-Ssl", "")).strip().lower() == "on":
+            return True
+        if str(request.headers.get("Front-End-Https", "")).strip().lower() == "on":
+            return True
     if os.getenv("ENV", "").strip().lower() == "prod":
         return True
     return False

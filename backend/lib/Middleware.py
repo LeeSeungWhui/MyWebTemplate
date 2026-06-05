@@ -22,6 +22,7 @@ from .Masking import maskUserIdentifierForLog
 from .Database import getSqlCount, resetSqlCount
 from .Config import getConfig
 from .RequestContext import resetRequestId, setRequestId
+from .RequestTrust import trustProxyHeaders
 from .UserAccessLog import writeUserAccessLog
 
 
@@ -125,24 +126,25 @@ def getSqlWarnThreshold() -> int:
 def resolveClientIp(request: Request) -> str | None:
     """
     설명: 요청 헤더/소켓 정보를 기반으로 클라이언트 IP 추정
-    우선순위: X-Forwarded-For(첫 IP) > X-Real-IP > request.client.host
-    갱신일: 2026-02-22
+    우선순위: TRUST_PROXY_HEADERS=true일 때 X-Forwarded-For(첫 IP) > X-Real-IP, 그 외 request.client.host
+    갱신일: 2026-06-05
     """
-    try:
-        forwardedFor = request.headers.get("X-Forwarded-For")
-        if isinstance(forwardedFor, str) and forwardedFor.strip():
-            first = forwardedFor.split(",")[0].strip()
-            if first:
-                return first
-    except Exception:
-        pass
+    if trustProxyHeaders():
+        try:
+            forwardedFor = request.headers.get("X-Forwarded-For")
+            if isinstance(forwardedFor, str) and forwardedFor.strip():
+                first = forwardedFor.split(",")[0].strip()
+                if first:
+                    return first
+        except Exception:
+            pass
 
-    try:
-        realIp = request.headers.get("X-Real-IP")
-        if isinstance(realIp, str) and realIp.strip():
-            return realIp.strip()
-    except Exception:
-        pass
+        try:
+            realIp = request.headers.get("X-Real-IP")
+            if isinstance(realIp, str) and realIp.strip():
+                return realIp.strip()
+        except Exception:
+            pass
 
     try:
         clientHost = request.client.host if request.client else None

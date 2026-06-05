@@ -2,17 +2,38 @@
  * 파일명: useEasyUpload.jsx
  * 작성자: LSH
  * 갱신일: 2026-05-31
- * 설명: 파일 업로드 유틸. BFF/백엔드 호스트를 자동 해석해 FormData 업로드를 수행
+ * 설명: 파일 업로드 유틸. BFF 경유 경로로 FormData 업로드를 수행
  */
 
 import { getUiActionsSnap } from "@/app/common/store/SharedStore";
-import { getBackendHost } from "@/app/common/config/getBackendHost.client";
 import { COMMON_COMPONENT_LANG_KO } from "@/app/common/i18n/lang.ko";
 import { apiRequest } from "@/app/lib/runtime/api";
 import {
   parseJsonPayload,
   normalizeNestedJsonFields,
 } from "@/app/lib/runtime/jsonPayload";
+
+const BFF_PREFIX = "/api/bff";
+
+const isBffProxyPath = (path) => {
+  return path === BFF_PREFIX || path.startsWith(`${BFF_PREFIX}/`);
+};
+
+/**
+ * @description 업로드 대상 URL을 BFF 경유 상대 경로로 정규화
+ * 처리 규칙: 이미 `/api/bff`로 시작하면 유지하고, 상대 경로는 BFF prefix를 붙인다.
+ * @updated 2026-06-05
+ */
+const toBffUploadPath = (uploadUrl) => {
+  const normalizedUrl = String(uploadUrl || "");
+  if (!normalizedUrl) return normalizedUrl;
+  if (isBffProxyPath(normalizedUrl)) return normalizedUrl;
+  if (/^https?:\/\//i.test(normalizedUrl)) {
+    const uploadUrlObj = new URL(normalizedUrl);
+    return `${BFF_PREFIX}${uploadUrlObj.pathname}${uploadUrlObj.search}`;
+  }
+  return `${BFF_PREFIX}${normalizedUrl.startsWith("/") ? normalizedUrl : `/${normalizedUrl}`}`;
+};
 
 const DEFAULT_OPTIONS = {
   fileUploadUrl: "",
@@ -99,21 +120,7 @@ const easyUploadRequest = async ({ filesInput, options = {} }) => {
     updateLoading(1);
   }
   try {
-    let targetUrl = "";
-    if (typeof uploadConfigObj.fileUploadUrl === "string") {
-      targetUrl = uploadConfigObj.fileUploadUrl;
-      if (!/^https?:\/\//i.test(uploadConfigObj.fileUploadUrl) && !uploadConfigObj.fileUploadUrl.startsWith("/api/bff/")) {
-        const backendHost = getBackendHost();
-        if (backendHost) {
-          const normalizedBackend = backendHost.endsWith("/")
-            ? backendHost.slice(0, -1)
-            : backendHost;
-          targetUrl = uploadConfigObj.fileUploadUrl.startsWith("/")
-            ? `${normalizedBackend}${uploadConfigObj.fileUploadUrl}`
-            : `${normalizedBackend}/${uploadConfigObj.fileUploadUrl}`;
-        }
-      }
-    }
+    const targetUrl = toBffUploadPath(uploadConfigObj.fileUploadUrl);
     const uploadResponse = await apiRequest(targetUrl, {
       method: "POST",
       body: formData,

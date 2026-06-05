@@ -34,6 +34,46 @@ def findCookie(headers, name):
 WEB_ORIGIN_HEADERS = {"Origin": "http://localhost:3000"}
 
 
+def testIsSecureRequestIgnoresForwardedProtoWhenProxyHeadersUntrusted(monkeypatch):
+    from router import AuthRouter
+    from starlette.requests import Request
+
+    monkeypatch.delenv("TRUST_PROXY_HEADERS", raising=False)
+    monkeypatch.delenv("ENV", raising=False)
+
+    scope = {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/v1/auth/login",
+        "headers": [(b"x-forwarded-proto", b"https")],
+        "scheme": "http",
+        "server": ("testserver", 80),
+        "client": ("127.0.0.1", 12345),
+    }
+    request = Request(scope)
+    assert AuthRouter.isSecureRequest(request) is False
+
+
+def testIsSecureRequestTrustsForwardedProtoWhenProxyHeadersEnabled(monkeypatch):
+    from router import AuthRouter
+    from starlette.requests import Request
+
+    monkeypatch.setenv("TRUST_PROXY_HEADERS", "true")
+    monkeypatch.delenv("ENV", raising=False)
+
+    scope = {
+        "type": "http",
+        "method": "POST",
+        "path": "/api/v1/auth/login",
+        "headers": [(b"x-forwarded-proto", b"https")],
+        "scheme": "http",
+        "server": ("testserver", 80),
+        "client": ("127.0.0.1", 12345),
+    }
+    request = Request(scope)
+    assert AuthRouter.isSecureRequest(request) is True
+
+
 def testLoginRefreshMeLogoutFlow():
     from server import app
     with TestClient(app) as client:

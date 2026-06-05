@@ -12,10 +12,20 @@ import { createHash } from "node:crypto";
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
-const SKIP_HEADERS = new Set(["connection", "content-length", "host"]);
+const ALLOWED_FORWARD_HEADERS = new Set([
+  "accept",
+  "accept-language",
+  "content-type",
+  "cookie",
+  "origin",
+  "referer",
+  "x-request-id",
+  "idempotency-key",
+]);
 const REFRESH_PATH = "/api/v1/auth/refresh";
 const LOGIN_PATH = "/api/v1/auth/login";
 const LOGOUT_PATH = "/api/v1/auth/logout";
+const OPENAPI_PATH = "/openapi.json";
 const ACCESS_COOKIE_NAME = "access_token";
 
 // refresh_token 기반 singleflight(동시 탭/요청 경합 완화)
@@ -40,17 +50,28 @@ const toBackendUrl = (
 }
 
 /**
- * @description 클라이언트 요청 헤더를 백엔드 전달용 헤더로 복제
- * 처리 규칙: hop-by-hop/authorization 헤더는 제외하고 accessToken이 있으면 Bearer 헤더를 재주입한다.
- * @updated 2026-02-27
+ * @description 백엔드 프록시 허용 경로 여부를 판별
+ * 처리 규칙: `/api/v1/*`와 `/openapi.json`만 허용하고 그 외 경로는 거부한다.
+ * @updated 2026-06-05
  */
-const cloneRequestHeaders = (req, accessToken = null) => {
+const isAllowedBackendPath = (pathname) => {
+  if (!pathname || typeof pathname !== "string") return false;
+  if (pathname === OPENAPI_PATH) return true;
+  return pathname.startsWith("/api/v1/");
+};
+
+/**
+ * @description 클라이언트 요청 헤더를 백엔드 전달용 허용 목록으로 구성
+ * 처리 규칙: hop-by-hop/브라우저 제어 헤더는 제외하고 accessToken이 있으면 Bearer 헤더를 재주입한다.
+ * @updated 2026-06-05
+ */
+const buildForwardedHeaders = (req, accessToken = null) => {
   const proxyHeaders = new Headers();
-  req.headers.forEach((value, key) => {
-    if (SKIP_HEADERS.has(key.toLowerCase())) return;
-    if (key.toLowerCase() === "authorization") return;
-    proxyHeaders.set(key, value);
-  });
+  for (const allowedHeaderName of ALLOWED_FORWARD_HEADERS) {
+    const headerValue = req.headers.get(allowedHeaderName);
+    if (headerValue == null || headerValue === "") continue;
+    proxyHeaders.set(allowedHeaderName, headerValue);
+  }
   if (accessToken) proxyHeaders.set("authorization", `Bearer ${accessToken}`);
   return proxyHeaders;
 }
@@ -194,7 +215,7 @@ const refreshOnce = async (req, backendHost) => {
   if (inflight) return inflight;
 
   const refreshUrl = new URL(REFRESH_PATH, backendHost);
-  const refreshHeaders = cloneRequestHeaders(req, null);
+  const refreshHeaders = buildForwardedHeaders(req, null);
   let requestOrigin = req.nextUrl?.origin || "";
   if (!requestOrigin) {
     try {
@@ -262,7 +283,23 @@ const proxy = async (req, context = {}) => {
   const backendHost = await getBackendHost();
   const accessToken = req.cookies.get("access_token")?.value || null;
   const backendUrl = toBackendUrl(routeParamsObj?.path, req.nextUrl.search, backendHost);
-  const proxyHeaders = cloneRequestHeaders(req, accessToken);
+  if (!isAllowedBackendPath(backendUrl.pathname)) {
+    return new NextResponse(
+      JSON.stringify({
+        status: false,
+        code: "BFF_403_PATH_DENIED",
+        message: "backend path not allowed",
+      }),
+      {
+        status: 403,
+        headers: {
+          "Cache-Control": "no-store",
+          "Content-Type": "application/json",
+        },
+      },
+    );
+  }
+  const proxyHeaders = buildForwardedHeaders(req, accessToken);
 
   const requestInitObj = {
     method: req.method,
@@ -289,7 +326,7 @@ const proxy = async (req, context = {}) => {
     if (shouldAttemptRefresh(backendUrl.pathname)) {
       refreshOutcomeObj = await refreshOnce(req, backendHost);
       if (refreshOutcomeObj.isRefreshSucceeded && refreshOutcomeObj.accessToken) {
-        const retryHeaders = cloneRequestHeaders(req, refreshOutcomeObj.accessToken);
+        const retryHeaders = buildForwardedHeaders(req, refreshOutcomeObj.accessToken);
         const retryInitObj = {
           method: req.method,
           headers: retryHeaders,

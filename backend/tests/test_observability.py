@@ -115,8 +115,51 @@ def testUserAccessLogPersistsToDb():
     assert int(row[2]) == 200
 
 
-def testUserAccessLogStoresIpLocationForPrivateRange():
+def testUserAccessLogIgnoresForwardedIpWhenProxyHeadersUntrusted(monkeypatch):
     from server import app
+
+    monkeypatch.delenv("TRUST_PROXY_HEADERS", raising=False)
+
+    with TestClient(app) as client:
+        loginResponse = client.post(
+            "/api/v1/auth/login",
+            json={"username": "demo@demo.demo", "password": "password123"},
+        )
+        assert loginResponse.status_code == 200
+        accessToken = client.cookies.get("access_token")
+        assert accessToken
+
+        meResponse = client.get(
+            "/api/v1/auth/me",
+            headers={
+                "Authorization": f"Bearer {accessToken}",
+                "X-Forwarded-For": "10.23.45.67",
+            },
+        )
+        assert meResponse.status_code == 200
+
+    row = fetchRowPg(
+        pgTestSettings,
+        """
+        SELECT CLIENT_IP
+          FROM T_USER_LOG
+         WHERE USER_ID = $1
+           AND REQ_PATH = $2
+         ORDER BY REG_DT DESC
+         LIMIT 1
+        """,
+        "demo@demo.demo",
+        "/api/v1/auth/me",
+    )
+
+    assert row is not None
+    assert row[0] != "10.23.45.67"
+
+
+def testUserAccessLogStoresIpLocationForPrivateRange(monkeypatch):
+    from server import app
+
+    monkeypatch.setenv("TRUST_PROXY_HEADERS", "true")
 
     with TestClient(app) as client:
         loginResponse = client.post(

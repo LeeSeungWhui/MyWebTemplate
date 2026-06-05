@@ -22,6 +22,33 @@ const EMPTY_BODY_STATUS = new Set([204, 205, 304]);
 const LOGIN_PATH = "/login";
 
 /**
+ * @description SSR에서 사용할 프론트엔드 origin을 결정
+ * 처리 규칙: 환경변수 값을 우선 사용하고 없으면 `http://127.0.0.1:<PORT>` 기본값을 반환한다.
+ * @updated 2026-06-05
+ */
+const resolveFrontendOrigin = () => {
+  const envOrigin =
+    process.env.APP_FRONTEND_ORIGIN ||
+    process.env.FRONTEND_ORIGIN ||
+    process.env.NEXT_PUBLIC_SITE_URL ||
+    process.env.VERCEL_URL;
+  if (envOrigin) {
+    return envOrigin.startsWith("http") ? envOrigin : `https://${envOrigin}`;
+  }
+  const port = process.env.PORT || 3000;
+  return `http://127.0.0.1:${port}`;
+};
+
+/**
+ * @description `/api/bff` 프록시 경로인지 경계 포함 여부로 판별
+ * 처리 규칙: 정확히 `/api/bff`이거나 `/api/bff/` 하위 경로일 때만 true를 반환한다.
+ * @updated 2026-06-05
+ */
+const isBffProxyPath = (path) => {
+  return path === BFF_PREFIX || path.startsWith(`${BFF_PREFIX}/`);
+};
+
+/**
  * @description PAGE_CONFIG 엔드포인트 object 여부를 판별
  * 처리 규칙: plain object이면서 path 키가 있으면 PAGE_CONFIG 엔트리로 간주한다.
  * @updated 2026-03-12
@@ -54,6 +81,43 @@ const isAbsoluteUrl = (input) => {
   return /^https?:\/\//i.test(input);
 };
 
+const isLoopbackHostname = (hostname) => {
+  return hostname === "localhost" || hostname === "127.0.0.1" || hostname === "[::1]";
+};
+
+const isSameOriginOrLoopbackAlias = (leftUrlObj, rightUrlObj) => {
+  if (leftUrlObj.origin === rightUrlObj.origin) return true;
+  if (!isLoopbackHostname(leftUrlObj.hostname)) return false;
+  if (!isLoopbackHostname(rightUrlObj.hostname)) return false;
+  return leftUrlObj.protocol === rightUrlObj.protocol && leftUrlObj.port === rightUrlObj.port;
+};
+
+/**
+ * @description 절대 URL을 BFF 상대 경로로 정규화하거나 거부
+ * 처리 규칙: same-origin은 pathname+search로 축소하고 cross-origin은 명시적으로 거부한다.
+ * @updated 2026-06-05
+ */
+const resolveRequestPath = (path) => {
+  if (!isAbsoluteUrl(path)) return path;
+  let parsedUrl;
+  try {
+    parsedUrl = new URL(path);
+  } catch {
+    const invalidUrlError = new Error("Invalid absolute URL");
+    invalidUrlError.name = "InvalidRequestUrlError";
+    throw invalidUrlError;
+  }
+  const currentOrigin =
+    typeof window !== "undefined" ? window.location.origin : resolveFrontendOrigin();
+  const currentOriginUrl = new URL(currentOrigin);
+  if (!isSameOriginOrLoopbackAlias(parsedUrl, currentOriginUrl)) {
+    const crossOriginError = new Error("Cross-origin absolute URLs are not allowed");
+    crossOriginError.name = "InvalidRequestUrlError";
+    throw crossOriginError;
+  }
+  return `${parsedUrl.pathname}${parsedUrl.search}`;
+};
+
 /**
  * @description 애플리케이션 경로를 BFF 프록시 경로로 정규화. 입력/출력 계약을 함께 명시
  * 처리 규칙: 이미 `/api/bff`로 시작하면 유지하고, 아니면 prefix를 붙여 반환한다.
@@ -61,7 +125,7 @@ const isAbsoluteUrl = (input) => {
  */
 const toBffPath = (path) => {
   const normalizedPath = String(path || "");
-  if (normalizedPath.startsWith(BFF_PREFIX)) return normalizedPath;
+  if (isBffProxyPath(normalizedPath)) return normalizedPath;
   return `${BFF_PREFIX}${normalizedPath.startsWith("/") ? normalizedPath : `/${normalizedPath}`}`;
 };
 
@@ -336,28 +400,10 @@ const createApiError = (path, response, body) => {
 export const apiRequest = async (path, initOrBody = {}, modeOrOptions) => {
 
   const { path: requestPath, init: requestInitObj, options: requestOptionsObj } = normalizeArgs(path, initOrBody, modeOrOptions);
+  const normalizedRequestPath = resolveRequestPath(requestPath);
   const requestMethod = (requestInitObj.method || "GET").toUpperCase();
   const headersIn = requestInitObj.headers || {};
-  const absoluteUrl = isAbsoluteUrl(requestPath);
   const authless = Boolean(requestOptionsObj?.authless);
-
-  /**
-   * @description SSR에서 사용할 프론트엔드 origin을 결정
-   * 처리 규칙: 환경변수 값을 우선 사용하고 없으면 `http://127.0.0.1:<PORT>` 기본값을 반환한다.
-   * @updated 2026-02-27
-   */
-  const resolveFrontendOrigin = () => {
-    const envOrigin =
-      process.env.APP_FRONTEND_ORIGIN ||
-      process.env.FRONTEND_ORIGIN ||
-      process.env.NEXT_PUBLIC_SITE_URL ||
-      process.env.VERCEL_URL;
-    if (envOrigin) {
-      return envOrigin.startsWith("http") ? envOrigin : `https://${envOrigin}`;
-    }
-    const port = process.env.PORT || 3000;
-    return `http://127.0.0.1:${port}`;
-  };
 
   if (typeof window === "undefined") {
     const { buildSSRHeaders } = await import("@/app/lib/runtime/ssr");
@@ -386,15 +432,13 @@ export const apiRequest = async (path, initOrBody = {}, modeOrOptions) => {
     ) {
       ssrFetchInitObj.body = serializedBodyText;
     }
-    const targetUrl = absoluteUrl
-      ? requestPath
-      : new URL(toBffPath(requestPath), resolveFrontendOrigin());
+    const targetUrl = new URL(toBffPath(normalizedRequestPath), resolveFrontendOrigin());
 
     return fetch(targetUrl, ssrFetchInitObj);
   }
 
 
-  const targetUrl = absoluteUrl ? requestPath : toBffPath(requestPath);
+  const targetUrl = toBffPath(normalizedRequestPath);
   const clientHeaderObj = { ...headersIn };
 
   if (!hasHeader(clientHeaderObj, "accept-language"))

@@ -15,6 +15,7 @@ from typing import Optional
 from fastapi import Request
 from fastapi.responses import JSONResponse
 
+from lib.RequestTrust import trustProxyHeaders
 from lib.Response import errorResponse
 
 
@@ -119,8 +120,7 @@ def resolveClientIp(request: Request) -> str:
     - 프록시 뒤: TRUST_PROXY_HEADERS=true 일 때 X-Forwarded-For 첫 IP를 사용
     갱신일: 2026-01-15
     """
-    trustProxy = os.getenv("TRUST_PROXY_HEADERS", "false").lower() in ("1", "true", "yes")
-    if trustProxy:
+    if trustProxyHeaders():
         xff = request.headers.get("X-Forwarded-For")
         if isinstance(xff, str) and xff.strip():
             first = xff.split(",")[0].strip()
