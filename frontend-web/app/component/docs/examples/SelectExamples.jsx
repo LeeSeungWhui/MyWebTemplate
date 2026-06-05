@@ -12,12 +12,12 @@ import * as Lib from '@/app/lib';
  * @returns {JSX.Element}
  */
 const EasyListSelectDemo = () => {
-  const [jobOptionList] = useState(() => Lib.EasyList([
+  const jobOptionList = Lib.EasyList([
     { id: '', label: '직무를 선택하세요', placeholder: true, selected: true },
     { id: 'designer', label: '디자이너' },
     { id: 'developer', label: '개발자' },
     { id: 'pm', label: '프로덕트 매니저' }
-  ]));
+  ]);
 
   const selectedItemObj = jobOptionList.find((jobOptionObj) => jobOptionObj.selected);
   const selectedId = selectedItemObj ? String(selectedItemObj.id) : '';
@@ -36,12 +36,12 @@ const EasyListSelectDemo = () => {
  * @returns {JSX.Element}
  */
 const CtrlSelectDemo = () => {
-  const [jobOptionList] = useState(() => Lib.EasyList([
+  const jobOptionList = Lib.EasyList([
     { id: '', label: '직무를 선택하세요', placeholder: true, selected: true },
     { id: 'designer', label: '디자이너' },
     { id: 'developer', label: '개발자' },
     { id: 'pm', label: '프로덕트 매니저' }
-  ]));
+  ]);
   const [roleValue, setRoleValue] = useState('developer');
 
   return <div className="space-y-2">
@@ -55,9 +55,9 @@ const CtrlSelectDemo = () => {
  * @returns {JSX.Element}
  */
 const LoadingSelectDemo = () => {
-  const [loadingOptionList] = useState(() => Lib.EasyList([
+  const loadingOptionList = Lib.EasyList([
     { id: '', label: '불러오는 중', placeholder: true, selected: true }
-  ]));
+  ]);
 
   return <Lib.Select id="select-loading" dataList={loadingOptionList} valueKey="id" textKey="label" status="loading" assistiveText="옵션을 불러오는 중입니다." disabled />;
 };
@@ -67,12 +67,12 @@ const LoadingSelectDemo = () => {
  * @returns {JSX.Element}
  */
 const ErrorSelectDemo = () => {
-  const [jobOptionList] = useState(() => Lib.EasyList([
+  const jobOptionList = Lib.EasyList([
     { id: '', label: '직무를 선택하세요', placeholder: true, selected: true },
     { id: 'designer', label: '디자이너' },
     { id: 'developer', label: '개발자' },
     { id: 'pm', label: '프로덕트 매니저' }
-  ]));
+  ]);
 
   return <Lib.Select id="select-error" dataList={jobOptionList} valueKey="id" textKey="label" status="error" statusMessage="필수 입력 항목입니다." />;
 };
@@ -82,7 +82,7 @@ const ErrorSelectDemo = () => {
  * @returns {JSX.Element}
  */
 const EmptySelectDemo = () => {
-  const [emptyOptionList] = useState(() => Lib.EasyList([]));
+  const emptyOptionList = Lib.EasyList([]);
 
   return <Lib.Select id="select-empty" dataList={emptyOptionList} status="empty" assistiveText="선택 가능한 항목이 비어 있습니다." />;
 };

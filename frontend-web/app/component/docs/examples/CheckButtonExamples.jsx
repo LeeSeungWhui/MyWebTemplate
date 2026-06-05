@@ -12,9 +12,9 @@ import { useState } from 'react';
  * @returns {JSX.Element}
  */
 const BoundCheckDemo = () => {
-  const [checkDataObj] = useState(() => Lib.EasyObj({
+  const checkDataObj = Lib.EasyObj({
     basicCheckButton: false
-  }));
+  });
 
   return <Lib.CheckButton dataObj={checkDataObj} dataKey="basicCheckButton">
       기본 체크버튼
@@ -26,11 +26,11 @@ const BoundCheckDemo = () => {
  * @returns {JSX.Element}
  */
 const ColorCheckDemo = () => {
-  const [colorDataObj] = useState(() => Lib.EasyObj({
+  const colorDataObj = Lib.EasyObj({
     redButton: false,
     greenButton: false,
     blueButton: false
-  }));
+  });
 
   return <div className="space-x-2">
       <Lib.CheckButton color="#FF0000" dataObj={colorDataObj} dataKey="redButton">

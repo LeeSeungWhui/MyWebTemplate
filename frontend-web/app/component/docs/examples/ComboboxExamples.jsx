@@ -12,7 +12,7 @@ import * as Lib from '@/app/lib';
  * @returns {JSX.Element}
  */
 const BasicComboDemo = () => {
-  const [cityList] = useState(() => Lib.EasyList([{
+  const cityList = Lib.EasyList([{
     value: 'seoul',
     text: '서울'
   }, {
@@ -24,12 +24,12 @@ const BasicComboDemo = () => {
   }, {
     value: 'daegu',
     text: '대구'
-  }]));
-  const [profileDataObj] = useState(() => Lib.EasyObj({
+  }]);
+  const profileDataObj = Lib.EasyObj({
     address: {
       city: 'incheon'
     }
-  }));
+  });
 
   return <Lib.Combobox id="combobox-bound" dataList={cityList} dataObj={profileDataObj.address} dataKey="city" placeholder="도시 선택" status="success" statusMessage={`선택 도시: ${profileDataObj.address.city}`} />;
 };
@@ -39,7 +39,7 @@ const BasicComboDemo = () => {
  * @returns {JSX.Element}
  */
 const BoundComboDemo = () => {
-  const [cityList] = useState(() => Lib.EasyList([{
+  const cityList = Lib.EasyList([{
     value: 'seoul',
     text: '서울'
   }, {
@@ -51,7 +51,7 @@ const BoundComboDemo = () => {
   }, {
     value: 'daegu',
     text: '대구'
-  }]));
+  }]);
   const [controlledCity, setControlledCity] = useState('seoul');
 
   return <div className="space-y-2">
@@ -67,7 +67,7 @@ const BoundComboDemo = () => {
  * @returns {JSX.Element}
  */
 const MultiComboDemo = () => {
-  const [cityList] = useState(() => Lib.EasyList([{
+  const cityList = Lib.EasyList([{
     value: 'seoul',
     text: '서울'
   }, {
@@ -79,12 +79,12 @@ const MultiComboDemo = () => {
   }, {
     value: 'daegu',
     text: '대구'
-  }]));
-  const [profileDataObj] = useState(() => Lib.EasyObj({
+  }]);
+  const profileDataObj = Lib.EasyObj({
     address: {
       favorites: ['seoul', 'busan']
     }
-  }));
+  });
 
   return <Lib.Combobox id="combobox-multi" dataList={cityList} dataObj={profileDataObj.address} dataKey="favorites" multi multiSummary showSelectAll summaryText="{count}개 도시 선택" placeholder="좋아하는 도시 선택" status="warning" statusMessage="다중 선택 (EasyList selected/바운드 값 동시 반영)" />;
 };
@@ -94,11 +94,11 @@ const MultiComboDemo = () => {
  * @returns {JSX.Element}
  */
 const LoadingComboDemo = () => {
-  const [cityList] = useState(() => Lib.EasyList([{
+  const cityList = Lib.EasyList([{
     value: '',
     text: '불러오는 중',
     placeholder: true
-  }]));
+  }]);
 
   return <Lib.Combobox id="combobox-loading" dataList={cityList} status="loading" assistiveText="도시 목록을 불러오는 중입니다." disabled />;
 };
@@ -108,7 +108,7 @@ const LoadingComboDemo = () => {
  * @returns {JSX.Element}
  */
 const EmptyComboDemo = () => {
-  const [cityList] = useState(() => Lib.EasyList([]));
+  const cityList = Lib.EasyList([]);
 
   return <Lib.Combobox id="combobox-empty" dataList={cityList} status="empty" assistiveText="선택 가능한 도시가 없습니다." />;
 };

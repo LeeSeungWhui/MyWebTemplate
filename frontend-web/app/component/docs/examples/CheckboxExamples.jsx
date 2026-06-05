@@ -12,9 +12,9 @@ import { useState } from 'react';
  * @returns {JSX.Element}
  */
 const BoundCheckboxDemo = () => {
-  const [checkboxDataObj] = useState(() => Lib.EasyObj({
+  const checkboxDataObj = Lib.EasyObj({
     basicCheckbox: false
-  }));
+  });
 
   return <Lib.Checkbox label="기본 체크박스" dataObj={checkboxDataObj} dataKey="basicCheckbox" />;
 };
@@ -24,11 +24,11 @@ const BoundCheckboxDemo = () => {
  * @returns {JSX.Element}
  */
 const ColorCheckboxDemo = () => {
-  const [checkboxDataObj] = useState(() => Lib.EasyObj({
+  const checkboxDataObj = Lib.EasyObj({
     primary: false,
     red: false,
     green: false
-  }));
+  });
 
   return <div className="space-y-2">
       <Lib.Checkbox label="기본 색상 (Primary)" dataObj={checkboxDataObj} dataKey="primary" color="primary" />
@@ -57,11 +57,11 @@ const CtrlCheckboxDemo = () => {
  * @returns {JSX.Element}
  */
 const TermsCheckboxDemo = () => {
-  const [termsDataObj] = useState(() => Lib.EasyObj({
+  const termsDataObj = Lib.EasyObj({
     termsAgreed: false,
     privacyAgreed: false,
     marketingAgreed: false
-  }));
+  });
 
   return <div className="space-y-2">
       <h4 className="text-sm font-medium text-gray-700">약관 동의</h4>

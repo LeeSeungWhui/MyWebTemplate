@@ -12,9 +12,9 @@ import { useState } from 'react';
  * @returns {JSX.Element}
  */
 const BasicTabDemo = () => {
-  const [tabDataObj] = useState(() => Lib.EasyObj({
+  const tabDataObj = Lib.EasyObj({
     selectedTab: 0
-  }));
+  });
 
   return <Lib.Tab dataObj={tabDataObj} dataKey="selectedTab">
       <Lib.Tab.Item title="첫번째 탭">
@@ -63,9 +63,9 @@ const CtrlTabDemo = () => {
  * @returns {JSX.Element}
  */
 const StyleTabDemo = () => {
-  const [tabDataObj] = useState(() => Lib.EasyObj({
+  const tabDataObj = Lib.EasyObj({
     customTab: 0
-  }));
+  });
 
   return <Lib.Tab className="bg-gray-100 rounded-lg p-4" dataObj={tabDataObj} dataKey="customTab">
       <Lib.Tab.Item title="커스텀 스타일">
@@ -86,9 +86,9 @@ const StyleTabDemo = () => {
  * @returns {JSX.Element}
  */
 const IconTabDemo = () => {
-  const [tabDataObj] = useState(() => Lib.EasyObj({
+  const tabDataObj = Lib.EasyObj({
     iconTab: 0
-  }));
+  });
 
   return <Lib.Tab dataObj={tabDataObj} dataKey="iconTab">
       <Lib.Tab.Item title={<div className="flex items-center gap-2">

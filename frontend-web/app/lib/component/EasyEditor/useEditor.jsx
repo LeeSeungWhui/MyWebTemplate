@@ -166,7 +166,7 @@ export const useEasyEditor = ({
   const extensionList = extensions ?? EMPTY_EXTENSION_LIST;
 
   const defaultExtensionList = [
-    StarterKit.configure({ history: true }),
+    StarterKit.configure({ undoRedo: true, underline: false }),
     Underline,
     Placeholder.configure({ placeholder }),
     Image.configure({ inline: false }),

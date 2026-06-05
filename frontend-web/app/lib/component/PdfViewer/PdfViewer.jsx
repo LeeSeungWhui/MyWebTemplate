@@ -7,7 +7,7 @@
  * 설명: PDF 렌더링 컴포넌트
  */
 
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
 import '@react-pdf-viewer/core/lib/styles/index.css';
 import '@react-pdf-viewer/default-layout/lib/styles/index.css';
@@ -19,6 +19,14 @@ import { COMMON_COMPONENT_LANG_KO } from '@/app/common/i18n/lang.ko';
 // 한글설명: SSR 환경(node-canvas 충돌) 회피를 위해 Viewer/Worker는 클라이언트 전용으로 로드
 const Viewer = dynamic(() => import('@react-pdf-viewer/core').then((moduleExports) => moduleExports.Viewer), { ssr: false });
 const Worker = dynamic(() => import('@react-pdf-viewer/core').then((moduleExports) => moduleExports.Worker), { ssr: false });
+
+const PdfViewerErrorBridge = ({ error, onErrorDetected }) => {
+  useEffect(() => {
+    onErrorDetected(error);
+  }, [error, onErrorDetected]);
+
+  return null;
+};
 
 /**
  * @description PDF 파일 소스 렌더링, 로딩 상태, 에러 패널을 통합 제공하는 뷰어 컴포넌트.
@@ -52,11 +60,9 @@ const PdfViewer = ({
   }));
 
   // 한글설명: 툴바 플러그인은 다른 훅 내부가 아닌 컴포넌트 최상위에서 초기화
-  const defaultLayoutPluginInstance = Boolean(withToolbar)
-    ? defaultLayoutPlugin({ renderToolbar: (Toolbar) => <Toolbar /> })
-    : null;
+  const defaultLayoutPluginInstance = defaultLayoutPlugin({ renderToolbar: (Toolbar) => <Toolbar /> });
 
-  const plugins = defaultLayoutPluginInstance ? [defaultLayoutPluginInstance] : [];
+  const plugins = Boolean(withToolbar) ? [defaultLayoutPluginInstance] : [];
 
   // 한글설명: 플러그인은 동적 import 없이 위에서 동기 생성
 
@@ -149,6 +155,12 @@ const PdfViewer = ({
       zoom: event.scale,
     }));
   };
+
+  const handleViewerError = useCallback((error) => {
+    setIsLoading(false);
+    setViewerError(error);
+    onError?.({ error });
+  }, [onError]);
 
   /**
    * @description 에러 객체에서 HTTP 상태코드를 추출
@@ -247,11 +259,9 @@ const PdfViewer = ({
             defaultScale={1}
             initialPage={normalizedInitialPage - 1}
             onDocumentLoad={handleDocumentLoad}
-            onDocumentLoadFailed={(event) => {
-              setIsLoading(false);
-              setViewerError(event?.error ?? event);
-              onError?.(event);
-            }}
+            renderError={(error) => (
+              <PdfViewerErrorBridge error={error} onErrorDetected={handleViewerError} />
+            )}
             onPageChange={handlePageChange}
             onZoom={handleZoom}
             plugins={plugins}

@@ -44,17 +44,19 @@ vi.mock('next/dynamic', () => {
 vi.mock('@react-pdf-viewer/core', () => {
   const ReactLib = require('react');
 
-  const Viewer = ({ fileUrl, onDocumentLoad, onDocumentLoadFailed, onPageChange, onZoom, plugins = [] }) => {
+  const Viewer = ({ fileUrl, onDocumentLoad, onPageChange, onZoom, plugins = [], renderError }) => {
+    const shouldRenderError = Boolean(fileUrl?.includes('error'));
+
     ReactLib.useEffect(() => {
-      if (!fileUrl) return;
-      if (fileUrl.includes('error')) {
-        onDocumentLoadFailed?.({ error: { message: '403 Forbidden', status: 403 } });
-        return;
-      }
+      if (!fileUrl || shouldRenderError) return;
       onDocumentLoad?.({ doc: { numPages: 3 } });
       onPageChange?.({ currentPage: 0, doc: { numPages: 3 } });
       onZoom?.({ scale: 1.25 });
-    }, [fileUrl]);
+    }, [fileUrl, shouldRenderError]);
+
+    if (shouldRenderError) {
+      return renderError?.({ message: '403 Forbidden', status: 403 }) ?? null;
+    }
 
     return (
       <div data-testid="mock-viewer" data-plugins={plugins.length}>
@@ -92,6 +94,9 @@ describe('PdfViewer', () => {
       expect(region).toHaveAttribute('data-zoom', '1.25');
     });
 
+    const viewer = await waitFor(() => screen.getByTestId('mock-viewer'));
+    expect(viewer.dataset.plugins).toBe('0');
+
     await waitFor(() => {
       expect(screen.queryByText(COMMON_COMPONENT_LANG_KO.pdfViewer.loadingText)).not.toBeInTheDocument();
     });
@@ -108,6 +113,7 @@ describe('PdfViewer', () => {
       expect(viewerRegion).toHaveAttribute('aria-busy', 'false');
     });
 
+    expect(screen.queryByText(COMMON_COMPONENT_LANG_KO.pdfViewer.loadingText)).not.toBeInTheDocument();
     expect(emptyState.closest('[data-status-code]')).toHaveAttribute('data-status-code', '403');
   });
 

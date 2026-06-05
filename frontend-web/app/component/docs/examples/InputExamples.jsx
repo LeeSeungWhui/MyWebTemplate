@@ -4,7 +4,6 @@
  * 갱신일: 2026-05-31
  * 설명: Input 컴포넌트 예제
  */
-import { useState } from 'react';
 import * as Lib from '@/app/lib';
 
 /**
@@ -12,7 +11,7 @@ import * as Lib from '@/app/lib';
  * @returns {JSX.Element}
  */
 const BoundInputDemo = ({ dataKey, initialDataObj, ...inputProps }) => {
-  const [inputDataObj] = useState(() => Lib.EasyObj(initialDataObj));
+  const inputDataObj = Lib.EasyObj(initialDataObj);
   return <Lib.Input dataObj={inputDataObj} dataKey={dataKey} {...inputProps} />;
 };
 

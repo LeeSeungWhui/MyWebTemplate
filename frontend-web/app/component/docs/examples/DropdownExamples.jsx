@@ -13,7 +13,7 @@ import * as Lib from '@/app/lib';
  */
 const ActionDropDemo = () => {
   const [lastAction, setLastAction] = useState('없음');
-  const [actionList] = useState(() => Lib.EasyList([{
+  const actionList = Lib.EasyList([{
     label: '항목 1',
     value: 'one'
   }, {
@@ -23,7 +23,7 @@ const ActionDropDemo = () => {
     label: '비활성 항목',
     value: 'disabled',
     disabled: true
-  }]));
+  }]);
 
   return <div className="flex flex-col gap-2 items-start">
       <Lib.Dropdown dataList={actionList} trigger={<span>행 액션</span>} onSelect={actionItemObj => {
@@ -41,7 +41,7 @@ const ActionDropDemo = () => {
  * @returns {JSX.Element}
  */
 const VariantDropDemo = () => {
-  const [fruitOptionList] = useState(() => Lib.EasyList([{
+  const fruitOptionList = Lib.EasyList([{
     label: '사과',
     value: 'apple'
   }, {
@@ -50,7 +50,7 @@ const VariantDropDemo = () => {
   }, {
     label: '체리',
     value: 'cherry'
-  }]));
+  }]);
 
   return <div className="flex flex-col gap-2 items-start">
       <Lib.Dropdown dataList={fruitOptionList} variant="filled" size="lg" elevation="shadow-lg" />
@@ -63,7 +63,7 @@ const VariantDropDemo = () => {
  */
 const TriggerDropDemo = () => {
   const [sortLabel, setSortLabel] = useState('최신순');
-  const [sortOptionList] = useState(() => Lib.EasyList([{
+  const sortOptionList = Lib.EasyList([{
     label: '최신순',
     value: 'latest',
     selected: true
@@ -73,7 +73,7 @@ const TriggerDropDemo = () => {
   }, {
     label: '제목순',
     value: 'title'
-  }]));
+  }]);
 
   return <div className="flex flex-col gap-2 items-start">
       <Lib.Dropdown dataList={sortOptionList} placeholder="정렬 기준 선택" variant="text" trigger={({
@@ -96,7 +96,7 @@ const TriggerDropDemo = () => {
  * @returns {JSX.Element}
  */
 const AlignDropDemo = () => {
-  const [placementMenuList] = useState(() => Lib.EasyList([{
+  const placementMenuList = Lib.EasyList([{
     label: 'Top',
     value: 'top'
   }, {
@@ -105,7 +105,7 @@ const AlignDropDemo = () => {
   }, {
     label: 'Bottom',
     value: 'bot'
-  }]));
+  }]);
 
   return <div className="flex flex-col gap-2 items-start">
       <Lib.Dropdown dataList={placementMenuList} side="top" align="end" />
@@ -117,7 +117,7 @@ const AlignDropDemo = () => {
  * @returns {JSX.Element}
  */
 const PresetDropDemo = () => {
-  const [presetChoiceList] = useState(() => Lib.EasyList([{
+  const presetChoiceList = Lib.EasyList([{
     label: '선택 A',
     value: 'A',
     selected: true
@@ -127,7 +127,7 @@ const PresetDropDemo = () => {
   }, {
     label: '선택 C',
     value: 'C'
-  }]));
+  }]);
 
   return <div className="flex flex-col gap-2 items-start">
       <Lib.Dropdown dataList={presetChoiceList} />
@@ -139,7 +139,7 @@ const PresetDropDemo = () => {
  * @returns {JSX.Element}
  */
 const MultiDropDemo = () => {
-  const [multiRoleList] = useState(() => Lib.EasyList([{
+  const multiRoleList = Lib.EasyList([{
     label: '개발',
     value: 'dev',
     selected: true
@@ -149,7 +149,7 @@ const MultiDropDemo = () => {
   }, {
     label: '기획',
     value: 'pm'
-  }]));
+  }]);
 
   return <div className="flex flex-col gap-2 items-start">
       <Lib.Dropdown dataList={multiRoleList} multiSelect placeholder="역할 선택 (다중 선택)" />

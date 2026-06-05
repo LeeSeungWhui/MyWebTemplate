@@ -4,7 +4,6 @@
  * 갱신일: 2026-05-31
  * 설명: TimeInput 컴포넌트 예제
  */
-import { useState } from 'react';
 import * as Lib from '@/app/lib';
 
 /**
@@ -12,9 +11,9 @@ import * as Lib from '@/app/lib';
  * @returns {JSX.Element}
  */
 const BoundTimeDemo = () => {
-  const [timeDataObj] = useState(() => Lib.EasyObj({
+  const timeDataObj = Lib.EasyObj({
     time: ''
-  }));
+  });
 
   return <div className="space-y-2">
       <Lib.TimeInput dataObj={timeDataObj} dataKey="time" />

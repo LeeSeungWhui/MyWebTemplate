@@ -14,9 +14,9 @@ import { useState } from 'react';
  * @returns {JSX.Element}
  */
 const BoundSwitchDemo = () => {
-  const [switchDataObj] = useState(() => Lib.EasyObj({
+  const switchDataObj = Lib.EasyObj({
     enabled: false
-  }));
+  });
 
   return <div className="flex items-center gap-4">
       <Lib.Switch dataObj={switchDataObj} dataKey="enabled" label={`바운드: ${switchDataObj.enabled ? 'ON' : 'OFF'}`} />
@@ -42,9 +42,9 @@ const CtrlSwitchDemo = () => {
  * @returns {JSX.Element}
  */
 const A11ySwitchDemo = () => {
-  const [switchDataObj] = useState(() => Lib.EasyObj({
+  const switchDataObj = Lib.EasyObj({
     notifications: true
-  }));
+  });
 
   return <div className="flex items-center gap-4">
       <Lib.Switch dataObj={switchDataObj} dataKey="notifications" id="notify-switch" label="알림 허용" />

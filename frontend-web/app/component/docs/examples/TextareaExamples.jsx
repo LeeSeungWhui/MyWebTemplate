@@ -14,9 +14,9 @@ import { useState } from 'react';
  * @returns {JSX.Element}
  */
 const BoundTextareaDemo = () => {
-  const [textDataObj] = useState(() => Lib.EasyObj({
+  const textDataObj = Lib.EasyObj({
     memo: '초기 메모'
-  }));
+  });
 
   return <div>
       <div className="mb-2 text-sm text-gray-600">바운드 모드</div>
@@ -44,9 +44,9 @@ const CtrlTextareaDemo = () => {
  * @returns {JSX.Element}
  */
 const ErrorTextareaDemo = () => {
-  const [textDataObj] = useState(() => Lib.EasyObj({
+  const textDataObj = Lib.EasyObj({
     memo: '초기 메모'
-  }));
+  });
 
   return <div>
       <div className="mb-2 text-sm text-gray-600">검증/에러 상태</div>

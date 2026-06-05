@@ -12,9 +12,9 @@ import { useState } from 'react';
  * @returns {JSX.Element}
  */
 const BoundRadioboxDemo = () => {
-  const [radioDataObj] = useState(() => Lib.EasyObj({
+  const radioDataObj = Lib.EasyObj({
     selectedJob: ''
-  }));
+  });
 
   return <div className="space-y-2">
       <Lib.Radiobox name="job" label="개발자" value="developer" dataObj={radioDataObj} dataKey="selectedJob" />
@@ -27,9 +27,9 @@ const BoundRadioboxDemo = () => {
  * @returns {JSX.Element}
  */
 const PaymentRadioboxDemo = () => {
-  const [radioDataObj] = useState(() => Lib.EasyObj({
+  const radioDataObj = Lib.EasyObj({
     paymentMethod: ''
-  }));
+  });
 
   return <div className="space-y-2">
       <h4 className="text-sm font-medium text-gray-700">결제 수단 선택</h4>

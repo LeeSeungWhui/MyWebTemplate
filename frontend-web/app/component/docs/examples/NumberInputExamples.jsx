@@ -4,7 +4,6 @@
  * 갱신일: 2026-05-31
  * 설명: NumberInput 컴포넌트 예제
  */
-import { useState } from 'react';
 import * as Lib from '@/app/lib';
 
 /**
@@ -12,9 +11,9 @@ import * as Lib from '@/app/lib';
  * @returns {JSX.Element}
  */
 const BoundNumberDemo = () => {
-  const [numberDataObj] = useState(() => Lib.EasyObj({
+  const numberDataObj = Lib.EasyObj({
     qty: 1
-  }));
+  });
 
   return <div className="space-y-2">
       <Lib.NumberInput dataObj={numberDataObj} dataKey="qty" min={0} step={1} />
@@ -27,9 +26,9 @@ const BoundNumberDemo = () => {
  * @returns {JSX.Element}
  */
 const RangeNumberDemo = () => {
-  const [priceDataObj] = useState(() => Lib.EasyObj({
+  const priceDataObj = Lib.EasyObj({
     price: 0
-  }));
+  });
 
   return <Lib.NumberInput dataObj={priceDataObj} dataKey="price" min={0} max={100} step={0.5} />;
 };

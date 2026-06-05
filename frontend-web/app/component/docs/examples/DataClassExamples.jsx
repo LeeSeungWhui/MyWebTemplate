@@ -4,7 +4,6 @@
  * 갱신일: 2026-05-31
  * 설명: DataClass 컴포넌트 예제
  */
-import { useState } from 'react';
 import * as Lib from '@/app/lib';
 
 /**
@@ -13,7 +12,7 @@ import * as Lib from '@/app/lib';
  * @updated 2026-02-27
  */
 const EasyObjExample = () => {
-  const [dataObj] = useState(() => Lib.EasyObj({
+  const dataObj = Lib.EasyObj({
     name: '홍길동',
     age: 20,
     hobbies: ['독서', '운동'],
@@ -21,7 +20,7 @@ const EasyObjExample = () => {
       city: '서울',
       street: '강남대로'
     }
-  }));
+  });
   return <div className="space-y-4">
             <div className="flex gap-2">
                 <Lib.Button onClick={() => {
@@ -52,13 +51,13 @@ const EasyObjExample = () => {
  * @updated 2026-02-27
  */
 const EasyListExample = () => {
-  const [taskList] = useState(() => Lib.EasyList([{
+  const taskList = Lib.EasyList([{
     id: 1,
     text: '할 일 1'
   }, {
     id: 2,
     text: '할 일 2'
-  }]));
+  }]);
   return <div className="space-y-4">
             <div className="flex gap-2">
                 <Lib.Button onClick={() => taskList.push({

@@ -4,7 +4,6 @@
  * 갱신일: 2026-05-31
  * 설명: DateInput 컴포넌트 예제
  */
-import { useState } from 'react';
 import * as Lib from '@/app/lib';
 
 /**
@@ -12,9 +11,9 @@ import * as Lib from '@/app/lib';
  * @returns {JSX.Element}
  */
 const BoundDateDemo = () => {
-  const [dateDataObj] = useState(() => Lib.EasyObj({
+  const dateDataObj = Lib.EasyObj({
     date: ''
-  }));
+  });
 
   return <div className="space-y-2">
       <Lib.DateInput dataObj={dateDataObj} dataKey="date" />

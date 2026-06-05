@@ -12,9 +12,9 @@ import { useState } from 'react';
  * @returns {JSX.Element}
  */
 const BoundRadioBtnDemo = () => {
-  const [radioDataObj] = useState(() => Lib.EasyObj({
+  const radioDataObj = Lib.EasyObj({
     selectedSize: ''
-  }));
+  });
 
   return <div className="space-x-2">
       <Lib.RadioButton name="size" value="small" dataObj={radioDataObj} dataKey="selectedSize">
@@ -34,9 +34,9 @@ const BoundRadioBtnDemo = () => {
  * @returns {JSX.Element}
  */
 const ThemeRadioBtnDemo = () => {
-  const [radioDataObj] = useState(() => Lib.EasyObj({
+  const radioDataObj = Lib.EasyObj({
     selectedTheme: ''
-  }));
+  });
 
   return <div className="space-x-2">
       <Lib.RadioButton name="theme" value="light" dataObj={radioDataObj} dataKey="selectedTheme" color="#FF6B6B">
