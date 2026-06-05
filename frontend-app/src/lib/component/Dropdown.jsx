@@ -2,7 +2,7 @@
  * 파일명: lib/component/Dropdown.jsx
  * 설명: 단일/다중 선택 드롭다운 (EasyObj/controlled + EasyList selected 동기화)
  * 작성자: LSH
- * 갱신일: 2025-02-19
+ * 갱신일: 2026-04-08
  */
 import { forwardRef, useEffect, useMemo, useState } from "react";
 import { FlatList, Modal, Pressable, Text, View } from "react-native";
@@ -130,12 +130,14 @@ const Dropdown = forwardRef((props, ref) => {
         const match = Array.isArray(nextVal)
           ? nextVal.includes(String(item?.[valueKey] ?? ""))
           : false;
+
         // eslint-disable-next-line no-param-reassign
         item.selected = match;
       });
     } else {
       list.forEach((item) => {
         const match = String(item?.[valueKey] ?? "") === String(nextVal ?? "");
+
         // eslint-disable-next-line no-param-reassign
         item.selected = match;
       });

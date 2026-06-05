@@ -2,7 +2,7 @@
  * 파일명: ToastExamples.jsx
  * 설명: 앱용 Toast(global UI) 예제
  * 작성자: LSH
- * 갱신일: 2025-02-19
+ * 갱신일: 2026-04-08
  */
 import { View } from "react-native";
 import * as Lib from "../../lib";
@@ -151,6 +151,7 @@ showToast('하단 오른쪽에 표시합니다.', { position: 'bottom-right' });
 showToast('2초 뒤 사라집니다.', { duration: 2000 });
 showToast('5초 뒤 사라집니다.', { duration: 5000 });
 showToast('수동으로 닫기 전까지 유지됩니다.', { duration: Infinity });
+
 // 필요 시 hideToast();`,
     },
   ];

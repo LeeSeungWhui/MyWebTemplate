@@ -2,7 +2,7 @@
  * 파일명: lib/component/Select.jsx
  * 설명: EasyObj/EasyList 바인딩을 지원하는 RN 기본 Picker 기반 Select
  * 작성자: LSH
- * 갱신일: 2025-02-19
+ * 갱신일: 2026-04-08
  */
 import { forwardRef, useEffect, useState } from "react";
 import { View, Text, StyleSheet, Platform } from "react-native";
@@ -155,6 +155,7 @@ const Select = forwardRef((props, ref) => {
     list.forEach((item) => {
       const match = String(item?.[valueKey] ?? "") === normalized;
       if (item.selected !== match) {
+
         // eslint-disable-next-line no-param-reassign
         item.selected = match;
       }

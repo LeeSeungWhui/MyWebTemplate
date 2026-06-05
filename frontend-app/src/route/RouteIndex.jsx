@@ -12,6 +12,7 @@ const RouteIndex = {
         component: Component,
         layout: 'BasicLayout',
     },
+
     // 웹이랑 똑같은 방식으로 route 정의하면 돼!
 };
 

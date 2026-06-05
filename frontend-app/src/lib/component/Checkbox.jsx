@@ -2,7 +2,7 @@
  * 파일명: lib/component/Checkbox.jsx
  * 설명: 라벨/색상/바인딩을 지원하는 공통 체크박스 컴포넌트
  * 작성자: LSH
- * 갱신일: 2025-02-19
+ * 갱신일: 2026-04-08
  */
 import { useEffect, useState } from "react";
 import { Pressable, Text, View } from "react-native";
@@ -46,6 +46,7 @@ const Checkbox = ({
       const next = !!dataObj[dataKey];
       setInnerChecked((prev) => (prev === next ? prev : next));
       if (typeof dataObj === "object" && dataObj !== null) {
+
         // 체크 상태를 checked 플래그로도 남긴다.
         dataObj.checked = next;
       }

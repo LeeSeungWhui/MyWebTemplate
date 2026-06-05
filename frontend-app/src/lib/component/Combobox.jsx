@@ -2,7 +2,7 @@
  * 파일명: lib/component/Combobox.jsx
  * 설명: 검색 가능한 단일/다중 선택 콤보박스 (EasyObj/controlled 지원)
  * 작성자: LSH
- * 갱신일: 2025-02-19
+ * 갱신일: 2026-04-08
  */
 import { forwardRef, useEffect, useMemo, useState } from "react";
 import {
@@ -140,12 +140,14 @@ const Combobox = forwardRef((props, ref) => {
         const match = Array.isArray(nextVal)
           ? nextVal.includes(String(item?.[valueKey] ?? ""))
           : false;
+
         // eslint-disable-next-line no-param-reassign
         item.selected = match;
       });
     } else {
       list.forEach((item) => {
         const match = String(item?.[valueKey] ?? "") === String(nextVal ?? "");
+
         // eslint-disable-next-line no-param-reassign
         item.selected = match;
       });

@@ -5,6 +5,7 @@ import { Icon } from '../../lib';
 const CodeBlock = ({ code }) => {
     const copyToClipboard = async () => {
         await Clipboard.setStringAsync(code);
+
         // 여기에 토스트 메시지 추가하면 좋을 것 같은데... 나중에? ㅋㅋ
     };
 

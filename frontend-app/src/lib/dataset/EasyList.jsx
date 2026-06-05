@@ -64,6 +64,7 @@ const createListProxy = (target, notify) => {
           if (typeof fn !== 'function') return arr;
           arr.forEach((item, index) => {
             if (isObject(item) && !item.__isProxy) {
+
               // eslint-disable-next-line no-param-reassign
               arr[index] = createObjectProxy(item, notify);
             }
@@ -144,6 +145,7 @@ const createListProxy = (target, notify) => {
           const current = arr[index];
           if (isObject(current) && !current.__isProxy) {
             const proxied = createObjectProxy(current, notify);
+
             // eslint-disable-next-line no-param-reassign
             arr[index] = proxied;
             return proxied;

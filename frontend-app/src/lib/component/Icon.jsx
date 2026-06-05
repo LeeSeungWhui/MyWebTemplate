@@ -2,7 +2,7 @@
  * 파일명: lib/component/Icon.jsx
  * 설명: 여러 벡터 아이콘 세트를 prefix 기반으로 렌더링하는 아이콘 컴포넌트
  * 작성자: LSH
- * 갱신일: 2025-02-19
+ * 갱신일: 2026-04-08
  */
 import { forwardRef } from "react";
 import {
@@ -39,6 +39,7 @@ const iconSizeMap = {
  */
 const Icon = forwardRef(
   ({ icon, size = "md", color = "black", style, ...props }, ref) => {
+
     // icon 형식: "md:home" 또는 "io:bookmark" 형식
     const [prefix, name] = icon.includes(":") ? icon.split(":") : ["md", icon];
     const IconSet = iconSets[prefix];

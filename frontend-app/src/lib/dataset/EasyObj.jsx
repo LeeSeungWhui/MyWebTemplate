@@ -35,10 +35,12 @@ const createObjectProxy = (target, notify) => {
           const raw = source && source.__rawObject ? source.__rawObject : source;
           const src = isObject(raw) ? raw : {};
           Object.keys(obj).forEach((key) => {
+
             // eslint-disable-next-line no-param-reassign
             delete obj[key];
           });
           Object.entries(src).forEach(([key, value]) => {
+
             // eslint-disable-next-line no-param-reassign
             obj[key] = value;
           });
@@ -50,11 +52,13 @@ const createObjectProxy = (target, notify) => {
           const raw = source && source.__rawObject ? source.__rawObject : source;
           const copied = deepCopy(raw);
           Object.keys(obj).forEach((key) => {
+
             // eslint-disable-next-line no-param-reassign
             delete obj[key];
           });
           if (isObject(copied)) {
             Object.entries(copied).forEach(([key, value]) => {
+
               // eslint-disable-next-line no-param-reassign
               obj[key] = value;
             });
@@ -71,6 +75,7 @@ const createObjectProxy = (target, notify) => {
             const current = obj[key];
             const next = fn(current, key, obj);
             if (typeof next !== 'undefined') {
+
               // eslint-disable-next-line no-param-reassign
               obj[key] = next;
             }
@@ -132,4 +137,3 @@ function EasyObj(initialData = {}) {
 
 export default EasyObj;
 export { useEasyObj };
-

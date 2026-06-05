@@ -2,7 +2,7 @@
  * 파일명: Tooltip.jsx
  * 설명: hover/click 트리거에 반응하는 간단 툴팁
  * 작성자: LSH
- * 갱신일: 2025-02-19
+ * 갱신일: 2026-04-08
  */
 import { forwardRef, useEffect, useId, useRef, useState } from "react";
 import { Platform, Pressable, Text, View } from "react-native";
@@ -65,6 +65,7 @@ const Tooltip = forwardRef(
       ? {
           onHoverIn: show,
           onHoverOut: hide,
+
           // 모바일에서는 hover가 없으므로 press로 대체
           onPressIn: Platform.OS !== "web" ? show : undefined,
           onPressOut: Platform.OS !== "web" ? hide : undefined,
