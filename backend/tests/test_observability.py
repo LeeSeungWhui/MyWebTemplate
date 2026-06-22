@@ -49,6 +49,45 @@ def testRequestIdPropagation():
         assert response.json()["requestId"] == requestId
 
 
+def testOpenapiDocumentsHealthzAndReadyzContracts():
+    from server import app
+
+    app.openapi_schema = None
+    with TestClient(app) as client:
+        response = client.get("/openapi.json")
+
+    assert response.status_code == 200
+    schema = response.json()
+    schemas = schema["components"]["schemas"]
+    assert "HealthzResult" in schemas
+    assert "HealthzResponse" in schemas
+    assert "ReadyzResult" in schemas
+    assert "ReadyzResponse" in schemas
+    assert "ReadyzErrorResponse" in schemas
+
+    healthzOperation = schema["paths"]["/healthz"]["get"]
+    healthzSchema = healthzOperation["responses"]["200"]["content"]["application/json"]["schema"]
+    assert healthzSchema == {"$ref": "#/components/schemas/HealthzResponse"}
+    assert any(
+        sample.get("lang") == "JavaScript"
+        and sample.get("label") == "openapi-client-axios"
+        and "/healthz" in sample.get("source", "")
+        for sample in healthzOperation.get("x-codeSamples", [])
+    )
+
+    readyzOperation = schema["paths"]["/readyz"]["get"]
+    readyz200Schema = readyzOperation["responses"]["200"]["content"]["application/json"]["schema"]
+    readyz503Schema = readyzOperation["responses"]["503"]["content"]["application/json"]["schema"]
+    assert readyz200Schema == {"$ref": "#/components/schemas/ReadyzResponse"}
+    assert readyz503Schema == {"$ref": "#/components/schemas/ReadyzErrorResponse"}
+    assert any(
+        sample.get("lang") == "JavaScript"
+        and sample.get("label") == "openapi-client-axios"
+        and "/readyz" in sample.get("source", "")
+        for sample in readyzOperation.get("x-codeSamples", [])
+    )
+
+
 def testAccessLogIncludesAuthenticatedUsername(caplog):
     from server import app
 

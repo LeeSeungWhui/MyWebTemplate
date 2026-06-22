@@ -174,6 +174,55 @@ def attachOpenAPI(app: FastAPI, config) -> None:
                     ]
                 }
 
+            if "HealthzResult" not in schemas:
+                schemas["HealthzResult"] = {
+                    "type": "object",
+                    "properties": {
+                        "ok": {"type": "boolean", "example": True},
+                        "version": {"type": "string", "example": "dev"},
+                        "gitSha": {"type": "string", "example": "unknown"},
+                        "startedAt": {"type": "string", "format": "date-time"},
+                        "uptimeSeconds": {"type": "integer", "minimum": 0},
+                    },
+                    "required": ["ok", "version", "gitSha", "startedAt", "uptimeSeconds"],
+                }
+            if "HealthzResponse" not in schemas:
+                schemas["HealthzResponse"] = {
+                    "allOf": [
+                        {"$ref": "#/components/schemas/StandardResponse"},
+                        {
+                            "type": "object",
+                            "properties": {"result": {"$ref": "#/components/schemas/HealthzResult"}},
+                        },
+                    ]
+                }
+
+            if "ReadyzResult" not in schemas:
+                schemas["ReadyzResult"] = {
+                    "type": "object",
+                    "properties": {
+                        "ok": {"type": "boolean"},
+                        "db": {"type": "string", "enum": ["up", "down", "skipped"]},
+                        "dbTimeoutMs": {"type": "integer", "minimum": 1},
+                        "dbTargets": {"type": "array", "items": {"type": "string"}},
+                        "dbLatencyMs": {"type": "integer", "minimum": 0},
+                    },
+                    "required": ["ok"],
+                    "description": "Readiness payload. DB fields are omitted when maintenance mode short-circuits checks.",
+                }
+            if "ReadyzResponse" not in schemas:
+                schemas["ReadyzResponse"] = {
+                    "allOf": [
+                        {"$ref": "#/components/schemas/StandardResponse"},
+                        {
+                            "type": "object",
+                            "properties": {"result": {"$ref": "#/components/schemas/ReadyzResult"}},
+                        },
+                    ]
+                }
+            if "ReadyzErrorResponse" not in schemas:
+                schemas["ReadyzErrorResponse"] = dict(schemas["ReadyzResponse"])
+
             params = components.setdefault("parameters", {})
             csrfHeaderName = readConfigValue(authSection, "csrf_header", "X-CSRF-Token")
             params["CSRFToken"] = {
@@ -270,6 +319,47 @@ def attachOpenAPI(app: FastAPI, config) -> None:
                 hasRef = any(isinstance(param, dict) and param.get("$ref") == refPath for param in parameters)
                 if not hasRef:
                     parameters.append({"$ref": refPath})
+
+            healthz = paths.get("/healthz", {}).get("get")
+            if isinstance(healthz, dict):
+                responses = healthz.setdefault("responses", {})
+                res200 = responses.setdefault("200", {"description": "OK"})
+                res200["description"] = "OK (process is alive)"
+                res200.setdefault("content", {}).setdefault("application/json", {})["schema"] = {
+                    "$ref": "#/components/schemas/HealthzResponse"
+                }
+                ensureJavaScriptCodeSample(
+                    healthz,
+                    (
+                        "// Example using openapi-client-axios\n"
+                        "// const client = ...;\n"
+                        "// const res = await client.GET('/healthz');\n"
+                        "// console.log(res.data.result.ok);"
+                    ),
+                )
+
+            readyz = paths.get("/readyz", {}).get("get")
+            if isinstance(readyz, dict):
+                responses = readyz.setdefault("responses", {})
+                res200 = responses.setdefault("200", {"description": "OK"})
+                res200["description"] = "OK (service dependencies are ready)"
+                res200.setdefault("content", {}).setdefault("application/json", {})["schema"] = {
+                    "$ref": "#/components/schemas/ReadyzResponse"
+                }
+                res503 = responses.setdefault("503", {"description": "Service Unavailable"})
+                res503["description"] = "Service Unavailable (maintenance mode or dependency check failed)"
+                res503.setdefault("content", {}).setdefault("application/json", {})["schema"] = {
+                    "$ref": "#/components/schemas/ReadyzErrorResponse"
+                }
+                ensureJavaScriptCodeSample(
+                    readyz,
+                    (
+                        "// Example using openapi-client-axios\n"
+                        "// const client = ...;\n"
+                        "// const res = await client.GET('/readyz');\n"
+                        "// console.log(res.data.result.ok);"
+                    ),
+                )
 
             # 실제 구현은 /api/v1/auth/me 를 사용한다.
             me = paths.get("/api/v1/auth/me", {}).get("get")
