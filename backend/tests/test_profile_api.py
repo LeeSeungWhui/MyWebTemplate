@@ -2,6 +2,9 @@ import os
 import sys
 from fastapi.testclient import TestClient
 
+from conftest import pgTestSettings
+from db_support import fetchRowPg
+
 
 baseDir = os.path.dirname(os.path.dirname(__file__))
 if baseDir not in sys.path:
@@ -57,6 +60,45 @@ def testProfileMeGetAndUpdateFlow():
         assert refetchResult["userNm"] == "Demo Profile"
         assert refetchResult["notifyEmail"] is True
         assert refetchResult["notifyPush"] is True
+
+        dbRow = fetchRowPg(
+            pgTestSettings,
+            """
+            SELECT USER_NM, NOTIFY_EMAIL, NOTIFY_SMS, NOTIFY_PUSH
+              FROM T_USER
+             WHERE USER_ID = $1
+            """,
+            "demo@demo.demo",
+        )
+        assert dbRow is not None
+        assert dbRow["user_nm"] == "Demo Profile"
+        assert dbRow["notify_email"] == 1
+        assert dbRow["notify_sms"] == 0
+        assert dbRow["notify_push"] == 1
+
+
+def testProfileNotifyPersistsAcrossClientLifecycle():
+    from server import app
+
+    with TestClient(app) as client:
+        loginAsDemo(client)
+        headers = authHeaderFromCookie(client)
+        updateResponse = client.put(
+            "/api/v1/profile/me",
+            json={"notifyEmail": True, "notifySms": True, "notifyPush": False},
+            headers=headers,
+        )
+        assert updateResponse.status_code == 200
+
+    with TestClient(app) as client:
+        loginAsDemo(client)
+        headers = authHeaderFromCookie(client)
+        refetchResponse = client.get("/api/v1/profile/me", headers=headers)
+        assert refetchResponse.status_code == 200
+        refetchResult = refetchResponse.json()["result"]
+        assert refetchResult["notifyEmail"] is True
+        assert refetchResult["notifySms"] is True
+        assert refetchResult["notifyPush"] is False
 
 
 def testProfileUpdateInvalidInputReturns422():

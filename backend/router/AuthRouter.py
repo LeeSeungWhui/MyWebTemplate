@@ -25,6 +25,9 @@ from lib.ServiceError import buildMappedErrorResponse
 from service import AuthService
 
 router = APIRouter(prefix="/api/v1/auth", tags=["auth"])
+passwordResetRouter = APIRouter(prefix="/passwordReset", tags=["auth"])
+passwordResetHyphenRouter = APIRouter(prefix="/password-reset", tags=["auth"])
+appRouter = APIRouter(prefix="/app", tags=["auth"])
 
 
 def normalizeOrigin(value: str | None) -> str | None:
@@ -396,8 +399,8 @@ async def signup(request: Request):
     return response
 
 
-@router.post("/passwordReset/request")
-@router.post("/password-reset/request")
+@passwordResetRouter.post("/request")
+@passwordResetHyphenRouter.post("/request")
 async def requestPasswordReset(request: Request):
     """
     설명: 비밀번호 재설정 요청을 접수하고 계정 존재 여부를 숨긴 채 동일 성공 응답 반환
@@ -498,7 +501,7 @@ async def refresh(request: Request):
     return response
 
 
-@router.post("/app/login")
+@appRouter.post("/login")
 async def appLogin(request: Request):
     """
     설명: 앱 로그인(JSON) 계약 전용 인증 핸들러(쿠키 미사용)
@@ -548,7 +551,7 @@ async def appLogin(request: Request):
     return response
 
 
-@router.post("/app/refresh")
+@appRouter.post("/refresh")
 async def appRefresh(request: Request):
     """
     설명: 앱 refresh_token(JSON body)으로 Access/Refresh 토큰 재발급
@@ -599,7 +602,7 @@ async def appRefresh(request: Request):
     return response
 
 
-@router.post("/app/logout", status_code=204)
+@appRouter.post("/logout", status_code=204)
 async def appLogout(request: Request):
     """
     설명: 앱 로그아웃 처리. body의 refreshToken(옵션) 폐기
@@ -676,3 +679,8 @@ async def me(request: Request, user=Depends(getCurrentUser)):
     response = JSONResponse(content=successResponse(result=result), status_code=200)
     response.headers["Cache-Control"] = "no-store"
     return response
+
+
+router.include_router(passwordResetRouter)
+router.include_router(passwordResetHyphenRouter)
+router.include_router(appRouter)

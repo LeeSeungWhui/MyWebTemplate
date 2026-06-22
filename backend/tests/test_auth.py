@@ -74,6 +74,31 @@ def testIsSecureRequestTrustsForwardedProtoWhenProxyHeadersEnabled(monkeypatch):
     assert AuthRouter.isSecureRequest(request) is True
 
 
+def testAuthenticateUserStripsPasswordFields(monkeypatch):
+    import asyncio
+    from service import AuthService
+
+    storedHash = AuthService.hashPasswordPbkdf2("password123")
+
+    class FakeDb:
+        async def fetchOneQuery(self, queryName, params):
+            return {
+                "USER_ID": "demo@demo.demo",
+                "USER_PW": storedHash,
+                "USER_NM": "Demo User",
+            }
+
+    monkeypatch.setattr("service.AuthService.DB.getManager", lambda: FakeDb())
+
+    authUser, username = asyncio.run(
+        AuthService.authenticateUser({"username": "demo@demo.demo", "password": "password123"})
+    )
+    assert username == "demo@demo.demo"
+    assert authUser is not None
+    assert "userPw" not in authUser
+    assert "passwordHash" not in authUser
+
+
 def testLoginRefreshMeLogoutFlow():
     from server import app
     with TestClient(app) as client:

@@ -775,7 +775,7 @@ async def authenticateUser(payload: dict) -> tuple[dict | None, str | None]:
     if not verifyPassword(password, passwordHash):
         return None, None
     authUser.pop("userPw", None)
-    authUser["passwordHash"] = passwordHash
+    authUser.pop("passwordHash", None)
     canonicalUserId = authUser.get("userId")
     if isinstance(canonicalUserId, str) and canonicalUserId.strip():
         return authUser, canonicalUserId.strip()

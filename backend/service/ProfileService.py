@@ -1,18 +1,18 @@
 """
 파일명: backend/service/ProfileService.py
 작성자: LSH
-갱신일: 2026-02-22
+갱신일: 2026-06-22
 설명: 프로필 조회/수정 서비스 로직
 """
 
-from typing import Any, Dict
+from typing import Any
 
 from lib import Database as DB
 from lib.Casing import convertKeysToCamelCase
 from lib.ServiceError import ServiceError
 from lib.Transaction import transaction
 
-profileNotifyStore: Dict[str, Dict[str, bool]] = {}
+profileStorageReady = False
 
 
 def ensureDbManager():
@@ -54,6 +54,15 @@ def normalizeNotifyValue(rawValue: Any) -> bool:
     raise ServiceError("AUTH_422_INVALID_INPUT")
 
 
+def toDbNotifyValue(value: bool) -> int:
+    """
+    설명: profile notify bool 값을 DB 저장용 0/1 정수로 변환
+    반환값: True면 1, False면 0
+    갱신일: 2026-06-22
+    """
+    return 1 if bool(value) else 0
+
+
 def ensureUserId(user: Any) -> str:
     """
     설명: 인증 주체에서 USER_ID(sub) 추출
@@ -66,54 +75,94 @@ def ensureUserId(user: Any) -> str:
     return userId.strip()
 
 
-def loadNotifyState(userId: str) -> Dict[str, bool]:
+def readNotifyState(source: dict[str, Any]) -> dict[str, bool]:
     """
-    설명: 알림설정(비영속 메모리)을 조회. 호출 맥락의 제약을 기준으로 동작 기준 확정
+    설명: DB 조회 행에서 알림설정 값을 bool 응답 모델로 변환
     반환값: notifyEmail/notifySms/notifyPush 기본값이 보장된 dict
-    갱신일: 2026-02-22
+    갱신일: 2026-06-22
     """
-    return profileNotifyStore.get(
-        userId,
-        {"notifyEmail": False, "notifySms": False, "notifyPush": False},
+    return {
+        "notifyEmail": bool(source.get("notifyEmail")),
+        "notifySms": bool(source.get("notifySms")),
+        "notifyPush": bool(source.get("notifyPush")),
+    }
+
+
+async def ensureProfileStorage() -> None:
+    """
+    설명: profile notify DB 컬럼이 존재하는지 보장
+    부작용: 기존 T_USER에 NOTIFY_* 컬럼이 없으면 추가한다.
+    갱신일: 2026-06-22
+    """
+    global profileStorageReady
+    if profileStorageReady:
+        return
+    db = ensureDbManager()
+    await db.executeQuery("profile.ensureNotifyEmailColumn")
+    await db.executeQuery("profile.ensureNotifySmsColumn")
+    await db.executeQuery("profile.ensureNotifyPushColumn")
+    profileStorageReady = True
+
+
+def buildProfileUpdatePayload(
+    userId: str,
+    currentProfile: dict[str, Any],
+    payload: dict[str, Any],
+) -> dict[str, Any]:
+    """
+    설명: 프로필 수정 payload를 T_USER 업데이트 바인딩 값으로 정규화
+    반환값: userNm/userId/notify* DB 바인딩 dict
+    갱신일: 2026-06-22
+    """
+    userNm = (
+        normalizeUserNm(payload.get("userNm"))
+        if "userNm" in payload
+        else currentProfile.get("userNm")
     )
+    currentNotify = readNotifyState(currentProfile)
+    notifyEmail = (
+        normalizeNotifyValue(payload.get("notifyEmail"))
+        if "notifyEmail" in payload
+        else currentNotify["notifyEmail"]
+    )
+    notifySms = (
+        normalizeNotifyValue(payload.get("notifySms"))
+        if "notifySms" in payload
+        else currentNotify["notifySms"]
+    )
+    notifyPush = (
+        normalizeNotifyValue(payload.get("notifyPush"))
+        if "notifyPush" in payload
+        else currentNotify["notifyPush"]
+    )
+    return {
+        "userNm": userNm,
+        "userId": userId,
+        "notifyEmail": toDbNotifyValue(notifyEmail),
+        "notifySms": toDbNotifyValue(notifySms),
+        "notifyPush": toDbNotifyValue(notifyPush),
+    }
 
 
-def saveNotifyState(userId: str, payload: Dict[str, Any]) -> Dict[str, bool]:
-    """
-    설명: 알림설정(비영속 메모리) 저장
-    부작용: profileNotifyStore[userId] 항목이 payload 기반으로 갱신
-    갱신일: 2026-02-22
-    """
-    current = loadNotifyState(userId)
-    if "notifyEmail" in payload:
-        current["notifyEmail"] = normalizeNotifyValue(payload.get("notifyEmail"))
-    if "notifySms" in payload:
-        current["notifySms"] = normalizeNotifyValue(payload.get("notifySms"))
-    if "notifyPush" in payload:
-        current["notifyPush"] = normalizeNotifyValue(payload.get("notifyPush"))
-    profileNotifyStore[userId] = current
-    return current
-
-
-async def getMyProfile(user: Any) -> Dict[str, Any]:
+async def getMyProfile(user: Any) -> dict[str, Any]:
     """
     설명: 현재 인증 사용자 프로필을 조회. 호출 맥락의 제약을 기준으로 동작 기준 확정
     반환값: DB 프로필(camelCase) + notify 상태가 병합된 dict
     갱신일: 2026-02-22
     """
     userId = ensureUserId(user)
+    await ensureProfileStorage()
     db = ensureDbManager()
     row = await db.fetchOneQuery("profile.me", {"userId": userId})
     if not row:
         raise ServiceError("AUTH_404_USER_NOT_FOUND")
     result = convertKeysToCamelCase(row)
-    notifyState = loadNotifyState(userId)
-    result.update(notifyState)
+    result.update(readNotifyState(result))
     return result
 
 
 @transaction("main_db")
-async def updateMyProfile(user: Any, payload: Dict[str, Any]) -> Dict[str, Any]:
+async def updateMyProfile(user: Any, payload: dict[str, Any]) -> dict[str, Any]:
     """
     설명: 현재 인증 사용자 프로필 수정
     처리 규칙: userNm 또는 notify 필드 중 최소 1개가 있어야 하며, 저장 후 최신 프로필을 재조회해 반환
@@ -122,24 +171,40 @@ async def updateMyProfile(user: Any, payload: Dict[str, Any]) -> Dict[str, Any]:
     if not isinstance(payload, dict):
         raise ServiceError("AUTH_422_INVALID_INPUT")
     userId = ensureUserId(user)
+    await ensureProfileStorage()
     db = ensureDbManager()
     row = await db.fetchOneQuery("profile.me", {"userId": userId})
     if not row:
         raise ServiceError("AUTH_404_USER_NOT_FOUND")
+    currentProfile = convertKeysToCamelCase(row)
 
     hasUserNm = "userNm" in payload
     hasNotify = any(key in payload for key in ("notifyEmail", "notifySms", "notifyPush"))
     if not hasUserNm and not hasNotify:
         raise ServiceError("AUTH_422_INVALID_INPUT")
 
+    updatePayload = buildProfileUpdatePayload(userId, currentProfile, payload)
     if hasUserNm:
-        userNm = normalizeUserNm(payload.get("userNm"))
-        await db.executeQuery("profile.updateMe", {"userNm": userNm, "userId": userId})
-
-    notifyState = saveNotifyState(userId, payload)
+        await db.executeQuery(
+            "profile.updateMe",
+            {
+                "userNm": updatePayload["userNm"],
+                "userId": userId,
+            },
+        )
+    if hasNotify:
+        await db.executeQuery(
+            "profile.updateNotify",
+            {
+                "notifyEmail": updatePayload["notifyEmail"],
+                "notifySms": updatePayload["notifySms"],
+                "notifyPush": updatePayload["notifyPush"],
+                "userId": userId,
+            },
+        )
     updated = await db.fetchOneQuery("profile.me", {"userId": userId})
     if not updated:
         raise ServiceError("AUTH_404_USER_NOT_FOUND")
     result = convertKeysToCamelCase(updated)
-    result.update(notifyState)
+    result.update(readNotifyState(result))
     return result

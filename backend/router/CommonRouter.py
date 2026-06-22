@@ -25,8 +25,7 @@ async def healthz(request: Request):
     갱신일: 2026-02-24
     """
     result = await CommonService.healthz({})
-    resp = successResponse(result=result)
-    r = JSONResponse(content=resp, status_code=200)
+    r = JSONResponse(content=successResponse(result=result), status_code=200)
     r.headers["Cache-Control"] = "no-store"
     return r
 
@@ -41,9 +40,8 @@ async def readyz(request: Request):
     """
     result, isReady = await CommonService.readyz({})
     if isReady:
-        resp = successResponse(result=result)
         status = 200
-        r = JSONResponse(content=resp, status_code=status)
+        r = JSONResponse(content=successResponse(result=result), status_code=status)
         r.headers["Cache-Control"] = "no-store"
         return r
 
@@ -59,7 +57,7 @@ async def readyz(request: Request):
     if mappedResponse is not None:
         return mappedResponse
 
-    fallbackResponse = JSONResponse(
+    errorJsonResponse = JSONResponse(
         content=errorResponse(
             message=i18nTranslate("obs.not_ready", "not ready", loc),
             result=result,
@@ -67,5 +65,5 @@ async def readyz(request: Request):
         ),
         status_code=503,
     )
-    fallbackResponse.headers["Cache-Control"] = "no-store"
-    return fallbackResponse
+    errorJsonResponse.headers["Cache-Control"] = "no-store"
+    return errorJsonResponse

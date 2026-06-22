@@ -129,11 +129,27 @@ def normalizeDashboardJsonValue(value: Any) -> Any:
 
 def convertDashboardRow(row: Dict[str, Any]) -> Dict[str, Any]:
     """
-    설명: DB row를 대시보드 응답용 camelCase + JSON-safe 값으로 변환
+    설명: source-preserving DB row를 대시보드 API 응답 모델로 변환
     반환값: JSONResponse content에 바로 넣을 수 있는 dict
-    갱신일: 2026-06-04
+    갱신일: 2026-06-22
     """
-    return normalizeDashboardJsonValue(convertKeysToCamelCase(row))
+    source = normalizeDashboardJsonValue(convertKeysToCamelCase(row))
+    if any(key in source for key in ("dataNo", "dataNm", "dataDesc", "amt", "tagJson", "regDt")):
+        return {
+            "id": source.get("id", source.get("dataNo")),
+            "title": source.get("title", source.get("dataNm", "")),
+            "description": source.get("description", source.get("dataDesc", "")),
+            "status": source.get("status", source.get("statCd", "")),
+            "amount": source.get("amount", source.get("amt", 0)),
+            "tags": source.get("tags", source.get("tagJson", "")),
+            "createdAt": source.get("createdAt", source.get("regDt")),
+        }
+    if "statCd" in source:
+        result = dict(source)
+        result["status"] = source.get("status", source.get("statCd", ""))
+        result.pop("statCd", None)
+        return result
+    return source
 
 
 def normalizeTitle(rawTitle: Any) -> str:

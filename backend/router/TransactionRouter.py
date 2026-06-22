@@ -15,6 +15,8 @@ from lib.Response import errorResponse, successResponse
 from service import TransactionService
 
 router = APIRouter(prefix="/api/v1/transaction", tags=["transaction"])
+testRouter = APIRouter(prefix="/test", tags=["transaction"])
+uniqueViolationRouter = APIRouter(prefix="/test/unique-violation", tags=["transaction"])
 
 
 def isUniqueConstraintViolation(error: Exception) -> bool:
@@ -36,7 +38,7 @@ def isUniqueConstraintViolation(error: Exception) -> bool:
     return any(token in text for token in duplicateTokens)
 
 
-@router.post("/test/single")
+@testRouter.post("/single")
 async def testSingle(user=Depends(getCurrentUser)):
     """
     설명: 서비스의 단건 insert 시나리오를 호출해 커밋 성공 응답을 반환. 호출 맥락의 제약을 기준으로 동작 기준 확정
@@ -47,7 +49,7 @@ async def testSingle(user=Depends(getCurrentUser)):
     return JSONResponse(status_code=200, content=successResponse(result=result))
 
 
-@router.post("/test/unique-violation")
+@uniqueViolationRouter.post("")
 async def testUniqueViolation(user=Depends(getCurrentUser)):
     """
     설명: UNIQUE 제약 충돌 시나리오를 실행하고 롤백 결과를 409로 매핑. 호출 맥락의 제약을 기준으로 동작 기준 확정
@@ -73,3 +75,7 @@ async def testUniqueViolation(user=Depends(getCurrentUser)):
                 code="TX_500_INTERNAL",
             ),
         )
+
+
+router.include_router(testRouter)
+router.include_router(uniqueViolationRouter)

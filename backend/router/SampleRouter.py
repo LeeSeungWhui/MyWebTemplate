@@ -15,6 +15,8 @@ from lib.ServiceError import buildMappedErrorResponse
 from service import SampleService
 
 router = APIRouter(prefix="/api/v1/sample", tags=["sample"])
+formsRouter = APIRouter(prefix="/forms", tags=["sample"])
+adminRouter = APIRouter(prefix="/admin", tags=["sample"])
 
 
 def handleSampleError(exc: Exception) -> JSONResponse:
@@ -215,7 +217,7 @@ async def deleteSampleTask(taskId: int):
         return handleSampleError(exc)
 
 
-@router.get("/forms/meta")
+@formsRouter.get("/meta")
 async def getSampleFormMeta():
     """
     설명: 공개 sample 복합 폼의 옵션/제출 현황 메타 조회
@@ -231,7 +233,7 @@ async def getSampleFormMeta():
         return handleSampleError(exc)
 
 
-@router.post("/forms")
+@formsRouter.post("")
 async def submitSampleForm(request: Request):
     """
     설명: 공개 sample 복합 폼 제출 저장
@@ -270,7 +272,7 @@ async def submitSampleForm(request: Request):
         return handleSampleError(exc)
 
 
-@router.get("/admin/users")
+@adminRouter.get("/users")
 async def listSampleAdminUsers(
     page: int | None = None,
     size: int | None = None,
@@ -320,7 +322,7 @@ async def listSampleAdminUsers(
         return handleSampleError(exc)
 
 
-@router.post("/admin/users")
+@adminRouter.post("/users")
 async def createSampleAdminUser(request: Request):
     """
     설명: 공개 sample 관리자 사용자 신규 생성
@@ -357,7 +359,7 @@ async def createSampleAdminUser(request: Request):
         return handleSampleError(exc)
 
 
-@router.put("/admin/users/{userId}")
+@adminRouter.put("/users/{userId}")
 async def updateSampleAdminUser(userId: int, request: Request):
     """
     설명: 공개 sample 관리자 사용자 단건 수정
@@ -387,7 +389,7 @@ async def updateSampleAdminUser(userId: int, request: Request):
         return handleSampleError(exc)
 
 
-@router.get("/admin/settings")
+@adminRouter.get("/settings")
 async def getSampleAdminSettings():
     """
     설명: 공개 sample 관리자 시스템 설정/권한 맵 조회
@@ -403,7 +405,7 @@ async def getSampleAdminSettings():
         return handleSampleError(exc)
 
 
-@router.put("/admin/settings")
+@adminRouter.put("/settings")
 async def updateSampleAdminSettings(request: Request):
     """
     설명: 공개 sample 관리자 시스템 설정 저장
@@ -431,3 +433,7 @@ async def updateSampleAdminSettings(request: Request):
         return response
     except Exception as exc:
         return handleSampleError(exc)
+
+
+router.include_router(formsRouter)
+router.include_router(adminRouter)

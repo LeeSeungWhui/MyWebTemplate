@@ -14,14 +14,6 @@ from datetime import datetime
 # requestId는 Middleware에서 ContextVar로 주입된다.
 from .RequestContext import getRequestId
 
-# 로그 디렉토리 생성
-logDir = "logs"
-if not os.path.exists(logDir):
-    os.makedirs(logDir)
-
-# 로그 파일명 생성 (현재 날짜/시간 기준)
-logFilename = os.path.join(logDir, f"{datetime.now().strftime('%Y%m%d_%H%M%S')}.log")
-
 # 로거 설정
 logger: logging.Logger = logging.getLogger()
 
@@ -36,9 +28,6 @@ def resolveLogLevel() -> int:
     raw = str(os.getenv("LOG_LEVEL", "INFO")).strip().upper()
     return getattr(logging, raw, logging.INFO)
 
-
-logLevel = resolveLogLevel()
-logger.setLevel(logLevel)
 
 # ---------------------------------------------------------------------------
 # JSON 라인 포맷터
@@ -100,18 +89,54 @@ class JsonLineFormatter(logging.Formatter):
         return json.dumps(payload, ensure_ascii=False)
 
 
-jsonFormatter = JsonLineFormatter()
+def _attachFileHandler(targetLogger: logging.Logger, logLevel: int, formatter: logging.Formatter) -> None:
+    """
+    설명: 파일 핸들러를 best-effort로 연결. 디렉터리/파일 권한이 없으면 콘솔만 사용한다.
+    갱신일: 2026-06-22
+    """
+    for handler in targetLogger.handlers:
+        if getattr(handler, "_myweb_file_handler", False):
+            handler.setLevel(logLevel)
+            handler.setFormatter(formatter)
+            return
 
-# 파일 핸들러 설정 (UTF-8 인코딩)
-fileHandler = logging.FileHandler(logFilename, encoding="utf-8")
-fileHandler.setLevel(logLevel)
-fileHandler.setFormatter(jsonFormatter)
+    logDir = os.getenv("LOG_DIR", "logs")
+    try:
+        os.makedirs(logDir, exist_ok=True)
+        logFilename = os.path.join(logDir, f"{datetime.now().strftime('%Y%m%d_%H%M%S')}.log")
+        fileHandler = logging.FileHandler(logFilename, encoding="utf-8")
+        setattr(fileHandler, "_myweb_file_handler", True)
+        fileHandler.setLevel(logLevel)
+        fileHandler.setFormatter(formatter)
+        targetLogger.addHandler(fileHandler)
+    except OSError:
+        return
 
-# 콘솔 핸들러 설정
-consoleHandler = logging.StreamHandler()
-consoleHandler.setLevel(logLevel)
-consoleHandler.setFormatter(jsonFormatter)
 
-# 핸들러 추가
-logger.addHandler(fileHandler)
-logger.addHandler(consoleHandler)
+def _configureLogger() -> logging.Logger:
+    """
+    설명: 콘솔 핸들러는 항상 연결하고, 파일 핸들러는 쓰기 가능할 때만 추가한다.
+    갱신일: 2026-06-22
+    """
+    logLevel = resolveLogLevel()
+    logger.setLevel(logLevel)
+    jsonFormatter = JsonLineFormatter()
+
+    consoleHandler = None
+    for handler in logger.handlers:
+        if getattr(handler, "_myweb_console_handler", False):
+            consoleHandler = handler
+            break
+
+    if consoleHandler is None:
+        consoleHandler = logging.StreamHandler()
+        setattr(consoleHandler, "_myweb_console_handler", True)
+        logger.addHandler(consoleHandler)
+    consoleHandler.setLevel(logLevel)
+    consoleHandler.setFormatter(jsonFormatter)
+
+    _attachFileHandler(logger, logLevel, jsonFormatter)
+    return logger
+
+
+_configureLogger()

@@ -63,10 +63,16 @@ def ensureBaseTablesAndDemo() -> None:
             USER_PW TEXT NOT NULL,
             USER_NM TEXT,
             USER_EML TEXT,
-            ROLE_CD TEXT
+            ROLE_CD TEXT,
+            NOTIFY_EMAIL INTEGER NOT NULL DEFAULT 0,
+            NOTIFY_SMS INTEGER NOT NULL DEFAULT 0,
+            NOTIFY_PUSH INTEGER NOT NULL DEFAULT 0
         )
         """,
     )
+    executePg(pgTestSettings, "ALTER TABLE T_USER ADD COLUMN IF NOT EXISTS NOTIFY_EMAIL INTEGER NOT NULL DEFAULT 0")
+    executePg(pgTestSettings, "ALTER TABLE T_USER ADD COLUMN IF NOT EXISTS NOTIFY_SMS INTEGER NOT NULL DEFAULT 0")
+    executePg(pgTestSettings, "ALTER TABLE T_USER ADD COLUMN IF NOT EXISTS NOTIFY_PUSH INTEGER NOT NULL DEFAULT 0")
     executePg(
         pgTestSettings,
         """
@@ -159,6 +165,13 @@ def resetIntegrationDbState() -> None:
         SampleService.sampleTaskStoreReady = False
         SampleService.sampleFormStoreReady = False
         SampleService.sampleAdminStoreReady = False
+    except Exception:
+        pass
+
+    try:
+        from service import ProfileService
+
+        ProfileService.profileStorageReady = False
     except Exception:
         pass
 

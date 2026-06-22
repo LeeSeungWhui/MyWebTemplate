@@ -2,7 +2,7 @@
 -- 현재는 사용자 접근 로그 저장 쿼리를 관리한다.
 
 -- name: common.ping
-SELECT USER_NO AS PING
+SELECT USER_NO AS "userNo"
   FROM T_USER
  LIMIT 1;
 

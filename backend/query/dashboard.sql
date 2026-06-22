@@ -1,11 +1,11 @@
 -- name: dashboard.list
-SELECT DATA_NO AS ID
-     , DATA_NM AS TITLE
-     , DATA_DESC AS DESCRIPTION
-     , STAT_CD AS STATUS
-     , AMT AS AMOUNT
-     , TAG_JSON AS TAGS
-     , REG_DT AS CREATED_AT
+SELECT DATA_NO AS "dataNo"
+     , DATA_NM AS "dataNm"
+     , DATA_DESC AS "dataDesc"
+     , STAT_CD AS "statCd"
+     , AMT AS "amt"
+     , TAG_JSON AS "tagJson"
+     , REG_DT AS "regDt"
   FROM T_DATA
  WHERE ( :q = ''
          OR LOWER(DATA_NM) LIKE LOWER(:qLike)
@@ -26,7 +26,7 @@ SELECT DATA_NO AS ID
 OFFSET :offset;
 
 -- name: dashboard.listCount
-SELECT COUNT(*) AS TOTAL_COUNT
+SELECT COUNT(*) AS "totalCount"
   FROM T_DATA
  WHERE ( :q = ''
          OR LOWER(DATA_NM) LIKE LOWER(:qLike)
@@ -38,13 +38,13 @@ SELECT COUNT(*) AS TOTAL_COUNT
        );
 
 -- name: dashboard.detail
-SELECT DATA_NO AS ID
-     , DATA_NM AS TITLE
-     , DATA_DESC AS DESCRIPTION
-     , STAT_CD AS STATUS
-     , AMT AS AMOUNT
-     , TAG_JSON AS TAGS
-     , REG_DT AS CREATED_AT
+SELECT DATA_NO AS "dataNo"
+     , DATA_NM AS "dataNm"
+     , DATA_DESC AS "dataDesc"
+     , STAT_CD AS "statCd"
+     , AMT AS "amt"
+     , TAG_JSON AS "tagJson"
+     , REG_DT AS "regDt"
   FROM T_DATA
  WHERE DATA_NO = :id
    AND USER_ID = :userId;
@@ -67,13 +67,13 @@ VALUES ( :userId
        );
 
 -- name: dashboard.findCreatedCandidate
-SELECT DATA_NO AS ID
-     , DATA_NM AS TITLE
-     , DATA_DESC AS DESCRIPTION
-     , STAT_CD AS STATUS
-     , AMT AS AMOUNT
-     , TAG_JSON AS TAGS
-     , REG_DT AS CREATED_AT
+SELECT DATA_NO AS "dataNo"
+     , DATA_NM AS "dataNm"
+     , DATA_DESC AS "dataDesc"
+     , STAT_CD AS "statCd"
+     , AMT AS "amt"
+     , TAG_JSON AS "tagJson"
+     , REG_DT AS "regDt"
   FROM T_DATA
  WHERE USER_ID = :userId
    AND DATA_NM = :title
@@ -101,9 +101,9 @@ DELETE
    AND USER_ID = :userId;
 
 -- name: dashboard.statusSummary
-SELECT STAT_CD AS STATUS
-     , COUNT(*) AS COUNT
-     , COALESCE(SUM(AMT), 0) AS AMOUNT_SUM
+SELECT STAT_CD AS "statCd"
+     , COUNT(*) AS "count"
+     , COALESCE(SUM(AMT), 0) AS "amountSum"
   FROM T_DATA
  WHERE USER_ID = :userId
  GROUP BY STAT_CD;
