@@ -154,6 +154,26 @@ def attachOpenAPI(app: FastAPI, config) -> None:
                     ]
                 }
 
+            if "PasswordResetRequestResult" not in schemas:
+                schemas["PasswordResetRequestResult"] = {
+                    "type": "object",
+                    "properties": {
+                        "accepted": {"type": "boolean", "example": True},
+                    },
+                    "required": ["accepted"],
+                    "description": "Password reset request acceptance result. Account existence is not disclosed.",
+                }
+            if "PasswordResetRequestResponse" not in schemas:
+                schemas["PasswordResetRequestResponse"] = {
+                    "allOf": [
+                        {"$ref": "#/components/schemas/StandardResponse"},
+                        {
+                            "type": "object",
+                            "properties": {"result": {"$ref": "#/components/schemas/PasswordResetRequestResult"}},
+                        },
+                    ]
+                }
+
             params = components.setdefault("parameters", {})
             csrfHeaderName = readConfigValue(authSection, "csrf_header", "X-CSRF-Token")
             params["CSRFToken"] = {
@@ -394,6 +414,33 @@ def attachOpenAPI(app: FastAPI, config) -> None:
                         "// const client = ...;\n"
                         "// await client.POST('/api/v1/auth/app/logout', {\n"
                         "//   body: { refreshToken: '<refresh-token>' },\n"
+                        "// });"
+                    ),
+                )
+
+            passwordResetPaths = (
+                "/api/v1/auth/password-reset/request",
+                "/api/v1/auth/passwordReset/request",
+            )
+            for passwordResetPath in passwordResetPaths:
+                passwordReset = paths.get(passwordResetPath, {}).get("post")
+                if not isinstance(passwordReset, dict):
+                    continue
+                responses = passwordReset.setdefault("responses", {})
+                res200 = responses.setdefault("200", {"description": "OK"})
+                res200["description"] = (
+                    "OK (accepts password reset request without disclosing whether the account exists)"
+                )
+                res200.setdefault("content", {}).setdefault("application/json", {})["schema"] = {
+                    "$ref": "#/components/schemas/PasswordResetRequestResponse"
+                }
+                ensureJavaScriptCodeSample(
+                    passwordReset,
+                    (
+                        "// Example using openapi-client-axios\n"
+                        "// const client = ...;\n"
+                        f"// await client.POST('{passwordResetPath}', {{\n"
+                        "//   body: { email: 'demo@demo.demo' },\n"
                         "// });"
                     ),
                 )

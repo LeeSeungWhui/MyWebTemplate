@@ -326,6 +326,32 @@ def testPasswordResetRequestSupportsFrontendCamelAlias():
         assert body["result"]["accepted"] is True
 
 
+def testOpenapiDocumentsPasswordResetCanonicalAndCompatibilityPaths():
+    from server import app
+
+    app.openapi_schema = None
+    with TestClient(app) as client:
+        response = client.get("/openapi.json")
+
+    assert response.status_code == 200
+    schema = response.json()
+    schemas = schema["components"]["schemas"]
+    assert "PasswordResetRequestResult" in schemas
+    assert "PasswordResetRequestResponse" in schemas
+
+    for path in ["/api/v1/auth/password-reset/request", "/api/v1/auth/passwordReset/request"]:
+        operation = schema["paths"][path]["post"]
+        responseSchema = operation["responses"]["200"]["content"]["application/json"]["schema"]
+        assert responseSchema == {"$ref": "#/components/schemas/PasswordResetRequestResponse"}
+        samples = operation.get("x-codeSamples", [])
+        assert any(
+            sample.get("lang") == "JavaScript"
+            and sample.get("label") == "openapi-client-axios"
+            and path in sample.get("source", "")
+            for sample in samples
+        )
+
+
 def testPasswordResetRequestRejectsInvalidEmail():
     from server import app
     with TestClient(app) as client:
