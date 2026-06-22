@@ -313,6 +313,19 @@ def testPasswordResetRequestAlwaysReturnsSuccessForValidEmail():
         assert missingBody["result"]["accepted"] is True
 
 
+def testPasswordResetRequestSupportsFrontendCamelAlias():
+    from server import app
+    with TestClient(app) as client:
+        response = client.post(
+            "/api/v1/auth/passwordReset/request",
+            json={"email": "demo@demo.demo"},
+        )
+        assert response.status_code == 200
+        body = response.json()
+        assert body["status"] is True
+        assert body["result"]["accepted"] is True
+
+
 def testPasswordResetRequestRejectsInvalidEmail():
     from server import app
     with TestClient(app) as client:
