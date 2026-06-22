@@ -1,0 +1,7 @@
+# Backend runtime artifacts
+logs/
+data/
+
+# Python/runtime caches
+__pycache__/
+.pytest_cache/
