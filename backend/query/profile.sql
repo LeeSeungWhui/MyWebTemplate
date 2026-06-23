@@ -1,15 +1,3 @@
--- name: profile.ensureNotifyEmailColumn
-ALTER TABLE T_USER
-  ADD COLUMN IF NOT EXISTS NOTIFY_EMAIL INTEGER NOT NULL DEFAULT 0;
-
--- name: profile.ensureNotifySmsColumn
-ALTER TABLE T_USER
-  ADD COLUMN IF NOT EXISTS NOTIFY_SMS INTEGER NOT NULL DEFAULT 0;
-
--- name: profile.ensureNotifyPushColumn
-ALTER TABLE T_USER
-  ADD COLUMN IF NOT EXISTS NOTIFY_PUSH INTEGER NOT NULL DEFAULT 0;
-
 -- name: profile.me
 SELECT USER_NO AS "userNo"
      , USER_ID AS "userId"

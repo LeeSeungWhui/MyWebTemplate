@@ -168,13 +168,6 @@ def resetIntegrationDbState() -> None:
     except Exception:
         pass
 
-    try:
-        from service import ProfileService
-
-        ProfileService.profileStorageReady = False
-    except Exception:
-        pass
-
 
 def pytest_configure(config):
     config.addinivalue_line(

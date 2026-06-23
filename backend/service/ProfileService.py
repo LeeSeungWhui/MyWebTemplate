@@ -12,8 +12,6 @@ from lib.Casing import convertKeysToCamelCase
 from lib.ServiceError import ServiceError
 from lib.Transaction import transaction
 
-profileStorageReady = False
-
 
 def ensureDbManager():
     """
@@ -88,22 +86,6 @@ def readNotifyState(source: dict[str, Any]) -> dict[str, bool]:
     }
 
 
-async def ensureProfileStorage() -> None:
-    """
-    설명: profile notify DB 컬럼이 존재하는지 보장
-    부작용: 기존 T_USER에 NOTIFY_* 컬럼이 없으면 추가한다.
-    갱신일: 2026-06-22
-    """
-    global profileStorageReady
-    if profileStorageReady:
-        return
-    db = ensureDbManager()
-    await db.executeQuery("profile.ensureNotifyEmailColumn")
-    await db.executeQuery("profile.ensureNotifySmsColumn")
-    await db.executeQuery("profile.ensureNotifyPushColumn")
-    profileStorageReady = True
-
-
 def buildProfileUpdatePayload(
     userId: str,
     currentProfile: dict[str, Any],
@@ -151,7 +133,6 @@ async def getMyProfile(user: Any) -> dict[str, Any]:
     갱신일: 2026-02-22
     """
     userId = ensureUserId(user)
-    await ensureProfileStorage()
     db = ensureDbManager()
     row = await db.fetchOneQuery("profile.me", {"userId": userId})
     if not row:
@@ -171,7 +152,6 @@ async def updateMyProfile(user: Any, payload: dict[str, Any]) -> dict[str, Any]:
     if not isinstance(payload, dict):
         raise ServiceError("AUTH_422_INVALID_INPUT")
     userId = ensureUserId(user)
-    await ensureProfileStorage()
     db = ensureDbManager()
     row = await db.fetchOneQuery("profile.me", {"userId": userId})
     if not row:

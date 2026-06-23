@@ -1,5 +1,6 @@
 import os
 import sys
+import asyncio
 from fastapi.testclient import TestClient
 
 from conftest import pgTestSettings
@@ -22,6 +23,40 @@ def loginAsDemo(client):
         json={"username": "demo@demo.demo", "password": "password123", "rememberMe": True},
     )
     assert response.status_code == 200
+
+
+def testProfileLookupDoesNotRunSchemaDdl(monkeypatch):
+    from service import ProfileService
+
+    class FakeDb:
+        async def fetchOneQuery(self, queryName, params):
+            assert queryName == "profile.me"
+            assert params == {"userId": "demo@demo.demo"}
+            return {
+                "USER_NO": 1,
+                "USER_ID": "demo@demo.demo",
+                "USER_NM": "Demo User",
+                "USER_EML": "demo@demo.demo",
+                "ROLE_CD": "user",
+                "NOTIFY_EMAIL": 1,
+                "NOTIFY_SMS": 0,
+                "NOTIFY_PUSH": 1,
+            }
+
+        async def executeQuery(self, queryName, params=None):
+            raise AssertionError(f"profile lookup must not run DDL or write query: {queryName}")
+
+    class User:
+        username = "demo@demo.demo"
+
+    monkeypatch.setattr(ProfileService.DB, "getManager", lambda: FakeDb())
+
+    result = asyncio.run(ProfileService.getMyProfile(User()))
+
+    assert result["userId"] == "demo@demo.demo"
+    assert result["notifyEmail"] is True
+    assert result["notifySms"] is False
+    assert result["notifyPush"] is True
 
 
 def testProfileMeGetAndUpdateFlow():
