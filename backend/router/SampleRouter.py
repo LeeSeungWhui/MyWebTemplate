@@ -161,6 +161,7 @@ async def createSampleTask(request: Request):
                 "amount": "number",
                 "attachmentName": "str",
             },
+            rejectUnknown=True,
             errorCode="SAMPLE_422_INVALID_INPUT",
         )
         idempotencyKey = request.headers.get("Idempotency-Key")
@@ -191,6 +192,7 @@ async def updateSampleTask(taskId: int, request: Request):
                 "attachmentName": "str",
             },
             excludeNone=True,
+            rejectUnknown=True,
             errorCode="SAMPLE_422_INVALID_INPUT",
         )
         result = await SampleService.updateSampleTask(taskId, payload)
@@ -258,6 +260,7 @@ async def submitSampleForm(request: Request):
                 "referenceUrl": "str",
                 "attachmentName": "str",
             },
+            rejectUnknown=True,
             errorCode="SAMPLE_422_INVALID_INPUT",
         )
         idempotencyKey = request.headers.get("Idempotency-Key")
@@ -345,6 +348,7 @@ async def createSampleAdminUser(request: Request):
                 "profileImageUrl": "str",
             },
             excludeNone=True,
+            rejectUnknown=True,
             errorCode="SAMPLE_422_INVALID_INPUT",
         )
         idempotencyKey = request.headers.get("Idempotency-Key")
@@ -379,6 +383,7 @@ async def updateSampleAdminUser(userId: int, request: Request):
                 "profileImageUrl": "str",
             },
             excludeNone=True,
+            rejectUnknown=True,
             errorCode="SAMPLE_422_INVALID_INPUT",
         )
         result = await SampleService.updateSampleAdminUser(userId, payload)
@@ -425,6 +430,7 @@ async def updateSampleAdminSettings(request: Request):
                 "maintenanceMode": "bool",
             },
             excludeNone=True,
+            rejectUnknown=True,
             errorCode="SAMPLE_422_INVALID_INPUT",
         )
         result = await SampleService.updateSampleAdminSettings(payload)

@@ -86,6 +86,82 @@ def testSampleTaskCrudFlow():
         assert missingResponse.json()["code"] == "SAMPLE_404_NOT_FOUND"
 
 
+def testSampleWriteApisRejectUnknownFields():
+    from server import app
+
+    resetSampleTables()
+    with TestClient(app) as client:
+        createTaskResponse = client.post(
+            "/api/v1/sample/tasks",
+            json={"title": "오타 업무", "status": "ready", "unknownField": True},
+        )
+        assert createTaskResponse.status_code == 422
+        assert createTaskResponse.json()["code"] == "SAMPLE_422_INVALID_INPUT"
+
+        taskListResponse = client.get("/api/v1/sample/tasks?page=1&size=1")
+        assert taskListResponse.status_code == 200
+        taskId = int(taskListResponse.json()["result"]["sampleTaskList"][0]["id"])
+        updateTaskResponse = client.put(
+            f"/api/v1/sample/tasks/{taskId}",
+            json={"status": "done", "unknownField": True},
+        )
+        assert updateTaskResponse.status_code == 422
+        assert updateTaskResponse.json()["code"] == "SAMPLE_422_INVALID_INPUT"
+
+        submitFormResponse = client.post(
+            "/api/v1/sample/forms",
+            json={
+                "name": "홍길동",
+                "email": "hong@example.com",
+                "phone": "010-1234-5678",
+                "category": "web",
+                "startDate": "2026-03-01",
+                "endDate": "2026-03-10",
+                "budgetRange": "300만 ~ 500만",
+                "selectedFeatures": ["login"],
+                "unknownField": True,
+            },
+        )
+        assert submitFormResponse.status_code == 422
+        assert submitFormResponse.json()["code"] == "SAMPLE_422_INVALID_INPUT"
+
+        createUserResponse = client.post(
+            "/api/v1/sample/admin/users",
+            json={
+                "name": "신규 운영자",
+                "email": "new-admin@example.com",
+                "role": "editor",
+                "status": "active",
+                "unknownField": True,
+            },
+        )
+        assert createUserResponse.status_code == 422
+        assert createUserResponse.json()["code"] == "SAMPLE_422_INVALID_INPUT"
+
+        userListResponse = client.get("/api/v1/sample/admin/users?page=1&size=1")
+        assert userListResponse.status_code == 200
+        userId = int(userListResponse.json()["result"]["sampleAdminUserList"][0]["id"])
+        updateUserResponse = client.put(
+            f"/api/v1/sample/admin/users/{userId}",
+            json={"role": "admin", "unknownField": True},
+        )
+        assert updateUserResponse.status_code == 422
+        assert updateUserResponse.json()["code"] == "SAMPLE_422_INVALID_INPUT"
+
+        updateSettingsResponse = client.put(
+            "/api/v1/sample/admin/settings",
+            json={
+                "siteName": "MyWebTemplate Sample",
+                "adminEmail": "sample-admin@example.com",
+                "sessionTimeout": 90,
+                "maxUploadMb": 50,
+                "unknownField": True,
+            },
+        )
+        assert updateSettingsResponse.status_code == 422
+        assert updateSettingsResponse.json()["code"] == "SAMPLE_422_INVALID_INPUT"
+
+
 def testSampleFormMetaAndSubmit():
     from server import app
 
