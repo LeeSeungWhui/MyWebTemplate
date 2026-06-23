@@ -157,3 +157,61 @@ def testProfileRequiresAuth():
         response = client.get("/api/v1/profile/me")
         assert response.status_code == 401
         assert response.headers.get("WWW-Authenticate") == "Bearer"
+
+
+def testOpenapiDocumentsProfileContracts():
+    from server import app
+
+    app.openapi_schema = None
+    with TestClient(app) as client:
+        response = client.get("/openapi.json")
+
+    assert response.status_code == 200
+    schema = response.json()
+    schemas = schema["components"]["schemas"]
+    assert "ProfileMeResult" in schemas
+    assert "ProfileUpdateRequest" in schemas
+    assert "ProfileMeResponse" in schemas
+    assert "ProfileUpdateResponse" in schemas
+
+    resultProperties = schemas["ProfileMeResult"]["properties"]
+    for fieldName in (
+        "userNo",
+        "userId",
+        "userNm",
+        "userEml",
+        "roleCd",
+        "notifyEmail",
+        "notifySms",
+        "notifyPush",
+    ):
+        assert fieldName in resultProperties
+
+    updateRequest = schemas["ProfileUpdateRequest"]
+    assert updateRequest["additionalProperties"] is False
+    assert {"required": ["notifyEmail"]} in updateRequest["anyOf"]
+
+    getOperation = schema["paths"]["/api/v1/profile/me"]["get"]
+    getSchema = getOperation["responses"]["200"]["content"]["application/json"]["schema"]
+    assert getSchema == {"$ref": "#/components/schemas/ProfileMeResponse"}
+    assert {"bearerAuth": []} in getOperation["security"]
+    assert getOperation["responses"]["200"]["headers"]["Cache-Control"]["schema"]["example"] == "no-store"
+    assert any(
+        sample.get("lang") == "JavaScript"
+        and sample.get("label") == "openapi-client-axios"
+        and "/api/v1/profile/me" in sample.get("source", "")
+        for sample in getOperation.get("x-codeSamples", [])
+    )
+
+    putOperation = schema["paths"]["/api/v1/profile/me"]["put"]
+    requestSchema = putOperation["requestBody"]["content"]["application/json"]["schema"]
+    responseSchema = putOperation["responses"]["200"]["content"]["application/json"]["schema"]
+    assert requestSchema == {"$ref": "#/components/schemas/ProfileUpdateRequest"}
+    assert responseSchema == {"$ref": "#/components/schemas/ProfileUpdateResponse"}
+    assert {"bearerAuth": []} in putOperation["security"]
+    assert any(
+        sample.get("lang") == "JavaScript"
+        and sample.get("label") == "openapi-client-axios"
+        and "notifyEmail" in sample.get("source", "")
+        for sample in putOperation.get("x-codeSamples", [])
+    )

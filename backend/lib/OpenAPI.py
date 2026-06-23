@@ -223,6 +223,76 @@ def attachOpenAPI(app: FastAPI, config) -> None:
             if "ReadyzErrorResponse" not in schemas:
                 schemas["ReadyzErrorResponse"] = dict(schemas["ReadyzResponse"])
 
+            nullableStringSchema = {"anyOf": [{"type": "string"}, {"type": "null"}]}
+            if "ProfileMeResult" not in schemas:
+                schemas["ProfileMeResult"] = {
+                    "type": "object",
+                    "properties": {
+                        "userNo": {"type": "integer", "example": 1},
+                        "userId": {"type": "string", "example": "demo@demo.demo"},
+                        "userNm": nullableStringSchema,
+                        "userEml": nullableStringSchema,
+                        "roleCd": nullableStringSchema,
+                        "notifyEmail": {"type": "boolean", "example": True},
+                        "notifySms": {"type": "boolean", "example": False},
+                        "notifyPush": {"type": "boolean", "example": True},
+                    },
+                    "required": [
+                        "userNo",
+                        "userId",
+                        "userNm",
+                        "userEml",
+                        "roleCd",
+                        "notifyEmail",
+                        "notifySms",
+                        "notifyPush",
+                    ],
+                    "description": "Authenticated user's profile plus notification preferences.",
+                }
+            if "ProfileUpdateRequest" not in schemas:
+                schemas["ProfileUpdateRequest"] = {
+                    "type": "object",
+                    "properties": {
+                        "userNm": {
+                            "type": "string",
+                            "minLength": 2,
+                            "maxLength": 80,
+                            "example": "Demo Profile",
+                        },
+                        "notifyEmail": {"type": "boolean", "example": True},
+                        "notifySms": {"type": "boolean", "example": False},
+                        "notifyPush": {"type": "boolean", "example": True},
+                    },
+                    "anyOf": [
+                        {"required": ["userNm"]},
+                        {"required": ["notifyEmail"]},
+                        {"required": ["notifySms"]},
+                        {"required": ["notifyPush"]},
+                    ],
+                    "additionalProperties": False,
+                    "description": "At least one profile or notification field must be provided.",
+                }
+            if "ProfileMeResponse" not in schemas:
+                schemas["ProfileMeResponse"] = {
+                    "allOf": [
+                        {"$ref": "#/components/schemas/StandardResponse"},
+                        {
+                            "type": "object",
+                            "properties": {"result": {"$ref": "#/components/schemas/ProfileMeResult"}},
+                        },
+                    ]
+                }
+            if "ProfileUpdateResponse" not in schemas:
+                schemas["ProfileUpdateResponse"] = {
+                    "allOf": [
+                        {"$ref": "#/components/schemas/StandardResponse"},
+                        {
+                            "type": "object",
+                            "properties": {"result": {"$ref": "#/components/schemas/ProfileMeResult"}},
+                        },
+                    ]
+                }
+
             params = components.setdefault("parameters", {})
             csrfHeaderName = readConfigValue(authSection, "csrf_header", "X-CSRF-Token")
             params["CSRFToken"] = {
@@ -373,6 +443,62 @@ def attachOpenAPI(app: FastAPI, config) -> None:
                 res200.setdefault("content", {}).setdefault("application/json", {})["schema"] = {
                     "$ref": "#/components/schemas/AuthMeResponse"
                 }
+
+            profileMeGet = paths.get("/api/v1/profile/me", {}).get("get")
+            if isinstance(profileMeGet, dict):
+                profileMeGet["security"] = [{"bearerAuth": []}, {"OAuth2PasswordBearer": []}]
+                responses = profileMeGet.setdefault("responses", {})
+                res200 = responses.setdefault("200", {"description": "OK"})
+                res200["description"] = "OK (returns authenticated user's profile and notification settings)"
+                res200.setdefault("headers", {})["Cache-Control"] = {
+                    "description": "Profile responses are not cacheable.",
+                    "schema": {"type": "string", "example": "no-store"},
+                }
+                res200.setdefault("content", {}).setdefault("application/json", {})["schema"] = {
+                    "$ref": "#/components/schemas/ProfileMeResponse"
+                }
+                ensureJavaScriptCodeSample(
+                    profileMeGet,
+                    (
+                        "// Example using openapi-client-axios\n"
+                        "// const client = ...;\n"
+                        "// const res = await client.GET('/api/v1/profile/me');\n"
+                        "// console.log(res.data.result.notifyEmail);"
+                    ),
+                )
+
+            profileMePut = paths.get("/api/v1/profile/me", {}).get("put")
+            if isinstance(profileMePut, dict):
+                profileMePut["security"] = [{"bearerAuth": []}, {"OAuth2PasswordBearer": []}]
+                profileMePut["requestBody"] = {
+                    "required": True,
+                    "content": {
+                        "application/json": {
+                            "schema": {"$ref": "#/components/schemas/ProfileUpdateRequest"},
+                        }
+                    },
+                }
+                responses = profileMePut.setdefault("responses", {})
+                res200 = responses.setdefault("200", {"description": "OK"})
+                res200["description"] = "OK (updates profile name and/or notification settings)"
+                res200.setdefault("headers", {})["Cache-Control"] = {
+                    "description": "Profile responses are not cacheable.",
+                    "schema": {"type": "string", "example": "no-store"},
+                }
+                res200.setdefault("content", {}).setdefault("application/json", {})["schema"] = {
+                    "$ref": "#/components/schemas/ProfileUpdateResponse"
+                }
+                ensureJavaScriptCodeSample(
+                    profileMePut,
+                    (
+                        "// Example using openapi-client-axios\n"
+                        "// const client = ...;\n"
+                        "// const res = await client.PUT('/api/v1/profile/me', {\n"
+                        "//   body: { userNm: 'Demo Profile', notifyEmail: true, notifySms: false, notifyPush: true },\n"
+                        "// });\n"
+                        "// console.log(res.data.result.userNm);"
+                    ),
+                )
 
             login = paths.get("/api/v1/auth/login", {}).get("post")
             if isinstance(login, dict):
