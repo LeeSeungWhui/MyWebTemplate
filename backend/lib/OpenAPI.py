@@ -293,6 +293,143 @@ def attachOpenAPI(app: FastAPI, config) -> None:
                     ]
                 }
 
+            dashboardStatusSchema = {
+                "type": "string",
+                "enum": ["ready", "pending", "running", "done", "failed"],
+                "example": "ready",
+            }
+            dashboardTagsSchema = {
+                "anyOf": [
+                    {"type": "string", "example": "[\"qa\"]"},
+                    {"type": "array", "items": {"type": "string"}, "example": ["qa"]},
+                ]
+            }
+            if "DashboardItem" not in schemas:
+                schemas["DashboardItem"] = {
+                    "type": "object",
+                    "properties": {
+                        "id": {"type": "integer", "example": 1},
+                        "title": {"type": "string", "example": "테스트 업무"},
+                        "description": {"type": "string", "example": "REST 경로 검증"},
+                        "status": dashboardStatusSchema,
+                        "amount": {"type": "number", "example": 1000},
+                        "tags": dashboardTagsSchema,
+                        "createdAt": nullableStringSchema,
+                    },
+                    "required": ["id", "title", "description", "status", "amount", "tags", "createdAt"],
+                    "description": "Dashboard work item owned by the authenticated user.",
+                }
+            if "DashboardListMeta" not in schemas:
+                schemas["DashboardListMeta"] = {
+                    "type": "object",
+                    "properties": {
+                        "page": {"type": "integer", "minimum": 1, "example": 1},
+                        "size": {"type": "integer", "minimum": 1, "maximum": 500, "example": 20},
+                        "sort": {
+                            "type": "string",
+                            "enum": [
+                                "reg_dt_desc",
+                                "reg_dt_asc",
+                                "amt_desc",
+                                "amt_asc",
+                                "title_desc",
+                                "title_asc",
+                            ],
+                            "example": "reg_dt_desc",
+                        },
+                        "q": {"type": "string", "example": "테스트"},
+                        "status": {"type": "string", "example": "ready"},
+                        "totalCount": {"type": "integer", "minimum": 0, "example": 1},
+                    },
+                    "required": ["page", "size", "sort", "q", "status", "totalCount"],
+                }
+            if "DashboardListResult" not in schemas:
+                schemas["DashboardListResult"] = {
+                    "type": "object",
+                    "properties": {
+                        "dataTemplateList": {
+                            "type": "array",
+                            "items": {"$ref": "#/components/schemas/DashboardItem"},
+                        },
+                        "listMetaObj": {"$ref": "#/components/schemas/DashboardListMeta"},
+                    },
+                    "required": ["dataTemplateList", "listMetaObj"],
+                }
+            if "DashboardStatsItem" not in schemas:
+                schemas["DashboardStatsItem"] = {
+                    "type": "object",
+                    "properties": {
+                        "status": dashboardStatusSchema,
+                        "count": {"type": "integer", "minimum": 0, "example": 1},
+                        "amountSum": {"type": "number", "example": 1000},
+                    },
+                    "required": ["status", "count", "amountSum"],
+                }
+            if "DashboardStatsResult" not in schemas:
+                schemas["DashboardStatsResult"] = {
+                    "type": "object",
+                    "properties": {
+                        "totalCount": {"type": "integer", "minimum": 0, "example": 2},
+                        "totalAmount": {"type": "number", "example": 3000},
+                        "statusSummaryList": {
+                            "type": "array",
+                            "items": {"$ref": "#/components/schemas/DashboardStatsItem"},
+                        },
+                    },
+                    "required": ["totalCount", "totalAmount", "statusSummaryList"],
+                }
+            if "DashboardWriteRequest" not in schemas:
+                schemas["DashboardWriteRequest"] = {
+                    "type": "object",
+                    "properties": {
+                        "title": {"type": "string", "minLength": 1, "maxLength": 200, "example": "신규 업무"},
+                        "description": {"type": "string", "example": "CRUD 생성 테스트"},
+                        "status": dashboardStatusSchema,
+                        "amount": {"type": "number", "example": 32100},
+                        "tags": dashboardTagsSchema,
+                    },
+                    "required": ["title", "status"],
+                    "additionalProperties": False,
+                }
+            if "DashboardPatchRequest" not in schemas:
+                schemas["DashboardPatchRequest"] = {
+                    "type": "object",
+                    "properties": schemas["DashboardWriteRequest"]["properties"],
+                    "anyOf": [
+                        {"required": ["title"]},
+                        {"required": ["description"]},
+                        {"required": ["status"]},
+                        {"required": ["amount"]},
+                        {"required": ["tags"]},
+                    ],
+                    "additionalProperties": False,
+                }
+            if "DashboardDeleteResult" not in schemas:
+                schemas["DashboardDeleteResult"] = {
+                    "type": "object",
+                    "properties": {"id": {"type": "integer", "example": 1}},
+                    "required": ["id"],
+                }
+            dashboardResponseMap = {
+                "DashboardListResponse": "DashboardListResult",
+                "DashboardStatsResponse": "DashboardStatsResult",
+                "DashboardItemResponse": "DashboardItem",
+                "DashboardCreateResponse": "DashboardItem",
+                "DashboardUpdateResponse": "DashboardItem",
+                "DashboardDeleteResponse": "DashboardDeleteResult",
+            }
+            for responseName, resultName in dashboardResponseMap.items():
+                if responseName not in schemas:
+                    schemas[responseName] = {
+                        "allOf": [
+                            {"$ref": "#/components/schemas/StandardResponse"},
+                            {
+                                "type": "object",
+                                "properties": {"result": {"$ref": f"#/components/schemas/{resultName}"}},
+                            },
+                        ]
+                    }
+
             params = components.setdefault("parameters", {})
             csrfHeaderName = readConfigValue(authSection, "csrf_header", "X-CSRF-Token")
             params["CSRFToken"] = {
@@ -315,6 +452,13 @@ def attachOpenAPI(app: FastAPI, config) -> None:
                 "required": False,
                 "schema": {"type": "string"},
                 "description": "Fallback header for Web cookie-authorized endpoint origin checks.",
+            }
+            params["IdempotencyKey"] = {
+                "name": "Idempotency-Key",
+                "in": "header",
+                "required": False,
+                "schema": {"type": "string", "minLength": 1, "maxLength": 128},
+                "description": "Optional retry-safe idempotency key for create requests.",
             }
 
             # 설정값에서 서버 URL 목록을 구성
@@ -389,6 +533,20 @@ def attachOpenAPI(app: FastAPI, config) -> None:
                 hasRef = any(isinstance(param, dict) and param.get("$ref") == refPath for param in parameters)
                 if not hasRef:
                     parameters.append({"$ref": refPath})
+
+            def ensureNoStoreResponse(response: Dict[str, Any], description: str, schemaName: str) -> None:
+                """
+                설명: no-store 표준 JSON 응답 계약을 operation response에 반영
+                갱신일: 2026-06-23
+                """
+                response["description"] = description
+                response.setdefault("headers", {})["Cache-Control"] = {
+                    "description": "Authenticated dashboard responses are not cacheable.",
+                    "schema": {"type": "string", "example": "no-store"},
+                }
+                response.setdefault("content", {}).setdefault("application/json", {})["schema"] = {
+                    "$ref": f"#/components/schemas/{schemaName}"
+                }
 
             healthz = paths.get("/healthz", {}).get("get")
             if isinstance(healthz, dict):
@@ -497,6 +655,149 @@ def attachOpenAPI(app: FastAPI, config) -> None:
                         "//   body: { userNm: 'Demo Profile', notifyEmail: true, notifySms: false, notifyPush: true },\n"
                         "// });\n"
                         "// console.log(res.data.result.userNm);"
+                    ),
+                )
+
+            dashboardList = paths.get("/api/v1/dashboard", {}).get("get")
+            if isinstance(dashboardList, dict):
+                dashboardList["security"] = [{"bearerAuth": []}, {"OAuth2PasswordBearer": []}]
+                responses = dashboardList.setdefault("responses", {})
+                ensureNoStoreResponse(
+                    responses.setdefault("200", {"description": "OK"}),
+                    "OK (returns authenticated user's dashboard items with list metadata)",
+                    "DashboardListResponse",
+                )
+                ensureJavaScriptCodeSample(
+                    dashboardList,
+                    (
+                        "// Example using openapi-client-axios\n"
+                        "// const client = ...;\n"
+                        "// const res = await client.GET('/api/v1/dashboard', {\n"
+                        "//   params: { query: { page: 1, size: 20, status: 'ready', sort: 'reg_dt_desc' } },\n"
+                        "// });\n"
+                        "// console.log(res.data.result.dataTemplateList);"
+                    ),
+                )
+
+            dashboardStats = paths.get("/api/v1/dashboard/stats", {}).get("get")
+            if isinstance(dashboardStats, dict):
+                dashboardStats["security"] = [{"bearerAuth": []}, {"OAuth2PasswordBearer": []}]
+                responses = dashboardStats.setdefault("responses", {})
+                ensureNoStoreResponse(
+                    responses.setdefault("200", {"description": "OK"}),
+                    "OK (returns dashboard status summary for authenticated user)",
+                    "DashboardStatsResponse",
+                )
+                ensureJavaScriptCodeSample(
+                    dashboardStats,
+                    (
+                        "// Example using openapi-client-axios\n"
+                        "// const client = ...;\n"
+                        "// const res = await client.GET('/api/v1/dashboard/stats');\n"
+                        "// console.log(res.data.result.statusSummaryList);"
+                    ),
+                )
+
+            dashboardDetail = paths.get("/api/v1/dashboard/{dataId}", {}).get("get")
+            if isinstance(dashboardDetail, dict):
+                dashboardDetail["security"] = [{"bearerAuth": []}, {"OAuth2PasswordBearer": []}]
+                responses = dashboardDetail.setdefault("responses", {})
+                ensureNoStoreResponse(
+                    responses.setdefault("200", {"description": "OK"}),
+                    "OK (returns one dashboard item owned by authenticated user)",
+                    "DashboardItemResponse",
+                )
+                ensureJavaScriptCodeSample(
+                    dashboardDetail,
+                    (
+                        "// Example using openapi-client-axios\n"
+                        "// const client = ...;\n"
+                        "// const res = await client.GET('/api/v1/dashboard/{dataId}', {\n"
+                        "//   params: { path: { dataId: 1 } },\n"
+                        "// });\n"
+                        "// console.log(res.data.result.title);"
+                    ),
+                )
+
+            dashboardCreate = paths.get("/api/v1/dashboard", {}).get("post")
+            if isinstance(dashboardCreate, dict):
+                dashboardCreate["security"] = [{"bearerAuth": []}, {"OAuth2PasswordBearer": []}]
+                dashboardCreate["requestBody"] = {
+                    "required": True,
+                    "content": {
+                        "application/json": {
+                            "schema": {"$ref": "#/components/schemas/DashboardWriteRequest"},
+                        }
+                    },
+                }
+                ensureHeaderRef(dashboardCreate, "IdempotencyKey")
+                responses = dashboardCreate.setdefault("responses", {})
+                responses.pop("200", None)
+                ensureNoStoreResponse(
+                    responses.setdefault("201", {"description": "Created"}),
+                    "Created (returns the new dashboard item)",
+                    "DashboardCreateResponse",
+                )
+                ensureJavaScriptCodeSample(
+                    dashboardCreate,
+                    (
+                        "// Example using openapi-client-axios\n"
+                        "// const client = ...;\n"
+                        "// const res = await client.POST('/api/v1/dashboard', {\n"
+                        "//   headers: { 'Idempotency-Key': crypto.randomUUID() },\n"
+                        "//   body: { title: '신규 업무', status: 'running', amount: 32100, tags: ['web'] },\n"
+                        "// });\n"
+                        "// console.log(res.data.result.id);"
+                    ),
+                )
+
+            dashboardUpdate = paths.get("/api/v1/dashboard/{dataId}", {}).get("put")
+            if isinstance(dashboardUpdate, dict):
+                dashboardUpdate["security"] = [{"bearerAuth": []}, {"OAuth2PasswordBearer": []}]
+                dashboardUpdate["requestBody"] = {
+                    "required": True,
+                    "content": {
+                        "application/json": {
+                            "schema": {"$ref": "#/components/schemas/DashboardPatchRequest"},
+                        }
+                    },
+                }
+                responses = dashboardUpdate.setdefault("responses", {})
+                ensureNoStoreResponse(
+                    responses.setdefault("200", {"description": "OK"}),
+                    "OK (returns the updated dashboard item)",
+                    "DashboardUpdateResponse",
+                )
+                ensureJavaScriptCodeSample(
+                    dashboardUpdate,
+                    (
+                        "// Example using openapi-client-axios\n"
+                        "// const client = ...;\n"
+                        "// const res = await client.PUT('/api/v1/dashboard/{dataId}', {\n"
+                        "//   params: { path: { dataId: 1 } },\n"
+                        "//   body: { status: 'done', tags: 'release,done' },\n"
+                        "// });\n"
+                        "// console.log(res.data.result.status);"
+                    ),
+                )
+
+            dashboardDelete = paths.get("/api/v1/dashboard/{dataId}", {}).get("delete")
+            if isinstance(dashboardDelete, dict):
+                dashboardDelete["security"] = [{"bearerAuth": []}, {"OAuth2PasswordBearer": []}]
+                responses = dashboardDelete.setdefault("responses", {})
+                ensureNoStoreResponse(
+                    responses.setdefault("200", {"description": "OK"}),
+                    "OK (deletes one dashboard item owned by authenticated user)",
+                    "DashboardDeleteResponse",
+                )
+                ensureJavaScriptCodeSample(
+                    dashboardDelete,
+                    (
+                        "// Example using openapi-client-axios\n"
+                        "// const client = ...;\n"
+                        "// await client.DELETE('/api/v1/dashboard/{dataId}', {\n"
+                        "//   params: { path: { dataId: 1 } },\n"
+                        "// });"
                     ),
                 )
 

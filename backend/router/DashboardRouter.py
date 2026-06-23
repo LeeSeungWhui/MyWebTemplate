@@ -129,6 +129,7 @@ async def createDataTemplate(request: Request, user=Depends(getCurrentUser)):
                 "amount": "number",
                 "tags": "str_or_str_list",
             },
+            rejectUnknown=True,
             errorCode="DASH_422_INVALID_INPUT",
         )
         idempotencyKey = request.headers.get("Idempotency-Key")
@@ -162,6 +163,7 @@ async def updateDataTemplate(dataId: int, request: Request, user=Depends(getCurr
                 "tags": "str_or_str_list",
             },
             excludeNone=True,
+            rejectUnknown=True,
             errorCode="DASH_422_INVALID_INPUT",
         )
         result = await DashboardService.updateDataTemplate(

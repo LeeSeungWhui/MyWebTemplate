@@ -66,6 +66,7 @@ async def updateMyProfile(request: Request, user=Depends(getCurrentUser)):
                 "notifyPush": "bool",
             },
             excludeNone=True,
+            rejectUnknown=True,
             errorCode="AUTH_422_INVALID_INPUT",
         )
         result = await ProfileService.updateMyProfile(user, payload)

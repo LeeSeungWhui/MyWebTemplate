@@ -196,6 +196,39 @@ def testDashboardInvalidPayloadReturns422():
         assert body["code"] == "DASH_422_INVALID_INPUT"
 
 
+def testDashboardRejectsUnknownWriteFields():
+    from server import app
+
+    ensureDataTableAndSeed()
+    with TestClient(app) as client:
+        loginAsDemo(client)
+        headers = authHeaderFromCookie(client)
+
+        createResponse = client.post(
+            "/api/v1/dashboard",
+            json={"title": "신규 업무", "status": "ready", "unknownField": True},
+            headers=headers,
+        )
+        assert createResponse.status_code == 422
+        createBody = createResponse.json()
+        assert createBody["status"] is False
+        assert createBody["code"] == "DASH_422_INVALID_INPUT"
+
+        listResponse = client.get("/api/v1/dashboard?q=테스트 업무&size=10&page=1", headers=headers)
+        assert listResponse.status_code == 200
+        dataId = int(listResponse.json()["result"]["dataTemplateList"][0]["id"])
+
+        updateResponse = client.put(
+            f"/api/v1/dashboard/{dataId}",
+            json={"status": "done", "unknownField": True},
+            headers=headers,
+        )
+        assert updateResponse.status_code == 422
+        updateBody = updateResponse.json()
+        assert updateBody["status"] is False
+        assert updateBody["code"] == "DASH_422_INVALID_INPUT"
+
+
 def testDashboardRequiresAuth():
     from server import app
 
@@ -228,3 +261,80 @@ def testDashboardRejectsCrossUserDetailAccess():
         body = detailResponse.json()
         assert body["status"] is False
         assert body["code"] == "DASH_404_NOT_FOUND"
+
+
+def testOpenapiDocumentsDashboardContracts():
+    from server import app
+
+    app.openapi_schema = None
+    with TestClient(app) as client:
+        response = client.get("/openapi.json")
+
+    assert response.status_code == 200
+    schema = response.json()
+    schemas = schema["components"]["schemas"]
+    for schemaName in (
+        "DashboardItem",
+        "DashboardListMeta",
+        "DashboardListResult",
+        "DashboardStatsItem",
+        "DashboardStatsResult",
+        "DashboardWriteRequest",
+        "DashboardPatchRequest",
+        "DashboardDeleteResult",
+        "DashboardListResponse",
+        "DashboardStatsResponse",
+        "DashboardItemResponse",
+        "DashboardCreateResponse",
+        "DashboardUpdateResponse",
+        "DashboardDeleteResponse",
+    ):
+        assert schemaName in schemas
+
+    itemProperties = schemas["DashboardItem"]["properties"]
+    for fieldName in ("id", "title", "description", "status", "amount", "tags", "createdAt"):
+        assert fieldName in itemProperties
+    assert schemas["DashboardWriteRequest"]["required"] == ["title", "status"]
+    assert schemas["DashboardWriteRequest"]["additionalProperties"] is False
+    assert {"required": ["status"]} in schemas["DashboardPatchRequest"]["anyOf"]
+    assert schemas["DashboardPatchRequest"]["additionalProperties"] is False
+
+    listOperation = schema["paths"]["/api/v1/dashboard"]["get"]
+    listSchema = listOperation["responses"]["200"]["content"]["application/json"]["schema"]
+    assert listSchema == {"$ref": "#/components/schemas/DashboardListResponse"}
+    assert {"bearerAuth": []} in listOperation["security"]
+    assert listOperation["responses"]["200"]["headers"]["Cache-Control"]["schema"]["example"] == "no-store"
+    assert any(
+        sample.get("lang") == "JavaScript"
+        and sample.get("label") == "openapi-client-axios"
+        and "/api/v1/dashboard" in sample.get("source", "")
+        for sample in listOperation.get("x-codeSamples", [])
+    )
+
+    statsOperation = schema["paths"]["/api/v1/dashboard/stats"]["get"]
+    statsSchema = statsOperation["responses"]["200"]["content"]["application/json"]["schema"]
+    assert statsSchema == {"$ref": "#/components/schemas/DashboardStatsResponse"}
+
+    pathOperations = schema["paths"]["/api/v1/dashboard/{dataId}"]
+    detailSchema = pathOperations["get"]["responses"]["200"]["content"]["application/json"]["schema"]
+    updateRequestSchema = pathOperations["put"]["requestBody"]["content"]["application/json"]["schema"]
+    updateResponseSchema = pathOperations["put"]["responses"]["200"]["content"]["application/json"]["schema"]
+    deleteResponseSchema = pathOperations["delete"]["responses"]["200"]["content"]["application/json"]["schema"]
+    assert detailSchema == {"$ref": "#/components/schemas/DashboardItemResponse"}
+    assert updateRequestSchema == {"$ref": "#/components/schemas/DashboardPatchRequest"}
+    assert updateResponseSchema == {"$ref": "#/components/schemas/DashboardUpdateResponse"}
+    assert deleteResponseSchema == {"$ref": "#/components/schemas/DashboardDeleteResponse"}
+
+    createOperation = schema["paths"]["/api/v1/dashboard"]["post"]
+    createRequestSchema = createOperation["requestBody"]["content"]["application/json"]["schema"]
+    createResponseSchema = createOperation["responses"]["201"]["content"]["application/json"]["schema"]
+    assert "200" not in createOperation["responses"]
+    assert createRequestSchema == {"$ref": "#/components/schemas/DashboardWriteRequest"}
+    assert createResponseSchema == {"$ref": "#/components/schemas/DashboardCreateResponse"}
+    assert {"$ref": "#/components/parameters/IdempotencyKey"} in createOperation["parameters"]
+    assert any(
+        sample.get("lang") == "JavaScript"
+        and sample.get("label") == "openapi-client-axios"
+        and "Idempotency-Key" in sample.get("source", "")
+        for sample in createOperation.get("x-codeSamples", [])
+    )

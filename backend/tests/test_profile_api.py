@@ -150,6 +150,24 @@ def testProfileUpdateInvalidInputReturns422():
         assert body["code"] == "AUTH_422_INVALID_INPUT"
 
 
+def testProfileUpdateRejectsUnknownFields():
+    from server import app
+
+    with TestClient(app) as client:
+        loginAsDemo(client)
+        headers = authHeaderFromCookie(client)
+
+        response = client.put(
+            "/api/v1/profile/me",
+            json={"userNm": "Demo Profile", "unexpectedField": True},
+            headers=headers,
+        )
+        assert response.status_code == 422
+        body = response.json()
+        assert body["status"] is False
+        assert body["code"] == "AUTH_422_INVALID_INPUT"
+
+
 def testProfileRequiresAuth():
     from server import app
 

@@ -76,6 +76,7 @@ def validatePayloadTypes(
     requiredFieldTypeMap: dict[str, str] | None = None,
     optionalFieldTypeMap: dict[str, str] | None = None,
     excludeNone: bool = False,
+    rejectUnknown: bool = False,
     errorCode: str = "SAMPLE_422_INVALID_INPUT",
 ) -> dict[str, Any]:
     """
@@ -88,6 +89,12 @@ def validatePayloadTypes(
     optionalMap = optionalFieldTypeMap or {}
     if not isinstance(payload, dict):
         raise ServiceError(errorCode)
+
+    if rejectUnknown:
+        allowedFields = set(requiredMap) | set(optionalMap)
+        hasUnknownField = any(fieldName not in allowedFields for fieldName in payload)
+        if hasUnknownField:
+            raise ServiceError(errorCode)
 
     normalizedPayload: dict[str, Any] = {}
     for fieldName, expectedType in requiredMap.items():
