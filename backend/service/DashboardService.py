@@ -17,16 +17,18 @@ from lib.Idempotency import beginIdempotencyRequest, completeIdempotencyRequest
 from lib.ServiceError import ServiceError
 from lib.Transaction import transaction
 
-ALLOWED_STATUS = frozenset(("ready", "pending", "running", "done", "failed"))
+DASHBOARD_STATUS_ORDER = ("ready", "pending", "running", "done", "failed")
+ALLOWED_STATUS = frozenset(DASHBOARD_STATUS_ORDER)
 SQLITE_LOCK_RETRY_COUNT = 8
-ALLOWED_SORT = frozenset((
+ALLOWED_SORT_ORDER = (
     "reg_dt_desc",
     "reg_dt_asc",
     "amt_desc",
     "amt_asc",
     "title_desc",
     "title_asc",
-))
+)
+ALLOWED_SORT = frozenset(ALLOWED_SORT_ORDER)
 
 
 def toIntOrDefault(rawValue: Optional[Any], defaultValue: int) -> int:
@@ -383,7 +385,6 @@ async def getDataTemplateDetail(dataId: int, userId: str) -> Dict[str, Any]:
     return convertDashboardRow(row)
 
 
-@transaction("main_db", retries=SQLITE_LOCK_RETRY_COUNT, retryOn=(sqlite3.OperationalError,))
 async def createDataTemplate(payload: Dict[str, Any], userId: str, idempotencyKey: str | None = None) -> Dict[str, Any]:
     """
     설명: 업무를 신규 등록
@@ -400,20 +401,33 @@ async def createDataTemplate(payload: Dict[str, Any], userId: str, idempotencyKe
     replay = await beginIdempotencyRequest(scopeType, idempotencyKey, insertPayload)
     if replay.get("status") == "replay":
         return replay.get("result") or {}
+    result = await createDataTemplateInTransaction(payload, ownerUserId, idempotencyKey=None)
+    await completeIdempotencyRequest(scopeType, idempotencyKey, result)
+    return result
+
+
+@transaction("main_db", retries=SQLITE_LOCK_RETRY_COUNT, retryOn=(sqlite3.OperationalError,))
+async def createDataTemplateInTransaction(payload: Dict[str, Any], userId: str, idempotencyKey: str | None = None) -> Dict[str, Any]:
+    """
+    설명: 업무를 신규 등록하는 트랜잭션 내부 단계
+    반환값: 신규 생성된 업무 상세 dict, 생성 후보 확인 실패 시 ServiceError를 발생시킨
+    갱신일: 2026-06-24
+    """
+    if not isinstance(payload, dict):
+        raise ServiceError("DASH_422_INVALID_INPUT")
+    ownerUserId = normalizeUserId(userId)
+    insertPayload = buildCreatePayload(payload)
+    insertPayload["userId"] = ownerUserId
     db = ensureDbManager()
     inserted = await db.executeQuery("dashboard.create", insertPayload)
     createdId = parseInsertedId(inserted)
     if createdId:
         row = await db.fetchOneQuery("dashboard.detail", {"id": createdId, "userId": ownerUserId})
         if row:
-            result = convertDashboardRow(row)
-            await completeIdempotencyRequest(scopeType, idempotencyKey, result)
-            return result
+            return convertDashboardRow(row)
     candidate = await db.fetchOneQuery("dashboard.findCreatedCandidate", insertPayload)
     if candidate:
-        result = convertDashboardRow(candidate)
-        await completeIdempotencyRequest(scopeType, idempotencyKey, result)
-        return result
+        return convertDashboardRow(candidate)
     raise ServiceError("DASH_500_CREATE_FAILED")
 
 

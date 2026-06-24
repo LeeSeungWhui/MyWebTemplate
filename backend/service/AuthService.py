@@ -30,6 +30,7 @@ from lib.Idempotency import beginIdempotencyRequest, completeIdempotencyRequest
 from lib.Logger import logger
 from lib.Masking import maskUserIdentifierForLog
 from lib.RequestContext import getRequestId
+from lib.ServiceError import resolveServiceErrorCode
 from lib.Transaction import transaction
 
 # 리프레시 토큰 상태 타입
@@ -451,7 +452,6 @@ def isDuplicateTokenStateConstraintError(error: Exception) -> bool:
     return False
 
 
-@transaction("main_db")
 async def signup(payload: dict, idempotencyKey: str | None = None) -> tuple[dict | None, str | None]:
     """
     설명: 회원가입 입력 검증, 중복 확인, 계정 생성, 결과 코드 매핑까지 처리하 흐름
@@ -478,53 +478,66 @@ async def signup(payload: dict, idempotencyKey: str | None = None) -> tuple[dict
         "email": email,
     }
 
-    db = DB.getManager()
-    if not db:
-        return None, "AUTH_503_DB_NOT_READY"
-
     try:
         replay = await beginIdempotencyRequest("auth.signup", idempotencyKey, signupPayload)
         if replay.get("status") == "replay":
             return replay.get("result") or {}, None
-        exists = await db.fetchOneQuery("auth.userByUsername", {"u": email})
-        if exists:
-            auditLog("auth.signup", email, False, {"reason": "user_exists"})
-            return None, "AUTH_409_USER_EXISTS"
-
-        passwordHash = hashPasswordPbkdf2(password)
-        try:
-            await db.executeQuery(
-                "auth.insertUser",
-                {
-                    "userId": email,
-                    "userPw": passwordHash,
-                    "userNm": name,
-                    "userEml": email,
-                    "roleCd": "user",
-                },
-            )
-        except Exception as insertError:
-            if isDuplicateUserConstraintError(insertError):
-                auditLog("auth.signup", email, False, {"reason": "user_exists_race"})
-                return None, "AUTH_409_USER_EXISTS"
-            raise
-        created = await db.fetchOneQuery("auth.userByUsername", {"u": email})
-        if not created:
-            auditLog("auth.signup", email, False, {"reason": "create_failed"})
-            return None, "AUTH_500_SIGNUP_FAILED"
-        createdUser = convertKeysToCamelCase(created)
-
-        result = {
-            "userId": createdUser.get("userId") or email,
-            "userNm": createdUser.get("userNm") or name,
-        }
+        result, errorCode = await signupInTransaction(name, email, password)
+        if errorCode:
+            auditLog("auth.signup", email, False, {"reason": errorCode.lower()})
+            return None, errorCode
         await completeIdempotencyRequest("auth.signup", idempotencyKey, result)
         auditLog("auth.signup", email, True, {})
         return result, None
     except Exception as e:
+        serviceErrorCode = resolveServiceErrorCode(e)
+        if serviceErrorCode:
+            auditLog("auth.signup", email, False, {"reason": serviceErrorCode.lower()})
+            return None, serviceErrorCode
         auditLog("auth.signup", email, False, {"reason": "exception"})
         logger.error(f"signup failed: error={type(e).__name__}")
         return None, "AUTH_500_SIGNUP_FAILED"
+
+
+@transaction("main_db")
+async def signupInTransaction(name: str, email: str, password: str) -> tuple[dict | None, str | None]:
+    """
+    설명: 회원가입 DB 생성 트랜잭션 내부 단계
+    반환값: (성공 결과 dict, None) 또는 (None, 에러코드)
+    갱신일: 2026-06-24
+    """
+    db = DB.getManager()
+    if not db:
+        return None, "AUTH_503_DB_NOT_READY"
+
+    exists = await db.fetchOneQuery("auth.userByUsername", {"u": email})
+    if exists:
+        return None, "AUTH_409_USER_EXISTS"
+
+    passwordHash = hashPasswordPbkdf2(password)
+    try:
+        await db.executeQuery(
+            "auth.insertUser",
+            {
+                "userId": email,
+                "userPw": passwordHash,
+                "userNm": name,
+                "userEml": email,
+                "roleCd": "user",
+            },
+        )
+    except Exception as insertError:
+        if isDuplicateUserConstraintError(insertError):
+            return None, "AUTH_409_USER_EXISTS"
+        raise
+    created = await db.fetchOneQuery("auth.userByUsername", {"u": email})
+    if not created:
+        return None, "AUTH_500_SIGNUP_FAILED"
+    createdUser = convertKeysToCamelCase(created)
+    return {
+        "userId": createdUser.get("userId") or email,
+        "userNm": createdUser.get("userNm") or name,
+    }, None
 
 
 @transaction("main_db")

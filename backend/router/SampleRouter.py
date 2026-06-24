@@ -8,7 +8,6 @@
 from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
 
-from lib.Config import getConfig
 from lib.RequestPayloadValidator import readJsonPayloadDict, validatePayloadTypes
 from lib.Response import successResponse
 from lib.ServiceError import buildMappedErrorResponse
@@ -79,25 +78,13 @@ async def listSampleTasks(
     갱신일: 2026-03-06
     """
     try:
-        effectiveSize = size
-        if size is not None:
-            config = getConfig()
-            globalPolicy = config["API_POLICY"] if "API_POLICY" in config else None
-            taskListPolicy = config["API_POLICY.sample.taskList"] if "API_POLICY.sample.taskList" in config else None
-            absoluteListSizeCap = min(int(globalPolicy.get("absolute_list_size_cap", 200)) if globalPolicy else 200, 500)
-            listSizeMax = int(
-                taskListPolicy.get("list_size_max")
-                if taskListPolicy and taskListPolicy.get("list_size_max") is not None
-                else (globalPolicy.get("list_size_max", 50) if globalPolicy else 50)
-            )
-            effectiveSize = max(1, min(int(size), max(1, min(listSizeMax, absoluteListSizeCap))))
         result = await SampleService.listSampleTasks(
             q=q,
             status=status,
             fromDate=fromDate,
             toDate=toDate,
             page=page,
-            size=effectiveSize,
+            size=size,
         )
         response = JSONResponse(
             status_code=200,
@@ -286,23 +273,7 @@ async def listSampleAdminUsers(
     갱신일: 2026-03-06
     """
     try:
-        effectiveSize = size
-        if size is not None:
-            config = getConfig()
-            globalPolicy = config["API_POLICY"] if "API_POLICY" in config else None
-            adminUserListPolicy = (
-                config["API_POLICY.sample.adminUserList"]
-                if "API_POLICY.sample.adminUserList" in config
-                else None
-            )
-            absoluteListSizeCap = min(int(globalPolicy.get("absolute_list_size_cap", 200)) if globalPolicy else 200, 500)
-            listSizeMax = int(
-                adminUserListPolicy.get("list_size_max")
-                if adminUserListPolicy and adminUserListPolicy.get("list_size_max") is not None
-                else (globalPolicy.get("list_size_max", 50) if globalPolicy else 50)
-            )
-            effectiveSize = max(1, min(int(size), max(1, min(listSizeMax, absoluteListSizeCap))))
-        result = await SampleService.listSampleAdminUsers(page=page, size=effectiveSize)
+        result = await SampleService.listSampleAdminUsers(page=page, size=size)
         response = JSONResponse(
             status_code=200,
             content={

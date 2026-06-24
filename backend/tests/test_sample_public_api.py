@@ -86,6 +86,43 @@ def testSampleTaskCrudFlow():
         assert missingResponse.json()["code"] == "SAMPLE_404_NOT_FOUND"
 
 
+def testSampleTaskCreateIdempotencyReplayAndPayloadMismatch():
+    from server import app
+
+    resetSampleTables()
+    with TestClient(app) as client:
+        headers = {"Idempotency-Key": f"idem-sample-task:{os.urandom(8).hex()}"}
+        payload = {
+            "title": "공개 샘플 idem 업무",
+            "description": "idem replay 검증",
+            "owner": "테스트",
+            "status": "running",
+            "amount": 210000,
+            "attachmentName": "sample.md",
+        }
+
+        first = client.post("/api/v1/sample/tasks", json=payload, headers=headers)
+        assert first.status_code == 201
+        firstBody = first.json()
+        assert firstBody["status"] is True
+
+        replay = client.post("/api/v1/sample/tasks", json=payload, headers=headers)
+        assert replay.status_code == 201
+        replayBody = replay.json()
+        assert replayBody["status"] is True
+        assert replayBody["result"] == firstBody["result"]
+
+        mismatch = client.post(
+            "/api/v1/sample/tasks",
+            json={**payload, "title": "공개 샘플 idem 변경"},
+            headers=headers,
+        )
+        assert mismatch.status_code == 409
+        mismatchBody = mismatch.json()
+        assert mismatchBody["status"] is False
+        assert mismatchBody["code"] == "IDEMPOTENCY_409_PAYLOAD_MISMATCH"
+
+
 def testSampleWriteApisRejectUnknownFields():
     from server import app
 
@@ -160,6 +197,57 @@ def testSampleWriteApisRejectUnknownFields():
         )
         assert updateSettingsResponse.status_code == 422
         assert updateSettingsResponse.json()["code"] == "SAMPLE_422_INVALID_INPUT"
+
+
+def testSampleListRoutersPassRawPaginationToService(monkeypatch):
+    from server import app
+    from router import SampleRouter
+
+    captured = {}
+
+    async def fakeListSampleTasks(**kwargs):
+        captured["tasks"] = dict(kwargs)
+        return {
+            "sampleTaskList": [],
+            "total": 0,
+            "page": 1,
+            "size": 50,
+            "q": kwargs.get("q") or "",
+            "status": kwargs.get("status") or "",
+            "fromDate": kwargs.get("fromDate") or "",
+            "toDate": kwargs.get("toDate") or "",
+        }
+
+    async def fakeListSampleAdminUsers(**kwargs):
+        captured["users"] = dict(kwargs)
+        return {
+            "sampleAdminUserList": [],
+            "total": 0,
+            "page": 1,
+            "size": 50,
+        }
+
+    monkeypatch.setattr(SampleRouter.SampleService, "listSampleTasks", fakeListSampleTasks)
+    monkeypatch.setattr(SampleRouter.SampleService, "listSampleAdminUsers", fakeListSampleAdminUsers)
+
+    with TestClient(app) as client:
+        taskResponse = client.get("/api/v1/sample/tasks?page=0&size=999&q=demo")
+        assert taskResponse.status_code == 200
+        userResponse = client.get("/api/v1/sample/admin/users?page=-5&size=777")
+        assert userResponse.status_code == 200
+
+    assert captured["tasks"] == {
+        "q": "demo",
+        "status": None,
+        "fromDate": None,
+        "toDate": None,
+        "page": 0,
+        "size": 999,
+    }
+    assert captured["users"] == {
+        "page": -5,
+        "size": 777,
+    }
 
 
 def testSampleFormMetaAndSubmit():
@@ -273,3 +361,117 @@ def testSampleAdminUserAndSettingFlow():
         savedSetting = saveSettingsResponse.json()["result"]["systemSetting"]
         assert savedSetting["siteName"] == "MyWebTemplate Sample"
         assert savedSetting["maintenanceMode"] is True
+
+
+def testSampleOpenApiSchemasDocumentWriteContracts():
+    from server import app
+
+    with TestClient(app) as client:
+        schema = client.get("/openapi.json").json()
+
+    components = schema["components"]["schemas"]
+
+    requiredSchemas = {
+        "SampleOverviewResponse",
+        "SampleDashboardResponse",
+        "SampleTaskListResponse",
+        "SampleTaskDetailResponse",
+        "SampleTaskCreateResponse",
+        "SampleTaskUpdateResponse",
+        "SampleTaskDeleteResponse",
+        "SampleFormMetaResponse",
+        "SampleFormSubmitResponse",
+        "SampleAdminUserListResponse",
+        "SampleAdminUserCreateResponse",
+        "SampleAdminUserUpdateResponse",
+        "SampleAdminSettingsResponse",
+        "SampleAdminSettingsUpdateResponse",
+        "SampleTaskWriteRequest",
+        "SampleTaskPatchRequest",
+        "SampleFormSubmitRequest",
+        "SampleAdminUserWriteRequest",
+        "SampleAdminUserPatchRequest",
+        "SampleAdminSettingsUpdateRequest",
+    }
+    assert requiredSchemas.issubset(components.keys())
+
+    for schemaName in (
+        "SampleTaskWriteRequest",
+        "SampleTaskPatchRequest",
+        "SampleFormSubmitRequest",
+        "SampleAdminUserWriteRequest",
+        "SampleAdminUserPatchRequest",
+        "SampleAdminSettingsUpdateRequest",
+    ):
+        assert components[schemaName]["additionalProperties"] is False
+
+    assert components["SampleTaskPatchRequest"]["minProperties"] == 1
+    assert components["SampleAdminUserPatchRequest"]["minProperties"] == 1
+    assert components["SampleAdminSettingsUpdateRequest"]["properties"]["sessionTimeout"]["maximum"] == 1440
+    assert components["SampleAdminSettingsUpdateRequest"]["properties"]["maxUploadMb"]["maximum"] == 1000
+
+
+def testSampleOpenApiPathsUseSchemaRefsAndCodeSamples():
+    from server import app
+
+    with TestClient(app) as client:
+        schema = client.get("/openapi.json").json()
+
+    paths = schema["paths"]
+
+    responseExpectations = {
+        ("/api/v1/sample/overview", "get", "200"): "#/components/schemas/SampleOverviewResponse",
+        ("/api/v1/sample/dashboard", "get", "200"): "#/components/schemas/SampleDashboardResponse",
+        ("/api/v1/sample/tasks", "get", "200"): "#/components/schemas/SampleTaskListResponse",
+        ("/api/v1/sample/tasks/{taskId}", "get", "200"): "#/components/schemas/SampleTaskDetailResponse",
+        ("/api/v1/sample/tasks", "post", "201"): "#/components/schemas/SampleTaskCreateResponse",
+        ("/api/v1/sample/tasks/{taskId}", "put", "200"): "#/components/schemas/SampleTaskUpdateResponse",
+        ("/api/v1/sample/tasks/{taskId}", "delete", "200"): "#/components/schemas/SampleTaskDeleteResponse",
+        ("/api/v1/sample/forms/meta", "get", "200"): "#/components/schemas/SampleFormMetaResponse",
+        ("/api/v1/sample/forms", "post", "201"): "#/components/schemas/SampleFormSubmitResponse",
+        ("/api/v1/sample/admin/users", "get", "200"): "#/components/schemas/SampleAdminUserListResponse",
+        ("/api/v1/sample/admin/users", "post", "201"): "#/components/schemas/SampleAdminUserCreateResponse",
+        ("/api/v1/sample/admin/users/{userId}", "put", "200"): "#/components/schemas/SampleAdminUserUpdateResponse",
+        ("/api/v1/sample/admin/settings", "get", "200"): "#/components/schemas/SampleAdminSettingsResponse",
+        ("/api/v1/sample/admin/settings", "put", "200"): "#/components/schemas/SampleAdminSettingsUpdateResponse",
+    }
+    for (path, method, statusCode), schemaRef in responseExpectations.items():
+        operation = paths[path][method]
+        response = operation["responses"][statusCode]
+        responseSchema = response["content"]["application/json"]["schema"]
+        assert responseSchema["$ref"] == schemaRef
+        cacheControlHeader = response["headers"]["Cache-Control"]
+        assert cacheControlHeader["schema"]["type"] == "string"
+        assert cacheControlHeader["schema"]["example"] == "no-store"
+
+    requestBodyExpectations = {
+        ("/api/v1/sample/tasks", "post"): "#/components/schemas/SampleTaskWriteRequest",
+        ("/api/v1/sample/tasks/{taskId}", "put"): "#/components/schemas/SampleTaskPatchRequest",
+        ("/api/v1/sample/forms", "post"): "#/components/schemas/SampleFormSubmitRequest",
+        ("/api/v1/sample/admin/users", "post"): "#/components/schemas/SampleAdminUserWriteRequest",
+        ("/api/v1/sample/admin/users/{userId}", "put"): "#/components/schemas/SampleAdminUserPatchRequest",
+        ("/api/v1/sample/admin/settings", "put"): "#/components/schemas/SampleAdminSettingsUpdateRequest",
+    }
+    for (path, method), schemaRef in requestBodyExpectations.items():
+        operation = paths[path][method]
+        requestSchema = operation["requestBody"]["content"]["application/json"]["schema"]
+        assert requestSchema["$ref"] == schemaRef
+
+    for path, method in (
+        ("/api/v1/sample/tasks", "post"),
+        ("/api/v1/sample/forms", "post"),
+        ("/api/v1/sample/admin/users", "post"),
+    ):
+        parameters = paths[path][method]["parameters"]
+        assert {"$ref": "#/components/parameters/IdempotencyKey"} in parameters
+
+    for path, method in (
+        ("/api/v1/sample/overview", "get"),
+        ("/api/v1/sample/tasks", "post"),
+        ("/api/v1/sample/admin/settings", "put"),
+    ):
+        codeSamples = paths[path][method]["x-codeSamples"]
+        assert any(
+            sample.get("lang") == "JavaScript" and sample.get("label") == "openapi-client-axios"
+            for sample in codeSamples
+        )

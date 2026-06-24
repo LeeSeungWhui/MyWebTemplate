@@ -13,6 +13,22 @@ from typing import Any, Dict, Optional
 from fastapi import FastAPI
 from fastapi.openapi.utils import get_openapi
 from lib.Logger import logger
+from lib.OpenAPIHelpers import (
+    buildStandardErrorResponses,
+    ensureErrorResponseRef,
+    ensureHeaderRef,
+    ensureJavaScriptCodeSample,
+    ensureNoStoreResponse,
+    isOpenapiPatchStrictEnabled,
+    resolveServersFromConfig,
+    schemaRef,
+)
+from service.DashboardService import DASHBOARD_STATUS_ORDER, ALLOWED_SORT_ORDER
+from service.SampleService import (
+    SAMPLE_ADMIN_ROLE_ORDER,
+    SAMPLE_ADMIN_STATUS_ORDER,
+    SAMPLE_TASK_STATUS_ORDER,
+)
 
 
 def attachOpenAPI(app: FastAPI, config) -> None:
@@ -91,7 +107,29 @@ def attachOpenAPI(app: FastAPI, config) -> None:
                     "required": ["status", "message", "result", "requestId"],
                 }
             if "ErrorResponse" not in schemas:
-                schemas["ErrorResponse"] = dict(schemas["StandardResponse"])
+                schemas["ErrorResponse"] = {
+                    "type": "object",
+                    "properties": {
+                        "status": {"type": "boolean", "const": False, "example": False},
+                        "message": {"type": "string", "example": "invalid input"},
+                        "result": {
+                            "anyOf": [
+                                {"type": "object", "additionalProperties": True},
+                                {"type": "array", "items": {}},
+                                {"type": "string"},
+                                {"type": "number"},
+                                {"type": "integer"},
+                                {"type": "boolean"},
+                                {"type": "null"},
+                            ],
+                            "example": None,
+                        },
+                        "code": {"type": "string", "example": "AUTH_422_INVALID_INPUT"},
+                        "requestId": {"type": "string", "example": "req-demo"},
+                    },
+                    "required": ["status", "message", "code", "requestId"],
+                    "additionalProperties": False,
+                }
 
             if "AuthWebSessionResult" not in schemas:
                 schemas["AuthWebSessionResult"] = {
@@ -110,6 +148,54 @@ def attachOpenAPI(app: FastAPI, config) -> None:
                         {
                             "type": "object",
                             "properties": {"result": {"$ref": "#/components/schemas/AuthWebSessionResult"}},
+                        },
+                    ]
+                }
+            if "AuthLoginRequest" not in schemas:
+                schemas["AuthLoginRequest"] = {
+                    "type": "object",
+                    "properties": {
+                        "username": {"type": "string", "example": "demo@demo.demo"},
+                        "password": {"type": "string", "example": "password123"},
+                        "rememberMe": {
+                            "type": "boolean",
+                            "example": False,
+                            "description": (
+                                "Optional remember-me flag. Send JSON boolean true to persist the refresh token; "
+                                "runtime treats non-boolean values as false."
+                            ),
+                        },
+                    },
+                    "required": ["username", "password"],
+                    "additionalProperties": False,
+                }
+            if "AuthSignupRequest" not in schemas:
+                schemas["AuthSignupRequest"] = {
+                    "type": "object",
+                    "properties": {
+                        "name": {"type": "string", "example": "Demo User"},
+                        "email": {"type": "string", "format": "email", "example": "demo@demo.demo"},
+                        "password": {"type": "string", "example": "password123"},
+                    },
+                    "required": ["name", "email", "password"],
+                    "additionalProperties": False,
+                }
+            if "AuthSignupResult" not in schemas:
+                schemas["AuthSignupResult"] = {
+                    "type": "object",
+                    "properties": {
+                        "userId": {"type": "string", "format": "email", "example": "demo@demo.demo"},
+                        "userNm": {"type": "string", "example": "Demo User"},
+                    },
+                    "required": ["userId", "userNm"],
+                }
+            if "AuthSignupResponse" not in schemas:
+                schemas["AuthSignupResponse"] = {
+                    "allOf": [
+                        {"$ref": "#/components/schemas/StandardResponse"},
+                        {
+                            "type": "object",
+                            "properties": {"result": {"$ref": "#/components/schemas/AuthSignupResult"}},
                         },
                     ]
                 }
@@ -135,6 +221,26 @@ def attachOpenAPI(app: FastAPI, config) -> None:
                             "properties": {"result": {"$ref": "#/components/schemas/AuthAppTokenResult"}},
                         },
                     ]
+                }
+            if "AuthAppLoginRequest" not in schemas:
+                schemas["AuthAppLoginRequest"] = dict(schemas["AuthLoginRequest"])
+            if "AuthAppRefreshRequest" not in schemas:
+                schemas["AuthAppRefreshRequest"] = {
+                    "type": "object",
+                    "properties": {
+                        "refreshToken": {"type": "string", "example": "<refresh-token>"},
+                    },
+                    "required": ["refreshToken"],
+                    "additionalProperties": False,
+                }
+            if "AuthAppLogoutRequest" not in schemas:
+                schemas["AuthAppLogoutRequest"] = {
+                    "type": "object",
+                    "properties": {
+                        "refreshToken": {"type": "string", "example": "<refresh-token>"},
+                    },
+                    "additionalProperties": False,
+                    "description": "Optional JSON body for explicit refresh-token revoke. Empty body is also accepted.",
                 }
 
             if "AuthMeResult" not in schemas:
@@ -172,6 +278,15 @@ def attachOpenAPI(app: FastAPI, config) -> None:
                             "properties": {"result": {"$ref": "#/components/schemas/PasswordResetRequestResult"}},
                         },
                     ]
+                }
+            if "PasswordResetRequest" not in schemas:
+                schemas["PasswordResetRequest"] = {
+                    "type": "object",
+                    "properties": {
+                        "email": {"type": "string", "format": "email", "example": "demo@demo.demo"},
+                    },
+                    "required": ["email"],
+                    "additionalProperties": False,
                 }
 
             if "HealthzResult" not in schemas:
@@ -295,8 +410,8 @@ def attachOpenAPI(app: FastAPI, config) -> None:
 
             dashboardStatusSchema = {
                 "type": "string",
-                "enum": ["ready", "pending", "running", "done", "failed"],
-                "example": "ready",
+                "enum": list(DASHBOARD_STATUS_ORDER),
+                "example": DASHBOARD_STATUS_ORDER[0],
             }
             dashboardTagsSchema = {
                 "anyOf": [
@@ -327,15 +442,8 @@ def attachOpenAPI(app: FastAPI, config) -> None:
                         "size": {"type": "integer", "minimum": 1, "maximum": 500, "example": 20},
                         "sort": {
                             "type": "string",
-                            "enum": [
-                                "reg_dt_desc",
-                                "reg_dt_asc",
-                                "amt_desc",
-                                "amt_asc",
-                                "title_desc",
-                                "title_asc",
-                            ],
-                            "example": "reg_dt_desc",
+                            "enum": list(ALLOWED_SORT_ORDER),
+                            "example": ALLOWED_SORT_ORDER[0],
                         },
                         "q": {"type": "string", "example": "테스트"},
                         "status": {"type": "string", "example": "ready"},
@@ -430,6 +538,381 @@ def attachOpenAPI(app: FastAPI, config) -> None:
                         ]
                     }
 
+            sampleTaskStatusSchema = {
+                "type": "string",
+                "enum": list(SAMPLE_TASK_STATUS_ORDER),
+                "example": SAMPLE_TASK_STATUS_ORDER[0],
+            }
+            sampleAdminRoleSchema = {
+                "type": "string",
+                "enum": list(SAMPLE_ADMIN_ROLE_ORDER),
+                "example": SAMPLE_ADMIN_ROLE_ORDER[1],
+            }
+            sampleAdminStatusSchema = {
+                "type": "string",
+                "enum": list(SAMPLE_ADMIN_STATUS_ORDER),
+                "example": SAMPLE_ADMIN_STATUS_ORDER[0],
+            }
+            if "SampleOverviewResult" not in schemas:
+                schemas["SampleOverviewResult"] = {
+                    "type": "object",
+                    "properties": {
+                        "taskCount": {"type": "integer", "minimum": 0, "example": 3},
+                        "adminUserCount": {"type": "integer", "minimum": 0, "example": 3},
+                        "formSubmissionCount": {"type": "integer", "minimum": 0, "example": 1},
+                    },
+                    "required": ["taskCount", "adminUserCount", "formSubmissionCount"],
+                }
+            if "SampleDashboardSummaryItem" not in schemas:
+                schemas["SampleDashboardSummaryItem"] = {
+                    "type": "object",
+                    "properties": {
+                        "status": sampleTaskStatusSchema,
+                        "count": {"type": "integer", "minimum": 0, "example": 1},
+                        "amountSum": {"type": "number", "example": 210000},
+                    },
+                    "required": ["status", "count", "amountSum"],
+                }
+            if "SampleDashboardTrendItem" not in schemas:
+                schemas["SampleDashboardTrendItem"] = {
+                    "type": "object",
+                    "properties": {
+                        "label": {"type": "string", "example": "3월"},
+                        "count": {"type": "integer", "minimum": 0, "example": 2},
+                        "amount": {"type": "number", "example": 430000},
+                    },
+                    "required": ["label", "count", "amount"],
+                }
+            if "SampleTaskItem" not in schemas:
+                schemas["SampleTaskItem"] = {
+                    "type": "object",
+                    "properties": {
+                        "id": {"type": "integer", "example": 1},
+                        "title": {"type": "string", "example": "공개 샘플 신규 업무"},
+                        "description": {"type": "string", "example": "DB 연동 CRUD 검증"},
+                        "owner": {"type": "string", "example": "테스트"},
+                        "status": sampleTaskStatusSchema,
+                        "amount": {"type": "number", "example": 210000},
+                        "attachmentName": {"type": "string", "example": "sample.md"},
+                        "createdAt": nullableStringSchema,
+                    },
+                    "required": ["id", "title", "description", "owner", "status", "amount", "attachmentName", "createdAt"],
+                }
+            if "SampleDashboardResult" not in schemas:
+                schemas["SampleDashboardResult"] = {
+                    "type": "object",
+                    "properties": {
+                        "statusSummaryList": {
+                            "type": "array",
+                            "items": {"$ref": "#/components/schemas/SampleDashboardSummaryItem"},
+                        },
+                        "trendList": {
+                            "type": "array",
+                            "items": {"$ref": "#/components/schemas/SampleDashboardTrendItem"},
+                        },
+                        "recentList": {
+                            "type": "array",
+                            "items": {"$ref": "#/components/schemas/SampleTaskItem"},
+                        },
+                    },
+                    "required": ["statusSummaryList", "trendList", "recentList"],
+                }
+            if "SampleTaskListMeta" not in schemas:
+                schemas["SampleTaskListMeta"] = {
+                    "type": "object",
+                    "properties": {
+                        "page": {"type": "integer", "minimum": 1, "example": 1},
+                        "size": {"type": "integer", "minimum": 1, "maximum": 500, "example": 20},
+                        "q": {"type": "string", "example": "샘플"},
+                        "status": {"type": "string", "example": "running"},
+                        "fromDate": {"type": "string", "example": "2026-03-01"},
+                        "toDate": {"type": "string", "example": "2026-03-31"},
+                        "totalCount": {"type": "integer", "minimum": 0, "example": 3},
+                    },
+                    "required": ["page", "size", "q", "status", "fromDate", "toDate", "totalCount"],
+                }
+            if "SampleTaskListResult" not in schemas:
+                schemas["SampleTaskListResult"] = {
+                    "type": "object",
+                    "properties": {
+                        "sampleTaskList": {
+                            "type": "array",
+                            "items": {"$ref": "#/components/schemas/SampleTaskItem"},
+                        },
+                        "listMetaObj": {"$ref": "#/components/schemas/SampleTaskListMeta"},
+                    },
+                    "required": ["sampleTaskList", "listMetaObj"],
+                }
+            if "SampleTaskWriteRequest" not in schemas:
+                schemas["SampleTaskWriteRequest"] = {
+                    "type": "object",
+                    "properties": {
+                        "title": {"type": "string", "example": "공개 샘플 신규 업무"},
+                        "status": sampleTaskStatusSchema,
+                        "description": {"type": "string", "example": "DB 연동 CRUD 검증"},
+                        "owner": {"type": "string", "example": "테스트"},
+                        "amount": {"type": "number", "example": 210000},
+                        "attachmentName": {"type": "string", "example": "sample.md"},
+                    },
+                    "required": ["title", "status"],
+                    "additionalProperties": False,
+                }
+            if "SampleTaskPatchRequest" not in schemas:
+                schemas["SampleTaskPatchRequest"] = {
+                    "type": "object",
+                    "properties": dict(schemas["SampleTaskWriteRequest"]["properties"]),
+                    "minProperties": 1,
+                    "additionalProperties": False,
+                }
+            if "SampleTaskDeleteResult" not in schemas:
+                schemas["SampleTaskDeleteResult"] = {
+                    "type": "object",
+                    "properties": {"id": {"type": "integer", "example": 1}},
+                    "required": ["id"],
+                }
+            if "SampleFormSubmissionItem" not in schemas:
+                schemas["SampleFormSubmissionItem"] = {
+                    "type": "object",
+                    "properties": {
+                        "id": {"type": "integer", "example": 1},
+                        "name": {"type": "string", "example": "홍길동"},
+                        "email": {"type": "string", "format": "email", "example": "hong@example.com"},
+                        "phone": {"type": "string", "example": "010-1234-5678"},
+                        "category": {"type": "string", "example": "web"},
+                        "startDate": {"type": "string", "example": "2026-03-01"},
+                        "endDate": {"type": "string", "example": "2026-03-10"},
+                        "budgetRange": {"type": "string", "example": "300만 ~ 500만"},
+                        "requirement": {"type": "string", "example": "대시보드 고도화"},
+                        "selectedFeatures": {"type": "array", "items": {"type": "string"}, "example": ["login", "chart"]},
+                        "referenceUrl": {"type": "string", "example": "https://example.com/spec"},
+                        "attachmentName": {"type": "string", "example": "brief.pdf"},
+                        "createdAt": nullableStringSchema,
+                    },
+                    "required": [
+                        "id",
+                        "name",
+                        "email",
+                        "phone",
+                        "category",
+                        "startDate",
+                        "endDate",
+                        "budgetRange",
+                        "requirement",
+                        "selectedFeatures",
+                        "referenceUrl",
+                        "attachmentName",
+                        "createdAt",
+                    ],
+                }
+            if "SampleFormSubmissionSummary" not in schemas:
+                schemas["SampleFormSubmissionSummary"] = {
+                    "type": "object",
+                    "properties": {
+                        "id": {"type": "integer", "example": 1},
+                        "category": {"type": "string", "example": "web"},
+                        "selectedFeatures": {"type": "array", "items": {"type": "string"}, "example": ["login", "chart"]},
+                        "createdAt": nullableStringSchema,
+                    },
+                    "required": ["id", "category", "selectedFeatures", "createdAt"],
+                }
+            if "SampleFormMetaResult" not in schemas:
+                schemas["SampleFormMetaResult"] = {
+                    "type": "object",
+                    "properties": {
+                        "categoryCodeList": {"type": "array", "items": {"type": "string"}, "example": ["web", "app"]},
+                        "featureCodeList": {"type": "array", "items": {"type": "string"}, "example": ["login", "chart"]},
+                        "submissionCount": {"type": "integer", "minimum": 0, "example": 1},
+                        "latestSubmission": {
+                            "anyOf": [
+                                {"$ref": "#/components/schemas/SampleFormSubmissionSummary"},
+                                {"type": "null"},
+                            ]
+                        },
+                    },
+                    "required": ["categoryCodeList", "featureCodeList", "submissionCount", "latestSubmission"],
+                }
+            if "SampleFormSubmitRequest" not in schemas:
+                schemas["SampleFormSubmitRequest"] = {
+                    "type": "object",
+                    "properties": {
+                        "name": {"type": "string", "example": "홍길동"},
+                        "email": {"type": "string", "format": "email", "example": "hong@example.com"},
+                        "phone": {"type": "string", "example": "010-1234-5678"},
+                        "category": {"type": "string", "example": "web"},
+                        "startDate": {"type": "string", "example": "2026-03-01"},
+                        "endDate": {"type": "string", "example": "2026-03-10"},
+                        "budgetRange": {"type": "string", "example": "300만 ~ 500만"},
+                        "requirement": {"type": "string", "example": "대시보드 고도화"},
+                        "selectedFeatures": {"type": "array", "items": {"type": "string"}, "example": ["login", "chart"]},
+                        "referenceUrl": {"type": "string", "example": "https://example.com/spec"},
+                        "attachmentName": {"type": "string", "example": "brief.pdf"},
+                    },
+                    "required": ["name", "email", "phone", "category", "startDate", "endDate", "budgetRange"],
+                    "additionalProperties": False,
+                }
+            if "SampleAdminUserItem" not in schemas:
+                schemas["SampleAdminUserItem"] = {
+                    "type": "object",
+                    "properties": {
+                        "id": {"type": "integer", "example": 1},
+                        "name": {"type": "string", "example": "신규 운영자"},
+                        "email": {"type": "string", "format": "email", "example": "new-admin@example.com"},
+                        "role": sampleAdminRoleSchema,
+                        "status": sampleAdminStatusSchema,
+                        "notifyEmail": {"type": "boolean", "example": True},
+                        "notifySms": {"type": "boolean", "example": False},
+                        "notifyPush": {"type": "boolean", "example": True},
+                        "profileImageUrl": {"type": "string", "example": "https://example.com/profile.png"},
+                        "createdAt": nullableStringSchema,
+                    },
+                    "required": [
+                        "id",
+                        "name",
+                        "email",
+                        "role",
+                        "status",
+                        "notifyEmail",
+                        "notifySms",
+                        "notifyPush",
+                        "profileImageUrl",
+                        "createdAt",
+                    ],
+                }
+            if "SampleAdminUserListMeta" not in schemas:
+                schemas["SampleAdminUserListMeta"] = {
+                    "type": "object",
+                    "properties": {
+                        "page": {"type": "integer", "minimum": 1, "example": 1},
+                        "size": {"type": "integer", "minimum": 1, "maximum": 500, "example": 50},
+                        "totalCount": {"type": "integer", "minimum": 0, "example": 3},
+                    },
+                    "required": ["page", "size", "totalCount"],
+                }
+            if "SampleAdminUserListResult" not in schemas:
+                schemas["SampleAdminUserListResult"] = {
+                    "type": "object",
+                    "properties": {
+                        "sampleAdminUserList": {
+                            "type": "array",
+                            "items": {"$ref": "#/components/schemas/SampleAdminUserItem"},
+                        },
+                        "listMetaObj": {"$ref": "#/components/schemas/SampleAdminUserListMeta"},
+                    },
+                    "required": ["sampleAdminUserList", "listMetaObj"],
+                }
+            if "SampleAdminUserWriteRequest" not in schemas:
+                schemas["SampleAdminUserWriteRequest"] = {
+                    "type": "object",
+                    "properties": {
+                        "name": {"type": "string", "example": "신규 운영자"},
+                        "email": {"type": "string", "format": "email", "example": "new-admin@example.com"},
+                        "role": sampleAdminRoleSchema,
+                        "status": sampleAdminStatusSchema,
+                        "notifyEmail": {"type": "boolean", "example": True},
+                        "notifySms": {"type": "boolean", "example": False},
+                        "notifyPush": {"type": "boolean", "example": True},
+                        "profileImageUrl": {"type": "string", "example": "https://example.com/profile.png"},
+                    },
+                    "required": ["name", "email", "role", "status"],
+                    "additionalProperties": False,
+                }
+            if "SampleAdminUserPatchRequest" not in schemas:
+                schemas["SampleAdminUserPatchRequest"] = {
+                    "type": "object",
+                    "properties": {
+                        "name": {"type": "string", "example": "수정 운영자"},
+                        "role": sampleAdminRoleSchema,
+                        "status": sampleAdminStatusSchema,
+                        "notifyEmail": {"type": "boolean", "example": True},
+                        "notifySms": {"type": "boolean", "example": False},
+                        "notifyPush": {"type": "boolean", "example": True},
+                        "profileImageUrl": {"type": "string", "example": "https://example.com/profile.png"},
+                    },
+                    "minProperties": 1,
+                    "additionalProperties": False,
+                }
+            if "SampleAdminRolePermissionMap" not in schemas:
+                schemas["SampleAdminRolePermissionMap"] = {
+                    "type": "object",
+                    "properties": {
+                        "manageUser": {"type": "boolean", "example": True},
+                        "editContent": {"type": "boolean", "example": True},
+                        "changeSetting": {"type": "boolean", "example": True},
+                        "viewLog": {"type": "boolean", "example": True},
+                        "deleteData": {"type": "boolean", "example": False},
+                    },
+                    "required": ["manageUser", "editContent", "changeSetting", "viewLog", "deleteData"],
+                }
+            if "SampleAdminSystemSetting" not in schemas:
+                schemas["SampleAdminSystemSetting"] = {
+                    "type": "object",
+                    "properties": {
+                        "siteName": {"type": "string", "example": "MyWebTemplate"},
+                        "adminEmail": {"type": "string", "format": "email", "example": "admin@demo.demo"},
+                        "maintenanceMode": {"type": "boolean", "example": False},
+                        "sessionTimeout": {"type": "integer", "minimum": 1, "example": 60},
+                        "maxUploadMb": {"type": "integer", "minimum": 1, "example": 30},
+                    },
+                    "required": ["siteName", "adminEmail", "maintenanceMode", "sessionTimeout", "maxUploadMb"],
+                }
+            if "SampleAdminSettingsResult" not in schemas:
+                schemas["SampleAdminSettingsResult"] = {
+                    "type": "object",
+                    "properties": {
+                        "systemSetting": {"$ref": "#/components/schemas/SampleAdminSystemSetting"},
+                        "rolePermissionMap": {
+                            "type": "object",
+                            "properties": {
+                                "admin": {"$ref": "#/components/schemas/SampleAdminRolePermissionMap"},
+                                "editor": {"$ref": "#/components/schemas/SampleAdminRolePermissionMap"},
+                                "user": {"$ref": "#/components/schemas/SampleAdminRolePermissionMap"},
+                            },
+                            "required": ["admin", "editor", "user"],
+                        },
+                    },
+                    "required": ["systemSetting", "rolePermissionMap"],
+                }
+            if "SampleAdminSettingsUpdateRequest" not in schemas:
+                schemas["SampleAdminSettingsUpdateRequest"] = {
+                    "type": "object",
+                    "properties": {
+                        "siteName": {"type": "string", "example": "MyWebTemplate Sample"},
+                        "adminEmail": {"type": "string", "format": "email", "example": "sample-admin@example.com"},
+                        "sessionTimeout": {"type": "integer", "minimum": 1, "maximum": 1440, "example": 90},
+                        "maxUploadMb": {"type": "integer", "minimum": 1, "maximum": 1000, "example": 50},
+                        "maintenanceMode": {"type": "boolean", "example": True},
+                    },
+                    "required": ["siteName", "adminEmail", "sessionTimeout", "maxUploadMb"],
+                    "additionalProperties": False,
+                }
+            sampleResponseMap = {
+                "SampleOverviewResponse": "SampleOverviewResult",
+                "SampleDashboardResponse": "SampleDashboardResult",
+                "SampleTaskListResponse": "SampleTaskListResult",
+                "SampleTaskDetailResponse": "SampleTaskItem",
+                "SampleTaskCreateResponse": "SampleTaskItem",
+                "SampleTaskUpdateResponse": "SampleTaskItem",
+                "SampleTaskDeleteResponse": "SampleTaskDeleteResult",
+                "SampleFormMetaResponse": "SampleFormMetaResult",
+                "SampleFormSubmitResponse": "SampleFormSubmissionItem",
+                "SampleAdminUserListResponse": "SampleAdminUserListResult",
+                "SampleAdminUserCreateResponse": "SampleAdminUserItem",
+                "SampleAdminUserUpdateResponse": "SampleAdminUserItem",
+                "SampleAdminSettingsResponse": "SampleAdminSettingsResult",
+                "SampleAdminSettingsUpdateResponse": "SampleAdminSettingsResult",
+            }
+            for responseName, resultName in sampleResponseMap.items():
+                if responseName not in schemas:
+                    schemas[responseName] = {
+                        "allOf": [
+                            {"$ref": "#/components/schemas/StandardResponse"},
+                            {
+                                "type": "object",
+                                "properties": {"result": {"$ref": f"#/components/schemas/{resultName}"}},
+                            },
+                        ]
+                    }
+
             params = components.setdefault("parameters", {})
             csrfHeaderName = readConfigValue(authSection, "csrf_header", "X-CSRF-Token")
             params["CSRFToken"] = {
@@ -460,40 +943,11 @@ def attachOpenAPI(app: FastAPI, config) -> None:
                 "schema": {"type": "string", "minLength": 1, "maxLength": 128},
                 "description": "Optional retry-safe idempotency key for create requests.",
             }
+            responseComponents = components.setdefault("responses", {})
+            for responseName, responseSchema in buildStandardErrorResponses().items():
+                responseComponents.setdefault(responseName, responseSchema)
 
-            # 설정값에서 서버 URL 목록을 구성
-            def resolveServers():
-                """
-                설명: 설정 기반 서버 URL 목록을 OpenAPI servers 형식으로 변환
-                갱신일: 2026-02-26
-                """
-                urls = []
-                try:
-                    serverSection = config["SERVER"]
-                except Exception:
-                    serverSection = None
-
-                # [SERVER].servers 콤마 리스트가 있으면 우선 사용
-                if serverSection is not None:
-                    raw = (serverSection.get("servers") or "").strip()
-                    if raw:
-                        for u in [x.strip() for x in raw.split(",") if x.strip()]:
-                            if u not in urls:
-                                urls.append(u)
-
-                    # backendHost/base_url/host 값이 있으면 보조로 삽입
-                    bh = (
-                        serverSection.get("backendHost")
-                        or serverSection.get("base_url")
-                        or serverSection.get("host")
-                    )
-                    if bh and bh not in urls:
-                        urls.insert(0, bh)
-                if not urls:
-                    urls = ["http://localhost:4001"]
-                return [{"url": u} for u in urls]
-
-            schema["servers"] = resolveServers()
+            schema["servers"] = resolveServersFromConfig(config)
 
             tags = sorted({tag for tag in (t.get("name") for t in schema.get("tags", [])) if tag})
             if tags:
@@ -501,61 +955,14 @@ def attachOpenAPI(app: FastAPI, config) -> None:
 
             paths = schema.get("paths", {})
 
-            def ensureJavaScriptCodeSample(operation: Dict[str, Any], source: str) -> None:
-                """
-                설명: operation에 openapi-client-axios JavaScript 예제 보장
-                갱신일: 2026-02-26
-                """
-                samples = operation.setdefault("x-codeSamples", [])
-                hasSample = any(
-                    isinstance(sample, dict)
-                    and sample.get("lang") == "JavaScript"
-                    and sample.get("label") == "openapi-client-axios"
-                    for sample in samples
-                )
-                if hasSample:
-                    return
-                samples.append(
-                    {
-                        "lang": "JavaScript",
-                        "label": "openapi-client-axios",
-                        "source": source,
-                    }
-                )
-
-            def ensureHeaderRef(operation: Dict[str, Any], refName: str) -> None:
-                """
-                설명: operation 파라미터에 공통 헤더 ref를 중복 없 추가
-                갱신일: 2026-02-26
-                """
-                parameters = operation.setdefault("parameters", [])
-                refPath = f"#/components/parameters/{refName}"
-                hasRef = any(isinstance(param, dict) and param.get("$ref") == refPath for param in parameters)
-                if not hasRef:
-                    parameters.append({"$ref": refPath})
-
-            def ensureNoStoreResponse(response: Dict[str, Any], description: str, schemaName: str) -> None:
-                """
-                설명: no-store 표준 JSON 응답 계약을 operation response에 반영
-                갱신일: 2026-06-23
-                """
-                response["description"] = description
-                response.setdefault("headers", {})["Cache-Control"] = {
-                    "description": "Authenticated dashboard responses are not cacheable.",
-                    "schema": {"type": "string", "example": "no-store"},
-                }
-                response.setdefault("content", {}).setdefault("application/json", {})["schema"] = {
-                    "$ref": f"#/components/schemas/{schemaName}"
-                }
-
             healthz = paths.get("/healthz", {}).get("get")
             if isinstance(healthz, dict):
                 responses = healthz.setdefault("responses", {})
                 res200 = responses.setdefault("200", {"description": "OK"})
                 res200["description"] = "OK (process is alive)"
-                res200.setdefault("content", {}).setdefault("application/json", {})["schema"] = {
-                    "$ref": "#/components/schemas/HealthzResponse"
-                }
+                res200.setdefault("content", {}).setdefault("application/json", {})["schema"] = schemaRef(
+                    "HealthzResponse"
+                )
                 ensureJavaScriptCodeSample(
                     healthz,
                     (
@@ -571,14 +978,14 @@ def attachOpenAPI(app: FastAPI, config) -> None:
                 responses = readyz.setdefault("responses", {})
                 res200 = responses.setdefault("200", {"description": "OK"})
                 res200["description"] = "OK (service dependencies are ready)"
-                res200.setdefault("content", {}).setdefault("application/json", {})["schema"] = {
-                    "$ref": "#/components/schemas/ReadyzResponse"
-                }
+                res200.setdefault("content", {}).setdefault("application/json", {})["schema"] = schemaRef(
+                    "ReadyzResponse"
+                )
                 res503 = responses.setdefault("503", {"description": "Service Unavailable"})
                 res503["description"] = "Service Unavailable (maintenance mode or dependency check failed)"
-                res503.setdefault("content", {}).setdefault("application/json", {})["schema"] = {
-                    "$ref": "#/components/schemas/ReadyzErrorResponse"
-                }
+                res503.setdefault("content", {}).setdefault("application/json", {})["schema"] = schemaRef(
+                    "ReadyzErrorResponse"
+                )
                 ensureJavaScriptCodeSample(
                     readyz,
                     (
@@ -598,9 +1005,10 @@ def attachOpenAPI(app: FastAPI, config) -> None:
                 responses = me.setdefault("responses", {})
                 res200 = responses.setdefault("200", {"description": "OK"})
                 res200["description"] = res200.get("description") or "OK"
-                res200.setdefault("content", {}).setdefault("application/json", {})["schema"] = {
-                    "$ref": "#/components/schemas/AuthMeResponse"
-                }
+                res200.setdefault("content", {}).setdefault("application/json", {})["schema"] = schemaRef(
+                    "AuthMeResponse"
+                )
+                ensureErrorResponseRef(me, "401", "UnauthorizedErrorResponse")
 
             profileMeGet = paths.get("/api/v1/profile/me", {}).get("get")
             if isinstance(profileMeGet, dict):
@@ -615,6 +1023,7 @@ def attachOpenAPI(app: FastAPI, config) -> None:
                 res200.setdefault("content", {}).setdefault("application/json", {})["schema"] = {
                     "$ref": "#/components/schemas/ProfileMeResponse"
                 }
+                ensureErrorResponseRef(profileMeGet, "401", "UnauthorizedErrorResponse")
                 ensureJavaScriptCodeSample(
                     profileMeGet,
                     (
@@ -646,6 +1055,8 @@ def attachOpenAPI(app: FastAPI, config) -> None:
                 res200.setdefault("content", {}).setdefault("application/json", {})["schema"] = {
                     "$ref": "#/components/schemas/ProfileUpdateResponse"
                 }
+                ensureErrorResponseRef(profileMePut, "401", "UnauthorizedErrorResponse")
+                ensureErrorResponseRef(profileMePut, "422", "ValidationErrorResponse")
                 ensureJavaScriptCodeSample(
                     profileMePut,
                     (
@@ -667,6 +1078,9 @@ def attachOpenAPI(app: FastAPI, config) -> None:
                     "OK (returns authenticated user's dashboard items with list metadata)",
                     "DashboardListResponse",
                 )
+                ensureErrorResponseRef(dashboardList, "401", "UnauthorizedErrorResponse")
+                ensureErrorResponseRef(dashboardList, "422", "ValidationErrorResponse")
+                ensureErrorResponseRef(dashboardList, "503", "ServiceUnavailableErrorResponse")
                 ensureJavaScriptCodeSample(
                     dashboardList,
                     (
@@ -688,6 +1102,8 @@ def attachOpenAPI(app: FastAPI, config) -> None:
                     "OK (returns dashboard status summary for authenticated user)",
                     "DashboardStatsResponse",
                 )
+                ensureErrorResponseRef(dashboardStats, "401", "UnauthorizedErrorResponse")
+                ensureErrorResponseRef(dashboardStats, "503", "ServiceUnavailableErrorResponse")
                 ensureJavaScriptCodeSample(
                     dashboardStats,
                     (
@@ -707,6 +1123,9 @@ def attachOpenAPI(app: FastAPI, config) -> None:
                     "OK (returns one dashboard item owned by authenticated user)",
                     "DashboardItemResponse",
                 )
+                ensureErrorResponseRef(dashboardDetail, "401", "UnauthorizedErrorResponse")
+                ensureErrorResponseRef(dashboardDetail, "404", "NotFoundErrorResponse")
+                ensureErrorResponseRef(dashboardDetail, "503", "ServiceUnavailableErrorResponse")
                 ensureJavaScriptCodeSample(
                     dashboardDetail,
                     (
@@ -738,6 +1157,11 @@ def attachOpenAPI(app: FastAPI, config) -> None:
                     "Created (returns the new dashboard item)",
                     "DashboardCreateResponse",
                 )
+                ensureErrorResponseRef(dashboardCreate, "401", "UnauthorizedErrorResponse")
+                ensureErrorResponseRef(dashboardCreate, "409", "ConflictErrorResponse")
+                ensureErrorResponseRef(dashboardCreate, "422", "ValidationErrorResponse")
+                ensureErrorResponseRef(dashboardCreate, "500", "InternalServerErrorResponse")
+                ensureErrorResponseRef(dashboardCreate, "503", "ServiceUnavailableErrorResponse")
                 ensureJavaScriptCodeSample(
                     dashboardCreate,
                     (
@@ -768,6 +1192,10 @@ def attachOpenAPI(app: FastAPI, config) -> None:
                     "OK (returns the updated dashboard item)",
                     "DashboardUpdateResponse",
                 )
+                ensureErrorResponseRef(dashboardUpdate, "401", "UnauthorizedErrorResponse")
+                ensureErrorResponseRef(dashboardUpdate, "404", "NotFoundErrorResponse")
+                ensureErrorResponseRef(dashboardUpdate, "422", "ValidationErrorResponse")
+                ensureErrorResponseRef(dashboardUpdate, "503", "ServiceUnavailableErrorResponse")
                 ensureJavaScriptCodeSample(
                     dashboardUpdate,
                     (
@@ -790,6 +1218,9 @@ def attachOpenAPI(app: FastAPI, config) -> None:
                     "OK (deletes one dashboard item owned by authenticated user)",
                     "DashboardDeleteResponse",
                 )
+                ensureErrorResponseRef(dashboardDelete, "401", "UnauthorizedErrorResponse")
+                ensureErrorResponseRef(dashboardDelete, "404", "NotFoundErrorResponse")
+                ensureErrorResponseRef(dashboardDelete, "503", "ServiceUnavailableErrorResponse")
                 ensureJavaScriptCodeSample(
                     dashboardDelete,
                     (
@@ -803,6 +1234,14 @@ def attachOpenAPI(app: FastAPI, config) -> None:
 
             login = paths.get("/api/v1/auth/login", {}).get("post")
             if isinstance(login, dict):
+                login["requestBody"] = {
+                    "required": True,
+                    "content": {
+                        "application/json": {
+                            "schema": {"$ref": "#/components/schemas/AuthLoginRequest"},
+                        }
+                    },
+                }
                 responses = login.setdefault("responses", {})
 
                 # 참고: 실제 구현은 200 JSON(successResponse) + Set-Cookie 이다(AuthRouter.login).
@@ -817,6 +1256,10 @@ def attachOpenAPI(app: FastAPI, config) -> None:
                 res200.setdefault("content", {}).setdefault("application/json", {})["schema"] = {
                     "$ref": "#/components/schemas/AuthWebSessionResponse"
                 }
+                ensureErrorResponseRef(login, "401", "UnauthorizedErrorResponse")
+                ensureErrorResponseRef(login, "422", "ValidationErrorResponse")
+                ensureErrorResponseRef(login, "429", "RateLimitErrorResponse")
+                ensureErrorResponseRef(login, "503", "ServiceUnavailableErrorResponse")
                 ensureJavaScriptCodeSample(
                     login,
                     (
@@ -826,6 +1269,41 @@ def attachOpenAPI(app: FastAPI, config) -> None:
                         "//   body: { username: 'demo@demo.demo', password: 'password123', rememberMe: false },\n"
                         "// });\n"
                         "// The backend responds 200 JSON(tokenType/expiresIn only) and sets HttpOnly cookies."
+                    ),
+                )
+
+            signup = paths.get("/api/v1/auth/signup", {}).get("post")
+            if isinstance(signup, dict):
+                signup["requestBody"] = {
+                    "required": True,
+                    "content": {
+                        "application/json": {
+                            "schema": {"$ref": "#/components/schemas/AuthSignupRequest"},
+                        }
+                    },
+                }
+                ensureHeaderRef(signup, "IdempotencyKey")
+                responses = signup.setdefault("responses", {})
+                responses.pop("200", None)
+                res201 = responses.setdefault("201", {"description": "Created"})
+                res201["description"] = "Created (returns the newly registered user summary)"
+                res201.setdefault("content", {}).setdefault("application/json", {})["schema"] = {
+                    "$ref": "#/components/schemas/AuthSignupResponse"
+                }
+                ensureErrorResponseRef(signup, "409", "ConflictErrorResponse")
+                ensureErrorResponseRef(signup, "422", "ValidationErrorResponse")
+                ensureErrorResponseRef(signup, "500", "InternalServerErrorResponse")
+                ensureErrorResponseRef(signup, "503", "ServiceUnavailableErrorResponse")
+                ensureJavaScriptCodeSample(
+                    signup,
+                    (
+                        "// Example using openapi-client-axios\n"
+                        "// const client = ...;\n"
+                        "// const res = await client.POST('/api/v1/auth/signup', {\n"
+                        "//   headers: { 'Idempotency-Key': crypto.randomUUID() },\n"
+                        "//   body: { name: 'Demo User', email: 'demo@demo.demo', password: 'password123' },\n"
+                        "// });\n"
+                        "// console.log(res.data.result.userId);"
                     ),
                 )
 
@@ -845,6 +1323,8 @@ def attachOpenAPI(app: FastAPI, config) -> None:
                 }
                 ensureHeaderRef(refresh, "OriginHeader")
                 ensureHeaderRef(refresh, "RefererHeader")
+                ensureErrorResponseRef(refresh, "401", "UnauthorizedErrorResponse")
+                ensureErrorResponseRef(refresh, "403", "ForbiddenErrorResponse")
                 ensureJavaScriptCodeSample(
                     refresh,
                     (
@@ -866,6 +1346,8 @@ def attachOpenAPI(app: FastAPI, config) -> None:
                 responses.pop("200", None)
                 ensureHeaderRef(logout, "OriginHeader")
                 ensureHeaderRef(logout, "RefererHeader")
+                ensureErrorResponseRef(logout, "401", "UnauthorizedErrorResponse")
+                ensureErrorResponseRef(logout, "403", "ForbiddenErrorResponse")
                 ensureJavaScriptCodeSample(
                     logout,
                     (
@@ -879,6 +1361,14 @@ def attachOpenAPI(app: FastAPI, config) -> None:
 
             appLogin = paths.get("/api/v1/auth/app/login", {}).get("post")
             if isinstance(appLogin, dict):
+                appLogin["requestBody"] = {
+                    "required": True,
+                    "content": {
+                        "application/json": {
+                            "schema": {"$ref": "#/components/schemas/AuthAppLoginRequest"},
+                        }
+                    },
+                }
                 responses = appLogin.setdefault("responses", {})
                 responses.pop("204", None)
                 res200 = responses.setdefault("200", {"description": "OK"})
@@ -886,6 +1376,10 @@ def attachOpenAPI(app: FastAPI, config) -> None:
                 res200.setdefault("content", {}).setdefault("application/json", {})["schema"] = {
                     "$ref": "#/components/schemas/AuthAppTokenResponse"
                 }
+                ensureErrorResponseRef(appLogin, "401", "UnauthorizedErrorResponse")
+                ensureErrorResponseRef(appLogin, "422", "ValidationErrorResponse")
+                ensureErrorResponseRef(appLogin, "429", "RateLimitErrorResponse")
+                ensureErrorResponseRef(appLogin, "503", "ServiceUnavailableErrorResponse")
                 ensureJavaScriptCodeSample(
                     appLogin,
                     (
@@ -900,6 +1394,14 @@ def attachOpenAPI(app: FastAPI, config) -> None:
 
             appRefresh = paths.get("/api/v1/auth/app/refresh", {}).get("post")
             if isinstance(appRefresh, dict):
+                appRefresh["requestBody"] = {
+                    "required": True,
+                    "content": {
+                        "application/json": {
+                            "schema": {"$ref": "#/components/schemas/AuthAppRefreshRequest"},
+                        }
+                    },
+                }
                 responses = appRefresh.setdefault("responses", {})
                 responses.pop("204", None)
                 res200 = responses.setdefault("200", {"description": "OK"})
@@ -907,6 +1409,8 @@ def attachOpenAPI(app: FastAPI, config) -> None:
                 res200.setdefault("content", {}).setdefault("application/json", {})["schema"] = {
                     "$ref": "#/components/schemas/AuthAppTokenResponse"
                 }
+                ensureErrorResponseRef(appRefresh, "401", "UnauthorizedErrorResponse")
+                ensureErrorResponseRef(appRefresh, "422", "ValidationErrorResponse")
                 ensureJavaScriptCodeSample(
                     appRefresh,
                     (
@@ -921,9 +1425,18 @@ def attachOpenAPI(app: FastAPI, config) -> None:
 
             appLogout = paths.get("/api/v1/auth/app/logout", {}).get("post")
             if isinstance(appLogout, dict):
+                appLogout["requestBody"] = {
+                    "required": False,
+                    "content": {
+                        "application/json": {
+                            "schema": {"$ref": "#/components/schemas/AuthAppLogoutRequest"},
+                        }
+                    },
+                }
                 responses = appLogout.setdefault("responses", {})
                 responses.setdefault("204", {"description": "No Content"})
                 responses.pop("200", None)
+                ensureErrorResponseRef(appLogout, "422", "ValidationErrorResponse")
                 ensureJavaScriptCodeSample(
                     appLogout,
                     (
@@ -943,6 +1456,14 @@ def attachOpenAPI(app: FastAPI, config) -> None:
                 passwordReset = paths.get(passwordResetPath, {}).get("post")
                 if not isinstance(passwordReset, dict):
                     continue
+                passwordReset["requestBody"] = {
+                    "required": True,
+                    "content": {
+                        "application/json": {
+                            "schema": {"$ref": "#/components/schemas/PasswordResetRequest"},
+                        }
+                    },
+                }
                 responses = passwordReset.setdefault("responses", {})
                 res200 = responses.setdefault("200", {"description": "OK"})
                 res200["description"] = (
@@ -951,6 +1472,8 @@ def attachOpenAPI(app: FastAPI, config) -> None:
                 res200.setdefault("content", {}).setdefault("application/json", {})["schema"] = {
                     "$ref": "#/components/schemas/PasswordResetRequestResponse"
                 }
+                ensureErrorResponseRef(passwordReset, "422", "ValidationErrorResponse")
+                ensureErrorResponseRef(passwordReset, "503", "ServiceUnavailableErrorResponse")
                 ensureJavaScriptCodeSample(
                     passwordReset,
                     (
@@ -962,11 +1485,378 @@ def attachOpenAPI(app: FastAPI, config) -> None:
                     ),
                 )
 
+            sampleOverview = paths.get("/api/v1/sample/overview", {}).get("get")
+            if isinstance(sampleOverview, dict):
+                responses = sampleOverview.setdefault("responses", {})
+                ensureNoStoreResponse(
+                    responses.setdefault("200", {"description": "OK"}),
+                    "OK (returns public sample overview counters)",
+                    "SampleOverviewResponse",
+                )
+                ensureErrorResponseRef(sampleOverview, "503", "ServiceUnavailableErrorResponse")
+                ensureJavaScriptCodeSample(
+                    sampleOverview,
+                    (
+                        "// Example using openapi-client-axios\n"
+                        "// const client = ...;\n"
+                        "// const res = await client.GET('/api/v1/sample/overview');\n"
+                        "// console.log(res.data.result.taskCount);"
+                    ),
+                )
+
+            sampleDashboard = paths.get("/api/v1/sample/dashboard", {}).get("get")
+            if isinstance(sampleDashboard, dict):
+                responses = sampleDashboard.setdefault("responses", {})
+                ensureNoStoreResponse(
+                    responses.setdefault("200", {"description": "OK"}),
+                    "OK (returns public sample dashboard KPI, trend, and recent task bundles)",
+                    "SampleDashboardResponse",
+                )
+                ensureErrorResponseRef(sampleDashboard, "503", "ServiceUnavailableErrorResponse")
+                ensureJavaScriptCodeSample(
+                    sampleDashboard,
+                    (
+                        "// Example using openapi-client-axios\n"
+                        "// const client = ...;\n"
+                        "// const res = await client.GET('/api/v1/sample/dashboard');\n"
+                        "// console.log(res.data.result.recentList);"
+                    ),
+                )
+
+            sampleTaskList = paths.get("/api/v1/sample/tasks", {}).get("get")
+            if isinstance(sampleTaskList, dict):
+                responses = sampleTaskList.setdefault("responses", {})
+                ensureNoStoreResponse(
+                    responses.setdefault("200", {"description": "OK"}),
+                    "OK (returns public sample task list and list metadata)",
+                    "SampleTaskListResponse",
+                )
+                ensureErrorResponseRef(sampleTaskList, "422", "ValidationErrorResponse")
+                ensureErrorResponseRef(sampleTaskList, "503", "ServiceUnavailableErrorResponse")
+                ensureJavaScriptCodeSample(
+                    sampleTaskList,
+                    (
+                        "// Example using openapi-client-axios\n"
+                        "// const client = ...;\n"
+                        "// const res = await client.GET('/api/v1/sample/tasks', {\n"
+                        "//   params: { query: { page: 1, size: 20, status: 'running' } },\n"
+                        "// });\n"
+                        "// console.log(res.data.result.sampleTaskList);"
+                    ),
+                )
+
+            sampleTaskDetail = paths.get("/api/v1/sample/tasks/{taskId}", {}).get("get")
+            if isinstance(sampleTaskDetail, dict):
+                responses = sampleTaskDetail.setdefault("responses", {})
+                ensureNoStoreResponse(
+                    responses.setdefault("200", {"description": "OK"}),
+                    "OK (returns one public sample task)",
+                    "SampleTaskDetailResponse",
+                )
+                ensureErrorResponseRef(sampleTaskDetail, "404", "NotFoundErrorResponse")
+                ensureErrorResponseRef(sampleTaskDetail, "422", "ValidationErrorResponse")
+                ensureErrorResponseRef(sampleTaskDetail, "503", "ServiceUnavailableErrorResponse")
+                ensureJavaScriptCodeSample(
+                    sampleTaskDetail,
+                    (
+                        "// Example using openapi-client-axios\n"
+                        "// const client = ...;\n"
+                        "// const res = await client.GET('/api/v1/sample/tasks/{taskId}', {\n"
+                        "//   params: { path: { taskId: 1 } },\n"
+                        "// });\n"
+                        "// console.log(res.data.result.title);"
+                    ),
+                )
+
+            sampleTaskCreate = paths.get("/api/v1/sample/tasks", {}).get("post")
+            if isinstance(sampleTaskCreate, dict):
+                sampleTaskCreate["requestBody"] = {
+                    "required": True,
+                    "content": {
+                        "application/json": {
+                            "schema": {"$ref": "#/components/schemas/SampleTaskWriteRequest"},
+                        }
+                    },
+                }
+                ensureHeaderRef(sampleTaskCreate, "IdempotencyKey")
+                responses = sampleTaskCreate.setdefault("responses", {})
+                responses.pop("200", None)
+                ensureNoStoreResponse(
+                    responses.setdefault("201", {"description": "Created"}),
+                    "Created (returns the newly created public sample task)",
+                    "SampleTaskCreateResponse",
+                )
+                ensureErrorResponseRef(sampleTaskCreate, "409", "ConflictErrorResponse")
+                ensureErrorResponseRef(sampleTaskCreate, "422", "ValidationErrorResponse")
+                ensureErrorResponseRef(sampleTaskCreate, "500", "InternalServerErrorResponse")
+                ensureErrorResponseRef(sampleTaskCreate, "503", "ServiceUnavailableErrorResponse")
+                ensureJavaScriptCodeSample(
+                    sampleTaskCreate,
+                    (
+                        "// Example using openapi-client-axios\n"
+                        "// const client = ...;\n"
+                        "// const res = await client.POST('/api/v1/sample/tasks', {\n"
+                        "//   headers: { 'Idempotency-Key': crypto.randomUUID() },\n"
+                        "//   body: { title: '공개 샘플 신규 업무', status: 'running', amount: 210000 },\n"
+                        "// });\n"
+                        "// console.log(res.data.result.id);"
+                    ),
+                )
+
+            sampleTaskUpdate = paths.get("/api/v1/sample/tasks/{taskId}", {}).get("put")
+            if isinstance(sampleTaskUpdate, dict):
+                sampleTaskUpdate["requestBody"] = {
+                    "required": True,
+                    "content": {
+                        "application/json": {
+                            "schema": {"$ref": "#/components/schemas/SampleTaskPatchRequest"},
+                        }
+                    },
+                }
+                responses = sampleTaskUpdate.setdefault("responses", {})
+                ensureNoStoreResponse(
+                    responses.setdefault("200", {"description": "OK"}),
+                    "OK (returns the updated public sample task)",
+                    "SampleTaskUpdateResponse",
+                )
+                ensureErrorResponseRef(sampleTaskUpdate, "404", "NotFoundErrorResponse")
+                ensureErrorResponseRef(sampleTaskUpdate, "422", "ValidationErrorResponse")
+                ensureErrorResponseRef(sampleTaskUpdate, "503", "ServiceUnavailableErrorResponse")
+                ensureJavaScriptCodeSample(
+                    sampleTaskUpdate,
+                    (
+                        "// Example using openapi-client-axios\n"
+                        "// const client = ...;\n"
+                        "// const res = await client.PUT('/api/v1/sample/tasks/{taskId}', {\n"
+                        "//   params: { path: { taskId: 1 } },\n"
+                        "//   body: { status: 'done', owner: '수정자' },\n"
+                        "// });\n"
+                        "// console.log(res.data.result.status);"
+                    ),
+                )
+
+            sampleTaskDelete = paths.get("/api/v1/sample/tasks/{taskId}", {}).get("delete")
+            if isinstance(sampleTaskDelete, dict):
+                responses = sampleTaskDelete.setdefault("responses", {})
+                ensureNoStoreResponse(
+                    responses.setdefault("200", {"description": "OK"}),
+                    "OK (deletes one public sample task)",
+                    "SampleTaskDeleteResponse",
+                )
+                ensureErrorResponseRef(sampleTaskDelete, "404", "NotFoundErrorResponse")
+                ensureErrorResponseRef(sampleTaskDelete, "422", "ValidationErrorResponse")
+                ensureErrorResponseRef(sampleTaskDelete, "503", "ServiceUnavailableErrorResponse")
+                ensureJavaScriptCodeSample(
+                    sampleTaskDelete,
+                    (
+                        "// Example using openapi-client-axios\n"
+                        "// const client = ...;\n"
+                        "// const res = await client.DELETE('/api/v1/sample/tasks/{taskId}', {\n"
+                        "//   params: { path: { taskId: 1 } },\n"
+                        "// });\n"
+                        "// console.log(res.data.result.id);"
+                    ),
+                )
+
+            sampleFormMeta = paths.get("/api/v1/sample/forms/meta", {}).get("get")
+            if isinstance(sampleFormMeta, dict):
+                responses = sampleFormMeta.setdefault("responses", {})
+                ensureNoStoreResponse(
+                    responses.setdefault("200", {"description": "OK"}),
+                    "OK (returns public sample form meta and latest submission summary)",
+                    "SampleFormMetaResponse",
+                )
+                ensureErrorResponseRef(sampleFormMeta, "503", "ServiceUnavailableErrorResponse")
+                ensureJavaScriptCodeSample(
+                    sampleFormMeta,
+                    (
+                        "// Example using openapi-client-axios\n"
+                        "// const client = ...;\n"
+                        "// const res = await client.GET('/api/v1/sample/forms/meta');\n"
+                        "// console.log(res.data.result.categoryCodeList);"
+                    ),
+                )
+
+            sampleFormSubmit = paths.get("/api/v1/sample/forms", {}).get("post")
+            if isinstance(sampleFormSubmit, dict):
+                sampleFormSubmit["requestBody"] = {
+                    "required": True,
+                    "content": {
+                        "application/json": {
+                            "schema": {"$ref": "#/components/schemas/SampleFormSubmitRequest"},
+                        }
+                    },
+                }
+                ensureHeaderRef(sampleFormSubmit, "IdempotencyKey")
+                responses = sampleFormSubmit.setdefault("responses", {})
+                responses.pop("200", None)
+                ensureNoStoreResponse(
+                    responses.setdefault("201", {"description": "Created"}),
+                    "Created (returns the saved public sample form submission)",
+                    "SampleFormSubmitResponse",
+                )
+                ensureErrorResponseRef(sampleFormSubmit, "409", "ConflictErrorResponse")
+                ensureErrorResponseRef(sampleFormSubmit, "422", "ValidationErrorResponse")
+                ensureErrorResponseRef(sampleFormSubmit, "500", "InternalServerErrorResponse")
+                ensureErrorResponseRef(sampleFormSubmit, "503", "ServiceUnavailableErrorResponse")
+                ensureJavaScriptCodeSample(
+                    sampleFormSubmit,
+                    (
+                        "// Example using openapi-client-axios\n"
+                        "// const client = ...;\n"
+                        "// const res = await client.POST('/api/v1/sample/forms', {\n"
+                        "//   headers: { 'Idempotency-Key': crypto.randomUUID() },\n"
+                        "//   body: { name: '홍길동', email: 'hong@example.com', phone: '010-1234-5678', category: 'web', startDate: '2026-03-01', endDate: '2026-03-10', budgetRange: '300만 ~ 500만' },\n"
+                        "// });\n"
+                        "// console.log(res.data.result.id);"
+                    ),
+                )
+
+            sampleAdminUsers = paths.get("/api/v1/sample/admin/users", {}).get("get")
+            if isinstance(sampleAdminUsers, dict):
+                responses = sampleAdminUsers.setdefault("responses", {})
+                ensureNoStoreResponse(
+                    responses.setdefault("200", {"description": "OK"}),
+                    "OK (returns public sample admin user list and list metadata)",
+                    "SampleAdminUserListResponse",
+                )
+                ensureErrorResponseRef(sampleAdminUsers, "503", "ServiceUnavailableErrorResponse")
+                ensureJavaScriptCodeSample(
+                    sampleAdminUsers,
+                    (
+                        "// Example using openapi-client-axios\n"
+                        "// const client = ...;\n"
+                        "// const res = await client.GET('/api/v1/sample/admin/users', {\n"
+                        "//   params: { query: { page: 1, size: 50 } },\n"
+                        "// });\n"
+                        "// console.log(res.data.result.sampleAdminUserList);"
+                    ),
+                )
+
+            sampleAdminUserCreate = paths.get("/api/v1/sample/admin/users", {}).get("post")
+            if isinstance(sampleAdminUserCreate, dict):
+                sampleAdminUserCreate["requestBody"] = {
+                    "required": True,
+                    "content": {
+                        "application/json": {
+                            "schema": {"$ref": "#/components/schemas/SampleAdminUserWriteRequest"},
+                        }
+                    },
+                }
+                ensureHeaderRef(sampleAdminUserCreate, "IdempotencyKey")
+                responses = sampleAdminUserCreate.setdefault("responses", {})
+                responses.pop("200", None)
+                ensureNoStoreResponse(
+                    responses.setdefault("201", {"description": "Created"}),
+                    "Created (returns the newly created public sample admin user)",
+                    "SampleAdminUserCreateResponse",
+                )
+                ensureErrorResponseRef(sampleAdminUserCreate, "409", "ConflictErrorResponse")
+                ensureErrorResponseRef(sampleAdminUserCreate, "422", "ValidationErrorResponse")
+                ensureErrorResponseRef(sampleAdminUserCreate, "500", "InternalServerErrorResponse")
+                ensureErrorResponseRef(sampleAdminUserCreate, "503", "ServiceUnavailableErrorResponse")
+                ensureJavaScriptCodeSample(
+                    sampleAdminUserCreate,
+                    (
+                        "// Example using openapi-client-axios\n"
+                        "// const client = ...;\n"
+                        "// const res = await client.POST('/api/v1/sample/admin/users', {\n"
+                        "//   headers: { 'Idempotency-Key': crypto.randomUUID() },\n"
+                        "//   body: { name: '신규 운영자', email: 'new-admin@example.com', role: 'editor', status: 'active' },\n"
+                        "// });\n"
+                        "// console.log(res.data.result.id);"
+                    ),
+                )
+
+            sampleAdminUserUpdate = paths.get("/api/v1/sample/admin/users/{userId}", {}).get("put")
+            if isinstance(sampleAdminUserUpdate, dict):
+                sampleAdminUserUpdate["requestBody"] = {
+                    "required": True,
+                    "content": {
+                        "application/json": {
+                            "schema": {"$ref": "#/components/schemas/SampleAdminUserPatchRequest"},
+                        }
+                    },
+                }
+                responses = sampleAdminUserUpdate.setdefault("responses", {})
+                ensureNoStoreResponse(
+                    responses.setdefault("200", {"description": "OK"}),
+                    "OK (returns the updated public sample admin user)",
+                    "SampleAdminUserUpdateResponse",
+                )
+                ensureErrorResponseRef(sampleAdminUserUpdate, "404", "NotFoundErrorResponse")
+                ensureErrorResponseRef(sampleAdminUserUpdate, "422", "ValidationErrorResponse")
+                ensureErrorResponseRef(sampleAdminUserUpdate, "503", "ServiceUnavailableErrorResponse")
+                ensureJavaScriptCodeSample(
+                    sampleAdminUserUpdate,
+                    (
+                        "// Example using openapi-client-axios\n"
+                        "// const client = ...;\n"
+                        "// const res = await client.PUT('/api/v1/sample/admin/users/{userId}', {\n"
+                        "//   params: { path: { userId: 1 } },\n"
+                        "//   body: { role: 'admin', notifySms: true },\n"
+                        "// });\n"
+                        "// console.log(res.data.result.role);"
+                    ),
+                )
+
+            sampleAdminSettings = paths.get("/api/v1/sample/admin/settings", {}).get("get")
+            if isinstance(sampleAdminSettings, dict):
+                responses = sampleAdminSettings.setdefault("responses", {})
+                ensureNoStoreResponse(
+                    responses.setdefault("200", {"description": "OK"}),
+                    "OK (returns public sample admin system settings and role permissions)",
+                    "SampleAdminSettingsResponse",
+                )
+                ensureErrorResponseRef(sampleAdminSettings, "503", "ServiceUnavailableErrorResponse")
+                ensureJavaScriptCodeSample(
+                    sampleAdminSettings,
+                    (
+                        "// Example using openapi-client-axios\n"
+                        "// const client = ...;\n"
+                        "// const res = await client.GET('/api/v1/sample/admin/settings');\n"
+                        "// console.log(res.data.result.systemSetting.siteName);"
+                    ),
+                )
+
+            sampleAdminSettingsUpdate = paths.get("/api/v1/sample/admin/settings", {}).get("put")
+            if isinstance(sampleAdminSettingsUpdate, dict):
+                sampleAdminSettingsUpdate["requestBody"] = {
+                    "required": True,
+                    "content": {
+                        "application/json": {
+                            "schema": {"$ref": "#/components/schemas/SampleAdminSettingsUpdateRequest"},
+                        }
+                    },
+                }
+                responses = sampleAdminSettingsUpdate.setdefault("responses", {})
+                ensureNoStoreResponse(
+                    responses.setdefault("200", {"description": "OK"}),
+                    "OK (returns the updated public sample admin settings)",
+                    "SampleAdminSettingsUpdateResponse",
+                )
+                ensureErrorResponseRef(sampleAdminSettingsUpdate, "422", "ValidationErrorResponse")
+                ensureErrorResponseRef(sampleAdminSettingsUpdate, "503", "ServiceUnavailableErrorResponse")
+                ensureJavaScriptCodeSample(
+                    sampleAdminSettingsUpdate,
+                    (
+                        "// Example using openapi-client-axios\n"
+                        "// const client = ...;\n"
+                        "// const res = await client.PUT('/api/v1/sample/admin/settings', {\n"
+                        "//   body: { siteName: 'MyWebTemplate Sample', adminEmail: 'sample-admin@example.com', sessionTimeout: 90, maxUploadMb: 50, maintenanceMode: true },\n"
+                        "// });\n"
+                        "// console.log(res.data.result.systemSetting.maintenanceMode);"
+                    ),
+                )
+
             # 참고: 템플릿 기본(토큰 모드)에서는 CSRF 헤더를 강제하지 않는다.
             # 쿠키가 직접 권한을 갖는 엔드포인트를 추가하는 경우에만,
             # 해당 라우트에 CSRFToken 파라미터를 수동으로 붙여 문서화한다.
         except Exception as e:
-            logger.error(f"OpenAPI schema patching failed: {e}")
+            strictMode = isOpenapiPatchStrictEnabled()
+            logger.error(f"OpenAPI schema patching failed (strict={strictMode}): {e}")
+            if strictMode:
+                raise
         return schema
 
     def customOpenapi():

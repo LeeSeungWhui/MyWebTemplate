@@ -18,9 +18,10 @@ from lib.Auth import AuthConfig, getCurrentUser
 from lib.Config import getConfig
 from lib.I18n import detectLocale, translate as i18nTranslate
 from lib.RateLimit import checkRateLimit
-from lib.RequestPayloadValidator import readJsonPayloadDict, readOptionalJsonPayloadDict
+from lib.RequestPayloadValidator import readJsonPayloadDict, readOptionalJsonPayloadDict, validatePayloadTypes
 from lib.RequestTrust import trustProxyHeaders
 from lib.Response import errorResponse, successResponse
+from lib.ServiceError import ServiceError
 from lib.ServiceError import buildMappedErrorResponse
 from service import AuthService
 
@@ -256,13 +257,67 @@ def parseRememberMe(value: Any) -> bool:
     return value is True
 
 
-async def parseJsonBody(request: Request) -> dict | None:
+def readAuthPayload(
+    payload: dict[str, Any] | None,
+    *,
+    requiredFieldTypeMap: dict[str, str] | None = None,
+    optionalFieldTypeMap: dict[str, str] | None = None,
+    excludeNone: bool = False,
+) -> dict[str, Any]:
     """
-    설명: 요청 본문을 JSON dict로 안전하게 파싱하 유틸
-    실패 동작: 파싱 실패 또는 dict 타입 불일치 시 None을 반환
-    갱신일: 2026-02-23
+    설명: auth JSON payload를 shared validator 규칙으로 공통 검증
+    실패 동작: malformed/non-object/unknown/type 불일치 시 AUTH_422_INVALID_INPUT 발생
+    갱신일: 2026-06-24
     """
-    return await readJsonPayloadDict(request)
+    return validatePayloadTypes(
+        payload,
+        requiredFieldTypeMap=requiredFieldTypeMap,
+        optionalFieldTypeMap=optionalFieldTypeMap,
+        excludeNone=excludeNone,
+        rejectUnknown=True,
+        errorCode="AUTH_422_INVALID_INPUT",
+    )
+
+
+async def readRequiredAuthPayload(
+    request: Request,
+    *,
+    requiredFieldTypeMap: dict[str, str] | None = None,
+    optionalFieldTypeMap: dict[str, str] | None = None,
+    excludeNone: bool = False,
+) -> dict[str, Any]:
+    """
+    설명: body 필수 auth 엔드포인트용 JSON object payload 공통 파서
+    갱신일: 2026-06-24
+    """
+    return readAuthPayload(
+        await readJsonPayloadDict(request),
+        requiredFieldTypeMap=requiredFieldTypeMap,
+        optionalFieldTypeMap=optionalFieldTypeMap,
+        excludeNone=excludeNone,
+    )
+
+
+async def readOptionalAuthPayload(
+    request: Request,
+    *,
+    requiredFieldTypeMap: dict[str, str] | None = None,
+    optionalFieldTypeMap: dict[str, str] | None = None,
+    excludeNone: bool = False,
+) -> dict[str, Any]:
+    """
+    설명: 빈 body 허용 auth 엔드포인트용 JSON object payload 공통 파서
+    갱신일: 2026-06-24
+    """
+    payload, isBodyValid = await readOptionalJsonPayloadDict(request)
+    if not isBodyValid:
+        raise ServiceError("AUTH_422_INVALID_INPUT")
+    return readAuthPayload(
+        payload,
+        requiredFieldTypeMap=requiredFieldTypeMap,
+        optionalFieldTypeMap=optionalFieldTypeMap,
+        excludeNone=excludeNone,
+    )
 
 
 def webSessionResult(tokenPayload: dict) -> dict:
@@ -301,14 +356,15 @@ async def login(request: Request):
     갱신일: 2026-02-22
     """
     loc = detectLocale(request)
-    body = await parseJsonBody(request)
-    if body is None:
+    try:
+        payload = await readRequiredAuthPayload(
+            request,
+            requiredFieldTypeMap={"username": "str", "password": "str"},
+            optionalFieldTypeMap={"rememberMe": "any"},
+        )
+    except ServiceError:
         return invalidInputResponse(loc, includeAuthHeader=True)
-    payload = {
-        "username": body.get("username"),
-        "password": body.get("password"),
-    }
-    remember = parseRememberMe(body.get("rememberMe", False))
+    remember = parseRememberMe(payload.get("rememberMe"))
 
     # 간단 입력 검증
     username = payload.get("username")
@@ -363,14 +419,13 @@ async def signup(request: Request):
     갱신일: 2026-02-22
     """
     loc = detectLocale(request)
-    body = await parseJsonBody(request)
-    if body is None:
+    try:
+        payload = await readRequiredAuthPayload(
+            request,
+            requiredFieldTypeMap={"name": "str", "email": "str", "password": "str"},
+        )
+    except ServiceError:
         return invalidInputResponse(loc)
-    payload = {
-        "name": body.get("name"),
-        "email": body.get("email"),
-        "password": body.get("password"),
-    }
     idempotencyKey = request.headers.get("Idempotency-Key")
     result, errorCode = await AuthService.signup(payload, idempotencyKey=idempotencyKey)
     if errorCode:
@@ -408,12 +463,13 @@ async def requestPasswordReset(request: Request):
     갱신일: 2026-04-08
     """
     loc = detectLocale(request)
-    body = await parseJsonBody(request)
-    if body is None:
+    try:
+        payload = await readRequiredAuthPayload(
+            request,
+            requiredFieldTypeMap={"email": "str"},
+        )
+    except ServiceError:
         return invalidInputResponse(loc)
-    payload = {
-        "email": body.get("email"),
-    }
     result, errorCode = await AuthService.requestPasswordReset(payload)
     if errorCode == "AUTH_422_INVALID_INPUT":
         return invalidInputResponse(loc)
@@ -510,14 +566,15 @@ async def appLogin(request: Request):
     갱신일: 2026-02-25
     """
     loc = detectLocale(request)
-    body = await parseJsonBody(request)
-    if body is None:
+    try:
+        payload = await readRequiredAuthPayload(
+            request,
+            requiredFieldTypeMap={"username": "str", "password": "str"},
+            optionalFieldTypeMap={"rememberMe": "any"},
+        )
+    except ServiceError:
         return invalidInputResponse(loc, includeAuthHeader=True)
-    payload = {
-        "username": body.get("username"),
-        "password": body.get("password"),
-    }
-    remember = parseRememberMe(body.get("rememberMe", False))
+    remember = parseRememberMe(payload.get("rememberMe"))
 
     username = payload.get("username")
     password = payload.get("password")
@@ -559,10 +616,14 @@ async def appRefresh(request: Request):
     갱신일: 2026-02-25
     """
     loc = detectLocale(request)
-    body = await parseJsonBody(request)
-    if body is None:
+    try:
+        payload = await readRequiredAuthPayload(
+            request,
+            optionalFieldTypeMap={"refreshToken": "any"},
+        )
+    except ServiceError:
         return invalidInputResponse(loc, includeAuthHeader=True)
-    refreshToken = body.get("refreshToken")
+    refreshToken = payload.get("refreshToken")
     if not isinstance(refreshToken, str) or not refreshToken.strip():
         return JSONResponse(
             status_code=401,
@@ -610,10 +671,14 @@ async def appLogout(request: Request):
     갱신일: 2026-02-25
     """
     loc = detectLocale(request)
-    body, isBodyValid = await readOptionalJsonPayloadDict(request)
-    if not isBodyValid:
+    try:
+        payload = await readOptionalAuthPayload(
+            request,
+            optionalFieldTypeMap={"refreshToken": "any"},
+        )
+    except ServiceError:
         return invalidInputResponse(loc)
-    refreshToken = body.get("refreshToken")
+    refreshToken = payload.get("refreshToken")
     if not isinstance(refreshToken, str):
         refreshToken = None
     try:

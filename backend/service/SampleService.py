@@ -19,9 +19,12 @@ from lib.Idempotency import beginIdempotencyRequest, completeIdempotencyRequest
 from lib.ServiceError import ServiceError
 from lib.Transaction import transaction
 
-ALLOWED_TASK_STATUS = frozenset(("ready", "pending", "running", "done", "failed"))
-ALLOWED_ADMIN_ROLE = frozenset(("admin", "editor", "user"))
-ALLOWED_ADMIN_STATUS = frozenset(("active", "inactive"))
+SAMPLE_TASK_STATUS_ORDER = ("ready", "pending", "running", "done", "failed")
+ALLOWED_TASK_STATUS = frozenset(SAMPLE_TASK_STATUS_ORDER)
+SAMPLE_ADMIN_ROLE_ORDER = ("admin", "editor", "user")
+ALLOWED_ADMIN_ROLE = frozenset(SAMPLE_ADMIN_ROLE_ORDER)
+SAMPLE_ADMIN_STATUS_ORDER = ("active", "inactive")
+ALLOWED_ADMIN_STATUS = frozenset(SAMPLE_ADMIN_STATUS_ORDER)
 EMAIL_PATTERN = re.compile(r"^[^\s@]+@[^\s@]+\.[^\s@]+$")
 DATE_PATTERN = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 
@@ -770,19 +773,12 @@ async def createSampleTaskInTransaction(payload: dict[str, Any], idempotencyKey:
     갱신일: 2026-03-06
     """
     createPayload = toTaskPayload(payload)
-    scopeType = "sample.taskCreate"
-
-    replay = await beginIdempotencyRequest(scopeType, idempotencyKey, createPayload)
-    if replay.get("status") == "replay":
-        return replay.get("result") or {}
     db = ensureDbManager()
     await db.executeQuery("sample.taskCreate", createPayload)
     createdRow = await db.fetchOneQuery("sample.taskFindCreatedCandidate", createPayload)
     if not createdRow:
         raise ServiceError("SAMPLE_500_CREATE_FAILED")
-    result = toTaskModel(createdRow)
-    await completeIdempotencyRequest(scopeType, idempotencyKey, result)
-    return result
+    return toTaskModel(createdRow)
 
 
 async def createSampleTask(payload: dict[str, Any], idempotencyKey: str | None = None) -> dict[str, Any]:
@@ -793,7 +789,14 @@ async def createSampleTask(payload: dict[str, Any], idempotencyKey: str | None =
     갱신일: 2026-03-06
     """
     await ensureBootstrap()
-    return await createSampleTaskInTransaction(payload, idempotencyKey=idempotencyKey)
+    scopeType = "sample.taskCreate"
+    createPayload = toTaskPayload(payload)
+    replay = await beginIdempotencyRequest(scopeType, idempotencyKey, createPayload)
+    if replay.get("status") == "replay":
+        return replay.get("result") or {}
+    result = await createSampleTaskInTransaction(payload, idempotencyKey=None)
+    await completeIdempotencyRequest(scopeType, idempotencyKey, result)
+    return result
 
 
 async def updateSampleTask(taskId: Any, payload: dict[str, Any]) -> dict[str, Any]:
@@ -859,7 +862,7 @@ async def getSampleFormMeta() -> dict[str, Any]:
 
 
 @transaction("main_db")
-async def submitSampleForm(payload: dict[str, Any], idempotencyKey: str | None = None) -> dict[str, Any]:
+async def submitSampleFormInTransaction(payload: dict[str, Any], idempotencyKey: str | None = None) -> dict[str, Any]:
     """
     설명: 공개 sample 복합 폼 제출값을 DB에 저장
     반환값: 저장된 최신 제출 행을 camelCase 모델로 반환
@@ -868,14 +871,23 @@ async def submitSampleForm(payload: dict[str, Any], idempotencyKey: str | None =
     await ensureBootstrap()
     db = ensureDbManager()
     createPayload = toFormPayload(payload)
-    scopeType = "sample.formSubmit"
+    await db.executeQuery("sample.formSubmitCreate", createPayload)
+    latestRow = await db.fetchOneQuery("sample.formSubmitLatest")
+    return toFormSubmissionModel(latestRow) or {}
 
+
+async def submitSampleForm(payload: dict[str, Any], idempotencyKey: str | None = None) -> dict[str, Any]:
+    """
+    설명: 공개 sample 복합 폼 제출값 저장 전 idempotency replay를 선처리
+    반환값: 저장된 최신 제출 행을 camelCase 모델로 반환
+    갱신일: 2026-06-24
+    """
+    scopeType = "sample.formSubmit"
+    createPayload = toFormPayload(payload)
     replay = await beginIdempotencyRequest(scopeType, idempotencyKey, createPayload)
     if replay.get("status") == "replay":
         return replay.get("result") or {}
-    await db.executeQuery("sample.formSubmitCreate", createPayload)
-    latestRow = await db.fetchOneQuery("sample.formSubmitLatest")
-    result = toFormSubmissionModel(latestRow) or {}
+    result = await submitSampleFormInTransaction(payload, idempotencyKey=None)
     await completeIdempotencyRequest(scopeType, idempotencyKey, result)
     return result
 
@@ -929,11 +941,6 @@ async def createSampleAdminUserInTransaction(payload: dict[str, Any], idempotenc
     갱신일: 2026-03-06
     """
     createPayload = toAdminUserPayload(payload)
-    scopeType = "sample.adminUserCreate"
-
-    replay = await beginIdempotencyRequest(scopeType, idempotencyKey, createPayload)
-    if replay.get("status") == "replay":
-        return replay.get("result") or {}
     db = ensureDbManager()
     duplicateRow = await db.fetchOneQuery("sample.adminUserExistsByEmail", {"email": createPayload["email"]})
     if duplicateRow:
@@ -942,9 +949,7 @@ async def createSampleAdminUserInTransaction(payload: dict[str, Any], idempotenc
     createdRow = await db.fetchOneQuery("sample.adminUserFindCreatedCandidate", {"email": createPayload["email"]})
     if not createdRow:
         raise ServiceError("SAMPLE_500_CREATE_FAILED")
-    result = toAdminUserModel(createdRow)
-    await completeIdempotencyRequest(scopeType, idempotencyKey, result)
-    return result
+    return toAdminUserModel(createdRow)
 
 
 async def createSampleAdminUser(payload: dict[str, Any], idempotencyKey: str | None = None) -> dict[str, Any]:
@@ -955,7 +960,14 @@ async def createSampleAdminUser(payload: dict[str, Any], idempotencyKey: str | N
     갱신일: 2026-03-06
     """
     await ensureBootstrap()
-    return await createSampleAdminUserInTransaction(payload, idempotencyKey=idempotencyKey)
+    scopeType = "sample.adminUserCreate"
+    createPayload = toAdminUserPayload(payload)
+    replay = await beginIdempotencyRequest(scopeType, idempotencyKey, createPayload)
+    if replay.get("status") == "replay":
+        return replay.get("result") or {}
+    result = await createSampleAdminUserInTransaction(payload, idempotencyKey=None)
+    await completeIdempotencyRequest(scopeType, idempotencyKey, result)
+    return result
 
 
 async def updateSampleAdminUser(userId: Any, payload: dict[str, Any]) -> dict[str, Any]:

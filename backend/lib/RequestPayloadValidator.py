@@ -20,6 +20,8 @@ def matchesPayloadType(value: Any, expectedType: str) -> bool:
     반환값: 타입 일치 여부 bool
     갱신일: 2026-03-12
     """
+    if expectedType == "any":
+        return True
     if expectedType == "str":
         return isinstance(value, str)
     if expectedType == "bool":

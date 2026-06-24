@@ -230,6 +230,100 @@ def testLoginMalformedJsonReturns422():
         assert body["code"] == "AUTH_422_INVALID_INPUT"
 
 
+def testAuthJsonEndpointsRejectUnknownFields():
+    from server import app
+
+    with TestClient(app) as client:
+        cases = [
+            ("/api/v1/auth/login", {"username": "demo@demo.demo", "password": "password123", "extra": "x"}),
+            ("/api/v1/auth/signup", {"name": "Demo User", "email": f"extra-{uuid.uuid4().hex[:8]}@demo.demo", "password": "password123", "extra": "x"}),
+            ("/api/v1/auth/password-reset/request", {"email": "demo@demo.demo", "extra": "x"}),
+            ("/api/v1/auth/passwordReset/request", {"email": "demo@demo.demo", "extra": "x"}),
+            ("/api/v1/auth/app/login", {"username": "demo@demo.demo", "password": "password123", "extra": "x"}),
+            ("/api/v1/auth/app/refresh", {"refreshToken": "token", "extra": "x"}),
+            ("/api/v1/auth/app/logout", {"refreshToken": "token", "extra": "x"}),
+        ]
+
+        for path, payload in cases:
+            response = client.post(path, json=payload)
+            assert response.status_code == 422, path
+            body = response.json()
+            assert body["status"] is False, path
+            assert body["code"] == "AUTH_422_INVALID_INPUT", path
+
+
+def testRememberMeNonBooleanStillBehavesAsFalse():
+    from server import app
+
+    with TestClient(app) as client:
+        webResponse = client.post(
+            "/api/v1/auth/login",
+            json={"username": "demo@demo.demo", "password": "password123", "rememberMe": "true"},
+        )
+        assert webResponse.status_code == 200
+        assert webResponse.json()["result"]["tokenType"] == "cookie"
+        refreshCookie = findCookie(webResponse.headers, "refresh_token")
+        assert refreshCookie
+        assert "Max-Age=" not in refreshCookie
+
+        appResponse = client.post(
+            "/api/v1/auth/app/login",
+            json={"username": "demo@demo.demo", "password": "password123", "rememberMe": "true"},
+        )
+        assert appResponse.status_code == 200
+        appBody = appResponse.json()
+        assert appBody["status"] is True
+        assert appBody["result"]["tokenType"] == "bearer"
+
+
+def testAppLogoutAllowsEmptyBodyButRejectsUnknownFields():
+    from server import app
+
+    with TestClient(app) as client:
+        emptyBodyResponse = client.post("/api/v1/auth/app/logout")
+        assert emptyBodyResponse.status_code == 204
+
+        tokenOnlyResponse = client.post(
+            "/api/v1/auth/app/logout",
+            json={"refreshToken": "sample-token"},
+        )
+        assert tokenOnlyResponse.status_code == 204
+
+        extraFieldResponse = client.post(
+            "/api/v1/auth/app/logout",
+            json={"refreshToken": "sample-token", "extra": "x"},
+        )
+        assert extraFieldResponse.status_code == 422
+        body = extraFieldResponse.json()
+        assert body["status"] is False
+        assert body["code"] == "AUTH_422_INVALID_INPUT"
+
+
+def testAppRefreshNonStringRefreshTokenStillReturns401():
+    from server import app
+
+    with TestClient(app) as client:
+        response = client.post(
+            "/api/v1/auth/app/refresh",
+            json={"refreshToken": 123},
+        )
+        assert response.status_code == 401
+        body = response.json()
+        assert body["status"] is False
+        assert body["code"] == "AUTH_401_INVALID"
+
+
+def testAppLogoutNonStringRefreshTokenStillSucceedsAsEmpty():
+    from server import app
+
+    with TestClient(app) as client:
+        response = client.post(
+            "/api/v1/auth/app/logout",
+            json={"refreshToken": 123},
+        )
+        assert response.status_code == 204
+
+
 def testRequiresBearerHeaderNotCookie():
     from server import app
     with TestClient(app) as client:
@@ -326,7 +420,7 @@ def testPasswordResetRequestSupportsFrontendCamelAlias():
         assert body["result"]["accepted"] is True
 
 
-def testOpenapiDocumentsPasswordResetCanonicalAndCompatibilityPaths():
+def testOpenapiDocumentsAuthRequestContracts():
     from server import app
 
     app.openapi_schema = None
@@ -336,8 +430,70 @@ def testOpenapiDocumentsPasswordResetCanonicalAndCompatibilityPaths():
     assert response.status_code == 200
     schema = response.json()
     schemas = schema["components"]["schemas"]
-    assert "PasswordResetRequestResult" in schemas
+    expectedRequestSchemas = {
+        "AuthLoginRequest": {"required": ["username", "password"], "hasRememberMe": True},
+        "AuthSignupRequest": {"required": ["name", "email", "password"]},
+        "PasswordResetRequest": {"required": ["email"]},
+        "AuthAppLoginRequest": {"required": ["username", "password"], "hasRememberMe": True},
+        "AuthAppRefreshRequest": {"required": ["refreshToken"]},
+        "AuthAppLogoutRequest": {"required": []},
+    }
+    for schemaName, expectation in expectedRequestSchemas.items():
+        assert schemaName in schemas
+        requestSchema = schemas[schemaName]
+        assert requestSchema["additionalProperties"] is False
+        assert requestSchema.get("required", []) == expectation["required"]
+        if expectation.get("hasRememberMe"):
+            rememberMe = requestSchema["properties"]["rememberMe"]
+            assert rememberMe["type"] == "boolean"
+    assert "AuthSignupResult" in schemas
+    assert schemas["AuthSignupResult"]["required"] == ["userId", "userNm"]
+    assert "AuthSignupResponse" in schemas
     assert "PasswordResetRequestResponse" in schemas
+
+    requestBodyCases = {
+        "/api/v1/auth/login": ("AuthLoginRequest", True),
+        "/api/v1/auth/signup": ("AuthSignupRequest", True),
+        "/api/v1/auth/password-reset/request": ("PasswordResetRequest", True),
+        "/api/v1/auth/passwordReset/request": ("PasswordResetRequest", True),
+        "/api/v1/auth/app/login": ("AuthAppLoginRequest", True),
+        "/api/v1/auth/app/refresh": ("AuthAppRefreshRequest", True),
+        "/api/v1/auth/app/logout": ("AuthAppLogoutRequest", False),
+    }
+    for path, (schemaName, required) in requestBodyCases.items():
+        operation = schema["paths"][path]["post"]
+        requestBody = operation["requestBody"]
+        assert requestBody["required"] is required
+        assert requestBody["content"]["application/json"]["schema"] == {
+            "$ref": f"#/components/schemas/{schemaName}"
+        }
+
+    loginOperation = schema["paths"]["/api/v1/auth/login"]["post"]
+    loginResponse = loginOperation["responses"]["200"]
+    assert loginResponse["content"]["application/json"]["schema"] == {
+        "$ref": "#/components/schemas/AuthWebSessionResponse"
+    }
+    assert "Set-Cookie" in loginResponse["headers"]
+
+    signupOperation = schema["paths"]["/api/v1/auth/signup"]["post"]
+    assert "201" in signupOperation["responses"]
+    assert signupOperation["responses"]["201"]["content"]["application/json"]["schema"] == {
+        "$ref": "#/components/schemas/AuthSignupResponse"
+    }
+    assert any(param.get("$ref") == "#/components/parameters/IdempotencyKey" for param in signupOperation["parameters"])
+
+    appLoginOperation = schema["paths"]["/api/v1/auth/app/login"]["post"]
+    assert appLoginOperation["responses"]["200"]["content"]["application/json"]["schema"] == {
+        "$ref": "#/components/schemas/AuthAppTokenResponse"
+    }
+
+    appRefreshOperation = schema["paths"]["/api/v1/auth/app/refresh"]["post"]
+    assert appRefreshOperation["responses"]["200"]["content"]["application/json"]["schema"] == {
+        "$ref": "#/components/schemas/AuthAppTokenResponse"
+    }
+
+    appLogoutOperation = schema["paths"]["/api/v1/auth/app/logout"]["post"]
+    assert "204" in appLogoutOperation["responses"]
 
     for path in ["/api/v1/auth/password-reset/request", "/api/v1/auth/passwordReset/request"]:
         operation = schema["paths"][path]["post"]
@@ -348,6 +504,22 @@ def testOpenapiDocumentsPasswordResetCanonicalAndCompatibilityPaths():
             sample.get("lang") == "JavaScript"
             and sample.get("label") == "openapi-client-axios"
             and path in sample.get("source", "")
+            for sample in samples
+        )
+
+    refreshOperation = schema["paths"]["/api/v1/auth/refresh"]["post"]
+    refreshParams = refreshOperation["parameters"]
+    assert any(param.get("$ref") == "#/components/parameters/OriginHeader" for param in refreshParams)
+    assert any(param.get("$ref") == "#/components/parameters/RefererHeader" for param in refreshParams)
+
+    meOperation = schema["paths"]["/api/v1/auth/me"]["get"]
+    assert {"bearerAuth": []} in meOperation["security"]
+
+    for path in requestBodyCases:
+        samples = schema["paths"][path]["post"].get("x-codeSamples", [])
+        assert any(
+            sample.get("lang") == "JavaScript"
+            and sample.get("label") == "openapi-client-axios"
             for sample in samples
         )
 
@@ -861,6 +1033,55 @@ def testSignupDuplicateEmailReturns409():
         body = second.json()
         assert body["status"] is False
         assert body["code"] == "AUTH_409_USER_EXISTS"
+
+
+def testSignupIdempotencyReplayAndPayloadMismatch():
+    from server import app
+
+    with TestClient(app) as client:
+        email = f"idem-{uuid.uuid4().hex[:8]}@demo.demo"
+        headers = {"Idempotency-Key": f"idem-signup:{uuid.uuid4().hex}"}
+        payload = {"name": "Idem User", "email": email, "password": "password123"}
+
+        first = client.post("/api/v1/auth/signup", json=payload, headers=headers)
+        assert first.status_code == 201
+        firstBody = first.json()
+        assert firstBody["status"] is True
+
+        replay = client.post("/api/v1/auth/signup", json=payload, headers=headers)
+        assert replay.status_code == 201
+        replayBody = replay.json()
+        assert replayBody["status"] is True
+        assert replayBody["result"] == firstBody["result"]
+
+        mismatch = client.post(
+            "/api/v1/auth/signup",
+            json={**payload, "name": "Changed User"},
+            headers=headers,
+        )
+        assert mismatch.status_code == 409
+        mismatchBody = mismatch.json()
+        assert mismatchBody["status"] is False
+        assert mismatchBody["code"] == "IDEMPOTENCY_409_PAYLOAD_MISMATCH"
+
+
+def testSignupInvalidIdempotencyKeyReturns422():
+    from server import app
+
+    with TestClient(app) as client:
+        response = client.post(
+            "/api/v1/auth/signup",
+            json={
+                "name": "Invalid Idem User",
+                "email": f"bad-idem-{uuid.uuid4().hex[:8]}@demo.demo",
+                "password": "password123",
+            },
+            headers={"Idempotency-Key": "short"},
+        )
+        assert response.status_code == 422
+        body = response.json()
+        assert body["status"] is False
+        assert body["code"] == "IDEMPOTENCY_422_INVALID_INPUT"
 
 
 def testSignupInvalidInputReturns422():
