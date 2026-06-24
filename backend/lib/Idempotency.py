@@ -13,6 +13,7 @@ from typing import Any
 
 from lib import Database as DB
 from lib.Casing import convertKeysToCamelCase
+from lib.Logger import logger
 from lib.ServiceError import ServiceError
 
 IDEMPOTENCY_STATUS_PENDING = "pending"
@@ -178,3 +179,40 @@ async def completeIdempotencyRequest(scopeType: str, idempotencyKey: str | None,
             "expiresAtMs": int(time.time() * 1000) + IDEMPOTENCY_TTL_MS,
         },
     )
+
+
+async def cancelIdempotencyRequest(scopeType: str, idempotencyKey: str | None) -> None:
+    """
+    설명: 신규 선점한 pending 멱등성 항목을 실패 시 정리
+    부작용: scope/key 일치 항목을 저장소에서 제거
+    갱신일: 2026-06-24
+    """
+    normalizedKey = normalizeIdempotencyKey(idempotencyKey)
+    if normalizedKey is None:
+        return
+    manager = await ensureIdempotencyStore()
+    await manager.executeQuery(
+        "idempotency.deleteEntry",
+        {
+            "scopeType": scopeType,
+            "idempotencyKey": normalizedKey,
+        },
+    )
+
+
+async def discardIdempotencyReservation(scopeType: str, idempotencyKey: str | None) -> bool:
+    """
+    설명: 실패한 생성 요청의 pending 멱등성 예약을 원 오류를 덮지 않도록 폐기
+    실패 동작: 폐기 실패는 로그만 남기고 False를 반환
+    반환값: 폐기 성공 True, 폐기 실패 False
+    갱신일: 2026-06-24
+    """
+    try:
+        await cancelIdempotencyRequest(scopeType, idempotencyKey)
+        return True
+    except Exception as error:
+        try:
+            logger.error(f"idempotency reservation discard failed: scopeType={scopeType} error={type(error).__name__}")
+        except Exception:
+            pass
+        return False

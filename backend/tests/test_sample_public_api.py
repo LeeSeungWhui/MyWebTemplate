@@ -123,6 +123,28 @@ def testSampleTaskCreateIdempotencyReplayAndPayloadMismatch():
         assert mismatchBody["code"] == "IDEMPOTENCY_409_PAYLOAD_MISMATCH"
 
 
+def testSampleAdminDuplicateWithIdempotencyKeyDoesNotPoisonPendingEntry():
+    from server import app
+
+    resetSampleTables()
+    with TestClient(app) as client:
+        headers = {"Idempotency-Key": f"idem-sample-admin:{os.urandom(8).hex()}"}
+        payload = {
+            "name": "기존 운영자",
+            "email": "admin@demo.demo",
+            "role": "admin",
+            "status": "active",
+        }
+
+        duplicate = client.post("/api/v1/sample/admin/users", json=payload, headers=headers)
+        assert duplicate.status_code == 409
+        assert duplicate.json()["code"] == "SAMPLE_409_ALREADY_EXISTS"
+
+        retry = client.post("/api/v1/sample/admin/users", json=payload, headers=headers)
+        assert retry.status_code == 409
+        assert retry.json()["code"] == "SAMPLE_409_ALREADY_EXISTS"
+
+
 def testSampleWriteApisRejectUnknownFields():
     from server import app
 

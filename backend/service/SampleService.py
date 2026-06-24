@@ -15,7 +15,7 @@ from typing import Any
 from lib import Database as DB
 from lib.Casing import convertKeysToCamelCase
 from lib.Config import getConfig
-from lib.Idempotency import beginIdempotencyRequest, completeIdempotencyRequest
+from lib.Idempotency import beginIdempotencyRequest, completeIdempotencyRequest, discardIdempotencyReservation
 from lib.ServiceError import ServiceError
 from lib.Transaction import transaction
 
@@ -794,7 +794,13 @@ async def createSampleTask(payload: dict[str, Any], idempotencyKey: str | None =
     replay = await beginIdempotencyRequest(scopeType, idempotencyKey, createPayload)
     if replay.get("status") == "replay":
         return replay.get("result") or {}
-    result = await createSampleTaskInTransaction(payload, idempotencyKey=None)
+    createdPendingEntry = replay.get("status") == "new"
+    try:
+        result = await createSampleTaskInTransaction(payload, idempotencyKey=None)
+    except Exception:
+        if createdPendingEntry:
+            await discardIdempotencyReservation(scopeType, idempotencyKey)
+        raise
     await completeIdempotencyRequest(scopeType, idempotencyKey, result)
     return result
 
@@ -887,7 +893,13 @@ async def submitSampleForm(payload: dict[str, Any], idempotencyKey: str | None =
     replay = await beginIdempotencyRequest(scopeType, idempotencyKey, createPayload)
     if replay.get("status") == "replay":
         return replay.get("result") or {}
-    result = await submitSampleFormInTransaction(payload, idempotencyKey=None)
+    createdPendingEntry = replay.get("status") == "new"
+    try:
+        result = await submitSampleFormInTransaction(payload, idempotencyKey=None)
+    except Exception:
+        if createdPendingEntry:
+            await discardIdempotencyReservation(scopeType, idempotencyKey)
+        raise
     await completeIdempotencyRequest(scopeType, idempotencyKey, result)
     return result
 
@@ -965,7 +977,13 @@ async def createSampleAdminUser(payload: dict[str, Any], idempotencyKey: str | N
     replay = await beginIdempotencyRequest(scopeType, idempotencyKey, createPayload)
     if replay.get("status") == "replay":
         return replay.get("result") or {}
-    result = await createSampleAdminUserInTransaction(payload, idempotencyKey=None)
+    createdPendingEntry = replay.get("status") == "new"
+    try:
+        result = await createSampleAdminUserInTransaction(payload, idempotencyKey=None)
+    except Exception:
+        if createdPendingEntry:
+            await discardIdempotencyReservation(scopeType, idempotencyKey)
+        raise
     await completeIdempotencyRequest(scopeType, idempotencyKey, result)
     return result
 

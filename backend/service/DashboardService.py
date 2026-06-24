@@ -13,7 +13,7 @@ from typing import Any, Dict, List, Optional
 from lib import Database as DB
 from lib.Casing import convertKeysToCamelCase
 from lib.Config import getConfig
-from lib.Idempotency import beginIdempotencyRequest, completeIdempotencyRequest
+from lib.Idempotency import beginIdempotencyRequest, completeIdempotencyRequest, discardIdempotencyReservation
 from lib.ServiceError import ServiceError
 from lib.Transaction import transaction
 
@@ -401,7 +401,13 @@ async def createDataTemplate(payload: Dict[str, Any], userId: str, idempotencyKe
     replay = await beginIdempotencyRequest(scopeType, idempotencyKey, insertPayload)
     if replay.get("status") == "replay":
         return replay.get("result") or {}
-    result = await createDataTemplateInTransaction(payload, ownerUserId, idempotencyKey=None)
+    createdPendingEntry = replay.get("status") == "new"
+    try:
+        result = await createDataTemplateInTransaction(payload, ownerUserId, idempotencyKey=None)
+    except Exception:
+        if createdPendingEntry:
+            await discardIdempotencyReservation(scopeType, idempotencyKey)
+        raise
     await completeIdempotencyRequest(scopeType, idempotencyKey, result)
     return result
 

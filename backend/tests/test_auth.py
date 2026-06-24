@@ -13,6 +13,7 @@ from fastapi.testclient import TestClient
 
 from conftest import pgTestSettings
 from db_support import executePg, fetchValPg
+from lib.ServiceError import ServiceError
 
 baseDir = os.path.dirname(os.path.dirname(__file__))
 if baseDir not in sys.path:
@@ -1082,6 +1083,71 @@ def testSignupInvalidIdempotencyKeyReturns422():
         body = response.json()
         assert body["status"] is False
         assert body["code"] == "IDEMPOTENCY_422_INVALID_INPUT"
+
+
+def testSignupDuplicateWithIdempotencyKeyDoesNotPoisonPendingEntry():
+    from server import app
+
+    with TestClient(app) as client:
+        email = f"dup-idem-{uuid.uuid4().hex[:8]}@demo.demo"
+        headers = {"Idempotency-Key": f"idem-signup-dup:{uuid.uuid4().hex}"}
+        payload = {"name": "Dup User", "email": email, "password": "password123"}
+
+        first = client.post("/api/v1/auth/signup", json=payload)
+        assert first.status_code == 201
+
+        duplicate = client.post("/api/v1/auth/signup", json=payload, headers=headers)
+        assert duplicate.status_code == 409
+        assert duplicate.json()["code"] == "AUTH_409_USER_EXISTS"
+
+        retry = client.post("/api/v1/auth/signup", json=payload, headers=headers)
+        assert retry.status_code == 409
+        assert retry.json()["code"] == "AUTH_409_USER_EXISTS"
+
+
+def testSignupDuplicateCleanupFailureDoesNotMaskOriginalConflict(monkeypatch):
+    from server import app
+    import lib.Idempotency as Idempotency
+
+    async def failCancel(scopeType, idempotencyKey):
+        raise RuntimeError("cleanup failed")
+
+    monkeypatch.setattr(Idempotency, "cancelIdempotencyRequest", failCancel)
+
+    with TestClient(app) as client:
+        email = f"dup-cleanup-{uuid.uuid4().hex[:8]}@demo.demo"
+        headers = {"Idempotency-Key": f"idem-signup-cleanup:{uuid.uuid4().hex}"}
+        payload = {"name": "Dup User", "email": email, "password": "password123"}
+
+        first = client.post("/api/v1/auth/signup", json=payload)
+        assert first.status_code == 201
+
+        duplicate = client.post("/api/v1/auth/signup", json=payload, headers=headers)
+        assert duplicate.status_code == 409
+        body = duplicate.json()
+        assert body["status"] is False
+        assert body["code"] == "AUTH_409_USER_EXISTS"
+
+
+def testLoginDbBackendNotRunningReturns503(monkeypatch):
+    from server import app
+    from service import AuthService
+
+    class FakeDb:
+        async def fetchOneQuery(self, queryName, bindValues=None):
+            raise ServiceError("DB_NOT_READY")
+
+    monkeypatch.setattr(AuthService.DB, "getManager", lambda: FakeDb())
+
+    with TestClient(app) as client:
+        response = client.post(
+            "/api/v1/auth/login",
+            json={"username": "demo@demo.demo", "password": "password123"},
+        )
+        assert response.status_code == 503
+        body = response.json()
+        assert body["status"] is False
+        assert body["code"] == "AUTH_503_DB_NOT_READY"
 
 
 def testSignupInvalidInputReturns422():

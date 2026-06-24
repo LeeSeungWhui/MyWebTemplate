@@ -55,3 +55,9 @@ UPDATE T_REQUEST_IDEMPOTENCY
      , UPD_DT = CURRENT_TIMESTAMP
  WHERE SCOPE_TP = :scopeType
    AND IDEMPOTENCY_KEY = :idempotencyKey;
+
+-- name: idempotency.deleteEntry
+DELETE
+  FROM T_REQUEST_IDEMPOTENCY
+ WHERE SCOPE_TP = :scopeType
+   AND IDEMPOTENCY_KEY = :idempotencyKey;

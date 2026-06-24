@@ -26,10 +26,11 @@ from jose import JWTError, jwt
 from lib.Auth import AuthConfig, Token, createAccessToken, createRefreshToken
 from lib import Database as DB
 from lib.Casing import convertKeysToCamelCase
-from lib.Idempotency import beginIdempotencyRequest, completeIdempotencyRequest
+from lib.Idempotency import beginIdempotencyRequest, completeIdempotencyRequest, discardIdempotencyReservation
 from lib.Logger import logger
 from lib.Masking import maskUserIdentifierForLog
 from lib.RequestContext import getRequestId
+from lib.ServiceError import ServiceError
 from lib.ServiceError import resolveServiceErrorCode
 from lib.Transaction import transaction
 
@@ -361,7 +362,12 @@ async def login(payload: dict, rememberMe: bool = False) -> dict | None:
     if isinstance(payload, dict):
         candidateUsername = normalizeLoginUsername(payload.get("username"))
 
-    authUser, username = await authenticateUser(payload)
+    try:
+        authUser, username = await authenticateUser(payload)
+    except ServiceError as error:
+        if resolveServiceErrorCode(error) == "AUTH_503_DB_NOT_READY":
+            auditLog("auth.login", candidateUsername, False, {"reason": "auth_503_db_not_ready"})
+        raise
     if not authUser or not username:
         auditLog("auth.login", candidateUsername, False, {"reason": "invalid_credentials"})
         return None
@@ -482,15 +488,28 @@ async def signup(payload: dict, idempotencyKey: str | None = None) -> tuple[dict
         replay = await beginIdempotencyRequest("auth.signup", idempotencyKey, signupPayload)
         if replay.get("status") == "replay":
             return replay.get("result") or {}, None
-        result, errorCode = await signupInTransaction(name, email, password)
-        if errorCode:
-            auditLog("auth.signup", email, False, {"reason": errorCode.lower()})
-            return None, errorCode
+        createdPendingEntry = replay.get("status") == "new"
+        try:
+            result = await signupInTransaction(name, email, password)
+        except Exception as error:
+            serviceErrorCode = resolveServiceErrorCode(error)
+            if serviceErrorCode == "DB_NOT_READY":
+                serviceErrorCode = "AUTH_503_DB_NOT_READY"
+            if createdPendingEntry:
+                await discardIdempotencyReservation("auth.signup", idempotencyKey)
+            if serviceErrorCode:
+                auditLog("auth.signup", email, False, {"reason": serviceErrorCode.lower()})
+                return None, serviceErrorCode
+            auditLog("auth.signup", email, False, {"reason": "exception"})
+            logger.error(f"signup failed: error={type(error).__name__}")
+            return None, "AUTH_500_SIGNUP_FAILED"
         await completeIdempotencyRequest("auth.signup", idempotencyKey, result)
         auditLog("auth.signup", email, True, {})
         return result, None
     except Exception as e:
         serviceErrorCode = resolveServiceErrorCode(e)
+        if serviceErrorCode == "DB_NOT_READY":
+            serviceErrorCode = "AUTH_503_DB_NOT_READY"
         if serviceErrorCode:
             auditLog("auth.signup", email, False, {"reason": serviceErrorCode.lower()})
             return None, serviceErrorCode
@@ -500,19 +519,19 @@ async def signup(payload: dict, idempotencyKey: str | None = None) -> tuple[dict
 
 
 @transaction("main_db")
-async def signupInTransaction(name: str, email: str, password: str) -> tuple[dict | None, str | None]:
+async def signupInTransaction(name: str, email: str, password: str) -> dict:
     """
     설명: 회원가입 DB 생성 트랜잭션 내부 단계
-    반환값: (성공 결과 dict, None) 또는 (None, 에러코드)
+    반환값: 성공 결과 dict
     갱신일: 2026-06-24
     """
     db = DB.getManager()
     if not db:
-        return None, "AUTH_503_DB_NOT_READY"
+        raise ServiceError("AUTH_503_DB_NOT_READY")
 
     exists = await db.fetchOneQuery("auth.userByUsername", {"u": email})
     if exists:
-        return None, "AUTH_409_USER_EXISTS"
+        raise ServiceError("AUTH_409_USER_EXISTS")
 
     passwordHash = hashPasswordPbkdf2(password)
     try:
@@ -528,16 +547,16 @@ async def signupInTransaction(name: str, email: str, password: str) -> tuple[dic
         )
     except Exception as insertError:
         if isDuplicateUserConstraintError(insertError):
-            return None, "AUTH_409_USER_EXISTS"
+            raise ServiceError("AUTH_409_USER_EXISTS") from insertError
         raise
     created = await db.fetchOneQuery("auth.userByUsername", {"u": email})
     if not created:
-        return None, "AUTH_500_SIGNUP_FAILED"
+        raise ServiceError("AUTH_500_SIGNUP_FAILED")
     createdUser = convertKeysToCamelCase(created)
     return {
         "userId": createdUser.get("userId") or email,
         "userNm": createdUser.get("userNm") or name,
-    }, None
+    }
 
 
 @transaction("main_db")
@@ -780,7 +799,12 @@ async def authenticateUser(payload: dict) -> tuple[dict | None, str | None]:
     db = DB.getManager()
     if not db:
         return None, None
-    user = await db.fetchOneQuery("auth.userByUsername", {"u": username})
+    try:
+        user = await db.fetchOneQuery("auth.userByUsername", {"u": username})
+    except Exception as error:
+        if resolveServiceErrorCode(error) == "DB_NOT_READY":
+            raise ServiceError("AUTH_503_DB_NOT_READY") from error
+        raise
     if not user:
         return None, None
     authUser = convertKeysToCamelCase(user)

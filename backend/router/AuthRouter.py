@@ -383,7 +383,19 @@ async def login(request: Request):
     if limited is not None:
         return limited
 
-    authResult = await AuthService.login(payload, remember)
+    try:
+        authResult = await AuthService.login(payload, remember)
+    except Exception as exc:
+        mappedResponse = buildMappedErrorResponse(
+            exc,
+            messageByCode={
+                "AUTH_503_DB_NOT_READY": i18nTranslate("error.db_not_ready", "database not ready", loc),
+            },
+            includeNoStore=True,
+        )
+        if mappedResponse is not None:
+            return mappedResponse
+        raise
     if not authResult:
 
         # 레이트리밋(실패 기록): 로그인 실패 시에만 카운트를 증가시킨다.
@@ -591,7 +603,19 @@ async def appLogin(request: Request):
     if limited is not None:
         return limited
 
-    authResult = await AuthService.login(payload, remember)
+    try:
+        authResult = await AuthService.login(payload, remember)
+    except Exception as exc:
+        mappedResponse = buildMappedErrorResponse(
+            exc,
+            messageByCode={
+                "AUTH_503_DB_NOT_READY": i18nTranslate("error.db_not_ready", "database not ready", loc),
+            },
+            includeNoStore=True,
+        )
+        if mappedResponse is not None:
+            return mappedResponse
+        raise
     if not authResult:
         limited = checkRateLimit(request, username=username, commit=True)
         if limited is not None:

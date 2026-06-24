@@ -18,6 +18,7 @@ from urllib.parse import urlsplit, urlunsplit
 
 from databases import Database
 from lib.Logger import logger
+from lib.ServiceError import ServiceError
 from lib.SqlLoader import parseSqlFile, scanSqlQueries
 from sqlalchemy import MetaData
 
@@ -250,6 +251,20 @@ class DatabaseManager:
         if len(text) <= maxLength:
             return text
         return f"{text[:maxLength]} …(truncated)"
+
+    def mapDatabaseBackendRuntimeError(self, error: Exception) -> Exception:
+        """
+        설명: 런타임 DB backend 중단 예외를 서비스 계층 공통 코드로 정규화
+        처리 규칙: query not found(ValueError)는 그대로 유지하고, known backend-not-running만 DB_NOT_READY로 승격
+        반환값: 재전파할 원본 예외 또는 ServiceError("DB_NOT_READY")
+        갱신일: 2026-06-24
+        """
+        if isinstance(error, ValueError):
+            return error
+        message = str(error or "").strip().lower()
+        if isinstance(error, AssertionError) and "databasebackend is not running" in message:
+            return ServiceError("DB_NOT_READY")
+        return error
 
     def shouldRevealSqlLiteralValues(self) -> bool:
         """
@@ -489,7 +504,10 @@ class DatabaseManager:
         """
         self._validateBindParameters(query, values, queryName=queryName, allowStaticSqlLiteralPredicate=False)
         self.logQuery("execute", query, values, queryName)
-        result = await self.database.execute(query=query, values=values or {})
+        try:
+            result = await self.database.execute(query=query, values=values or {})
+        except Exception as error:
+            raise self.mapDatabaseBackendRuntimeError(error) from error
         logger.info(f"rows_affected={result}")
         incSqlCount()
         return result
@@ -505,7 +523,10 @@ class DatabaseManager:
         """
         self._validateBindParameters(query, values, queryName=queryName, allowStaticSqlLiteralPredicate=False)
         self.logQuery("fetchOne", query, values, queryName)
-        result = await self.database.fetch_one(query=query, values=values or {})
+        try:
+            result = await self.database.fetch_one(query=query, values=values or {})
+        except Exception as error:
+            raise self.mapDatabaseBackendRuntimeError(error) from error
         if result is not None:
             data: dict[str, Any] = dict(result)
             logger.info("rows_returned=1")
@@ -527,7 +548,10 @@ class DatabaseManager:
         """
         self._validateBindParameters(query, values, queryName=queryName, allowStaticSqlLiteralPredicate=False)
         self.logQuery("fetchAll", query, values, queryName)
-        result = await self.database.fetch_all(query=query, values=values or {})
+        try:
+            result = await self.database.fetch_all(query=query, values=values or {})
+        except Exception as error:
+            raise self.mapDatabaseBackendRuntimeError(error) from error
         if result is not None:
             data: list[dict[str, Any]] = [{column: row[column] for column in row.keys()} for row in result]  # type: ignore[index]
             logger.info(f"rows_returned={len(data)}")
@@ -546,7 +570,10 @@ class DatabaseManager:
             raise ValueError(f"Query not found: {queryName}")
         self._validateBindParameters(query, values, queryName=queryName, allowStaticSqlLiteralPredicate=True)
         self.logQuery("execute", query, values, queryName)
-        result = await self.database.execute(query=query, values=values or {})
+        try:
+            result = await self.database.execute(query=query, values=values or {})
+        except Exception as error:
+            raise self.mapDatabaseBackendRuntimeError(error) from error
         logger.info(f"rows_affected={result}")
         incSqlCount()
         return result
@@ -559,7 +586,10 @@ class DatabaseManager:
             raise ValueError(f"Query not found: {queryName}")
         self._validateBindParameters(query, values, queryName=queryName, allowStaticSqlLiteralPredicate=True)
         self.logQuery("fetchOne", query, values, queryName)
-        result = await self.database.fetch_one(query=query, values=values or {})
+        try:
+            result = await self.database.fetch_one(query=query, values=values or {})
+        except Exception as error:
+            raise self.mapDatabaseBackendRuntimeError(error) from error
         if result is not None:
             data: dict[str, Any] = dict(result)
             logger.info("rows_returned=1")
@@ -580,7 +610,10 @@ class DatabaseManager:
             raise ValueError(f"Query not found: {queryName}")
         self._validateBindParameters(query, values, queryName=queryName, allowStaticSqlLiteralPredicate=True)
         self.logQuery("fetchAll", query, values, queryName)
-        result = await self.database.fetch_all(query=query, values=values or {})
+        try:
+            result = await self.database.fetch_all(query=query, values=values or {})
+        except Exception as error:
+            raise self.mapDatabaseBackendRuntimeError(error) from error
         if result is not None:
             data: list[dict[str, Any]] = [{column: row[column] for column in row.keys()} for row in result]  # type: ignore[index]
             logger.info(f"rows_returned={len(data)}")

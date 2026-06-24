@@ -9,6 +9,7 @@ class FakeDbManager:
     def __init__(self):
         self.entries = {}
         self.calls = []
+        self.failDeleteEntry = False
 
     async def executeQuery(self, queryName: str, values=None):
         params = dict(values or {})
@@ -45,6 +46,12 @@ class FakeDbManager:
                     "expiresAtMs": params["expiresAtMs"],
                 }
             )
+            return 1
+        if queryName == "idempotency.deleteEntry":
+            if self.failDeleteEntry:
+                raise RuntimeError("delete failed")
+            key = (params["scopeType"], params["idempotencyKey"])
+            self.entries.pop(key, None)
             return 1
         raise AssertionError(f"unexpected queryName: {queryName}")
 
@@ -139,3 +146,53 @@ def testBeginCompleteAndReplayIdempotencyRequest(monkeypatch):
     assert "idempotency.insertEntry" in executedNames
     assert "idempotency.completeEntry" in executedNames
     assert "idempotency.getEntry" in executedNames
+
+
+def testCancelIdempotencyRequestDeletesPendingEntry(monkeypatch):
+    import lib.Idempotency as Idempotency
+
+    fakeManager = FakeDbManager()
+    monkeypatch.setattr(Idempotency.DB, "getManager", lambda: fakeManager)
+
+    async def scenario():
+        first = await Idempotency.beginIdempotencyRequest(
+            "resume.create",
+            "idem-key:5678",
+            {"userId": "demo", "resumeId": 8},
+        )
+        assert first["status"] == "new"
+        assert await Idempotency.getIdempotencyEntry("resume.create", "idem-key:5678") is not None
+
+        await Idempotency.cancelIdempotencyRequest("resume.create", "idem-key:5678")
+        assert await Idempotency.getIdempotencyEntry("resume.create", "idem-key:5678") is None
+
+        second = await Idempotency.beginIdempotencyRequest(
+            "resume.create",
+            "idem-key:5678",
+            {"userId": "demo", "resumeId": 8},
+        )
+        assert second["status"] == "new"
+
+    asyncio.run(scenario())
+
+
+def testDiscardIdempotencyReservationDoesNotRaiseOnDeleteFailure(monkeypatch):
+    import lib.Idempotency as Idempotency
+
+    fakeManager = FakeDbManager()
+    fakeManager.failDeleteEntry = True
+    monkeypatch.setattr(Idempotency.DB, "getManager", lambda: fakeManager)
+
+    async def scenario():
+        first = await Idempotency.beginIdempotencyRequest(
+            "resume.create",
+            "idem-key:9012",
+            {"userId": "demo", "resumeId": 9},
+        )
+        assert first["status"] == "new"
+
+        discarded = await Idempotency.discardIdempotencyReservation("resume.create", "idem-key:9012")
+        assert discarded is False
+        assert await Idempotency.getIdempotencyEntry("resume.create", "idem-key:9012") is not None
+
+    asyncio.run(scenario())
