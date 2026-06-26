@@ -10,6 +10,7 @@ class FakeDbManager:
         self.entries = {}
         self.calls = []
         self.failDeleteEntry = False
+        self.yieldBeforeInsertEntry = False
 
     async def executeQuery(self, queryName: str, values=None):
         params = dict(values or {})
@@ -25,6 +26,8 @@ class FakeDbManager:
             }
             return None
         if queryName == "idempotency.insertEntry":
+            if self.yieldBeforeInsertEntry:
+                await asyncio.sleep(0)
             key = (params["scopeType"], params["idempotencyKey"])
             if key in self.entries:
                 raise Exception("duplicate key")
@@ -146,6 +149,33 @@ def testBeginCompleteAndReplayIdempotencyRequest(monkeypatch):
     assert "idempotency.insertEntry" in executedNames
     assert "idempotency.completeEntry" in executedNames
     assert "idempotency.getEntry" in executedNames
+
+
+def testConcurrentBeginIdempotencyRequestAllowsOnlyOneNew(monkeypatch):
+    import lib.Idempotency as Idempotency
+
+    fakeManager = FakeDbManager()
+    fakeManager.yieldBeforeInsertEntry = True
+    monkeypatch.setattr(Idempotency.DB, "getManager", lambda: fakeManager)
+
+    async def tryBegin():
+        try:
+            result = await Idempotency.beginIdempotencyRequest(
+                "resume.create",
+                "idem-key:concurrent",
+                {"userId": "demo", "resumeId": 7},
+            )
+            return result["status"]
+        except ServiceError as error:
+            return error.code
+
+    async def scenario():
+        return await asyncio.gather(tryBegin(), tryBegin())
+
+    results = asyncio.run(scenario())
+
+    assert results.count("new") == 1
+    assert results.count("IDEMPOTENCY_409_IN_PROGRESS") == 1
 
 
 def testCancelIdempotencyRequestDeletesPendingEntry(monkeypatch):

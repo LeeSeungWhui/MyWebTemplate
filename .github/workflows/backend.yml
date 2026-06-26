@@ -1,0 +1,107 @@
+name: backend
+
+on:
+  push:
+    paths:
+      - "backend/**"
+      - ".github/workflows/backend.yml"
+  pull_request:
+    paths:
+      - "backend/**"
+      - ".github/workflows/backend.yml"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    env:
+      BACKEND_TEST_CONFIG: backend/config.test.ini
+      PGHOST: 127.0.0.1
+      PGPORT: "5432"
+      PGDATABASE: mywebtemplate_test
+      PGUSER: postgres
+      PGPASSWORD: postgres
+      PGTZ: Asia/Seoul
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: mywebtemplate_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          TZ: Asia/Seoul
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d mywebtemplate_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4
+
+      - name: setup python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+
+      - name: create backend test config
+        run: |
+          mkdir -p backend
+          cat <<EOF > "${BACKEND_TEST_CONFIG}"
+          [SERVER]
+          runtime = CI
+
+          [DATABASE]
+          name = main_db
+          type = postgresql
+          host = ${PGHOST}
+          port = ${PGPORT}
+          database = ${PGDATABASE}
+          user = ${PGUSER}
+          password = ${PGPASSWORD}
+          query_dir = query
+          query_watch = false
+
+          [AUTH]
+          token_enable = true
+          secret_key = 0123456789abcdef0123456789abcdef
+          access_cookie = access_token
+          refresh_cookie = refresh_token
+          token_expire = 3600
+          refresh_expire = 604800
+
+          [CORS]
+          allow_origins = http://localhost:3000
+          allow_credentials = true
+          EOF
+
+      - name: install backend requirements
+        run: python -m pip install --upgrade pip && python -m pip install -r backend/requirements.txt
+
+      - name: backend pytest
+        working-directory: backend
+        run: pytest -q
+
+      - name: backend db static safety check
+        run: |
+          python - <<'PY'
+          import re
+          import sys
+          from pathlib import Path
+
+          bad = []
+          for path in Path("backend").rglob("*.py"):
+              text = path.read_text(encoding="utf-8")
+              if "config.test.ini" in text or "config.ini" in text:
+                  continue
+              if re.search(r"\bDELETE\s+FROM\s+T_[A-Z0-9_]+\s*$", text, re.MULTILINE):
+                  bad.append(f"{path}: bare DELETE without WHERE")
+
+          if bad:
+              sys.stdout.write("\n".join(bad) + "\n")
+              raise SystemExit(1)
+
+          sys.stdout.write("backend/db static safety check passed\n")
+          PY

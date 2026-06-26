@@ -30,7 +30,11 @@ from lib.Database import (
 from lib import Database as DB
 from lib.Logger import logger
 from lib.Response import errorResponse
-from lib.Middleware import RequestLogMiddleware
+from lib.Middleware import (
+    RequestLogMiddleware,
+    SecurityHeadersMiddleware,
+    applyDefaultSecurityHeaders,
+)
 from lib.OpenAPI import attachOpenAPI
 from lib.Config import getConfig
 
@@ -331,6 +335,7 @@ app.add_event_handler("shutdown", onShutdown)
 
 # 요청 로그 및 request id 전파 미들웨어
 app.add_middleware(RequestLogMiddleware)
+app.add_middleware(SecurityHeadersMiddleware)
 
 # 라우터 로딩
 logger.info("router load start")
@@ -392,7 +397,7 @@ async def globalExceptionHandler(request: Request, exc: Exception):
         logger.exception(f"unhandled_exception path={request.url.path}")
     except Exception:
         pass
-    return JSONResponse(
+    return applyDefaultSecurityHeaders(JSONResponse(
         status_code=500,
         content=errorResponse(
             message="internal server error",
@@ -400,7 +405,7 @@ async def globalExceptionHandler(request: Request, exc: Exception):
             code="HTTP_500_INTERNAL",
         ),
         headers={"Cache-Control": "no-store"},
-    )
+    ))
 
 
 def sanitizeValidationErrors(errors: object) -> list[dict]:
@@ -433,7 +438,7 @@ async def requestValidationExceptionHandler(request: Request, exc: RequestValida
     반환값: status=422 표준 JSONResponse
     갱신일: 2026-02-28
     """
-    return JSONResponse(
+    return applyDefaultSecurityHeaders(JSONResponse(
         status_code=422,
         content=errorResponse(
             message="invalid request",
@@ -444,7 +449,7 @@ async def requestValidationExceptionHandler(request: Request, exc: RequestValida
             code="VALID_422_REQUEST",
         ),
         headers={"Cache-Control": "no-store"},
-    )
+    ))
 
 
 @app.exception_handler(HTTPException)
@@ -488,7 +493,7 @@ async def httpExceptionHandler(request: Request, exc: HTTPException):
         else:
             code = f"HTTP_{statusCode}"
 
-    return JSONResponse(
+    return applyDefaultSecurityHeaders(JSONResponse(
         status_code=statusCode,
         content=errorResponse(
             message=message,
@@ -496,4 +501,4 @@ async def httpExceptionHandler(request: Request, exc: HTTPException):
             code=code,
         ),
         headers=headers,
-    )
+    ))

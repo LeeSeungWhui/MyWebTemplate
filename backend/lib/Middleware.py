@@ -25,6 +25,13 @@ from .RequestContext import resetRequestId, setRequestId
 from .RequestTrust import trustProxyHeaders
 from .UserAccessLog import writeUserAccessLog
 
+SECURITY_RESPONSE_HEADERS = (
+    ("X-Content-Type-Options", "nosniff"),
+    ("Referrer-Policy", "same-origin"),
+    ("Permissions-Policy", "accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=()"),
+    ("X-Frame-Options", "DENY"),
+)
+
 
 async def writeUserAccessLogSafely(
     *,
@@ -190,6 +197,33 @@ def maskClientIpForLog(clientIp: str | None) -> str | None:
         return "***"
     hextets = parsedIp.exploded.split(":")
     return ":".join(hextets[:4] + ["*"])
+
+
+def applyDefaultSecurityHeaders(response: StarletteResponse) -> StarletteResponse:
+    """
+    설명: 응답에 공통 보안 헤더 기본값을 추가
+    처리 규칙: 기존 헤더가 이미 있으면 존중하고, Cache-Control 등 기존 캐시 정책은 변경하지 않음
+    반환값: 보안 헤더가 반영된 동일 response 객체
+    갱신일: 2026-06-24
+    """
+    try:
+        headers = response.headers
+    except Exception:
+        return response
+    for headerName, headerValue in SECURITY_RESPONSE_HEADERS:
+        headers.setdefault(headerName, headerValue)
+    return response
+
+
+class SecurityHeadersMiddleware(BaseHTTPMiddleware):
+    """
+    설명: 모든 HTTP 응답에 기본 보안 헤더를 부여하는 미들웨어
+    갱신일: 2026-06-24
+    """
+
+    async def dispatch(self, request: Request, callNext: Callable[[Request], Awaitable[StarletteResponse]]) -> StarletteResponse:
+        response = await callNext(request)
+        return applyDefaultSecurityHeaders(response)
 
 
 class RequestLogMiddleware(BaseHTTPMiddleware):
