@@ -93,7 +93,7 @@ const Switch = forwardRef(({
       />
       <span
         aria-hidden="true"
-        className={`relative inline-flex h-6 w-10 items-center rounded-full transition-colors duration-200 ${isChecked ? 'bg-blue-600' : 'bg-gray-300'}`}
+        className={`relative inline-flex h-6 w-10 items-center rounded-full transition-colors duration-200 ${isChecked ? 'bg-zinc-900' : 'bg-zinc-300'}`}
       >
         <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform duration-200 ${isChecked ? 'translate-x-5' : 'translate-x-1'}`}></span>
       </span>

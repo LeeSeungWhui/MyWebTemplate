@@ -269,23 +269,23 @@ const tocItems = [
 const TableOfContents = () => {
   return (
     <section className="bg-white">
-      <h2 className="text-xl font-semibold mb-4">{LANG_KO.view.tocLabel}</h2>
-      <ul className="space-y-2">
+      <h2 className="mb-4 text-xs font-semibold uppercase tracking-wider text-zinc-400">{LANG_KO.view.tocLabel}</h2>
+      <ul className="space-y-1">
         {tocItems.map((tocItemObj) => (
           <li key={tocItemObj.id}>
             <a
               href={`#${tocItemObj.id}`}
-              className="text-blue-600 hover:text-blue-800"
+              className="block rounded-md px-2 py-1.5 text-sm font-medium text-zinc-600 transition-[color,background-color] hover:bg-zinc-100 hover:text-zinc-950 active:bg-zinc-200/70 active:text-zinc-950"
             >
               {tocItemObj.label}
             </a>
             {tocItemObj.children && tocItemObj.children.length > 0 && (
-              <ul className="ml-4 mt-1 space-y-1">
+              <ul className="ml-2 mt-0.5 space-y-0.5 border-l border-zinc-200/80 pl-1">
                 {tocItemObj.children.map((child) => (
                   <li key={child.id}>
                     <a
                       href={`#${child.id}`}
-                      className="text-blue-600 hover:text-blue-800"
+                      className="block rounded-md border-l-2 border-transparent py-1 pl-3 pr-2 text-xs text-zinc-500 transition-[color,background-color,border-color] hover:border-zinc-900 hover:bg-zinc-50 hover:text-zinc-900 active:border-zinc-900 active:bg-zinc-100/80 active:text-zinc-950"
                     >
                       {child.label}
                     </a>

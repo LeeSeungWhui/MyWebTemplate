@@ -31,9 +31,9 @@ const Alert = ({
     const alertTypeMetaObj = {
         info: {
             icon: 'ri:RiInformationLine',
-            iconColor: 'text-blue-500',
-            bgColor: 'bg-blue-50',
-            borderColor: 'border-blue-200'
+            iconColor: 'text-zinc-600',
+            bgColor: 'bg-zinc-50',
+            borderColor: 'border-zinc-200'
         },
         success: {
             icon: 'ri:RiCheckboxCircleLine',
@@ -65,7 +65,7 @@ const Alert = ({
                 aria-labelledby={titleId}
                 aria-describedby={descriptionId}
                 className={`
-                w-[calc(100vw-32px)] max-w-xl rounded-lg shadow-lg border ${alertTypeMetaObj[type]?.borderColor || alertTypeMetaObj.info.borderColor}
+                w-[calc(100vw-32px)] max-w-xl rounded-xl shadow-lg ring-1 ring-zinc-950/5 border ${alertTypeMetaObj[type]?.borderColor || alertTypeMetaObj.info.borderColor}
                 ${alertTypeMetaObj[type]?.bgColor || alertTypeMetaObj.info.bgColor} backdrop-blur-sm
                 animate-fade-in-up
             `}>

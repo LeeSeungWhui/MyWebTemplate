@@ -8,7 +8,7 @@
  */
 
 import Link from "next/link";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import Header from "@/app/common/layout/Header";
 import Sidebar from "@/app/common/layout/Sidebar";
@@ -34,6 +34,8 @@ const DemoLayoutClient = ({ children }) => {
     sidebarOpen: false,
     isDesktopViewport: false,
   });
+  const uiRef = useRef(ui);
+  uiRef.current = ui;
   const pathname = usePathname();
   const layoutMeta = resolveDemoLayoutMeta(pathname);
   const currentYear = new Date().getFullYear();
@@ -58,6 +60,8 @@ const DemoLayoutClient = ({ children }) => {
   // 없음
 
   /* 8. useEffect ================================================================================================================== */
+  const isDesktopViewport = Boolean(ui.isDesktopViewport);
+
   /**
    * @description 1024px media query 변경에 맞춰 데스크톱 여부와 sidebarOpen 동기화
    * 처리 규칙: cleanup에서 mediaQuery change 리스너를 제거한다.
@@ -74,24 +78,24 @@ const DemoLayoutClient = ({ children }) => {
      * @updated 2026-02-27
      */
     const syncViewport = () => {
-      ui.isDesktopViewport = mediaQuery.matches;
-      ui.sidebarOpen = mediaQuery.matches;
+      uiRef.current.isDesktopViewport = mediaQuery.matches;
+      uiRef.current.sidebarOpen = mediaQuery.matches;
     };
 
     syncViewport();
     mediaQuery.addEventListener("change", syncViewport);
     return () => mediaQuery.removeEventListener("change", syncViewport);
-  }, [ui]);
+  }, []);
 
   /**
    * @description 모바일 뷰포트에서 route 변경 시 사이드바를 닫음
    * 처리 규칙: pathname 변경마다 ui.sidebarOpen=false를 반영한다.
    */
   useEffect(() => {
-    if (!ui.isDesktopViewport) {
-      ui.sidebarOpen = false;
+    if (!isDesktopViewport) {
+      uiRef.current.sidebarOpen = false;
     }
-  }, [pathname, ui]);
+  }, [pathname, isDesktopViewport]);
 
   /* 9. 내부 컴포넌트 ============================================================================================================== */
 
@@ -140,7 +144,7 @@ const DemoLayoutClient = ({ children }) => {
           footerSlot={`© ${currentYear} ${LANG_KO.layoutMeta.brandName}`}
         />
 
-        <main className="min-w-0 flex-1 overflow-y-auto px-4 py-4 lg:px-4">
+        <main className="min-w-0 flex-1 overflow-y-auto bg-slate-50 px-4 py-4 lg:px-4">
           {children}
         </main>
       </div>

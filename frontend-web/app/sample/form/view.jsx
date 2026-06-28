@@ -7,9 +7,10 @@
  * 설명: 공개 복합 폼 샘플 페이지 뷰(DB 폼 메타/제출 연동)
  */
 
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { useGlobalUi } from "@/app/common/store/SharedStore";
 import Button from "@/app/lib/component/Button";
+import Icon from "@/app/lib/component/Icon";
 import Card from "@/app/lib/component/Card";
 import CheckButton from "@/app/lib/component/CheckButton";
 import Input from "@/app/lib/component/Input";
@@ -62,7 +63,7 @@ const FormDemoView = ({ initialDataObj, initialErrorObj }) => {
     initialErrorObj,
   });
   const initialMetaResult = useMemo(
-    () => dataObj?.meta?.result || {},
+    () => dataObj?.meta?.result ?? {},
     [dataObj?.meta?.result],
   );
   const { showToast } = useGlobalUi();
@@ -73,7 +74,11 @@ const FormDemoView = ({ initialDataObj, initialErrorObj }) => {
     stepOneErrors: { ...stepErrorSeedObj },
   });
   const formMetaObj = EasyObj(initialMetaResult);
+  const formMetaObjRef = useRef(formMetaObj);
+  formMetaObjRef.current = formMetaObj;
   const latestSubmissionObj = EasyObj(initialMetaResult.latestSubmission || {});
+  const latestSubmissionObjRef = useRef(latestSubmissionObj);
+  latestSubmissionObjRef.current = latestSubmissionObj;
   const categoryCodeList = formMetaObj?.categoryCodeList || [];
   const featureCodeList = formMetaObj?.featureCodeList || [];
   const categoryOptionList = categorySourceList.filter((categoryOptionObj) => (
@@ -228,7 +233,7 @@ const FormDemoView = ({ initialDataObj, initialErrorObj }) => {
         },
         { authless: true },
       );
-      latestSubmissionObj.copy(submitResponse?.result || {});
+      latestSubmissionObj.copy(submitResponse?.result ?? {});
       formMetaObj.submissionCount = Number(formMetaObj.submissionCount || 0) + 1;
       ui.form = { ...formSeedObj };
       ui.stepOneErrors = { ...stepErrorSeedObj };
@@ -247,9 +252,9 @@ const FormDemoView = ({ initialDataObj, initialErrorObj }) => {
    * 처리 규칙: meta 전체는 formMetaObj.copy, latestSubmission은 별도 copy로 반영
    */
   useEffect(() => {
-    formMetaObj.copy(initialMetaResult);
-    latestSubmissionObj.copy(initialMetaResult.latestSubmission || {});
-  }, [dataObj?.meta?.result, formMetaObj, initialMetaResult, latestSubmissionObj]);
+    formMetaObjRef.current.copy(initialMetaResult);
+    latestSubmissionObjRef.current.copy(initialMetaResult.latestSubmission || {});
+  }, [initialMetaResult]);
 
   /* 9. 내부 컴포넌트 ============================================================================================================== */
 
@@ -287,20 +292,52 @@ const FormDemoView = ({ initialDataObj, initialErrorObj }) => {
         </Card>
       </section>
 
-      <ol className="mb-5 grid gap-2 sm:grid-cols-3">
-        {stepList.map((stepItem) => (
-          <li
-            key={stepItem.step}
-            className={`rounded-lg border px-4 py-3 text-sm ${
-              stepItem.step === ui.step
-                ? "border-blue-500 bg-blue-50 text-blue-700"
-                : "border-gray-200 bg-white text-gray-500"
-            }`}
-          >
-            {stepItem.step}. {stepItem.label}
-          </li>
-        ))}
-      </ol>
+      <nav className="mb-5" aria-label={LANG_KO.view.page.title}>
+        <ol className="flex items-center">
+          {stepList.map((stepItem, stepIndex) => {
+            const isCompleted = stepItem.step < ui.step;
+            const isCurrent = stepItem.step === ui.step;
+            return (
+              <li key={stepItem.step} className="flex flex-1 items-center">
+                <div className="flex min-w-0 flex-1 flex-col items-center">
+                  <div
+                    className={`flex h-9 w-9 items-center justify-center rounded-full border-2 text-sm font-semibold ${
+                      isCompleted
+                        ? "border-blue-600 bg-blue-600 text-white"
+                        : isCurrent
+                          ? "border-blue-600 bg-white text-blue-700"
+                          : "border-gray-300 bg-white text-gray-400"
+                    }`}
+                  >
+                    {isCompleted ? (
+                      <Icon icon="ri:RiCheckLine" className="text-base" />
+                    ) : (
+                      stepItem.step
+                    )}
+                  </div>
+                  <span
+                    className={`mt-2 text-center text-xs font-medium ${
+                      isCurrent
+                        ? "text-blue-700"
+                        : isCompleted
+                          ? "text-gray-700"
+                          : "text-gray-400"
+                    }`}
+                  >
+                    {stepItem.label}
+                  </span>
+                </div>
+                {stepIndex < stepList.length - 1 ? (
+                  <div
+                    className={`mx-2 h-0.5 flex-1 ${isCompleted ? "bg-blue-600" : "bg-gray-200"}`}
+                    aria-hidden="true"
+                  />
+                ) : null}
+              </li>
+            );
+          })}
+        </ol>
+      </nav>
 
       {isLoading ? (
         <Card title={LANG_KO.view.page.loadingCardTitle}>
@@ -444,15 +481,21 @@ const FormDemoView = ({ initialDataObj, initialErrorObj }) => {
             <label className="block space-y-1">
               <span className="text-sm font-medium text-gray-700">{LANG_KO.view.summaryLabel.attachmentName}</span>
 
-              {/* raw file input 예외 사유: 공용 lib/component에 파일 선택 전용 컴포넌트가 없어 브라우저 기본 picker 사용 */}
-              <input
-                type="file"
-                className="block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700"
-                onChange={(event) => {
-                  const nextFile = event?.target?.files?.[0];
-                  ui.form.attachmentName = nextFile?.name || "";
+              <Button
+                variant="secondary"
+                className="w-full justify-center"
+                onClick={() => {
+                  const fileInputElement = document.createElement("input");
+                  fileInputElement.type = "file";
+                  fileInputElement.onchange = (event) => {
+                    const nextFile = event?.target?.files?.[0];
+                    ui.form.attachmentName = nextFile?.name || "";
+                  };
+                  fileInputElement.click();
                 }}
-              />
+              >
+                {LANG_KO.view.input.attachmentButtonLabel ?? LANG_KO.view.summaryLabel.attachmentName}
+              </Button>
               {ui.form.attachmentName ? <p className="text-xs text-gray-500">{ui.form.attachmentName}</p> : null}
             </label>
           </div>

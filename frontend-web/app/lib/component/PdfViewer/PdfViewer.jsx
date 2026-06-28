@@ -222,7 +222,7 @@ const PdfViewer = ({
       {isLoading && !viewerError && (
         <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/75 backdrop-blur-sm" aria-hidden="true">
           <div className="flex flex-col items-center gap-3 text-gray-600">
-            <Icon icon="ri:RiLoader4Line" className="h-6 w-6 animate-spin text-blue-500" size="1.5em" />
+            <Icon icon="ri:RiLoader4Line" className="h-6 w-6 animate-spin text-zinc-600" size="1.5em" />
             <span className="text-sm font-medium">{COMMON_COMPONENT_LANG_KO.pdfViewer.loadingText}</span>
           </div>
         </div>

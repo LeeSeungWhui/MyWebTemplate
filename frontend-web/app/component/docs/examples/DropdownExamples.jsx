@@ -78,8 +78,8 @@ const TriggerDropDemo = () => {
   return <div className="flex flex-col gap-2 items-start">
       <Lib.Dropdown dataList={sortOptionList} placeholder="정렬 기준 선택" variant="text" trigger={({
       selectedLabel
-    }) => <span className="inline-flex items-center gap-2 text-blue-700">
-                <Lib.Icon icon="ri:RiCircleLine" className="text-blue-700" size="16px" />
+    }) => <span className="inline-flex items-center gap-2 text-zinc-700">
+                <Lib.Icon icon="ri:RiCircleLine" className="text-zinc-700" size="16px" />
                 {selectedLabel ?? '정렬 기준'}
               </span>} onSelect={sortItemObj => {
       const label = sortItemObj?.get ? sortItemObj.get('label') : sortItemObj?.label;

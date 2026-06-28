@@ -24,8 +24,8 @@ import { COMMON_COMPONENT_LANG_KO } from '@/app/common/i18n/lang.ko'
 const STATUS_PRESETS = {
   default: {
     buttonClassName:
-      'border border-gray-300 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900',
-    messageClassName: 'text-gray-600',
+      'border border-zinc-200 focus-visible:ring-zinc-950 focus-visible:border-zinc-900 bg-white text-zinc-900',
+    messageClassName: 'text-zinc-600',
     ariaLive: 'polite',
   },
   success: {
@@ -51,20 +51,20 @@ const STATUS_PRESETS = {
   },
   info: {
     buttonClassName:
-      'border border-blue-300 focus:ring-blue-400 focus:border-blue-400 bg-white text-gray-900',
-    messageClassName: 'text-blue-600',
+      'border border-zinc-300 focus-visible:ring-zinc-400 focus-visible:border-zinc-400 bg-white text-zinc-900',
+    messageClassName: 'text-zinc-600',
     ariaLive: 'polite',
   },
   loading: {
     buttonClassName:
-      'border border-blue-300 focus:ring-blue-500 focus:border-blue-500 bg-white text-gray-900 pr-9',
-    messageClassName: 'text-blue-600',
+      'border border-zinc-300 focus-visible:ring-zinc-950 focus-visible:border-zinc-900 bg-white text-zinc-900 pr-9',
+    messageClassName: 'text-zinc-600',
     defaultMessage: COMMON_COMPONENT_LANG_KO.combobox.loading,
     ariaLive: 'polite',
   },
   empty: {
     buttonClassName:
-      'border border-gray-300 bg-white text-gray-500 focus:ring-blue-400 focus:border-blue-400',
+      'border border-zinc-200 bg-white text-zinc-500 focus-visible:ring-zinc-400 focus-visible:border-zinc-400',
     messageClassName: 'text-gray-500',
     defaultMessage: COMMON_COMPONENT_LANG_KO.combobox.noItems,
     ariaLive: 'assertive',
@@ -497,7 +497,7 @@ const Combobox = forwardRef(({
     if (selectedValueSet.size > 0) {
       if (multiSummary) {
         triggerContent = (
-          <span className="inline-flex items-center rounded-full bg-blue-50 text-blue-700 text-xs font-medium px-2 py-0.5">
+          <span className="inline-flex items-center rounded-full bg-zinc-100 text-zinc-800 ring-1 ring-zinc-200/60 text-xs font-medium px-2 py-0.5">
             {summaryText.replace('{count}', String(selectedValueSet.size))}
           </span>
         )
@@ -548,7 +548,7 @@ const Combobox = forwardRef(({
           <span className="flex items-center gap-1 text-gray-400">
             {normalizedStatus === 'loading' && (
               <span
-                className="h-4 w-4 animate-spin rounded-full border-2 border-blue-300 border-t-transparent"
+                className="h-4 w-4 animate-spin rounded-full border-2 border-zinc-300 border-t-transparent"
                 aria-hidden="true"
               />
             )}
@@ -584,7 +584,7 @@ const Combobox = forwardRef(({
             <div className="p-2 border-b border-gray-200">
               <input
                 autoFocus
-                className="w-full px-2 py-1 text-sm rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-2 py-1 text-sm rounded border border-zinc-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-950"
                 placeholder={COMMON_COMPONENT_LANG_KO.combobox.searchPlaceholder}
                 value={query}
                 onChange={(changeEvent) => setQuery(changeEvent.target.value)}
@@ -614,8 +614,8 @@ const Combobox = forwardRef(({
                   key={optionItem.value}
                   role="option"
                   aria-selected={isSelected}
-                  className={`cursor-pointer px-3 py-2 text-sm hover:bg-blue-50 ${
-                    isSelected ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-900'
+                  className={`cursor-pointer px-3 py-2 text-sm hover:bg-zinc-50 ${
+                    isSelected ? 'bg-zinc-100 text-zinc-900 font-medium ring-1 ring-inset ring-zinc-200/60' : 'text-zinc-900'
                   }`}
                   onClick={() => handleSelect(optionItem)}
                 >

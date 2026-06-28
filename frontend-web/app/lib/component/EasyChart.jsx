@@ -31,12 +31,12 @@ import Empty from "./Empty";
 import { COMMON_COMPONENT_LANG_KO } from "@/app/common/i18n/lang.ko";
 
 const chartColorList = [
-  "#2563eb",
-  "#10b981",
-  "#f59e0b",
-  "#8b5cf6",
-  "#ef4444",
-  "#0ea5e9",
+  "#18181b",
+  "#0f766e",
+  "#b45309",
+  "#7c3aed",
+  "#dc2626",
+  "#475569",
   "#14b8a6",
 ];
 const defaultMarginObj = { top: 12, right: 20, left: 10, bottom: 12 };

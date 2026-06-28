@@ -19,20 +19,21 @@ const Card = ({
 }) => {
 
   const headingId = id ? `${id}-title` : undefined;
+  const hasHeader = Boolean(title || actions || subtitle);
   return (
     <div
-      className={`rounded-lg border border-gray-200 bg-white shadow-sm ${className}`.trim()}
+      className={`rounded-2xl border border-zinc-200/70 bg-white shadow-sm shadow-zinc-900/[0.04] ring-1 ring-zinc-950/[0.03] ${className}`.trim()}
       aria-labelledby={headingId}
       {...props}
     >
-      {(title || actions || subtitle) && (
-        <div className={`flex flex-col gap-3 border-b border-gray-200 p-4 sm:flex-row sm:items-start sm:justify-between ${headerClassName}`.trim()}>
+      {hasHeader && (
+        <div className={`flex flex-col gap-3 p-6 pb-4 sm:flex-row sm:items-start sm:justify-between ${headerClassName}`.trim()}>
           <div>
             {title && (
-              <h3 id={headingId} className="text-base font-semibold text-gray-900">{title}</h3>
+              <h3 id={headingId} className="text-base font-semibold tracking-tight text-zinc-900">{title}</h3>
             )}
             {subtitle && (
-              <p className="mt-0.5 text-sm text-gray-500">{subtitle}</p>
+              <p className="mt-1 text-sm text-zinc-500">{subtitle}</p>
             )}
           </div>
           {actions && (
@@ -40,11 +41,11 @@ const Card = ({
           )}
         </div>
       )}
-      <div className={`p-4 min-w-0 w-full ${bodyClassName}`.trim()}>
+      <div className={`${hasHeader ? 'px-6 pb-6 pt-2' : 'p-6'} min-w-0 w-full ${bodyClassName}`.trim()}>
         {children}
       </div>
       {footer && (
-        <div className={`border-t border-gray-200 p-3 text-sm text-gray-600 ${footerClassName}`.trim()}>
+        <div className={`px-6 pb-6 pt-2 text-sm text-zinc-600 ${footerClassName}`.trim()}>
           {footer}
         </div>
       )}

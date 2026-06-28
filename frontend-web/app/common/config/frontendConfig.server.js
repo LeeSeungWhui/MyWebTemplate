@@ -22,15 +22,13 @@ export const loadFrontendConfig = async () => {
   const { existsSync, readFileSync } = await import('node:fs')
   const { join } = await import('node:path')
 
-  const projectRootPath = process.cwd()
-
   // 환경 변수 의존 제거. 운영/개발 선택은 배포 환경에서 config.ini 계열 파일로 결정한다.
   // 존재 순서: config.ini > config_prod.ini > config_dev.ini
   const candidates = [
-    join(projectRootPath, 'config.ini'),
-    join(projectRootPath, 'config_prod.ini'),
-    join(projectRootPath, 'config_qa.ini'),
-    join(projectRootPath, 'config_dev.ini'),
+    join(/*turbopackIgnore: true*/ process.cwd(), 'config.ini'),
+    join(/*turbopackIgnore: true*/ process.cwd(), 'config_prod.ini'),
+    join(/*turbopackIgnore: true*/ process.cwd(), 'config_qa.ini'),
+    join(/*turbopackIgnore: true*/ process.cwd(), 'config_dev.ini'),
   ]
 
   for (const candidatePath of candidates) {

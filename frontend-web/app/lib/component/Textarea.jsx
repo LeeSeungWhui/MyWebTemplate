@@ -66,9 +66,6 @@ const Textarea = forwardRef(({
     fireValueHandlers({ onChange, onValueChange, value: rawTextareaValue, ctx: bindingCtx, event: nextEvent });
   };
 
-  const baseClassName = 'block w-full px-3 py-2 text-sm rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-0 bg-white';
-  const stateClassName = error ? 'border border-red-300 focus:ring-red-500 focus:border-red-500' : 'border border-gray-300 focus:ring-blue-500 focus:border-blue-500';
-
   let externalValue = innerValue ?? '';
   if (isPropControlled) {
     externalValue = propValue ?? '';
@@ -80,7 +77,7 @@ const Textarea = forwardRef(({
   return (
     <textarea
       ref={ref}
-      className={`${baseClassName} ${stateClassName} ${className}`.trim()}
+      className={`block w-full px-3 py-2 text-sm rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-0 bg-white ${error ? 'border border-red-300 focus-visible:ring-red-500 focus-visible:border-red-500' : 'border border-zinc-200 focus-visible:ring-zinc-950 focus-visible:border-zinc-900'} ${className}`.trim()}
       rows={rows}
       value={textareaValue}
       onChange={(event) => {

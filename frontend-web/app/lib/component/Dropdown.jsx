@@ -49,7 +49,7 @@ const Dropdown = ({
   elevation = 'shadow-md',
   buttonClassName = '',
   iconClassName = '',
-  selectedItemClassName = 'text-blue-700',
+  selectedItemClassName = 'text-zinc-900 font-medium',
   showCheck = true,
   side = 'bottom',
   align = 'start',
@@ -174,17 +174,6 @@ const Dropdown = ({
     };
   }, [isOpen, optionList, activeIndex, handleItemActivate, setOpen]);
 
-  const sideClassName = {
-    bottom: 'top-full mt-2',
-    top: 'bottom-full mb-2',
-  }[side] ?? '';
-  const alignClassName = {
-    center: 'left-1/2 -translate-x-1/2',
-    end: 'right-0',
-    start: 'left-0',
-  }[align] ?? 'left-1/2 -translate-x-1/2';
-  const positionClassName = `${sideClassName} ${alignClassName}`.trim();
-
   const selectedItemList = [];
   for (const optionItemObj of optionList) {
     const isSelected = optionItemObj?.get ? optionItemObj.get('selected') : optionItemObj?.selected;
@@ -210,19 +199,7 @@ const Dropdown = ({
     });
   }
 
-  const sizeClassName = {
-    lg: 'min-w-[200px] px-4 py-2.5 text-base',
-    md: 'min-w-[170px] px-3 py-2 text-sm',
-    sm: 'min-w-[140px] px-2.5 py-1.5 text-sm',
-  }[size] ?? 'min-w-[170px] px-3 py-2 text-sm';
   const variantClassKey = variant === 'text' ? 'textVariant' : variant;
-  const variantClassName = {
-    filled: 'bg-gray-50 border border-transparent hover:bg-gray-100 shadow-inner',
-    outline: 'bg-white border border-gray-300 hover:bg-gray-50 shadow-sm',
-    textVariant: 'bg-transparent border border-transparent hover:bg-gray-50 shadow-none',
-  }[variantClassKey] ?? 'bg-white border border-gray-300 hover:bg-gray-50 shadow-sm';
-  const triggerClassName = `inline-flex items-center justify-between gap-2 ${sizeClassName} ${rounded} ${variantClassName} focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 ${buttonClassName}`.trim();
-  const arrowIconClassName = `text-gray-500 ${iconClassName}`.trim();
 
   return (
     <div ref={rootRef} className={`relative inline-block ${className}`.trim()}>
@@ -235,18 +212,33 @@ const Dropdown = ({
           if (disabled) return;
           setOpen(!isOpen);
         }}
-        className={triggerClassName}
+        className={`inline-flex items-center justify-between gap-2 ${{
+          lg: 'min-w-[200px] px-4 py-2.5 text-base',
+          md: 'min-w-[170px] px-3 py-2 text-sm',
+          sm: 'min-w-[140px] px-2.5 py-1.5 text-sm',
+        }[size] ?? 'min-w-[170px] px-3 py-2 text-sm'} ${rounded} ${{
+          filled: 'bg-gray-50 border border-transparent hover:bg-gray-100 shadow-inner',
+          outline: 'bg-white border border-gray-300 hover:bg-gray-50 shadow-sm',
+          textVariant: 'bg-transparent border border-transparent hover:bg-gray-50 shadow-none',
+        }[variantClassKey] ?? 'bg-white border border-gray-300 hover:bg-gray-50 shadow-sm'} focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-950 disabled:opacity-50 ${buttonClassName}`.trim()}
       >
         {triggerContent}
         <Icon
           icon="hi:HiChevronDown"
           size="16px"
-          className={`${isOpen ? 'rotate-180' : ''} transition-transform ${arrowIconClassName}`}
+          className={`${isOpen ? 'rotate-180' : ''} transition-transform text-gray-500 ${iconClassName}`.trim()}
         />
       </button>
 
       {isOpen && (
-        <ul role="menu" className={`absolute z-30 min-w-56 bg-white border border-gray-200 ${rounded} ${elevation} ${positionClassName} ${menuClassName} transition ease-out duration-150 transform origin-top-left opacity-100 scale-100`.trim()}>
+        <ul role="menu" className={`absolute z-30 min-w-56 bg-white border border-gray-200 ${rounded} ${elevation} ${{
+          bottom: 'top-full mt-2',
+          top: 'bottom-full mb-2',
+        }[side] ?? ''} ${{
+          center: 'left-1/2 -translate-x-1/2',
+          end: 'right-0',
+          start: 'left-0',
+        }[align] ?? 'left-1/2 -translate-x-1/2'} ${menuClassName} transition ease-out duration-150 transform origin-top-left opacity-100 scale-100`.trim()}>
           {optionList.map((optionItemObj, itemIndex) => {
             const label = optionItemObj?.get ? optionItemObj.get(labelKey) : optionItemObj?.[labelKey];
             const optionValue = optionItemObj?.get ? optionItemObj.get(valueKey) : optionItemObj?.[valueKey];
@@ -284,7 +276,7 @@ const Dropdown = ({
                     <Icon
                       icon="md:MdCheck"
                       size="14px"
-                      className={`${isSelected ? 'opacity-100 text-blue-600' : 'opacity-0'} transition-opacity`}
+                      className={`${isSelected ? 'opacity-100 text-zinc-900' : 'opacity-0'} transition-opacity`}
                     />
                   )}
                   <span className={itemLabelClassMapObj[itemLabelStateKey]}>{String(label ?? '')}</span>

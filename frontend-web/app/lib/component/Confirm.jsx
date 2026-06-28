@@ -33,9 +33,9 @@ const Confirm = ({
     const confirmTypeMetaObj = {
         info: {
             icon: 'ri:RiQuestionLine',
-            iconColor: 'text-blue-500',
-            bgColor: 'bg-blue-50',
-            borderColor: 'border-blue-200'
+            iconColor: 'text-zinc-600',
+            bgColor: 'bg-zinc-50',
+            borderColor: 'border-zinc-200'
         },
         warning: {
             icon: 'ri:RiErrorWarningLine',
@@ -59,7 +59,7 @@ const Confirm = ({
                 aria-labelledby={titleId}
                 aria-describedby={descriptionId}
                 className={`
-                w-[calc(100vw-32px)] max-w-md rounded-lg shadow-lg border ${confirmTypeMetaObj[type]?.borderColor || confirmTypeMetaObj.info.borderColor}
+                w-[calc(100vw-32px)] max-w-md rounded-xl shadow-lg ring-1 ring-zinc-950/5 border ${confirmTypeMetaObj[type]?.borderColor || confirmTypeMetaObj.info.borderColor}
                 ${confirmTypeMetaObj[type]?.bgColor || confirmTypeMetaObj.info.bgColor} backdrop-blur-sm
                 animate-fade-in-up
             `}>

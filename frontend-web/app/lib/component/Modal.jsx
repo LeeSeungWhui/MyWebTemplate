@@ -20,8 +20,7 @@ const Header = ({ className = '', children, onClose, draggable = false, ...props
         <div
             className={`
                 modal-header
-                px-6 py-4
-                border-b border-gray-200
+                px-6 py-5
                 ${draggable ? 'cursor-move' : ''}
                 ${className}
             `.trim()}
@@ -36,7 +35,7 @@ const Header = ({ className = '', children, onClose, draggable = false, ...props
                         type="button"
                         onClick={onClose}
                         aria-label={COMMON_LANG_KO.action.close}
-                        className="p-1 ml-4 text-gray-400 hover:text-gray-600 rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                        className="p-1 ml-4 text-zinc-400 hover:text-zinc-600 rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-zinc-950"
                     >
                         <Icon icon="ri:RiCloseLine" size="1.5em" />
                     </button>
@@ -78,7 +77,6 @@ const Footer = ({ className = '', children, ...props }) => {
         <div
             className={`
                 px-6 py-4
-                border-t border-gray-200
                 ${className}
             `.trim()}
             {...props}
@@ -331,7 +329,7 @@ const Modal = forwardRef(({
 
     return (
         <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-gray-500/70"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/50 backdrop-blur-sm"
             onClick={handleBackdropClick}
         >
             <div
@@ -342,7 +340,7 @@ const Modal = forwardRef(({
                 }}
                 className={`
                     absolute w-full ${modalSizeClassMap[size]}
-                    bg-white rounded-lg shadow-xl
+                    bg-white rounded-xl border border-zinc-200/80 shadow-xl shadow-zinc-900/10 ring-1 ring-zinc-950/[0.04]
                     animate-fade-in-up
                     ${isCentered ? 'top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2' : 'top-[var(--modal-top)] left-[var(--modal-left)]'}
                     ${isDragging ? '!transition-none' : 'transition-all duration-200'}

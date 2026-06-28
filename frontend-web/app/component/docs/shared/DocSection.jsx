@@ -16,11 +16,11 @@ const DocSection = ({ id, title, description, children }) => {
   const titleId = id ? `${id}-title` : undefined;
   return (
     <section id={id} aria-labelledby={titleId} className="mb-12">
-      <h2 id={titleId} className="text-2xl font-semibold mb-4">{title}</h2>
+      <h2 id={titleId} className="scroll-m-20 border-b border-zinc-200 pb-2 text-2xl font-semibold tracking-tight text-zinc-950 mb-4">{title}</h2>
       {description && (
-        <div className="mb-6 p-4 bg-blue-50 rounded-lg">
-          <h4 className="font-medium mb-2">{LANG_KO.view.descriptionHeading}</h4>
-          <div className="text-sm text-gray-600">
+        <div className="mt-2 mb-8">
+          <h4 className="text-sm font-medium text-zinc-700 mb-2">{LANG_KO.view.descriptionHeading}</h4>
+          <div className="text-sm text-zinc-500 leading-relaxed">
             {description}
           </div>
         </div>

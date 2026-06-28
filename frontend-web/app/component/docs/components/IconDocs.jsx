@@ -62,7 +62,7 @@ const IconDocs = () => {
                         <ul className="list-disc list-inside text-sm space-y-2">
                             {iconSetLinks.map((set, index) => <li key={index} className="flex items-center gap-4">
                                     <span className="inline-block w-50">{set.name} ({set.prefix})</span>
-                                    <a href={set.url} target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:text-blue-800 whitespace-nowrap">
+                                    <a href={set.url} target="_blank" rel="noopener noreferrer" className="text-zinc-700 underline-offset-4 hover:text-zinc-950 hover:underline whitespace-nowrap">
                                         아이콘 보기 →
                                     </a>
                                 </li>)}

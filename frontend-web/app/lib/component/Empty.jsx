@@ -26,7 +26,7 @@ const Empty = ({
 }) => {
 
   return (
-    <div className={`text-center p-8 border border-dashed border-gray-200 rounded-lg bg-white ${className}`.trim()} {...props}>
+    <div className={`text-center p-8 border border-dashed border-zinc-200 rounded-xl bg-white ring-1 ring-zinc-950/5 ${className}`.trim()} {...props}>
       <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-gray-50 text-gray-400">
         <Icon icon={icon} className="w-6 h-6" />
       </div>

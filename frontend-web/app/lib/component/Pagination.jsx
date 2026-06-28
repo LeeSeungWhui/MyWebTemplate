@@ -85,10 +85,7 @@ const Pagination = ({
     if (showEdges) tokenList.push(pageCount);
   }
 
-  const buttonClassName = 'rounded-full w-8 h-8 flex items-center justify-center text-sm transition-colors';
   const navClassName = 'rounded-full w-8 h-8 flex items-center justify-center text-gray-600 hover:text-gray-800 disabled:opacity-40 disabled:cursor-not-allowed';
-  const selectedClassName = 'bg-blue-100 text-blue-700 font-semibold ring-1 ring-blue-300';
-  const normalClassName = 'text-gray-700 hover:bg-gray-100';
 
   return (
     <div className={`inline-flex items-center gap-1 ${className}`} role="navigation" aria-label={COMMON_COMPONENT_LANG_KO.pagination.navigationAriaLabel}>
@@ -104,7 +101,7 @@ const Pagination = ({
             <button
               type="button"
               key={pageToken}
-              className={`${buttonClassName} ${pageToken === page ? selectedClassName : normalClassName}`}
+              className={`rounded-full w-8 h-8 flex items-center justify-center text-sm transition-colors ${pageToken === page ? 'bg-zinc-900 text-zinc-50 font-semibold ring-1 ring-zinc-900' : 'text-zinc-700 hover:bg-zinc-100'}`}
               aria-current={pageToken === page ? 'page' : undefined}
               onClick={() => onChange?.(pageToken)}
             >

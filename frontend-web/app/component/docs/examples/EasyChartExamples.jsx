@@ -45,18 +45,18 @@ export const easyChartExampleList = [{
     seriesId: "signups",
     seriesNm: "가입자",
     dataKey: "signups",
-    color: "#2563eb"
+    color: "#18181b"
   }, {
     seriesId: "active",
     seriesNm: "활성이용자",
     dataKey: "active",
-    color: "#10b981"
+    color: "#0f766e"
   }]} xKey="label" type="line" hideLegend={false} height={260} actions={<Button size="sm">내보내기</Button>} />,
   code: `<EasyChart
   dataList={sampleDataList}
   seriesList={[
-    { seriesId: "signups", seriesNm: "가입자", dataKey: "signups", color: "#2563eb" },
-    { seriesId: "active", seriesNm: "활성이용자", dataKey: "active", color: "#10b981" },
+    { seriesId: "signups", seriesNm: "가입자", dataKey: "signups", color: "#18181b" },
+    { seriesId: "active", seriesNm: "활성이용자", dataKey: "active", color: "#0f766e" },
   ]}
   xKey="label"
   type="line"
@@ -72,19 +72,19 @@ export const easyChartExampleList = [{
     seriesNm: "가입자",
     dataKey: "signups",
     type: "bar",
-    color: "#2563eb"
+    color: "#18181b"
   }, {
     seriesId: "active",
     seriesNm: "활성이용자",
     dataKey: "active",
     type: "bar",
-    color: "#10b981"
+    color: "#0f766e"
   }]} xKey="label" type="bar" hideLegend height={260} />,
   code: `<EasyChart
   dataList={sampleDataList}
   seriesList={[
-    { seriesId: "signups", seriesNm: "가입자", dataKey: "signups", type: "bar", color: "#2563eb" },
-    { seriesId: "active", seriesNm: "활성이용자", dataKey: "active", type: "bar", color: "#10b981" },
+    { seriesId: "signups", seriesNm: "가입자", dataKey: "signups", type: "bar", color: "#18181b" },
+    { seriesId: "active", seriesNm: "활성이용자", dataKey: "active", type: "bar", color: "#0f766e" },
   ]}
   xKey="label"
   type="bar"
@@ -99,28 +99,28 @@ export const easyChartExampleList = [{
     seriesNm: "가입자",
     dataKey: "signups",
     type: "bar",
-    color: "#2563eb",
+    color: "#18181b",
     stackId: "v"
   }, {
     seriesId: "active",
     seriesNm: "활성이용자",
     dataKey: "active",
     type: "bar",
-    color: "#10b981",
+    color: "#0f766e",
     stackId: "v"
   }, {
     seriesId: "churn",
     seriesNm: "이탈",
     dataKey: "churn",
     type: "line",
-    color: "#ef4444"
+    color: "#dc2626"
   }]} xKey="label" type="bar" hideLegend={false} xLabelFormatter={label => `${label} /22`} yLabelFormatter={val => `${val}명`} height={260} />,
   code: `<EasyChart
   dataList={sampleDataList}
   seriesList={[
-    { seriesId: "signups", seriesNm: "가입자", dataKey: "signups", type: "bar", color: "#2563eb", stackId: "v" },
-    { seriesId: "active", seriesNm: "활성이용자", dataKey: "active", type: "bar", color: "#10b981", stackId: "v" },
-    { seriesId: "churn", seriesNm: "이탈", dataKey: "churn", type: "line", color: "#ef4444" },
+    { seriesId: "signups", seriesNm: "가입자", dataKey: "signups", type: "bar", color: "#18181b", stackId: "v" },
+    { seriesId: "active", seriesNm: "활성이용자", dataKey: "active", type: "bar", color: "#0f766e", stackId: "v" },
+    { seriesId: "churn", seriesNm: "이탈", dataKey: "churn", type: "line", color: "#dc2626" },
   ]}
   xKey="label"
   type="bar"
@@ -137,26 +137,26 @@ export const easyChartExampleList = [{
     seriesNm: "가입자",
     dataKey: "signups",
     type: "pie",
-    color: "#2563eb"
+    color: "#18181b"
   }, {
     seriesId: "active",
     seriesNm: "활성이용자",
     dataKey: "active",
     type: "pie",
-    color: "#10b981"
+    color: "#0f766e"
   }, {
     seriesId: "churn",
     seriesNm: "이탈",
     dataKey: "churn",
     type: "pie",
-    color: "#ef4444"
+    color: "#dc2626"
   }]} xKey="label" type="pie" hideLegend={false} height={260} />,
   code: `<EasyChart
   dataList={sampleDataList}
   seriesList={[
-    { seriesId: "signups", seriesNm: "가입자", dataKey: "signups", type: "pie", color: "#2563eb" },
-    { seriesId: "active", seriesNm: "활성이용자", dataKey: "active", type: "pie", color: "#10b981" },
-    { seriesId: "churn", seriesNm: "이탈", dataKey: "churn", type: "pie", color: "#ef4444" },
+    { seriesId: "signups", seriesNm: "가입자", dataKey: "signups", type: "pie", color: "#18181b" },
+    { seriesId: "active", seriesNm: "활성이용자", dataKey: "active", type: "pie", color: "#0f766e" },
+    { seriesId: "churn", seriesNm: "이탈", dataKey: "churn", type: "pie", color: "#dc2626" },
   ]}
   xKey="label"
   type="pie"
@@ -171,26 +171,26 @@ export const easyChartExampleList = [{
     seriesNm: "가입자",
     dataKey: "signups",
     type: "donut",
-    color: "#2563eb"
+    color: "#18181b"
   }, {
     seriesId: "active",
     seriesNm: "활성이용자",
     dataKey: "active",
     type: "donut",
-    color: "#10b981"
+    color: "#0f766e"
   }, {
     seriesId: "churn",
     seriesNm: "이탈",
     dataKey: "churn",
     type: "donut",
-    color: "#ef4444"
+    color: "#dc2626"
   }]} xKey="label" type="donut" hideLegend height={260} />,
   code: `<EasyChart
   dataList={sampleDataList}
   seriesList={[
-    { seriesId: "signups", seriesNm: "가입자", dataKey: "signups", type: "donut", color: "#2563eb" },
-    { seriesId: "active", seriesNm: "활성이용자", dataKey: "active", type: "donut", color: "#10b981" },
-    { seriesId: "churn", seriesNm: "이탈", dataKey: "churn", type: "donut", color: "#ef4444" },
+    { seriesId: "signups", seriesNm: "가입자", dataKey: "signups", type: "donut", color: "#18181b" },
+    { seriesId: "active", seriesNm: "활성이용자", dataKey: "active", type: "donut", color: "#0f766e" },
+    { seriesId: "churn", seriesNm: "이탈", dataKey: "churn", type: "donut", color: "#dc2626" },
   ]}
   xKey="label"
   type="donut"

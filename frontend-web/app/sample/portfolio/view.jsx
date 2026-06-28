@@ -28,8 +28,8 @@ const PortfolioView = ({ initialDataObj, initialErrorObj }) => {
     initialDataObj,
     initialErrorObj,
   });
-  const overview = dataObj?.overview?.result || {};
-  const dashboard = dataObj?.dashboard?.result || {};
+  const overview = dataObj?.overview?.result ?? {};
+  const dashboard = dataObj?.dashboard?.result ?? {};
   const overviewCardList = [
     {
       label: LANG_KO.view.overviewCard.taskCount,
@@ -298,7 +298,7 @@ const PortfolioView = ({ initialDataObj, initialErrorObj }) => {
       <section className="mt-8">
         <h2 className="text-2xl font-bold text-gray-900">{LANG_KO.view.sectionTitle.demoFlow}</h2>
         <div className="mt-4 grid gap-3 md:grid-cols-3">
-          {samplePortfolioContent.demoFlow.map((demoFlowObj) => (
+          {samplePortfolioContent.demoFlow.map((demoFlowObj, demoFlowIndex) => (
             <article
               key={demoFlowObj.path}
               className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm"
@@ -310,6 +310,7 @@ const PortfolioView = ({ initialDataObj, initialErrorObj }) => {
                   fill
                   className="object-cover"
                   sizes="(max-width: 768px) 100vw, 33vw"
+                  loading={demoFlowIndex === 0 ? "eager" : "lazy"}
                 />
               </div>
               <div className="space-y-2 p-4">

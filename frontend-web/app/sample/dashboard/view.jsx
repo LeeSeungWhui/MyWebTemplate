@@ -34,10 +34,22 @@ const DemoDashboardView = ({ initialDataObj, initialErrorObj }) => {
     initialDataObj,
     initialErrorObj,
   });
-  const dashboardResult = dataObj?.dashboard?.result || {};
+  const dashboardResult = dataObj?.dashboard?.result ?? {};
   const summaryList = dashboardResult?.statusSummaryList || [];
   const trendList = dashboardResult?.trendList || [];
   const recentList = dashboardResult?.recentList || [];
+  const chartTrendFallbackList = LANG_KO.initData.monthlyTrendLabels.map((monthLabel, monthIndex) => ({
+    label: monthLabel,
+    count: [3, 5, 7, 9][monthIndex] || 4,
+    amount: [2100000, 3400000, 4800000, 6200000][monthIndex] || 3000000,
+  }));
+  const chartDonutFallbackList = [
+    { label: LANG_KO.view.statusLabelMap.ready, value: 2 },
+    { label: LANG_KO.view.statusLabelMap.pending, value: 3 },
+    { label: LANG_KO.view.statusLabelMap.running, value: 2 },
+    { label: LANG_KO.view.statusLabelMap.done, value: 4 },
+    { label: LANG_KO.view.statusLabelMap.failed, value: 1 },
+  ];
   const totalCount = summaryList.reduce((total, summaryItemObj) => total + Number(summaryItemObj?.count || 0), 0);
   const totalAmount = summaryList.reduce((total, summaryItemObj) => total + Number(summaryItemObj?.amountSum || 0), 0);
   const activeCount = summaryList.reduce((total, summaryItemObj) => {
@@ -68,6 +80,10 @@ const DemoDashboardView = ({ initialDataObj, initialErrorObj }) => {
     label: LANG_KO.view.statusLabelMap[summaryItemObj?.status] || summaryItemObj?.status || LANG_KO.view.unknown,
     value: Number(summaryItemObj?.count || 0),
   }));
+  const resolvedTrendList = trendList.length >= 2 ? trendList : chartTrendFallbackList;
+  const resolvedDonutDataList = donutDataList.some((donutItem) => Number(donutItem?.value || 0) > 0)
+    ? donutDataList
+    : chartDonutFallbackList;
   const tableColumnList = [
     { key: "title", header: LANG_KO.view.table.titleHeader, align: "left", width: "2fr" },
     {
@@ -122,7 +138,7 @@ const DemoDashboardView = ({ initialDataObj, initialErrorObj }) => {
           <Stat
             key={statCardObj.label}
             {...statCardObj}
-            className="p-1"
+            className="border-gray-200 shadow-sm"
             value={isLoading ? "..." : statCardObj.value}
           />
         ))}
@@ -131,7 +147,7 @@ const DemoDashboardView = ({ initialDataObj, initialErrorObj }) => {
       <section className="grid gap-3 md:grid-cols-2">
         <EasyChart
           title={LANG_KO.view.chart.trendTitle}
-          dataList={trendList}
+          dataList={resolvedTrendList}
           seriesList={[
             {
               seriesId: "count",
@@ -153,7 +169,7 @@ const DemoDashboardView = ({ initialDataObj, initialErrorObj }) => {
         />
         <EasyChart
           title={LANG_KO.view.chart.statusTitle}
-          dataList={donutDataList}
+          dataList={resolvedDonutDataList}
           seriesList={[
             {
               seriesId: "value",
@@ -169,15 +185,22 @@ const DemoDashboardView = ({ initialDataObj, initialErrorObj }) => {
       </section>
 
       <section className="grid gap-3 lg:grid-cols-[minmax(0,2fr)_280px]">
-        <EasyTable
-          title={LANG_KO.view.card.recentTitle}
-          description={LANG_KO.view.card.recentSubtitle}
-          data={recentList}
-          columns={tableColumnList}
-          loading={isLoading}
-          empty={LANG_KO.view.table.empty}
-          rowKey={(rowItem, rowIndex) => rowItem?.id ?? rowIndex}
-        />
+        <div className="rounded-xl border border-gray-200 bg-white shadow-sm">
+          <div className="border-b border-gray-200 px-4 py-3">
+            <p className="text-sm font-semibold text-gray-900">{LANG_KO.view.card.recentTitle}</p>
+            <p className="mt-0.5 text-xs text-gray-500">{LANG_KO.view.card.recentSubtitle}</p>
+          </div>
+          <EasyTable
+            data={recentList}
+            columns={tableColumnList}
+            loading={isLoading}
+            empty={LANG_KO.view.table.empty}
+            rowKey={(rowItem, rowIndex) => rowItem?.id ?? rowIndex}
+            className="border-0 rounded-none"
+            headerClassName="!bg-gray-50 !text-gray-700 border-b border-gray-200 font-medium"
+            rowClassName="border-gray-100"
+          />
+        </div>
         <div className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
           <p className="text-sm font-semibold text-gray-900">{LANG_KO.view.quickLinkTitle}</p>
           <div className="mt-3 space-y-2">

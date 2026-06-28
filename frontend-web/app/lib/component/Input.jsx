@@ -60,12 +60,10 @@ const Input = forwardRef(
     const [innerValue, setInnerValue] = useState(
       () => propValue ?? defaultValue ?? ""
     );
-    const baseClassName =
-      "appearance-none block w-full px-3 py-2 border rounded-md shadow-sm text-sm focus:outline-none focus:ring-2 focus:ring-offset-0";
     const HANGUL_RE = /[\u1100-\u11FF\u3130-\u318F\uAC00-\uD7A3]/; // 한글 범위
 
     const inputStateMapObj = {
-      default: "border-gray-300 focus:ring-blue-500 focus:border-blue-500",
+      default: "border-zinc-200 focus-visible:ring-zinc-950 focus-visible:border-zinc-900",
       error: "border-red-300 focus:ring-red-500 focus:border-red-500",
     };
     const hasStringMask = typeof mask === "string" && mask.trim().length > 0;
@@ -434,12 +432,6 @@ const Input = forwardRef(
       });
     };
 
-    const inputClassName = `
-        ${baseClassName}
-        ${error ? inputStateMapObj.error : inputStateMapObj.default}
-        ${className}
-    `.trim();
-
     let inputType = type;
     if (togglePassword) {
       inputType = showPassword ? "text" : "password";
@@ -542,7 +534,9 @@ const Input = forwardRef(
             });
           }}
           className={`
-                    ${inputClassName}
+                    appearance-none block w-full px-3 py-2 border rounded-md shadow-sm text-sm focus:outline-none focus:ring-2 focus:ring-offset-0
+                    ${error ? inputStateMapObj.error : inputStateMapObj.default}
+                    ${className}
                     ${prefix ? "pl-10" : ""}
                     ${suffix ? "pr-10" : ""}
                     ${togglePassword ? "pr-10" : ""}

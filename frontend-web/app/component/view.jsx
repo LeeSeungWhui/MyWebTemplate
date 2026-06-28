@@ -7,7 +7,7 @@
  * 설명: 컴포넌트 문서 페이지 클라이언트 뷰
  */
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import EasyObj from "@/app/lib/dataset/EasyObj";
 import { usePageData } from "@/app/lib/hooks/usePageData";
 import TableOfContents from "./docs/shared/TableOfContents";
@@ -66,6 +66,8 @@ const ComponentsView = ({
 
   /* 2. 데이터 ======================================================================================================================= */
   const ui = EasyObj({ mobileTocOpen: false });
+  const uiRef = useRef(ui);
+  uiRef.current = ui;
   const { mode: pageMode } = usePageData({
     pageConfig: PAGE_CONFIG,
     initialDataObj,
@@ -93,6 +95,7 @@ const ComponentsView = ({
   // 없음
 
   /* 8. useEffect ================================================================================================================== */
+  const isMobileTocOpen = Boolean(ui.mobileTocOpen);
 
   /**
    * @description 문서 화면 전역 ESC 키를 구독해 모바일 TOC 닫힘 동작 동기화
@@ -108,26 +111,26 @@ const ComponentsView = ({
      */
     const handleEscape = (event) => {
       if (event.key === "Escape") {
-        ui.mobileTocOpen = false;
+        uiRef.current.mobileTocOpen = false;
       }
     };
 
     document.addEventListener("keydown", handleEscape);
     return () => document.removeEventListener("keydown", handleEscape);
-  }, [ui]);
+  }, []);
 
   /**
    * @description 모바일 TOC 열림 상태에 맞춰 body 스크롤 잠금 동기화
    * 처리 규칙: 닫힘/언마운트 시 이전 overflow 값을 복원한다.
    */
   useEffect(() => {
-    if (!ui.mobileTocOpen) return;
+    if (!isMobileTocOpen) return;
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     return () => {
       document.body.style.overflow = previousOverflow;
     };
-  }, [ui.mobileTocOpen]);
+  }, [isMobileTocOpen]);
 
   /* 9. 내부 컴포넌트 ============================================================================================================== */
 
@@ -135,22 +138,22 @@ const ComponentsView = ({
 
   /* 10. 렌더링 ==================================================================================================================== */
   return (
-    <div className="flex min-h-screen overflow-x-hidden bg-white" data-page-mode={pageMode}>
-      <div className="fixed top-0 left-0 hidden h-screen w-64 overflow-auto border-r border-gray-200 bg-white md:block">
+    <div className="flex min-h-screen overflow-x-hidden bg-zinc-50/30" data-page-mode={pageMode}>
+      <div className="fixed top-0 left-0 hidden h-screen w-64 overflow-auto border-r border-zinc-200/80 bg-white md:block">
         <div className="p-4">
           <TableOfContents />
         </div>
       </div>
 
       <div className="min-w-0 flex-1 md:ml-64">
-        <div className="sticky top-0 z-20 flex items-center justify-between border-b border-gray-200 bg-white px-4 py-3 md:hidden">
-          <h1 className="text-base font-semibold text-gray-900">{LANG_KO.view.mobileTitle}</h1>
+        <div className="sticky top-0 z-20 flex items-center justify-between border-b border-zinc-200/80 bg-white/95 px-4 py-3 backdrop-blur-sm md:hidden">
+          <h1 className="text-base font-semibold tracking-tight text-zinc-950">{LANG_KO.view.mobileTitle}</h1>
           <button
             type="button"
             onClick={() => {
               ui.mobileTocOpen = true;
             }}
-            className="rounded-md border border-gray-200 px-3 py-1.5 text-sm font-medium text-gray-700"
+            className="rounded-md border border-zinc-200 px-3 py-1.5 text-sm font-medium text-zinc-700 hover:bg-zinc-50"
             aria-label={LANG_KO.view.openTocAriaLabel}
           >
             {LANG_KO.view.openTocLabel}
@@ -204,15 +207,15 @@ const ComponentsView = ({
             }}
             aria-label={LANG_KO.view.closeTocAriaLabel}
           />
-          <aside className="relative z-10 h-full w-72 max-w-[80vw] overflow-auto border-r border-gray-200 bg-white p-4">
+          <aside className="relative z-10 h-full w-72 max-w-[80vw] overflow-auto border-r border-zinc-200/80 bg-white p-4 shadow-xl ring-1 ring-zinc-950/5">
             <div className="mb-4 flex items-center justify-between">
-              <span className="text-sm font-semibold text-gray-900">{LANG_KO.view.tocLabel}</span>
+              <span className="text-sm font-semibold text-zinc-950">{LANG_KO.view.tocLabel}</span>
               <button
                 type="button"
                 onClick={() => {
                   ui.mobileTocOpen = false;
                 }}
-                className="rounded-md border border-gray-200 px-2 py-1 text-xs text-gray-700"
+                className="rounded-md border border-zinc-200 px-2 py-1 text-xs text-zinc-700 hover:bg-zinc-50"
               >
                 {LANG_KO.view.closeLabel}
               </button>

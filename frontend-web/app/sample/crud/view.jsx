@@ -7,7 +7,7 @@
  * 설명: 공개 CRUD 샘플 페이지 뷰(DB CRUD 연동)
  */
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useGlobalUi } from "@/app/common/store/SharedStore";
 import Badge from "@/app/lib/component/Badge";
 import Button from "@/app/lib/component/Button";
@@ -78,11 +78,15 @@ const CrudDemoView = ({ initialDataObj, initialErrorObj }) => {
     formError: "",
   });
   const taskList = useEasyList(dataObj?.list?.result?.sampleTaskList || []);
+  const taskListRef = useRef(taskList);
+  taskListRef.current = taskList;
   const taskMetaObj = EasyObj({
     page: Number(initialTaskListMetaObj.page || 1),
     size: Number(initialTaskListMetaObj.size || 50),
     totalCount: Number(dataObj?.list?.result?.listMetaObj?.totalCount || 0),
   });
+  const taskMetaObjRef = useRef(taskMetaObj);
+  taskMetaObjRef.current = taskMetaObj;
   const taskPageCount = Math.max(
     1,
     Math.ceil(Number(taskMetaObj.totalCount || 0) / Math.max(1, Number(taskMetaObj.size || 50))),
@@ -186,7 +190,7 @@ const CrudDemoView = ({ initialDataObj, initialErrorObj }) => {
       header: LANG_KO.view.table.actionsHeader,
       width: 180,
       render: (rowItem) => (
-        <div className="flex items-center justify-center gap-2">
+        <div className="flex items-center justify-center gap-1">
           <Button
             size="sm"
             variant="secondary"
@@ -196,11 +200,12 @@ const CrudDemoView = ({ initialDataObj, initialErrorObj }) => {
           </Button>
           <Button
             size="sm"
-            variant="danger"
+            variant="ghost"
+            icon="ri:RiDeleteBinLine"
+            className="text-gray-400 hover:bg-red-50 hover:text-red-600"
             onClick={() => removeSingleRow(rowItem)}
-          >
-            {LANG_KO.view.action.remove}
-          </Button>
+            aria-label={LANG_KO.view.action.remove}
+          />
         </div>
       ),
     },
@@ -522,13 +527,13 @@ const CrudDemoView = ({ initialDataObj, initialErrorObj }) => {
    * 처리 규칙: dataObj.list 스냅샷 copy 후 count만 별도 숫자 필드로 동기화
    */
   useEffect(() => {
-    taskList.copy(dataObj?.list?.result?.sampleTaskList || []);
-    taskMetaObj.copy(dataObj?.list?.result?.listMetaObj || {
+    taskListRef.current.copy(dataObj?.list?.result?.sampleTaskList || []);
+    taskMetaObjRef.current.copy(dataObj?.list?.result?.listMetaObj || {
       page: 1,
       size: 50,
       totalCount: 0,
     });
-  }, [dataObj?.list?.result?.listMetaObj, dataObj?.list?.result?.listMetaObj?.page, dataObj?.list?.result?.listMetaObj?.size, dataObj?.list?.result?.listMetaObj?.totalCount, dataObj?.list?.result?.sampleTaskList, taskList, taskMetaObj]);
+  }, [dataObj?.list?.result?.listMetaObj, dataObj?.list?.result?.listMetaObj?.page, dataObj?.list?.result?.listMetaObj?.size, dataObj?.list?.result?.listMetaObj?.totalCount, dataObj?.list?.result?.sampleTaskList]);
 
   /* 9. 내부 컴포넌트 ============================================================================================================== */
 
@@ -549,7 +554,7 @@ const CrudDemoView = ({ initialDataObj, initialErrorObj }) => {
         actions={(
           <div className="flex flex-wrap gap-2 sm:justify-end">
             <Button
-              variant="secondary"
+              variant="danger"
               onClick={removeSelectedRows}
               className="w-full sm:w-auto"
             >
@@ -607,7 +612,7 @@ const CrudDemoView = ({ initialDataObj, initialErrorObj }) => {
         </div>
       </Card>
 
-      <Card title={LANG_KO.view.card.tableTitle} className="mt-4">
+      <Card title={LANG_KO.view.card.tableTitle} className="mt-4" bodyClassName="p-0">
         <EasyTable
           loading={Boolean(pageLoading || ui.isLoading)}
           dataList={taskList}
@@ -616,8 +621,11 @@ const CrudDemoView = ({ initialDataObj, initialErrorObj }) => {
           preserveRowSpace={false}
           empty={LANG_KO.view.table.empty}
           rowKey={(rowItem, rowIndex) => rowItem?.id ?? rowIndex}
+          className="border-0 rounded-none"
+          headerClassName="!bg-gray-50 !text-gray-700 border-b border-gray-200 font-medium"
+          rowClassName="border-gray-100"
         />
-        <div className="mt-3 flex flex-col gap-3 text-sm text-gray-500 md:flex-row md:items-center md:justify-between">
+        <div className="flex flex-col gap-3 px-4 pb-4 text-sm text-gray-500 md:flex-row md:items-center md:justify-between">
           <p>{taskRangeText}</p>
           {taskPageCount > 1 ? (
             <Pagination
@@ -701,15 +709,21 @@ const CrudDemoView = ({ initialDataObj, initialErrorObj }) => {
           <label className="block space-y-1">
             <span className="text-sm font-medium text-gray-700">{LANG_KO.view.drawer.attachmentLabel}</span>
 
-            {/* raw file input 예외 사유: 공용 lib/component에 파일 선택 전용 컴포넌트가 없어 브라우저 기본 picker 사용 */}
-            <input
-              type="file"
-              className="block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700"
-              onChange={(event) => {
-                const nextFile = event?.target?.files?.[0];
-                ui.form.attachmentName = nextFile?.name || "";
+            <Button
+              variant="secondary"
+              className="w-full justify-center"
+              onClick={() => {
+                const fileInputElement = document.createElement("input");
+                fileInputElement.type = "file";
+                fileInputElement.onchange = (event) => {
+                  const nextFile = event?.target?.files?.[0];
+                  ui.form.attachmentName = nextFile?.name || "";
+                };
+                fileInputElement.click();
               }}
-            />
+            >
+              {LANG_KO.view.drawer.attachmentButtonLabel ?? LANG_KO.view.drawer.attachmentLabel}
+            </Button>
             {ui.form.attachmentName ? (
               <p className="text-xs text-gray-500">{ui.form.attachmentName}</p>
             ) : null}

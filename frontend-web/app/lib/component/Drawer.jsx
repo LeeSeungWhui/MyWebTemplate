@@ -89,14 +89,6 @@ const Drawer = forwardRef(function Drawer(
   const transformClassName = isOpen ? sideConfigObj.transform.open : sideConfigObj.transform.closed;
 
 
-  const cornerBoostClassName = collapseButton ? {
-    bottom: 'rounded-t-2xl',
-    left: 'rounded-r-2xl',
-    right: 'rounded-l-2xl',
-    top: 'rounded-b-2xl',
-  }[side] : '';
-
-
   const handlePositionMapObj = {
     right: 'absolute left-1 top-1/2 -translate-y-1/2',
     left: 'absolute right-1 top-1/2 -translate-y-1/2',
@@ -110,15 +102,7 @@ const Drawer = forwardRef(function Drawer(
     top: 'w-16 h-7 rounded-b-lg border-t',
     bottom: 'w-16 h-7 rounded-t-lg border-b'
   };
-  const handleBaseClassName = 'bg-gray-100/90 hover:bg-gray-200 text-gray-500 border-gray-200 shadow-sm flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-blue-500/30';
   const arrowRotateClassMap = { right: '', left: 'rotate-180', top: '-rotate-90', bottom: 'rotate-90' };
-
-  const contentPadClassName = collapseButton ? {
-    bottom: 'pt-10',
-    left: 'pr-10',
-    right: 'pl-10',
-    top: 'pb-10',
-  }[side] : '';
 
   /**
    * @description forwardRef가 함수형/객체형인 경우를 모두 지원해 패널 DOM 참조를 전달
@@ -150,10 +134,20 @@ const Drawer = forwardRef(function Drawer(
       {/* 패널 */}
       <div
         ref={assignRef}
-        className={`absolute bg-white shadow-xl transform-gpu will-change-transform transition-transform duration-300 ease-in-out ${sideConfigObj.base} ${cornerBoostClassName} ${transformClassName} ${sizeClassName} ${resizeClassName} ${className}`.trim()}
+        className={`absolute bg-white shadow-xl ring-1 ring-zinc-950/5 transform-gpu will-change-transform transition-transform duration-300 ease-in-out ${sideConfigObj.base} ${collapseButton ? {
+          bottom: 'rounded-t-2xl',
+          left: 'rounded-r-2xl',
+          right: 'rounded-l-2xl',
+          top: 'rounded-b-2xl',
+        }[side] : ''} ${transformClassName} ${sizeClassName} ${resizeClassName} ${className}`.trim()}
         {...drawerPropsObj}
       >
-        <div className={contentPadClassName}>
+        <div className={collapseButton ? {
+          bottom: 'pt-10',
+          left: 'pr-10',
+          right: 'pl-10',
+          top: 'pb-10',
+        }[side] : ''}>
           {children}
         </div>
 
@@ -161,7 +155,7 @@ const Drawer = forwardRef(function Drawer(
           <button
             type="button"
             aria-label="collapse"
-            className={`${handleBaseClassName} ${handleShapeMapObj[side]} ${handlePositionMapObj[side]} z-10`}
+            className={`bg-zinc-100/90 hover:bg-zinc-200 text-zinc-500 border-zinc-200 shadow-sm flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-950/30 ${handleShapeMapObj[side]} ${handlePositionMapObj[side]} z-10`}
             onClick={() => onClose?.()}
           >
 

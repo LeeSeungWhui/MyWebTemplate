@@ -33,23 +33,14 @@ const ToolbarButton = ({ active, label, onClick, children, disabled }) => (
       'px-2 py-1 text-sm rounded transition-colors',
       disabled && 'opacity-40 cursor-not-allowed',
       !disabled && (active
-        ? 'bg-blue-100 text-blue-600 border border-blue-200'
-        : 'text-gray-600 hover:bg-gray-100 border border-transparent'),
+        ? 'bg-zinc-100 text-zinc-900 border border-zinc-200 ring-1 ring-zinc-200/60'
+        : 'text-zinc-600 hover:bg-zinc-50 border border-transparent'),
     )}
     onClick={disabled ? undefined : onClick}
   >
     {children}
   </button>
 );
-
-const editorRootClassName =
-  'flex flex-col border rounded-lg bg-white shadow-sm focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500 transition';
-
-const editorBodyClassName =
-  'prose max-w-none min-h-[200px] p-4 outline-none text-gray-900';
-
-const toolbarClassName =
-  'flex flex-wrap items-center gap-2 border-b px-3 py-2 bg-gray-50';
 
 const statusClassMap = {
   idle: '',
@@ -235,7 +226,7 @@ const EasyEditor = ({
           : { url: uploadResultObj.url, name: uploadResultObj.name ?? file.name };
         if (fileLinkObj?.url) {
           editor.chain().focus().insertContent(
-            `<a href="${fileLinkObj.url}" target="_blank" rel="noopener noreferrer" class="text-blue-600 underline">${fileLinkObj.name}</a>`
+            `<a href="${fileLinkObj.url}" target="_blank" rel="noopener noreferrer" class="text-zinc-900 underline">${fileLinkObj.name}</a>`
           ).run();
         }
       } catch (error) {
@@ -263,13 +254,6 @@ const EasyEditor = ({
     if (toolbarDisabled) return;
     attachmentInputRef.current?.click();
   };
-
-  const containerClassName = clsx(
-    editorRootClassName,
-    invalid ? 'border-red-300 focus-within:ring-red-500' : 'border-gray-200',
-    statusClassMap[status] || statusClassMap.idle,
-    className,
-  );
 
   const currentFontSize = editor?.getAttributes('textStyle')?.fontSize || 'default';
   const fontSizeValue = fontSizeOptionList.some((option) => option.value === currentFontSize)
@@ -345,9 +329,16 @@ const EasyEditor = ({
           {label}
         </label>
       )}
-      <div className={containerClassName}>
+      <div
+        className={clsx(
+          'flex flex-col border rounded-xl bg-white shadow-sm ring-1 ring-zinc-950/5 focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-zinc-950 transition',
+          invalid ? 'border-red-300 focus-within:ring-red-500' : 'border-zinc-200',
+          statusClassMap[status] || statusClassMap.idle,
+          className,
+        )}
+      >
         {toolbar && editor && (
-          <div className={toolbarClassName}>
+          <div className="flex flex-wrap items-center gap-2 border-b px-3 py-2 bg-gray-50">
             <div className="flex items-center gap-2">
               <ToolbarButton
                 label={COMMON_COMPONENT_LANG_KO.easyEditor.toolbarBold}
@@ -477,7 +468,7 @@ const EasyEditor = ({
           aria-readonly={readOnly || undefined}
           aria-hidden={isHtmlMode ? 'true' : undefined}
           data-name={name}
-          className={clsx(editorBodyClassName, minHeightClassName, isHtmlMode && 'hidden')}
+          className={clsx('prose max-w-none min-h-[200px] p-4 outline-none text-gray-900', minHeightClassName, isHtmlMode && 'hidden')}
         />
         {isHtmlMode && (
           <textarea

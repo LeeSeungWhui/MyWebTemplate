@@ -5,12 +5,12 @@
  * 설명: Badge UI 컴포넌트 구현
  */
 const badgeVariantClassMap = {
-  neutral: 'bg-gray-100 text-gray-800 border-transparent',
-  primary: 'bg-blue-100 text-blue-800 border-transparent',
-  success: 'bg-green-100 text-green-800 border-transparent',
-  warning: 'bg-yellow-100 text-yellow-900 border-transparent',
-  danger: 'bg-red-100 text-red-800 border-transparent',
-  outline: 'bg-transparent text-gray-800 border-gray-300',
+  neutral: 'bg-zinc-100/80 text-zinc-700 ring-1 ring-zinc-200/50 border-transparent',
+  primary: 'bg-indigo-50 text-indigo-700 ring-1 ring-indigo-200/70 border-transparent',
+  success: 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200/60 border-transparent',
+  warning: 'bg-amber-50 text-amber-800 ring-1 ring-amber-200/60 border-transparent',
+  danger: 'bg-rose-50 text-rose-700 ring-1 ring-rose-200/60 border-transparent',
+  outline: 'bg-transparent text-zinc-700 border-zinc-200/80',
 };
 
 const badgeSizeClassMap = {
@@ -24,11 +24,13 @@ const badgeSizeClassMap = {
  */
 const Badge = ({ children, variant = 'neutral', size = 'sm', pill = false, className = '', ...props }) => {
 
-  const baseClassName = 'inline-flex items-center border font-medium';
-  const radiusClassName = pill ? 'rounded-full' : 'rounded-md';
-  const badgeClassName = `${baseClassName} ${radiusClassName} ${badgeVariantClassMap[variant] || badgeVariantClassMap.neutral} ${badgeSizeClassMap[size] || badgeSizeClassMap.sm} ${className}`.trim();
   return (
-    <span className={badgeClassName} {...props}>{children}</span>
+    <span
+      className={`inline-flex items-center border font-medium ${pill ? 'rounded-full' : 'rounded-lg'} ${badgeVariantClassMap[variant] || badgeVariantClassMap.neutral} ${badgeSizeClassMap[size] || badgeSizeClassMap.sm} ${className}`.trim()}
+      {...props}
+    >
+      {children}
+    </span>
   );
 };
 

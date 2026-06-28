@@ -7,7 +7,7 @@
  * 설명: 공개 관리자 화면 샘플 페이지 뷰(DB 사용자/설정 연동)
  */
 
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import { useGlobalUi } from "@/app/common/store/SharedStore";
 import Badge from "@/app/lib/component/Badge";
 import Button from "@/app/lib/component/Button";
@@ -70,7 +70,7 @@ const AdminDemoView = ({ initialDataObj, initialErrorObj }) => {
   const initialUserRowList = dataObj?.users?.result?.sampleAdminUserList || [];
   const initialUserListMetaObj = dataObj?.users?.result?.listMetaObj || {};
   const initialSettingResult = useMemo(
-    () => dataObj?.settings?.result || {},
+    () => dataObj?.settings?.result ?? {},
     [dataObj?.settings?.result],
   );
   const ui = EasyObj({
@@ -88,6 +88,8 @@ const AdminDemoView = ({ initialDataObj, initialErrorObj }) => {
     formError: "",
   });
   const adminUserList = useEasyList(initialUserRowList);
+  const adminUserListRef = useRef(adminUserList);
+  adminUserListRef.current = adminUserList;
   const adminUserMetaObj = EasyObj({
     page: Number(initialUserListMetaObj.page || 1),
     size: Number(initialUserListMetaObj.size || 50),
@@ -95,10 +97,18 @@ const AdminDemoView = ({ initialDataObj, initialErrorObj }) => {
   });
   const savedAdminUserObj = EasyObj({});
   const adminSettingResultObj = EasyObj(initialSettingResult);
+  const adminUserMetaObjRef = useRef(adminUserMetaObj);
+  adminUserMetaObjRef.current = adminUserMetaObj;
+  const adminSettingResultObjRef = useRef(adminSettingResultObj);
+  adminSettingResultObjRef.current = adminSettingResultObj;
   const systemSettingObj = EasyObj(
     initialSettingResult.systemSetting || { ...LANG_KO.view.systemDefault },
   );
+  const systemSettingObjRef = useRef(systemSettingObj);
+  systemSettingObjRef.current = systemSettingObj;
   const rolePermissionMapObj = EasyObj(initialSettingResult.rolePermissionMap || {});
+  const rolePermissionMapObjRef = useRef(rolePermissionMapObj);
+  rolePermissionMapObjRef.current = rolePermissionMapObj;
   const adminUserPageCount = Math.max(
     1,
     Math.ceil(
@@ -329,7 +339,7 @@ const AdminDemoView = ({ initialDataObj, initialErrorObj }) => {
           body: userBodyObj,
         },
       );
-      savedAdminUserObj.copy(userSaveResponse?.result || {});
+      savedAdminUserObj.copy(userSaveResponse?.result ?? {});
       showToast(
         isCreate ? LANG_KO.view.users.saveCreatedToast : LANG_KO.view.users.saveUpdatedToast,
         { type: "success" },
@@ -364,7 +374,7 @@ const AdminDemoView = ({ initialDataObj, initialErrorObj }) => {
           },
         },
       );
-      adminSettingResultObj.copy(settingsResponse?.result || {});
+      adminSettingResultObj.copy(settingsResponse?.result ?? {});
       systemSettingObj.copy(adminSettingResultObj.systemSetting || {});
       rolePermissionMapObj.copy(adminSettingResultObj.rolePermissionMap || {});
       showToast(LANG_KO.view.settings.saveToast, { type: "success" });
@@ -381,16 +391,16 @@ const AdminDemoView = ({ initialDataObj, initialErrorObj }) => {
    * 처리 규칙: users는 EasyList.copy, settings는 EasyObj.copy로 각각 동기화
    */
   useEffect(() => {
-    adminUserList.copy(dataObj?.users?.result?.sampleAdminUserList || []);
-    adminUserMetaObj.copy({
+    adminUserListRef.current.copy(dataObj?.users?.result?.sampleAdminUserList || []);
+    adminUserMetaObjRef.current.copy({
       page: Number(dataObj?.users?.result?.listMetaObj?.page || 1),
       size: Number(dataObj?.users?.result?.listMetaObj?.size || 50),
       totalCount: Number(dataObj?.users?.result?.listMetaObj?.totalCount || 0),
     });
-    adminSettingResultObj.copy(initialSettingResult);
-    systemSettingObj.copy(initialSettingResult.systemSetting || { ...LANG_KO.view.systemDefault });
-    rolePermissionMapObj.copy(initialSettingResult.rolePermissionMap || {});
-  }, [adminSettingResultObj, adminUserList, adminUserMetaObj, dataObj?.users?.result?.listMetaObj?.page, dataObj?.users?.result?.listMetaObj?.size, dataObj?.users?.result?.listMetaObj?.totalCount, dataObj?.users?.result?.sampleAdminUserList, initialSettingResult, rolePermissionMapObj, systemSettingObj]);
+    adminSettingResultObjRef.current.copy(initialSettingResult);
+    systemSettingObjRef.current.copy(initialSettingResult.systemSetting || { ...LANG_KO.view.systemDefault });
+    rolePermissionMapObjRef.current.copy(initialSettingResult.rolePermissionMap || {});
+  }, [dataObj?.users?.result?.listMetaObj?.page, dataObj?.users?.result?.listMetaObj?.size, dataObj?.users?.result?.listMetaObj?.totalCount, dataObj?.users?.result?.sampleAdminUserList, initialSettingResult]);
 
   /* 9. 내부 컴포넌트 ============================================================================================================== */
 
@@ -448,6 +458,8 @@ const AdminDemoView = ({ initialDataObj, initialErrorObj }) => {
                 preserveRowSpace={false}
                 empty={LANG_KO.view.table.empty}
                 rowKey={(rowItem, rowIndex) => rowItem?.id ?? rowIndex}
+                headerClassName="!bg-gray-50 !text-gray-700 border-b border-gray-200 font-medium"
+                rowClassName="border-gray-100"
               />
               <div className="flex flex-col gap-3 text-sm text-gray-500 md:flex-row md:items-center md:justify-between">
                 <p>{adminUserRangeText}</p>
@@ -585,15 +597,21 @@ const AdminDemoView = ({ initialDataObj, initialErrorObj }) => {
           <label className="block space-y-1">
             <span className="text-sm font-medium text-gray-700">{LANG_KO.view.drawer.profileImageLabel}</span>
 
-            {/* raw file input 예외 사유: 공용 lib/component에 파일 선택 전용 컴포넌트가 없어 브라우저 기본 picker 사용 */}
-            <input
-              type="file"
-              className="block w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700"
-              onChange={(event) => {
-                const nextFile = event?.target?.files?.[0];
-                ui.userForm.profileImageName = nextFile?.name || "";
+            <Button
+              variant="secondary"
+              className="w-full justify-center"
+              onClick={() => {
+                const fileInputElement = document.createElement("input");
+                fileInputElement.type = "file";
+                fileInputElement.onchange = (event) => {
+                  const nextFile = event?.target?.files?.[0];
+                  ui.userForm.profileImageName = nextFile?.name || "";
+                };
+                fileInputElement.click();
               }}
-            />
+            >
+              {LANG_KO.view.drawer.profileImageButtonLabel ?? LANG_KO.view.drawer.profileImageLabel}
+            </Button>
             {ui.userForm.profileImageName ? (
               <p className="text-xs text-gray-500">{ui.userForm.profileImageName}</p>
             ) : null}

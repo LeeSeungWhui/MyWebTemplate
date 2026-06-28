@@ -76,8 +76,6 @@ const TimeInput = forwardRef(({
   } else if (isDataBound) {
     currentTimeValue = getBoundValue(dataObj, dataKey) ?? '';
   }
-  const baseClassName = 'block w-full pr-10 pl-3 py-2 text-sm rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-0 bg-white border';
-  const inputStateClassName = 'border-gray-300 focus:ring-blue-500 focus:border-blue-500';
   const inputId = id || (dataKey ? `time_${String(dataKey).replace(/[^a-zA-Z0-9_]+/g, '_')}` : undefined);
   const rootRef = useRef(null);
 
@@ -121,7 +119,7 @@ const TimeInput = forwardRef(({
         ref={ref}
         id={inputId}
         type="text"
-        className={`${baseClassName} ${inputStateClassName}`.trim()}
+        className="block w-full pr-10 pl-3 py-2 text-sm rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-0 bg-white border border-zinc-200 focus-visible:ring-zinc-950 focus-visible:border-zinc-900"
         value={timeText}
         min={min}
         max={max}
@@ -158,13 +156,13 @@ const TimeInput = forwardRef(({
         <Icon icon="md:MdAccessTime" className="w-5 h-5" />
       </button>
       {isOpen && (
-        <div className="absolute z-10 mt-1 w-40 max-h-64 overflow-auto rounded-md border border-gray-200 bg-white shadow-lg p-1" role="listbox" id={inputId ? `${inputId}_list` : undefined}>
+        <div className="absolute z-10 mt-1 w-40 max-h-64 overflow-auto rounded-lg border border-zinc-200/80 bg-white shadow-lg ring-1 ring-zinc-950/5 p-1" role="listbox" id={inputId ? `${inputId}_list` : undefined}>
           {timeOptionList.map((timeOption) => (
             <div
               key={timeOption}
               role="option"
               aria-selected={timeOption === currentTimeValue}
-              className={`px-2 py-1 text-sm rounded cursor-pointer hover:bg-blue-50 ${timeOption === currentTimeValue ? 'bg-blue-100' : ''}`}
+              className={`px-2 py-1 text-sm rounded cursor-pointer hover:bg-zinc-50 ${timeOption === currentTimeValue ? 'bg-zinc-100 text-zinc-900 font-medium ring-1 ring-inset ring-zinc-200/60' : 'text-zinc-900'}`}
               onClick={() => {
                 commitTimeValue(timeOption);
                 setIsOpen(false);

@@ -110,8 +110,6 @@ const DateInput = forwardRef(({
   } else if (isDataBound) {
     currentDateValue = getBoundValue(dataObj, dataKey) ?? '';
   }
-  const baseClassName = 'block w-full pr-10 pl-3 py-2 text-sm rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-0 bg-white border';
-  const inputStateClassName = 'border-gray-300 focus:ring-blue-500 focus:border-blue-500';
   const inputId = id || (dataKey ? `date_${String(dataKey).replace(/[^a-zA-Z0-9_]+/g, '_')}` : undefined);
   const rootRef = useRef(null);
 
@@ -195,7 +193,7 @@ const DateInput = forwardRef(({
         ref={ref}
         id={inputId}
         type="text"
-        className={`${baseClassName} ${inputStateClassName}`.trim()}
+        className="block w-full pr-10 pl-3 py-2 text-sm rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-0 bg-white border border-zinc-200 focus-visible:ring-zinc-950 focus-visible:border-zinc-900"
         value={dateText}
         min={min}
         max={max}
@@ -239,7 +237,7 @@ const DateInput = forwardRef(({
         <Icon icon="md:MdCalendarToday" className="w-5 h-5" />
       </button>
       {isOpen && (
-        <div role="dialog" aria-modal="false" className="absolute z-10 mt-1 w-64 rounded-lg border border-gray-200 bg-white shadow-lg p-3">
+        <div role="dialog" aria-modal="false" className="absolute z-10 mt-1 w-64 rounded-xl border border-zinc-200/80 bg-white shadow-lg ring-1 ring-zinc-950/5 p-3">
           <div className="flex items-center justify-between mb-2">
             <button type="button" className="p-1 rounded hover:bg-gray-100" onClick={() => changeMonth(-1)} aria-label={COMMON_COMPONENT_LANG_KO.dateInput.prevMonth}>
               <Icon icon="md:MdChevronLeft" className="w-5 h-5" />
@@ -259,9 +257,9 @@ const DateInput = forwardRef(({
               const dayButtonClassName = [
                 'h-8 rounded text-sm flex items-center justify-center cursor-pointer',
                 isInMonth ? '' : 'text-gray-400',
-                isDisabled ? 'cursor-not-allowed opacity-50' : 'hover:bg-blue-50',
-                isSelected ? 'bg-blue-600 text-white hover:bg-blue-600' : '',
-                !isSelected && isToday ? 'ring-1 ring-blue-400' : ''
+                isDisabled ? 'cursor-not-allowed opacity-50' : 'hover:bg-zinc-50',
+                isSelected ? 'bg-zinc-900 text-zinc-50 hover:bg-zinc-800' : '',
+                !isSelected && isToday ? 'ring-1 ring-zinc-400' : ''
               ].join(' ').trim();
               return (
                 <button

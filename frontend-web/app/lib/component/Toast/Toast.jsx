@@ -27,9 +27,9 @@ const Toast = forwardRef(({
     const toastTypeMetaObj = {
         info: {
             icon: 'ri:RiInformationLine',
-            iconColor: 'text-blue-500',
-            bgColor: 'bg-blue-50',
-            borderColor: 'border-blue-200'
+            iconColor: 'text-zinc-600',
+            bgColor: 'bg-zinc-50',
+            borderColor: 'border-zinc-200'
         },
         success: {
             icon: 'ri:RiCheckboxCircleLine',
@@ -97,7 +97,7 @@ const Toast = forwardRef(({
                     type="button"
                     onClick={onClose}
                     aria-label={COMMON_LANG_KO.action.close}
-                    className="ml-3 text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 rounded-full p-1"
+                    className="ml-3 text-zinc-400 hover:text-zinc-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-zinc-950 rounded-full p-1"
                 >
                     <Icon icon="ri:RiCloseLine" size="1.25em" />
                 </button>

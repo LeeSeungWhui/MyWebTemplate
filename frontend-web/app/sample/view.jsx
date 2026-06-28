@@ -36,7 +36,7 @@ const DemoHubView = ({ initialDataObj, initialErrorObj }) => {
     initialDataObj,
     initialErrorObj,
   });
-  const overview = dataObj?.overview?.result || {};
+  const overview = dataObj?.overview?.result ?? {};
   const taskCount = Number(overview?.taskCount || 0);
   const adminUserCount = Number(overview?.adminUserCount || 0);
   const formSubmissionCount = Number(overview?.formSubmissionCount || 0);
@@ -106,7 +106,7 @@ const DemoHubView = ({ initialDataObj, initialErrorObj }) => {
           <Stat
             key={statCardObj.label}
             {...statCardObj}
-            className="p-1"
+            className="border-gray-200 shadow-sm"
             value={isLoading ? "..." : statCardObj.value}
           />
         ))}

@@ -5,10 +5,11 @@
  * 설명: 코드 블록 렌더러
  */
 import { useEffect, useRef, useState } from 'react';
+import Icon from '../../../lib/component/Icon';
 import LANG_KO from "../../lang.ko";
 
 /**
- * @description 예시 코드 문자열을 하이라이트 블록으로 보여주고 클릭 복사를 지원
+ * @description 예시 코드 문자열을 하이라이트 블록으로 보여주고 복사 버튼을 제공
  * @param {{ code: string, language?: string }} props
  * @returns {JSX.Element} 코드 블록 UI
  */
@@ -22,7 +23,7 @@ const CodeBlock = ({ code, language = 'jsx' }) => {
      * @returns {void}
      * @updated 2026-02-27
      */
-    const handleCodeClick = () => {
+    const handleCopy = () => {
         navigator.clipboard.writeText(code);
         setCopied(true);
         clearTimeout(copyResetTimerRef.current);
@@ -36,20 +37,36 @@ const CodeBlock = ({ code, language = 'jsx' }) => {
     useEffect(() => () => clearTimeout(copyResetTimerRef.current), []);
 
     return (
-        <div className="relative w-full min-w-0">
-            <pre
-                className="max-w-full overflow-x-auto rounded bg-gray-50 p-2 text-xs font-mono cursor-pointer hover:bg-gray-100"
-                onClick={handleCodeClick}
-            >
+        <div className="group w-full min-w-0 overflow-hidden rounded-lg bg-zinc-950 ring-1 ring-zinc-800/80">
+            <div className="flex items-center justify-between border-b border-zinc-800/80 bg-zinc-900/50 px-3 py-2">
+                <span className="text-xs font-medium uppercase tracking-wide text-zinc-500">
+                    {language}
+                </span>
+                <div className="flex items-center gap-2">
+                    {copied && (
+                        <div
+                            role="status"
+                            aria-live="polite"
+                            className="rounded-md border border-emerald-800/60 bg-emerald-950/90 px-2 py-1 text-xs font-medium text-emerald-300 shadow-sm"
+                        >
+                            {LANG_KO.view.copyDoneLabel}
+                        </div>
+                    )}
+                    <button
+                        type="button"
+                        onClick={handleCopy}
+                        aria-label="코드 복사"
+                        className="inline-flex items-center gap-1 rounded-md border border-zinc-700/80 bg-zinc-900/90 px-2 py-1 text-xs font-medium text-zinc-300 shadow-sm transition-colors hover:border-zinc-600 hover:bg-zinc-800 hover:text-zinc-50 focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-400 focus-visible:ring-offset-2 focus-visible:ring-offset-zinc-900"
+                    >
+                        <Icon icon="ri:RiFileCopyLine" size="0.875em" aria-hidden="true" />
+                    </button>
+                </div>
+            </div>
+            <pre className="max-w-full overflow-x-auto p-4 text-xs font-mono leading-relaxed text-zinc-100">
                 <code className={`language-${language}`}>
                     {code}
                 </code>
             </pre>
-            {copied && (
-                <div className="absolute top-2 right-2 bg-green-100 text-green-800 px-2 py-1 rounded text-xs">
-                    {LANG_KO.view.copyDoneLabel}
-                </div>
-            )}
         </div>
     );
 };

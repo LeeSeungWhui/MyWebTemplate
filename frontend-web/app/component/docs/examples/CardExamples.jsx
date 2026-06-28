@@ -53,7 +53,7 @@ export const plainExampleList = [{
 export const composedExampleList = [{
   component: <Lib.Card title="조합 예시" actions={<Lib.Badge variant="primary">New</Lib.Badge>} footer={<div className="flex items-center gap-2 text-xs"><Lib.Icon icon="md:MdSchedule" /> 업데이트: 방금 전</div>}>
           <div className="flex items-start gap-3">
-            <div className="h-12 w-12 rounded bg-blue-100 flex items-center justify-center text-blue-700">IMG</div>
+            <div className="h-12 w-12 rounded bg-zinc-100 flex items-center justify-center text-zinc-700 ring-1 ring-zinc-200/60">IMG</div>
             <div>
               <div className="font-medium">이미지/아이콘과 텍스트</div>
               <div className="text-sm text-gray-600">레이아웃과 구성 예시</div>
@@ -61,5 +61,5 @@ export const composedExampleList = [{
           </div>
         </Lib.Card>,
   description: 'Badge, Icon 조합',
-  code: `<Lib.Card\n  title=\"조합 예시\"\n  actions={<Lib.Badge variant=\"primary\">New</Lib.Badge>}\n  footer={<div className=\"flex items-center gap-2 text-xs\"><Lib.Icon icon=\"md:MdSchedule\" /> 업데이트: 방금 전</div>}\n>\n  <div className=\"flex items-start gap-3\">\n    <div className=\"h-12 w-12 rounded bg-blue-100 flex items-center justify-center text-blue-700\">IMG</div>\n    <div>\n      <div className=\"font-medium\">이미지/아이콘과 텍스트</div>\n      <div className=\"text-sm text-gray-600\">레이아웃과 구성 예시</div>\n    </div>\n  </div>\n</Lib.Card>`
+  code: `<Lib.Card\n  title=\"조합 예시\"\n  actions={<Lib.Badge variant=\"primary\">New</Lib.Badge>}\n  footer={<div className=\"flex items-center gap-2 text-xs\"><Lib.Icon icon=\"md:MdSchedule\" /> 업데이트: 방금 전</div>}\n>\n  <div className=\"flex items-start gap-3\">\n    <div className=\"h-12 w-12 rounded bg-zinc-100 flex items-center justify-center text-zinc-700 ring-1 ring-zinc-200/60\">IMG</div>\n    <div>\n      <div className=\"font-medium\">이미지/아이콘과 텍스트</div>\n      <div className=\"text-sm text-gray-600\">레이아웃과 구성 예시</div>\n    </div>\n  </div>\n</Lib.Card>`
 }];

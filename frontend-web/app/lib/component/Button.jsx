@@ -28,19 +28,17 @@ const Button = forwardRef(({
     ...props
 }, ref) => {
 
-    const baseClassName = "inline-flex items-center justify-center font-medium rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors";
-
     const buttonVariantMapObj = {
-        primary: "bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500",
+        primary: "bg-indigo-600 text-white shadow-indigo-500/20 ring-1 ring-inset ring-white/15 hover:bg-indigo-500 focus-visible:ring-indigo-500/50",
 
-        secondary: "border border-blue-600 text-blue-600 bg-white hover:bg-blue-50 focus:ring-blue-500",
-        outline: "border border-gray-300 text-gray-700 bg-white hover:bg-gray-50 focus:ring-blue-500",
-        danger: "bg-red-600 text-white hover:bg-red-700 focus:ring-red-500",
-        success: "bg-green-600 text-white hover:bg-green-700 focus:ring-green-500",
-        warning: "bg-yellow-600 text-white hover:bg-yellow-700 focus:ring-yellow-500",
-        ghost: "text-gray-600 bg-transparent hover:bg-gray-100 focus:ring-gray-500",
-        link: "text-blue-600 bg-transparent hover:text-blue-700 underline-offset-2 hover:underline focus:ring-blue-500",
-        dark: "bg-gray-900 text-white hover:bg-black focus:ring-gray-900",
+        secondary: "border border-zinc-200 text-zinc-900 bg-zinc-100 shadow-zinc-900/5 hover:bg-zinc-200/80 focus-visible:ring-zinc-950",
+        outline: "border border-zinc-200 text-zinc-700 bg-white shadow-zinc-900/5 hover:bg-zinc-50 focus-visible:ring-zinc-950",
+        danger: "bg-red-600 text-white shadow-red-900/20 ring-1 ring-inset ring-white/10 hover:bg-red-700 focus-visible:ring-red-500",
+        success: "bg-green-600 text-white shadow-green-900/20 ring-1 ring-inset ring-white/10 hover:bg-green-700 focus-visible:ring-green-500",
+        warning: "bg-yellow-600 text-white shadow-yellow-900/20 ring-1 ring-inset ring-white/10 hover:bg-yellow-700 focus-visible:ring-yellow-500",
+        ghost: "text-zinc-600 bg-transparent shadow-none hover:bg-zinc-100 focus-visible:ring-zinc-500 active:shadow-none",
+        link: "text-zinc-900 bg-transparent shadow-none hover:text-zinc-700 underline-offset-2 hover:underline focus-visible:ring-zinc-950 active:shadow-none active:translate-y-0",
+        dark: "bg-zinc-950 text-zinc-50 shadow-zinc-950/30 ring-1 ring-inset ring-white/10 hover:bg-black focus-visible:ring-zinc-950",
     };
 
     const buttonSizeClassMap = {
@@ -48,14 +46,6 @@ const Button = forwardRef(({
         md: "px-4 py-2 text-sm",
         lg: "px-5 py-2.5 text-base",
     };
-
-    const buttonClassName = `
-        ${baseClassName}
-        ${buttonVariantMapObj[variant]}
-        ${buttonSizeClassMap[size]}
-        ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
-        ${className}
-    `.trim();
 
     const iconSize = {
         sm: '1em',
@@ -91,7 +81,13 @@ const Button = forwardRef(({
                 ref={ref}
                 type={type}
                 disabled={disabled || isBusy}
-                className={buttonClassName}
+                className={`
+                    inline-flex items-center justify-center font-medium rounded-lg shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 transition-[color,background-color,box-shadow,transform] active:translate-y-px active:shadow-none disabled:active:translate-y-0 disabled:active:shadow-sm
+                    ${buttonVariantMapObj[variant]}
+                    ${buttonSizeClassMap[size]}
+                    ${disabled ? 'opacity-50 cursor-not-allowed' : ''}
+                    ${className}
+                `.trim()}
                 aria-busy={isBusy ? 'true' : undefined}
                 aria-describedby={buttonAriaDescribedBy}
                 {...props}

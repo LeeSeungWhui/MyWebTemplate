@@ -92,8 +92,8 @@ const Tab = ({
                         className={`
                             px-4 py-2 -mb-px text-sm font-medium inline-flex items-center
                             ${currentTab === index
-                                ? 'text-blue-600 border-b-2 border-blue-600'
-                                : 'text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                                ? 'text-zinc-950 border-b-2 border-zinc-900'
+                                : 'text-zinc-500 hover:text-zinc-700 hover:border-zinc-300'
                             }
                         `}
                     >

@@ -132,9 +132,6 @@ const NumberInput = forwardRef(({
     currentNumberValue = getBoundValue(dataObj, dataKey) ?? '';
   }
 
-  const baseClassName = 'block w-full h-10 px-3 text-sm rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-0 bg-white border';
-  const stateClassName = 'border-gray-300 focus:ring-blue-500 focus:border-blue-500';
-
   const inputId = id || (dataKey ? `num_${String(dataKey).replace(/[^a-zA-Z0-9_]+/g, '_')}` : undefined);
 
   return (
@@ -173,7 +170,7 @@ const NumberInput = forwardRef(({
           if (event.key === 'PageDown') { event.preventDefault(); changeByStep(-step * 10); }
         }}
         onBlur={(event) => commitNumberValue(event.target.value, event)}
-        className={`${baseClassName} ${stateClassName} flex-1`.trim()}
+        className="block w-full h-10 flex-1 rounded-md border border-zinc-200 bg-white px-3 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-0 focus-visible:border-zinc-900 focus-visible:ring-zinc-950"
         disabled={disabled}
         readOnly={readOnly}
         role="spinbutton"
