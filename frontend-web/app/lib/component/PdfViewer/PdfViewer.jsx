@@ -204,10 +204,13 @@ const PdfViewer = ({
       .replace("{currentPage}", String(documentState.currentPage))
       .replace("{zoomPercent}", `${zoomPercent}%`);
   }
+  const sourceKindText = typeof src === 'string'
+    ? (src.startsWith('http') ? 'Remote URL' : 'Public path')
+    : (src ? 'Local file' : 'No source');
 
   return (
     <div
-      className={`relative w-full h-[70vh] border rounded overflow-hidden bg-white ${className}`.trim()}
+      className={`relative flex h-[70vh] w-full flex-col overflow-hidden rounded-2xl bg-slate-50 shadow-sm ring-1 ring-slate-900/10 ${className}`.trim()}
       role="document"
       aria-label={COMMON_COMPONENT_LANG_KO.pdfViewer.ariaLabel}
       aria-busy={isLoading ? 'true' : 'false'}
@@ -215,59 +218,84 @@ const PdfViewer = ({
       data-page-count={documentState.totalPages}
       data-zoom={documentState.zoom.toFixed(2)}
     >
+      <div className="flex flex-col gap-3 border-b border-slate-200/80 bg-white/95 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex min-w-0 items-center gap-3">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600 ring-1 ring-indigo-100">
+            <Icon icon="ri:RiFilePdf2Line" className="h-5 w-5" size="1.25em" aria-hidden="true" />
+          </span>
+          <div className="min-w-0">
+            <p className="truncate text-sm font-semibold text-slate-900">
+              PDF preview
+            </p>
+            <p className="mt-0.5 text-xs font-medium text-slate-500">
+              {sourceKindText}
+            </p>
+          </div>
+        </div>
+        <div className="inline-flex w-fit items-center gap-2 rounded-full bg-slate-100 px-3 py-1 text-xs font-semibold text-slate-600 ring-1 ring-slate-200">
+          <span className={`h-2 w-2 rounded-full ${viewerError ? 'bg-rose-500' : objectUrl ? 'bg-emerald-500' : 'bg-amber-500'}`} aria-hidden="true" />
+          {documentStatusText}
+        </div>
+      </div>
       <span className="sr-only" aria-live="polite">
         {documentStatusText}
       </span>
 
-      {isLoading && !viewerError && (
-        <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/75 backdrop-blur-sm" aria-hidden="true">
-          <div className="flex flex-col items-center gap-3 text-gray-600">
-            <Icon icon="ri:RiLoader4Line" className="h-6 w-6 animate-spin text-zinc-600" size="1.5em" />
-            <span className="text-sm font-medium">{COMMON_COMPONENT_LANG_KO.pdfViewer.loadingText}</span>
+      <div className="relative min-h-0 flex-1 overflow-hidden bg-slate-100">
+        {isLoading && !viewerError && (
+          <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/75 backdrop-blur-sm" aria-hidden="true">
+            <div className="flex flex-col items-center gap-3 text-slate-600">
+              <span className="flex h-12 w-12 items-center justify-center rounded-full bg-indigo-50 text-indigo-600 ring-1 ring-indigo-100">
+                <Icon icon="ri:RiLoader4Line" className="h-6 w-6 animate-spin" size="1.5em" />
+              </span>
+              <span className="text-sm font-semibold">{COMMON_COMPONENT_LANG_KO.pdfViewer.loadingText}</span>
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {viewerError && (
-        <div className="flex h-full w-full items-center justify-center bg-gray-50 px-6 py-8">
-          <Empty
-            className="max-w-sm"
-            title={errorStatusCode
-              ? `${COMMON_COMPONENT_LANG_KO.pdfViewer.loadFailedTitle} (HTTP ${errorStatusCode})`
-              : COMMON_COMPONENT_LANG_KO.pdfViewer.loadFailedTitle}
-            description={errorMessage ?? COMMON_COMPONENT_LANG_KO.pdfViewer.loadFailedDescription}
-            data-status-code={errorStatusCode ?? undefined}
-          />
-        </div>
-      )}
+        {viewerError && (
+          <div className="flex h-full w-full items-center justify-center bg-slate-50 px-6 py-8">
+            <Empty
+              className="max-w-sm border-rose-200 bg-white text-slate-700 ring-rose-100"
+              icon="ri:RiErrorWarningLine"
+              title={errorStatusCode
+                ? `${COMMON_COMPONENT_LANG_KO.pdfViewer.loadFailedTitle} (HTTP ${errorStatusCode})`
+                : COMMON_COMPONENT_LANG_KO.pdfViewer.loadFailedTitle}
+              description={errorMessage ?? COMMON_COMPONENT_LANG_KO.pdfViewer.loadFailedDescription}
+              data-status-code={errorStatusCode ?? undefined}
+            />
+          </div>
+        )}
 
-      {showMissingSource && (
-        <div className="flex h-full w-full items-center justify-center bg-gray-50 px-6 py-8">
-          <Empty
-            className="max-w-sm"
-            title={COMMON_COMPONENT_LANG_KO.pdfViewer.missingSourceTitle}
-            description={COMMON_COMPONENT_LANG_KO.pdfViewer.missingSourceDescription}
-          />
-        </div>
-      )}
+        {showMissingSource && (
+          <div className="flex h-full w-full items-center justify-center bg-slate-50 px-6 py-8">
+            <Empty
+              className="max-w-sm bg-white"
+              icon="ri:RiFileSearchLine"
+              title={COMMON_COMPONENT_LANG_KO.pdfViewer.missingSourceTitle}
+              description={COMMON_COMPONENT_LANG_KO.pdfViewer.missingSourceDescription}
+            />
+          </div>
+        )}
 
-      {shouldRenderViewer && (
-        <Worker workerUrl={workerSrc}>
-          <Viewer
-            fileUrl={objectUrl}
-            httpHeaders={headers}
-            defaultScale={1}
-            initialPage={normalizedInitialPage - 1}
-            onDocumentLoad={handleDocumentLoad}
-            renderError={(error) => (
-              <PdfViewerErrorBridge error={error} onErrorDetected={handleViewerError} />
-            )}
-            onPageChange={handlePageChange}
-            onZoom={handleZoom}
-            plugins={plugins}
-          />
-        </Worker>
-      )}
+        {shouldRenderViewer && (
+          <Worker workerUrl={workerSrc}>
+            <Viewer
+              fileUrl={objectUrl}
+              httpHeaders={headers}
+              defaultScale={1}
+              initialPage={normalizedInitialPage - 1}
+              onDocumentLoad={handleDocumentLoad}
+              renderError={(error) => (
+                <PdfViewerErrorBridge error={error} onErrorDetected={handleViewerError} />
+              )}
+              onPageChange={handlePageChange}
+              onZoom={handleZoom}
+              plugins={plugins}
+            />
+          </Worker>
+        )}
+      </div>
     </div>
   );
 };

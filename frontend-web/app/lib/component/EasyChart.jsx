@@ -16,7 +16,6 @@ import {
   ComposedChart,
   Legend,
   Line,
-  LineChart,
   Cell,
   Pie,
   PieChart,
@@ -24,23 +23,45 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useId, useRef, useState } from "react";
 import Card from "./Card";
 import Skeleton from "./Skeleton";
 import Empty from "./Empty";
 import { COMMON_COMPONENT_LANG_KO } from "@/app/common/i18n/lang.ko";
 
 const chartColorList = [
-  "#18181b",
-  "#0f766e",
-  "#b45309",
-  "#7c3aed",
-  "#dc2626",
-  "#475569",
-  "#14b8a6",
+  "#4f46e5",
+  "#10b981",
+  "#f59e0b",
+  "#f43f5e",
+  "#64748b",
+  "#06b6d4",
+  "#8b5cf6",
 ];
-const defaultMarginObj = { top: 12, right: 20, left: 10, bottom: 12 };
-const donutMarginObj = { top: 36, right: 16, bottom: 24, left: 16 };
+const defaultMarginObj = { top: 28, right: 20, left: 4, bottom: 8 };
+const donutMarginObj = { top: 28, right: 16, bottom: 22, left: 16 };
+const tooltipContentStyleObj = {
+  border: "1px solid rgb(226 232 240)",
+  borderRadius: "12px",
+  backgroundColor: "rgba(255, 255, 255, 0.96)",
+  boxShadow: "0 10px 24px rgba(15, 23, 42, 0.08)",
+  color: "#0f172a",
+};
+const tooltipLabelStyleObj = {
+  color: "#334155",
+  fontSize: "12px",
+  fontWeight: 600,
+};
+const tooltipItemStyleObj = {
+  color: "#475569",
+  fontSize: "12px",
+};
+const axisTickObj = { fontSize: 12, fill: "#64748b", fontWeight: 500 };
+const chartLegendStyleObj = {
+  color: "#475569",
+  fontSize: "12px",
+  fontWeight: 500,
+};
 const chartHeightClassMap = {
   160: "h-40",
   180: "h-[180px]",
@@ -108,6 +129,7 @@ const EasyChart = ({
   cardProps = {},
 }) => {
 
+  const chartIdPrefix = useId().replaceAll(":", "");
   const [isClient, setIsClient] = useState(false);
   const chartHostRef = useRef(null);
   const [hostSize, setHostSize] = useState({ width: 0, height: 0 });
@@ -162,6 +184,7 @@ const EasyChart = ({
     ?? chartHeightClassMap[hostBucketKey];
   const pieHeightClassName = chartHeightClassMap[pieTargetHeight]
     ?? chartHeightClassMap[pieBucketKey];
+  const getGradientId = (index) => `easy-chart-gradient-${chartIdPrefix}-${index}`;
 
   /**
    * @description 클라이언트 마운트 후 차트 렌더 가능 상태로 전환
@@ -215,23 +238,22 @@ const EasyChart = ({
     return () => observer.disconnect();
   }, [isClient, height, isPie, isDonut]);
 
-  let ChartComponent = LineChart;
-  if (isComposed && hasSeries) {
-    ChartComponent = ComposedChart;
-  } else if (type === "bar") {
+  let ChartComponent = ComposedChart;
+  if (type === "bar" && !isComposed) {
     ChartComponent = BarChart;
-  } else if (type === "area") {
+  } else if (type === "area" && !isComposed) {
     ChartComponent = AreaChart;
   }
   const seriesNodes = hasSeries
     ? resolvedSeries.map((seriesItem, index) => {
         const seriesKey = seriesItem.key || seriesItem.name || `series-${index}`;
+        const gradientFill = `url(#${getGradientId(index)})`;
         const seriesPropsObj = {
           name: seriesItem.name,
           dataKey: seriesItem.key,
           stroke: seriesItem.color,
-          fill: seriesItem.color,
-          strokeWidth: seriesItem.strokeWidth || 2,
+          fill: gradientFill,
+          strokeWidth: seriesItem.strokeWidth || 2.4,
         };
         let seriesType = chartType;
         const shouldUseSeriesType = !isPie && !isDonut && isComposed;
@@ -244,26 +266,50 @@ const EasyChart = ({
               key={seriesKey}
               {...seriesPropsObj}
               stackId={seriesItem.stackId}
-              radius={[4, 4, 0, 0]}
+              fill={seriesItem.color}
+              maxBarSize={44}
+              radius={[8, 8, 2, 2]}
             />
           );
         }
         if (seriesType === "area") {
           return (
-            <Area key={seriesKey} {...seriesPropsObj} type="monotone" fillOpacity={0.12} />
+            <Area
+              key={seriesKey}
+              {...seriesPropsObj}
+              type="monotone"
+              fillOpacity={1}
+              activeDot={{ r: 4, stroke: "#ffffff", strokeWidth: 2 }}
+            />
           );
         }
         if (seriesType === "pie" || seriesType === "donut") {
           return null;
         }
         return (
-          <Line
-            key={seriesKey}
-            {...seriesPropsObj}
-            type="monotone"
-            dot={seriesItem.dot ?? false}
-            activeDot={{ r: 4 }}
-          />
+          <Fragment key={seriesKey}>
+            <Area
+              key={`${seriesKey}-shade`}
+              dataKey={seriesItem.key}
+              type="monotone"
+              stroke="none"
+              fill={gradientFill}
+              fillOpacity={1}
+              dot={false}
+              activeDot={false}
+              legendType="none"
+              tooltipType="none"
+              isAnimationActive={false}
+            />
+            <Line
+              key={seriesKey}
+              {...seriesPropsObj}
+              fill={seriesItem.color}
+              type="monotone"
+              dot={seriesItem.dot ?? false}
+              activeDot={{ r: 4, stroke: "#ffffff", strokeWidth: 2 }}
+            />
+          </Fragment>
         );
       })
     : null;
@@ -279,7 +325,7 @@ const EasyChart = ({
   } else if (isError) {
     bodyContent = (
       <div
-        className="rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"
+        className="rounded-xl bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700 ring-1 ring-rose-200/80"
         role="alert"
       >
         {errorText ||
@@ -289,7 +335,7 @@ const EasyChart = ({
   } else if (!hasSeries) {
     bodyContent = (
       <div
-        className="rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700"
+        className="rounded-xl bg-amber-50 px-4 py-3 text-sm font-medium text-amber-700 ring-1 ring-amber-200/80"
         role="status"
       >
         {COMMON_COMPONENT_LANG_KO.easyChart.seriesRequired}
@@ -302,7 +348,7 @@ const EasyChart = ({
   } else if (isEmpty) {
     bodyContent =
       typeof empty === "string" ? (
-        <Empty title={empty} className="bg-gray-50" />
+        <Empty title={empty} className="bg-slate-50" />
       ) : (
         empty
       );
@@ -310,7 +356,7 @@ const EasyChart = ({
     if (!pieValueKey) {
       bodyContent = (
         <div
-          className="rounded-md border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-700"
+          className="rounded-xl bg-amber-50 px-4 py-3 text-sm font-medium text-amber-700 ring-1 ring-amber-200/80"
           role="status"
         >
           {COMMON_COMPONENT_LANG_KO.easyChart.seriesRequired}
@@ -328,13 +374,18 @@ const EasyChart = ({
               height={hostSize.height}
               margin={donutMarginObj}
             >
-              <Tooltip />
+              <Tooltip
+                contentStyle={tooltipContentStyleObj}
+                itemStyle={tooltipItemStyleObj}
+                labelStyle={tooltipLabelStyleObj}
+              />
               {!hideLegend && (
                 <Legend
                   verticalAlign="bottom"
                   align="center"
                   iconType="circle"
                   iconSize={10}
+                  wrapperStyle={chartLegendStyleObj}
                 />
               )}
               <Pie
@@ -351,7 +402,7 @@ const EasyChart = ({
                     <text
                       x={pieLabelObj.x}
                       y={pieLabelObj.y}
-                      fill="#374151"
+                      fill="#475569"
                       fontSize={pieLabelFontSize}
                       textAnchor="middle"
                       dominantBaseline="central"
@@ -369,7 +420,7 @@ const EasyChart = ({
                       chartColorList[dataIndex % chartColorList.length]
                     }
                     stroke={isDonut ? "#ffffff" : undefined}
-                    strokeWidth={isDonut ? 1.4 : undefined}
+                    strokeWidth={isDonut ? 2.4 : undefined}
                   />
                 ))}
               </Pie>
@@ -391,30 +442,54 @@ const EasyChart = ({
             width={hostSize.width}
             height={hostSize.height}
           >
-            <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+            <defs>
+              {resolvedSeries.map((seriesItem, index) => (
+                <linearGradient
+                  key={getGradientId(index)}
+                  id={getGradientId(index)}
+                  x1="0"
+                  y1="0"
+                  x2="0"
+                  y2="1"
+                >
+                  <stop offset="5%" stopColor={seriesItem.color} stopOpacity={0.18} />
+                  <stop offset="95%" stopColor={seriesItem.color} stopOpacity={0} />
+                </linearGradient>
+              ))}
+            </defs>
+            <CartesianGrid vertical={false} strokeDasharray="4 6" stroke="#e2e8f0" />
             <XAxis
               dataKey={xKey}
               tickLine={false}
-              axisLine={{ stroke: "#e5e7eb" }}
+              axisLine={false}
+              tickMargin={10}
               tickFormatter={xLabelFormatter}
-              tick={{ fontSize: 12, fill: "#6b7280" }}
+              tick={axisTickObj}
             />
             <YAxis
               tickLine={false}
-              axisLine={{ stroke: "#e5e7eb" }}
+              axisLine={false}
+              tickMargin={10}
+              width={36}
               tickFormatter={yLabelFormatter}
-              tick={{ fontSize: 12, fill: "#6b7280" }}
+              tick={axisTickObj}
             />
             <Tooltip
+              contentStyle={tooltipContentStyleObj}
+              cursor={{ stroke: "#cbd5e1", strokeDasharray: "4 4", strokeWidth: 1 }}
               formatter={(value, name) => [value, name]}
+              itemStyle={tooltipItemStyleObj}
               labelFormatter={xLabelFormatter}
+              labelStyle={tooltipLabelStyleObj}
             />
             {!hideLegend && (
               <Legend
-                verticalAlign="bottom"
-                align="center"
+                verticalAlign="top"
+                align="right"
+                height={28}
                 iconType="circle"
                 iconSize={10}
+                wrapperStyle={chartLegendStyleObj}
               />
             )}
             {seriesNodes}

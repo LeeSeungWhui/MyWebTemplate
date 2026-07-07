@@ -30,11 +30,12 @@ const ToolbarButton = ({ active, label, onClick, children, disabled }) => (
     aria-disabled={disabled || undefined}
     disabled={disabled}
     className={clsx(
-      'px-2 py-1 text-sm rounded transition-colors',
-      disabled && 'opacity-40 cursor-not-allowed',
-      !disabled && (active
-        ? 'bg-zinc-100 text-zinc-900 border border-zinc-200 ring-1 ring-zinc-200/60'
-        : 'text-zinc-600 hover:bg-zinc-50 border border-transparent'),
+      'inline-flex h-8 min-w-8 items-center justify-center rounded-lg border px-2 text-sm font-semibold transition-[color,background-color,border-color,box-shadow] focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/30 focus-visible:ring-offset-2 focus-visible:ring-offset-white',
+      active
+        ? 'border-indigo-200 bg-indigo-50 text-indigo-700 shadow-sm shadow-indigo-950/5'
+        : 'border-transparent text-slate-600 hover:border-slate-200 hover:bg-slate-100 hover:text-slate-950',
+      disabled && !active && 'cursor-not-allowed opacity-45',
+      disabled && active && 'cursor-default',
     )}
     onClick={disabled ? undefined : onClick}
   >
@@ -45,8 +46,8 @@ const ToolbarButton = ({ active, label, onClick, children, disabled }) => (
 const statusClassMap = {
   idle: '',
   loading: 'opacity-70 pointer-events-none',
-  error: 'border-red-300 focus-within:ring-red-500',
-  success: 'border-green-300 focus-within:ring-green-500',
+  error: 'border-rose-300 ring-rose-100 focus-within:ring-rose-500/30',
+  success: 'border-emerald-300 ring-emerald-100 focus-within:ring-emerald-500/30',
 };
 
 const fontSizeOptionList = [
@@ -226,7 +227,7 @@ const EasyEditor = ({
           : { url: uploadResultObj.url, name: uploadResultObj.name ?? file.name };
         if (fileLinkObj?.url) {
           editor.chain().focus().insertContent(
-            `<a href="${fileLinkObj.url}" target="_blank" rel="noopener noreferrer" class="text-zinc-900 underline">${fileLinkObj.name}</a>`
+            `<a href="${fileLinkObj.url}" target="_blank" rel="noopener noreferrer" class="text-indigo-700 underline decoration-indigo-300 underline-offset-4">${fileLinkObj.name}</a>`
           ).run();
         }
       } catch (error) {
@@ -325,20 +326,20 @@ const EasyEditor = ({
   return (
     <div className="space-y-2">
       {label && (
-        <label htmlFor={id} className="block text-sm font-medium text-gray-700">
+        <label htmlFor={id} className="block text-sm font-semibold text-slate-800">
           {label}
         </label>
       )}
       <div
         className={clsx(
-          'flex flex-col border rounded-xl bg-white shadow-sm ring-1 ring-zinc-950/5 focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-zinc-950 transition',
-          invalid ? 'border-red-300 focus-within:ring-red-500' : 'border-zinc-200',
+          'flex flex-col overflow-hidden rounded-xl border bg-white shadow-sm shadow-slate-950/5 ring-1 ring-slate-900/5 transition focus-within:ring-2 focus-within:ring-indigo-500/25 focus-within:ring-offset-2 focus-within:ring-offset-white',
+          invalid ? 'border-rose-300 ring-rose-100 focus-within:ring-rose-500/30' : 'border-slate-200',
           statusClassMap[status] || statusClassMap.idle,
           className,
         )}
       >
         {toolbar && editor && (
-          <div className="flex flex-wrap items-center gap-2 border-b px-3 py-2 bg-gray-50">
+          <div className="flex flex-wrap items-center gap-2 border-b border-slate-200 bg-gradient-to-b from-slate-50/95 to-white px-3 py-2">
             <div className="flex items-center gap-2">
               <ToolbarButton
                 label={COMMON_COMPONENT_LANG_KO.easyEditor.toolbarBold}
@@ -376,7 +377,7 @@ const EasyEditor = ({
 
             <div className="flex items-center gap-2">
               <select
-                className="h-8 rounded border border-gray-300 px-2 text-sm"
+                className="h-9 rounded-lg border border-slate-200 bg-white px-2 text-sm font-medium text-slate-700 shadow-sm shadow-slate-950/5 outline-none transition focus:border-indigo-300 focus:ring-2 focus:ring-indigo-500/20 disabled:cursor-not-allowed disabled:opacity-50"
                 value={fontSizeValue}
                 onChange={handleFontSizeChange}
                 disabled={toolbarDisabled}
@@ -393,13 +394,13 @@ const EasyEditor = ({
                   value={currentColor}
                   onChange={handleColorChange}
                   disabled={toolbarDisabled}
-                  className="h-8 w-10 border border-gray-300 rounded"
+                  className="h-9 w-10 rounded-lg border border-slate-200 bg-white p-1 shadow-sm shadow-slate-950/5 disabled:cursor-not-allowed disabled:opacity-50"
                 />
                 <button
                   type="button"
                   onClick={handleResetColor}
                   disabled={toolbarDisabled}
-                  className="text-xs text-gray-500 underline"
+                  className="rounded-md px-2 py-1 text-xs font-semibold text-slate-500 transition hover:bg-slate-100 hover:text-slate-800 disabled:cursor-not-allowed disabled:opacity-45"
                 >
                   {COMMON_COMPONENT_LANG_KO.easyEditor.colorReset}
                 </button>
@@ -439,7 +440,7 @@ const EasyEditor = ({
               </ToolbarButton>
             </div>
 
-            <div className="flex items-center gap-2 ml-auto">
+            <div className="ml-auto flex items-center gap-1 rounded-lg bg-slate-100/70 p-1 ring-1 ring-slate-200">
               <ToolbarButton
                 label={COMMON_COMPONENT_LANG_KO.easyEditor.modeEditor}
                 active={mode === 'editor'}
@@ -468,11 +469,11 @@ const EasyEditor = ({
           aria-readonly={readOnly || undefined}
           aria-hidden={isHtmlMode ? 'true' : undefined}
           data-name={name}
-          className={clsx('prose max-w-none min-h-[200px] p-4 outline-none text-gray-900', minHeightClassName, isHtmlMode && 'hidden')}
+          className={clsx('prose prose-slate max-w-none min-h-[200px] bg-white p-4 text-slate-900 outline-none', minHeightClassName, isHtmlMode && 'hidden')}
         />
         {isHtmlMode && (
           <textarea
-            className="font-mono text-sm w-full min-h-[200px] border-t border-gray-200 focus:outline-none p-3"
+            className="min-h-[200px] w-full border-t border-slate-200 bg-slate-950 p-4 font-mono text-sm text-slate-100 caret-indigo-300 outline-none placeholder:text-slate-500 disabled:cursor-not-allowed disabled:opacity-70"
             value={htmlDraft}
             onChange={(event) => setHtmlDraft(event.target.value)}
             disabled={readOnly}
@@ -497,12 +498,12 @@ const EasyEditor = ({
         />
       </div>
       {uploadErrorText && (
-        <p role="alert" className="text-sm text-red-600">
+        <p role="alert" className="text-sm font-medium text-rose-600">
           {uploadErrorText}
         </p>
       )}
       {helperText && (
-        <p className={clsx('text-sm', invalid ? 'text-red-600' : 'text-gray-500')}>
+        <p className={clsx('text-sm', invalid ? 'font-medium text-rose-600' : 'text-slate-500')}>
           {helperText}
         </p>
       )}

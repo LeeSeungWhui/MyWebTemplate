@@ -1,3 +1,5 @@
+"use client";
+
 /**
  * 파일명: EasyEditorExamples.jsx
  * 작성자: LSH
@@ -27,10 +29,10 @@ const NoticeEditorDemo = () => {
     announcement: '<p></p>'
   });
 
-  return <div className="space-y-3">
+  return <div className="space-y-3 rounded-xl border border-slate-200 bg-slate-50/70 p-4">
       <Lib.EasyEditor dataObj={editorDataObj} dataKey="announcement" serialization="html" placeholder="팀 공지를 작성하세요" label="공지 작성" helperText="툴바에서 폰트, 색상, 정렬, HTML 모드를 시험해보세요." />
-      <div className="rounded border bg-gray-50 p-3 text-sm text-gray-600">
-        <strong>현재 값 요약:</strong>{' '}
+      <div className="rounded-xl border border-slate-200 bg-white p-3 text-sm text-slate-600 shadow-sm shadow-slate-950/5">
+        <strong className="font-semibold text-slate-900">현재 값 요약:</strong>{' '}
         {summariseHtml(editorDataObj.announcement)}
       </div>
     </div>;
@@ -45,10 +47,10 @@ const GuideEditorDemo = () => {
     onboardingGuide: '<h2>온보딩 가이드</h2><p>새로운 팀원을 환영합니다. 아래 체크리스트를 확인하세요.</p>'
   });
 
-  return <div className="space-y-3">
+  return <div className="space-y-3 rounded-xl border border-emerald-200 bg-emerald-50/50 p-4">
       <Lib.EasyEditor dataObj={editorDataObj} dataKey="onboardingGuide" serialization="html" placeholder="온보딩 가이드를 작성하세요" label="가이드 편집" status="success" helperText="status='success'로 상태 프리셋을 표시합니다." />
-      <div className="rounded border bg-gray-50 p-3 text-sm text-gray-600">
-        <strong>현재 값 요약:</strong>{' '}
+      <div className="rounded-xl border border-emerald-200 bg-white p-3 text-sm text-slate-600 shadow-sm shadow-emerald-950/5">
+        <strong className="font-semibold text-slate-900">현재 값 요약:</strong>{' '}
         {summariseHtml(editorDataObj.onboardingGuide)}
       </div>
     </div>;
@@ -63,9 +65,9 @@ const CtrlEditorDemo = () => {
     htmlMemo: '<h3>HTML 메모</h3><p>컨트롤드 모드에서는 <strong>serialization="html"</strong>을 사용하십시오.</p>'
   });
 
-  return <div className="space-y-3">
+  return <div className="space-y-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm shadow-slate-950/5">
       <Lib.EasyEditor dataObj={editorDataObj} dataKey="htmlMemo" serialization="html" placeholder="HTML 문자열을 직접 관리" label="컨트롤드 HTML 편집기" toolbar />
-      <pre className="rounded bg-gray-900 p-3 text-xs text-gray-100 overflow-auto">
+      <pre className="overflow-auto rounded-xl bg-slate-950 p-4 text-xs text-slate-100 ring-1 ring-slate-800">
         {editorDataObj.htmlMemo}
       </pre>
     </div>;
@@ -111,8 +113,8 @@ export const editorExampleList = [{
 />`
 }, {
   anchor: 'editor-states',
-  component: <div className="space-y-4">
-      <div className="grid md:grid-cols-2 gap-4">
+  component: <div className="space-y-4 rounded-xl border border-slate-200 bg-slate-50/70 p-4">
+      <div className="grid gap-4 md:grid-cols-2">
         <div className="space-y-2">
           <Lib.EasyEditor value={'<p>읽기 전용 내용</p>'} serialization="html" readOnly toolbar={false} label="읽기 전용(readOnly)" helperText="툴바 숨김 + 수정 불가" />
         </div>

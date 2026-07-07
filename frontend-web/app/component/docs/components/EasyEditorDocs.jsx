@@ -18,13 +18,13 @@ const EasyEditorDocs = () => {
       id="editors"
       title="31. 리치 에디터 (EasyEditor)"
       description={
-        <div className="space-y-2 text-sm text-gray-700 leading-relaxed">
+        <div className="space-y-2 text-sm leading-relaxed text-slate-700">
           <p>
             <code>EasyEditor</code>는 Tiptap 기반 리치 텍스트 에디터로, EasyObj 바인딩과 프리셋 확장을 통해 쉽게 사용할 수 있습니다.
             기본 직렬화는 JSON이며 <code>serialization="html" | "text"</code>로 모드를 바꿀 수 있습니다.
             글자 크기, 색상, 정렬, 링크, 이미지/파일 첨부, Editor/HTML 모드 전환 등 핵심 기능을 제공합니다.
           </p>
-          <ul className="list-disc pl-5 space-y-1">
+          <ul className="list-disc space-y-1 pl-5 text-slate-600">
             <li><code>dataObj</code> + <code>dataKey</code>: EasyObj 객체 바인딩 (JSON이 기본 직렬화)</li>
             <li><code>value</code> + <code>onChange</code>: 컨트롤드 모드</li>
             <li><code>serialization?</code>: <code>'json' | 'html' | 'text'</code> (기본: <code>'json'</code>)</li>
@@ -43,7 +43,7 @@ const EasyEditorDocs = () => {
         {editorExampleList.map((example) => (
           <div key={example.anchor} id={example.anchor} className="space-y-3 scroll-mt-24">
             <div>{example.component}</div>
-            <p className="text-sm text-gray-600">{example.description}</p>
+            <p className="text-sm text-slate-600">{example.description}</p>
             <CodeBlock code={example.code} />
           </div>
         ))}

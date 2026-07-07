@@ -14,9 +14,12 @@ import { useState } from 'react';
 const LocalPdfDemo = () => {
   const [localFile, setLocalFile] = useState(null);
 
-  return <div className="space-y-3">
-      <div className="flex items-center gap-2">
-        <input type="file" accept="application/pdf" onChange={event => setLocalFile(event.target.files?.[0] ?? null)} />
+  return <div className="space-y-4">
+      <div className="rounded-xl bg-white p-4 shadow-sm ring-1 ring-slate-900/5">
+        <label className="block text-sm font-semibold text-slate-700">
+          로컬 PDF 파일
+        </label>
+        <input className="mt-2 block w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-600 file:mr-3 file:rounded-md file:border-0 file:bg-indigo-50 file:px-3 file:py-1.5 file:text-sm file:font-semibold file:text-indigo-700 hover:file:bg-indigo-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/20" type="file" accept="application/pdf" onChange={event => setLocalFile(event.target.files?.[0] ?? null)} />
       </div>
       {localFile && <Lib.PdfViewer src={localFile} />}
     </div>;
@@ -29,9 +32,12 @@ const LocalPdfDemo = () => {
 const RemotePdfDemo = () => {
   const [remoteUrl, setRemoteUrl] = useState('');
 
-  return <div className="space-y-3">
-      <div className="flex items-center gap-2">
-        <input className="w-full max-w-md border rounded px-2 py-1 text-sm" placeholder="https://example.com/sample.pdf" value={remoteUrl} onChange={event => setRemoteUrl(event.target.value)} />
+  return <div className="space-y-4">
+      <div className="rounded-xl bg-white p-4 shadow-sm ring-1 ring-slate-900/5">
+        <label className="block text-sm font-semibold text-slate-700">
+          원격 PDF URL
+        </label>
+        <input className="mt-2 h-10 w-full max-w-xl rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-700 shadow-sm transition focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20" placeholder="https://example.com/sample.pdf" value={remoteUrl} onChange={event => setRemoteUrl(event.target.value)} />
       </div>
       {remoteUrl && <Lib.PdfViewer src={remoteUrl} />}
     </div>;
@@ -45,7 +51,7 @@ const RemotePdfDemo = () => {
 export const pdfViewerExampleList = [{
   anchor: 'pdf-basic',
   component: <div className="space-y-3">
-      <p className="text-sm text-gray-600">public/pdf-sample.pdf 파일이 제공되면 아래 뷰어가 렌더링됩니다.</p>
+      <p className="text-sm font-medium text-slate-600">public/pdf-sample.pdf 파일이 제공되면 아래 뷰어가 렌더링됩니다.</p>
       <Lib.PdfViewer src="/pdf-sample.pdf" />
     </div>,
   description: 'public 폴더의 pdf-sample.pdf 미리보기',
@@ -53,7 +59,7 @@ export const pdfViewerExampleList = [{
 }, {
   anchor: 'pdf-no-toolbar',
   component: <div className="space-y-3">
-      <p className="text-sm text-gray-600">툴바 비활성화(페이지/검색/줌 UI 숨김)</p>
+      <p className="text-sm font-medium text-slate-600">툴바 비활성화(페이지/검색/줌 UI 숨김)</p>
       <Lib.PdfViewer src="/pdf-sample.pdf" withToolbar={false} />
     </div>,
   description: 'withToolbar=false 예시',
@@ -84,7 +90,7 @@ export const pdfViewerExampleList = [{
 }, {
   anchor: 'pdf-error',
   component: <div className="space-y-3">
-      <p className="text-sm text-gray-600">오류 상태(404) 시 Empty 안내로 대체</p>
+      <p className="text-sm font-medium text-slate-600">오류 상태(404) 시 Empty 안내로 대체</p>
       <Lib.PdfViewer src="/not-exists.pdf" />
     </div>,
   description: '404/네트워크 오류시 오류 안내 렌더링',
