@@ -1,7 +1,7 @@
 /**
  * 파일명: Button.jsx
  * 작성자: LSH
- * 갱신일: 2026-05-31
+ * 갱신일: 2026-06-30
  * 설명: Button UI 컴포넌트 구현
  */
 import { forwardRef, useId } from 'react';
@@ -29,22 +29,21 @@ const Button = forwardRef(({
 }, ref) => {
 
     const buttonVariantMapObj = {
-        primary: "bg-indigo-600 text-white shadow-indigo-500/20 ring-1 ring-inset ring-white/15 hover:bg-indigo-500 focus-visible:ring-indigo-500/50",
-
-        secondary: "border border-zinc-200 text-zinc-900 bg-zinc-100 shadow-zinc-900/5 hover:bg-zinc-200/80 focus-visible:ring-zinc-950",
-        outline: "border border-zinc-200 text-zinc-700 bg-white shadow-zinc-900/5 hover:bg-zinc-50 focus-visible:ring-zinc-950",
-        danger: "bg-red-600 text-white shadow-red-900/20 ring-1 ring-inset ring-white/10 hover:bg-red-700 focus-visible:ring-red-500",
-        success: "bg-green-600 text-white shadow-green-900/20 ring-1 ring-inset ring-white/10 hover:bg-green-700 focus-visible:ring-green-500",
-        warning: "bg-yellow-600 text-white shadow-yellow-900/20 ring-1 ring-inset ring-white/10 hover:bg-yellow-700 focus-visible:ring-yellow-500",
-        ghost: "text-zinc-600 bg-transparent shadow-none hover:bg-zinc-100 focus-visible:ring-zinc-500 active:shadow-none",
-        link: "text-zinc-900 bg-transparent shadow-none hover:text-zinc-700 underline-offset-2 hover:underline focus-visible:ring-zinc-950 active:shadow-none active:translate-y-0",
-        dark: "bg-zinc-950 text-zinc-50 shadow-zinc-950/30 ring-1 ring-inset ring-white/10 hover:bg-black focus-visible:ring-zinc-950",
+        primary: "bg-indigo-600 text-white shadow-indigo-600/20 ring-indigo-500/20 hover:bg-indigo-500 hover:shadow-md hover:shadow-indigo-600/20 focus-visible:ring-indigo-500/30",
+        secondary: "bg-slate-100 text-slate-900 shadow-slate-900/5 ring-slate-900/10 hover:bg-slate-200/75 hover:shadow-md hover:shadow-slate-900/10 focus-visible:ring-slate-500/30",
+        outline: "bg-white text-slate-700 shadow-slate-900/5 ring-slate-200 hover:bg-slate-50 hover:text-slate-950 hover:shadow-md hover:shadow-slate-900/10 focus-visible:ring-indigo-500/25",
+        danger: "bg-rose-600 text-white shadow-rose-600/20 ring-rose-500/20 hover:bg-rose-500 hover:shadow-md hover:shadow-rose-600/20 focus-visible:ring-rose-500/30",
+        success: "bg-emerald-600 text-white shadow-emerald-600/20 ring-emerald-500/20 hover:bg-emerald-500 hover:shadow-md hover:shadow-emerald-600/20 focus-visible:ring-emerald-500/30",
+        warning: "bg-amber-500 text-white shadow-amber-600/20 ring-amber-500/20 hover:bg-amber-400 hover:shadow-md hover:shadow-amber-600/20 focus-visible:ring-amber-500/30",
+        ghost: "bg-transparent text-slate-600 shadow-none ring-transparent hover:bg-slate-100 hover:text-slate-950 focus-visible:ring-slate-500/25 active:shadow-none",
+        link: "bg-transparent text-indigo-700 shadow-none ring-transparent underline-offset-4 hover:text-indigo-900 hover:underline focus-visible:ring-indigo-500/25 active:translate-y-0 active:shadow-none",
+        dark: "bg-slate-950 text-slate-50 shadow-slate-950/25 ring-white/10 hover:bg-slate-800 hover:shadow-md hover:shadow-slate-950/25 focus-visible:ring-slate-500/30",
     };
 
     const buttonSizeClassMap = {
-        sm: "px-3 py-1.5 text-sm",
-        md: "px-4 py-2 text-sm",
-        lg: "px-5 py-2.5 text-base",
+        sm: "h-9 px-3 text-sm",
+        md: "h-10 px-4 text-sm",
+        lg: "h-11 px-5 text-base",
     };
 
     const iconSize = {
@@ -82,7 +81,7 @@ const Button = forwardRef(({
                 type={type}
                 disabled={disabled || isBusy}
                 className={`
-                    inline-flex items-center justify-center font-medium rounded-lg shadow-sm focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 transition-[color,background-color,box-shadow,transform] active:translate-y-px active:shadow-none disabled:active:translate-y-0 disabled:active:shadow-sm
+                    inline-flex items-center justify-center rounded-lg font-semibold shadow-sm ring-1 ring-inset focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-offset-white transition-[color,background-color,border-color,box-shadow,transform] duration-150 active:translate-y-px active:shadow-none disabled:active:translate-y-0 disabled:active:shadow-sm
                     ${buttonVariantMapObj[variant]}
                     ${buttonSizeClassMap[size]}
                     ${disabled ? 'opacity-50 cursor-not-allowed' : ''}

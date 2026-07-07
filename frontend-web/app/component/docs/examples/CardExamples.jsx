@@ -3,7 +3,7 @@
 /**
  * 파일명: CardExamples.jsx
  * 작성자: LSH
- * 갱신일: 2026-05-31
+ * 갱신일: 2026-07-02
  * 설명: Card 컴포넌트 예제
  */
 import * as Lib from '@/app/lib';
@@ -51,15 +51,15 @@ export const plainExampleList = [{
   code: `<Lib.Card className=\"bg-slate-50\" bodyClassName=\"p-6\">\n  헤더/푸터 패딩이 있는 카드입니다.\n</Lib.Card>`
 }];
 export const composedExampleList = [{
-  component: <Lib.Card title="조합 예시" actions={<Lib.Badge variant="primary">New</Lib.Badge>} footer={<div className="flex items-center gap-2 text-xs"><Lib.Icon icon="md:MdSchedule" /> 업데이트: 방금 전</div>}>
+  component: <Lib.Card title="조합 예시" actions={<Lib.Badge variant="primary">New</Lib.Badge>} footer={<div className="flex items-center gap-2 text-xs text-slate-500"><Lib.Icon icon="md:MdSchedule" /> 업데이트: 방금 전</div>}>
           <div className="flex items-start gap-3">
-            <div className="h-12 w-12 rounded bg-zinc-100 flex items-center justify-center text-zinc-700 ring-1 ring-zinc-200/60">IMG</div>
+            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-indigo-50 text-indigo-700 ring-1 ring-inset ring-indigo-100">IMG</div>
             <div>
-              <div className="font-medium">이미지/아이콘과 텍스트</div>
-              <div className="text-sm text-gray-600">레이아웃과 구성 예시</div>
+              <div className="font-semibold text-slate-900">이미지/아이콘과 텍스트</div>
+              <div className="text-sm text-slate-500">레이아웃과 구성 예시</div>
             </div>
           </div>
         </Lib.Card>,
   description: 'Badge, Icon 조합',
-  code: `<Lib.Card\n  title=\"조합 예시\"\n  actions={<Lib.Badge variant=\"primary\">New</Lib.Badge>}\n  footer={<div className=\"flex items-center gap-2 text-xs\"><Lib.Icon icon=\"md:MdSchedule\" /> 업데이트: 방금 전</div>}\n>\n  <div className=\"flex items-start gap-3\">\n    <div className=\"h-12 w-12 rounded bg-zinc-100 flex items-center justify-center text-zinc-700 ring-1 ring-zinc-200/60\">IMG</div>\n    <div>\n      <div className=\"font-medium\">이미지/아이콘과 텍스트</div>\n      <div className=\"text-sm text-gray-600\">레이아웃과 구성 예시</div>\n    </div>\n  </div>\n</Lib.Card>`
+  code: `<Lib.Card\n  title=\"조합 예시\"\n  actions={<Lib.Badge variant=\"primary\">New</Lib.Badge>}\n  footer={<div className=\"flex items-center gap-2 text-xs text-slate-500\"><Lib.Icon icon=\"md:MdSchedule\" /> 업데이트: 방금 전</div>}\n>\n  <div className=\"flex items-start gap-3\">\n    <div className=\"flex h-12 w-12 items-center justify-center rounded-lg bg-indigo-50 text-indigo-700 ring-1 ring-inset ring-indigo-100\">IMG</div>\n    <div>\n      <div className=\"font-semibold text-slate-900\">이미지/아이콘과 텍스트</div>\n      <div className=\"text-sm text-slate-500\">레이아웃과 구성 예시</div>\n    </div>\n  </div>\n</Lib.Card>`
 }];

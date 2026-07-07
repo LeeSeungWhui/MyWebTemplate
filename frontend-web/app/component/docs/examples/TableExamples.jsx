@@ -1,7 +1,7 @@
 /**
  * 파일명: TableExamples.jsx
  * 작성자: LSH
- * 갱신일: 2026-05-31
+ * 갱신일: 2026-07-03
  * 설명: EasyTable 컴포넌트 예제
  */
 import * as Lib from '@/app/lib';
@@ -52,25 +52,25 @@ const tableStyleColList = [{
   header: 'ID',
   width: '80px',
   align: 'center',
-  headerClassName: 'bg-gray-100 rounded-2xl ring-1 ring-gray-200 text-gray-700',
-  cellClassName: 'text-gray-800'
+  headerClassName: 'rounded-lg bg-slate-100/70 text-slate-700 ring-1 ring-inset ring-slate-300/70',
+  cellClassName: 'text-slate-700'
 }, {
   key: 'name',
   header: '이름',
   align: 'left',
-  headerClassName: 'bg-gray-100 rounded-2xl ring-1 ring-gray-200 text-gray-700',
-  cellClassName: 'text-gray-900'
+  headerClassName: 'rounded-lg bg-slate-100/70 text-slate-700 ring-1 ring-inset ring-slate-300/70',
+  cellClassName: 'text-slate-900'
 }, {
   key: 'email',
   header: '이메일',
   align: 'left',
-  headerClassName: 'bg-gray-100 rounded-2xl ring-1 ring-gray-200 text-gray-700',
-  cellClassName: 'text-gray-700'
+  headerClassName: 'rounded-lg bg-slate-100/70 text-slate-700 ring-1 ring-inset ring-slate-300/70',
+  cellClassName: 'text-slate-600'
 }, {
   key: 'role',
   header: '권한',
   width: '120px',
-  headerClassName: 'bg-gray-100 rounded-2xl ring-1 ring-gray-200 text-gray-700'
+  headerClassName: 'rounded-lg bg-slate-100/70 text-slate-700 ring-1 ring-inset ring-slate-300/70'
 }];
 
 /**
@@ -115,11 +115,11 @@ export const controlExampleObj = {
 
 export const cardExampleObj = {
   exampleId: 'card',
-  component: <Lib.EasyTable variant="card" data={tableRowList} pageSize={8} renderCard={row => <div className="border rounded p-4 bg-white hover:shadow">
-            <div className="text-sm text-gray-500">#{row.id}</div>
-            <div className="font-medium">{row.name}</div>
-            <div className="text-gray-600">{row.email}</div>
-            <div className="mt-1 text-xs text-gray-500">{row.role}</div>
+  component: <Lib.EasyTable variant="card" data={tableRowList} pageSize={8} renderCard={row => <div className="rounded-xl bg-white p-4 shadow-sm ring-1 ring-slate-200/80 transition-shadow hover:shadow-md">
+            <div className="text-sm text-slate-500">#{row.id}</div>
+            <div className="font-medium text-slate-900">{row.name}</div>
+            <div className="text-slate-600">{row.email}</div>
+            <div className="mt-1 text-xs text-slate-500">{row.role}</div>
           </div>} />,
   description: '카드 변형: variant="card" + renderCard로 카드 UI 구성',
   code: `<Lib.EasyTable
@@ -127,22 +127,22 @@ export const cardExampleObj = {
   data={tableRowList}
   pageSize={8}
   renderCard={(row) => (
-    <div className="border rounded p-4 bg-white hover:shadow">...</div>
+    <div className="rounded-xl bg-white p-4 shadow-sm ring-1 ring-slate-200/80 transition-shadow hover:shadow-md">...</div>
   )}
 />`
 };
 
 export const styleExampleObj = {
   exampleId: 'style',
-  component: <Lib.EasyTable data={tableRowList} columns={tableStyleColList} headerClassName="bg-transparent gap-2" rowClassName="gap-2 !bg-transparent !border-0 hover:!bg-transparent" rowsClassName="mt-2 space-y-2" cellClassName="bg-white ring-1 ring-gray-200 rounded-2xl shadow-sm p-3" pageSize={6} />,
-  description: '커스텀 스타일: 셀 rounded-2xl + ring, 헤더/행 gap으로 물리적 분리된 모던 스타일',
+  component: <Lib.EasyTable data={tableRowList} columns={tableStyleColList} headerClassName="bg-transparent gap-2" rowClassName="gap-2 !bg-transparent !border-0 hover:!bg-transparent" rowsClassName="mt-2 space-y-2" cellClassName="rounded-lg bg-white p-3 shadow-sm ring-1 ring-slate-200/80" pageSize={6} />,
+  description: '커스텀 스타일: 셀 rounded-lg + subtle ring/shadow, 헤더/행 gap으로 물리적 분리된 refined 스타일',
   code: `<Lib.EasyTable
   data={tableRowList}
   columns={tableStyleColList}
   headerClassName="bg-transparent gap-2"
   rowClassName="gap-2 !bg-transparent !border-0 hover:!bg-transparent"
   rowsClassName="mt-2 space-y-2"
-  cellClassName="bg-white ring-1 ring-gray-200 rounded-2xl shadow-sm p-3"
+  cellClassName="rounded-lg bg-white p-3 shadow-sm ring-1 ring-slate-200/80"
   pageSize={6}
 />`
 };

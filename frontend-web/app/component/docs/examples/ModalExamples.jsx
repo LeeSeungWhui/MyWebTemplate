@@ -1,3 +1,5 @@
+"use client";
+
 /**
  * 파일명: ModalExamples.jsx
  * 작성자: LSH
@@ -15,25 +17,51 @@ import { useState } from 'react';
 const BasicModalDemo = () => {
   const [isOpen, setIsOpen] = useState(false);
 
-  return <div className="space-y-4">
-      <Lib.Button onClick={() => setIsOpen(true)}>
-        기본 모달 열기
-      </Lib.Button>
+  return <div className="space-y-4 rounded-xl border border-slate-200 bg-slate-50/70 p-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <p className="text-sm font-semibold text-slate-900">운영 작업 확인</p>
+          <p className="mt-1 text-sm text-slate-500">중요 변경 전 요약과 액션을 한 화면에서 확인합니다.</p>
+        </div>
+        <Lib.Button icon="ri:RiCheckboxCircleLine" onClick={() => setIsOpen(true)}>
+          기본 모달 열기
+        </Lib.Button>
+      </div>
 
-      <Lib.Modal isOpen={isOpen} onClose={() => setIsOpen(false)}>
+      <Lib.Modal isOpen={isOpen} onClose={() => setIsOpen(false)} ariaLabel="배포 확인 모달">
         <Lib.Modal.Header onClose={() => setIsOpen(false)}>
-          <h2 className="text-xl font-semibold">기본 모달</h2>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-indigo-600">Release approval</p>
+          <h2 className="mt-1 text-xl font-semibold text-slate-950">배포 확인 요청</h2>
+          <p className="mt-1 text-sm text-slate-500">운영 반영 전 마지막 체크리스트를 검토하세요.</p>
         </Lib.Modal.Header>
 
         <Lib.Modal.Body>
-          <p>기본적인 모달 예시입니다.</p>
+          <div className="space-y-3">
+            <div className="rounded-xl border border-slate-200 bg-slate-50/80 p-4">
+              <div className="flex items-center justify-between gap-4">
+                <span className="text-sm font-medium text-slate-700">대상 환경</span>
+                <span className="rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-semibold text-indigo-700 ring-1 ring-indigo-100">Production</span>
+              </div>
+              <p className="mt-2 text-sm text-slate-500">컴포넌트 문서 UI polish 변경을 배포 대기열에 등록합니다.</p>
+            </div>
+            <ul className="grid gap-2 text-sm text-slate-600">
+              <li className="flex items-center gap-2"><span className="size-1.5 rounded-full bg-emerald-500" />테스트 통과 후 반영</li>
+              <li className="flex items-center gap-2"><span className="size-1.5 rounded-full bg-indigo-500" />디자인 토큰 slate/indigo 기준</li>
+            </ul>
+          </div>
         </Lib.Modal.Body>
 
         <Lib.Modal.Footer>
-          <div className="flex justify-end">
-            <Lib.Button onClick={() => setIsOpen(false)}>
-              닫기
-            </Lib.Button>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <span className="text-xs text-slate-500">ESC 또는 배경 클릭으로 닫을 수 있습니다.</span>
+            <div className="flex justify-end gap-2">
+              <Lib.Button variant="outline" onClick={() => setIsOpen(false)}>
+                나중에
+              </Lib.Button>
+              <Lib.Button onClick={() => setIsOpen(false)}>
+                확인
+              </Lib.Button>
+            </div>
           </div>
         </Lib.Modal.Footer>
       </Lib.Modal>
@@ -49,9 +77,13 @@ const SizeModalDemo = () => {
   const [currentSize, setCurrentSize] = useState('md');
   const modalSizeList = ['sm', 'md', 'lg', 'xl', 'full'];
 
-  return <div className="space-y-4">
+  return <div className="space-y-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm shadow-slate-950/5">
+      <div>
+        <p className="text-sm font-semibold text-slate-900">사이즈 프리셋</p>
+        <p className="mt-1 text-sm text-slate-500">작업 밀도에 따라 sm부터 full까지 선택합니다.</p>
+      </div>
       <div className="flex flex-wrap gap-2">
-        {modalSizeList.map((size) => <Lib.Button key={size} onClick={() => {
+        {modalSizeList.map((size) => <Lib.Button key={size} variant={size === currentSize ? 'primary' : 'outline'} onClick={() => {
           setCurrentSize(size);
           setIsOpen(true);
         }}>
@@ -59,13 +91,17 @@ const SizeModalDemo = () => {
         </Lib.Button>)}
       </div>
 
-      <Lib.Modal isOpen={isOpen} onClose={() => setIsOpen(false)} size={currentSize}>
+      <Lib.Modal isOpen={isOpen} onClose={() => setIsOpen(false)} size={currentSize} ariaLabel={`${currentSize.toUpperCase()} 크기 모달`}>
         <Lib.Modal.Header onClose={() => setIsOpen(false)}>
-          <h2 className="text-xl font-semibold">{currentSize.toUpperCase()} 크기 모달</h2>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-indigo-600">Preset size</p>
+          <h2 className="mt-1 text-xl font-semibold text-slate-950">{currentSize.toUpperCase()} 크기 모달</h2>
+          <p className="mt-1 text-sm text-slate-500">현재 선택된 size prop은 <code>{currentSize}</code>입니다.</p>
         </Lib.Modal.Header>
 
         <Lib.Modal.Body>
-          <p>다양한 크기의 모달을 지원합니다.</p>
+          <div className="rounded-xl border border-slate-200 bg-slate-50/80 p-4">
+            <p className="text-sm text-slate-600">목록, 폼, 확인 작업 등 콘텐츠 밀도에 맞춰 같은 스타일 체계를 유지합니다.</p>
+          </div>
         </Lib.Modal.Body>
       </Lib.Modal>
     </div>;
@@ -78,24 +114,26 @@ const SizeModalDemo = () => {
 const FormModalDemo = () => {
   const [isOpen, setIsOpen] = useState(false);
 
-  return <div className="space-y-4">
-      <Lib.Button onClick={() => setIsOpen(true)}>
+  return <div className="space-y-4 rounded-xl border border-slate-200 bg-slate-50/70 p-4">
+      <Lib.Button icon="ri:RiUserSettingsLine" onClick={() => setIsOpen(true)}>
         폼 모달 열기
       </Lib.Button>
 
-      <Lib.Modal isOpen={isOpen} onClose={() => setIsOpen(false)}>
+      <Lib.Modal isOpen={isOpen} onClose={() => setIsOpen(false)} size="lg" ariaLabel="사용자 정보 편집 모달">
         <Lib.Modal.Header onClose={() => setIsOpen(false)}>
-          <h2 className="text-xl font-semibold">사용자 정보</h2>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-indigo-600">Profile</p>
+          <h2 className="mt-1 text-xl font-semibold text-slate-950">사용자 정보</h2>
+          <p className="mt-1 text-sm text-slate-500">입력 필드와 액션 버튼이 포함된 폼 모달 예시입니다.</p>
         </Lib.Modal.Header>
 
         <Lib.Modal.Body>
-          <form className="space-y-4">
+          <form className="grid gap-4 sm:grid-cols-2">
             <div>
-              <label className="block text-sm font-medium text-gray-700">이름</label>
+              <label className="block text-sm font-medium text-slate-700">이름</label>
               <Lib.Input className="mt-1" placeholder="이름을 입력하세요" />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700">이메일</label>
+              <label className="block text-sm font-medium text-slate-700">이메일</label>
               <Lib.Input className="mt-1" type="email" placeholder="이메일을 입력하세요" />
             </div>
           </form>
@@ -103,11 +141,11 @@ const FormModalDemo = () => {
 
         <Lib.Modal.Footer>
           <div className="flex justify-end gap-2">
-            <Lib.Button onClick={() => setIsOpen(false)}>
-              저장
-            </Lib.Button>
             <Lib.Button variant="outline" onClick={() => setIsOpen(false)}>
               취소
+            </Lib.Button>
+            <Lib.Button onClick={() => setIsOpen(false)}>
+              저장
             </Lib.Button>
           </div>
         </Lib.Modal.Footer>
@@ -122,20 +160,29 @@ const FormModalDemo = () => {
 const DragModalDemo = () => {
   const [isOpen, setIsOpen] = useState(false);
 
-  return <div className="space-y-4">
-      <Lib.Button onClick={() => setIsOpen(true)}>
+  return <div className="space-y-4 rounded-xl border border-slate-200 bg-white p-4 shadow-sm shadow-slate-950/5">
+      <Lib.Button icon="ri:RiDragMove2Line" onClick={() => setIsOpen(true)}>
         드래그 가능한 모달 열기
       </Lib.Button>
 
-      <Lib.Modal isOpen={isOpen} onClose={() => setIsOpen(false)} draggable={true}>
+      <Lib.Modal isOpen={isOpen} onClose={() => setIsOpen(false)} draggable={true} ariaLabel="드래그 가능한 모달">
         <Lib.Modal.Header onClose={() => setIsOpen(false)}>
-          <h2 className="text-xl font-semibold">드래그 가능한 모달</h2>
-          <p className="text-sm text-gray-500">헤더를 드래그해서 이동할 수 있습니다</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-indigo-600">Draggable</p>
+          <h2 className="mt-1 text-xl font-semibold text-slate-950">드래그 가능한 모달</h2>
+          <p className="mt-1 text-sm text-slate-500">헤더를 잡고 이동할 수 있습니다.</p>
         </Lib.Modal.Header>
 
         <Lib.Modal.Body>
-          <p>이 모달은 헤더 영역을 드래그하여 이동할 수 있습니다.</p>
-          <p className="mt-2">화면 밖으로 나가지 않도록 제한되어 있습니다.</p>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="rounded-xl border border-slate-200 bg-slate-50/80 p-4">
+              <p className="text-sm font-semibold text-slate-900">이동 가능</p>
+              <p className="mt-1 text-sm text-slate-500">헤더 영역에서만 drag start를 허용합니다.</p>
+            </div>
+            <div className="rounded-xl border border-slate-200 bg-slate-50/80 p-4">
+              <p className="text-sm font-semibold text-slate-900">뷰포트 보호</p>
+              <p className="mt-1 text-sm text-slate-500">화면 밖으로 나가지 않도록 위치를 제한합니다.</p>
+            </div>
+          </div>
         </Lib.Modal.Body>
 
         <Lib.Modal.Footer>
@@ -156,21 +203,25 @@ const DragModalDemo = () => {
 const PositionModalDemo = () => {
   const [isOpen, setIsOpen] = useState(false);
 
-  return <div className="space-y-4">
+  return <div className="space-y-4 rounded-xl border border-slate-200 bg-slate-50/70 p-4">
       <div className="flex gap-2">
-        <Lib.Button onClick={() => setIsOpen(true)}>
+        <Lib.Button icon="ri:RiLayoutRightLine" onClick={() => setIsOpen(true)}>
           우측 상단에 모달 열기
         </Lib.Button>
       </div>
 
-      <Lib.Modal isOpen={isOpen} onClose={() => setIsOpen(false)} top="20px" left="calc(100% - 20px - 512px)" draggable>
+      <Lib.Modal isOpen={isOpen} onClose={() => setIsOpen(false)} top="20px" left="calc(100% - 20px - 512px)" draggable ariaLabel="위치 지정 모달">
         <Lib.Modal.Header onClose={() => setIsOpen(false)}>
-          <h2 className="text-xl font-semibold">위치 지정 모달</h2>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-indigo-600">Positioned</p>
+          <h2 className="mt-1 text-xl font-semibold text-slate-950">위치 지정 모달</h2>
+          <p className="mt-1 text-sm text-slate-500">초기 좌표를 지정한 뒤 드래그로 이동할 수 있습니다.</p>
         </Lib.Modal.Header>
 
         <Lib.Modal.Body>
-          <p>top, left prop으로 초기 위치를 지정할 수 있습니다.</p>
-          <p className="mt-2">드래그하여 자유롭게 이동해보세요.</p>
+          <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm shadow-slate-950/5">
+            <p className="text-sm font-semibold text-slate-900">top="20px"</p>
+            <p className="mt-1 text-sm text-slate-500">left="calc(100% - 20px - 512px)"로 우측 상단에 배치합니다.</p>
+          </div>
         </Lib.Modal.Body>
       </Lib.Modal>
     </div>;
@@ -183,31 +234,26 @@ const PositionModalDemo = () => {
  */
 export const basicExampleList = [{
   component: <BasicModalDemo />,
-  description: "기본 모달",
+  description: "확인 작업에 쓰는 기본 모달",
   code: `const [isOpen, setIsOpen] = useState(false);
 
-<Lib.Button onClick={() => setIsOpen(true)}>
-    기본 모달 열기
+<Lib.Button icon="ri:RiCheckboxCircleLine" onClick={() => setIsOpen(true)}>
+  기본 모달 열기
 </Lib.Button>
 
-<Lib.Modal
-    isOpen={isOpen}
-    onClose={() => setIsOpen(false)}
->
+<Lib.Modal isOpen={isOpen} onClose={() => setIsOpen(false)} ariaLabel="배포 확인 모달">
     <Lib.Modal.Header onClose={() => setIsOpen(false)}>
-        <h2 className="text-xl font-semibold">기본 모달</h2>
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-indigo-600">Release approval</p>
+        <h2 className="mt-1 text-xl font-semibold text-slate-950">배포 확인 요청</h2>
+        <p className="mt-1 text-sm text-slate-500">운영 반영 전 마지막 체크리스트를 검토하세요.</p>
     </Lib.Modal.Header>
 
     <Lib.Modal.Body>
-        <p>기본적인 모달 예시입니다.</p>
+        <div className="rounded-xl border border-slate-200 bg-slate-50/80 p-4">...</div>
     </Lib.Modal.Body>
 
     <Lib.Modal.Footer>
-        <div className="flex justify-end">
-            <Lib.Button onClick={() => setIsOpen(false)}>
-                닫기
-            </Lib.Button>
-        </div>
+        <div className="flex justify-end gap-2">...</div>
     </Lib.Modal.Footer>
 </Lib.Modal>`
 }];
@@ -220,13 +266,10 @@ const [currentSize, setCurrentSize] = useState('md');
 
 <div className="flex flex-wrap gap-2">
     {modalSizeList.map(size => (
-        <Lib.Button
-            key={size}
-            onClick={() => {
-                setCurrentSize(size);
-                setIsOpen(true);
-            }}
-        >
+        <Lib.Button key={size} variant={size === currentSize ? 'primary' : 'outline'} onClick={() => {
+            setCurrentSize(size);
+            setIsOpen(true);
+        }}>
             {size.toUpperCase()} 크기
         </Lib.Button>
     ))}
@@ -236,14 +279,12 @@ const [currentSize, setCurrentSize] = useState('md');
     isOpen={isOpen}
     onClose={() => setIsOpen(false)}
     size={currentSize}
+    ariaLabel={\`\${currentSize.toUpperCase()} 크기 모달\`}
 >
     <Lib.Modal.Header onClose={() => setIsOpen(false)}>
-        <h2 className="text-xl font-semibold">{currentSize.toUpperCase()} 크기 모달</h2>
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-indigo-600">Preset size</p>
+        <h2 className="mt-1 text-xl font-semibold text-slate-950">{currentSize.toUpperCase()} 크기 모달</h2>
     </Lib.Modal.Header>
-
-    <Lib.Modal.Body>
-        <p>다양한 크기의 모달을 지원합니다.</p>
-    </Lib.Modal.Body>
 </Lib.Modal>`
 }];
 export const formExampleList = [{
@@ -251,26 +292,29 @@ export const formExampleList = [{
   description: "폼이 포함된 모달",
   code: `const [isOpen, setIsOpen] = useState(false);
 
-<Lib.Button onClick={() => setIsOpen(true)}>
+<Lib.Button icon="ri:RiUserSettingsLine" onClick={() => setIsOpen(true)}>
     폼 모달 열기
 </Lib.Button>
 
 <Lib.Modal
     isOpen={isOpen}
     onClose={() => setIsOpen(false)}
+    size="lg"
+    ariaLabel="사용자 정보 편집 모달"
 >
     <Lib.Modal.Header onClose={() => setIsOpen(false)}>
-        <h2 className="text-xl font-semibold">사용자 정보</h2>
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-indigo-600">Profile</p>
+        <h2 className="mt-1 text-xl font-semibold text-slate-950">사용자 정보</h2>
     </Lib.Modal.Header>
 
     <Lib.Modal.Body>
-        <form className="space-y-4">
+        <form className="grid gap-4 sm:grid-cols-2">
             <div>
-                <label className="block text-sm font-medium text-gray-700">이름</label>
+                <label className="block text-sm font-medium text-slate-700">이름</label>
                 <Lib.Input className="mt-1" placeholder="이름을 입력하세요" />
             </div>
             <div>
-                <label className="block text-sm font-medium text-gray-700">이메일</label>
+                <label className="block text-sm font-medium text-slate-700">이메일</label>
                 <Lib.Input className="mt-1" type="email" placeholder="이메일을 입력하세요" />
             </div>
         </form>
@@ -278,15 +322,8 @@ export const formExampleList = [{
 
     <Lib.Modal.Footer>
         <div className="flex justify-end gap-2">
-            <Lib.Button onClick={() => setIsOpen(false)}>
-                저장
-            </Lib.Button>
-            <Lib.Button
-                variant="outline"
-                onClick={() => setIsOpen(false)}
-            >
-                취소
-            </Lib.Button>
+            <Lib.Button variant="outline" onClick={() => setIsOpen(false)}>취소</Lib.Button>
+            <Lib.Button onClick={() => setIsOpen(false)}>저장</Lib.Button>
         </div>
     </Lib.Modal.Footer>
 </Lib.Modal>`
@@ -294,28 +331,18 @@ export const formExampleList = [{
 export const dragExampleList = [{
   component: <DragModalDemo />,
   description: "draggable prop을 true로 설정하면 모달을 드래그할 수 있습니다. 헤더 영역을 드래그하여 이동이 가능합니다.",
-  code: `const [isOpen, setIsOpen] = useState(false);
-
-<Lib.Modal
+  code: `<Lib.Modal
     isOpen={isOpen}
     onClose={() => setIsOpen(false)}
-    draggable={true}
+    draggable
+    ariaLabel="드래그 가능한 모달"
 >
     <Lib.Modal.Header onClose={() => setIsOpen(false)}>
-        <h2 className="text-xl font-semibold">드래그 가능한 모달</h2>
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-indigo-600">Draggable</p>
+        <h2 className="mt-1 text-xl font-semibold text-slate-950">드래그 가능한 모달</h2>
     </Lib.Modal.Header>
 
-    <Lib.Modal.Body>
-        <p>이 모달은 헤더 영역을 드래그하여 이동할 수 있습니다.</p>
-    </Lib.Modal.Body>
-
-    <Lib.Modal.Footer>
-        <div className="flex justify-end">
-            <Lib.Button onClick={() => setIsOpen(false)}>
-                닫기
-            </Lib.Button>
-        </div>
-    </Lib.Modal.Footer>
+    <Lib.Modal.Body>...</Lib.Modal.Body>
 </Lib.Modal>`
 }];
 export const positionExampleList = [{
@@ -329,9 +356,11 @@ export const positionExampleList = [{
     top="20px"
     left="calc(100% - 20px - 512px)"
     draggable
+    ariaLabel="위치 지정 모달"
 >
     <Lib.Modal.Header onClose={() => setIsOpen(false)}>
-        <h2 className="text-xl font-semibold">위치 지정 모달</h2>
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-indigo-600">Positioned</p>
+        <h2 className="mt-1 text-xl font-semibold text-slate-950">위치 지정 모달</h2>
     </Lib.Modal.Header>
 
     <Lib.Modal.Body>

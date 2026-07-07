@@ -20,8 +20,8 @@ const Header = ({ className = '', children, onClose, draggable = false, ...props
         <div
             className={`
                 modal-header
-                px-6 py-5
-                ${draggable ? 'cursor-move' : ''}
+                border-b border-slate-200/80 bg-gradient-to-b from-slate-50/95 to-white px-6 py-5 text-slate-900
+                ${draggable ? 'cursor-move select-none' : ''}
                 ${className}
             `.trim()}
             {...props}
@@ -35,7 +35,7 @@ const Header = ({ className = '', children, onClose, draggable = false, ...props
                         type="button"
                         onClick={onClose}
                         aria-label={COMMON_LANG_KO.action.close}
-                        className="p-1 ml-4 text-zinc-400 hover:text-zinc-600 rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-zinc-950"
+                        className="ml-4 inline-flex size-9 items-center justify-center rounded-full text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/30 focus-visible:ring-offset-2 focus-visible:ring-offset-white"
                     >
                         <Icon icon="ri:RiCloseLine" size="1.5em" />
                     </button>
@@ -55,8 +55,7 @@ const Body = ({ className = '', children, ...props }) => {
     return (
         <div
             className={`
-                px-6 py-4
-                overflow-y-auto
+                min-h-0 overflow-y-auto px-6 py-5 text-sm leading-6 text-slate-600
                 ${className}
             `.trim()}
             {...props}
@@ -76,7 +75,7 @@ const Footer = ({ className = '', children, ...props }) => {
     return (
         <div
             className={`
-                px-6 py-4
+                border-t border-slate-200/80 bg-slate-50/75 px-6 py-4
                 ${className}
             `.trim()}
             {...props}
@@ -119,7 +118,7 @@ const Modal = forwardRef(({
         md: 'max-w-lg',
         lg: 'max-w-2xl',
         xl: 'max-w-4xl',
-        full: 'max-w-full mx-4'
+        full: 'max-w-[calc(100vw-32px)]'
     };
 
     const focusableSelector =
@@ -329,8 +328,9 @@ const Modal = forwardRef(({
 
     return (
         <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-zinc-950/50 backdrop-blur-sm"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/45 backdrop-blur-[2px]"
             onClick={handleBackdropClick}
+            data-state="open"
         >
             <div
                 ref={(el) => {
@@ -339,8 +339,7 @@ const Modal = forwardRef(({
                     else if (ref) ref.current = el;
                 }}
                 className={`
-                    absolute w-full ${modalSizeClassMap[size]}
-                    bg-white rounded-xl border border-zinc-200/80 shadow-xl shadow-zinc-900/10 ring-1 ring-zinc-950/[0.04]
+                    absolute flex max-h-[calc(100vh-32px)] w-full flex-col overflow-hidden rounded-2xl border border-slate-200/80 bg-white text-slate-700 shadow-2xl shadow-slate-950/15 ring-1 ring-slate-900/10 ${modalSizeClassMap[size]}
                     animate-fade-in-up
                     ${isCentered ? 'top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2' : 'top-[var(--modal-top)] left-[var(--modal-left)]'}
                     ${isDragging ? '!transition-none' : 'transition-all duration-200'}
@@ -348,8 +347,10 @@ const Modal = forwardRef(({
                 `.trim()}
                 role="dialog"
                 aria-modal="true"
-                aria-label={ariaLabel}
+                aria-label={ariaLabel || (ariaLabelledBy ? undefined : '모달')}
                 aria-labelledby={ariaLabelledBy}
+                data-size={size}
+                data-state="open"
                 onMouseDown={handleMouseDown}
                 onKeyDown={handleDialogKeyDown}
                 {...props}

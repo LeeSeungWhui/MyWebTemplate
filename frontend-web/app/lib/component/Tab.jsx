@@ -1,10 +1,10 @@
 /**
  * 파일명: Tab.jsx
  * 작성자: LSH
- * 갱신일: 2026-05-31
+ * 갱신일: 2026-07-07
  * 설명: Tab UI 컴포넌트 구현
  */
-import { useState } from 'react';
+import { Children, useId, useState } from 'react';
 import { getBoundValue, setBoundValue, buildCtx, fireValueHandlers } from '../binding';
 
 /**
@@ -32,6 +32,7 @@ const Tab = ({
     tabIndex,
     onChange,
     onValueChange,
+    variant = 'segmented',
     className = '',
     children
 }) => {
@@ -46,7 +47,9 @@ const Tab = ({
     }
 
     // children이 없거나 배열이 아닐 경우 처리
-    const tabItemList = Array.isArray(children) ? children : [children].filter(Boolean);
+    const tabIdPrefix = useId();
+    const tabItemList = Children.toArray(children).filter(Boolean);
+    const isUnderlineVariant = variant === 'underline';
 
     /**
      * @description 탭 인덱스를 변경하고 dataObj/콜백으로 변경 이벤트를 전파
@@ -81,29 +84,53 @@ const Tab = ({
     };
 
     return (
-        <div className={`flex flex-col ${className}`}>
-
-            <div className="flex border-b border-gray-200">
-                {tabItemList.map((tabItemObj, index) => (
-                    <button
-                        type="button"
-                        key={index}
-                        onClick={(event) => handleTabChange(index, event)}
-                        className={`
-                            px-4 py-2 -mb-px text-sm font-medium inline-flex items-center
-                            ${currentTab === index
-                                ? 'text-zinc-950 border-b-2 border-zinc-900'
-                                : 'text-zinc-500 hover:text-zinc-700 hover:border-zinc-300'
-                            }
-                        `}
-                    >
-                        {tabItemObj.props.title}
-                    </button>
-                ))}
+        <div className={`flex flex-col gap-3 ${className}`}>
+            <div
+                className={isUnderlineVariant
+                    ? 'flex max-w-full gap-6 overflow-x-auto border-b border-slate-200'
+                    : 'inline-flex w-fit max-w-full gap-1 overflow-x-auto rounded-lg bg-slate-100/80 p-1 ring-1 ring-slate-200/80'}
+                role="tablist"
+                data-variant={isUnderlineVariant ? 'underline' : 'segmented'}
+            >
+                {tabItemList.map((tabItemObj, index) => {
+                    const isActive = currentTab === index;
+                    const tabId = `${tabIdPrefix}-tab-${index}`;
+                    const panelId = `${tabIdPrefix}-panel-${index}`;
+                    return (
+                        <button
+                            type="button"
+                            key={index}
+                            id={tabId}
+                            role="tab"
+                            aria-selected={isActive}
+                            aria-controls={panelId}
+                            tabIndex={isActive ? 0 : -1}
+                            onClick={(event) => handleTabChange(index, event)}
+                            className={`
+                                ${isUnderlineVariant
+                                    ? 'inline-flex min-h-10 items-center justify-center gap-2 whitespace-nowrap border-b-2 px-1 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/20 focus-visible:ring-offset-2 focus-visible:ring-offset-white'
+                                    : 'inline-flex min-h-9 items-center justify-center gap-2 whitespace-nowrap rounded-md px-4 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/20 focus-visible:ring-offset-2 focus-visible:ring-offset-white'}
+                                ${isActive && isUnderlineVariant ? 'border-indigo-600 text-indigo-700' : ''}
+                                ${isActive && !isUnderlineVariant ? 'bg-white text-indigo-700 shadow-sm ring-1 ring-slate-200/80' : ''}
+                                ${!isActive && isUnderlineVariant ? 'border-transparent text-slate-500 hover:border-slate-300 hover:text-slate-700' : ''}
+                                ${!isActive && !isUnderlineVariant ? 'text-slate-600 hover:bg-white/70 hover:text-slate-900' : ''}
+                            `}
+                        >
+                            {tabItemObj.props.title}
+                        </button>
+                    );
+                })}
             </div>
 
 
-            <div className="py-4">
+            <div
+                id={`${tabIdPrefix}-panel-${currentTab}`}
+                role="tabpanel"
+                aria-labelledby={`${tabIdPrefix}-tab-${currentTab}`}
+                className={isUnderlineVariant
+                    ? 'py-4 text-sm text-slate-700'
+                    : 'rounded-xl bg-white p-5 text-sm text-slate-700 shadow-sm ring-1 ring-slate-200/80'}
+            >
                 {tabItemList[currentTab]}
             </div>
         </div>

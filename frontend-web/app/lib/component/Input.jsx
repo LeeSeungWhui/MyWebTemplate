@@ -1,7 +1,7 @@
 /**
  * 파일명: Input.jsx
  * 작성자: LSH
- * 갱신일: 2026-05-31
+ * 갱신일: 2026-06-30
  * 설명: 필터 및 마스크가 적용된 입력 컴포넌트
  */
 import { useEffect, useState, forwardRef, useRef } from "react";
@@ -63,8 +63,10 @@ const Input = forwardRef(
     const HANGUL_RE = /[\u1100-\u11FF\u3130-\u318F\uAC00-\uD7A3]/; // 한글 범위
 
     const inputStateMapObj = {
-      default: "border-zinc-200 focus-visible:ring-zinc-950 focus-visible:border-zinc-900",
-      error: "border-red-300 focus:ring-red-500 focus:border-red-500",
+      default:
+        "border-slate-200 focus-visible:border-indigo-500 focus-visible:ring-indigo-500/20",
+      error:
+        "border-rose-300 text-rose-900 ring-rose-500/10 placeholder:text-rose-300 focus-visible:border-rose-500 focus-visible:ring-rose-500/20",
     };
     const hasStringMask = typeof mask === "string" && mask.trim().length > 0;
     const hasFunctionMask = typeof mask === "function";
@@ -442,7 +444,7 @@ const Input = forwardRef(
     return (
       <div className="relative flex items-center">
         {prefix && (
-          <div className="absolute left-3 top-1/2 transform -translate-y-1/2">
+          <div className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-500">
             {prefix}
           </div>
         )}
@@ -534,7 +536,7 @@ const Input = forwardRef(
             });
           }}
           className={`
-                    appearance-none block w-full px-3 py-2 border rounded-md shadow-sm text-sm focus:outline-none focus:ring-2 focus:ring-offset-0
+                    block h-10 w-full appearance-none rounded-lg border bg-white px-3 py-2 text-sm text-slate-900 shadow-sm ring-1 ring-inset ring-slate-900/5 placeholder:text-slate-400 transition-colors duration-150 focus:outline-none focus:ring-0 focus-visible:ring-2 focus-visible:ring-offset-0 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-500 disabled:placeholder:text-slate-400
                     ${error ? inputStateMapObj.error : inputStateMapObj.default}
                     ${className}
                     ${prefix ? "pl-10" : ""}
@@ -545,7 +547,7 @@ const Input = forwardRef(
           {...rest}
         />
         {suffix && (
-          <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+          <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm font-medium text-slate-600">
             {suffix}
           </div>
         )}
@@ -553,7 +555,7 @@ const Input = forwardRef(
           <button
             type="button"
             onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-3 top-1/2 transform -translate-y-1/2"
+            className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/20"
             aria-label={
               showPassword
                 ? COMMON_COMPONENT_LANG_KO.input.hidePassword
@@ -563,7 +565,7 @@ const Input = forwardRef(
           >
             <Icon
               icon={showPassword ? "ri:RiEyeLine" : "ri:RiEyeOffLine"}
-              className="w-5 h-5 text-gray-400"
+              className="h-5 w-5 text-current"
             />
           </button>
         )}

@@ -126,7 +126,7 @@ const Drawer = forwardRef(function Drawer(
 
       {/* 배경 레이어 */}
       <div
-        className={`absolute inset-0 bg-black/40 transition-opacity duration-300 ease-in-out ${isOpen ? 'opacity-100' : 'opacity-0'}`}
+        className={`absolute inset-0 bg-slate-950/35 backdrop-blur-[2px] transition-opacity duration-300 ease-in-out ${isOpen ? 'opacity-100' : 'opacity-0'}`}
         onClick={() => { if (closeOnBackdrop) onClose?.(); }}
         aria-hidden="true"
       />
@@ -134,28 +134,33 @@ const Drawer = forwardRef(function Drawer(
       {/* 패널 */}
       <div
         ref={assignRef}
-        className={`absolute bg-white shadow-xl ring-1 ring-zinc-950/5 transform-gpu will-change-transform transition-transform duration-300 ease-in-out ${sideConfigObj.base} ${collapseButton ? {
+        className={`absolute overflow-hidden bg-white text-slate-700 shadow-2xl shadow-slate-950/10 ring-1 ring-slate-900/10 transform-gpu will-change-transform transition-transform duration-300 ease-in-out ${sideConfigObj.base} ${collapseButton ? {
           bottom: 'rounded-t-2xl',
           left: 'rounded-r-2xl',
           right: 'rounded-l-2xl',
           top: 'rounded-b-2xl',
         }[side] : ''} ${transformClassName} ${sizeClassName} ${resizeClassName} ${className}`.trim()}
+        role="dialog"
+        aria-modal={isOpen ? 'true' : undefined}
+        aria-label="드로어"
+        data-side={side}
+        data-state={isOpen ? 'open' : 'closed'}
         {...drawerPropsObj}
       >
-        <div className={collapseButton ? {
+        <div className={`h-full min-h-0 ${collapseButton ? {
           bottom: 'pt-10',
           left: 'pr-10',
           right: 'pl-10',
           top: 'pb-10',
-        }[side] : ''}>
+        }[side] : ''}`}>
           {children}
         </div>
 
         {collapseButton && (
           <button
             type="button"
-            aria-label="collapse"
-            className={`bg-zinc-100/90 hover:bg-zinc-200 text-zinc-500 border-zinc-200 shadow-sm flex items-center justify-center focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-950/30 ${handleShapeMapObj[side]} ${handlePositionMapObj[side]} z-10`}
+            aria-label="드로어 닫기"
+            className={`flex items-center justify-center bg-white/95 text-slate-500 border-slate-200/80 shadow-sm ring-1 ring-slate-900/5 transition-colors hover:border-indigo-200 hover:bg-indigo-50 hover:text-indigo-600 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/25 ${handleShapeMapObj[side]} ${handlePositionMapObj[side]} z-10`}
             onClick={() => onClose?.()}
           >
 

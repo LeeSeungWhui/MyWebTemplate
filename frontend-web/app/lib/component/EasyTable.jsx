@@ -1,7 +1,7 @@
 /**
  * 파일명: EasyTable.jsx
  * 작성자: LSH
- * 갱신일: 2026-05-31
+ * 갱신일: 2026-07-03
  * 설명: 테이블/카드형 데이터 뷰 컴포넌트 구현
  */
 import { forwardRef, useEffect, useState } from 'react';
@@ -254,7 +254,7 @@ const EasyTable = forwardRef(function EasyTable(
           <div
             key={rowKeyValue}
             role="row"
-            className={`flex w-full bg-white text-sm items-center border-b hover:bg-gray-50 ${rowClassName}`.trim()}
+            className={`flex w-full items-center border-b border-slate-200/70 bg-white text-sm text-slate-700 transition-colors hover:bg-slate-100/50 ${rowClassName}`.trim()}
             onClick={onRowClick ? () => onRowClick(rowObj, globalIndex) : undefined}
           >
             {tableColumnList.map((columnMetaObj) => (
@@ -275,7 +275,7 @@ const EasyTable = forwardRef(function EasyTable(
           key={`filler-${fillerIndex}`}
           role="presentation"
           aria-hidden="true"
-          className={`flex w-full text-sm border-b opacity-0 pointer-events-none select-none ${rowClassName}`.trim()}
+          className={`flex w-full border-b border-slate-200/70 text-sm opacity-0 pointer-events-none select-none ${rowClassName}`.trim()}
         >
           {tableColumnList.map((columnMetaObj) => (
             <div
@@ -292,7 +292,7 @@ const EasyTable = forwardRef(function EasyTable(
   );
 
   const pager = (
-    <div className="flex justify-center items-center py-4">
+    <div className="flex items-center justify-center border-t border-slate-200/70 bg-white py-4">
       <Pagination page={page} pageCount={pageCount} onChange={onChangePage} maxButtons={maxPageButtons} />
     </div>
   );
@@ -315,26 +315,26 @@ const EasyTable = forwardRef(function EasyTable(
   let statusPanel = null;
   if (isBusy) {
     statusPanel = (
-      <div className="p-6 text-center text-gray-500" role="status" aria-live="polite">
+      <div className="p-6 text-center text-slate-600" role="status" aria-live="polite">
         {COMMON_COMPONENT_LANG_KO.easyTable.loading}
       </div>
     );
   } else if (isError) {
     statusPanel = (
-      <div className="p-6 text-center text-red-600" role="alert">
+      <div className="p-6 text-center text-rose-600" role="alert">
         {errorText || COMMON_COMPONENT_LANG_KO.easyTable.error}
       </div>
     );
   } else if (isEmpty) {
-    statusPanel = <div className="p-6 text-center text-gray-500">{empty}</div>;
+    statusPanel = <div className="p-6 text-center text-slate-600">{empty}</div>;
   }
 
   return (
-    <div ref={ref} className={`w-full border border-gray-200 rounded ${className}`.trim()} role="table" aria-busy={isBusy ? 'true' : undefined}>
+    <div ref={ref} className={`w-full overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-slate-200/80 ${className}`.trim()} role="table" aria-busy={isBusy ? 'true' : undefined}>
       {variant === 'table' ? (
         <div className="w-full overflow-x-auto">
           <div className="min-w-max">
-            <div role="row" className={`flex w-full bg-[#667586] text-white text-sm font-semibold items-center ${headerClassName}`.trim()}>
+            <div role="row" className={`flex w-full items-center border-b border-slate-200 bg-slate-100/70 text-xs font-semibold uppercase tracking-wider text-slate-600 ${headerClassName}`.trim()}>
               {tableColumnList.map((columnMetaObj) => (
                 <div
                   key={columnMetaObj.columnObj.key ?? columnMetaObj.columnIndex}
@@ -355,7 +355,7 @@ const EasyTable = forwardRef(function EasyTable(
               <div key={resolveRowKey(rowObj, (page - 1) * effectivePageSize + rowIndex)} className="w-full">
                 {typeof renderCard === 'function'
                   ? renderCard(rowObj, (page - 1) * effectivePageSize + rowIndex)
-                  : <div className="border rounded p-4">{COMMON_COMPONENT_LANG_KO.easyTable.noRenderCardProvided}</div>}
+                  : <div className="rounded-lg bg-white p-4 shadow-sm ring-1 ring-slate-200/80">{COMMON_COMPONENT_LANG_KO.easyTable.noRenderCardProvided}</div>}
               </div>
             ))}
           </div>

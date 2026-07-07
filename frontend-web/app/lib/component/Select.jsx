@@ -1,7 +1,7 @@
 /**
  * 파일명: Select.jsx
  * 작성자: LSH
- * 갱신일: 2026-05-31
+ * 갱신일: 2026-06-30
  * 설명: EasyObj/EasyList 바운드 및 컨트롤드 모드를 모두 지원하는 Select 컴포넌트
  */
 import { forwardRef, useEffect, useId, useState } from 'react'
@@ -12,53 +12,56 @@ import { COMMON_COMPONENT_LANG_KO } from '@/app/common/i18n/lang.ko'
 
 const STATUS_PRESETS = {
   default: {
-    selectClassName: 'border border-zinc-200 focus-visible:ring-zinc-950 focus-visible:border-zinc-900',
-    messageClassName: 'text-zinc-600',
+    selectClassName:
+      'border-slate-200 ring-slate-900/5 focus-visible:border-indigo-500 focus-visible:ring-indigo-500/20',
+    messageClassName: 'text-slate-600',
     ariaLive: 'polite',
   },
   success: {
     selectClassName:
-      'border border-green-400 focus:ring-green-500 focus:border-green-500',
-    messageClassName: 'text-green-600',
+      'border-emerald-300 ring-emerald-500/10 focus-visible:border-emerald-500 focus-visible:ring-emerald-500/20',
+    messageClassName: 'text-emerald-700',
     defaultMessage: COMMON_COMPONENT_LANG_KO.select.saved,
     ariaLive: 'polite',
   },
   warning: {
     selectClassName:
-      'border border-yellow-400 focus:ring-yellow-500 focus:border-yellow-500',
-    messageClassName: 'text-yellow-700',
+      'border-amber-300 ring-amber-500/10 focus-visible:border-amber-500 focus-visible:ring-amber-500/20',
+    messageClassName: 'text-amber-700',
     defaultMessage: COMMON_COMPONENT_LANG_KO.select.needsConfirm,
     ariaLive: 'polite',
   },
   error: {
-    selectClassName: 'border border-red-400 focus:ring-red-500 focus:border-red-500',
-    messageClassName: 'text-red-600',
+    selectClassName:
+      'border-rose-300 ring-rose-500/10 focus-visible:border-rose-500 focus-visible:ring-rose-500/20',
+    messageClassName: 'text-rose-600',
     defaultMessage: COMMON_COMPONENT_LANG_KO.select.invalidValue,
     ariaLive: 'assertive',
   },
   info: {
-    selectClassName: 'border border-zinc-300 focus-visible:ring-zinc-400 focus-visible:border-zinc-400',
-    messageClassName: 'text-zinc-600',
+    selectClassName:
+      'border-slate-300 ring-slate-900/5 focus-visible:border-indigo-500 focus-visible:ring-indigo-500/20',
+    messageClassName: 'text-indigo-700',
     ariaLive: 'polite',
   },
   loading: {
     selectClassName:
-      'border border-zinc-300 focus-visible:ring-zinc-950 focus-visible:border-zinc-900 pr-9',
-    messageClassName: 'text-zinc-600',
+      'border-slate-200 ring-slate-900/5 focus-visible:border-indigo-500 focus-visible:ring-indigo-500/20',
+    messageClassName: 'text-slate-600',
     defaultMessage: COMMON_COMPONENT_LANG_KO.select.loading,
     ariaLive: 'polite',
   },
   empty: {
     selectClassName:
-      'border border-zinc-200 bg-white text-zinc-500 focus-visible:ring-zinc-400 focus-visible:border-zinc-400',
-    messageClassName: 'text-gray-500',
+      'border-slate-200 bg-slate-50 text-slate-500 ring-slate-900/5 focus-visible:border-slate-300 focus-visible:ring-slate-400/20',
+    messageClassName: 'text-slate-500',
     defaultMessage: COMMON_COMPONENT_LANG_KO.select.noItems,
     ariaLive: 'assertive',
   },
   disabled: {
     selectClassName:
-      'bg-gray-100 text-gray-500 border border-gray-300 cursor-not-allowed',
-    messageClassName: 'text-gray-500',
+      'cursor-not-allowed border-slate-200 bg-slate-50 text-slate-500 ring-slate-900/5',
+    messageClassName: 'text-slate-500',
     ariaLive: 'polite',
   },
 }
@@ -266,11 +269,11 @@ const Select = forwardRef(({
   }
 
   const baseClassName =
-    'block w-full px-3 py-2 text-sm rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-0 appearance-none bg-white transition-colors'
+    'block h-10 w-full appearance-none rounded-lg border bg-white px-3 py-2 pr-9 text-sm shadow-sm ring-1 ring-inset transition-colors duration-150 focus:outline-none focus:ring-0 focus-visible:ring-2 focus-visible:ring-offset-0 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-500'
   const selectClassName = [
     baseClassName,
     statusMeta.selectClassName,
-    isPlaceholderSelected ? 'text-gray-400' : 'text-gray-900',
+    isPlaceholderSelected ? 'text-slate-400' : 'text-slate-900',
     className,
   ]
     .filter(Boolean)
@@ -292,7 +295,7 @@ const Select = forwardRef(({
       >
         {placeholder &&
           !optionList.some((optionItem) => optionItem.placeholder) && (
-            <option value="" className="text-gray-400">
+            <option value="" className="text-slate-400">
               {placeholder}
             </option>
           )}
@@ -300,7 +303,7 @@ const Select = forwardRef(({
           <option
             key={optionItem.key}
             value={optionItem.value}
-            className={optionItem.placeholder ? 'text-gray-400' : 'text-gray-900'}
+            className={optionItem.placeholder ? 'text-slate-400' : 'text-slate-900'}
           >
             {optionItem.label}
           </option>
@@ -309,17 +312,17 @@ const Select = forwardRef(({
       <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
         {normalizedStatus === 'loading' ? (
           <span
-            className="h-4 w-4 animate-spin rounded-full border-2 border-zinc-300 border-t-transparent"
+            className="h-4 w-4 animate-spin rounded-full border-2 border-slate-300 border-t-indigo-500"
             aria-hidden="true"
           />
         ) : (
-          <Icon icon="hi:HiChevronDown" className="h-5 w-5 text-gray-400" size="1.25em" />
+          <Icon icon="hi:HiChevronDown" className="h-5 w-5 text-slate-400" size="1.25em" />
         )}
       </div>
       {messageId && (
         <p
           id={messageId}
-          className={`mt-1 text-xs ${
+          className={`mt-1.5 text-xs ${
             messageText ? statusMeta.messageClassName : 'sr-only'
           }`}
           aria-live={statusMeta.ariaLive || 'polite'}

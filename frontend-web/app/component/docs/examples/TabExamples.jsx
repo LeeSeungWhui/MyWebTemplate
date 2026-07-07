@@ -1,7 +1,7 @@
 /**
  * 파일명: TabExamples.jsx
  * 작성자: LSH
- * 갱신일: 2026-05-31
+ * 갱신일: 2026-07-07
  * 설명: Tab 컴포넌트 예제
  */
 import * as Lib from '@/app/lib';
@@ -18,17 +18,20 @@ const BasicTabDemo = () => {
 
   return <Lib.Tab dataObj={tabDataObj} dataKey="selectedTab">
       <Lib.Tab.Item title="첫번째 탭">
-        <div className="p-4">
+        <div className="space-y-1">
+          <h4 className="font-semibold text-slate-900">첫번째 탭</h4>
           첫번째 탭의 내용입니다.
         </div>
       </Lib.Tab.Item>
       <Lib.Tab.Item title="두번째 탭">
-        <div className="p-4">
+        <div className="space-y-1">
+          <h4 className="font-semibold text-slate-900">두번째 탭</h4>
           두번째 탭의 내용입니다.
         </div>
       </Lib.Tab.Item>
       <Lib.Tab.Item title="세번째 탭">
-        <div className="p-4">
+        <div className="space-y-1">
+          <h4 className="font-semibold text-slate-900">세번째 탭</h4>
           세번째 탭의 내용입니다.
         </div>
       </Lib.Tab.Item>
@@ -44,15 +47,38 @@ const CtrlTabDemo = () => {
 
   return <Lib.Tab tabIndex={activeTab} onChange={setActiveTab}>
       <Lib.Tab.Item title="프로필">
-        <div className="p-4 space-y-2">
-          <h3 className="font-medium">사용자 프로필</h3>
-          <p>tabIndex와 onChange를 직접 연결한 제어 탭 예시입니다.</p>
+        <div className="space-y-2">
+          <h3 className="font-semibold text-slate-900">사용자 프로필</h3>
+          <p className="text-slate-600">tabIndex와 onChange를 직접 연결한 제어 탭 예시입니다.</p>
         </div>
       </Lib.Tab.Item>
       <Lib.Tab.Item title="설정">
-        <div className="p-4 space-y-2">
-          <h3 className="font-medium">설정</h3>
-          <p>tabIndex와 onChange props를 사용합니다.</p>
+        <div className="space-y-2">
+          <h3 className="font-semibold text-slate-900">설정</h3>
+          <p className="text-slate-600">tabIndex와 onChange props를 사용합니다.</p>
+        </div>
+      </Lib.Tab.Item>
+    </Lib.Tab>;
+};
+
+/**
+ * @description UnderlineTabDemo 렌더링용 demo 컴포넌트. 입력/출력 계약을 함께 명시
+ * @returns {JSX.Element}
+ */
+const UnderlineTabDemo = () => {
+  const tabDataObj = Lib.EasyObj({
+    underlineTab: 0
+  });
+
+  return <Lib.Tab variant="underline" dataObj={tabDataObj} dataKey="underlineTab">
+      <Lib.Tab.Item title="요약">
+        <div>
+          밑줄형 탭은 밀도 높은 화면에서 콘텐츠 패널을 과하게 감싸지 않고 사용할 수 있습니다.
+        </div>
+      </Lib.Tab.Item>
+      <Lib.Tab.Item title="상세">
+        <div>
+          active 상태는 indigo underline으로 유지하고, inactive 상태는 slate hover로 정리합니다.
         </div>
       </Lib.Tab.Item>
     </Lib.Tab>;
@@ -67,14 +93,14 @@ const StyleTabDemo = () => {
     customTab: 0
   });
 
-  return <Lib.Tab className="bg-gray-100 rounded-lg p-4" dataObj={tabDataObj} dataKey="customTab">
+  return <Lib.Tab className="rounded-xl bg-slate-50 p-4 ring-1 ring-slate-200/80" dataObj={tabDataObj} dataKey="customTab">
       <Lib.Tab.Item title="커스텀 스타일">
-        <div className="p-4">
+        <div>
           className prop으로 커스텀 스타일을 적용할 수 있습니다.
         </div>
       </Lib.Tab.Item>
       <Lib.Tab.Item title="두번째">
-        <div className="p-4">
+        <div>
           Tailwind 클래스를 사용해서 쉽게 스타일링이 가능합니다.
         </div>
       </Lib.Tab.Item>
@@ -95,7 +121,7 @@ const IconTabDemo = () => {
             <Lib.Icon icon="md:MdHome" className="w-5 h-5" />
             <span>홈</span>
           </div>}>
-        <div className="p-4">
+        <div>
           탭 제목에 아이콘과 텍스트를 함께 사용할 수 있습니다.
         </div>
       </Lib.Tab.Item>
@@ -103,7 +129,7 @@ const IconTabDemo = () => {
             <Lib.Icon icon="md:MdSettings" className="w-5 h-5" />
             <span>설정</span>
           </div>}>
-        <div className="p-4">
+        <div>
           title prop에 JSX를 전달하여 자유롭게 커스터마이징이 가능합니다.
         </div>
       </Lib.Tab.Item>
@@ -130,12 +156,19 @@ export const controlExampleObj = {
 <Lib.Tab tabIndex={activeTab} onChange={setActiveTab}>...</Lib.Tab>`
 };
 
+export const underlineExampleObj = {
+  exampleId: 'underline',
+  component: <UnderlineTabDemo />,
+  description: 'variant="underline" 밑줄 스타일',
+  code: `<Lib.Tab variant="underline" dataObj={tabDataObj} dataKey="underlineTab">...</Lib.Tab>`
+};
+
 export const styleExampleObj = {
   exampleId: 'style',
   component: <StyleTabDemo />,
   description: '커스텀 스타일링',
   code: `<Lib.Tab
-    className="bg-gray-100 rounded-lg p-4"
+    className="rounded-xl bg-slate-50 p-4 ring-1 ring-slate-200/80"
     dataObj={tabDataObj}
     dataKey="customTab"
 >...</Lib.Tab>`

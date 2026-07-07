@@ -1,3 +1,5 @@
+"use client";
+
 /**
  * 파일명: DrawerDocs.jsx
  * 작성자: LSH
@@ -35,7 +37,7 @@ const DrawerDocs = () => {
       <div id="drawer-right" className="mb-8">
         <h3 className="text-lg font-medium mb-4">오른쪽 (기본)</h3>
         <div>
-          {basicExampleObj.component}
+          {basicExampleObj.render()}
           <div className="mt-2 text-sm text-gray-600">{basicExampleObj.description}</div>
           <CodeBlock code={basicExampleObj.code} />
         </div>
@@ -43,7 +45,7 @@ const DrawerDocs = () => {
       <div id="drawer-right-sized" className="mb-8">
         <h3 className="text-lg font-medium mb-4">오른쪽 (size="min-[1468px]:w-[360px]")</h3>
         <div>
-          {rightSizeExampleObj.component}
+          {rightSizeExampleObj.render()}
           <div className="mt-2 text-sm text-gray-600">{rightSizeExampleObj.description}</div>
           <CodeBlock code={rightSizeExampleObj.code} />
         </div>
@@ -51,7 +53,7 @@ const DrawerDocs = () => {
       <div id="drawer-left" className="mb-8">
         <h3 className="text-lg font-medium mb-4">왼쪽 (size="min-[1468px]:w-[420px]")</h3>
         <div>
-          {leftSizeExampleObj.component}
+          {leftSizeExampleObj.render()}
           <div className="mt-2 text-sm text-gray-600">{leftSizeExampleObj.description}</div>
           <CodeBlock code={leftSizeExampleObj.code} />
         </div>
@@ -59,7 +61,7 @@ const DrawerDocs = () => {
       <div id="drawer-top" className="mb-8">
         <h3 className="text-lg font-medium mb-4">위쪽 (size="min-[1468px]:h-[220px]")</h3>
         <div>
-          {topExampleObj.component}
+          {topExampleObj.render()}
           <div className="mt-2 text-sm text-gray-600">{topExampleObj.description}</div>
           <CodeBlock code={topExampleObj.code} />
         </div>
@@ -67,7 +69,7 @@ const DrawerDocs = () => {
       <div id="drawer-bottom" className="mb-8">
         <h3 className="text-lg font-medium mb-4">아래쪽 (size="min-[1468px]:h-[260px]")</h3>
         <div>
-          {bottomExampleObj.component}
+          {bottomExampleObj.render()}
           <div className="mt-2 text-sm text-gray-600">{bottomExampleObj.description}</div>
           <CodeBlock code={bottomExampleObj.code} />
         </div>
@@ -75,7 +77,7 @@ const DrawerDocs = () => {
       <div id="drawer-card" className="mb-8">
         <h3 className="text-lg font-medium mb-4">카드 샘플</h3>
         <div>
-          {cardExampleObj.component}
+          {cardExampleObj.render()}
           <div className="mt-2 text-sm text-gray-600">{cardExampleObj.description}</div>
           <CodeBlock code={cardExampleObj.code} />
         </div>
@@ -83,7 +85,7 @@ const DrawerDocs = () => {
       <div id="drawer-menu" className="mb-8">
         <h3 className="text-lg font-medium mb-4">메뉴 샘플</h3>
         <div>
-          {menuExampleObj.component}
+          {menuExampleObj.render()}
           <div className="mt-2 text-sm text-gray-600">{menuExampleObj.description}</div>
           <CodeBlock code={menuExampleObj.code} />
         </div>

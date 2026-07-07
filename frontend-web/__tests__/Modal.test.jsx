@@ -14,6 +14,19 @@ describe('Modal a11y', () => {
     );
     const dialog = screen.getByRole('dialog');
     expect(dialog).toHaveAttribute('aria-modal', 'true');
+    expect(dialog).toHaveAttribute('data-state', 'open');
+    expect(dialog).toHaveAttribute('data-size', 'md');
+  });
+
+  it('provides a default accessible name when aria labels are omitted', () => {
+    render(
+      <Modal isOpen onClose={() => {}}>
+        <Modal.Header>헤더</Modal.Header>
+        <Modal.Body>바디</Modal.Body>
+      </Modal>
+    );
+
+    expect(screen.getByRole('dialog', { name: '모달' })).toBeInTheDocument();
   });
 
   it('keeps dragged modal inside viewport when dialog is wider than the screen', async () => {

@@ -1,7 +1,7 @@
 /**
  * 파일명: DateInput.jsx
  * 작성자: LSH
- * 갱신일: 2026-05-31
+ * 갱신일: 2026-06-30
  * 설명: DateInput UI 컴포넌트 구현
  */
 
@@ -193,7 +193,7 @@ const DateInput = forwardRef(({
         ref={ref}
         id={inputId}
         type="text"
-        className="block w-full pr-10 pl-3 py-2 text-sm rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-0 bg-white border border-zinc-200 focus-visible:ring-zinc-950 focus-visible:border-zinc-900"
+        className="block h-10 w-full rounded-lg border border-slate-200 bg-white py-2 pl-3 pr-10 text-sm text-slate-900 shadow-sm ring-1 ring-inset ring-slate-900/5 placeholder:text-slate-400 transition-colors duration-150 focus:outline-none focus:ring-0 focus-visible:border-indigo-500 focus-visible:ring-2 focus-visible:ring-indigo-500/20 focus-visible:ring-offset-0 disabled:cursor-not-allowed disabled:bg-slate-50 disabled:text-slate-500 read-only:bg-slate-50"
         value={dateText}
         min={min}
         max={max}
@@ -228,26 +228,26 @@ const DateInput = forwardRef(({
       />
       <button
         type="button"
-        className="absolute inset-y-0 right-2 my-auto h-6 w-6 rounded hover:bg-gray-100 text-gray-500 flex items-center justify-center"
+        className="absolute inset-y-0 right-2 my-auto flex h-7 w-7 items-center justify-center rounded-md text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/20 disabled:cursor-not-allowed disabled:text-slate-300 disabled:hover:bg-transparent"
         onClick={() => setIsOpen((wasOpen) => !wasOpen)}
         tabIndex={-1}
         aria-label={COMMON_COMPONENT_LANG_KO.dateInput.openDatePicker}
         disabled={disabled || readOnly}
       >
-        <Icon icon="md:MdCalendarToday" className="w-5 h-5" />
+        <Icon icon="md:MdCalendarToday" className="h-4 w-4" />
       </button>
       {isOpen && (
-        <div role="dialog" aria-modal="false" className="absolute z-10 mt-1 w-64 rounded-xl border border-zinc-200/80 bg-white shadow-lg ring-1 ring-zinc-950/5 p-3">
-          <div className="flex items-center justify-between mb-2">
-            <button type="button" className="p-1 rounded hover:bg-gray-100" onClick={() => changeMonth(-1)} aria-label={COMMON_COMPONENT_LANG_KO.dateInput.prevMonth}>
+        <div role="dialog" aria-modal="false" className="absolute z-10 mt-2 w-64 rounded-xl border border-slate-200 bg-white p-3 shadow-lg ring-1 ring-slate-900/5">
+          <div className="mb-3 flex items-center justify-between">
+            <button type="button" className="flex h-7 w-7 items-center justify-center rounded-md text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/20" onClick={() => changeMonth(-1)} aria-label={COMMON_COMPONENT_LANG_KO.dateInput.prevMonth}>
               <Icon icon="md:MdChevronLeft" className="w-5 h-5" />
             </button>
-            <div className="text-sm font-medium">{viewYear}{COMMON_COMPONENT_LANG_KO.dateInput.yearSuffix} {viewMonth + 1}{COMMON_COMPONENT_LANG_KO.dateInput.monthSuffix}</div>
-            <button type="button" className="p-1 rounded hover:bg-gray-100" onClick={() => changeMonth(+1)} aria-label={COMMON_COMPONENT_LANG_KO.dateInput.nextMonth}>
+            <div className="text-sm font-semibold text-slate-900">{viewYear}{COMMON_COMPONENT_LANG_KO.dateInput.yearSuffix} {viewMonth + 1}{COMMON_COMPONENT_LANG_KO.dateInput.monthSuffix}</div>
+            <button type="button" className="flex h-7 w-7 items-center justify-center rounded-md text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/20" onClick={() => changeMonth(+1)} aria-label={COMMON_COMPONENT_LANG_KO.dateInput.nextMonth}>
               <Icon icon="md:MdChevronRight" className="w-5 h-5" />
             </button>
           </div>
-          <div className="grid grid-cols-7 gap-1 text-center text-xs text-gray-500 mb-1">
+          <div className="mb-1 grid grid-cols-7 gap-1 text-center text-[11px] font-medium text-slate-400">
             {COMMON_COMPONENT_LANG_KO.dateInput.weekdaysShort.map((dayLabel) => (<div key={dayLabel}>{dayLabel}</div>))}
           </div>
           <div className="grid grid-cols-7 gap-1">
@@ -255,11 +255,11 @@ const DateInput = forwardRef(({
               const isSelected = isSameDate(dayDate, selectedDate);
               const isToday = isSameDate(dayDate, today);
               const dayButtonClassName = [
-                'h-8 rounded text-sm flex items-center justify-center cursor-pointer',
-                isInMonth ? '' : 'text-gray-400',
-                isDisabled ? 'cursor-not-allowed opacity-50' : 'hover:bg-zinc-50',
-                isSelected ? 'bg-zinc-900 text-zinc-50 hover:bg-zinc-800' : '',
-                !isSelected && isToday ? 'ring-1 ring-zinc-400' : ''
+                'flex h-8 items-center justify-center rounded-md text-sm font-medium transition-colors',
+                isInMonth ? 'text-slate-700' : 'text-slate-300',
+                isDisabled ? 'cursor-not-allowed text-slate-300 opacity-60' : 'hover:bg-slate-100 hover:text-slate-900',
+                isSelected ? 'bg-indigo-600 text-white shadow-sm hover:bg-indigo-600 hover:text-white' : '',
+                !isSelected && isToday ? 'ring-1 ring-indigo-200 text-indigo-700' : ''
               ].join(' ').trim();
               return (
                 <button
