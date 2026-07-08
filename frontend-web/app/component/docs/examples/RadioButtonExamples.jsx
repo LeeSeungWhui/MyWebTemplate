@@ -8,68 +8,76 @@ import * as Lib from '@/app/lib';
 import { useState } from 'react';
 
 /**
- * @description BoundRadioBtnDemo 렌더링용 demo 컴포넌트. 입력/출력 계약을 함께 명시
+ * @description BoundBillingRadioButtonDemo 렌더링용 demo 컴포넌트. 입력/출력 계약을 함께 명시
  * @returns {JSX.Element}
  */
-const BoundRadioBtnDemo = () => {
-  const radioDataObj = Lib.EasyObj({
-    selectedSize: ''
+const BoundBillingRadioButtonDemo = () => {
+  const billingDataObj = Lib.EasyObj({
+    billingCycle: 'annual'
   });
 
-  return <div className="space-x-2">
-      <Lib.RadioButton name="size" value="small" dataObj={radioDataObj} dataKey="selectedSize">
-        Small
-      </Lib.RadioButton>
-      <Lib.RadioButton name="size" value="medium" dataObj={radioDataObj} dataKey="selectedSize">
-        Medium
-      </Lib.RadioButton>
-      <Lib.RadioButton name="size" value="large" dataObj={radioDataObj} dataKey="selectedSize">
-        Large
-      </Lib.RadioButton>
+  return <div className="space-y-3">
+      <div>
+        <h4 className="text-sm font-semibold text-slate-900">결제 주기</h4>
+        <p className="mt-1 text-xs text-slate-500">버튼형 단일 선택으로 현재 선택을 강하게 표시</p>
+      </div>
+      <div className="flex flex-wrap gap-2">
+        <Lib.RadioButton name="billingCycle" value="monthly" dataObj={billingDataObj} dataKey="billingCycle">
+          월간
+        </Lib.RadioButton>
+        <Lib.RadioButton name="billingCycle" value="annual" dataObj={billingDataObj} dataKey="billingCycle" color="success">
+          연간 20% 할인
+        </Lib.RadioButton>
+      </div>
     </div>;
 };
 
 /**
- * @description ThemeRadioBtnDemo 렌더링용 demo 컴포넌트. 입력/출력 계약을 함께 명시
+ * @description ControlledLanguageRadioButtonDemo 렌더링용 demo 컴포넌트. 입력/출력 계약을 함께 명시
  * @returns {JSX.Element}
  */
-const ThemeRadioBtnDemo = () => {
-  const radioDataObj = Lib.EasyObj({
-    selectedTheme: ''
-  });
+const ControlledLanguageRadioButtonDemo = () => {
+  const [languageValue, setLanguageValue] = useState('ko');
 
-  return <div className="space-x-2">
-      <Lib.RadioButton name="theme" value="light" dataObj={radioDataObj} dataKey="selectedTheme" color="#FF6B6B">
-        라이트
-      </Lib.RadioButton>
-      <Lib.RadioButton name="theme" value="dark" dataObj={radioDataObj} dataKey="selectedTheme" color="#4D96FF">
-        다크
-      </Lib.RadioButton>
-      <Lib.RadioButton name="theme" value="system" dataObj={radioDataObj} dataKey="selectedTheme" color="#6BCB77">
-        시스템
-      </Lib.RadioButton>
-    </div>;
-};
-
-/**
- * @description CtrlRadioBtnDemo 렌더링용 demo 컴포넌트. 입력/출력 계약을 함께 명시
- * @returns {JSX.Element}
- */
-const CtrlRadioBtnDemo = () => {
-  const [languageValue, setLanguageValue] = useState('');
-
-  return <div className="space-y-4">
-      <div className="space-x-2">
-        <Lib.RadioButton name="controlled" value="kr" checked={languageValue === 'kr'} onChange={event => setLanguageValue(event.target.value)}>
+  return <div className="space-y-3">
+      <div className="flex flex-wrap gap-2">
+        <Lib.RadioButton name="language" value="ko" checked={languageValue === 'ko'} onValueChange={setLanguageValue}>
           한국어
         </Lib.RadioButton>
-        <Lib.RadioButton name="controlled" value="en" checked={languageValue === 'en'} onChange={event => setLanguageValue(event.target.value)}>
+        <Lib.RadioButton name="language" value="en" checked={languageValue === 'en'} onValueChange={setLanguageValue}>
           English
         </Lib.RadioButton>
       </div>
-      <div className="text-sm text-gray-600">
-        선택된 언어: {languageValue || '없음'}
-      </div>
+      <p className="rounded-lg bg-slate-50 px-3 py-2 text-xs text-slate-600 ring-1 ring-slate-200/80">
+        language = {languageValue}
+      </p>
+    </div>;
+};
+
+/**
+ * @description ViewModeRadioButtonDemo 렌더링용 demo 컴포넌트. 입력/출력 계약을 함께 명시
+ * @returns {JSX.Element}
+ */
+const ViewModeRadioButtonDemo = () => {
+  const viewModeDataObj = Lib.EasyObj({
+    mode: 'kanban'
+  });
+
+  return <div className="flex flex-wrap gap-2">
+      <Lib.RadioButton name="viewMode" value="table" dataObj={viewModeDataObj} dataKey="mode" color="neutral">테이블</Lib.RadioButton>
+      <Lib.RadioButton name="viewMode" value="kanban" dataObj={viewModeDataObj} dataKey="mode">칸반</Lib.RadioButton>
+      <Lib.RadioButton name="viewMode" value="calendar" dataObj={viewModeDataObj} dataKey="mode" color="warning">캘린더</Lib.RadioButton>
+    </div>;
+};
+
+/**
+ * @description DisabledRadioButtonDemo 렌더링용 demo 컴포넌트. 입력/출력 계약을 함께 명시
+ * @returns {JSX.Element}
+ */
+const DisabledRadioButtonDemo = () => {
+  return <div className="flex flex-wrap gap-2">
+      <Lib.RadioButton name="releaseChannel" value="stable" disabled>Stable</Lib.RadioButton>
+      <Lib.RadioButton name="releaseChannel" value="preview" disabled color="danger">Preview 잠김</Lib.RadioButton>
     </div>;
 };
 
@@ -80,61 +88,58 @@ const CtrlRadioBtnDemo = () => {
  */
 export const basicExampleList = [{
   exampleId: 'binding',
-  component: <BoundRadioBtnDemo />,
-  description: '기본 라디오버튼 (dataObj/dataKey 바인딩).',
-  code: `<Lib.RadioButton
-    name="size"
-    value="small"
-    dataObj={radioDataObj}
-    dataKey="selectedSize"
->
-    Small
-</Lib.RadioButton>`
-}, {
-  exampleId: 'disabled',
-  component: <div className="space-x-2">
-      <Lib.RadioButton name="disabled" value="disabled1" disabled>
-        비활성화 1
-      </Lib.RadioButton>
-      <Lib.RadioButton name="disabled" value="disabled2" disabled checked>
-        비활성화 2
-      </Lib.RadioButton>
-    </div>,
-  description: '비활성화 상태',
-  code: `<Lib.RadioButton
-    name="disabled"
-    value="disabled1"
-    disabled
->
-    비활성화 1
-</Lib.RadioButton>`
-}];
+  component: <BoundBillingRadioButtonDemo />,
+  description: 'EasyObj 바인딩 — 결제 주기처럼 선택된 value를 단일 필드에 저장',
+  code: `const billingDataObj = Lib.EasyObj({
+  billingCycle: 'annual',
+});
 
-export const advancedExampleList = [{
-  exampleId: 'theme',
-  component: <ThemeRadioBtnDemo />,
-  description: '커스텀 색상',
-  code: `<Lib.RadioButton
-    name="theme"
-    value="light"
-    dataObj={radioDataObj}
-    dataKey="selectedTheme"
-    color="#FF6B6B"
+<Lib.RadioButton
+  name="billingCycle"
+  value="annual"
+  dataObj={billingDataObj}
+  dataKey="billingCycle"
+  color="success"
 >
-    라이트
+  연간 20% 할인
 </Lib.RadioButton>`
 }, {
   exampleId: 'controlled',
-  component: <CtrlRadioBtnDemo />,
-  description: '제어 컴포넌트 방식',
-  code: `const [languageValue, setLanguageValue] = useState('');
+  component: <ControlledLanguageRadioButtonDemo />,
+  description: '컨트롤드 모드 — checked/onValueChange로 외부 선택 상태와 동기화',
+  code: `const [languageValue, setLanguageValue] = useState('ko');
 
 <Lib.RadioButton
-    name="controlled"
-    value="kr"
-    checked={languageValue === 'kr'}
-    onChange={(event) => setLanguageValue(event.target.value)}
+  name="language"
+  value="ko"
+  checked={languageValue === 'ko'}
+  onValueChange={setLanguageValue}
 >
-    한국어
+  한국어
+</Lib.RadioButton>`
+}, {
+  exampleId: 'disabled',
+  component: <DisabledRadioButtonDemo />,
+  description: '비활성화 상태 — 사용자가 선택할 수 없는 채널을 버튼으로 표시',
+  code: `<Lib.RadioButton
+  name="releaseChannel"
+  value="stable"
+  disabled
+>
+  Stable
+</Lib.RadioButton>`
+}];
+
+export const variantExampleList = [{
+  exampleId: 'viewMode',
+  component: <ViewModeRadioButtonDemo />,
+  description: '보기 모드 — neutral/default/warning 프리셋으로 단일 버튼 그룹 구성',
+  code: `<Lib.RadioButton
+  name="viewMode"
+  value="kanban"
+  dataObj={viewModeDataObj}
+  dataKey="mode"
+>
+  칸반
 </Lib.RadioButton>`
 }];

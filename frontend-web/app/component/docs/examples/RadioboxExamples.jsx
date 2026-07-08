@@ -8,50 +8,70 @@ import * as Lib from '@/app/lib';
 import { useState } from 'react';
 
 /**
- * @description BoundRadioboxDemo 렌더링용 demo 컴포넌트. 입력/출력 계약을 함께 명시
+ * @description BoundPlanRadioboxDemo 렌더링용 demo 컴포넌트. 입력/출력 계약을 함께 명시
  * @returns {JSX.Element}
  */
-const BoundRadioboxDemo = () => {
-  const radioDataObj = Lib.EasyObj({
-    selectedJob: ''
+const BoundPlanRadioboxDemo = () => {
+  const planDataObj = Lib.EasyObj({
+    selectedPlan: 'growth'
   });
 
-  return <div className="space-y-2">
-      <Lib.Radiobox name="job" label="개발자" value="developer" dataObj={radioDataObj} dataKey="selectedJob" />
-      <Lib.Radiobox name="job" label="디자이너" value="designer" dataObj={radioDataObj} dataKey="selectedJob" />
-    </div>;
-};
-
-/**
- * @description PaymentRadioboxDemo 렌더링용 demo 컴포넌트. 입력/출력 계약을 함께 명시
- * @returns {JSX.Element}
- */
-const PaymentRadioboxDemo = () => {
-  const radioDataObj = Lib.EasyObj({
-    paymentMethod: ''
-  });
-
-  return <div className="space-y-2">
-      <h4 className="text-sm font-medium text-gray-700">결제 수단 선택</h4>
-      <Lib.Radiobox name="payment" label="신용카드" value="card" dataObj={radioDataObj} dataKey="paymentMethod" color="#FF6B6B" />
-      <Lib.Radiobox name="payment" label="계좌이체" value="bank" dataObj={radioDataObj} dataKey="paymentMethod" color="#4D96FF" />
-      <Lib.Radiobox name="payment" label="휴대폰 결제" value="mobile" dataObj={radioDataObj} dataKey="paymentMethod" color="#6BCB77" />
-    </div>;
-};
-
-/**
- * @description CtrlRadioboxDemo 렌더링용 demo 컴포넌트. 입력/출력 계약을 함께 명시
- * @returns {JSX.Element}
- */
-const CtrlRadioboxDemo = () => {
-  const [optionValue, setOptionValue] = useState('');
-
-  return <div className="space-y-2">
-      <Lib.Radiobox name="controlled" label="옵션 1" value="option1" checked={optionValue === 'option1'} onChange={event => setOptionValue(event.target.value)} />
-      <Lib.Radiobox name="controlled" label="옵션 2" value="option2" checked={optionValue === 'option2'} onChange={event => setOptionValue(event.target.value)} />
-      <div className="text-sm text-gray-600">
-        선택된 값: {optionValue || '없음'}
+  return <div className="space-y-3">
+      <div>
+        <h4 className="text-sm font-semibold text-slate-900">요금제 선택</h4>
+        <p className="mt-1 text-xs text-slate-500">선택된 value가 selectedPlan 필드에 저장됩니다.</p>
       </div>
+      <div className="space-y-2 rounded-lg bg-slate-50 px-3 py-3 ring-1 ring-slate-200/80">
+        <Lib.Radiobox name="plan" label="Starter" value="starter" dataObj={planDataObj} dataKey="selectedPlan" color="neutral" />
+        <Lib.Radiobox name="plan" label="Growth" value="growth" dataObj={planDataObj} dataKey="selectedPlan" color="primary" />
+        <Lib.Radiobox name="plan" label="Enterprise" value="enterprise" dataObj={planDataObj} dataKey="selectedPlan" color="success" />
+      </div>
+    </div>;
+};
+
+/**
+ * @description ControlledPriorityRadioboxDemo 렌더링용 demo 컴포넌트. 입력/출력 계약을 함께 명시
+ * @returns {JSX.Element}
+ */
+const ControlledPriorityRadioboxDemo = () => {
+  const [priorityValue, setPriorityValue] = useState('normal');
+
+  return <div className="space-y-3">
+      <div className="space-y-2">
+        <Lib.Radiobox name="priority" label="보통" value="normal" checked={priorityValue === 'normal'} onValueChange={setPriorityValue} color="neutral" />
+        <Lib.Radiobox name="priority" label="긴급" value="urgent" checked={priorityValue === 'urgent'} onValueChange={setPriorityValue} color="danger" />
+      </div>
+      <p className="rounded-lg bg-slate-50 px-3 py-2 text-xs text-slate-600 ring-1 ring-slate-200/80">
+        priority = {priorityValue}
+      </p>
+    </div>;
+};
+
+/**
+ * @description DisabledRadioboxDemo 렌더링용 demo 컴포넌트. 입력/출력 계약을 함께 명시
+ * @returns {JSX.Element}
+ */
+const DisabledRadioboxDemo = () => {
+  return <div className="space-y-2">
+      <Lib.Radiobox name="lockedRegion" label="국내 리전" value="kr" disabled defaultChecked />
+      <Lib.Radiobox name="lockedRegion" label="해외 리전" value="global" disabled />
+      <p className="text-xs text-slate-500">정책상 바꿀 수 없는 설정은 disabled로 잠급니다.</p>
+    </div>;
+};
+
+/**
+ * @description StatusRadioboxDemo 렌더링용 demo 컴포넌트. 입력/출력 계약을 함께 명시
+ * @returns {JSX.Element}
+ */
+const StatusRadioboxDemo = () => {
+  const statusDataObj = Lib.EasyObj({
+    publishStatus: 'draft'
+  });
+
+  return <div className="space-y-2">
+      <Lib.Radiobox name="publishStatus" label="임시저장" value="draft" dataObj={statusDataObj} dataKey="publishStatus" color="neutral" />
+      <Lib.Radiobox name="publishStatus" label="검토 요청" value="review" dataObj={statusDataObj} dataKey="publishStatus" color="warning" />
+      <Lib.Radiobox name="publishStatus" label="즉시 게시" value="publish" dataObj={statusDataObj} dataKey="publishStatus" color="success" />
     </div>;
 };
 
@@ -62,53 +82,57 @@ const CtrlRadioboxDemo = () => {
  */
 export const basicExampleList = [{
   exampleId: 'binding',
-  component: <BoundRadioboxDemo />,
-  description: '기본 라디오박스 (dataObj/dataKey 바인딩).',
-  code: `<Lib.Radiobox
-    name="job"
-    label="개발자"
-    value="developer"
-    dataObj={radioDataObj}
-    dataKey="selectedJob"
-/>`
-}, {
-  exampleId: 'disabled',
-  component: <div className="space-y-2">
-      <Lib.Radiobox name="disabled" label="비활성화 1" value="disabled1" disabled />
-      <Lib.Radiobox name="disabled" label="비활성화 2" value="disabled2" disabled checked />
-    </div>,
-  description: '비활성화 상태',
-  code: `<Lib.Radiobox
-    name="disabled"
-    label="비활성화 1"
-    value="disabled1"
-    disabled
-/>`
-}];
+  component: <BoundPlanRadioboxDemo />,
+  description: 'EasyObj 바인딩 — 같은 name 그룹의 선택 value를 단일 필드에 저장',
+  code: `const planDataObj = Lib.EasyObj({
+  selectedPlan: 'growth',
+});
 
-export const advancedExampleList = [{
-  exampleId: 'payment',
-  component: <PaymentRadioboxDemo />,
-  description: '커스텀 색상',
-  code: `<Lib.Radiobox
-    name="payment"
-    label="신용카드"
-    value="card"
-    dataObj={radioDataObj}
-    dataKey="paymentMethod"
-    color="#FF6B6B"
+<Lib.Radiobox
+  name="plan"
+  label="Growth"
+  value="growth"
+  dataObj={planDataObj}
+  dataKey="selectedPlan"
+  color="primary"
 />`
 }, {
   exampleId: 'controlled',
-  component: <CtrlRadioboxDemo />,
-  description: '제어 컴포넌트 방식',
-  code: `const [optionValue, setOptionValue] = useState('');
+  component: <ControlledPriorityRadioboxDemo />,
+  description: '컨트롤드 모드 — checked/onValueChange로 외부 단일 선택 상태와 동기화',
+  code: `const [priorityValue, setPriorityValue] = useState('normal');
 
 <Lib.Radiobox
-    name="controlled"
-    label="옵션 1"
-    value="option1"
-    checked={optionValue === 'option1'}
-    onChange={(event) => setOptionValue(event.target.value)}
+  name="priority"
+  label="긴급"
+  value="urgent"
+  checked={priorityValue === 'urgent'}
+  onValueChange={setPriorityValue}
+  color="danger"
+/>`
+}, {
+  exampleId: 'disabled',
+  component: <DisabledRadioboxDemo />,
+  description: '비활성화 상태 — 정책상 바꿀 수 없는 단일 선택 항목 표시',
+  code: `<Lib.Radiobox
+  name="lockedRegion"
+  label="국내 리전"
+  value="kr"
+  disabled
+  defaultChecked
+/>`
+}];
+
+export const variantExampleList = [{
+  exampleId: 'status',
+  component: <StatusRadioboxDemo />,
+  description: '상태 색상 — neutral/warning/success 프리셋으로 선택 의미 구분',
+  code: `<Lib.Radiobox
+  name="publishStatus"
+  label="검토 요청"
+  value="review"
+  dataObj={statusDataObj}
+  dataKey="publishStatus"
+  color="warning"
 />`
 }];

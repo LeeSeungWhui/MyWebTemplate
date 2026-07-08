@@ -8,6 +8,34 @@ import { basicExampleList, stateExampleList } from '../examples/SelectExamples';
 import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';
 
+const selectPropList = [
+    { name: 'dataList', description: '옵션 배열 또는 EasyList. selected 플래그 동기화' },
+    { name: 'valueKey/textKey?', description: '옵션 값과 라벨로 사용할 키' },
+    { name: 'dataObj/dataKey?', description: 'EasyObj 선택 값 바인딩' },
+    { name: 'value/onValueChange?', description: 'controlled 선택 값 동기화' },
+    { name: 'status?', description: 'default, success, info, warning, error, loading, empty' },
+    { name: 'statusMessage?', description: '상태별 가시 안내 문구' },
+    { name: 'assistiveText?', description: '스크린리더용 보조 안내' },
+    { name: 'disabled?', description: '선택 불가 상태' },
+];
+
+const selectExampleSectionList = [
+    {
+        id: 'select-basic',
+        eyebrow: 'EXAMPLE 1',
+        title: '기본 사용법',
+        summary: 'EasyList selected 플래그와 controlled value를 실제 직무 선택 흐름으로 비교합니다.',
+        exampleList: basicExampleList,
+    },
+    {
+        id: 'select-states',
+        eyebrow: 'EXAMPLE 2',
+        title: '상태',
+        summary: 'loading, error, empty처럼 사용자가 판단해야 하는 상태를 한 표면에서 확인합니다.',
+        exampleList: stateExampleList,
+    },
+];
+
 /**
  * @description Select 문서 섹션을 구성하고 예제 목록을 렌더링. 입력/출력 계약을 함께 명시
  * @returns {JSX.Element}
@@ -17,51 +45,42 @@ const SelectDocs = () => {
         <DocSection
             id="selects"
             title="6. 선택 (Select)" description={
-                <div>
-                    <p>Select 컴포넌트는 dataList의 selected 속성을 통해 선택 상태를 관리합니다.</p>
-                    <p>옵션을 선택하면 선택된 항목의 selected가 true로, 나머지는 false로 자동 변경됩니다.</p>
-                    <p>또는 <code>dataObj/dataKey</code>를 주면 EasyObj 바인딩으로 동작하며, 선택 값이 자동으로 반영됩니다.</p>
-                    <ul className="list-disc pl-5 mt-2 text-sm text-gray-600">
-                        <li><code>dataList</code>: 옵션 배열(EasyList 가능)</li>
-                        <li><code>valueKey/textKey?</code>: 값/라벨 키 (기본: 'value'/'text')</li>
-                        <li><code>dataObj/dataKey?</code>: EasyObj 바인딩 (value prop보다 우선하지 않음)</li>
-                        <li><code>value?/onValueChange?</code>: 선택 값을 외부 상태와 동기화할 때 사용</li>
-                        <li><code>onChange?</code>: change 이벤트 콜백 (value 포함)</li>
-                        <li><code>disabled?</code>: 비활성화 여부</li>
-                        <li><code>error?</code>: 에러 상태 표시</li>
-                        <li><code>className?</code>: 추가 Tailwind 클래스</li>
-                    </ul>
+                <div className="space-y-4 rounded-xl bg-slate-50/80 p-5 text-sm text-slate-700 ring-1 ring-slate-900/5">
+                    <p>Select는 짧은 옵션 목록에서 하나의 값을 고르는 폼 표면입니다. EasyList의 selected 플래그, EasyObj 바인딩, controlled value를 모두 지원하고 상태 메시지와 aria-live 안내를 함께 제공합니다.</p>
+                    <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+                        {selectPropList.map((propItem) => (
+                            <div key={propItem.name} className="rounded-lg bg-white px-3 py-2 ring-1 ring-slate-200/80">
+                                <code className="text-xs font-semibold text-indigo-700">{propItem.name}</code>
+                                <p className="mt-1 text-xs text-slate-500">{propItem.description}</p>
+                            </div>
+                        ))}
+                    </div>
                 </div>
             }
         >
-            <div id="select-basic" className="mb-8">
-                <h3 className="text-lg font-medium mb-4">기본 사용법</h3>
-                <div className="grid grid-cols-2 gap-8">
-                    {basicExampleList.map((example) => (
-                        <div key={example.exampleId}>
-                            {example.component}
-                            <div className="mt-2 text-sm text-gray-600">
-                                {example.description}
-                            </div>
-                            <CodeBlock code={example.code} />
+            <div className="space-y-8">
+                {selectExampleSectionList.map((exampleSection) => (
+                    <div key={exampleSection.id} id={exampleSection.id} className="scroll-mt-24 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-900/5">
+                        <div className="mb-4 flex flex-col gap-1">
+                            <span className="text-xs font-semibold uppercase tracking-wide text-indigo-600">{exampleSection.eyebrow}</span>
+                            <h3 className="text-lg font-semibold tracking-tight text-slate-950">{exampleSection.title}</h3>
+                            <p className="text-sm text-slate-500">{exampleSection.summary}</p>
                         </div>
-                    ))}
-                </div>
-            </div>
-
-            <div id="select-states" className="mb-8">
-                <h3 className="text-lg font-medium mb-4">상태</h3>
-                <div className="grid grid-cols-2 gap-8">
-                    {stateExampleList.map((example) => (
-                        <div key={example.exampleId}>
-                            {example.component}
-                            <div className="mt-2 text-sm text-gray-600">
-                                {example.description}
+                        <div className="rounded-xl bg-slate-50/80 p-5 ring-1 ring-slate-200/80">
+                            <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                                {exampleSection.exampleList.map((example) => (
+                                    <div key={example.exampleId} className="rounded-xl bg-white p-4 shadow-sm ring-1 ring-slate-200/80">
+                                        {example.component}
+                                        <p className="mt-3 text-sm text-slate-600">{example.description}</p>
+                                        <div className="mt-3">
+                                            <CodeBlock code={example.code} />
+                                        </div>
+                                    </div>
+                                ))}
                             </div>
-                            <CodeBlock code={example.code} />
                         </div>
-                    ))}
-                </div>
+                    </div>
+                ))}
             </div>
         </DocSection>
     );
