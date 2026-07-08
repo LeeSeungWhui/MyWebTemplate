@@ -28,6 +28,12 @@ for (let itemIndex = 0; itemIndex < 53; itemIndex += 1) {
   });
 }
 
+const roleVariantMap = {
+  Admin: 'danger',
+  Editor: 'primary',
+  Viewer: 'neutral',
+};
+
 const tableColumnList = [{
   key: 'id',
   header: 'ID',
@@ -44,7 +50,8 @@ const tableColumnList = [{
 }, {
   key: 'role',
   header: '권한',
-  width: '120px'
+  width: '120px',
+  render: (rowObj) => <Lib.Badge variant={roleVariantMap[rowObj.role] || 'neutral'} pill>{rowObj.role}</Lib.Badge>
 }];
 
 const tableStyleColList = [{
@@ -85,8 +92,8 @@ const CtrlTableDemo = () => {
 
 export const basicExampleObj = {
   exampleId: 'basic',
-  component: <Lib.EasyTable data={tableRowList} columns={tableColumnList} pageParam="page" persistKey="table-basic" defaultPage={1} pageSize={10} />,
-  description: '기본 테이블: URL(page) 동기화 + 세션 보존, 페이지당 10개',
+  component: <Lib.EasyTable data={tableRowList} columns={tableColumnList} pageParam="page" persistKey="table-basic" defaultPage={1} pageSize={10} className="shadow-sm" />,
+  description: '기본 테이블: URL(page) 동기화 + 세션 보존, 권한 Badge 표시',
   code: `<Lib.EasyTable
   data={tableRowList}
   columns={tableColumnList}
@@ -94,6 +101,7 @@ export const basicExampleObj = {
   persistKey="table-basic"
   defaultPage={1}
   pageSize={10}
+  className="shadow-sm"
 />`
 };
 
@@ -115,11 +123,15 @@ export const controlExampleObj = {
 
 export const cardExampleObj = {
   exampleId: 'card',
-  component: <Lib.EasyTable variant="card" data={tableRowList} pageSize={8} renderCard={row => <div className="rounded-xl bg-white p-4 shadow-sm ring-1 ring-slate-200/80 transition-shadow hover:shadow-md">
-            <div className="text-sm text-slate-500">#{row.id}</div>
-            <div className="font-medium text-slate-900">{row.name}</div>
-            <div className="text-slate-600">{row.email}</div>
-            <div className="mt-1 text-xs text-slate-500">{row.role}</div>
+  component: <Lib.EasyTable variant="card" data={tableRowList} pageSize={8} renderCard={row => <div className="rounded-xl bg-white p-4 shadow-sm ring-1 ring-slate-200/80 transition-shadow hover:-translate-y-0.5 hover:shadow-md">
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">#{row.id}</div>
+                <div className="mt-1 font-semibold text-slate-900">{row.name}</div>
+              </div>
+              <Lib.Badge variant={roleVariantMap[row.role] || 'neutral'} pill>{row.role}</Lib.Badge>
+            </div>
+            <div className="mt-3 truncate text-sm text-slate-600">{row.email}</div>
           </div>} />,
   description: '카드 변형: variant="card" + renderCard로 카드 UI 구성',
   code: `<Lib.EasyTable
@@ -127,7 +139,7 @@ export const cardExampleObj = {
   data={tableRowList}
   pageSize={8}
   renderCard={(row) => (
-    <div className="rounded-xl bg-white p-4 shadow-sm ring-1 ring-slate-200/80 transition-shadow hover:shadow-md">...</div>
+    <div className="rounded-xl bg-white p-4 shadow-sm ring-1 ring-slate-200/80 transition-shadow hover:-translate-y-0.5 hover:shadow-md">...</div>
   )}
 />`
 };

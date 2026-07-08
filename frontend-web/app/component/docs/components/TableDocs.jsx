@@ -8,6 +8,63 @@ import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';
 import { basicExampleObj, cardExampleObj, controlExampleObj, emptyExampleObj, styleExampleObj } from '../examples/TableExamples';
 
+const tablePropGroupList = [
+  {
+    title: '데이터',
+    items: ['data/dataList', 'columns', 'rowKey?'],
+  },
+  {
+    title: '페이지',
+    items: ['page?', 'pageSize?', 'defaultPage?', 'onPageChange?', 'pageParam?', 'persistKey?'],
+  },
+  {
+    title: '표현',
+    items: ['variant?', 'renderCard?', 'gridClassName?', 'empty?', 'loading?', 'status?'],
+  },
+  {
+    title: '스타일',
+    items: ['className?', 'headerClassName?', 'rowClassName?', 'cellClassName?', 'rowsClassName?'],
+  },
+];
+
+const tableExampleSectionList = [
+  {
+    id: 'table-basic',
+    eyebrow: 'EXAMPLE 1',
+    title: '기본 테이블',
+    summary: 'URL query와 session persist를 함께 사용하는 기본 데이터 테이블입니다.',
+    example: basicExampleObj,
+  },
+  {
+    id: 'table-controlled',
+    eyebrow: 'EXAMPLE 2',
+    title: '제어형 페이지',
+    summary: 'page/onPageChange를 외부 상태로 관리하는 제어형 페이지네이션 예시입니다.',
+    example: controlExampleObj,
+  },
+  {
+    id: 'table-card',
+    eyebrow: 'EXAMPLE 3',
+    title: '카드 변형',
+    summary: '같은 데이터 소스를 카드 그리드로 보여주는 사용자 목록 패턴입니다.',
+    example: cardExampleObj,
+  },
+  {
+    id: 'table-styled',
+    eyebrow: 'EXAMPLE 4',
+    title: '커스텀 스타일',
+    summary: '행/셀을 분리된 surface처럼 보이게 만든 refined enterprise 스타일입니다.',
+    example: styleExampleObj,
+  },
+  {
+    id: 'table-empty',
+    eyebrow: 'EXAMPLE 5',
+    title: '빈 상태',
+    summary: '데이터가 없을 때 사용자에게 명확한 안내를 제공하는 상태 예시입니다.',
+    example: emptyExampleObj,
+  },
+];
+
 /**
  * @description Table 문서 섹션을 구성하고 예제 목록을 렌더링. 입력/출력 계약을 함께 명시
  * @returns {JSX.Element}
@@ -15,66 +72,39 @@ import { basicExampleObj, cardExampleObj, controlExampleObj, emptyExampleObj, st
 const TableDocs = () => {
   return (
     <DocSection id="tables" title="26. 테이블 (Table)" description={
-      <div>
-        <p>데이터 테이블과 카드 리스트를 렌더링합니다. 제어형 및 비제어 페이징을 지원하며 URL과 스토리지에 상태를 보존합니다.</p>
-        <ul className="list-disc pl-5 mt-2 text-sm text-gray-600">
-          <li><code>data</code>: 행 데이터 배열/EasyList</li>
-          <li><code>columns</code>: 열 정의 배열</li>
-          <li><code>rowKey?</code>: 행 키 결정 함수/키</li>
-          <li><code>className?</code>: 래퍼 추가 클래스</li>
-          <li><code>headerClassName?/rowClassName?/cellClassName?/rowsClassName?</code>: 세부 스타일</li>
-          <li><code>empty?</code>: 빈 상태 메시지</li>
-          <li><code>loading?</code>: 로딩 표시</li>
-          <li><code>onRowClick?</code>: 행 클릭 콜백</li>
-          <li><code>page?/pageSize?/defaultPage?</code>: 현재/페이지당/초기 페이지</li>
-          <li><code>onPageChange?</code>: 페이지 변경 콜백</li>
-          <li><code>pageParam?/persist?/persistKey?</code>: URL/스토리지 상태 유지</li>
-          <li><code>maxPageButtons?</code>: 페이지 버튼 수</li>
-          <li><code>variant?</code>: 'table' | 'card'</li>
-          <li><code>renderCard?</code>: 카드 모드 렌더 함수</li>
-          <li><code>gridClassName?</code>: 카드 모드 grid 클래스</li>
-        </ul>
+      <div className="space-y-4 rounded-xl bg-slate-50/80 p-5 text-sm text-slate-700 ring-1 ring-slate-900/5">
+        <p>데이터 테이블과 카드 리스트를 같은 계약으로 렌더링합니다. 제어형/비제어 페이징, URL query, storage persist를 지원해 실제 admin 화면의 목록 UX를 빠르게 구성할 수 있습니다.</p>
+        <div className="grid gap-3 md:grid-cols-2">
+          {tablePropGroupList.map((groupItem) => (
+            <div key={groupItem.title} className="rounded-lg bg-white p-3 ring-1 ring-slate-200/80">
+              <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">{groupItem.title}</div>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {groupItem.items.map((propName) => (
+                  <code key={propName} className="rounded-full bg-indigo-50 px-2 py-1 text-xs font-semibold text-indigo-700 ring-1 ring-indigo-100">{propName}</code>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     }>
-      <div id="table-basic" className="mb-8">
-        <h3 className="text-lg font-medium mb-4">기본</h3>
-        <div>
-          {basicExampleObj.component}
-          <div className="mt-2 text-sm text-gray-600">{basicExampleObj.description}</div>
-          <CodeBlock code={basicExampleObj.code} />
-        </div>
-      </div>
-      <div id="table-controlled" className="mb-8">
-        <h3 className="text-lg font-medium mb-4">제어형 페이지</h3>
-        <div>
-          {controlExampleObj.component}
-          <div className="mt-2 text-sm text-gray-600">{controlExampleObj.description}</div>
-          <CodeBlock code={controlExampleObj.code} />
-        </div>
-      </div>
-      <div id="table-card" className="mb-8">
-        <h3 className="text-lg font-medium mb-4">카드</h3>
-        <div>
-          {cardExampleObj.component}
-          <div className="mt-2 text-sm text-gray-600">{cardExampleObj.description}</div>
-          <CodeBlock code={cardExampleObj.code} />
-        </div>
-      </div>
-      <div id="table-styled" className="mb-8">
-        <h3 className="text-lg font-medium mb-4">커스텀 스타일</h3>
-        <div>
-          {styleExampleObj.component}
-          <div className="mt-2 text-sm text-gray-600">{styleExampleObj.description}</div>
-          <CodeBlock code={styleExampleObj.code} />
-        </div>
-      </div>
-      <div id="table-empty" className="mb-8">
-        <h3 className="text-lg font-medium mb-4">빈 상태</h3>
-        <div>
-          {emptyExampleObj.component}
-          <div className="mt-2 text-sm text-gray-600">{emptyExampleObj.description}</div>
-          <CodeBlock code={emptyExampleObj.code} />
-        </div>
+      <div className="space-y-8">
+        {tableExampleSectionList.map((exampleSection) => (
+          <div key={exampleSection.id} id={exampleSection.id} className="scroll-mt-24 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-900/5">
+            <div className="mb-4 flex flex-col gap-1">
+              <span className="text-xs font-semibold uppercase tracking-wide text-indigo-600">{exampleSection.eyebrow}</span>
+              <h3 className="text-lg font-semibold tracking-tight text-slate-950">{exampleSection.title}</h3>
+              <p className="text-sm text-slate-500">{exampleSection.summary}</p>
+            </div>
+            <div className="rounded-xl bg-slate-50/80 p-5 ring-1 ring-slate-200/80">
+              {exampleSection.example.component}
+            </div>
+            <div className="mt-3 text-sm text-slate-600">{exampleSection.example.description}</div>
+            <div className="mt-4">
+              <CodeBlock code={exampleSection.example.code} />
+            </div>
+          </div>
+        ))}
       </div>
     </DocSection>
   );

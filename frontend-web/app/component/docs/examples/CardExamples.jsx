@@ -18,10 +18,21 @@ const ActionCard = () => {
   const {
     showAlert
   } = useGlobalUi();
-  return <Lib.Card title="액션 카드" subtitle="버튼과 함께" actions={<Lib.Button onClick={() => showAlert('버튼 액션')}>Action</Lib.Button>} footer="푸터 텍스트">
-      <div className="space-y-2">
-        <div>리스트 항목 1</div>
-        <div>리스트 항목 2</div>
+  return <Lib.Card
+      title="배포 체크리스트"
+      subtitle="릴리즈 전 필수 확인"
+      actions={<Lib.Button size="sm" onClick={() => showAlert('체크리스트 액션')}>검토 시작</Lib.Button>}
+      footer={<span>마지막 업데이트: 방금 전</span>}
+    >
+      <div className="grid gap-3 sm:grid-cols-2">
+        <div className="rounded-lg bg-slate-50 px-3 py-2 ring-1 ring-slate-200/80">
+          <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">완료</div>
+          <div className="mt-1 text-lg font-semibold text-slate-950">12건</div>
+        </div>
+        <div className="rounded-lg bg-indigo-50 px-3 py-2 ring-1 ring-indigo-100">
+          <div className="text-xs font-semibold uppercase tracking-wide text-indigo-600">진행중</div>
+          <div className="mt-1 text-lg font-semibold text-indigo-700">3건</div>
+        </div>
       </div>
     </Lib.Card>;
 };
@@ -32,34 +43,83 @@ const ActionCard = () => {
  * @updated 2026-02-24
  */
 export const basicExampleList = [{
-  component: <Lib.Card title="간단 카드" subtitle="보조 설명">
-          카드 본문을 간결하게 구성합니다.
+  component: <Lib.Card title="프로젝트 요약" subtitle="이번 스프린트 핵심 지표">
+          <div className="flex flex-wrap gap-2 text-sm">
+            <Lib.Badge variant="success" pill>운영 정상</Lib.Badge>
+            <Lib.Badge variant="primary" pill>12개 작업 완료</Lib.Badge>
+            <Lib.Badge variant="neutral" pill>리뷰 2건 대기</Lib.Badge>
+          </div>
         </Lib.Card>,
-  description: '기본 Card: title + subtitle + 본문',
-  code: `<Lib.Card title=\"간단 카드\" subtitle=\"보조 설명\">\n  카드 본문을 간결하게 구성합니다.\n</Lib.Card>`
+  description: '기본 Card: title + subtitle + 본문 조합',
+  code: `<Lib.Card title="프로젝트 요약" subtitle="이번 스프린트 핵심 지표">
+  <div className="flex flex-wrap gap-2 text-sm">
+    <Lib.Badge variant="success" pill>운영 정상</Lib.Badge>
+    <Lib.Badge variant="primary" pill>12개 작업 완료</Lib.Badge>
+    <Lib.Badge variant="neutral" pill>리뷰 2건 대기</Lib.Badge>
+  </div>
+</Lib.Card>`
 }];
 export const actionExampleList = [{
   component: <ActionCard />,
   description: 'actions + footer 사용',
-  code: `<Lib.Card\n  title=\"액션 카드\"\n  subtitle=\"버튼과 함께\"\n  actions={<Lib.Button onClick={() => showAlert('버튼 액션')}>Action</Lib.Button>}\n  footer=\"푸터 텍스트\"\n>\n  <div className=\"space-y-2\">\n    <div>리스트 항목 1</div>\n    <div>리스트 항목 2</div>\n  </div>\n</Lib.Card>`
+  code: `<Lib.Card
+  title="배포 체크리스트"
+  subtitle="릴리즈 전 필수 확인"
+  actions={<Lib.Button size="sm" onClick={() => showAlert('체크리스트 액션')}>검토 시작</Lib.Button>}
+  footer={<span>마지막 업데이트: 방금 전</span>}
+>
+  <div className="grid gap-3 sm:grid-cols-2">
+    <div className="rounded-lg bg-slate-50 px-3 py-2 ring-1 ring-slate-200/80">
+      <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">완료</div>
+      <div className="mt-1 text-lg font-semibold text-slate-950">12건</div>
+    </div>
+    <div className="rounded-lg bg-indigo-50 px-3 py-2 ring-1 ring-indigo-100">
+      <div className="text-xs font-semibold uppercase tracking-wide text-indigo-600">진행중</div>
+      <div className="mt-1 text-lg font-semibold text-indigo-700">3건</div>
+    </div>
+  </div>
+</Lib.Card>`
 }];
 export const plainExampleList = [{
-  component: <Lib.Card className="bg-slate-50" bodyClassName="p-6" headerClassName="p-3" footerClassName="p-2">
-          헤더/푸터 패딩이 있는 카드입니다.
+  component: <Lib.Card className="bg-slate-950 text-white ring-slate-800" bodyClassName="p-5 text-slate-200">
+          <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">System note</div>
+          <div className="mt-2 text-base font-semibold text-white">본문만으로도 강조되는 패널</div>
+          <p className="mt-1 text-sm text-slate-300">간단한 안내, 공지, 상태 메모를 헤더 없이 표시할 때 사용합니다.</p>
         </Lib.Card>,
-  description: '헤더/푸터 패딩(custom className*)',
-  code: `<Lib.Card className=\"bg-slate-50\" bodyClassName=\"p-6\">\n  헤더/푸터 패딩이 있는 카드입니다.\n</Lib.Card>`
+  description: '본문 전용 Card: className/bodyClassName으로 강조 패널 구성',
+  code: `<Lib.Card className="bg-slate-950 text-white ring-slate-800" bodyClassName="p-5 text-slate-200">
+  <div className="text-xs font-semibold uppercase tracking-wide text-slate-400">System note</div>
+  <div className="mt-2 text-base font-semibold text-white">본문만으로도 강조되는 패널</div>
+  <p className="mt-1 text-sm text-slate-300">간단한 안내, 공지, 상태 메모를 헤더 없이 표시할 때 사용합니다.</p>
+</Lib.Card>`
 }];
 export const composedExampleList = [{
-  component: <Lib.Card title="조합 예시" actions={<Lib.Badge variant="primary">New</Lib.Badge>} footer={<div className="flex items-center gap-2 text-xs text-slate-500"><Lib.Icon icon="md:MdSchedule" /> 업데이트: 방금 전</div>}>
+  component: <Lib.Card title="고객 세그먼트" subtitle="활성 사용자 그룹" actions={<Lib.Badge variant="primary" pill>New</Lib.Badge>} footer={<div className="flex items-center gap-2 text-xs text-slate-500"><Lib.Icon icon="md:MdSchedule" /> 업데이트: 방금 전</div>}>
           <div className="flex items-start gap-3">
-            <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-indigo-50 text-indigo-700 ring-1 ring-inset ring-indigo-100">IMG</div>
+            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-50 text-indigo-700 ring-1 ring-inset ring-indigo-100">
+              <Lib.Icon icon="ri:RiUserSmileLine" size="22px" />
+            </div>
             <div>
-              <div className="font-semibold text-slate-900">이미지/아이콘과 텍스트</div>
-              <div className="text-sm text-slate-500">레이아웃과 구성 예시</div>
+              <div className="font-semibold text-slate-900">프리미엄 전환 후보</div>
+              <div className="text-sm text-slate-500">최근 30일 활동량이 높은 계정 128개</div>
             </div>
           </div>
         </Lib.Card>,
   description: 'Badge, Icon 조합',
-  code: `<Lib.Card\n  title=\"조합 예시\"\n  actions={<Lib.Badge variant=\"primary\">New</Lib.Badge>}\n  footer={<div className=\"flex items-center gap-2 text-xs text-slate-500\"><Lib.Icon icon=\"md:MdSchedule\" /> 업데이트: 방금 전</div>}\n>\n  <div className=\"flex items-start gap-3\">\n    <div className=\"flex h-12 w-12 items-center justify-center rounded-lg bg-indigo-50 text-indigo-700 ring-1 ring-inset ring-indigo-100\">IMG</div>\n    <div>\n      <div className=\"font-semibold text-slate-900\">이미지/아이콘과 텍스트</div>\n      <div className=\"text-sm text-slate-500\">레이아웃과 구성 예시</div>\n    </div>\n  </div>\n</Lib.Card>`
+  code: `<Lib.Card
+  title="고객 세그먼트"
+  subtitle="활성 사용자 그룹"
+  actions={<Lib.Badge variant="primary" pill>New</Lib.Badge>}
+  footer={<div className="flex items-center gap-2 text-xs text-slate-500"><Lib.Icon icon="md:MdSchedule" /> 업데이트: 방금 전</div>}
+>
+  <div className="flex items-start gap-3">
+    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-indigo-50 text-indigo-700 ring-1 ring-inset ring-indigo-100">
+      <Lib.Icon icon="ri:RiUserSmileLine" size="22px" />
+    </div>
+    <div>
+      <div className="font-semibold text-slate-900">프리미엄 전환 후보</div>
+      <div className="text-sm text-slate-500">최근 30일 활동량이 높은 계정 128개</div>
+    </div>
+  </div>
+</Lib.Card>`
 }];
