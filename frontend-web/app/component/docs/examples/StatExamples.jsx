@@ -17,16 +17,82 @@ import * as Lib from '@/app/lib';
  * @updated 2026-02-24
  */
 export const basicExampleList = [{
-  component: <Lib.Stat label="주간 활성 사용자" value="12,340" delta="+3.2%" deltaType="up" />,
-  description: '증가 지표(up) 예시',
-  code: `<Lib.Stat label="주간 활성 사용자" value="12,340" delta="+3.2%" deltaType="up" />`
+  component: <div className="max-w-sm">
+          <Lib.Stat
+            label="이번 주 활성 사용자"
+            value="12,340"
+            delta="+3.2%"
+            deltaType="up"
+            helpText="지난 7일 기준, 전주 대비"
+            icon={<Lib.Icon icon="ri:RiUserHeartLine" className="h-5 w-5 text-indigo-600" />}
+            className="border-slate-200/80 shadow-sm ring-1 ring-slate-900/5"
+          />
+        </div>,
+  description: '증가 지표를 아이콘과 도움말로 보강',
+  code: `<Lib.Stat
+  label="이번 주 활성 사용자"
+  value="12,340"
+  delta="+3.2%"
+  deltaType="up"
+  helpText="지난 7일 기준, 전주 대비"
+  icon={<Lib.Icon icon="ri:RiUserHeartLine" className="h-5 w-5 text-indigo-600" />}
+/>`
 }];
 export const extraExampleList = [{
-  component: <Lib.Stat label="월간 이탈률" value="1,024" delta="-1.1%" deltaType="down" />,
-  description: '감소 지표(down) 예시',
-  code: `<Lib.Stat label="월간 이탈률" value="1,024" delta="-1.1%" deltaType="down" />`
+  component: <div className="grid gap-3 md:grid-cols-3">
+          <Lib.Stat
+            label="완료된 요청"
+            value="1,024"
+            delta="+84"
+            deltaType="up"
+            helpText="오늘 처리량"
+            icon={<Lib.Icon icon="md:MdCheckCircle" className="h-5 w-5 text-emerald-600" />}
+            className="border-slate-200/80 shadow-sm ring-1 ring-slate-900/5"
+          />
+          <Lib.Stat
+            label="대기 시간"
+            value="132ms"
+            delta="-18ms"
+            deltaType="down"
+            helpText="평균 응답 시간"
+            icon={<Lib.Icon icon="md:MdSpeed" className="h-5 w-5 text-indigo-600" />}
+            className="border-slate-200/80 shadow-sm ring-1 ring-slate-900/5"
+          />
+          <Lib.Stat
+            label="리뷰 대기"
+            value="6건"
+            delta="동일"
+            deltaType="neutral"
+            helpText="전일 대비 변화 없음"
+            icon={<Lib.Icon icon="md:MdRateReview" className="h-5 w-5 text-slate-500" />}
+            className="border-slate-200/80 shadow-sm ring-1 ring-slate-900/5"
+          />
+        </div>,
+  description: '여러 KPI를 같은 grid 밀도로 배치',
+  code: `<div className="grid gap-3 md:grid-cols-3">
+  <Lib.Stat label="완료된 요청" value="1,024" delta="+84" deltaType="up" />
+  <Lib.Stat label="대기 시간" value="132ms" delta="-18ms" deltaType="down" />
+  <Lib.Stat label="리뷰 대기" value="6건" delta="동일" deltaType="neutral" />
+</div>`
 }, {
-  component: <Lib.Stat label="서버 상태" value="정상" deltaType="neutral" />,
-  description: '중립 지표(neutral) 예시',
-  code: `<Lib.Stat label="서버 상태" value="정상" deltaType="neutral" />`
+  component: <div className="max-w-sm rounded-2xl bg-white p-4 shadow-sm ring-1 ring-slate-900/5">
+          <Lib.Stat
+            label="서비스 상태"
+            value="정상"
+            delta="99.99%"
+            deltaType="neutral"
+            helpText="최근 30일 가용성"
+            icon={<Lib.Icon icon="md:MdCloudDone" className="h-5 w-5 text-emerald-600" />}
+            className="border-slate-200/80 shadow-sm ring-1 ring-slate-900/5"
+          />
+        </div>,
+  description: '상태형 값과 가용성 보조 텍스트 조합',
+  code: `<Lib.Stat
+  label="서비스 상태"
+  value="정상"
+  delta="99.99%"
+  deltaType="neutral"
+  helpText="최근 30일 가용성"
+  icon={<Lib.Icon icon="md:MdCloudDone" className="h-5 w-5 text-emerald-600" />}
+/>`
 }];
