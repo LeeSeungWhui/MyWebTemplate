@@ -13,33 +13,39 @@ import * as Lib from '@/app/lib';
  */
 const EasyObjExample = () => {
   const dataObj = Lib.EasyObj({
-    name: '홍길동',
-    age: 20,
-    hobbies: ['독서', '운동'],
+    name: '김민준',
+    role: 'Product Owner',
+    score: 82,
+    tags: ['온보딩', '우선순위'],
     address: {
       city: '서울',
-      street: '강남대로'
+      office: '강남 오피스'
     }
   });
-  return <div className="space-y-4">
-            <div className="flex gap-2">
-                <Lib.Button onClick={() => {
-        dataObj.age += 1;
+  return <div className="space-y-4 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200/80">
+            <div className="flex flex-col gap-1">
+                <span className="text-xs font-semibold uppercase tracking-wide text-indigo-600">EasyObj state</span>
+                <h4 className="text-base font-semibold text-slate-950">담당자 프로필</h4>
+                <p className="text-sm text-slate-500">버튼을 눌러 중첩 객체와 배열 값을 직접 갱신합니다.</p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+                <Lib.Button size="sm" onClick={() => {
+        dataObj.score += 5;
       }}>
-                    나이 증가
+                    점수 +5
                 </Lib.Button>
-                <Lib.Button onClick={() => {
-        dataObj.hobbies.push('여행');
+                <Lib.Button size="sm" variant="secondary" onClick={() => {
+        dataObj.tags.push('리뷰 완료');
       }}>
-                    취미 추가
+                    태그 추가
                 </Lib.Button>
-                <Lib.Button onClick={() => {
+                <Lib.Button size="sm" variant="outline" onClick={() => {
         dataObj.address.city = '부산';
       }}>
                     도시 변경
                 </Lib.Button>
             </div>
-            <pre className="bg-gray-100 p-4 rounded-lg overflow-auto">
+            <pre className="max-h-72 overflow-auto rounded-xl bg-slate-950 p-4 text-xs leading-relaxed text-slate-100 ring-1 ring-slate-800">
                 {JSON.stringify(dataObj, null, 2)}
             </pre>
         </div>;
@@ -53,29 +59,37 @@ const EasyObjExample = () => {
 const EasyListExample = () => {
   const taskList = Lib.EasyList([{
     id: 1,
-    text: '할 일 1'
+    text: '요구사항 정리',
+    status: '진행중'
   }, {
     id: 2,
-    text: '할 일 2'
+    text: 'QA 캡쳐 첨부',
+    status: '대기'
   }]);
-  return <div className="space-y-4">
-            <div className="flex gap-2">
-                <Lib.Button onClick={() => taskList.push({
+  return <div className="space-y-4 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200/80">
+            <div className="flex flex-col gap-1">
+                <span className="text-xs font-semibold uppercase tracking-wide text-indigo-600">EasyList state</span>
+                <h4 className="text-base font-semibold text-slate-950">작업 큐</h4>
+                <p className="text-sm text-slate-500">배열 메서드와 forAll로 항목을 조작합니다.</p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+                <Lib.Button size="sm" onClick={() => taskList.push({
         id: taskList.length + 1,
-        text: `할 일 ${taskList.length + 1}`
+        text: `추가 작업 ${taskList.length + 1}`,
+        status: '신규'
       })}>
                     항목 추가
                 </Lib.Button>
-                <Lib.Button onClick={() => taskList.pop()}>
+                <Lib.Button size="sm" variant="secondary" onClick={() => taskList.pop()}>
                     마지막 항목 제거
                 </Lib.Button>
-                <Lib.Button onClick={() => taskList.forAll(taskItemObj => {
-        taskItemObj.text += ' (완료)';
+                <Lib.Button size="sm" variant="outline" onClick={() => taskList.forAll(taskItemObj => {
+        taskItemObj.status = '완료';
       })}>
                     모든 항목 완료
                 </Lib.Button>
             </div>
-            <pre className="bg-gray-100 p-4 rounded-lg overflow-auto">
+            <pre className="max-h-72 overflow-auto rounded-xl bg-slate-950 p-4 text-xs leading-relaxed text-slate-100 ring-1 ring-slate-800">
                 {JSON.stringify(taskList, null, 2)}
             </pre>
         </div>;
@@ -88,36 +102,36 @@ const EasyListExample = () => {
  */
 export const easyObjExampleList = [{
   component: <EasyObjExample />,
-  description: "EasyObj는 객체의 중첩된 속성까지 자동으로 상태를 관리합니다.",
+  description: "EasyObj는 중첩 객체와 배열 값을 직접 수정해도 화면 상태가 함께 갱신됩니다.",
   code: `const dataObj = Lib.EasyObj({
-    name: '홍길동',
-    age: 20,
-    hobbies: ['독서', '운동'],
+    name: '김민준',
+    score: 82,
+    tags: ['온보딩', '우선순위'],
     address: {
         city: '서울',
-        street: '강남대로'
+        office: '강남 오피스'
     }
 });
 
 // 상태 변경 시 자동으로 리렌더링
-dataObj.age += 1;
-dataObj.hobbies.push('여행');
+dataObj.score += 5;
+dataObj.tags.push('리뷰 완료');
 dataObj.address.city = '부산';`
 }];
 export const easyListExampleList = [{
   component: <EasyListExample />,
-  description: "EasyList는 배열 메서드를 지원하며 각 항목의 상태도 자동으로 관리합니다.",
+  description: "EasyList는 배열 메서드와 forAll을 사용해 목록 항목을 한 번에 조작합니다.",
   code: `const taskList = Lib.EasyList([
-    { id: 1, text: '할 일 1' },
-    { id: 2, text: '할 일 2' }
+    { id: 1, text: '요구사항 정리', status: '진행중' },
+    { id: 2, text: 'QA 캡쳐 첨부', status: '대기' }
 ]);
 
 // 배열 메서드 사용
-taskList.push({ id: 3, text: '할 일 3' });
+taskList.push({ id: 3, text: '추가 작업 3', status: '신규' });
 taskList.pop();
 
 // forAll 메서드로 모든 항목 수정
 taskList.forAll(item => {
-    item.text += ' (완료)';
+    item.status = '완료';
 });`
 }];

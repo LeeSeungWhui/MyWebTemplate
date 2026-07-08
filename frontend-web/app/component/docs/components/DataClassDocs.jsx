@@ -8,46 +8,63 @@ import { easyObjExampleList, easyListExampleList } from '../examples/DataClassEx
 import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';
 
+const dataClassPropList = [
+    { name: 'EasyObj', description: '객체 상태를 프록시로 래핑해 중첩 속성 변경을 추적' },
+    { name: 'EasyList', description: '배열 상태에 push/pop/forAll 같은 조작 메서드 제공' },
+    { name: 'forAll', description: '목록 전체를 순회하며 각 항목을 직접 수정' },
+    { name: 'toJS', description: '프록시 상태를 순수 JavaScript 구조로 변환' },
+];
+
+const dataClassExampleSectionList = [
+    {
+        id: 'dataclass-easyobj',
+        eyebrow: 'EXAMPLE 1',
+        title: 'EasyObj',
+        summary: '프로필처럼 중첩된 객체 상태를 setter 없이 직접 갱신합니다.',
+        example: easyObjExampleList[0],
+    },
+    {
+        id: 'dataclass-easylist',
+        eyebrow: 'EXAMPLE 2',
+        title: 'EasyList',
+        summary: '업무 목록처럼 반복되는 배열 상태를 CRUD 메서드로 다룹니다.',
+        example: easyListExampleList[0],
+    },
+];
+
 /**
  * @description EasyObj/EasyList 문서 섹션을 구성하고 예제 목록을 렌더링. 입력/출력 계약을 함께 명시
  * @returns {JSX.Element}
  */
 const DataClassDocs = () => {
-  return <DocSection id="dataclass" title="1. 데이터 클래스 (Data Class)" description={<div>
-                    <p>EasyObj와 EasyList는 React에서 복잡한 상태 관리를 단순화하는 데이터 클래스입니다.</p>
-                    <p>객체나 배열의 중첩된 속성까지 자동으로 상태를 관리하며, 직관적인 방식으로 데이터를 조작할 수 있습니다.</p>
-                    <p>useState와 달리 상태 변경 시 setter 함수를 호출할 필요가 없으며, 불변성을 자동으로 관리합니다.</p>
-                    <ul className="list-disc pl-5 mt-2 text-sm text-gray-600">
-                        <li><code>EasyObj</code>: 객체 형태 상태를 프록시로 래핑</li>
-                        <li><code>EasyList</code>: 배열 상태에 CRUD 메서드 제공</li>
-                        <li><code>forAll</code>: 모든 항목 순회하며 수정</li>
-                        <li><code>toJS</code>: 순수 JS 구조로 변환</li>
-                    </ul>
+    return <DocSection id="dataclass" title="1. 데이터 클래스 (Data Class)" description={<div className="space-y-4 rounded-xl bg-slate-50/80 p-5 text-sm text-slate-700 ring-1 ring-slate-900/5">
+                    <p>EasyObj와 EasyList는 템플릿 화면에서 반복되는 상태 조작을 단순화하는 데이터 헬퍼입니다. 객체/배열을 직접 다루는 문법을 유지하면서 React 렌더링과 상태 추적을 맞춥니다.</p>
+                    <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
+                        {dataClassPropList.map((propItem) => (
+                            <div key={propItem.name} className="rounded-lg bg-white px-3 py-2 ring-1 ring-slate-200/80">
+                                <code className="text-xs font-semibold text-indigo-700">{propItem.name}</code>
+                                <p className="mt-1 text-xs text-slate-500">{propItem.description}</p>
+                            </div>
+                        ))}
+                    </div>
                 </div>}>
-            <div id="dataclass-easyobj" className="mb-8">
-                <h3 className="text-lg font-medium mb-4">EasyObj</h3>
-                <div className="grid grid-cols-1 gap-8">
-                    <div>
-                        {easyObjExampleList[0].component}
-                        <div className="mt-2 text-sm text-gray-600">
-                            {easyObjExampleList[0].description}
+            <div className="space-y-8">
+                {dataClassExampleSectionList.map((exampleSection) => (
+                    <div key={exampleSection.id} id={exampleSection.id} className="scroll-mt-24 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-900/5">
+                        <div className="mb-4 flex flex-col gap-1">
+                            <span className="text-xs font-semibold uppercase tracking-wide text-indigo-600">{exampleSection.eyebrow}</span>
+                            <h3 className="text-lg font-semibold tracking-tight text-slate-950">{exampleSection.title}</h3>
+                            <p className="text-sm text-slate-500">{exampleSection.summary}</p>
                         </div>
-                        <CodeBlock code={easyObjExampleList[0].code} />
-                    </div>
-                </div>
-            </div>
-
-            <div id="dataclass-easylist" className="mb-8">
-                <h3 className="text-lg font-medium mb-4">EasyList</h3>
-                <div className="grid grid-cols-1 gap-8">
-                    <div>
-                        {easyListExampleList[0].component}
-                        <div className="mt-2 text-sm text-gray-600">
-                            {easyListExampleList[0].description}
+                        <div className="rounded-xl bg-slate-50/80 p-5 ring-1 ring-slate-200/80">
+                            {exampleSection.example.component}
                         </div>
-                        <CodeBlock code={easyListExampleList[0].code} />
+                        <div className="mt-3 text-sm text-slate-600">{exampleSection.example.description}</div>
+                        <div className="mt-4">
+                            <CodeBlock code={exampleSection.example.code} />
+                        </div>
                     </div>
-                </div>
+                ))}
             </div>
         </DocSection>;
 };

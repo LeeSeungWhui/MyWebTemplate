@@ -13,92 +13,73 @@ import * as Lib from '@/app/lib';
  */
 export const variantExampleList = [{
   exampleId: 'primary',
-  component: <Lib.Button>기본 버튼</Lib.Button>,
-  description: "기본 버튼 (Primary)",
-  code: "<Lib.Button>기본 버튼</Lib.Button>"
+  component: <Lib.Button icon="md:MdAdd">새 작업</Lib.Button>,
+  description: "가장 중요한 기본 CTA",
+  code: '<Lib.Button icon="md:MdAdd">새 작업</Lib.Button>'
 }, {
   exampleId: 'secondary',
-  component: <Lib.Button variant="secondary">Secondary</Lib.Button>,
-  description: "Secondary 버튼",
-  code: '<Lib.Button variant="secondary">Secondary</Lib.Button>'
+  component: <Lib.Button variant="secondary">임시저장</Lib.Button>,
+  description: "보조 액션",
+  code: '<Lib.Button variant="secondary">임시저장</Lib.Button>'
 }, {
   exampleId: 'outline',
-  component: <Lib.Button variant="outline">Outline</Lib.Button>,
-  description: "Outline 버튼",
-  code: '<Lib.Button variant="outline">Outline</Lib.Button>'
+  component: <Lib.Button variant="outline">미리보기</Lib.Button>,
+  description: "강조도를 낮춘 액션",
+  code: '<Lib.Button variant="outline">미리보기</Lib.Button>'
 }, {
   exampleId: 'ghost',
-  component: <Lib.Button variant="ghost">Ghost</Lib.Button>,
-  description: "Ghost 버튼",
-  code: '<Lib.Button variant="ghost">Ghost</Lib.Button>'
+  component: <Lib.Button variant="ghost">취소</Lib.Button>,
+  description: "배경이 없는 보조 액션",
+  code: '<Lib.Button variant="ghost">취소</Lib.Button>'
 }, {
   exampleId: 'danger',
-  component: <Lib.Button variant="danger">Danger</Lib.Button>,
-  description: "Danger 버튼",
-  code: '<Lib.Button variant="danger">Danger</Lib.Button>'
+  component: <Lib.Button variant="danger" icon="md:MdDelete">삭제</Lib.Button>,
+  description: "파괴적 액션",
+  code: '<Lib.Button variant="danger" icon="md:MdDelete">삭제</Lib.Button>'
 }, {
   exampleId: 'success',
-  component: <Lib.Button variant="success">Success</Lib.Button>,
-  description: "Success 버튼",
-  code: '<Lib.Button variant="success">Success</Lib.Button>'
+  component: <Lib.Button variant="success" icon="md:MdCheck">승인</Lib.Button>,
+  description: "성공/승인 액션",
+  code: '<Lib.Button variant="success" icon="md:MdCheck">승인</Lib.Button>'
 }, {
   exampleId: 'warning',
-  component: <Lib.Button variant="warning">Warning</Lib.Button>,
-  description: "Warning 버튼",
-  code: '<Lib.Button variant="warning">Warning</Lib.Button>'
+  component: <Lib.Button variant="warning" icon="md:MdWarning">확인 필요</Lib.Button>,
+  description: "주의가 필요한 액션",
+  code: '<Lib.Button variant="warning" icon="md:MdWarning">확인 필요</Lib.Button>'
 }, {
   exampleId: 'link',
-  component: <Lib.Button variant="link">Link Button</Lib.Button>,
-  description: "Link 스타일 버튼",
-  code: '<Lib.Button variant="link">Link Button</Lib.Button>'
+  component: <Lib.Button variant="link" icon="md:MdOpenInNew" iconPosition="right">자세히 보기</Lib.Button>,
+  description: "텍스트 링크형 액션",
+  code: '<Lib.Button variant="link" icon="md:MdOpenInNew" iconPosition="right">자세히 보기</Lib.Button>'
 }, {
   exampleId: 'dark',
-  component: <Lib.Button variant="dark">Dark</Lib.Button>,
+  component: <Lib.Button variant="dark">관리자 실행</Lib.Button>,
   description: "Dark 버튼",
-  code: '<Lib.Button variant="dark">Dark</Lib.Button>'
-}, {
-  exampleId: 'gradient',
-  component: <Lib.Button className="bg-gradient-to-r from-purple-500 to-pink-500
-                hover:from-purple-600 hover:to-pink-600">
-                그라데이션
-            </Lib.Button>,
-  description: "커스텀 버튼",
-  code: `<Lib.Button
-    className="bg-gradient-to-r from-purple-500 to-pink-500
-    hover:from-purple-600 hover:to-pink-600"
->
-    그라데이션
-</Lib.Button>`
-}, {
-  exampleId: 'icon',
-  component: <Lib.Button>
-                <Lib.Icon icon="ri:RiSearchLine" className="w-5 h-5 mr-2" />
-                검색
-            </Lib.Button>,
-  description: "아이콘이 있는 버튼",
-  code: `<Lib.Button>
-    <Lib.Icon icon="ri:RiSearchLine" className="w-5 h-5 mr-2" />
-    검색
-</Lib.Button>`
-}, {
-  exampleId: 'disabled',
-  component: <Lib.Button disabled>Disabled</Lib.Button>,
-  description: "비활성화 버튼",
-  code: '<Lib.Button disabled>Disabled</Lib.Button>'
+  code: '<Lib.Button variant="dark">관리자 실행</Lib.Button>'
 }];
 export const sizeExampleList = [{
   exampleId: 'small',
   component: <Lib.Button size="sm">Small</Lib.Button>,
-  description: "Small 버튼",
+  description: "테이블 행과 compact toolbar에 맞는 sm",
   code: '<Lib.Button size="sm">Small</Lib.Button>'
 }, {
   exampleId: 'medium',
-  component: <Lib.Button size="md">Medium</Lib.Button>,
-  description: "Medium 버튼",
-  code: '<Lib.Button size="md">Medium</Lib.Button>'
+  component: <Lib.Button size="md" icon="ri:RiSearchLine">검색</Lib.Button>,
+  description: "기본 폼 액션에 맞는 md + 아이콘",
+  code: '<Lib.Button size="md" icon="ri:RiSearchLine">검색</Lib.Button>'
 }, {
   exampleId: 'large',
   component: <Lib.Button size="lg">Large</Lib.Button>,
-  description: "Large 버튼",
+  description: "강조 CTA에 맞는 lg",
   code: '<Lib.Button size="lg">Large</Lib.Button>'
+}, {
+  exampleId: 'loading',
+  component: <Lib.Button loading>저장 중</Lib.Button>,
+  description: "loading은 aria-busy와 상태 안내를 함께 제공",
+  code: '<Lib.Button loading>저장 중</Lib.Button>'
+}, {
+  exampleId: 'disabled',
+  component: <Lib.Button disabled>권한 없음</Lib.Button>,
+  description: "비활성화 상태",
+  code: '<Lib.Button disabled>권한 없음</Lib.Button>'
 }];
