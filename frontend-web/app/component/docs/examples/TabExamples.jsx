@@ -17,22 +17,35 @@ const BasicTabDemo = () => {
   });
 
   return <Lib.Tab dataObj={tabDataObj} dataKey="selectedTab">
-      <Lib.Tab.Item title="첫번째 탭">
-        <div className="space-y-1">
-          <h4 className="font-semibold text-slate-900">첫번째 탭</h4>
-          첫번째 탭의 내용입니다.
+      <Lib.Tab.Item title="개요">
+        <div className="grid gap-3 sm:grid-cols-3">
+          <div className="rounded-lg bg-indigo-50 px-3 py-2 ring-1 ring-indigo-100">
+            <div className="text-xs font-semibold uppercase tracking-wide text-indigo-600">Tasks</div>
+            <div className="mt-1 text-lg font-semibold text-indigo-700">24</div>
+          </div>
+          <div className="rounded-lg bg-emerald-50 px-3 py-2 ring-1 ring-emerald-100">
+            <div className="text-xs font-semibold uppercase tracking-wide text-emerald-600">Done</div>
+            <div className="mt-1 text-lg font-semibold text-emerald-700">18</div>
+          </div>
+          <div className="rounded-lg bg-white px-3 py-2 ring-1 ring-slate-200/80">
+            <div className="text-xs font-semibold uppercase tracking-wide text-slate-500">Review</div>
+            <div className="mt-1 text-lg font-semibold text-slate-950">6</div>
+          </div>
         </div>
       </Lib.Tab.Item>
-      <Lib.Tab.Item title="두번째 탭">
-        <div className="space-y-1">
-          <h4 className="font-semibold text-slate-900">두번째 탭</h4>
-          두번째 탭의 내용입니다.
+      <Lib.Tab.Item title="활동">
+        <div className="space-y-2">
+          {['요구사항 검토 완료', '디자인 QA 캡쳐 추가', '배포 smoke 통과'].map((textItem) => (
+            <div key={textItem} className="flex items-center gap-2 rounded-lg bg-slate-50 px-3 py-2 text-sm text-slate-700 ring-1 ring-slate-200/80">
+              <span className="h-2 w-2 rounded-full bg-indigo-500" aria-hidden="true" />
+              {textItem}
+            </div>
+          ))}
         </div>
       </Lib.Tab.Item>
-      <Lib.Tab.Item title="세번째 탭">
-        <div className="space-y-1">
-          <h4 className="font-semibold text-slate-900">세번째 탭</h4>
-          세번째 탭의 내용입니다.
+      <Lib.Tab.Item title="메모">
+        <div className="rounded-lg bg-slate-950 p-4 text-sm text-slate-200">
+          탭 상태는 EasyObj에 저장되며, 같은 dataKey를 바라보는 다른 UI와도 상태를 맞출 수 있습니다.
         </div>
       </Lib.Tab.Item>
     </Lib.Tab>;
@@ -45,17 +58,48 @@ const BasicTabDemo = () => {
 const CtrlTabDemo = () => {
   const [activeTab, setActiveTab] = useState(0);
 
-  return <Lib.Tab tabIndex={activeTab} onChange={setActiveTab}>
-      <Lib.Tab.Item title="프로필">
-        <div className="space-y-2">
-          <h3 className="font-semibold text-slate-900">사용자 프로필</h3>
-          <p className="text-slate-600">tabIndex와 onChange를 직접 연결한 제어 탭 예시입니다.</p>
+  return <div className="space-y-3">
+      <div className="inline-flex rounded-full bg-indigo-50 px-3 py-1 text-xs font-semibold text-indigo-700 ring-1 ring-indigo-100" aria-live="polite">
+        activeTab: {activeTab}
+      </div>
+      <Lib.Tab tabIndex={activeTab} onChange={setActiveTab}>
+        <Lib.Tab.Item title="프로필">
+          <div className="space-y-2">
+            <h3 className="font-semibold text-slate-900">사용자 프로필</h3>
+            <p className="text-slate-600">tabIndex와 onChange를 직접 연결한 제어 탭 예시입니다.</p>
+          </div>
+        </Lib.Tab.Item>
+        <Lib.Tab.Item title="설정">
+          <div className="space-y-2">
+            <h3 className="font-semibold text-slate-900">알림 설정</h3>
+            <p className="text-slate-600">외부 상태가 바뀌면 활성 탭과 보조 표시가 함께 동기화됩니다.</p>
+          </div>
+        </Lib.Tab.Item>
+      </Lib.Tab>
+    </div>;
+};
+
+/**
+ * @description StyleTabDemo 렌더링용 demo 컴포넌트. 입력/출력 계약을 함께 명시
+ * @returns {JSX.Element}
+ */
+const StyleTabDemo = () => {
+  const tabDataObj = Lib.EasyObj({
+    customTab: 0
+  });
+
+  return <Lib.Tab className="rounded-xl bg-white p-4 shadow-sm ring-1 ring-slate-200/80" dataObj={tabDataObj} dataKey="customTab">
+      <Lib.Tab.Item title="운영">
+        <div className="flex flex-wrap gap-2">
+          <Lib.Badge variant="success" pill>서비스 정상</Lib.Badge>
+          <Lib.Badge variant="primary" pill>응답 132ms</Lib.Badge>
+          <Lib.Badge variant="neutral" pill>배포 09:16</Lib.Badge>
         </div>
       </Lib.Tab.Item>
-      <Lib.Tab.Item title="설정">
-        <div className="space-y-2">
-          <h3 className="font-semibold text-slate-900">설정</h3>
-          <p className="text-slate-600">tabIndex와 onChange props를 사용합니다.</p>
+      <Lib.Tab.Item title="품질">
+        <div className="grid gap-2 sm:grid-cols-2">
+          <div className="rounded-lg bg-slate-50 px-3 py-2 ring-1 ring-slate-200/80">rule-gate PASS</div>
+          <div className="rounded-lg bg-slate-50 px-3 py-2 ring-1 ring-slate-200/80">smoke PASS</div>
         </div>
       </Lib.Tab.Item>
     </Lib.Tab>;
@@ -72,36 +116,13 @@ const UnderlineTabDemo = () => {
 
   return <Lib.Tab variant="underline" dataObj={tabDataObj} dataKey="underlineTab">
       <Lib.Tab.Item title="요약">
-        <div>
+        <div className="rounded-lg bg-white p-4 shadow-sm ring-1 ring-slate-200/80">
           밑줄형 탭은 밀도 높은 화면에서 콘텐츠 패널을 과하게 감싸지 않고 사용할 수 있습니다.
         </div>
       </Lib.Tab.Item>
       <Lib.Tab.Item title="상세">
-        <div>
+        <div className="rounded-lg bg-white p-4 shadow-sm ring-1 ring-slate-200/80">
           active 상태는 indigo underline으로 유지하고, inactive 상태는 slate hover로 정리합니다.
-        </div>
-      </Lib.Tab.Item>
-    </Lib.Tab>;
-};
-
-/**
- * @description StyleTabDemo 렌더링용 demo 컴포넌트. 입력/출력 계약을 함께 명시
- * @returns {JSX.Element}
- */
-const StyleTabDemo = () => {
-  const tabDataObj = Lib.EasyObj({
-    customTab: 0
-  });
-
-  return <Lib.Tab className="rounded-xl bg-slate-50 p-4 ring-1 ring-slate-200/80" dataObj={tabDataObj} dataKey="customTab">
-      <Lib.Tab.Item title="커스텀 스타일">
-        <div>
-          className prop으로 커스텀 스타일을 적용할 수 있습니다.
-        </div>
-      </Lib.Tab.Item>
-      <Lib.Tab.Item title="두번째">
-        <div>
-          Tailwind 클래스를 사용해서 쉽게 스타일링이 가능합니다.
         </div>
       </Lib.Tab.Item>
     </Lib.Tab>;
@@ -118,18 +139,18 @@ const IconTabDemo = () => {
 
   return <Lib.Tab dataObj={tabDataObj} dataKey="iconTab">
       <Lib.Tab.Item title={<div className="flex items-center gap-2">
-            <Lib.Icon icon="md:MdHome" className="w-5 h-5" />
+            <Lib.Icon icon="md:MdHome" className="h-5 w-5" />
             <span>홈</span>
           </div>}>
-        <div>
+        <div className="rounded-lg bg-slate-50 p-4 ring-1 ring-slate-200/80">
           탭 제목에 아이콘과 텍스트를 함께 사용할 수 있습니다.
         </div>
       </Lib.Tab.Item>
       <Lib.Tab.Item title={<div className="flex items-center gap-2">
-            <Lib.Icon icon="md:MdSettings" className="w-5 h-5" />
+            <Lib.Icon icon="md:MdSettings" className="h-5 w-5" />
             <span>설정</span>
           </div>}>
-        <div>
+        <div className="rounded-lg bg-slate-50 p-4 ring-1 ring-slate-200/80">
           title prop에 JSX를 전달하여 자유롭게 커스터마이징이 가능합니다.
         </div>
       </Lib.Tab.Item>
@@ -139,7 +160,7 @@ const IconTabDemo = () => {
 export const basicExampleObj = {
   exampleId: 'basic',
   component: <BasicTabDemo />,
-  description: 'EasyObj를 사용한 기본 탭',
+  description: 'EasyObj를 사용한 기본 segmented 탭',
   code: `const tabDataObj = Lib.EasyObj({
     selectedTab: 0
 });
@@ -150,7 +171,7 @@ export const basicExampleObj = {
 export const controlExampleObj = {
   exampleId: 'controlled',
   component: <CtrlTabDemo />,
-  description: 'tabIndex와 onChange 제어 예시',
+  description: 'tabIndex와 onChange를 외부 상태에 연결한 제어 예시',
   code: `const [activeTab, setActiveTab] = useState(0);
 
 <Lib.Tab tabIndex={activeTab} onChange={setActiveTab}>...</Lib.Tab>`
@@ -159,16 +180,16 @@ export const controlExampleObj = {
 export const underlineExampleObj = {
   exampleId: 'underline',
   component: <UnderlineTabDemo />,
-  description: 'variant="underline" 밑줄 스타일',
+  description: 'variant="underline" 밑줄 스타일을 prop으로 유지',
   code: `<Lib.Tab variant="underline" dataObj={tabDataObj} dataKey="underlineTab">...</Lib.Tab>`
 };
 
 export const styleExampleObj = {
   exampleId: 'style',
   component: <StyleTabDemo />,
-  description: '커스텀 스타일링',
+  description: 'className으로 주변 surface를 조정한 커스텀 스타일링',
   code: `<Lib.Tab
-    className="rounded-xl bg-slate-50 p-4 ring-1 ring-slate-200/80"
+    className="rounded-xl bg-white p-4 shadow-sm ring-1 ring-slate-200/80"
     dataObj={tabDataObj}
     dataKey="customTab"
 >...</Lib.Tab>`
