@@ -29,6 +29,10 @@ const LoginView = ({ initialDataObj, initialErrorObj }) => {
   /* 1. 상수 ======================================================================================================================= */
   const minUsernameLength = 3;
   const minPasswordLength = 8;
+  const demoAccountObj = {
+    email: "demo@demo.demo",
+    password: "password123",
+  };
 
   /* 2. 데이터 ======================================================================================================================= */
   const loginObj = EasyObj({
@@ -93,6 +97,18 @@ const LoginView = ({ initialDataObj, initialErrorObj }) => {
    */
   const sanitizeRedirect = (candidate) => {
     return sanitizeInternalPath(candidate, null);
+  };
+
+  /**
+   * @description 샘플 체험용 데모 계정을 로그인 폼에 입력
+   * 처리 규칙: 사용자가 직접 로그인 버튼을 눌러 흐름을 확인할 수 있도록 제출은 자동 실행하지 않는다.
+   */
+  const fillDemoAccount = () => {
+    loginObj.set("email", demoAccountObj.email);
+    loginObj.set("password", demoAccountObj.password);
+    loginObj.set("errors.email", "");
+    loginObj.set("errors.password", "");
+    ui.formError = "";
   };
 
   /**
@@ -296,9 +312,22 @@ const LoginView = ({ initialDataObj, initialErrorObj }) => {
             <p className="text-sm text-gray-600">
               {LANG_KO.view.form.subtitle}
             </p>
+            <p className="mt-3 rounded-lg bg-blue-50 px-3 py-2 text-xs font-medium text-blue-700">
+              {LANG_KO.view.form.demoHint}
+            </p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6" noValidate>
+            <Button
+              type="button"
+              variant="outline"
+              size="md"
+              className="w-full"
+              onClick={fillDemoAccount}
+            >
+              {LANG_KO.view.form.demoFillLabel}
+            </Button>
+
             {ui.formError ? (
               <div
                 ref={errorSummaryRef}

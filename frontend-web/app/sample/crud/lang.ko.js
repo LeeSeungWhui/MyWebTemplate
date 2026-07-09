@@ -7,8 +7,8 @@
 
 export const LANG_KO = {
   page: {
-    metadataTitle: "CRUD Sample | MyWebTemplate",
-    metadataDescription: "공개 CRUD 샘플 화면",
+    metadataTitle: "업무 데이터 관리 샘플 | MyWebTemplate",
+    metadataDescription: "공개 업무 데이터 관리 샘플 화면",
   },
   initData: {
     statusFilterList: [
@@ -158,8 +158,8 @@ export const LANG_KO = {
       failed: "danger",
     },
     section: {
-      title: "CRUD 관리 샘플",
-      subtitle: "공개 페이지에서 관리형 데이터 화면 구성을 체험할 수 있는 더미 샘플입니다.",
+      title: "업무 데이터 관리 샘플",
+      subtitle: "검색, 필터, 등록, 수정, 삭제까지 관리자 페이지에서 자주 쓰는 흐름을 샘플 데이터로 체험합니다.",
     },
     card: {
       filterTitle: "검색/필터",
@@ -221,7 +221,7 @@ export const LANG_KO = {
     },
     confirm: {
       removeOne: "정말 삭제하시겠습니까?",
-      removeOneTitle: "샘플 삭제",
+      removeOneTitle: "데이터 삭제",
       removeManyTitle: "일괄 삭제",
       removeManyTemplate: "선택된 {count}건을 삭제하시겠습니까?",
       removeManyTextSuffix: "건을 삭제하시겠습니까?",

@@ -7,8 +7,8 @@
 
 export const LANG_KO = {
   page: {
-    metadataTitle: "Admin Sample | MyWebTemplate",
-    metadataDescription: "공개 관리자 화면 샘플",
+    metadataTitle: "회원/권한 관리 샘플 | MyWebTemplate",
+    metadataDescription: "공개 회원/권한 관리 샘플",
   },
   initData: {
     tabList: [
@@ -89,8 +89,8 @@ export const LANG_KO = {
       maxUploadMb: 30,
     },
     section: {
-      title: "관리자 화면 샘플",
-      subtitle: "사용자/권한/설정 페이지 구성을 공개 샘플 형태로 보여줍니다.",
+      title: "회원/권한 관리 샘플",
+      subtitle: "사용자 목록, 역할 권한, 시스템 설정처럼 운영 관리에 필요한 화면 구성을 보여줍니다.",
     },
     card: {
       loadingTitle: "로딩 중",

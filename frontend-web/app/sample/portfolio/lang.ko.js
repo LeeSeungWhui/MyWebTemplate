@@ -15,7 +15,7 @@ export const LANG_KO = {
     heroBadge: "PUBLIC PORTFOLIO",
     sectionTitle: {
       overview: "프로젝트 개요",
-      profile: "Developer Profile (열고 닫기)",
+      profile: "개발자 프로필 (열고 닫기)",
       featuredProjects: "대표 프로젝트",
       careerTimeline: "회사별 경력(요약)",
       education: "학력",
@@ -45,15 +45,15 @@ export const LANG_KO = {
       hero: {
         title: "실무용 웹서비스 템플릿 포트폴리오",
         subtitle:
-          "관리자 화면이 필요한 서비스라면, 바로 체험하고 의사결정할 수 있게 구성한 샘플 포트폴리오입니다.",
+          "숨고·크몽 상담 전에 관리자 페이지, 데이터 관리, 신청 폼, 로그인 흐름을 직접 눌러볼 수 있게 구성한 샘플 포트폴리오입니다.",
         cta: [
-          { href: "/sample", label: "샘플 바로 체험" },
-          { href: "/component", label: "구성 요소 보기", variant: "outline" },
+          { href: "/sample", label: "샘플 화면 바로 체험" },
+          { href: "/component", label: "UI 구성 요소 보기", variant: "outline" },
         ],
         summary: [
           "처음 보는 사람도 1분 안에 주요 화면을 체험할 수 있게 설계",
-          "실제 운영에서 자주 쓰는 화면 흐름(로그인/대시보드/업무관리) 중심 구성",
-          "추가 기능 확장과 유지보수를 고려한 안정적인 기본 뼈대 제공",
+          "로그인, 대시보드, 업무 데이터 관리, 신청/문의 폼 중심 구성",
+          "프론트 화면, 백엔드 API, DB 저장, 배포까지 이어지는 기본 뼈대 제공",
         ],
       },
       overview: [
@@ -63,7 +63,7 @@ export const LANG_KO = {
         },
         {
           label: "주요 제공 화면",
-          value: "로그인, 대시보드, 업무관리, 설정",
+          value: "로그인, 대시보드, 데이터 관리, 신청 폼, 회원/권한 관리",
         },
         {
           label: "즉시 체험 가능",
@@ -79,12 +79,12 @@ export const LANG_KO = {
         {
           title: "실무형 업무 동선",
           detail:
-            "조회, 검색, 등록, 수정, 삭제까지 실제 운영 흐름에 맞춘 패턴으로 구성했습니다.",
+            "조회, 검색, 등록, 수정, 삭제와 신청/문의 접수까지 실제 운영 흐름에 맞춘 패턴으로 구성했습니다.",
         },
         {
           title: "빠른 커스터마이징",
           detail:
-            "브랜드 색상/문구/메뉴 구조만 바꿔도 빠르게 서비스형 화면으로 전환할 수 있습니다.",
+            "브랜드 색상, 문구, 메뉴 구조만 바꿔도 업종별 서비스 화면으로 빠르게 전환할 수 있습니다.",
         },
       ],
       architectureFlow: [
@@ -214,8 +214,8 @@ export const LANG_KO = {
       },
       role: [
         "요구사항 분석 및 화면 구조 설계",
-        "기능 구현과 데이터 흐름 연결",
-        "검수/수정 반영 및 문서 정리",
+        "프론트 화면과 백엔드 API/DB 흐름 연결",
+        "배포, 검수, 수정 반영 및 문서 정리",
       ],
       reliability: [
         "변경 시 동작 점검 가능한 테스트 세트 운영",
@@ -224,30 +224,30 @@ export const LANG_KO = {
       ],
       demoFlow: [
         {
-          name: "CRUD 샘플",
+          name: "업무 데이터 관리 샘플",
           path: "/sample/crud",
           note: "업무 목록 조회부터 등록/수정/삭제까지 한 번에 체험",
           imageSrc: "/images/landing/demo-crud.png",
-          imageAlt: "CRUD 관리 샘플 화면 미리보기",
+          imageAlt: "업무 데이터 관리 샘플 화면 미리보기",
         },
         {
-          name: "복합 폼 샘플",
+          name: "신청/문의 폼 샘플",
           path: "/sample/form",
-          note: "단계별 입력과 검증, 제출 흐름을 직관적으로 확인",
+          note: "단계별 입력과 검증, 제출/저장 흐름을 직관적으로 확인",
           imageSrc: "/images/landing/demo-form.png",
-          imageAlt: "복합 폼 샘플 화면 미리보기",
+          imageAlt: "신청 문의 폼 샘플 화면 미리보기",
         },
         {
-          name: "관리자 화면 샘플",
+          name: "회원/권한 관리 샘플",
           path: "/sample/admin",
-          note: "관리 기능 탭 구성과 운영 화면 구조를 빠르게 확인",
+          note: "사용자 목록, 역할 권한, 설정 탭 구조를 빠르게 확인",
           imageSrc: "/images/landing/demo-admin.png",
-          imageAlt: "관리자 화면 샘플 미리보기",
+          imageAlt: "회원 권한 관리 샘플 미리보기",
         },
       ],
       technicalNotes: [
-        "프론트엔드: Next.js 15(App Router), React 19",
-        "백엔드: FastAPI + SQLAlchemy",
+        "프론트엔드: Next.js 16(App Router), React 19",
+        "백엔드: FastAPI + PostgreSQL/SQLite 샘플 구성",
         "인증: HttpOnly Cookie 기반 세션 처리, Access/Refresh 회전 흐름 분리",
         "API 계층: BFF 라우트로 요청 경로를 통일해 SSR/CSR 동작 차이를 최소화",
         "미들웨어: 공개 경로/보호 경로 분리, 만료 토큰 재부트스트랩 후 목적지 복귀",

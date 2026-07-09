@@ -7,21 +7,21 @@
 
 export const LANG_KO = {
   page: {
-    metadataTitle: "Sample Dashboard | MyWebTemplate",
-    metadataDescription: "공개 샘플 대시보드",
+    metadataTitle: "업무 대시보드 샘플 | MyWebTemplate",
+    metadataDescription: "공개 업무 대시보드 샘플",
   },
   initData: {
     monthlyTrendLabels: ["11월", "12월", "1월", "2월"],
     recentTaskTitles: [
       "랜딩 페이지 공개 퍼널 정리",
       "샘플 허브 카드 구성 보강",
-      "CRUD 검색/필터 UX 점검",
-      "관리자 화면 탭 전환 QA",
+      "업무 데이터 검색/필터 UX 점검",
+      "회원/권한 관리 탭 전환 QA",
       "포트폴리오 시각 구성 리뉴얼",
     ],
     ctaLabels: {
-      crud: "CRUD 샘플 보기",
-      admin: "관리자 화면 보기",
+      crud: "업무 데이터 관리 보기",
+      admin: "회원/권한 관리 보기",
     },
   },
   view: {
@@ -54,7 +54,7 @@ export const LANG_KO = {
     },
     card: {
       recentTitle: "최근 업무",
-      recentSubtitle: "공개 샘플 대시보드는 읽기 전용으로 제공합니다.",
+      recentSubtitle: "공개 업무 대시보드는 읽기 전용 샘플로 제공합니다.",
     },
     quickLinkTitle: "바로 가기",
     number: {

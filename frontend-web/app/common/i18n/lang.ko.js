@@ -105,13 +105,13 @@ export const COMMON_COMPONENT_LANG_KO = {
     ],
     demoMenuList: [
       { href: "/sample", label: "샘플 허브" },
-      { href: "/sample/dashboard", label: "샘플 대시보드" },
-      { href: "/sample/crud", label: "CRUD 관리" },
-      { href: "/sample/form", label: "복합 폼" },
-      { href: "/sample/admin", label: "관리자 화면" },
+      { href: "/sample/dashboard", label: "업무 대시보드" },
+      { href: "/sample/crud", label: "업무 데이터 관리" },
+      { href: "/sample/form", label: "신청/문의 폼" },
+      { href: "/sample/admin", label: "회원/권한 관리" },
     ],
     publicMenuList: [
-      { href: "/component", label: "컴포넌트" },
+      { href: "/component", label: "UI 컴포넌트" },
       { href: "/sample/portfolio", label: "포트폴리오" },
     ],
     mobileMenuOpenAriaLabel: "모바일 메뉴 열기",

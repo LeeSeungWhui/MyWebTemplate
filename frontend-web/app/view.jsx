@@ -32,8 +32,10 @@ const HomeView = () => {
     },
   };
   const landingServiceList = LANG_KO.initData.services;
+  const landingTourList = LANG_KO.initData.tour;
   const landingGalleryList = LANG_KO.initData.gallery;
   const landingStackList = LANG_KO.initData.stackList;
+  const landingTrustList = LANG_KO.initData.trustList;
   const landingBottomCtaObj = {
     title: LANG_KO.initData.bottomCta.title,
     subtitle: LANG_KO.initData.bottomCta.subtitle,
@@ -146,6 +148,23 @@ const HomeView = () => {
         </div>
       </section>
 
+      <section className="mt-10 rounded-2xl border border-blue-100 bg-white px-6 py-7 shadow-sm">
+        <h2 className="text-2xl font-bold text-gray-900">{LANG_KO.view.section.tour}</h2>
+        <ol className="mt-5 grid gap-3 md:grid-cols-5">
+          {landingTourList.map((tourItem, index) => (
+            <li
+              key={tourItem}
+              className="rounded-xl bg-slate-50 p-4 text-sm leading-6 text-slate-700"
+            >
+              <span className="mb-3 inline-flex h-8 w-8 items-center justify-center rounded-full bg-blue-600 text-sm font-bold text-white">
+                {index + 1}
+              </span>
+              <p>{tourItem}</p>
+            </li>
+          ))}
+        </ol>
+      </section>
+
       <section className="mt-10">
         <h2 className="text-2xl font-bold text-gray-900">{LANG_KO.view.section.gallery}</h2>
         <div className="mt-5 grid gap-4 md:grid-cols-3">
@@ -185,6 +204,24 @@ const HomeView = () => {
             >
               {stackName}
             </span>
+          ))}
+        </div>
+      </section>
+
+      <section className="mt-10">
+        <h2 className="text-2xl font-bold text-gray-900">{LANG_KO.view.section.trust}</h2>
+        <div className="mt-5 grid gap-3 sm:grid-cols-2">
+          {landingTrustList.map((trustItem) => (
+            <div
+              key={trustItem}
+              className="flex items-start gap-3 rounded-xl border border-gray-200 bg-white p-4 text-sm leading-6 text-gray-700 shadow-sm"
+            >
+              <Icon
+                icon="ri:RiCheckboxCircleLine"
+                className="mt-0.5 shrink-0 text-lg text-emerald-600"
+              />
+              <p>{trustItem}</p>
+            </div>
           ))}
         </div>
       </section>

@@ -178,6 +178,17 @@ test("로그인 성공 시 next가 없으면 대시보드로 이동한다", asyn
   vi.unstubAllGlobals();
 });
 
+test("데모 계정 자동 입력 버튼으로 샘플 로그인 값을 채운다", async () => {
+  renderLogin();
+
+  fireEvent.click(screen.getByRole("button", { name: "데모 계정 자동 입력" }));
+
+  await waitFor(() => {
+    expect(screen.getByLabelText("이메일")).toHaveValue("demo@demo.demo");
+    expect(screen.getByLabelText("비밀번호")).toHaveValue("password123");
+  });
+});
+
 test("비밀번호 표시 토글 버튼으로 입력 타입을 전환한다", () => {
   renderLogin();
 

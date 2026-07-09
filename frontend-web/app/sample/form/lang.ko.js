@@ -7,8 +7,8 @@
 
 export const LANG_KO = {
   page: {
-    metadataTitle: "Form Sample | MyWebTemplate",
-    metadataDescription: "공개 복합 폼 샘플 화면",
+    metadataTitle: "신청/문의 폼 샘플 | MyWebTemplate",
+    metadataDescription: "공개 신청/문의 폼 샘플 화면",
   },
   initData: {
     categoryOptions: [
@@ -63,8 +63,8 @@ export const LANG_KO = {
       requiredFieldToast: "필수 입력값을 확인해주세요.",
     },
     page: {
-      title: "복합 폼 샘플",
-      subtitle: "스텝 전환/유효성 안내/제출 요약 흐름을 공개 페이지에서 체험할 수 있습니다.",
+      title: "신청/문의 폼 샘플",
+      subtitle: "단계별 입력, 유효성 안내, 제출 요약, 저장 흐름을 공개 페이지에서 체험할 수 있습니다.",
       loadingCardTitle: "로딩 중",
       loadingCardBody: "데이터를 준비하는 중입니다...",
     },
@@ -74,7 +74,7 @@ export const LANG_KO = {
       step3Title: "확인/제출",
       submissionTitlePrefix: "누적 제출",
       submissionTitleSuffix: "건",
-      submissionDescription: "공개 sample 폼은 제출 시 DB에 저장되고, 최신 제출 이력도 함께 갱신된다.",
+      submissionDescription: "이 샘플 폼은 제출 시 DB에 저장되고, 최신 제출 이력도 함께 갱신됩니다.",
       latestSubmissionTitle: "최근 제출",
       latestSubmissionEmpty: "아직 저장된 제출 이력이 없습니다.",
     },
