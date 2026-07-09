@@ -33,6 +33,13 @@ def testSampleOverviewAndDashboardArePublic():
         assert isinstance(dashboardResult["statusSummaryList"], list)
         assert isinstance(dashboardResult["recentList"], list)
         assert len(dashboardResult["recentList"]) >= 1
+        recentTitleList = [row["title"] for row in dashboardResult["recentList"]]
+        assert "고객 상담용 샘플 시나리오 작성" in recentTitleList
+        assert "공개 화면 이동 경로 점검" in recentTitleList
+        assert "고객 문의 데이터 정리" in recentTitleList
+        assert "숨고/크몽 샘플 시나리오 작성" not in recentTitleList
+        assert "미들웨어 공개 경로 점검" not in recentTitleList
+        assert "T_DATA 샘플 데이터 정리" not in recentTitleList
 
 
 def testSampleTaskCrudFlow():

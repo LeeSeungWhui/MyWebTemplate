@@ -436,6 +436,49 @@ def readModelValue(row: dict[str, Any], *keys: str, defaultValue: Any = None) ->
     return defaultValue
 
 
+PUBLIC_TASK_COPY_OVERRIDES = (
+    (
+        "T_DATA 샘플 데이터 정리",
+        "고객 문의 데이터 정리",
+        "문의 유형과 처리 상태 정리",
+        "운영팀",
+        "customer_request_sample.xlsx",
+    ),
+    (
+        "미들웨어 공개 경로 점검",
+        "공개 화면 이동 경로 점검",
+        "고객이 보는 화면 이동 흐름 확인",
+        "운영팀",
+        "navigation_checklist.pdf",
+    ),
+    (
+        "숨고/크몽 샘플 시나리오 작성",
+        "고객 상담용 샘플 시나리오 작성",
+        "상담 전 확인할 샘플 화면 안내 흐름 정리",
+        "",
+        "sample_guide.docx",
+    ),
+)
+
+
+def applyPublicTaskCopy(taskModel: dict[str, Any]) -> dict[str, Any]:
+    """
+    설명: 기존 공개 샘플 시드의 개발 내부 용어를 고객용 표시 문구로 치환
+    처리 규칙: DB 값을 직접 수정하지 않고 API 응답 모델의 표시 필드만 보정한다.
+    반환값: 공개 sample 업무 표시 모델 dict
+    갱신일: 2026-07-09
+    """
+    originalTitle = str(taskModel.get("title") or "")
+    for originalTitleText, title, description, owner, attachmentName in PUBLIC_TASK_COPY_OVERRIDES:
+        if originalTitle != originalTitleText:
+            continue
+        nextTaskModel = {**taskModel, "title": title, "description": description, "attachmentName": attachmentName}
+        if owner:
+            nextTaskModel["owner"] = owner
+        return nextTaskModel
+    return taskModel
+
+
 def toTaskModel(row: dict[str, Any]) -> dict[str, Any]:
     """
     설명: T_SAMPLE_TASK 조회 행을 프론트 응답용 camelCase 모델로 변환
@@ -444,7 +487,7 @@ def toTaskModel(row: dict[str, Any]) -> dict[str, Any]:
     갱신일: 2026-03-06
     """
     source = convertKeysToCamelCase(row)
-    return {
+    return applyPublicTaskCopy({
         "id": readModelValue(source, "id", "taskNo"),
         "title": readModelValue(source, "title", "dataNm", defaultValue=""),
         "description": readModelValue(source, "description", "dataDesc", defaultValue=""),
@@ -453,7 +496,7 @@ def toTaskModel(row: dict[str, Any]) -> dict[str, Any]:
         "amount": normalizeAmount(readModelValue(source, "amount", "amt")),
         "attachmentName": readModelValue(source, "attachmentName", "attachNm", defaultValue=""),
         "createdAt": readModelValue(source, "createdAt", "regDt"),
-    }
+    })
 
 
 def toAdminUserModel(row: dict[str, Any]) -> dict[str, Any]:
