@@ -20,6 +20,7 @@ import EasyObj from "@/app/lib/dataset/EasyObj";
 import { PAGE_CONFIG } from "./initData";
 import { usePageData } from "@/app/lib/hooks/usePageData";
 import { apiJSON } from "@/app/lib/runtime/api";
+import { formatSampleDate } from "../formatSampleDate";
 import LANG_KO from "./lang.ko";
 
 /**
@@ -139,7 +140,10 @@ const FormDemoView = ({ initialDataObj, initialErrorObj }) => {
         ? latestSubmissionFeatureList.map((featureCode) => featureLabelMap[featureCode] || featureCode).join(", ")
         : "-",
     },
-    { label: LANG_KO.view.latestSubmissionLabel.createdAt, value: latestSubmissionObj?.createdAt || "-" },
+    {
+      label: LANG_KO.view.latestSubmissionLabel.createdAt,
+      value: formatSampleDate(latestSubmissionObj?.createdAt),
+    },
   ];
 
   /* 4. 팝업 ======================================================================================================================= */

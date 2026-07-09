@@ -7,7 +7,7 @@
 
 export const LANG_KO = {
   page: {
-    metadataTitle: "Portfolio | MyWebTemplate",
+    metadataTitle: "Portfolio | Web Sample",
     metadataDescription:
       "프로젝트 요약, 역할, 신뢰 포인트를 한 페이지에서 보여주는 웹 포트폴리오",
   },

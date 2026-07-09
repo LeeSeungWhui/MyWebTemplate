@@ -19,13 +19,16 @@ import { COMMON_COMPONENT_LANG_KO } from "@/app/common/i18n/lang.ko";
  * 처리 규칙: 데스크톱은 hover+pin 드롭다운, 모바일은 토글 드로어 메뉴 구조를 사용한다.
  */
 const PublicGnb = () => {
-  const pathname = usePathname() || "/";
+  const routePathname = usePathname();
+  const pathname = routePathname || "/";
   const ui = EasyObj({
     mobileOpen: false,
     demoMenuOpen: false,
     demoMenuPinned: false,
   });
+  const uiRef = useRef(ui);
   const demoMenuRef = useRef(null);
+  uiRef.current = ui;
 
   const demoPathText = String(pathname || "");
   const isDemoActive =
@@ -65,8 +68,9 @@ const PublicGnb = () => {
       if (!demoMenuRef.current || demoMenuRef.current.contains(event.target)) {
         return;
       }
-      ui.demoMenuPinned = false;
-      ui.demoMenuOpen = false;
+      const viewState = uiRef.current;
+      viewState.demoMenuPinned = false;
+      viewState.demoMenuOpen = false;
     };
 
     /**
@@ -76,8 +80,9 @@ const PublicGnb = () => {
      */
     const handleEscape = (event) => {
       if (event.key === "Escape") {
-        ui.demoMenuPinned = false;
-        ui.demoMenuOpen = false;
+        const viewState = uiRef.current;
+        viewState.demoMenuPinned = false;
+        viewState.demoMenuOpen = false;
       }
     };
 
@@ -87,16 +92,16 @@ const PublicGnb = () => {
       document.removeEventListener("pointerdown", handleDocPointerDown);
       document.removeEventListener("keydown", handleEscape);
     };
-  }, [ui]);
+  }, []);
 
   /**
    * @description route 변경 시 데모 드롭다운 pinned/open 상태 초기화
    * 처리 규칙: pathname 변경마다 demoMenuPinned/demoMenuOpen을 false로 설정한다.
    */
   useEffect(() => {
-    ui.demoMenuPinned = false;
-    ui.demoMenuOpen = false;
-  }, [pathname, ui]);
+    uiRef.current.demoMenuPinned = false;
+    uiRef.current.demoMenuOpen = false;
+  }, [pathname]);
 
   return (
     <header className="sticky top-0 z-50 border-b border-white/20 bg-white/80 backdrop-blur">
@@ -120,7 +125,7 @@ const PublicGnb = () => {
             className="inline-flex items-center gap-2 text-base font-semibold text-gray-900"
           >
             <Icon icon="ri:RiCodeBoxLine" className="text-blue-600" />
-            <span>MyWebTemplate</span>
+            <span>{COMMON_COMPONENT_LANG_KO.publicLayout.brandLabel}</span>
           </Link>
         </div>
 

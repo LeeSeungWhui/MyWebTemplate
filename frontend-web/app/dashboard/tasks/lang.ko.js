@@ -7,7 +7,7 @@
 
 export const LANG_KO = {
   page: {
-    metadataTitle: "Dashboard Tasks | MyWebTemplate",
+    metadataTitle: "Dashboard Tasks | Web Sample",
   },
   initData: {
     statusFilterList: [

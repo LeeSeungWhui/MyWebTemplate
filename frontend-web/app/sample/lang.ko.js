@@ -7,7 +7,7 @@
 
 export const LANG_KO = {
   page: {
-    metadataTitle: "Sample Hub | MyWebTemplate",
+    metadataTitle: "Sample Hub | Web Sample",
     metadataDescription: "공개 샘플 허브",
   },
   view: {
@@ -115,7 +115,7 @@ export const LANG_KO = {
       default: "공개 샘플 > 업무 데이터 관리",
     },
     helperText: "샘플 화면을 체험할 수 있어요.",
-    brandName: "MyWebTemplate",
+    brandName: "Web Sample",
     footerLinkList: [
       { linkId: "demo", linkNm: "샘플 허브", href: "/sample" },
       { linkId: "component", linkNm: "UI 컴포넌트", href: "/component" },

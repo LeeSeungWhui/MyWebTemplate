@@ -92,12 +92,12 @@ export const COMMON_COMPONENT_LANG_KO = {
     subMenuAriaSuffix: "하위 메뉴",
   },
   footer: {
-    defaultTextTemplate: "© {year} MyWebTemplate",
+    defaultTextTemplate: "© {year} Web Sample",
     defaultLinkLabel: "링크",
   },
   publicLayout: {
-    brandLabel: "MyWebTemplate",
-    copyrightTemplate: "© {year} MyWebTemplate. All rights reserved.",
+    brandLabel: "Web Sample",
+    copyrightTemplate: "© {year} Web Sample. All rights reserved.",
     footerLinkList: [
       { href: "/sample", label: "샘플 허브" },
       { href: "/component", label: "컴포넌트" },

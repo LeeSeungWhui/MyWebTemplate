@@ -7,7 +7,7 @@
 
 export const LANG_KO = {
   page: {
-    metadataTitle: "Dashboard | MyWebTemplate",
+    metadataTitle: "Dashboard | Web Sample",
     endpointMissingLog: "대시보드 엔드포인트가 설정되지 않았습니다.",
     initFetchFailedLog: "대시보드 초기 데이터 조회 실패",
   },
@@ -102,7 +102,7 @@ export const LANG_KO = {
     },
     tasksAllStatus: "전체 상태",
     welcomeText: "어서오세요.",
-    brandName: "MyWebTemplate",
+    brandName: "Web Sample",
     layoutAction: {
       goHome: "홈으로",
       logout: "로그아웃",

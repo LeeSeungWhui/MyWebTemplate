@@ -7,7 +7,7 @@
 
 export const LANG_KO = {
   page: {
-    metadataTitle: "업무 데이터 관리 샘플 | MyWebTemplate",
+    metadataTitle: "업무 데이터 관리 샘플 | Web Sample",
     metadataDescription: "공개 업무 데이터 관리 샘플 화면",
   },
   initData: {

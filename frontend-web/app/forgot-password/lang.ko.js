@@ -7,7 +7,7 @@
 
 export const LANG_KO = {
   page: {
-    metadataTitle: "Forgot Password | MyWebTemplate",
+    metadataTitle: "Forgot Password | Web Sample",
   },
   view: {
     validation: {

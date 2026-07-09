@@ -7,7 +7,7 @@
 
 export const LANG_KO = {
   page: {
-    metadataTitle: "회원/권한 관리 샘플 | MyWebTemplate",
+    metadataTitle: "회원/권한 관리 샘플 | Web Sample",
     metadataDescription: "공개 회원/권한 관리 샘플",
   },
   initData: {
@@ -82,7 +82,7 @@ export const LANG_KO = {
       { key: "deleteData", label: "데이터 삭제" },
     ],
     systemDefault: {
-      siteName: "MyWebTemplate",
+      siteName: "Web Sample",
       adminEmail: "admin@demo.demo",
       maintenanceMode: false,
       sessionTimeout: 60,

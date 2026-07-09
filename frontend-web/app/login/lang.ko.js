@@ -7,7 +7,7 @@
 
 export const LANG_KO = {
   page: {
-    metadataTitle: "Login | MyWebTemplate",
+    metadataTitle: "Login | Web Sample",
   },
   view: {
     toast: {

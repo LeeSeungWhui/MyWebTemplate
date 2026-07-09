@@ -13,6 +13,7 @@ import EasyTable from "@/app/lib/component/EasyTable";
 import Stat from "@/app/lib/component/Stat";
 import { PAGE_CONFIG } from "./initData";
 import { usePageData } from "@/app/lib/hooks/usePageData";
+import { formatSampleDate } from "../formatSampleDate";
 import LANG_KO from "./lang.ko";
 
 /**
@@ -99,7 +100,12 @@ const DemoDashboardView = ({ initialDataObj, initialErrorObj }) => {
       width: 140,
       render: (rowItem) => Number(rowItem?.amount || 0).toLocaleString("ko-KR"),
     },
-    { key: "createdAt", header: LANG_KO.view.table.createdAtHeader, width: 120 },
+    {
+      key: "createdAt",
+      header: LANG_KO.view.table.createdAtHeader,
+      width: 120,
+      render: (rowItem) => formatSampleDate(rowItem?.createdAt),
+    },
   ];
 
   /* 3. UI ========================================================================================================================= */

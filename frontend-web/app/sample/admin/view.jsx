@@ -25,6 +25,7 @@ import { useEasyList } from "@/app/lib/dataset/EasyList";
 import { PAGE_CONFIG } from "./initData";
 import { usePageData } from "@/app/lib/hooks/usePageData";
 import { apiJSON } from "@/app/lib/runtime/api";
+import { formatSampleDate } from "../formatSampleDate";
 import LANG_KO from "./lang.ko";
 
 /**
@@ -172,7 +173,12 @@ const AdminDemoView = ({ initialDataObj, initialErrorObj }) => {
         </Badge>
       ),
     },
-    { key: "createdAt", header: LANG_KO.view.table.createdAtHeader, width: 120 },
+    {
+      key: "createdAt",
+      header: LANG_KO.view.table.createdAtHeader,
+      width: 120,
+      render: (rowItem) => formatSampleDate(rowItem?.createdAt),
+    },
     {
       key: "actions",
       header: LANG_KO.view.table.actionsHeader,

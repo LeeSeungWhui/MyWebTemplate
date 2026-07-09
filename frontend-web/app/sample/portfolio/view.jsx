@@ -11,6 +11,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { PAGE_CONFIG } from "./initData";
 import { usePageData } from "@/app/lib/hooks/usePageData";
+import { formatSampleDate } from "../formatSampleDate";
 import LANG_KO from "./lang.ko";
 
 /**
@@ -21,6 +22,7 @@ const PortfolioView = ({ initialDataObj, initialErrorObj }) => {
 
   /* 1. 상수 ======================================================================================================================= */
   const samplePortfolioContent = LANG_KO.initData.content;
+  const statusLabelMap = LANG_KO.view.statusLabelMap;
 
   /* 2. 데이터 ======================================================================================================================= */
   const { mode: pageMode, dataObj } = usePageData({
@@ -135,10 +137,10 @@ const PortfolioView = ({ initialDataObj, initialErrorObj }) => {
                 key={recentTaskObj.id}
                 className="rounded-xl border border-blue-100 bg-blue-50 p-4"
               >
-                <p className="text-xs text-blue-700">{recentTaskObj.createdAt || "-"}</p>
+                <p className="text-xs text-blue-700">{formatSampleDate(recentTaskObj.createdAt)}</p>
                 <p className="mt-2 text-sm font-semibold text-gray-900">{recentTaskObj.title || "-"}</p>
                 <p className="mt-1 text-xs text-gray-600">
-                  {LANG_KO.view.label.status}: {recentTaskObj.status || "-"}
+                  {LANG_KO.view.label.status}: {statusLabelMap[recentTaskObj.status] || recentTaskObj.status || "-"}
                 </p>
               </article>
             ))}

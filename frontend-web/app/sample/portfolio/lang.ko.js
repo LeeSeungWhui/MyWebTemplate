@@ -7,7 +7,7 @@
 
 export const LANG_KO = {
   page: {
-    metadataTitle: "Portfolio | MyWebTemplate",
+    metadataTitle: "Portfolio | Web Sample",
     metadataDescription:
       "프로젝트 요약, 역할, 신뢰 포인트를 한 페이지에서 보여주는 웹 포트폴리오",
   },
@@ -31,6 +31,13 @@ export const LANG_KO = {
       status: "상태",
       architectureDescription:
         "화면에서 요청한 정보가 어떤 단계로 처리되는지, 이해하기 쉽게 단순화해서 표현했습니다.",
+    },
+    statusLabelMap: {
+      ready: "준비",
+      pending: "대기",
+      running: "진행중",
+      done: "완료",
+      failed: "실패",
     },
     overviewCard: {
       taskCount: "업무 샘플 데이터",

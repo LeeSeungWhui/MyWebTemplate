@@ -7,11 +7,11 @@
 
 export const LANG_KO = {
   page: {
-    metadataTitle: "Dashboard Settings | MyWebTemplate",
+    metadataTitle: "Dashboard Settings | Web Sample",
   },
   initData: {
     systemDefault: {
-      siteName: "MyWebTemplate",
+      siteName: "Web Sample",
       maintenanceMode: false,
       sessionTimeoutMinutes: 60,
       maxUploadMb: 30,
