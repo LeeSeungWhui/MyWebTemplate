@@ -12,12 +12,13 @@ import * as Lib from '@/app/lib';
  */
 const BoundNumberDemo = () => {
   const numberDataObj = Lib.EasyObj({
-    qty: 1
+    seatCount: 3
   });
 
   return <div className="space-y-2">
-      <Lib.NumberInput dataObj={numberDataObj} dataKey="qty" min={0} step={1} />
-      <div className="text-xs text-gray-600">numberDataObj.qty = {String(numberDataObj.qty)}</div>
+      <label htmlFor="number-seat-count" className="block text-sm font-semibold text-slate-900">초대 좌석 수</label>
+      <Lib.NumberInput id="number-seat-count" dataObj={numberDataObj} dataKey="seatCount" min={1} max={20} step={1} className="max-w-xs" />
+      <div className="text-xs text-slate-500">form.seatCount = {String(numberDataObj.seatCount)}명</div>
     </div>;
 };
 
@@ -27,10 +28,26 @@ const BoundNumberDemo = () => {
  */
 const RangeNumberDemo = () => {
   const priceDataObj = Lib.EasyObj({
-    price: 0
+    discountRate: 7.5
   });
 
-  return <Lib.NumberInput dataObj={priceDataObj} dataKey="price" min={0} max={100} step={0.5} />;
+  return <div className="space-y-2">
+      <label htmlFor="number-discount-rate" className="block text-sm font-semibold text-slate-900">할인율</label>
+      <Lib.NumberInput id="number-discount-rate" dataObj={priceDataObj} dataKey="discountRate" min={0} max={50} step={0.5} className="max-w-xs" />
+      <p className="text-xs text-slate-500">0.5% 단위로 0~50% 범위 안에서 조정합니다.</p>
+    </div>;
+};
+
+/**
+ * @description UnboundNumberDemo 렌더링용 demo 컴포넌트. 입력/출력 계약을 함께 명시
+ * @returns {JSX.Element}
+ */
+const UnboundNumberDemo = () => {
+  return <div className="space-y-2">
+      <label htmlFor="number-report-cycle" className="block text-sm font-semibold text-slate-900">리포트 주기</label>
+      <Lib.NumberInput id="number-report-cycle" defaultValue={10} min={5} step={5} className="max-w-xs" />
+      <p className="text-xs text-slate-500">간단한 독립 입력으로 5일 단위 초기값을 제공합니다.</p>
+    </div>;
 };
 
 /**
@@ -41,22 +58,36 @@ const RangeNumberDemo = () => {
 export const basicExampleObj = {
   exampleId: 'bound',
   component: <BoundNumberDemo />,
-  description: '기본: 바운드 + step 1',
-  code: `const numberDataObj = Lib.EasyObj({ qty: 1 });
+  description: '좌석 수처럼 최소/최대 범위가 있는 기본 바운드 숫자 입력',
+  code: `const numberDataObj = Lib.EasyObj({ seatCount: 3 });
 
-<Lib.NumberInput dataObj={numberDataObj} dataKey="qty" min={0} step={1} />`
+<Lib.NumberInput
+  id="number-seat-count"
+  dataObj={numberDataObj}
+  dataKey="seatCount"
+  min={1}
+  max={20}
+  step={1}
+/>`
 };
 
 export const rangeExampleObj = {
   exampleId: 'range',
   component: <RangeNumberDemo />,
-  description: 'min/max/step 조합',
-  code: '<Lib.NumberInput dataObj={priceDataObj} dataKey="price" min={0} max={100} step={0.5} />'
+  description: '소수 step을 쓰는 비율 입력과 min/max 보정',
+  code: `<Lib.NumberInput
+  id="number-discount-rate"
+  dataObj={priceDataObj}
+  dataKey="discountRate"
+  min={0}
+  max={50}
+  step={0.5}
+/>`
 };
 
 export const unboundExampleObj = {
   exampleId: 'unbound',
-  component: <Lib.NumberInput defaultValue={10} step={5} />,
-  description: '언바운드 + defaultValue',
-  code: '<Lib.NumberInput defaultValue={10} step={5} />'
+  component: <UnboundNumberDemo />,
+  description: 'state 바인딩 없이 defaultValue로 시작하는 독립 숫자 입력',
+  code: '<Lib.NumberInput id="number-report-cycle" defaultValue={10} min={5} step={5} />'
 };

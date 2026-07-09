@@ -12,12 +12,25 @@ import * as Lib from '@/app/lib';
  */
 const BoundTimeDemo = () => {
   const timeDataObj = Lib.EasyObj({
-    time: ''
+    sendTime: '09:30'
   });
 
   return <div className="space-y-2">
-      <Lib.TimeInput dataObj={timeDataObj} dataKey="time" />
-      <div className="text-xs text-gray-600">timeDataObj.time = {String(timeDataObj.time)}</div>
+      <label htmlFor="time-send" className="block text-sm font-semibold text-slate-900">알림 발송 시간</label>
+      <Lib.TimeInput id="time-send" dataObj={timeDataObj} dataKey="sendTime" step={30} className="max-w-xs" />
+      <div className="text-xs text-slate-500">notification.sendTime = {String(timeDataObj.sendTime)}</div>
+    </div>;
+};
+
+/**
+ * @description StepTimeDemo 렌더링용 demo 컴포넌트. 입력/출력 계약을 함께 명시
+ * @returns {JSX.Element}
+ */
+const StepTimeDemo = () => {
+  return <div className="space-y-2">
+      <label htmlFor="time-meeting" className="block text-sm font-semibold text-slate-900">미팅 시작 시간</label>
+      <Lib.TimeInput id="time-meeting" defaultValue="14:00" step={15} className="max-w-xs" />
+      <p className="text-xs text-slate-500">15분 단위 옵션으로 예약 시간을 선택합니다.</p>
     </div>;
 };
 
@@ -29,13 +42,18 @@ const BoundTimeDemo = () => {
 export const timeExampleList = [{
   exampleId: 'bound',
   component: <BoundTimeDemo />,
-  description: '기본: 바운드',
-  code: `const timeDataObj = Lib.EasyObj({ time: '' });
+  description: '알림 발송 시간을 EasyObj 필드에 바인딩',
+  code: `const timeDataObj = Lib.EasyObj({ sendTime: '09:30' });
 
-<Lib.TimeInput dataObj={timeDataObj} dataKey="time" />`
+<Lib.TimeInput
+  id="time-send"
+  dataObj={timeDataObj}
+  dataKey="sendTime"
+  step={30}
+/>`
 }, {
   exampleId: 'step',
-  component: <Lib.TimeInput defaultValue="09:30" step={60} />,
-  description: '기본값 + 분 단위(step)',
-  code: '<Lib.TimeInput defaultValue="09:30" step={60} />'
+  component: <StepTimeDemo />,
+  description: 'defaultValue와 15분 단위 옵션 목록',
+  code: '<Lib.TimeInput id="time-meeting" defaultValue="14:00" step={15} />'
 }];

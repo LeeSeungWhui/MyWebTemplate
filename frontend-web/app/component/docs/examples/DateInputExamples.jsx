@@ -12,12 +12,25 @@ import * as Lib from '@/app/lib';
  */
 const BoundDateDemo = () => {
   const dateDataObj = Lib.EasyObj({
-    date: ''
+    startDate: '2026-07-15'
   });
 
   return <div className="space-y-2">
-      <Lib.DateInput dataObj={dateDataObj} dataKey="date" />
-      <div className="text-xs text-gray-600">dateDataObj.date = {String(dateDataObj.date)}</div>
+      <label htmlFor="date-start" className="block text-sm font-semibold text-slate-900">프로젝트 시작일</label>
+      <Lib.DateInput id="date-start" dataObj={dateDataObj} dataKey="startDate" className="max-w-xs" />
+      <div className="text-xs text-slate-500">schedule.startDate = {String(dateDataObj.startDate)}</div>
+    </div>;
+};
+
+/**
+ * @description RangeDateDemo 렌더링용 demo 컴포넌트. 입력/출력 계약을 함께 명시
+ * @returns {JSX.Element}
+ */
+const RangeDateDemo = () => {
+  return <div className="space-y-2">
+      <label htmlFor="date-contract-end" className="block text-sm font-semibold text-slate-900">계약 종료일</label>
+      <Lib.DateInput id="date-contract-end" defaultValue="2026-12-31" min="2026-01-01" max="2026-12-31" className="max-w-xs" />
+      <p className="text-xs text-slate-500">2026년 계약 기간 안에서만 선택하도록 제한합니다.</p>
     </div>;
 };
 
@@ -29,13 +42,22 @@ const BoundDateDemo = () => {
 export const dateExampleList = [{
   exampleId: 'bound',
   component: <BoundDateDemo />,
-  description: '기본: 바운드',
-  code: `const dateDataObj = Lib.EasyObj({ date: '' });
+  description: '프로젝트 시작일을 EasyObj 필드에 바인딩',
+  code: `const dateDataObj = Lib.EasyObj({ startDate: '2026-07-15' });
 
-<Lib.DateInput dataObj={dateDataObj} dataKey="date" />`
+<Lib.DateInput
+  id="date-start"
+  dataObj={dateDataObj}
+  dataKey="startDate"
+/>`
 }, {
   exampleId: 'range',
-  component: <Lib.DateInput defaultValue="2025-01-01" min="2025-01-01" max="2025-12-31" />,
-  description: 'min/max + 기본값',
-  code: '<Lib.DateInput defaultValue="2025-01-01" min="2025-01-01" max="2025-12-31" />'
+  component: <RangeDateDemo />,
+  description: 'min/max와 defaultValue로 선택 가능 기간 제한',
+  code: `<Lib.DateInput
+  id="date-contract-end"
+  defaultValue="2026-12-31"
+  min="2026-01-01"
+  max="2026-12-31"
+/>`
 }];
