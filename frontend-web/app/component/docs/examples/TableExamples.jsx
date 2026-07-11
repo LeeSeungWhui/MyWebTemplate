@@ -147,7 +147,7 @@ export const cardExampleObj = {
 export const styleExampleObj = {
   exampleId: 'style',
   component: <Lib.EasyTable data={tableRowList} columns={tableStyleColList} headerClassName="bg-transparent gap-2" rowClassName="gap-2 !bg-transparent !border-0 hover:!bg-transparent" rowsClassName="mt-2 space-y-2" cellClassName="rounded-lg bg-white p-3 shadow-sm ring-1 ring-slate-200/80" pageSize={6} />,
-  description: '커스텀 스타일: 셀 rounded-lg + subtle ring/shadow, 헤더/행 gap으로 물리적 분리된 refined 스타일',
+  description: '사용자 정의 스타일: 셀에 rounded-lg와 ring/shadow를 적용하고 헤더·행 간격을 분리한 구성',
   code: `<Lib.EasyTable
   data={tableRowList}
   columns={tableStyleColList}

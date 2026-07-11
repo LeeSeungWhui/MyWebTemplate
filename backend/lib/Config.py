@@ -11,7 +11,7 @@ from __future__ import annotations
 
 from configparser import ConfigParser
 import os
-import sys
+from threading import RLock
 
 # 로거 (선택)
 try:
@@ -22,6 +22,15 @@ except Exception:  # pragma: no cover
 
 configCache: ConfigParser | None = None
 configCachePath: str | None = None
+configCacheLock = RLock()
+
+
+def runtimeConfigChangeError(reason: str) -> RuntimeError:
+    """설명: 런타임 설정 변경 거부 예외 생성 반환값: 프로세스 재시작 안내 RuntimeError. 갱신일: 2026-07-11"""
+    return RuntimeError(
+        f"{reason}. Runtime configuration is immutable after initialization; "
+        "restart the process to apply configuration changes."
+    )
 
 
 def backendDir() -> str:
@@ -60,7 +69,7 @@ def loadConfig(filename: str) -> ConfigParser:
         except Exception:
             pass
 
-    config = ConfigParser()
+    config = ConfigParser(interpolation=None)
 
 # backend/lib 경로를 backend 기준으로 보정
     configPath = resolvePath(filename)
@@ -77,41 +86,36 @@ def loadConfig(filename: str) -> ConfigParser:
 
 def getConfig(path: str | None = None, forceReload: bool = False) -> ConfigParser:
     """
-    설명: 설정 캐시 반환과 forceReload/경로 변경 시 설정 파일 재로딩
+    설명: 최초 설정을 원자적으로 로드한 뒤 프로세스 수명 동안 동일 캐시 반환
     처리 규칙: path 미지정이면 BACKEND_CONFIG 또는 기존 캐시 경로를 우선 사용
-    부작용: 재로딩 시 configCache/configCachePath를 갱신하고 파생 캐시를 무효화
+    처리 규칙: forceReload와 최초 로드 이후 경로 변경은 프로세스 재시작 안내와 함께 거부
+    부작용: 최초 로드 시 configCache/configCachePath를 원자적으로 갱신
     반환값: 현재 유효한 ConfigParser 인스턴스
-    갱신일: 2026-02-28
+    갱신일: 2026-07-11
     """
     global configCache, configCachePath
 
-    # 환경변수 우선
-    if path is None:
-        path = os.getenv("BACKEND_CONFIG", configCachePath or "config.ini")
+    if forceReload:
+        raise runtimeConfigChangeError("Runtime configuration reload is disabled")
 
-    resolved = resolvePath(path)
-    if forceReload or configCache is None or configCachePath != resolved:
-        configCache = loadConfig(path)
+    with configCacheLock:
+        if path is None:
+            path = os.getenv("BACKEND_CONFIG", configCachePath or "config.ini")
+
+        resolved = resolvePath(path)
+        if configCache is not None:
+            if configCachePath != resolved:
+                raise runtimeConfigChangeError(
+                    f"Runtime configuration path change is disabled ({configCachePath} -> {resolved})"
+                )
+            return configCache
+
+        loadedConfig = loadConfig(resolved)
+        configCache = loadedConfig
         configCachePath = resolved
-        clearConfigDependentCaches()
-    return configCache
+        return loadedConfig
 
 
 def reloadConfig() -> ConfigParser:
-    """설명: 캐시를 무시하고 설정 다시 반환값: 최신 설정 ConfigParser 인스턴스. 갱신일: 2025-11-12"""
-    return getConfig(forceReload=True)
-
-
-def clearConfigDependentCaches() -> None:
-    """
-    설명: 설정 파생 캐시(AuthRouter CORS rules 등) 무효화
-    부작용: AuthRouter.getCorsOriginRules.cache_clear()가 호출되어 CORS 룰 캐시가 비워진
-    갱신일: 2026-02-26
-    """
-    module = sys.modules.get("router.AuthRouter") or sys.modules.get("backend.router.AuthRouter")
-    if not module:
-        return
-    getCorsOriginRules = getattr(module, "getCorsOriginRules", None)
-    cacheClear = getattr(getCorsOriginRules, "cache_clear", None)
-    if callable(cacheClear):
-        cacheClear()
+    """설명: 런타임 재로딩을 거부하고 프로세스 재시작을 안내. 갱신일: 2026-07-11"""
+    raise runtimeConfigChangeError("Runtime configuration reload is disabled")

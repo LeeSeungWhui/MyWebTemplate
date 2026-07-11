@@ -18,7 +18,7 @@ import Color from '@tiptap/extension-color';
 import TextAlign from '@tiptap/extension-text-align';
 import { Extension } from '@tiptap/core';
 import { getBoundValue, setBoundValue, buildCtx, fireValueHandlers } from '../../binding';
-import { deepCloneValue, safeJsonParse } from '@/app/lib/runtime/json';
+import { deepCloneValue, parseJsonText } from '@/app/lib/runtime/json';
 import { COMMON_COMPONENT_LANG_KO } from '@/app/common/i18n/lang.ko';
 
 const EMPTY_EXTENSION_LIST = [];
@@ -102,7 +102,7 @@ const normaliseExternalValue = (value, format) => {
   if (!unwrappedValue) return createEmptyDoc();
 
   if (typeof unwrappedValue === 'string') {
-    const parsedValue = safeJsonParse(unwrappedValue, null);
+    const parsedValue = parseJsonText(unwrappedValue, null);
     if (parsedValue && typeof parsedValue === 'object') return parsedValue;
     return createEmptyDoc();
   }

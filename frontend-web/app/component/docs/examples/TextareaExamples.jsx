@@ -15,7 +15,7 @@ import { useState } from 'react';
  */
 const BoundTextareaDemo = () => {
   const textDataObj = Lib.EasyObj({
-    memo: '고객 온보딩 미팅에서 API 권한 범위와 첫 대시보드 지표를 확정했습니다.'
+    memo: '고객 상담에서 필요한 화면과 우선 제공할 기능을 확인했습니다.'
   });
 
   return <div className="space-y-3">
@@ -36,11 +36,11 @@ const BoundTextareaDemo = () => {
  * @returns {JSX.Element}
  */
 const CtrlTextareaDemo = () => {
-  const [textValue, setTextValue] = useState('이번 배포에는 컴포넌트 문서 정리와 폼 입력 예제 개선이 포함됩니다.');
+  const [textValue, setTextValue] = useState('고객 요청에 따라 신청서 항목과 관리자 확인 절차를 정리했습니다.');
 
   return <div className="space-y-3">
       <div>
-        <label htmlFor="textarea-controlled-note" className="block text-sm font-semibold text-slate-900">릴리즈 노트 초안</label>
+        <label htmlFor="textarea-controlled-note" className="block text-sm font-semibold text-slate-900">상담 내용 요약</label>
         <p className="mt-1 text-xs text-slate-500">React state를 단일 소스로 유지</p>
       </div>
       <Lib.Textarea id="textarea-controlled-note" value={textValue} onValueChange={setTextValue} rows={3} />
@@ -80,9 +80,9 @@ const ErrorTextareaDemo = () => {
 export const boundExampleObj = {
   exampleId: 'bound',
   component: <BoundTextareaDemo />,
-  description: 'dataObj + dataKey로 긴 메모 상태를 직접 바인딩',
+  description: 'dataObj + dataKey로 긴 메모 상태를 직접 연결',
   code: `const textDataObj = Lib.EasyObj({
-  memo: '고객 온보딩 미팅에서 API 권한 범위와 첫 대시보드 지표를 확정했습니다.',
+  memo: '고객 상담에서 필요한 화면과 우선 제공할 기능을 확인했습니다.',
 });
 
 <Lib.Textarea
@@ -98,7 +98,7 @@ export const controlExampleObj = {
   exampleId: 'controlled',
   component: <CtrlTextareaDemo />,
   description: 'value + onValueChange로 외부 상태와 동기화',
-  code: `const [textValue, setTextValue] = useState('이번 배포에는 컴포넌트 문서 정리와 폼 입력 예제 개선이 포함됩니다.');
+  code: `const [textValue, setTextValue] = useState('고객 요청에 따라 신청서 항목과 관리자 확인 절차를 정리했습니다.');
 
 <Lib.Textarea
   id="textarea-controlled-note"

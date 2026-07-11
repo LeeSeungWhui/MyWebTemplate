@@ -200,7 +200,7 @@ def testUserAccessLogStoresIpLocationForPrivateRange(monkeypatch):
 
     monkeypatch.setenv("TRUST_PROXY_HEADERS", "true")
 
-    with TestClient(app) as client:
+    with TestClient(app, client=("127.0.0.1", 50000)) as client:
         loginResponse = client.post(
             "/api/v1/auth/login",
             json={"username": "demo@demo.demo", "password": "password123"},

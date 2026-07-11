@@ -7,8 +7,10 @@
 
 import importlib
 import ipaddress
+import json
 import os
 import pkgutil
+import re
 from urllib.parse import quote_plus
 
 import router
@@ -34,6 +36,7 @@ from lib.Middleware import (
     RequestLogMiddleware,
     SecurityHeadersMiddleware,
     applyDefaultSecurityHeaders,
+    drainUserAccessLogTasks,
 )
 from lib.OpenAPI import attachOpenAPI
 from lib.Config import getConfig
@@ -98,6 +101,46 @@ def normalizeNetworkDbHost(host: object) -> str:
     return rawHost
 
 
+def validateCorsOriginRegex(value: str):
+    """
+    설명: CORS origin 정규식 문법과 과도하게 넓은 허용 패턴을 검증
+    처리 규칙: 임의의 HTTP(S) origin을 포괄하는 패턴과 null origin 허용을 거부
+    반환값: 빈 값은 None, 유효한 정규식은 원문 문자열을 반환
+    갱신일: 2026-07-10
+    """
+    if not value:
+        return None
+
+    try:
+        pattern = re.compile(value)
+    except re.error as exc:
+        raise ValueError(
+            f"CORS misconfig: invalid allow_origin_regex: {exc}"
+        ) from exc
+
+    commonPublicSuffixes = ("com", "net", "org", "io", "dev", "app", "co.kr")
+    broadOriginProbeGroups = tuple(
+        (
+            f"{scheme}://cors-probe-a.{suffix}{port}",
+            f"{scheme}://unrelated-probe-b.{suffix}{port}",
+        )
+        for scheme in ("https", "http")
+        for suffix in commonPublicSuffixes
+        for port in ("", ":49152")
+    )
+    matchesBroadOriginGroup = any(
+        all(pattern.fullmatch(origin) for origin in probeGroup)
+        for probeGroup in broadOriginProbeGroups
+    )
+    if matchesBroadOriginGroup or pattern.fullmatch("null"):
+        raise ValueError(
+            "CORS misconfig: allow_origin_regex is too broad. "
+            "Use a regex restricted to trusted hosts instead."
+        )
+
+    return value
+
+
 async def onShutdown():
     """
     설명: 애플리케이션 종료 시 DB 연결과 쿼리 워처 리소스 정리
@@ -105,12 +148,25 @@ async def onShutdown():
     부작용: 전역 DB 커넥션과 파일 감시 스레드를 해제
     갱신일: 2026-02-24
     """
+    await drainUserAccessLogTasks()
+
     for manager in DB.dbManagers.values():
-        if hasattr(manager, "disconnect"):
+        if not hasattr(manager, "disconnect"):
+            continue
+        try:
             await manager.disconnect()
+        except Exception:
+            logger.exception("database disconnect failed during shutdown")
+
     if sqlObserver:
-        sqlObserver.stop()
-        sqlObserver.join()
+        try:
+            sqlObserver.stop()
+        except Exception:
+            logger.exception("query observer stop failed during shutdown")
+        try:
+            sqlObserver.join()
+        except Exception:
+            logger.exception("query observer join failed during shutdown")
 
 # ---------------------------------------------------------------------------
 # 스타트업 작업
@@ -318,7 +374,7 @@ if "*" in origins:
         "Use explicit allowlist origins instead."
     )
 
-allowOriginRegex = originRegexRaw or None
+allowOriginRegex = validateCorsOriginRegex(originRegexRaw)
 
 app.add_middleware(
     CORSMiddleware,
@@ -391,20 +447,31 @@ async def globalExceptionHandler(request: Request, exc: Exception):
     반환값: status=500 표준 JSONResponse
     갱신일: 2026-02-28
     """
+    requestId = getattr(request.state, "requestId", None)
     try:
-
-        # 내부 예외 메시지는 응답에 노출하지 않고, 로그로만 남긴다.
-        logger.exception(f"unhandled_exception path={request.url.path}")
+        logger.exception(json.dumps({
+            "level": "ERROR",
+            "msg": "unhandled_exception",
+            "path": request.url.path,
+            "requestId": requestId,
+            "errorType": type(exc).__name__,
+        }, ensure_ascii=False))
     except Exception:
         pass
+    content = errorResponse(
+        message="internal server error",
+        result={"path": request.url.path},
+        code="HTTP_500_INTERNAL",
+    )
+    if requestId:
+        content["requestId"] = requestId
     return applyDefaultSecurityHeaders(JSONResponse(
         status_code=500,
-        content=errorResponse(
-            message="internal server error",
-            result={"path": request.url.path},
-            code="HTTP_500_INTERNAL",
-        ),
-        headers={"Cache-Control": "no-store"},
+        content=content,
+        headers={
+            "Cache-Control": "no-store",
+            **({"X-Request-Id": requestId} if requestId else {}),
+        },
     ))
 
 

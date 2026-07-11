@@ -22,7 +22,7 @@ import Pagination from "@/app/lib/component/Pagination";
 import Select from "@/app/lib/component/Select";
 import Textarea from "@/app/lib/component/Textarea";
 import { apiJSON } from "@/app/lib/runtime/api";
-import { safeJsonParse } from "@/app/lib/runtime/json";
+import { parseJsonText } from "@/app/lib/runtime/json";
 import EasyObj from "@/app/lib/dataset/EasyObj";
 import { useEasyList } from "@/app/lib/dataset/EasyList";
 import { PAGE_CONFIG } from "./initData";
@@ -92,6 +92,7 @@ const TasksView = () => {
   const taskList = useEasyList([]);
   const taskMetaObj = EasyObj({ totalCount: 0 });
   const taskDetailObj = EasyObj({});
+  const taskModelsRef = useRef({ ui, taskList, taskMetaObj });
   const initialLoadQueryRef = useRef(null);
   const taskTotalText = LANG_KO.view.action.totalCountTemplate.replace(
     "{total}",
@@ -213,7 +214,7 @@ const TasksView = () => {
   const toTagList = (value) => {
     if (Array.isArray(value)) return value.filter(Boolean).map(String);
     if (typeof value !== "string" || !value.trim()) return [];
-    const parsedValue = safeJsonParse(value, null);
+    const parsedValue = parseJsonText(value, null);
     if (Array.isArray(parsedValue)) return parsedValue.filter(Boolean).map(String);
     return value
       .split(",")
@@ -277,17 +278,22 @@ const TasksView = () => {
   const loadTasks = useCallback(async (options = {}) => {
 
     const {
-      nextKeyword = ui.keyword,
-      nextStatus = ui.status,
-      nextSort = ui.sort,
-      nextPage = ui.page,
+      ui: currentUi,
+      taskList: currentTaskList,
+      taskMetaObj: currentTaskMetaObj,
+    } = taskModelsRef.current;
+    const {
+      nextKeyword = currentUi.keyword,
+      nextStatus = currentUi.status,
+      nextSort = currentUi.sort,
+      nextPage = currentUi.page,
       syncQuery = true,
     } = options;
     if (!hasListEndpoint) {
-      ui.error = { message: LANG_KO.view.error.listEndpointMissing };
-      taskList.copy([]);
-      taskMetaObj.totalCount = 0;
-      ui.isLoading = false;
+      currentUi.error = { message: LANG_KO.view.error.listEndpointMissing };
+      currentTaskList.copy([]);
+      currentTaskMetaObj.totalCount = 0;
+      currentUi.isLoading = false;
       return;
     }
     const taskQueryParams = new URLSearchParams();
@@ -303,16 +309,16 @@ const TasksView = () => {
       ? requestPath
       : { ...pageApi.list, path: requestPath };
 
-    ui.isLoading = true;
-    ui.error = null;
+    currentUi.isLoading = true;
+    currentUi.error = null;
     try {
       const taskListResponse = await apiJSON(requestSpec);
-      taskList.copy(taskListResponse?.result?.dataTemplateList || []);
-      const totalSource = taskListResponse?.count ?? taskListResponse?.result?.listMetaObj?.totalCount ?? taskList.size();
+      currentTaskList.copy(taskListResponse?.result?.dataTemplateList || []);
+      const totalSource = taskListResponse?.count ?? taskListResponse?.result?.listMetaObj?.totalCount ?? currentTaskList.size();
       const total = Number(totalSource || 0);
-      taskMetaObj.totalCount = total;
-      ui.page = nextPage;
-      ui.sort = nextSort || defaultSort;
+      currentTaskMetaObj.totalCount = total;
+      currentUi.page = nextPage;
+      currentUi.sort = nextSort || defaultSort;
       if (syncQuery) {
         syncBrowserQuery({
           nextKeyword,
@@ -322,16 +328,16 @@ const TasksView = () => {
         });
       }
     } catch (err) {
-      taskList.copy([]);
-      taskMetaObj.totalCount = 0;
-      ui.error = {
+      currentTaskList.copy([]);
+      currentTaskMetaObj.totalCount = 0;
+      currentUi.error = {
         message: err?.message || LANG_KO.view.error.listLoadFailed,
         requestId: err?.requestId,
       };
     } finally {
-      ui.isLoading = false;
+      currentUi.isLoading = false;
     }
-  }, [hasListEndpoint, pageApi.list, syncBrowserQuery, taskList, taskMetaObj, ui]);
+  }, [hasListEndpoint, pageApi.list, syncBrowserQuery]);
 
   /**
    * @description 신규 생성 모드 드로어 열기
@@ -369,7 +375,7 @@ const TasksView = () => {
         ? detailPath
         : { ...pageApi.detail, path: detailPath };
       const taskDetailResponse = await apiJSON(requestSpec);
-      taskDetailObj.copy(taskDetailResponse?.result || {});
+      taskDetailObj.copy(taskDetailResponse?.result ?? {});
       ui.form = {
         title: taskDetailObj.title || "",
         status: taskDetailObj.status || LANG_KO.view.misc.defaultStatusCode,
@@ -525,10 +531,11 @@ const TasksView = () => {
     });
     if (initialLoadQueryRef.current === initialQueryKey) return;
     initialLoadQueryRef.current = initialQueryKey;
-    ui.keyword = keywordValue;
-    ui.status = statusValue;
-    ui.sort = sortValue;
-    ui.page = pageValue;
+    const currentUi = taskModelsRef.current.ui;
+    currentUi.keyword = keywordValue;
+    currentUi.status = statusValue;
+    currentUi.sort = sortValue;
+    currentUi.page = pageValue;
     loadTasks({
       nextKeyword: keywordValue,
       nextStatus: statusValue,
@@ -536,7 +543,7 @@ const TasksView = () => {
       nextPage: pageValue,
       syncQuery: false,
     });
-  }, [buildTasksQueryString, keywordValue, loadTasks, pageValue, sortValue, statusValue, ui]);
+  }, [buildTasksQueryString, keywordValue, loadTasks, pageValue, sortValue, statusValue]);
 
   /* 9. 내부 컴포넌트 ============================================================================================================== */
 

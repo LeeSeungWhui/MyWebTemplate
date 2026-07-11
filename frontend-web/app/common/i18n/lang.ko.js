@@ -100,7 +100,7 @@ export const COMMON_COMPONENT_LANG_KO = {
     copyrightTemplate: "© {year} Web Sample. All rights reserved.",
     footerLinkList: [
       { href: "/sample", label: "샘플 허브" },
-      { href: "/component", label: "컴포넌트" },
+      { href: "/component", label: "컴포넌트", prefetch: false },
       { href: "/sample/portfolio", label: "포트폴리오" },
     ],
     demoMenuList: [
@@ -111,7 +111,7 @@ export const COMMON_COMPONENT_LANG_KO = {
       { href: "/sample/admin", label: "회원/권한 관리" },
     ],
     publicMenuList: [
-      { href: "/component", label: "UI 컴포넌트" },
+      { href: "/component", label: "UI 컴포넌트", prefetch: false },
       { href: "/sample/portfolio", label: "포트폴리오" },
     ],
     mobileMenuOpenAriaLabel: "모바일 메뉴 열기",

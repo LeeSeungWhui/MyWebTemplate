@@ -7,7 +7,7 @@
  * 설명: 대시보드 레이아웃 클라이언트 컴포넌트
  */
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import Header from "@/app/common/layout/Header";
@@ -37,6 +37,8 @@ const DashboardLayoutClient = ({ children }) => {
     sidebarOpen: false,
     isDesktopViewport: false,
   });
+  const uiRef = useRef(ui);
+  uiRef.current = ui;
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -103,24 +105,24 @@ const DashboardLayoutClient = ({ children }) => {
      * @updated 2026-02-27
      */
     const syncViewport = () => {
-      ui.isDesktopViewport = mediaQuery.matches;
-      ui.sidebarOpen = mediaQuery.matches;
+      uiRef.current.isDesktopViewport = mediaQuery.matches;
+      uiRef.current.sidebarOpen = mediaQuery.matches;
     };
 
     syncViewport();
     mediaQuery.addEventListener("change", syncViewport);
     return () => mediaQuery.removeEventListener("change", syncViewport);
-  }, [ui]);
+  }, []);
 
   /**
    * @description 모바일 뷰포트에서 route 변경 시 사이드바를 닫음
    * 처리 규칙: pathname/searchParams 변경마다 ui.sidebarOpen=false를 반영한다.
    */
   useEffect(() => {
-    if (!ui.isDesktopViewport) {
-      ui.sidebarOpen = false;
+    if (!uiRef.current.isDesktopViewport) {
+      uiRef.current.sidebarOpen = false;
     }
-  }, [pathname, searchParamText, ui]);
+  }, [pathname, searchParamText]);
 
   /* 9. 내부 컴포넌트 ============================================================================================================== */
 

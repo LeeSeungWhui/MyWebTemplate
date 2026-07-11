@@ -126,7 +126,7 @@ export const basicExampleList = [{
 }, {
   exampleId: 'controlled',
   component: <CtrlSelectDemo />,
-  description: '컨트롤드 모드 — value/onValueChange로 외부 상태와 동기화하면서도 dataList.selected는 자동 갱신',
+  description: '외부 상태 제어 — value/onValueChange로 선택값을 동기화하고 dataList.selected도 자동 갱신',
   code: `const [roleValue, setRoleValue] = useState('review');
 
 <Lib.Select

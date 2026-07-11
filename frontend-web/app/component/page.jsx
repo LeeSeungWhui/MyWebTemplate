@@ -7,6 +7,12 @@
 import ComponentsView from "./view";
 import { PAGE_CONFIG } from "./initData";
 import { loadServerPageData } from "@/app/lib/runtime/pageData";
+import LANG_KO from "./lang.ko";
+
+export const metadata = {
+  title: LANG_KO.metadata.title,
+  description: LANG_KO.metadata.description,
+};
 
 /**
  * @description 컴포넌트 문서 화면의 초기 데이터 로딩 후 클라이언트 뷰 전달

@@ -19,12 +19,14 @@ baseDir = os.path.dirname(os.path.dirname(__file__))
 if baseDir not in sys.path:
     sys.path.insert(0, baseDir)
 
+os.environ["BACKEND_CONFIG"] = (
+    os.getenv("BACKEND_TEST_CONFIG") or os.path.join(baseDir, "config.test.ini")
+)
 pgTestSettings, pgTestConfigError = resolvePgTestSettings(baseDir)
 pgTestReady = False
 pgTestSkipReason = pgTestConfigError or "postgresql test db unavailable"
 
 if pgTestSettings:
-    os.environ["BACKEND_CONFIG"] = pgTestSettings["configPath"]
     pgTestReady, connectReason = __import__("asyncio").run(canConnectPg(pgTestSettings))
     if not pgTestReady and connectReason:
         pgTestSkipReason = connectReason

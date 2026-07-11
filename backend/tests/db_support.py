@@ -13,6 +13,10 @@ from typing import Any
 import asyncpg
 
 
+TEST_DB_MUTATION_APPROVAL_ENV = "MYWEB_TEST_DB_MUTATION_APPROVED"
+LOOPBACK_TEST_HOSTS = {"127.0.0.1", "localhost", "::1"}
+
+
 def readConfig(path: str) -> ConfigParser:
     """
     설명: INI 파일을 UTF-8 기준으로 읽어 ConfigParser로 반환
@@ -34,6 +38,12 @@ def resolvePgTestSettings(baseDir: str) -> tuple[dict[str, Any] | None, str | No
     configPath = os.getenv("BACKEND_TEST_CONFIG") or os.path.join(baseDir, "config.test.ini")
     if not os.path.exists(configPath):
         return None, f"postgresql test config missing: {configPath}"
+
+    if os.getenv(TEST_DB_MUTATION_APPROVAL_ENV) != "1":
+        return None, (
+            "postgresql integration tests require explicit DB mutation approval: "
+            f"set {TEST_DB_MUTATION_APPROVAL_ENV}=1 only after user approval"
+        )
 
     config = readConfig(configPath)
     if "DATABASE" not in config:
@@ -58,6 +68,18 @@ def resolvePgTestSettings(baseDir: str) -> tuple[dict[str, Any] | None, str | No
     password = dbConfig.get("password") or mainDbConfig.get("password") or ""
     if not database or not user:
         return None, f"postgresql test config incomplete: {configPath}"
+    if host.lower() not in LOOPBACK_TEST_HOSTS:
+        return None, f"postgresql test db host must be loopback: {host}"
+    if not database.lower().endswith("_test"):
+        return None, f"postgresql test database must end with '_test': {database}"
+
+    runtime = str(config.get("SERVER", "runtime", fallback="")).strip().upper()
+    if runtime != "TEST":
+        return None, f"postgresql test config SERVER.runtime must be TEST: {configPath}"
+
+    mainDatabase = str(mainDbConfig.get("database", "")).strip()
+    if mainDatabase and database == mainDatabase:
+        return None, "postgresql test database must differ from the main database"
 
     try:
         port = int(portRaw)

@@ -59,18 +59,18 @@ INSERT INTO T_SAMPLE_TASK (
        ATTACH_NM,
        REG_DT
 )
-VALUES ( '랜딩 페이지 시안 확정', '랜딩 IA 및 카피 확정', '기획팀', 'done', 1200000, 'landing_spec.pdf', '2026-02-10' ),
-       ( '회원가입 폼 검증 규칙 반영', '필수값/형식/비밀번호 확인 검증', '프론트', 'running', 800000, 'signup_flow.fig', '2026-02-12' ),
-       ( '로그 마스킹 정책 적용', '민감정보 마스킹 규칙 점검', '백엔드', 'pending', 950000, 'log_policy.md', '2026-02-14' ),
-       ( '샘플 페이지 QA', '랜딩/샘플 플로우 수동 점검', 'QA', 'ready', 500000, '', '2026-02-16' ),
-       ( '대시보드 통계 API 점검', '상태 집계/금액 합계 검증', '백엔드', 'running', 670000, 'dashboard_api.postman_collection.json', '2026-02-17' ),
-       ( '공개 GNB 모바일 드로어 개선', '모바일 햄버거 메뉴 접근성 개선', '프론트', 'done', 420000, 'gnb_mobile.png', '2026-02-17' ),
-       ( '포트폴리오 섹션 리뉴얼', '히어로/아키텍처/샘플 섹션 개편', '디자인', 'pending', 730000, 'portfolio_wireframe.fig', '2026-02-18' ),
-       ( '회원가입 중복 이메일 처리', '409 AUTH_409_USER_EXISTS 매핑', '백엔드', 'done', 390000, '', '2026-02-18' ),
-       ( '프로필 설정 화면 구성', '내 프로필/시스템 설정 탭 구현', '프론트', 'running', 610000, 'settings_ui.fig', '2026-02-19' ),
-       ( '고객 문의 데이터 정리', '문의 유형과 처리 상태 정리', '운영팀', 'ready', 250000, 'customer_request_sample.xlsx', '2026-02-20' ),
-       ( '공개 화면 이동 경로 점검', '고객이 보는 화면 이동 흐름 확인', '운영팀', 'done', 540000, 'navigation_checklist.pdf', '2026-02-21' ),
-       ( '고객 상담용 샘플 시나리오 작성', '상담 전 확인할 샘플 화면 안내 흐름 정리', '기획팀', 'pending', 460000, 'sample_guide.docx', '2026-02-22' );
+VALUES ( '신규 상담 요청 검토', '요청 목적과 필요한 주요 기능 정리', '상담팀', 'done', 1200000, '프로젝트_요청서.pdf', '2026-02-10' ),
+       ( '요구사항 상세 정리', '화면 구성과 핵심 업무 범위 정리', '기획팀', 'running', 800000, '요구사항_정리본.docx', '2026-02-12' ),
+       ( '상담 일정 확정', '담당자와 온라인 미팅 일정 조율', '상담팀', 'pending', 950000, '상담_일정.ics', '2026-02-14' ),
+       ( '예상 일정 및 예산 검토', '개발 범위에 맞춘 일정과 예산 초안 작성', '기획팀', 'ready', 500000, '일정_예산_초안.xlsx', '2026-02-16' ),
+       ( '프로젝트 제안서 작성', '범위, 일정, 산출물을 정리한 제안서 준비', '기획팀', 'running', 670000, '프로젝트_제안서.pdf', '2026-02-17' ),
+       ( '계약 일정 조율', '착수 일정과 계약 진행 절차 안내', '운영팀', 'done', 420000, '계약_안내.pdf', '2026-02-17' ),
+       ( '디자인 시안 검토 요청', '주요 화면 시안 공유 및 의견 요청', '디자인팀', 'pending', 730000, '화면_시안.pdf', '2026-02-18' ),
+       ( '고객 피드백 반영', '검수 의견을 화면 구성과 문구에 반영', '디자인팀', 'done', 390000, '피드백_정리.xlsx', '2026-02-18' ),
+       ( '개발 진행 상황 공유', '완료 기능과 다음 작업 일정 정리', '개발팀', 'running', 610000, '주간_진행보고.pdf', '2026-02-19' ),
+       ( '기능 검수 결과 확인', '주요 사용 흐름과 수정 요청 사항 확인', '검수팀', 'ready', 250000, '기능_검수표.xlsx', '2026-02-20' ),
+       ( '최종 검수 일정 확정', '최종 확인 항목과 서비스 공개 일정 조율', '운영팀', 'done', 540000, '최종_검수_일정.pdf', '2026-02-21' ),
+       ( '서비스 공개 준비', '도메인, 안내 자료, 운영 체크리스트 정리', '운영팀', 'pending', 460000, '서비스_공개_체크리스트.pdf', '2026-02-22' );
 
 -- name: sampleBootstrap.seedAdminUsers
 INSERT INTO T_SAMPLE_ADMIN_USER (
@@ -84,9 +84,9 @@ INSERT INTO T_SAMPLE_ADMIN_USER (
        PROFILE_IMG_URL,
        REG_DT
 )
-VALUES ( '김관리', 'admin@demo.demo', 'admin', 'active', 1, 0, 1, '', '2026-01-15' ),
-       ( '박에디터', 'editor@demo.demo', 'editor', 'active', 1, 1, 0, '', '2026-01-20' ),
-       ( '이사용자', 'user@demo.demo', 'user', 'inactive', 0, 0, 0, '', '2026-02-03' );
+VALUES ( '김민지', 'minji.kim@example.com', 'admin', 'active', 1, 0, 1, '', '2026-01-15' ),
+       ( '박서준', 'seojun.park@example.com', 'editor', 'active', 1, 1, 0, '', '2026-01-20' ),
+       ( '이하늘', 'haneul.lee@example.com', 'user', 'inactive', 0, 0, 0, '', '2026-02-03' );
 
 -- name: sample.overview
 SELECT ( SELECT COUNT(*)
@@ -142,6 +142,22 @@ SELECT TASK_NO AS "taskNo"
          OR LOWER(DATA_NM) LIKE LOWER(:qLike)
          OR LOWER(COALESCE(DATA_DESC, '')) LIKE LOWER(:qLike)
          OR LOWER(COALESCE(OWNER_NM, '')) LIKE LOWER(:qLike)
+         OR DATA_NM IN ( :publicTitleMatch01,
+                         :publicTitleMatch02,
+                         :publicTitleMatch03,
+                         :publicTitleMatch04,
+                         :publicTitleMatch05,
+                         :publicTitleMatch06,
+                         :publicTitleMatch07,
+                         :publicTitleMatch08,
+                         :publicTitleMatch09,
+                         :publicTitleMatch10,
+                         :publicTitleMatch11,
+                         :publicTitleMatch12,
+                         :publicTitleMatch13,
+                         :publicTitleMatch14,
+                         :publicTitleMatch15
+                       )
        )
    AND ( :status = ''
          OR STAT_CD = :status
@@ -160,6 +176,22 @@ SELECT COUNT(*) AS "totalCount"
          OR LOWER(DATA_NM) LIKE LOWER(:qLike)
          OR LOWER(COALESCE(DATA_DESC, '')) LIKE LOWER(:qLike)
          OR LOWER(COALESCE(OWNER_NM, '')) LIKE LOWER(:qLike)
+         OR DATA_NM IN ( :publicTitleMatch01,
+                         :publicTitleMatch02,
+                         :publicTitleMatch03,
+                         :publicTitleMatch04,
+                         :publicTitleMatch05,
+                         :publicTitleMatch06,
+                         :publicTitleMatch07,
+                         :publicTitleMatch08,
+                         :publicTitleMatch09,
+                         :publicTitleMatch10,
+                         :publicTitleMatch11,
+                         :publicTitleMatch12,
+                         :publicTitleMatch13,
+                         :publicTitleMatch14,
+                         :publicTitleMatch15
+                       )
        )
    AND ( :status = ''
          OR STAT_CD = :status
@@ -319,6 +351,13 @@ SELECT USER_NO AS "userNo"
  WHERE LOWER(USER_EML) = LOWER(:email)
  LIMIT 1;
 
+-- name: sample.adminUserExistsByEmailExcludingId
+SELECT USER_NO AS "userNo"
+  FROM T_SAMPLE_ADMIN_USER
+ WHERE LOWER(USER_EML) = LOWER(:email)
+   AND USER_NO <> :id
+ LIMIT 1;
+
 -- name: sample.adminUserCreate
 INSERT INTO T_SAMPLE_ADMIN_USER (
        USER_NM,
@@ -358,6 +397,7 @@ SELECT USER_NO AS "userNo"
 -- name: sample.adminUserUpdate
 UPDATE T_SAMPLE_ADMIN_USER
    SET USER_NM = :name,
+       USER_EML = :email,
        ROLE_CD = :role,
        STAT_CD = :status,
        NOTIFY_EMAIL = :notifyEmail,

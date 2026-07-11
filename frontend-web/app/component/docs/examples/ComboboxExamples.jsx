@@ -55,7 +55,7 @@ const BoundComboDemo = () => {
   const [controlledCity, setControlledCity] = useState('seoul');
 
   return <div className="space-y-2">
-      <Lib.Combobox id="combobox-controlled" dataList={cityList} value={controlledCity} onValueChange={setControlledCity} placeholder="도시 선택 (컨트롤드)" status="info" statusMessage={`value prop: ${controlledCity}`} />
+      <Lib.Combobox id="combobox-controlled" dataList={cityList} value={controlledCity} onValueChange={setControlledCity} placeholder="도시 선택 (외부 상태 제어)" status="info" statusMessage={`value prop: ${controlledCity}`} />
       <div className="text-xs text-gray-500">
         초성검색 예: ㅅㅇ→서울, ㅂㅅ→부산
       </div>
@@ -86,7 +86,7 @@ const MultiComboDemo = () => {
     }
   });
 
-  return <Lib.Combobox id="combobox-multi" dataList={cityList} dataObj={profileDataObj.address} dataKey="favorites" multi multiSummary showSelectAll summaryText="{count}개 도시 선택" placeholder="좋아하는 도시 선택" status="warning" statusMessage="다중 선택 (EasyList selected/바운드 값 동시 반영)" />;
+  return <Lib.Combobox id="combobox-multi" dataList={cityList} dataObj={profileDataObj.address} dataKey="favorites" multi multiSummary showSelectAll summaryText="{count}개 도시 선택" placeholder="좋아하는 도시 선택" status="warning" statusMessage="다중 선택 (EasyList selected와 연결된 값 동시 반영)" />;
 };
 
 /**
@@ -116,7 +116,7 @@ const EmptyComboDemo = () => {
 export const basicExampleObj = {
   exampleId: 'basic',
   component: <BasicComboDemo />,
-  description: 'EasyObj 바운드 모드 — dataObj/dataKey로 주소 객체와 동기화',
+  description: 'EasyObj 데이터 연결 — dataObj/dataKey로 주소 객체와 동기화',
   code: `const cityList = Lib.EasyList([
   { value: 'seoul', text: '서울' },
   { value: 'busan', text: '부산' },
@@ -138,14 +138,14 @@ const profileDataObj = Lib.EasyObj({ address: { city: 'incheon' } });
 export const boundExampleObj = {
   exampleId: 'controlled',
   component: <BoundComboDemo />,
-  description: '컨트롤드 모드 — value/onValueChange 조합',
+  description: '외부 상태 제어 — value/onValueChange 조합',
   code: `const [controlledCity, setControlledCity] = useState('seoul');
 
 <Lib.Combobox
   dataList={cityList}
   value={controlledCity}
   onValueChange={setControlledCity}
-  placeholder="도시 선택 (컨트롤드)"
+  placeholder="도시 선택 (외부 상태 제어)"
   status="info"
   statusMessage={\`value prop: \${controlledCity}\`}
 />`
@@ -154,7 +154,7 @@ export const boundExampleObj = {
 export const multiExampleObj = {
   exampleId: 'multi',
   component: <MultiComboDemo />,
-  description: 'multi + EasyObj 배열 바운드 — favorites 배열과 EasyList selected 동기화',
+  description: '다중 선택 + EasyObj 배열 연결 — favorites 배열과 EasyList selected 동기화',
   code: `<Lib.Combobox
   dataList={cityList}
   dataObj={profileDataObj.address}
@@ -165,7 +165,7 @@ export const multiExampleObj = {
   summaryText="{count}개 도시 선택"
   placeholder="좋아하는 도시 선택"
   status="warning"
-  statusMessage="다중 선택 (EasyList selected/바운드 값 동시 반영)"
+  statusMessage="다중 선택 (EasyList selected와 연결된 값 동시 반영)"
 />`
 };
 

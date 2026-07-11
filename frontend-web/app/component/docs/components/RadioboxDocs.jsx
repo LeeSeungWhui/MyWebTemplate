@@ -13,7 +13,7 @@ const radioboxPropList = [
     { name: 'name?', description: '동일 그룹을 묶는 이름. 같은 name 안에서 하나만 선택' },
     { name: 'value', description: '선택 시 dataObj 또는 onValueChange로 전달할 값' },
     { name: 'dataObj/dataKey?', description: 'EasyObj 단일 필드에 선택 value 저장' },
-    { name: 'checked/defaultChecked?', description: 'controlled 또는 초기 선택 상태' },
+    { name: 'checked/defaultChecked?', description: '외부에서 제어하는 상태 또는 초기 선택값' },
     { name: 'onValueChange?', description: '선택된 value를 직접 받는 변경 핸들러' },
     { name: 'color?', description: 'primary, success, warning, danger, neutral 프리셋' },
     { name: 'disabled?', description: '선택 불가 상태의 입력과 라벨 비활성화' },
@@ -31,7 +31,7 @@ const radioboxExampleSectionList = [
         id: 'radiobox-variants',
         eyebrow: 'EXAMPLE 2',
         title: '상태와 업무 시나리오',
-        summary: 'controlled 선택, 비활성화, 상태 색상까지 라디오 그룹 계약을 비교합니다.',
+        summary: '외부 상태 제어, 비활성화, 상태 색상까지 라디오 그룹 동작을 비교합니다.',
         exampleList: variantExampleList,
     },
 ];

@@ -36,8 +36,8 @@ SAMPLE_CONFIG_KEY = MappingProxyType({
     "FORM_FEATURE_CODE_LIST": "sample.form.featureCodeList",
 })
 DEFAULT_ADMIN_SETTING = MappingProxyType({
-    "siteName": "MyWebTemplate",
-    "adminEmail": "admin@demo.demo",
+    "siteName": "Web Sample",
+    "adminEmail": "admin@example.com",
     "maintenanceMode": False,
     "sessionTimeout": 60,
     "maxUploadMb": 30,
@@ -347,7 +347,7 @@ def toAdminUserPayload(payload: dict[str, Any], currentRow: dict[str, Any] | Non
     """
     current = currentRow or {}
     if current:
-        if not any(key in payload for key in ("name", "role", "status", "notifyEmail", "notifySms", "notifyPush", "profileImageUrl")):
+        if not any(key in payload for key in ("name", "email", "role", "status", "notifyEmail", "notifySms", "notifyPush", "profileImageUrl")):
             raise ServiceError("SAMPLE_422_INVALID_INPUT")
     else:
         if "name" not in payload or "email" not in payload or "role" not in payload or "status" not in payload:
@@ -437,28 +437,33 @@ def readModelValue(row: dict[str, Any], *keys: str, defaultValue: Any = None) ->
 
 
 PUBLIC_TASK_COPY_OVERRIDES = (
-    (
-        "T_DATA 샘플 데이터 정리",
-        "고객 문의 데이터 정리",
-        "문의 유형과 처리 상태 정리",
-        "운영팀",
-        "customer_request_sample.xlsx",
-    ),
-    (
-        "미들웨어 공개 경로 점검",
-        "공개 화면 이동 경로 점검",
-        "고객이 보는 화면 이동 흐름 확인",
-        "운영팀",
-        "navigation_checklist.pdf",
-    ),
-    (
-        "숨고/크몽 샘플 시나리오 작성",
-        "고객 상담용 샘플 시나리오 작성",
-        "상담 전 확인할 샘플 화면 안내 흐름 정리",
-        "",
-        "sample_guide.docx",
-    ),
+    ("랜딩 페이지 시안 확정", "신규 상담 요청 검토", "요청 목적과 필요한 주요 기능 정리", "상담팀", "프로젝트_요청서.pdf"),
+    ("회원가입 폼 검증 규칙 반영", "요구사항 상세 정리", "화면 구성과 핵심 업무 범위 정리", "기획팀", "요구사항_정리본.docx"),
+    ("로그 마스킹 정책 적용", "상담 일정 확정", "담당자와 온라인 미팅 일정 조율", "상담팀", "상담_일정.ics"),
+    ("샘플 페이지 QA", "예상 일정 및 예산 검토", "개발 범위에 맞춘 일정과 예산 초안 작성", "기획팀", "일정_예산_초안.xlsx"),
+    ("대시보드 통계 API 점검", "프로젝트 제안서 작성", "범위, 일정, 산출물을 정리한 제안서 준비", "기획팀", "프로젝트_제안서.pdf"),
+    ("공개 GNB 모바일 드로어 개선", "계약 일정 조율", "착수 일정과 계약 진행 절차 안내", "운영팀", "계약_안내.pdf"),
+    ("포트폴리오 섹션 리뉴얼", "디자인 시안 검토 요청", "주요 화면 시안 공유 및 의견 요청", "디자인팀", "화면_시안.pdf"),
+    ("회원가입 중복 이메일 처리", "고객 피드백 반영", "검수 의견을 화면 구성과 문구에 반영", "디자인팀", "피드백_정리.xlsx"),
+    ("프로필 설정 화면 구성", "개발 진행 상황 공유", "완료 기능과 다음 작업 일정 정리", "개발팀", "주간_진행보고.pdf"),
+    ("고객 문의 데이터 정리", "기능 검수 결과 확인", "주요 사용 흐름과 수정 요청 사항 확인", "검수팀", "기능_검수표.xlsx"),
+    ("T_DATA 샘플 데이터 정리", "기능 검수 결과 확인", "주요 사용 흐름과 수정 요청 사항 확인", "검수팀", "기능_검수표.xlsx"),
+    ("공개 화면 이동 경로 점검", "최종 검수 일정 확정", "최종 확인 항목과 서비스 공개 일정 조율", "운영팀", "최종_검수_일정.pdf"),
+    ("미들웨어 공개 경로 점검", "최종 검수 일정 확정", "최종 확인 항목과 서비스 공개 일정 조율", "운영팀", "최종_검수_일정.pdf"),
+    ("고객 상담용 샘플 시나리오 작성", "서비스 공개 준비", "도메인, 안내 자료, 운영 체크리스트 정리", "운영팀", "서비스_공개_체크리스트.pdf"),
+    ("숨고/크몽 샘플 시나리오 작성", "서비스 공개 준비", "도메인, 안내 자료, 운영 체크리스트 정리", "운영팀", "서비스_공개_체크리스트.pdf"),
 )
+
+PUBLIC_ADMIN_USER_COPY_OVERRIDES = (
+    ("admin@demo.demo", "김민지", "minji.kim@example.com"),
+    ("editor@demo.demo", "박서준", "seojun.park@example.com"),
+    ("user@demo.demo", "이하늘", "haneul.lee@example.com"),
+)
+
+PREVIOUS_ADMIN_SETTING_COPY = MappingProxyType({
+    "siteName": "MyWebTemplate",
+    "adminEmail": "admin@demo.demo",
+})
 
 
 def applyPublicTaskCopy(taskModel: dict[str, Any]) -> dict[str, Any]:
@@ -477,6 +482,82 @@ def applyPublicTaskCopy(taskModel: dict[str, Any]) -> dict[str, Any]:
             nextTaskModel["owner"] = owner
         return nextTaskModel
     return taskModel
+
+
+def findStoredTaskTitlesForPublicSearch(keyword: str) -> list[str]:
+    """
+    설명: 고객용 표시 문구 검색 시 함께 조회할 기존 시드 제목 목록 계산
+    반환값: 고객용 제목/설명/담당자에 keyword가 포함된 기존 시드 제목 목록
+    갱신일: 2026-07-10
+    """
+    keywordValue = str(keyword or "").strip().casefold()
+    if not keywordValue:
+        return []
+    return [
+        originalTitle
+        for originalTitle, title, description, owner, _attachmentName in PUBLIC_TASK_COPY_OVERRIDES
+        if keywordValue in f"{title} {description} {owner}".casefold()
+    ]
+
+
+def buildPublicTaskSearchBind(keyword: str) -> dict[str, str]:
+    """
+    설명: SQL array cast 없이 기존 시드 검색 호환값을 고정 바인딩 슬롯으로 변환
+    반환값: publicTitleMatch01~15 문자열 바인딩 dict
+    갱신일: 2026-07-10
+    """
+    matchedTitleList = findStoredTaskTitlesForPublicSearch(keyword)
+    slotCount = len(PUBLIC_TASK_COPY_OVERRIDES)
+    paddedTitleList = (matchedTitleList + ([""] * slotCount))[:slotCount]
+    return {
+        f"publicTitleMatch{index:02d}": title
+        for index, title in enumerate(paddedTitleList, start=1)
+    }
+
+
+def applyPublicAdminUserCopy(userModel: dict[str, Any]) -> dict[str, Any]:
+    """
+    설명: 기존 관리자 샘플 시드의 역할형 이름/도메인을 자연스러운 예시 데이터로 치환
+    처리 규칙: DB 값을 직접 수정하지 않고 정확히 일치하는 기존 시드만 표시 보정한다.
+    반환값: 공개 sample 관리자 사용자 표시 모델 dict
+    갱신일: 2026-07-10
+    """
+    originalEmail = str(userModel.get("email") or "").lower()
+    for storedEmail, name, email in PUBLIC_ADMIN_USER_COPY_OVERRIDES:
+        if originalEmail == storedEmail:
+            return {**userModel, "name": name, "email": email}
+    return userModel
+
+
+def readStoredAdminEmailCandidates(publicEmail: str) -> list[str]:
+    """
+    설명: 신규 관리자 이메일 중복 검사에 사용할 현재/기존 시드 이메일 후보 생성
+    반환값: 정규화된 공개 이메일과 대응하는 기존 시드 이메일 목록
+    갱신일: 2026-07-10
+    """
+    emailValue = str(publicEmail or "").lower()
+    candidateList = [emailValue]
+    for storedEmail, _displayName, email in PUBLIC_ADMIN_USER_COPY_OVERRIDES:
+        if emailValue == email.lower():
+            candidateList.append(storedEmail)
+    return candidateList
+
+
+def applyPublicAdminSetting(setting: dict[str, Any]) -> dict[str, Any]:
+    """
+    설명: 기존 기본 관리자 설정만 현재 공개 샘플 기본값으로 표시 보정
+    처리 규칙: 사용자가 저장한 다른 값은 유지하고 정확히 일치하는 옛 기본값만 치환한다.
+    반환값: 공개 sample 관리자 설정 표시 모델 dict
+    갱신일: 2026-07-10
+    """
+    if not isinstance(setting, dict):
+        return readDefaultAdminSetting()
+    result = dict(setting)
+    if result.get("siteName") == PREVIOUS_ADMIN_SETTING_COPY["siteName"]:
+        result["siteName"] = DEFAULT_ADMIN_SETTING["siteName"]
+    if str(result.get("adminEmail") or "").lower() == PREVIOUS_ADMIN_SETTING_COPY["adminEmail"]:
+        result["adminEmail"] = DEFAULT_ADMIN_SETTING["adminEmail"]
+    return result
 
 
 def toTaskModel(row: dict[str, Any]) -> dict[str, Any]:
@@ -507,7 +588,7 @@ def toAdminUserModel(row: dict[str, Any]) -> dict[str, Any]:
     갱신일: 2026-03-06
     """
     source = convertKeysToCamelCase(row)
-    return {
+    return applyPublicAdminUserCopy({
         "id": readModelValue(source, "id", "userNo"),
         "name": readModelValue(source, "name", "userNm", defaultValue=""),
         "email": readModelValue(source, "email", "userEml", defaultValue=""),
@@ -518,7 +599,7 @@ def toAdminUserModel(row: dict[str, Any]) -> dict[str, Any]:
         "notifyPush": bool(readModelValue(source, "notifyPush", defaultValue=False)),
         "profileImageUrl": readModelValue(source, "profileImageUrl", "profileImgUrl", defaultValue=""),
         "createdAt": readModelValue(source, "createdAt", "regDt"),
-    }
+    })
 
 
 def toFormSubmissionModel(row: dict[str, Any] | None) -> dict[str, Any] | None:
@@ -763,6 +844,7 @@ async def listSampleTasks(
     bind = {
         "q": keyword,
         "qLike": f"%{keyword}%" if keyword else "",
+        **buildPublicTaskSearchBind(keyword),
         "status": statusValue,
         "fromDate": fromDateBound,
         "toDateExclusive": toDateExclusiveBound,
@@ -775,6 +857,11 @@ async def listSampleTasks(
         {
             "q": bind["q"],
             "qLike": bind["qLike"],
+            **{
+                key: value
+                for key, value in bind.items()
+                if key.startswith("publicTitleMatch")
+            },
             "status": bind["status"],
             "fromDate": bind["fromDate"],
             "toDateExclusive": bind["toDateExclusive"],
@@ -997,9 +1084,10 @@ async def createSampleAdminUserInTransaction(payload: dict[str, Any], idempotenc
     """
     createPayload = toAdminUserPayload(payload)
     db = ensureDbManager()
-    duplicateRow = await db.fetchOneQuery("sample.adminUserExistsByEmail", {"email": createPayload["email"]})
-    if duplicateRow:
-        raise ServiceError("SAMPLE_409_ALREADY_EXISTS")
+    for emailCandidate in readStoredAdminEmailCandidates(createPayload["email"]):
+        duplicateRow = await db.fetchOneQuery("sample.adminUserExistsByEmail", {"email": emailCandidate})
+        if duplicateRow:
+            raise ServiceError("SAMPLE_409_ALREADY_EXISTS")
     await db.executeQuery("sample.adminUserCreate", createPayload)
     createdRow = await db.fetchOneQuery("sample.adminUserFindCreatedCandidate", {"email": createPayload["email"]})
     if not createdRow:
@@ -1046,11 +1134,18 @@ async def updateSampleAdminUser(userId: Any, payload: dict[str, Any]) -> dict[st
         raise ServiceError("SAMPLE_404_NOT_FOUND")
     userModel = toAdminUserModel(currentRow)
     updatePayload = toAdminUserPayload(payload, userModel)
+    duplicateRow = await db.fetchOneQuery(
+        "sample.adminUserExistsByEmailExcludingId",
+        {"id": idValue, "email": updatePayload["email"]},
+    )
+    if duplicateRow:
+        raise ServiceError("SAMPLE_409_ALREADY_EXISTS")
     await db.executeQuery(
         "sample.adminUserUpdate",
         {
             "id": idValue,
             "name": updatePayload["name"],
+            "email": updatePayload["email"],
             "role": updatePayload["role"],
             "status": updatePayload["status"],
             "notifyEmail": updatePayload["notifyEmail"],
@@ -1076,7 +1171,7 @@ async def getSampleAdminSettings() -> dict[str, Any]:
     systemRow = await db.fetchOneQuery("sample.configByKey", {"configKey": SAMPLE_CONFIG_KEY["ADMIN_SETTING"]})
     permissionRow = await db.fetchOneQuery("sample.configByKey", {"configKey": SAMPLE_CONFIG_KEY["ROLE_PERMISSION_MAP"]})
     return {
-        "systemSetting": parseConfigRow(systemRow, readDefaultAdminSetting()),
+        "systemSetting": applyPublicAdminSetting(parseConfigRow(systemRow, readDefaultAdminSetting())),
         "rolePermissionMap": parseConfigRow(permissionRow, readDefaultRolePermissionMap()),
     }
 

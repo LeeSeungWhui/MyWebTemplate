@@ -209,6 +209,7 @@ const PublicGnb = () => {
               <Link
                 key={menuItemObj.href}
                 href={menuItemObj.href}
+                prefetch={menuItemObj.prefetch}
                 className={`inline-flex items-center rounded-md px-3 py-2 text-sm font-medium transition-colors ${
                   isMenuActive
                     ? "bg-blue-50 text-blue-700 ring-1 ring-blue-100"
@@ -243,6 +244,7 @@ const PublicGnb = () => {
                 <Link
                   key={menuItemObj.href}
                   href={menuItemObj.href}
+                  prefetch={menuItemObj.prefetch}
                   className={`block rounded-md px-2 py-2 text-sm ${
                     isMenuActive
                       ? "bg-blue-50 text-blue-700"
@@ -272,6 +274,7 @@ const PublicGnb = () => {
                 <Link
                   key={menuItemObj.href}
                   href={menuItemObj.href}
+                  prefetch={menuItemObj.prefetch}
                   className={`block rounded-md px-2 py-2 text-sm ${
                     isMenuActive
                       ? "bg-blue-50 text-blue-700"

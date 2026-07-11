@@ -4,7 +4,7 @@
  * 갱신일: 2026-07-03
  * 설명: 테이블/카드형 데이터 뷰 컴포넌트 구현
  */
-import { forwardRef, useEffect, useState } from 'react';
+import { forwardRef, useEffect, useId, useState } from 'react';
 import Pagination from './Pagination';
 import { COMMON_COMPONENT_LANG_KO } from '@/app/common/i18n/lang.ko';
 
@@ -51,6 +51,7 @@ const EasyTable = forwardRef(function EasyTable(
     preserveRowSpace = true,
     empty = COMMON_COMPONENT_LANG_KO.easyTable.empty,
     loading = false,
+    mobileScrollHint = '',
 
     // 상호작용 핸들러
     onRowClick,
@@ -81,6 +82,9 @@ const EasyTable = forwardRef(function EasyTable(
 
   ref
 ) {
+
+  const mobileScrollHintId = useId();
+  const hasMobileScrollHint = variant === 'table' && Boolean(String(mobileScrollHint || '').trim());
 
   // 초기 페이지 계산
   const initialPage = (typeof pageProp === 'number') ? pageProp : defaultPage;
@@ -332,22 +336,34 @@ const EasyTable = forwardRef(function EasyTable(
   return (
     <div ref={ref} className={`w-full overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-slate-200/80 ${className}`.trim()} role="table" aria-busy={isBusy ? 'true' : undefined}>
       {variant === 'table' ? (
-        <div className="w-full overflow-x-auto">
-          <div className="min-w-max">
-            <div role="row" className={`flex w-full items-center border-b border-slate-200 bg-slate-100/70 text-xs font-semibold uppercase tracking-wider text-slate-600 ${headerClassName}`.trim()}>
-              {tableColumnList.map((columnMetaObj) => (
-                <div
-                  key={columnMetaObj.columnObj.key ?? columnMetaObj.columnIndex}
-                  role="columnheader"
-                  className={`min-w-0 px-3 py-3 ${columnMetaObj.columnClassName} ${columnMetaObj.alignClassName} ${columnMetaObj.columnObj.headerClassName || ''}`.trim()}
-                >
-                  {typeof columnMetaObj.columnObj.header === 'function' ? columnMetaObj.columnObj.header() : columnMetaObj.columnObj.header}
-                </div>
-              ))}
+        <>
+          {hasMobileScrollHint ? (
+            <p id={mobileScrollHintId} className="border-b border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-500 sm:hidden">
+              {mobileScrollHint}
+            </p>
+          ) : null}
+          <div
+            className="w-full overflow-x-auto"
+            tabIndex={hasMobileScrollHint ? 0 : undefined}
+            aria-describedby={hasMobileScrollHint ? mobileScrollHintId : undefined}
+            aria-label={hasMobileScrollHint ? mobileScrollHint : undefined}
+          >
+            <div className="min-w-max">
+              <div role="row" className={`flex w-full items-center border-b border-slate-200 bg-slate-100/70 text-xs font-semibold uppercase tracking-wider text-slate-600 ${headerClassName}`.trim()}>
+                {tableColumnList.map((columnMetaObj) => (
+                  <div
+                    key={columnMetaObj.columnObj.key ?? columnMetaObj.columnIndex}
+                    role="columnheader"
+                    className={`min-w-0 px-3 py-3 ${columnMetaObj.columnClassName} ${columnMetaObj.alignClassName} ${columnMetaObj.columnObj.headerClassName || ''}`.trim()}
+                  >
+                    {typeof columnMetaObj.columnObj.header === 'function' ? columnMetaObj.columnObj.header() : columnMetaObj.columnObj.header}
+                  </div>
+                ))}
+              </div>
+              {statusPanel || bodyTable}
             </div>
-            {statusPanel || bodyTable}
           </div>
-        </div>
+        </>
       ) : (
         statusPanel || (
           <div className={gridClassName}>

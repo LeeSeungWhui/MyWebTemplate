@@ -99,6 +99,10 @@ def transaction(
                             pass
                     result = await func(*args, **kwargs)
 
+                    # 정상 종료(커밋)가 완료된 뒤에만 성공 로그와 결과를 노출한다.
+                    await stack.aclose()
+                    stack = None
+
                     try:
                         elapsedMs = int((time.perf_counter() - started) * 1000)
                         sqlCount = max(0, DB.getSqlCount() - startCount)

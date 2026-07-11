@@ -20,13 +20,13 @@ const EasyEditorDocs = () => {
       description={
         <div className="space-y-2 text-sm leading-relaxed text-slate-700">
           <p>
-            <code>EasyEditor</code>는 Tiptap 기반 리치 텍스트 에디터로, EasyObj 바인딩과 프리셋 확장을 통해 쉽게 사용할 수 있습니다.
+            <code>EasyEditor</code>는 Tiptap 기반 리치 텍스트 에디터로, EasyObj 데이터 연결과 미리 구성된 확장 기능을 통해 쉽게 사용할 수 있습니다.
             기본 직렬화는 JSON이며 <code>serialization="html" | "text"</code>로 모드를 바꿀 수 있습니다.
             글자 크기, 색상, 정렬, 링크, 이미지/파일 첨부, Editor/HTML 모드 전환 등 핵심 기능을 제공합니다.
           </p>
           <ul className="list-disc space-y-1 pl-5 text-slate-600">
-            <li><code>dataObj</code> + <code>dataKey</code>: EasyObj 객체 바인딩 (JSON이 기본 직렬화)</li>
-            <li><code>value</code> + <code>onChange</code>: 컨트롤드 모드</li>
+            <li><code>dataObj</code> + <code>dataKey</code>: EasyObj 객체와 연결합니다. JSON을 기본 직렬화 형식으로 사용합니다.</li>
+            <li><code>value</code> + <code>onChange</code>: 외부 상태로 값을 제어합니다.</li>
             <li><code>serialization?</code>: <code>'json' | 'html' | 'text'</code> (기본: <code>'json'</code>)</li>
             <li><code>extensions?</code>: Tiptap Extension 배열 (메모이즈되어 불필요한 재생성 방지)</li>
             <li><code>imageUploadUrl?</code>, <code>fileUploadUrl?</code>: 업로드 엔드포인트 (기본 제공 Alert 안내)</li>
@@ -34,7 +34,7 @@ const EasyEditorDocs = () => {
             <li><code>toolbar?</code>: 툴바 표시 여부 (기본: <code>true</code>)</li>
             <li><code>status?</code>: <code>'idle' | 'loading' | 'error' | 'success'</code>, 상태에 따른 스타일</li>
             <li><code>readOnly?</code>: 읽기 전용 모드 (HTML 모드 전환 시 비활성화)</li>
-            <li>Editor/HTML 모드 전환 시 HTML을 즉시 반영하며, 바인딩에도 동기화됩니다.</li>
+            <li>Editor/HTML 모드 전환 시 HTML을 즉시 반영하며, 연결된 데이터에도 동기화됩니다.</li>
           </ul>
         </div>
       }

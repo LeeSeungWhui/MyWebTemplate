@@ -7,7 +7,7 @@
  * 설명: 햄버거/화살표 토글이 가능한 공용 사이드바(EasyList 기반)
  */
 
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import Icon from "@/app/lib/component/Icon";
@@ -47,6 +47,8 @@ const Sidebar = ({
     collapsed: initialCollapsed,
     expanded: {},
   });
+  const uiRef = useRef(ui);
+  uiRef.current = ui;
   const pathname = usePathname();
 
   const resolvedItems = readMenuList(menuList).map((menuItemObj) => ({
@@ -88,8 +90,8 @@ const Sidebar = ({
    */
   useEffect(() => {
     if (!dataObj || !collapsedKey) return;
-    ui.collapsed = Boolean(getBoundValue(dataObj, collapsedKey));
-  }, [dataObj, collapsedKey, ui]);
+    uiRef.current.collapsed = Boolean(getBoundValue(dataObj, collapsedKey));
+  }, [dataObj, collapsedKey]);
 
   /**
    * @description 사이드바 접힘 상태를 토글
@@ -167,7 +169,7 @@ const Sidebar = ({
    * 처리 규칙: pathname/resolvedItems 변경 시 활성 child가 있는 menuKey만 true로 설정한다.
   */
   useEffect(() => {
-    const nextExpandedObj = { ...ui.expanded };
+    const nextExpandedObj = { ...uiRef.current.expanded };
     let hasChanged = false;
     resolvedItems.forEach((menuItemObj) => {
       const menuKey = menuItemObj.key || menuItemObj.label || menuItemObj.href;
@@ -180,9 +182,9 @@ const Sidebar = ({
       }
     });
     if (hasChanged) {
-      ui.expanded = nextExpandedObj;
+      uiRef.current.expanded = nextExpandedObj;
     }
-  }, [resolvedItems, pathname, subMenuMap, ui, isChildActive]);
+  }, [resolvedItems, pathname, subMenuMap, isChildActive]);
 
   const sidebarContent = (
     <>
@@ -232,8 +234,6 @@ const Sidebar = ({
             const isActive = isItemActive(menuItemObj, childMenuList);
             const hasChildren = childMenuList.length > 0;
             const isOpenGroup = ui.expanded[menuKey] || false;
-            const childListClassName = isOpenGroup ? "mt-1 space-y-1" : "hidden";
-            const childListPaddingClassName = ui.collapsed ? "" : "pl-3";
             const navItemClassName = [
               "group flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm transition-colors",
               isActive
@@ -282,7 +282,7 @@ const Sidebar = ({
                   </button>
                   <ul
                     id={`${menuKey}-children-${ui.collapsed ? "mini" : "full"}`}
-                    className={`${childListClassName} ${childListPaddingClassName}`}
+                    className={`${isOpenGroup ? "mt-1 space-y-1" : "hidden"} ${ui.collapsed ? "" : "pl-3"}`}
                     aria-label={`${menuItemObj.label} ${COMMON_COMPONENT_LANG_KO.sidebar.subMenuAriaSuffix}`}
                   >
                     {childMenuList.map((child) => {
@@ -391,7 +391,6 @@ const Sidebar = ({
     </>
   );
 
-  const sideWidthClassName = ui.collapsed ? "w-16" : "w-64";
   const sideShiftClassName = isOpen
     ? "translate-x-0"
     : "-translate-x-full pointer-events-none lg:pointer-events-auto lg:translate-x-0";
@@ -404,7 +403,7 @@ const Sidebar = ({
         aria-hidden="true"
       />
       <aside
-        className={`fixed bottom-0 left-0 top-16 z-40 flex h-auto flex-none flex-col overflow-visible border-r border-gray-200 bg-white shadow-sm transition-all duration-200 lg:static lg:top-auto lg:bottom-auto lg:left-auto lg:min-h-full ${sideWidthClassName} ${sideShiftClassName} ${className}`.trim()}
+        className={`fixed bottom-0 left-0 top-16 z-40 flex h-auto flex-none flex-col overflow-visible border-r border-gray-200 bg-white shadow-sm transition-all duration-200 lg:static lg:top-auto lg:bottom-auto lg:left-auto lg:min-h-full ${ui.collapsed ? "w-16" : "w-64"} ${sideShiftClassName} ${className}`.trim()}
         aria-label={COMMON_COMPONENT_LANG_KO.sidebar.navigationAriaLabel}
       >
         {sidebarContent}

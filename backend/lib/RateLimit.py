@@ -15,7 +15,7 @@ from typing import Optional
 from fastapi import Request
 from fastapi.responses import JSONResponse
 
-from lib.RequestTrust import trustProxyHeaders
+from lib.RequestTrust import getTrustedForwardedIp, isTrustedProxyRequest
 from lib.Response import errorResponse
 
 
@@ -117,15 +117,13 @@ def resolveClientIp(request: Request) -> str:
     """
     설명: 요청의 클라이언트 IP를 최대한 정확히 추정
     - 기본: request.client.host
-    - 프록시 뒤: TRUST_PROXY_HEADERS=true 일 때 X-Forwarded-For 첫 IP를 사용
-    갱신일: 2026-01-15
+    - 프록시 뒤: opt-in 및 trusted peer 검증을 통과한 X-Forwarded-For 첫 IP를 사용
+    갱신일: 2026-07-11
     """
-    if trustProxyHeaders():
-        xff = request.headers.get("X-Forwarded-For")
-        if isinstance(xff, str) and xff.strip():
-            first = xff.split(",")[0].strip()
-            if first:
-                return first
+    trustedProxy = isTrustedProxyRequest(request)
+    forwardedIp = getTrustedForwardedIp(request) if trustedProxy else None
+    if forwardedIp:
+        return forwardedIp
     return getattr(request.client, "host", None) or "unknown"
 
 

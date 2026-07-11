@@ -56,9 +56,12 @@ queryWatch: bool = True
 debounceMs: int = 150
 debounceTimer: threading.Timer | None = None
 lastChangedFile: str | None = None
+pendingChangedFiles: set[str] = set()
+debounceStateLock = threading.Lock()
+reloadPublicationLock = threading.Lock()
 
 # 요청 단위 SQL 카운터(ContextVar)
-sqlCountVar: contextvars.ContextVar[int] = contextvars.ContextVar("sql_count", default=0)
+sqlCountVar: contextvars.ContextVar[list[int] | None] = contextvars.ContextVar("sql_count", default=None)
 
 SENSITIVE_SQL_PARAM_NAME_PATTERN = re.compile(
     r"(pass(word)?|pwd|secret|token|refresh|access|auth|cookie|session|csrf|email|eml|phone|mobile|tel|ssn|rrn|card|account|acct|bank)",
@@ -68,20 +71,60 @@ EMAIL_LITERAL_PATTERN = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 JWT_LITERAL_PATTERN = re.compile(r"^[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$")
 INLINE_SQL_STRING_LITERAL_PATTERN = r"'(?:''|[^'])*'"
 INLINE_SQL_NUMERIC_LITERAL_PATTERN = r"-?\d+(?:\.\d+)?"
+SQL_STRING_LITERAL_MARKER = "__SQL_STRING_LITERAL__"
+SQL_NUMERIC_LITERAL_MARKER = "__SQL_NUMERIC_LITERAL__"
+SQL_NUMERIC_LITERAL_PATTERN = re.compile(
+    r"""
+    (?<![\w$.])
+    (?:
+        0[xX][0-9a-fA-F](?:_?[0-9a-fA-F])*
+        |0[bB][01](?:_?[01])*
+        |0[oO][0-7](?:_?[0-7])*
+        |(?:\d(?:_?\d)*(?:\.(?:\d(?:_?\d)*)?)?|\.\d(?:_?\d)*)(?:[eE][+-]?\d(?:_?\d)*)?
+    )
+    (?![\w$])
+    """,
+    re.VERBOSE,
+)
+SQL_ANALYSIS_STRING_LITERAL_PATTERN = rf"""
+(?:
+    (?:(?:date|time|timestamp)(?:\s*\(\s*(?:\d+|{SQL_NUMERIC_LITERAL_MARKER})\s*\))?(?:\s+(?:with|without)\s+time\s+zone)?|interval)\s+
+)?
+{SQL_STRING_LITERAL_MARKER}
+"""
+SQL_ANALYSIS_LITERAL_PATTERN = rf"(?:[-+]?{SQL_NUMERIC_LITERAL_MARKER}|{SQL_ANALYSIS_STRING_LITERAL_PATTERN})"
+SQL_ANALYSIS_LITERAL_OPERAND_PATTERN = rf"""
+(?:\(\s*)*
+{SQL_ANALYSIS_LITERAL_PATTERN}
+(?:\s*\))*
+"""
+SQL_ANALYSIS_CAST_LITERAL_PREFIX_PATTERN = re.compile(
+    rf"""
+    \bcast\s*\(\s*
+    {SQL_ANALYSIS_LITERAL_OPERAND_PATTERN}
+    \s+as\b
+    """,
+    re.IGNORECASE | re.VERBOSE,
+)
 UNSAFE_INLINE_LITERAL_PREDICATE_PATTERN = re.compile(
     rf"""
-    \b(?:where|having)\b
-    [\s\S]*?
     (?:
-        (?:=|<>|!=|<=|>=|<|>|\blike\b)\s*(?:{INLINE_SQL_STRING_LITERAL_PATTERN}|{INLINE_SQL_NUMERIC_LITERAL_PATTERN})
+        (?:=|<>|!=|<=|>=|<|>|\b(?:not\s+)?like\b)\s*{SQL_ANALYSIS_LITERAL_OPERAND_PATTERN}
         |
-        \bin\s*\(
-            \s*(?:{INLINE_SQL_STRING_LITERAL_PATTERN}|{INLINE_SQL_NUMERIC_LITERAL_PATTERN})
-            (?:\s*,\s*(?:{INLINE_SQL_STRING_LITERAL_PATTERN}|{INLINE_SQL_NUMERIC_LITERAL_PATTERN}))*
-            \s*\)
+        {SQL_ANALYSIS_LITERAL_OPERAND_PATTERN}\s*(?:=|<>|!=|<=|>=|<|>|\b(?:not\s+)?like\b)
+        |
+        \b(?:not\s+)?in\s*\([^)]*{SQL_ANALYSIS_LITERAL_OPERAND_PATTERN}
+        |
+        \b(?:not\s+)?between\s+(?:(?:symmetric|asymmetric)\s+)?{SQL_ANALYSIS_LITERAL_OPERAND_PATTERN}
+        |
+        \b(?:not\s+)?between\s+(?:(?:symmetric|asymmetric)\s+)?(?:(?!\band\b)[\s\S])*?\band\s+{SQL_ANALYSIS_LITERAL_OPERAND_PATTERN}
     )
     """,
     re.IGNORECASE | re.VERBOSE,
+)
+SQL_PREDICATE_CLAUSE_PATTERN = re.compile(
+    r"(?<!:)\b(?:group\s+by|order\s+by|where|having|join|on|limit|offset|fetch|returning|union|intersect|except)\b",
+    re.IGNORECASE,
 )
 
 
@@ -120,7 +163,11 @@ def maskDatabaseUrl(url: str) -> str:
 def getSqlCount() -> int:
     """설명: 현재 요청 컨텍스트의 SQL 실행 누계 반환 반환값: 정수 카운트(예외 시 0). 갱신일: 2025-11-12"""
     try:
-        return int(sqlCountVar.get())
+        counter = sqlCountVar.get()
+        if counter is None:
+            counter = [0]
+            sqlCountVar.set(counter)
+        return int(counter[0])
     except Exception:
         return 0
 
@@ -166,8 +213,11 @@ def getManager(name: str | None = None) -> "DatabaseManager" | None:
 def incSqlCount(n: int = 1) -> None:
     """설명: 현재 컨텍스트 SQL 카운터 증 부작용: sqlCountVar 값 n만큼 증가. 갱신일: 2025-11-12"""
     try:
-        cur = int(sqlCountVar.get())
-        sqlCountVar.set(cur + int(n))
+        counter = sqlCountVar.get()
+        if counter is None:
+            counter = [0]
+            sqlCountVar.set(counter)
+        counter[0] += int(n)
     except Exception:
         pass
 
@@ -175,7 +225,8 @@ def incSqlCount(n: int = 1) -> None:
 def resetSqlCount() -> None:
     """설명: 현재 컨텍스트 SQL 카운터 0 초기화 부작용: sqlCountVar 값 0으로 재설정. 갱신일: 2026-02-22"""
     try:
-        sqlCountVar.set(0)
+        # 새 mutable counter를 발급해 이후 컨텍스트를 기존 child task와 분리한다.
+        sqlCountVar.set([0])
     except Exception:
         pass
 
@@ -228,12 +279,145 @@ class DatabaseManager:
             return {}
         return {k: "***" for k in values.keys()}
 
+    def scanSqlSegments(self, query: str) -> list[tuple[str, str]]:
+        """설명: SQL을 실행 코드/문자열/인용 식별자/주석 구간으로 분리 반환값: (종류, 원문) 튜플 목록. 갱신일: 2026-07-11"""
+        sql = str(query or "")
+        segments: list[tuple[str, str]] = []
+        index = 0
+        codeStart = 0
+        length = len(sql)
+
+        def appendCode(end: int) -> None:
+            if end > codeStart:
+                segments.append(("code", sql[codeStart:end]))
+
+        while index < length:
+            char = sql[index]
+            nextChar = sql[index + 1] if index + 1 < length else ""
+            isEscapeString = (
+                char in {"e", "E"}
+                and nextChar == "'"
+                and (index == 0 or not (sql[index - 1].isalnum() or sql[index - 1] in {"_", "$"}))
+            )
+            if char == "'" or isEscapeString:
+                appendCode(index)
+                start = index
+                escapeBackslash = isEscapeString
+                index += 2 if isEscapeString else 1
+                while index < length:
+                    current = sql[index]
+                    if escapeBackslash and current == "\\" and index + 1 < length:
+                        index += 2
+                        continue
+                    if current == "'":
+                        if index + 1 < length and sql[index + 1] == "'":
+                            index += 2
+                            continue
+                        index += 1
+                        break
+                    index += 1
+                segments.append(("string", sql[start:index]))
+                codeStart = index
+                continue
+            if char == "$":
+                delimiterMatch = re.match(r"\$(?:[a-zA-Z_][a-zA-Z0-9_]*)?\$", sql[index:])
+                if delimiterMatch is not None:
+                    delimiter = delimiterMatch.group(0)
+                    contentStart = index + len(delimiter)
+                    closeIndex = sql.find(delimiter, contentStart)
+                    if closeIndex >= 0:
+                        appendCode(index)
+                        end = closeIndex + len(delimiter)
+                        segments.append(("string", sql[index:end]))
+                        index = end
+                        codeStart = index
+                        continue
+            if char == '"':
+                appendCode(index)
+                start = index
+                index += 1
+                while index < length:
+                    if sql[index] == '"':
+                        if index + 1 < length and sql[index + 1] == '"':
+                            index += 2
+                            continue
+                        index += 1
+                        break
+                    index += 1
+                segments.append(("quoted", sql[start:index]))
+                codeStart = index
+                continue
+            if char == "-" and nextChar == "-":
+                appendCode(index)
+                start = index
+                index += 2
+                while index < length and sql[index] != "\n":
+                    index += 1
+                segments.append(("comment", sql[start:index]))
+                codeStart = index
+                continue
+            if char == "/" and nextChar == "*":
+                appendCode(index)
+                start = index
+                index += 2
+                commentDepth = 1
+                while index < length and commentDepth > 0:
+                    current = sql[index]
+                    following = sql[index + 1] if index + 1 < length else ""
+                    if current == "/" and following == "*":
+                        commentDepth += 1
+                        index += 2
+                        continue
+                    if current == "*" and following == "/":
+                        commentDepth -= 1
+                        index += 2
+                        continue
+                    index += 1
+                segments.append(("comment", sql[start:index]))
+                codeStart = index
+                continue
+            index += 1
+
+        appendCode(length)
+        return segments
+
+    def decodeSqlStringSegment(self, rawLiteral: str) -> str:
+        """설명: 민감도 판정을 위해 단일/escape/dollar SQL 문자열의 내용만 복원 반환값: 문자열 내부 값. 갱신일: 2026-07-11"""
+        raw = str(rawLiteral or "")
+        delimiterMatch = re.match(r"\$(?:[a-zA-Z_][a-zA-Z0-9_]*)?\$", raw)
+        if delimiterMatch is not None:
+            delimiter = delimiterMatch.group(0)
+            if raw.endswith(delimiter) and len(raw) >= len(delimiter) * 2:
+                return raw[len(delimiter) : -len(delimiter)]
+            return raw[len(delimiter) :]
+
+        isEscapeString = len(raw) >= 2 and raw[0] in {"e", "E"} and raw[1] == "'"
+        start = 2 if isEscapeString else 1
+        end = len(raw) - 1 if raw.endswith("'") else len(raw)
+        content = raw[start:end]
+        decoded: list[str] = []
+        index = 0
+        while index < len(content):
+            if isEscapeString and content[index] == "\\" and index + 1 < len(content):
+                decoded.append(content[index + 1])
+                index += 2
+                continue
+            if content[index] == "'" and index + 1 < len(content) and content[index + 1] == "'":
+                decoded.append("'")
+                index += 2
+                continue
+            decoded.append(content[index])
+            index += 1
+        return "".join(decoded)
+
     def extractPlaceholders(self, query: str) -> set[str]:
         """설명: 쿼리에서 :name 형 플레이스홀더 목록 추출 반환값: 바인딩 이름 집합(set). 갱신일: 2025-11-12"""
-
-        # 예시: :id, :user_name 등 명명 파라미터
         # PostgreSQL 캐스트(::jsonb)와 구분하기 위해 단일 ':'만 파라미터로 본다.
-        return set(re.findall(r"(?<!:):([a-zA-Z_][a-zA-Z0-9_]*)", query or ""))
+        placeholders: set[str] = set()
+        for kind, raw in self.scanSqlSegments(query):
+            if kind == "code":
+                placeholders.update(re.findall(r"(?<!:):([a-zA-Z_][a-zA-Z0-9_]*)", raw))
+        return placeholders
 
     def normalizeQueryForLog(self, query: str) -> str:
         """설명: SQL 원문의 빈 줄/불필요 공백 정리해 사람 읽기 좋게 반환값: 로그 출력용 정규화 SQL 문자열. 갱신일: 2026-02-22"""
@@ -367,23 +551,96 @@ class DatabaseManager:
     def renderQueryForLog(self, normalizedQuery: str, values: dict[str, Any] | None, revealLiteral: bool) -> str:
         """설명: :name 플레이스홀더 로그용 리터럴로 치환한 SQL 생성 반환값: 바인딩 치환된 SQL 문자열. 갱신일: 2026-02-22"""
         params = values or {}
-        pattern = re.compile(r"(?<!:):([a-zA-Z_][a-zA-Z0-9_]*)")
+        rendered: list[str] = []
+        codeTokenPattern = re.compile(
+            rf"(?<!:):(?P<param>[a-zA-Z_][a-zA-Z0-9_]*)|(?P<number>{SQL_NUMERIC_LITERAL_PATTERN.pattern})",
+            re.VERBOSE,
+        )
+        for kind, raw in self.scanSqlSegments(normalizedQuery):
+            if kind == "string":
+                literalValue = self.decodeSqlStringSegment(raw)
+                if revealLiteral and not self.isSensitiveSqlStringValue(literalValue):
+                    rendered.append(raw)
+                else:
+                    rendered.append("'***'")
+                continue
+            if kind != "code":
+                rendered.append(raw)
+                continue
 
-        def replace(match: re.Match[str]) -> str:
-            """설명: 개별 플레이스홀더 로그용 리터럴로 치환 반환값: 치환된 리터럴 또 원본 플레이스홀더. 갱신일: 2026-02-26"""
-            key = match.group(1)
-            if key not in params:
-                return match.group(0)
-            return self.toSqlLiteralForLog(params.get(key), revealLiteral, paramName=key)
-
-        return pattern.sub(replace, normalizedQuery)
+            lastEnd = 0
+            for match in codeTokenPattern.finditer(raw):
+                rendered.append(raw[lastEnd : match.start()])
+                key = match.group("param")
+                if key is not None:
+                    token = match.group(0)
+                    if key in params:
+                        rendered.append(self.toSqlLiteralForLog(params.get(key), revealLiteral, paramName=key))
+                    else:
+                        rendered.append(token)
+                else:
+                    rendered.append(match.group(0) if revealLiteral else "?")
+                lastEnd = match.end()
+            rendered.append(raw[lastEnd:])
+        return "".join(rendered)
 
     def hasUnsafeInlineLiteralPredicate(self, query: str) -> bool:
         """설명: raw SQL의 WHERE/HAVING 절에 직접 박힌 문자열/숫자 리터럴 조건이 있는지 판별 반환값: 위험 패턴이면 True. 갱신일: 2026-06-04"""
-        normalized = self.normalizeQueryForLog(query)
-        if not normalized:
+        analysisParts: list[str] = []
+        for kind, raw in self.scanSqlSegments(query):
+            if kind == "string":
+                analysisParts.append(SQL_STRING_LITERAL_MARKER)
+            elif kind == "code":
+                analysisParts.append(SQL_NUMERIC_LITERAL_PATTERN.sub(SQL_NUMERIC_LITERAL_MARKER, raw))
+            else:
+                analysisParts.append("".join("\n" if char == "\n" else " " for char in raw))
+        analysisSql = "".join(analysisParts)
+        if not analysisSql.strip():
             return False
-        return UNSAFE_INLINE_LITERAL_PREDICATE_PATTERN.search(normalized) is not None
+        clauseMatches = list(SQL_PREDICATE_CLAUSE_PATTERN.finditer(analysisSql))
+        matchDepths: list[int] = []
+        matchIndexByStart = {match.start(): index for index, match in enumerate(clauseMatches)}
+        parenthesisDepth = 0
+        for charIndex, char in enumerate(analysisSql):
+            clauseIndex = matchIndexByStart.get(charIndex)
+            if clauseIndex is not None:
+                while len(matchDepths) <= clauseIndex:
+                    matchDepths.append(parenthesisDepth)
+            if char == "(":
+                parenthesisDepth += 1
+            elif char == ")":
+                parenthesisDepth = max(0, parenthesisDepth - 1)
+
+        pendingJoinDepths: set[int] = set()
+        predicateStarts: list[tuple[int, re.Match[str], int]] = []
+        for matchIndex, clauseMatch in enumerate(clauseMatches):
+            clauseName = re.sub(r"\s+", " ", clauseMatch.group(0).strip().lower())
+            clauseDepth = matchDepths[matchIndex]
+            if clauseName == "join":
+                pendingJoinDepths.add(clauseDepth)
+                continue
+            if clauseName == "on":
+                if clauseDepth in pendingJoinDepths:
+                    predicateStarts.append((matchIndex, clauseMatch, clauseDepth))
+                    pendingJoinDepths.discard(clauseDepth)
+                continue
+            if clauseName in {"where", "having"}:
+                predicateStarts.append((matchIndex, clauseMatch, clauseDepth))
+            pendingJoinDepths.discard(clauseDepth)
+
+        for matchIndex, clauseMatch, clauseDepth in predicateStarts:
+            regionEnd = len(analysisSql)
+            for nextIndex in range(matchIndex + 1, len(clauseMatches)):
+                if matchDepths[nextIndex] <= clauseDepth:
+                    regionEnd = clauseMatches[nextIndex].start()
+                    break
+            predicateRegion = analysisSql[clauseMatch.end() : regionEnd]
+            if (
+                SQL_ANALYSIS_CAST_LITERAL_PREFIX_PATTERN.search(predicateRegion) is not None
+                or UNSAFE_INLINE_LITERAL_PREDICATE_PATTERN.search(predicateRegion) is not None
+            ):
+                return True
+        return False
 
     def logQuery(self, op: str, query: str, values: dict[str, Any] | None = None, queryName: str | None = None) -> None:
         """설명: SQL 로그 읽기 쉬운 최소 필드(queryName/sqlRendered)로 구성 부작용: logger.info로 단일 JSON 로그 기록. 갱신일: 2026-02-22"""
@@ -418,12 +675,7 @@ class DatabaseManager:
         placeholders = self.extractPlaceholders(query)
         provided = set(values.keys())
 
-        if (
-            not allowStaticSqlLiteralPredicate
-            and not provided
-            and not placeholders
-            and self.hasUnsafeInlineLiteralPredicate(query)
-        ):
+        if not allowStaticSqlLiteralPredicate and self.hasUnsafeInlineLiteralPredicate(query):
             logger.warning(
                 json.dumps(
                     {
@@ -504,12 +756,12 @@ class DatabaseManager:
         """
         self._validateBindParameters(query, values, queryName=queryName, allowStaticSqlLiteralPredicate=False)
         self.logQuery("execute", query, values, queryName)
+        incSqlCount()
         try:
             result = await self.database.execute(query=query, values=values or {})
         except Exception as error:
             raise self.mapDatabaseBackendRuntimeError(error) from error
         logger.info(f"rows_affected={result}")
-        incSqlCount()
         return result
 
     async def fetchOne(
@@ -523,6 +775,7 @@ class DatabaseManager:
         """
         self._validateBindParameters(query, values, queryName=queryName, allowStaticSqlLiteralPredicate=False)
         self.logQuery("fetchOne", query, values, queryName)
+        incSqlCount()
         try:
             result = await self.database.fetch_one(query=query, values=values or {})
         except Exception as error:
@@ -530,11 +783,9 @@ class DatabaseManager:
         if result is not None:
             data: dict[str, Any] = dict(result)
             logger.info("rows_returned=1")
-            incSqlCount()
             return data
         else:
             logger.info("rows_returned=0")
-            incSqlCount()
             return None
 
     async def fetchAll(
@@ -548,6 +799,7 @@ class DatabaseManager:
         """
         self._validateBindParameters(query, values, queryName=queryName, allowStaticSqlLiteralPredicate=False)
         self.logQuery("fetchAll", query, values, queryName)
+        incSqlCount()
         try:
             result = await self.database.fetch_all(query=query, values=values or {})
         except Exception as error:
@@ -555,11 +807,9 @@ class DatabaseManager:
         if result is not None:
             data: list[dict[str, Any]] = [{column: row[column] for column in row.keys()} for row in result]  # type: ignore[index]
             logger.info(f"rows_returned={len(data)}")
-            incSqlCount()
             return data
         else:
             logger.info("rows_returned=0")
-            incSqlCount()
             return None
 
     async def executeQuery(self, queryName: str, values: dict[str, Any] | None = None) -> Any:
@@ -570,12 +820,12 @@ class DatabaseManager:
             raise ValueError(f"Query not found: {queryName}")
         self._validateBindParameters(query, values, queryName=queryName, allowStaticSqlLiteralPredicate=True)
         self.logQuery("execute", query, values, queryName)
+        incSqlCount()
         try:
             result = await self.database.execute(query=query, values=values or {})
         except Exception as error:
             raise self.mapDatabaseBackendRuntimeError(error) from error
         logger.info(f"rows_affected={result}")
-        incSqlCount()
         return result
 
     async def fetchOneQuery(self, queryName: str, values: dict[str, Any] | None = None) -> dict[str, Any] | None:
@@ -586,6 +836,7 @@ class DatabaseManager:
             raise ValueError(f"Query not found: {queryName}")
         self._validateBindParameters(query, values, queryName=queryName, allowStaticSqlLiteralPredicate=True)
         self.logQuery("fetchOne", query, values, queryName)
+        incSqlCount()
         try:
             result = await self.database.fetch_one(query=query, values=values or {})
         except Exception as error:
@@ -593,11 +844,9 @@ class DatabaseManager:
         if result is not None:
             data: dict[str, Any] = dict(result)
             logger.info("rows_returned=1")
-            incSqlCount()
             return data
         else:
             logger.info("rows_returned=0")
-            incSqlCount()
             return None
 
     async def fetchAllQuery(
@@ -610,6 +859,7 @@ class DatabaseManager:
             raise ValueError(f"Query not found: {queryName}")
         self._validateBindParameters(query, values, queryName=queryName, allowStaticSqlLiteralPredicate=True)
         self.logQuery("fetchAll", query, values, queryName)
+        incSqlCount()
         try:
             result = await self.database.fetch_all(query=query, values=values or {})
         except Exception as error:
@@ -617,11 +867,9 @@ class DatabaseManager:
         if result is not None:
             data: list[dict[str, Any]] = [{column: row[column] for column in row.keys()} for row in result]  # type: ignore[index]
             logger.info(f"rows_returned={len(data)}")
-            incSqlCount()
             return data
         else:
             logger.info("rows_returned=0")
-            incSqlCount()
             return None
 
 # =========================
@@ -665,46 +913,65 @@ def loadQueries() -> int:
 def scheduleReload(changedPath: str | None):
     """설명: 변경된 파일 기록 및 디바운스 타이머 기동 부작용: 기존 타이머 취소 후 새 타이머 등록. 갱신일: 2025-11-12"""
     global debounceTimer, lastChangedFile
-    lastChangedFile = changedPath
-    if debounceTimer and debounceTimer.is_alive():
-        debounceTimer.cancel()
-    debounceTimer = threading.Timer(debounceMs / 1000.0, doReload)
-    debounceTimer.daemon = True
-    debounceTimer.start()
+    with debounceStateLock:
+        lastChangedFile = changedPath
+        pendingChangedFiles.add(os.path.normpath(changedPath or queryDir))
+        if debounceTimer and debounceTimer.is_alive():
+            debounceTimer.cancel()
+        debounceTimer = threading.Timer(debounceMs / 1000.0, doReload)
+        debounceTimer.daemon = True
+        debounceTimer.start()
 
 
 def doReload() -> bool:
     """설명: 디바운스 이후 실제로 쿼리 파일 다시 반환값: 재로딩 성공 여부(True/False). 갱신일: 2025-11-12"""
     started = time.perf_counter()
-    changedFile = lastChangedFile or queryDir
+    changedFile = queryDir
+    keysFromFile: list[str] | None = None
     try:
-        qm = QueryManager.getInstance()
-        if changedFile and os.path.isfile(changedFile):
+        with reloadPublicationLock:
+            with debounceStateLock:
+                changedFiles = set(pendingChangedFiles)
+                pendingChangedFiles.clear()
 
-            # 특정 파일만 부분 재로딩
-            pairs = parseSqlFile(changedFile)
+            try:
+                qm = QueryManager.getInstance()
+                partialFile = next(iter(changedFiles)) if len(changedFiles) == 1 else None
+                if (
+                    partialFile is not None
+                    and partialFile.lower().endswith(".sql")
+                    and os.path.isfile(partialFile)
+                ):
+                    changedFile = partialFile
+                    pairs = parseSqlFile(partialFile)
 
-            # 기존 상태를 복사
-            newQueries = dict(qm.queries)
-            newNameToFile = dict(qm.nameToFile)
-            newFileToNames = {fp: set(names) for fp, names in qm.fileToNames.items()}
+                    # 게시 중인 최신 상태를 기준으로 특정 파일만 안전하게 교체한다.
+                    newQueries = dict(qm.queries)
+                    newNameToFile = dict(qm.nameToFile)
+                    newFileToNames = {fp: set(names) for fp, names in qm.fileToNames.items()}
+                    oldNames = newFileToNames.get(partialFile, set())
+                    for name in oldNames:
+                        newQueries.pop(name, None)
+                        newNameToFile.pop(name, None)
+                    for name, sql in pairs:
+                        owner = newNameToFile.get(name)
+                        if owner is not None and owner != partialFile:
+                            raise ValueError(f"duplicate query key across files: {name}")
+                        newQueries[name] = sql
+                        newNameToFile[name] = partialFile
+                    newFileToNames[partialFile] = {name for name, _ in pairs}
+                    keysFromFile = [name for name, _ in pairs]
+                else:
+                    # 복수 변경, 삭제, 경로 누락/모호성은 전체 스캔으로 수렴한다.
+                    newQueries, newNameToFile, newFileToNames = scanSqlQueries(queryDir)
 
-            # 해당 파일에서 이전 키 삭제
-            oldNames = newFileToNames.get(changedFile, set())
-            for n in oldNames:
-                newQueries.pop(n, None)
-                newNameToFile.pop(n, None)
-
-            # 새 항목 추가 + 파일 간 중복 검사
-            for name, sql in pairs:
-                owner = newNameToFile.get(name)
-                if owner is not None and owner != changedFile:
-                    raise ValueError(f"duplicate query key across files: {name}")
-                newQueries[name] = sql
-                newNameToFile[name] = changedFile
-            newFileToNames[changedFile] = set(n for n, _ in pairs)
-        else:
-            newQueries, newNameToFile, newFileToNames = scanSqlQueries(queryDir)
+                # 스캔/복사와 같은 임계 구역에서 게시해 stale snapshot 덮어쓰기를 막는다.
+                qm.setAll(newQueries, newNameToFile, newFileToNames)
+            except Exception:
+                # 실패한 배치와 그 사이 새로 들어온 변경을 합쳐 다음 재시도에 보존한다.
+                with debounceStateLock:
+                    pendingChangedFiles.update(changedFiles)
+                raise
     except Exception as e:
         durationMs = int((time.perf_counter() - started) * 1000)
         errPayload = {
@@ -718,16 +985,7 @@ def doReload() -> bool:
         # 실패 시 기존 상태 유지
         return False
 
-    # 성공하면 새로운 쿼리 매핑으로 교체
-    qm.setAll(newQueries, newNameToFile, newFileToNames)
     durationMs = int((time.perf_counter() - started) * 1000)
-    keysFromFile: list[str] | None = None
-    try:
-        if changedFile and os.path.isfile(changedFile):
-            pairs2 = parseSqlFile(changedFile)
-            keysFromFile = [name for name, _ in pairs2]
-    except Exception:
-        keysFromFile = None
     payload = {
         "event": "query.reload",
         "file": changedFile,
@@ -771,11 +1029,14 @@ class QueryFolderEventHandler(FileSystemEventHandler):
         부작용: 조건을 만족하면 onChange(path)를 호출
         갱신일: 2025-11-12
         """
-        path = getattr(event, "src_path", None) or getattr(event, "dest_path", None)
-        if not path:
-            return
-        if path.lower().endswith(".sql"):
-            self.onChange(path)
+        paths = (getattr(event, "src_path", None), getattr(event, "dest_path", None))
+        notifiedPaths: set[str] = set()
+        for path in paths:
+            if not path or path in notifiedPaths:
+                continue
+            notifiedPaths.add(path)
+            if path.lower().endswith(".sql"):
+                self.onChange(path)
 
     def on_modified(self, event: FileSystemEvent):
         """설명: 수정 이벤트 수신해 SQL 파일 필터링 로직으로 전달 부작용: 파일이면 maybe(event) 실행. 갱신일: 2025-11-12"""

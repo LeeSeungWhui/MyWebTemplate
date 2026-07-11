@@ -46,6 +46,7 @@ const PublicFooter = () => {
               <Link
                 key={menuItemObj.href}
                 href={menuItemObj.href}
+                prefetch={menuItemObj.prefetch}
                 className="text-gray-300 transition hover:text-white"
               >
                 {menuItemObj.label}

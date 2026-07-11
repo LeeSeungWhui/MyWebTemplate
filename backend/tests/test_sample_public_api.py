@@ -34,9 +34,9 @@ def testSampleOverviewAndDashboardArePublic():
         assert isinstance(dashboardResult["recentList"], list)
         assert len(dashboardResult["recentList"]) >= 1
         recentTitleList = [row["title"] for row in dashboardResult["recentList"]]
-        assert "고객 상담용 샘플 시나리오 작성" in recentTitleList
-        assert "공개 화면 이동 경로 점검" in recentTitleList
-        assert "고객 문의 데이터 정리" in recentTitleList
+        assert "서비스 공개 준비" in recentTitleList
+        assert "최종 검수 일정 확정" in recentTitleList
+        assert "기능 검수 결과 확인" in recentTitleList
         assert "숨고/크몽 샘플 시나리오 작성" not in recentTitleList
         assert "미들웨어 공개 경로 점검" not in recentTitleList
         assert "T_DATA 샘플 데이터 정리" not in recentTitleList
@@ -138,7 +138,7 @@ def testSampleAdminDuplicateWithIdempotencyKeyDoesNotPoisonPendingEntry():
         headers = {"Idempotency-Key": f"idem-sample-admin:{os.urandom(8).hex()}"}
         payload = {
             "name": "기존 운영자",
-            "email": "admin@demo.demo",
+            "email": "minji.kim@example.com",
             "role": "admin",
             "status": "active",
         }
@@ -335,6 +335,12 @@ def testSampleAdminUserAndSettingFlow():
         userResult = userListResponse.json()["result"]
         userList = userResult["sampleAdminUserList"]
         assert len(userList) >= 3
+        assert {row["name"] for row in userList} >= {"김민지", "박서준", "이하늘"}
+        assert {row["email"] for row in userList} >= {
+            "minji.kim@example.com",
+            "seojun.park@example.com",
+            "haneul.lee@example.com",
+        }
         assert userResult["listMetaObj"]["page"] == 1
         assert userResult["listMetaObj"]["size"] == 50
         assert userResult["listMetaObj"]["totalCount"] >= len(userList)
@@ -373,7 +379,8 @@ def testSampleAdminUserAndSettingFlow():
         settingsResponse = client.get("/api/v1/sample/admin/settings")
         assert settingsResponse.status_code == 200
         settingsResult = settingsResponse.json()["result"]
-        assert settingsResult["systemSetting"]["siteName"] == "MyWebTemplate"
+        assert settingsResult["systemSetting"]["siteName"] == "Web Sample"
+        assert settingsResult["systemSetting"]["adminEmail"] == "admin@example.com"
         assert settingsResult["rolePermissionMap"]["admin"]["manageUser"] is True
 
         saveSettingsResponse = client.put(

@@ -20,7 +20,7 @@ const badgeExampleSectionList = [
   {
     id: 'badge-variants',
     eyebrow: 'EXAMPLE 1',
-    title: '상태 Variants',
+    title: '상태별 표현',
     summary: '운영 화면에서 자주 쓰는 상태값을 색상별로 빠르게 구분합니다.',
     example: variantExampleList[0],
   },
@@ -53,7 +53,7 @@ const badgeExampleSectionList = [
  */
 const BadgeDocs = () => {
   return <DocSection id="badges" title="21. 배지/태그 (Badge/Tag)" description={<div className="space-y-4 rounded-xl bg-slate-50/80 p-5 text-sm text-slate-700 ring-1 ring-slate-900/5">
-          <p>Badge는 상태, 권한, 단계, 카테고리를 짧은 라벨로 표현하는 컴포넌트입니다. 채도가 낮은 slate/indigo 기반 surface 위에서 과하게 튀지 않도록 색상과 밀도를 정돈합니다.</p>
+          <p>Badge는 상태, 권한, 단계, 카테고리를 짧은 라벨로 표현하는 컴포넌트입니다. 채도가 낮은 slate·indigo 색상 위에서 과하게 튀지 않도록 색상과 밀도를 정돈합니다.</p>
           <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
             {badgePropList.map((propItem) => (
               <div key={propItem.name} className="rounded-lg bg-white px-3 py-2 ring-1 ring-slate-200/80">

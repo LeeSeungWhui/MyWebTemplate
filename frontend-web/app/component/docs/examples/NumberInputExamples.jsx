@@ -58,7 +58,7 @@ const UnboundNumberDemo = () => {
 export const basicExampleObj = {
   exampleId: 'bound',
   component: <BoundNumberDemo />,
-  description: '좌석 수처럼 최소/최대 범위가 있는 기본 바운드 숫자 입력',
+  description: '좌석 수처럼 최소·최대 범위가 있는 기본 데이터 연결 숫자 입력',
   code: `const numberDataObj = Lib.EasyObj({ seatCount: 3 });
 
 <Lib.NumberInput
@@ -88,6 +88,6 @@ export const rangeExampleObj = {
 export const unboundExampleObj = {
   exampleId: 'unbound',
   component: <UnboundNumberDemo />,
-  description: 'state 바인딩 없이 defaultValue로 시작하는 독립 숫자 입력',
+  description: '외부 state 연결 없이 defaultValue로 시작하는 독립 숫자 입력',
   code: '<Lib.NumberInput id="number-report-cycle" defaultValue={10} min={5} step={5} />'
 };

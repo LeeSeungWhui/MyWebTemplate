@@ -7,27 +7,27 @@
 
 export const LANG_KO = {
   page: {
-    metadataTitle: "Portfolio | Web Sample",
+    metadataTitle: "풀스택 웹서비스 포트폴리오 | LSH",
     metadataDescription:
-      "프로젝트 요약, 역할, 신뢰 포인트를 한 페이지에서 보여주는 웹 포트폴리오",
+      "관리자·업무 웹서비스의 구현 범위와 실제 사용 흐름을 직접 확인하는 풀스택 개발 포트폴리오",
   },
   view: {
-    heroBadge: "PUBLIC PORTFOLIO",
+    heroBadge: "FULL-STACK WEB PORTFOLIO",
     sectionTitle: {
       overview: "프로젝트 개요",
-      profile: "개발자 프로필 (열고 닫기)",
+      profile: "개발자 소개",
       featuredProjects: "대표 프로젝트",
-      careerTimeline: "회사별 경력(요약)",
+      careerTimeline: "경력 요약",
       education: "학력",
-      research: "경험/활동",
+      research: "경험 및 활동",
       strengths: "주요 강점",
       architecture: "작동 흐름",
-      demoFlow: "샘플 동선",
-      technicalNotes: "기술 상세 노트 (필요할 때만 열기)",
+      demoFlow: "직접 체험할 화면",
+      technicalNotes: "기술 구성과 검증 기준",
     },
     label: {
       developer: "담당 개발자",
-      moveSample: "샘플 이동",
+      moveSample: "직접 체험하기",
       status: "상태",
       architectureDescription:
         "화면에서 요청한 정보가 어떤 단계로 처리되는지, 이해하기 쉽게 단순화해서 표현했습니다.",
@@ -35,14 +35,14 @@ export const LANG_KO = {
     statusLabelMap: {
       ready: "준비",
       pending: "대기",
-      running: "진행중",
+      running: "진행 중",
       done: "완료",
       failed: "실패",
     },
     overviewCard: {
-      taskCount: "업무 샘플 데이터",
-      adminUserCount: "관리자 샘플 사용자",
-      formSubmissionCount: "최근 폼 제출",
+      taskCount: "등록된 샘플 업무",
+      adminUserCount: "관리 대상 사용자",
+      formSubmissionCount: "접수된 샘플 문의",
       countSuffix: "건",
       userSuffix: "명",
     },
@@ -50,17 +50,17 @@ export const LANG_KO = {
   initData: {
     content: {
       hero: {
-        title: "실무용 웹서비스 템플릿 포트폴리오",
+        title: "관리자·업무 웹서비스 구축 포트폴리오",
         subtitle:
-          "숨고·크몽 상담 전에 관리자 페이지, 데이터 관리, 신청 폼, 로그인 흐름을 직접 눌러볼 수 있게 구성한 샘플 포트폴리오입니다.",
+          "프로젝트 상담 전에 대시보드, 데이터 관리, 문의 접수, 회원 권한 설정 등 실제 운영에 필요한 흐름을 직접 확인할 수 있습니다.",
         cta: [
-          { href: "/sample", label: "샘플 화면 바로 체험" },
-          { href: "/component", label: "UI 구성 요소 보기", variant: "outline" },
+          { href: "/sample", label: "기능 샘플 직접 체험" },
+          { href: "/component", label: "UI 구성 요소 살펴보기", variant: "outline", prefetch: false },
         ],
         summary: [
-          "처음 보는 사람도 1분 안에 주요 화면을 체험할 수 있게 설계",
-          "로그인, 대시보드, 업무 데이터 관리, 신청/문의 폼 중심 구성",
-          "프론트 화면, 백엔드 API, DB 저장, 배포까지 이어지는 기본 뼈대 제공",
+          "처음 방문해도 1분 안에 핵심 업무 화면을 체험할 수 있도록 구성",
+          "대시보드, 데이터 관리, 신청·문의 접수, 회원 권한 관리까지 연결",
+          "화면 구현부터 API·DB 연동, 배포 준비까지 한 흐름으로 제공",
         ],
       },
       overview: [
@@ -74,7 +74,7 @@ export const LANG_KO = {
         },
         {
           label: "즉시 체험 가능",
-          value: "/sample, /sample/dashboard, /sample/crud",
+          value: "대시보드, 데이터 관리, 신청·문의, 회원 관리",
         },
       ],
       features: [
@@ -86,7 +86,7 @@ export const LANG_KO = {
         {
           title: "실무형 업무 동선",
           detail:
-            "조회, 검색, 등록, 수정, 삭제와 신청/문의 접수까지 실제 운영 흐름에 맞춘 패턴으로 구성했습니다.",
+            "조회, 검색, 등록, 수정, 삭제와 신청·문의 접수까지 실제 운영 흐름에 맞춰 구성했습니다.",
         },
         {
           title: "빠른 커스터마이징",
@@ -96,19 +96,19 @@ export const LANG_KO = {
       ],
       architectureFlow: [
         {
-          icon: "👤",
+          icon: "ri:RiUser3Line",
           title: "사용자 화면",
-          description: "고객이 웹에서 바로 사용",
+          description: "고객과 운영자가 웹에서 바로 사용",
         },
         {
-          icon: "🛡️",
+          icon: "ri:RiShieldCheckLine",
           title: "접근 제어",
           description: "로그인 상태와 권한 확인",
         },
         {
-          icon: "⚙️",
+          icon: "ri:RiSettings3Line",
           title: "서비스 처리",
-          description: "데이터 저장/조회와 응답",
+          description: "데이터 저장·조회와 결과 제공",
         },
       ],
       profile: {
@@ -117,9 +117,9 @@ export const LANG_KO = {
         tagline:
           "요구사항 정리부터 구현, 운영 반영까지 이어지는 실무형 프로젝트를 중심으로 경력을 쌓아왔습니다.",
         quickFacts: [
-          "총 경력 8년 6개월",
+          "8년 이상 실무 경력",
           "현재 앨엔소프트 개발팀 차장",
-          "웹/앱 구축 및 운영 경험",
+          "웹·앱 구축 및 운영 경험",
           "근무지역 서울",
         ],
         strengths: [
@@ -136,7 +136,7 @@ export const LANG_KO = {
           },
           {
             title: "Refercheck 평판조회사이트 구축",
-            period: "2024.10 ~ 진행중",
+            period: "2024.10 ~ 진행 중",
             summary: "평판조회 요청/응답 관리 중심의 서비스 구축",
             stack: "Spring Boot · React · Tailwind CSS · AuroraDB · Nginx",
           },
@@ -156,13 +156,13 @@ export const LANG_KO = {
         careerTimeline: [
           {
             company: "앨엔소프트",
-            period: "2024.04 ~ 재직중",
+            period: "2024.04 ~ 재직 중",
             position: "개발팀 차장",
             summary: "웹 및 앱 개발",
             highlights: [
-              "AnyApply 채용사이트 구축 (2024.04 ~ 진행중)",
+              "AnyApply 채용 사이트 구축 (2024.04 ~ 진행 중)",
               "EY한영 Korea Portal Mobile Project (2024.07 ~ 2024.12)",
-              "Refercheck 평판조회사이트 구축 (2024.10 ~ 진행중)",
+              "Refercheck 평판 조회 사이트 구축 (2024.10 ~ 진행 중)",
             ],
           },
           {
@@ -221,26 +221,26 @@ export const LANG_KO = {
       },
       role: [
         "요구사항 분석 및 화면 구조 설계",
-        "프론트 화면과 백엔드 API/DB 흐름 연결",
+        "프론트 화면과 백엔드 API·DB 흐름 연결",
         "배포, 검수, 수정 반영 및 문서 정리",
       ],
       reliability: [
-        "변경 시 동작 점검 가능한 테스트 세트 운영",
-        "접근 가능한 페이지와 보호 페이지를 분리 운영",
-        "규칙 문서와 실제 구현 정합성 유지",
+        "자동 테스트와 핵심 동작 점검으로 변경 후 회귀 확인",
+        "공개 페이지와 로그인 보호 영역을 분리해 안전하게 운영",
+        "요구사항, 구현, 검수 기준을 함께 관리해 결과물의 일관성 유지",
       ],
       demoFlow: [
         {
           name: "업무 데이터 관리 샘플",
           path: "/sample/crud",
-          note: "업무 목록 조회부터 등록/수정/삭제까지 한 번에 체험",
+          note: "업무 목록 조회부터 등록·수정·삭제까지 한 번에 체험",
           imageSrc: "/images/landing/demo-crud.png",
           imageAlt: "업무 데이터 관리 샘플 화면 미리보기",
         },
         {
           name: "신청/문의 폼 샘플",
           path: "/sample/form",
-          note: "단계별 입력과 검증, 제출/저장 흐름을 직관적으로 확인",
+          note: "단계별 입력과 검증, 제출·저장 흐름을 직관적으로 확인",
           imageSrc: "/images/landing/demo-form.png",
           imageAlt: "신청 문의 폼 샘플 화면 미리보기",
         },
@@ -255,14 +255,14 @@ export const LANG_KO = {
       technicalNotes: [
         "프론트엔드: Next.js 16(App Router), React 19",
         "백엔드: FastAPI + PostgreSQL/SQLite 샘플 구성",
-        "인증: HttpOnly Cookie 기반 세션 처리, Access/Refresh 회전 흐름 분리",
-        "API 계층: BFF 라우트로 요청 경로를 통일해 SSR/CSR 동작 차이를 최소화",
-        "미들웨어: 공개 경로/보호 경로 분리, 만료 토큰 재부트스트랩 후 목적지 복귀",
-        "응답 규약: success/error 스키마와 code 체계를 백엔드 전 구간에 일관 적용",
-        "데이터 계층: SQL 파일 분리 및 쿼리 로더 감시로 운영 중 수정 추적성 확보",
-        "품질 게이트: lint/test/rule-gate 기준으로 회귀를 조기에 차단",
-        "테스트: 백엔드 API/서비스 테스트 + 프론트 런타임/뷰 테스트 분리 운영",
-        "운영 구성: 공개 샘플 경로와 인증 보호 경로를 분리해 샘플/실사용 혼선을 최소화",
+        "로그인: HttpOnly Cookie 기반 세션으로 로그인 상태를 안전하게 유지하고 갱신 토큰을 분리",
+        "API 연결: 브라우저와 서버에서 같은 요청 경로를 사용하도록 BFF로 통일",
+        "접근 제어: 공개 화면과 로그인 보호 화면을 분리하고 만료 후 원래 화면으로 복귀",
+        "응답 규약: 성공·오류 응답 형식을 통일해 화면과 서버의 예외 처리를 단순화",
+        "데이터 관리: SQL 파일과 실행 코드를 분리해 변경 내용을 쉽게 추적",
+        "품질 검증: lint, test, rule-gate로 주요 회귀를 조기에 차단",
+        "테스트 구성: 백엔드 API·서비스와 프론트 화면·동작 테스트를 나눠 운영",
+        "운영 구성: 공개 샘플과 실제 로그인 영역을 분리해 사용자 혼선을 최소화",
       ],
     },
   },

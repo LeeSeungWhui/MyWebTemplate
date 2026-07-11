@@ -56,7 +56,7 @@ const cardExampleSectionList = [
  */
 const CardDocs = () => {
   return <DocSection id="cards" title="25. 카드 (Card)" description={<div className="space-y-4 rounded-xl bg-slate-50/80 p-5 text-sm text-slate-700 ring-1 ring-slate-900/5">
-          <p className="text-slate-700">헤더, 본문, 푸터를 한 번에 묶는 기본 surface 컴포넌트입니다. 대시보드 요약, 설정 패널, 액션 카드처럼 반복되는 정보 블록을 정돈된 흰색 카드로 표현합니다.</p>
+          <p className="text-slate-700">헤더, 본문, 푸터를 한 번에 묶는 기본 컨테이너 컴포넌트입니다. 대시보드 요약, 설정 패널, 동작 카드처럼 반복되는 정보 블록을 정돈된 흰색 카드로 표현합니다.</p>
           <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
             {cardPropList.map((propItem) => (
               <div key={propItem.name} className="rounded-lg bg-white px-3 py-2 ring-1 ring-slate-200/80">

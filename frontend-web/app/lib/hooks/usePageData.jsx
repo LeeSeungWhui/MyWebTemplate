@@ -7,7 +7,7 @@
  * 설명: PAGE_CONFIG 기반 페이지 데이터 자동 로딩 훅
  */
 
-import { useCallback, useEffect, useMemo } from "react";
+import { useCallback, useEffect, useMemo, useRef } from "react";
 import EasyObj from "@/app/lib/dataset/EasyObj";
 import { apiJSON } from "@/app/lib/runtime/api";
 import {
@@ -43,6 +43,7 @@ export const usePageData = ({
   const requestObj = EasyObj({
     sequence: 0,
   });
+  const modelsRef = useRef({ ui, dataObj, errorObj, requestObj });
 
   /**
    * @description API 엔트리 일괄 로딩 실행
@@ -50,27 +51,33 @@ export const usePageData = ({
    * @returns {Promise<{dataObj:Object, errorObj:Object, hasError:boolean, ignored:boolean}>}
    */
   const load = useCallback(async () => {
-    const sequence = Number(requestObj.sequence || 0) + 1;
-    requestObj.sequence = sequence;
-    ui.isLoading = true;
+    const {
+      ui: currentUi,
+      dataObj: currentDataObj,
+      errorObj: currentErrorObj,
+      requestObj: currentRequestObj,
+    } = modelsRef.current;
+    const sequence = Number(currentRequestObj.sequence || 0) + 1;
+    currentRequestObj.sequence = sequence;
+    currentUi.isLoading = true;
     const loadResult = await loadPageDataObj({
       pageConfig: normalizedConfig,
       fetcher: apiJSON,
     });
-    if (Number(requestObj.sequence || 0) !== sequence) {
+    if (Number(currentRequestObj.sequence || 0) !== sequence) {
       return {
         ...loadResult,
         ignored: true,
       };
     }
-    dataObj.copy(loadResult.dataObj || EMPTY_OBJ);
-    errorObj.copy(loadResult.errorObj || EMPTY_OBJ);
-    ui.isLoading = false;
+    currentDataObj.copy(loadResult.dataObj || EMPTY_OBJ);
+    currentErrorObj.copy(loadResult.errorObj || EMPTY_OBJ);
+    currentUi.isLoading = false;
     return {
       ...loadResult,
       ignored: false,
     };
-  }, [normalizedConfig, dataObj, errorObj, requestObj, ui]);
+  }, [normalizedConfig]);
 
   /**
    * @description 수동 재조회 트리거
@@ -90,9 +97,9 @@ export const usePageData = ({
    * 처리 규칙: pageConfig 초기값이 바뀌면 EasyObj 상태를 동기화한다.
    */
   useEffect(() => {
-    dataObj.copy(initialDataObj || EMPTY_OBJ);
-    errorObj.copy(initialErrorObj || EMPTY_OBJ);
-  }, [initialDataObj, initialErrorObj, dataObj, errorObj]);
+    modelsRef.current.dataObj.copy(initialDataObj || EMPTY_OBJ);
+    modelsRef.current.errorObj.copy(initialErrorObj || EMPTY_OBJ);
+  }, [initialDataObj, initialErrorObj]);
 
   /**
    * @description auto=true일 때 마운트 후 load() 호출 및 ui.isLoading 해제
@@ -101,7 +108,7 @@ export const usePageData = ({
   useEffect(() => {
     if (!auto) return undefined;
     if (isSsrMode(normalizedConfig.MODE)) {
-      ui.isLoading = false;
+      modelsRef.current.ui.isLoading = false;
       return undefined;
     }
     let isMounted = true;
@@ -116,7 +123,7 @@ export const usePageData = ({
         await load();
       } finally {
         if (!isMounted) return;
-        ui.isLoading = false;
+        modelsRef.current.ui.isLoading = false;
       }
     };
 
@@ -124,7 +131,7 @@ export const usePageData = ({
     return () => {
       isMounted = false;
     };
-  }, [auto, load, normalizedConfig.MODE, ui]);
+  }, [auto, load, normalizedConfig.MODE]);
 
   const hasError = Object.keys(errorObj.toJSON() || {}).length > 0;
   return {

@@ -9,6 +9,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
+import Icon from "@/app/lib/component/Icon";
 import { PAGE_CONFIG } from "./initData";
 import { usePageData } from "@/app/lib/hooks/usePageData";
 import { formatSampleDate } from "../formatSampleDate";
@@ -92,6 +93,11 @@ const PortfolioView = ({ initialDataObj, initialErrorObj }) => {
         <p className="mt-4 max-w-3xl text-sm text-blue-50 sm:text-base">
           {samplePortfolioContent.hero.subtitle}
         </p>
+        <div className="mt-4 inline-flex flex-wrap items-center gap-x-2 gap-y-1 rounded-full border border-white/20 bg-white/10 px-3 py-1.5 text-xs font-semibold text-blue-50">
+          <span>{samplePortfolioContent.profile.name}</span>
+          <span aria-hidden>·</span>
+          <span>{samplePortfolioContent.profile.role}</span>
+        </div>
         <ul className="mt-5 space-y-2 text-sm text-blue-50">
           {samplePortfolioContent.hero.summary.map((line) => (
             <li key={line} className="flex items-start gap-2">
@@ -105,6 +111,7 @@ const PortfolioView = ({ initialDataObj, initialErrorObj }) => {
             <Link
               key={ctaItem.href}
               href={ctaItem.href}
+              prefetch={ctaItem.prefetch}
               className={`inline-flex items-center rounded-md px-4 py-2 text-sm font-semibold transition ${
                 ctaItem.variant === "outline"
                   ? "border border-blue-200 text-blue-50 hover:bg-white/10"
@@ -281,9 +288,7 @@ const PortfolioView = ({ initialDataObj, initialErrorObj }) => {
           {samplePortfolioContent.architectureFlow.map((stepItem, index) => (
             <div key={stepItem.title} className="contents">
               <div className="relative min-h-[116px] rounded-xl border border-blue-100 bg-white px-4 py-4 text-center shadow-sm">
-                <p className="text-2xl" aria-hidden>
-                  {stepItem.icon}
-                </p>
+                <Icon icon={stepItem.icon} size="1.5em" className="mx-auto text-blue-700" />
                 <p className="mt-2 text-sm font-semibold text-gray-900">{stepItem.title}</p>
                 <p className="mt-1 text-xs text-gray-600">{stepItem.description}</p>
               </div>
@@ -300,7 +305,7 @@ const PortfolioView = ({ initialDataObj, initialErrorObj }) => {
       <section className="mt-8">
         <h2 className="text-2xl font-bold text-gray-900">{LANG_KO.view.sectionTitle.demoFlow}</h2>
         <div className="mt-4 grid gap-3 md:grid-cols-3">
-          {samplePortfolioContent.demoFlow.map((demoFlowObj, demoFlowIndex) => (
+          {samplePortfolioContent.demoFlow.map((demoFlowObj) => (
             <article
               key={demoFlowObj.path}
               className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm"
@@ -312,7 +317,7 @@ const PortfolioView = ({ initialDataObj, initialErrorObj }) => {
                   fill
                   className="object-cover"
                   sizes="(max-width: 768px) 100vw, 33vw"
-                  loading={demoFlowIndex === 0 ? "eager" : "lazy"}
+                  loading="eager"
                 />
               </div>
               <div className="space-y-2 p-4">

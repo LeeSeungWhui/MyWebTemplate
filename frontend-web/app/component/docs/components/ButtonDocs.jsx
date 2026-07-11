@@ -23,7 +23,7 @@ const buttonExampleSectionList = [
     {
         id: 'button-variants',
         eyebrow: 'EXAMPLE 1',
-        title: '버튼 Variants',
+        title: '버튼 종류',
         summary: '업무 화면에서 쓰는 주요 CTA, 보조, 위험, 성공 액션을 한 줄로 비교합니다.',
         exampleList: variantExampleList,
     },
@@ -31,7 +31,7 @@ const buttonExampleSectionList = [
         id: 'button-sizes',
         eyebrow: 'EXAMPLE 2',
         title: '크기와 상태',
-        summary: 'sm/md/lg 크기와 icon/loading/disabled 상태를 같은 surface에서 확인합니다.',
+        summary: 'sm/md/lg 크기와 icon/loading/disabled 상태를 한 화면에서 확인합니다.',
         exampleList: sizeExampleList,
     },
 ];
@@ -42,7 +42,7 @@ const buttonExampleSectionList = [
  */
 const ButtonDocs = () => {
     return <DocSection id="buttons" title="2. 버튼 (Button)" description={<div className="space-y-4 rounded-xl bg-slate-50/80 p-5 text-sm text-slate-700 ring-1 ring-slate-900/5">
-                    <p>Button은 사용자가 실행하는 핵심 액션을 표현합니다. 기본 variant를 유지하면서도 상태, 크기, 아이콘, 로딩/비활성 상태를 일관된 밀도로 제공합니다.</p>
+                    <p>Button은 사용자가 실행하는 핵심 동작을 표현합니다. 기본 <code>variant</code>를 유지하면서 상태, 크기, 아이콘, 로딩·비활성 상태를 일관된 밀도로 제공합니다.</p>
                     <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
                         {buttonPropList.map((propItem) => (
                             <div key={propItem.name} className="rounded-lg bg-white px-3 py-2 ring-1 ring-slate-200/80">

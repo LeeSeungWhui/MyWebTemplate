@@ -145,6 +145,12 @@ const DemoLayoutClient = ({ children }) => {
         />
 
         <main className="min-w-0 flex-1 overflow-y-auto bg-slate-50 px-4 py-4 lg:px-4">
+          <aside className="mx-auto mb-3 w-full max-w-6xl rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-900 shadow-sm">
+            <div className="flex items-start gap-2">
+              <Icon icon="ri:RiInformationLine" className="mt-1 shrink-0 text-amber-700" />
+              <p>{LANG_KO.layoutMeta.publicDemoNotice}</p>
+            </div>
+          </aside>
           {children}
         </main>
       </div>

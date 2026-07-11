@@ -87,7 +87,7 @@ const DisabledCheckButtonDemo = () => {
 export const basicExampleList = [{
   exampleId: 'binding',
   component: <BoundFilterCheckButtonDemo />,
-  description: 'EasyObj 바인딩 — 필터 칩 여러 개를 독립적으로 켜고 끄는 패턴',
+  description: 'EasyObj 데이터 연결 — 필터 칩 여러 개를 독립적으로 켜고 끄는 패턴',
   code: `const filterDataObj = Lib.EasyObj({
   unreadOnly: true,
   assignedToMe: false,
@@ -103,7 +103,7 @@ export const basicExampleList = [{
 }, {
   exampleId: 'controlled',
   component: <ControlledCompactModeDemo />,
-  description: '컨트롤드 모드 — checked/onValueChange로 보기 설정을 외부 상태와 동기화',
+  description: '외부 상태 제어 — checked/onValueChange로 보기 설정을 동기화',
   code: `const [isCompactMode, setIsCompactMode] = useState(true);
 
 <Lib.CheckButton

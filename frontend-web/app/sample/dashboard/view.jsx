@@ -81,7 +81,10 @@ const DemoDashboardView = ({ initialDataObj, initialErrorObj }) => {
     label: LANG_KO.view.statusLabelMap[summaryItemObj?.status] || summaryItemObj?.status || LANG_KO.view.unknown,
     value: Number(summaryItemObj?.count || 0),
   }));
-  const resolvedTrendList = trendList.length >= 2 ? trendList : chartTrendFallbackList;
+  const resolvedTrendList = (trendList.length >= 2 ? trendList : chartTrendFallbackList).map((trendItemObj) => ({
+    ...trendItemObj,
+    amountMillion: Number(trendItemObj?.amount || 0) / 1000000,
+  }));
   const resolvedDonutDataList = donutDataList.some((donutItem) => Number(donutItem?.value || 0) > 0)
     ? donutDataList
     : chartDonutFallbackList;
@@ -162,16 +165,18 @@ const DemoDashboardView = ({ initialDataObj, initialErrorObj }) => {
               color: "#2563eb",
             },
             {
-              seriesId: "amount",
+              seriesId: "amountMillion",
               seriesNm: LANG_KO.view.chart.seriesAmount,
-              dataKey: "amount",
+              dataKey: "amountMillion",
               color: "#10b981",
             },
           ]}
           xKey="label"
           type="line"
-          height={180}
-          legendFontSize={12}
+          height={220}
+          legendFontSize={11}
+          yAxisWidth={48}
+          yLabelFormatter={(value) => Number(value || 0).toLocaleString("ko-KR", { maximumFractionDigits: 1 })}
         />
         <EasyChart
           title={LANG_KO.view.chart.statusTitle}
@@ -185,8 +190,9 @@ const DemoDashboardView = ({ initialDataObj, initialErrorObj }) => {
             },
           ]}
           xKey="label"
-          height={180}
-          legendFontSize={12}
+          height={220}
+          legendFontSize={11}
+          showPieLabels={false}
         />
       </section>
 
@@ -202,6 +208,7 @@ const DemoDashboardView = ({ initialDataObj, initialErrorObj }) => {
             loading={isLoading}
             empty={LANG_KO.view.table.empty}
             rowKey={(rowItem, rowIndex) => rowItem?.id ?? rowIndex}
+            mobileScrollHint={LANG_KO.view.table.mobileScrollHint}
             className="border-0 rounded-none"
             headerClassName="!bg-gray-50 !text-gray-700 border-b border-gray-200 font-medium"
             rowClassName="border-gray-100"

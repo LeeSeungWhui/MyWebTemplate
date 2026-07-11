@@ -59,11 +59,11 @@ const EasyObjExample = () => {
 const EasyListExample = () => {
   const taskList = Lib.EasyList([{
     id: 1,
-    text: '요구사항 정리',
-    status: '진행중'
+    text: '고객 문의 확인',
+    status: '진행 중'
   }, {
     id: 2,
-    text: 'QA 캡쳐 첨부',
+    text: '상담 일정 안내',
     status: '대기'
   }]);
   return <div className="space-y-4 rounded-2xl bg-white p-5 shadow-sm ring-1 ring-slate-200/80">
@@ -122,8 +122,8 @@ export const easyListExampleList = [{
   component: <EasyListExample />,
   description: "EasyList는 배열 메서드와 forAll을 사용해 목록 항목을 한 번에 조작합니다.",
   code: `const taskList = Lib.EasyList([
-    { id: 1, text: '요구사항 정리', status: '진행중' },
-    { id: 2, text: 'QA 캡쳐 첨부', status: '대기' }
+    { id: 1, text: '고객 문의 확인', status: '진행 중' },
+    { id: 2, text: '상담 일정 안내', status: '대기' }
 ]);
 
 // 배열 메서드 사용

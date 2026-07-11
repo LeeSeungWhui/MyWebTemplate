@@ -148,6 +148,7 @@ const DemoHubView = ({ initialDataObj, initialErrorObj }) => {
             <Link
               key={extraLinkObj.href}
               href={extraLinkObj.href}
+              prefetch={extraLinkObj.prefetch}
               className="inline-flex items-center rounded-md border border-gray-300 px-3 py-1.5 text-xs font-medium text-gray-700 transition hover:border-blue-200 hover:bg-blue-50 hover:text-blue-700"
             >
               {extraLinkObj.label}

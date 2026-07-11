@@ -32,6 +32,15 @@ const propRows = [{
 }, {
   name: "hideLegend",
   desc: "범례 숨김 여부"
+}, {
+  name: "legendFontSize",
+  desc: "범례 글자 크기(px, 기본 12)"
+}, {
+  name: "showPieLabels",
+  desc: "파이/도넛 외부 라벨 표시 여부(도넛 기본 false, 좁은 파이 자동 숨김)"
+}, {
+  name: "yAxisWidth",
+  desc: "Y축 라벨 영역 너비(px, 최소 44, 기본 52)"
 }];
 
 /**
@@ -39,13 +48,13 @@ const propRows = [{
  * @returns {JSX.Element}
  */
 const EasyChartDocs = () => {
-  return <DocSection id="easychart" title="32. 차트 (EasyChart)" description="Recharts 기반 카드형 차트 래퍼(EasyList 대응)">
+  return <DocSection id="easychart" title="32. 차트 (EasyChart)" description="Recharts를 기반으로 EasyList와 배열 데이터를 지원하는 카드형 차트 컴포넌트입니다.">
       <div className="mb-6 space-y-2 rounded-xl bg-slate-50/80 p-5 text-sm text-slate-700 ring-1 ring-slate-900/5">
         <p>
-          EasyList/배열 데이터를 그대로 받아 카드 스타일로 차트를 렌더링한다.
+          EasyList 또는 배열 데이터를 그대로 받아 카드 스타일로 차트를 렌더링합니다.
         </p>
         <p className="text-slate-500">
-          시리즈는 {`{seriesId, seriesNm, dataKey, type, color}`} 구조를 권장.
+          시리즈는 {`{seriesId, seriesNm, dataKey, type, color}`} 구조를 권장합니다.
         </p>
       </div>
       <div className="overflow-x-auto rounded-xl bg-white shadow-sm ring-1 ring-slate-900/5">

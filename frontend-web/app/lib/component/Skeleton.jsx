@@ -7,7 +7,6 @@
 
 const Skeleton = ({ className = '', variant = 'rect', lines = 1, circleSize = 40, ...props }) => {
 
-  const baseClassName = 'bg-gray-200/70 animate-pulse';
   const skeletonLineList = [];
   for (let lineIndex = 0; lineIndex < Math.max(1, lines); lineIndex += 1) {
     skeletonLineList.push(lineIndex);
@@ -17,7 +16,7 @@ const Skeleton = ({ className = '', variant = 'rect', lines = 1, circleSize = 40
     return (
       <div className={`space-y-2 ${className}`.trim()} {...props}>
         {skeletonLineList.map((lineIndex) => (
-          <div key={lineIndex} className={`${baseClassName} h-3 w-full rounded`}></div>
+          <div key={lineIndex} className="h-3 w-full animate-pulse rounded bg-gray-200/70"></div>
         ))}
       </div>
     );
@@ -37,9 +36,9 @@ const Skeleton = ({ className = '', variant = 'rect', lines = 1, circleSize = 40
     const circleSizeClassName = Number.isFinite(normalizedSize) && circleSizeClassMap[normalizedSize]
       ? circleSizeClassMap[normalizedSize]
       : circleSizeClassMap[40];
-    return <div className={`${baseClassName} rounded-full ${circleSizeClassName}`} {...props}></div>;
+    return <div className={`animate-pulse rounded-full bg-gray-200/70 ${circleSizeClassName}`} {...props}></div>;
   }
-  return <div className={`${baseClassName} rounded ${className}`} {...props}></div>;
+  return <div className={`animate-pulse rounded bg-gray-200/70 ${className}`} {...props}></div>;
 };
 
 export default Skeleton;

@@ -44,6 +44,8 @@ const Header = ({
 }) => {
 
   const ui = EasyObj({ openMenu: null });
+  const uiRef = useRef(ui);
+  uiRef.current = ui;
   const navRef = useRef(null);
   const pathname = usePathname();
   const resolvedMenus = readMenuList(menuList).map((menuItemObj) => ({
@@ -96,13 +98,13 @@ const Header = ({
      */
     const handleNavPointerDown = (event) => {
       if (navRef.current && !navRef.current.contains(event.target)) {
-        ui.openMenu = null;
+        uiRef.current.openMenu = null;
       }
     };
 
     document.addEventListener("pointerdown", handleNavPointerDown);
     return () => document.removeEventListener("pointerdown", handleNavPointerDown);
-  }, [ui]);
+  }, []);
 
   /**
    * @description href가 현재 pathname과 활성 매칭되는지 판정

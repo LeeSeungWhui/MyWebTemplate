@@ -204,3 +204,22 @@ def testOpenapiPatchFailureRaisesInStrictMode(monkeypatch):
         assert False, "strict mode must re-raise openapi patch failures"
     except RuntimeError as exc:
         assert str(exc) == "boom"
+
+
+def testAttachOpenapiInvalidatesPreviouslyCachedDefaultSchema():
+    from lib import OpenAPI
+
+    app = FastAPI()
+
+    @app.get("/healthz")
+    def healthz():
+        return {"status": True}
+
+    defaultSchema = app.openapi()
+    assert "ErrorResponse" not in defaultSchema.get("components", {}).get("schemas", {})
+
+    OpenAPI.attachOpenAPI(app, {})
+
+    patchedSchema = app.openapi()
+    assert patchedSchema is not defaultSchema
+    assert "ErrorResponse" in patchedSchema["components"]["schemas"]

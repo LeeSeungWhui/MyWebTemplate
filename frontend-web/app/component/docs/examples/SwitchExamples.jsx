@@ -94,7 +94,7 @@ const A11ySwitchDemo = () => {
 export const basicExampleList = [{
   exampleId: 'settings',
   component: <BoundSwitchDemo />,
-  description: '설정 객체와 dataKey를 직접 연결한 바운드 스위치',
+  description: '설정 객체와 dataKey를 직접 연결한 스위치',
   code: `const switchDataObj = Lib.EasyObj({ weeklyDigest: true });
 
 <Lib.Switch
@@ -105,7 +105,7 @@ export const basicExampleList = [{
 }, {
   exampleId: 'controlled',
   component: <CtrlSwitchDemo />,
-  description: '외부 React state로 상태를 제어하는 controlled 스위치',
+  description: '외부 React state로 상태를 제어하는 스위치',
   code: `const [isAutoSaveOn, setIsAutoSaveOn] = useState(false);
 
 <Lib.Switch

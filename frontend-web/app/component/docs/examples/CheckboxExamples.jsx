@@ -39,9 +39,9 @@ const ControlledApprovalCheckboxDemo = () => {
   const [isApproved, setIsApproved] = useState(false);
 
   return <div className="space-y-3">
-      <Lib.Checkbox label="운영 반영 전 최종 검수 완료" checked={isApproved} onValueChange={setIsApproved} color="success" />
+      <Lib.Checkbox label="상담 내용 확인 완료" checked={isApproved} onValueChange={setIsApproved} color="success" />
       <div className={`inline-flex rounded-full px-2.5 py-1 text-xs font-semibold ${isApproved ? 'bg-emerald-50 text-emerald-700 ring-1 ring-emerald-200' : 'bg-amber-50 text-amber-700 ring-1 ring-amber-200'}`}>
-        {isApproved ? '반영 가능' : '검수 대기'}
+        {isApproved ? '후속 안내 가능' : '확인 대기'}
       </div>
     </div>;
 };
@@ -73,15 +73,15 @@ const ConsentChecklistDemo = () => {
  */
 const StatusColorCheckboxDemo = () => {
   const checklistDataObj = Lib.EasyObj({
-    migrationDone: true,
-    qaNeeded: true,
-    securityHold: false
+    requestChecked: true,
+    callbackNeeded: true,
+    paymentHold: false
   });
 
   return <div className="space-y-2">
-      <Lib.Checkbox label="마이그레이션 완료" dataObj={checklistDataObj} dataKey="migrationDone" color="success" />
-      <Lib.Checkbox label="QA 재확인 필요" dataObj={checklistDataObj} dataKey="qaNeeded" color="warning" />
-      <Lib.Checkbox label="보안 검토 보류" dataObj={checklistDataObj} dataKey="securityHold" color="danger" />
+      <Lib.Checkbox label="요청 내용 확인" dataObj={checklistDataObj} dataKey="requestChecked" color="success" />
+      <Lib.Checkbox label="전화 상담 필요" dataObj={checklistDataObj} dataKey="callbackNeeded" color="warning" />
+      <Lib.Checkbox label="결제 확인 보류" dataObj={checklistDataObj} dataKey="paymentHold" color="danger" />
     </div>;
 };
 
@@ -104,7 +104,7 @@ const DisabledCheckboxDemo = () => {
 export const basicExampleList = [{
   exampleId: 'binding',
   component: <BoundNotificationCheckboxDemo />,
-  description: 'EasyObj 바인딩 — 알림 설정처럼 여러 boolean 필드를 독립적으로 저장',
+  description: 'EasyObj 데이터 연결 — 알림 설정처럼 여러 boolean 필드를 독립적으로 저장',
   code: `const notificationDataObj = Lib.EasyObj({
   securityNotice: true,
   productNotice: false,
@@ -121,11 +121,11 @@ export const basicExampleList = [{
 }, {
   exampleId: 'controlled',
   component: <ControlledApprovalCheckboxDemo />,
-  description: '컨트롤드 모드 — checked/onValueChange로 외부 승인 상태와 동기화',
+  description: '외부 상태 제어 — checked/onValueChange로 확인 상태와 동기화',
   code: `const [isApproved, setIsApproved] = useState(false);
 
 <Lib.Checkbox
-  label="운영 반영 전 최종 검수 완료"
+  label="상담 내용 확인 완료"
   checked={isApproved}
   onValueChange={setIsApproved}
   color="success"
@@ -156,15 +156,15 @@ export const variantExampleList = [{
   component: <StatusColorCheckboxDemo />,
   description: '상태 색상 — success/warning/danger 프리셋으로 의미를 구분',
   code: `<Lib.Checkbox
-  label="마이그레이션 완료"
+  label="요청 내용 확인"
   dataObj={checklistDataObj}
-  dataKey="migrationDone"
+  dataKey="requestChecked"
   color="success"
 />
 <Lib.Checkbox
-  label="QA 재확인 필요"
+  label="전화 상담 필요"
   dataObj={checklistDataObj}
-  dataKey="qaNeeded"
+  dataKey="callbackNeeded"
   color="warning"
 />`
 }];

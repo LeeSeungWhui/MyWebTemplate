@@ -19,7 +19,7 @@ from lib.Config import getConfig
 from lib.I18n import detectLocale, translate as i18nTranslate
 from lib.RateLimit import checkRateLimit
 from lib.RequestPayloadValidator import readJsonPayloadDict, readOptionalJsonPayloadDict, validatePayloadTypes
-from lib.RequestTrust import trustProxyHeaders
+from lib.RequestTrust import isTrustedProxyRequest
 from lib.Response import errorResponse, successResponse
 from lib.ServiceError import ServiceError
 from lib.ServiceError import buildMappedErrorResponse
@@ -172,14 +172,15 @@ def ensureWebCookieOrigin(request: Request, loc: str) -> JSONResponse | None:
 def isSecureRequest(request: Request) -> bool:
     """
     설명: 프록시 환경을 포함해 HTTPS 요청 여부 판정
-    처리 규칙: URL scheme, TRUST_PROXY_HEADERS=true일 때만 프록시 헤더, 운영 ENV 값을 순서대로 확인
-    갱신일: 2026-06-05
+    처리 규칙: URL scheme, opt-in 및 trusted peer 검증을 통과한 프록시 헤더, 운영 ENV 값을 순서대로 확인
+    갱신일: 2026-07-11
     """
     scheme = str(getattr(request.url, "scheme", "") or "").strip().lower()
     if scheme == "https":
         return True
 
-    if trustProxyHeaders():
+    trustedProxy = isTrustedProxyRequest(request)
+    if trustedProxy:
         forwardedProto = request.headers.get("X-Forwarded-Proto", "")
         forwardedFirst = str(forwardedProto).split(",")[0].strip().lower()
         if forwardedFirst == "https":
@@ -466,6 +467,7 @@ async def signup(request: Request):
     return response
 
 
+@router.post("/passwordResetRequest")
 @passwordResetRouter.post("/request")
 @passwordResetHyphenRouter.post("/request")
 async def requestPasswordReset(request: Request):

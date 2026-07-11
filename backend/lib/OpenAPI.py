@@ -847,8 +847,8 @@ def attachOpenAPI(app: FastAPI, config) -> None:
                 schemas["SampleAdminSystemSetting"] = {
                     "type": "object",
                     "properties": {
-                        "siteName": {"type": "string", "example": "MyWebTemplate"},
-                        "adminEmail": {"type": "string", "format": "email", "example": "admin@demo.demo"},
+                        "siteName": {"type": "string", "example": "Web Sample"},
+                        "adminEmail": {"type": "string", "format": "email", "example": "admin@example.com"},
                         "maintenanceMode": {"type": "boolean", "example": False},
                         "sessionTimeout": {"type": "integer", "minimum": 1, "example": 60},
                         "maxUploadMb": {"type": "integer", "minimum": 1, "example": 30},
@@ -1449,6 +1449,7 @@ def attachOpenAPI(app: FastAPI, config) -> None:
                 )
 
             passwordResetPaths = (
+                "/api/v1/auth/passwordResetRequest",
                 "/api/v1/auth/password-reset/request",
                 "/api/v1/auth/passwordReset/request",
             )
@@ -1877,4 +1878,5 @@ def attachOpenAPI(app: FastAPI, config) -> None:
         app.openapi_schema = patchOpenapi(openapiSchema)
         return app.openapi_schema
 
+    app.openapi_schema = None
     app.openapi = customOpenapi  # type: ignore

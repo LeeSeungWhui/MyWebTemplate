@@ -30,7 +30,7 @@ const ActionCard = () => {
           <div className="mt-1 text-lg font-semibold text-slate-950">12건</div>
         </div>
         <div className="rounded-lg bg-indigo-50 px-3 py-2 ring-1 ring-indigo-100">
-          <div className="text-xs font-semibold uppercase tracking-wide text-indigo-600">진행중</div>
+          <div className="text-xs font-semibold uppercase tracking-wide text-indigo-600">진행 중</div>
           <div className="mt-1 text-lg font-semibold text-indigo-700">3건</div>
         </div>
       </div>
@@ -74,7 +74,7 @@ export const actionExampleList = [{
       <div className="mt-1 text-lg font-semibold text-slate-950">12건</div>
     </div>
     <div className="rounded-lg bg-indigo-50 px-3 py-2 ring-1 ring-indigo-100">
-      <div className="text-xs font-semibold uppercase tracking-wide text-indigo-600">진행중</div>
+      <div className="text-xs font-semibold uppercase tracking-wide text-indigo-600">진행 중</div>
       <div className="mt-1 text-lg font-semibold text-indigo-700">3건</div>
     </div>
   </div>

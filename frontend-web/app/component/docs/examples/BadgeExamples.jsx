@@ -45,12 +45,12 @@ export const sizeExampleList = [{
           </div>
           <div className="flex items-center gap-2 rounded-lg bg-white px-3 py-2 ring-1 ring-slate-200/80">
             <span className="text-sm font-medium text-slate-700">카드 헤더</span>
-            <Lib.Badge size="md" variant="primary" pill>진행중</Lib.Badge>
+            <Lib.Badge size="md" variant="primary" pill>진행 중</Lib.Badge>
           </div>
         </div>,
   description: 'sm은 밀도 높은 행, md는 카드/헤더 라벨에 사용',
   code: `<Lib.Badge size="sm" variant="success" pill>완료</Lib.Badge>
-<Lib.Badge size="md" variant="primary" pill>진행중</Lib.Badge>`
+<Lib.Badge size="md" variant="primary" pill>진행 중</Lib.Badge>`
 }];
 export const iconExampleList = [{
   component: <div className="grid gap-3 sm:grid-cols-3">

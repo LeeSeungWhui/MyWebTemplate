@@ -9,11 +9,11 @@ import CodeBlock from '../shared/CodeBlock';
 import { basicExampleObj, rangeExampleObj, unboundExampleObj } from '../examples/NumberInputExamples';
 
 const numberInputPropList = [
-    { name: 'dataObj/dataKey?', description: 'EasyObj 숫자 필드와 입력 값을 양방향 바인딩' },
-    { name: 'value/defaultValue?', description: 'controlled 값 또는 언바운드 초기 숫자' },
+    { name: 'dataObj/dataKey?', description: 'EasyObj 숫자 필드와 입력 값을 양방향으로 연결' },
+    { name: 'value/defaultValue?', description: '외부에서 제어하는 값 또는 독립형 초기 숫자' },
     { name: 'min/max?', description: '입력·증감 버튼으로 확정되는 허용 범위' },
     { name: 'step?', description: '버튼·키보드 증감 단위. 기본값은 1' },
-    { name: 'onChange/onValueChange?', description: '확정된 숫자 또는 빈 값과 binding context 전달' },
+    { name: 'onChange/onValueChange?', description: '확정된 숫자 또는 빈 값과 연결 정보 전달' },
     { name: 'disabled/readOnly?', description: '입력 및 증감 버튼을 잠그는 상태' },
     { name: 'placeholder/id?', description: '빈 값 안내 문구와 접근성 식별자' },
     { name: 'className?', description: '카드/폼 행 안에서 폭과 간격을 보정' },
@@ -37,7 +37,7 @@ const numberInputExampleSectionList = [
     {
         id: 'number-unbound',
         eyebrow: 'EXAMPLE 3',
-        title: '언바운드',
+        title: '독립형',
         summary: '간단한 초기값 입력이나 독립 위젯으로 사용할 때의 형태입니다.',
         exampleList: [unboundExampleObj],
     },
@@ -53,7 +53,7 @@ const NumberInputDocs = () => {
       id="number-inputs"
       title="12. 숫자 입력 (NumberInput)" description={
         <div className="space-y-4 rounded-xl bg-slate-50/80 p-5 text-sm text-slate-700 ring-1 ring-slate-900/5">
-          <p>NumberInput은 직접 입력과 증감 버튼을 함께 제공하는 숫자 입력입니다. blur 시점에 값을 정규화하고, min/max 범위를 벗어나면 허용 범위로 보정합니다.</p>
+          <p>NumberInput은 직접 입력과 증감 버튼을 함께 제공하는 숫자 입력입니다. 입력을 벗어나는 시점에 값을 정규화하고, <code>min/max</code> 범위를 벗어나면 허용 범위로 보정합니다.</p>
           <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
             {numberInputPropList.map((propItem) => (
               <div key={propItem.name} className="rounded-lg bg-white px-3 py-2 ring-1 ring-slate-200/80">

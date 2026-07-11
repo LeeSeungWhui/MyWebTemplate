@@ -238,6 +238,7 @@ def testAuthJsonEndpointsRejectUnknownFields():
         cases = [
             ("/api/v1/auth/login", {"username": "demo@demo.demo", "password": "password123", "extra": "x"}),
             ("/api/v1/auth/signup", {"name": "Demo User", "email": f"extra-{uuid.uuid4().hex[:8]}@demo.demo", "password": "password123", "extra": "x"}),
+            ("/api/v1/auth/passwordResetRequest", {"email": "demo@demo.demo", "extra": "x"}),
             ("/api/v1/auth/password-reset/request", {"email": "demo@demo.demo", "extra": "x"}),
             ("/api/v1/auth/passwordReset/request", {"email": "demo@demo.demo", "extra": "x"}),
             ("/api/v1/auth/app/login", {"username": "demo@demo.demo", "password": "password123", "extra": "x"}),
@@ -421,6 +422,19 @@ def testPasswordResetRequestSupportsFrontendCamelAlias():
         assert body["result"]["accepted"] is True
 
 
+def testPasswordResetRequestSupportsSingleSegmentFrontendOperation():
+    from server import app
+    with TestClient(app) as client:
+        response = client.post(
+            "/api/v1/auth/passwordResetRequest",
+            json={"email": "demo@demo.demo"},
+        )
+        assert response.status_code == 200
+        body = response.json()
+        assert body["status"] is True
+        assert body["result"]["accepted"] is True
+
+
 def testOpenapiDocumentsAuthRequestContracts():
     from server import app
 
@@ -455,6 +469,7 @@ def testOpenapiDocumentsAuthRequestContracts():
     requestBodyCases = {
         "/api/v1/auth/login": ("AuthLoginRequest", True),
         "/api/v1/auth/signup": ("AuthSignupRequest", True),
+        "/api/v1/auth/passwordResetRequest": ("PasswordResetRequest", True),
         "/api/v1/auth/password-reset/request": ("PasswordResetRequest", True),
         "/api/v1/auth/passwordReset/request": ("PasswordResetRequest", True),
         "/api/v1/auth/app/login": ("AuthAppLoginRequest", True),
@@ -496,7 +511,11 @@ def testOpenapiDocumentsAuthRequestContracts():
     appLogoutOperation = schema["paths"]["/api/v1/auth/app/logout"]["post"]
     assert "204" in appLogoutOperation["responses"]
 
-    for path in ["/api/v1/auth/password-reset/request", "/api/v1/auth/passwordReset/request"]:
+    for path in [
+        "/api/v1/auth/passwordResetRequest",
+        "/api/v1/auth/password-reset/request",
+        "/api/v1/auth/passwordReset/request",
+    ]:
         operation = schema["paths"][path]["post"]
         responseSchema = operation["responses"]["200"]["content"]["application/json"]["schema"]
         assert responseSchema == {"$ref": "#/components/schemas/PasswordResetRequestResponse"}

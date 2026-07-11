@@ -46,6 +46,7 @@ const Footer = ({
       COMMON_COMPONENT_LANG_KO.footer.defaultLinkLabel,
     href: footerLinkObj.href,
     active: Boolean(footerLinkObj.active),
+    prefetch: footerLinkObj.prefetch,
   }));
 
   return (
@@ -67,6 +68,7 @@ const Footer = ({
                   <Link
                     key={footerLinkKey}
                     href={footerLinkObj.href}
+                    prefetch={footerLinkObj.prefetch}
                     className={`hover:text-gray-900 ${footerLinkObj.active ? "font-semibold text-gray-900" : ""}`.trim()}
                   >
                     {footerLinkObj.label}

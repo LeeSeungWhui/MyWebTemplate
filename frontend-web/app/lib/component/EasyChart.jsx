@@ -38,8 +38,8 @@ const chartColorList = [
   "#06b6d4",
   "#8b5cf6",
 ];
-const defaultMarginObj = { top: 28, right: 20, left: 4, bottom: 8 };
-const donutMarginObj = { top: 28, right: 16, bottom: 22, left: 16 };
+const defaultMarginObj = { top: 28, right: 20, left: 8, bottom: 8 };
+const donutMarginObj = { top: 24, right: 16, bottom: 32, left: 16 };
 const tooltipContentStyleObj = {
   border: "1px solid rgb(226 232 240)",
   borderRadius: "12px",
@@ -122,8 +122,11 @@ const EasyChart = ({
   errorText,
   empty = COMMON_COMPONENT_LANG_KO.easyChart.empty,
   hideLegend = false,
+  legendFontSize = 12,
   pieLabelFontSize = 12,
+  showPieLabels,
   xLabelFormatter,
+  yAxisWidth = 52,
   yLabelFormatter,
   className = "",
   cardProps = {},
@@ -163,6 +166,18 @@ const EasyChart = ({
   const isComposed = resolvedSeries.some((seriesItem) => seriesItem.type && seriesItem.type !== type);
   const pieValueKey = resolvedSeries[0]?.key;
   const hasHostSize = hostSize.width > 0 && hostSize.height > 0;
+  const resolvedLegendFontSize = Number.isFinite(Number(legendFontSize))
+    ? Math.max(10, Number(legendFontSize))
+    : 12;
+  const resolvedLegendStyleObj = {
+    ...chartLegendStyleObj,
+    fontSize: `${resolvedLegendFontSize}px`,
+  };
+  const resolvedYAxisWidth = Number.isFinite(Number(yAxisWidth))
+    ? Math.max(44, Number(yAxisWidth))
+    : 52;
+  const shouldShowPieLabels = showPieLabels ?? (!isDonut && hostSize.width >= 480);
+  const resolvedPieOuterRadius = isDonut && !hideLegend ? "68%" : (isDonut ? "82%" : "80%");
   let parsedHeight = null;
   if (typeof height === "number") {
     if (Number.isFinite(height)) parsedHeight = Math.floor(height);
@@ -367,6 +382,8 @@ const EasyChart = ({
         <div
           ref={chartHostRef}
           className={`min-w-0 w-full ${pieHeightClassName}`.trim()}
+          role="group"
+          aria-label={title}
         >
           {hasHostSize ? (
             <PieChart
@@ -385,7 +402,7 @@ const EasyChart = ({
                   align="center"
                   iconType="circle"
                   iconSize={10}
-                  wrapperStyle={chartLegendStyleObj}
+                  wrapperStyle={resolvedLegendStyleObj}
                 />
               )}
               <Pie
@@ -393,10 +410,10 @@ const EasyChart = ({
                 dataKey={pieValueKey}
                 nameKey={xKey}
                 innerRadius={isDonut ? "55%" : undefined}
-                outerRadius={isDonut ? "82%" : "80%"}
+                outerRadius={resolvedPieOuterRadius}
                 paddingAngle={isDonut ? 3 : 0}
-                labelLine={!isDonut}
-                label={(pieLabelObj) => {
+                labelLine={Boolean(shouldShowPieLabels)}
+                label={shouldShowPieLabels ? (pieLabelObj) => {
                   const pct = Math.round((pieLabelObj.percent || 0) * 100);
                   return (
                     <text
@@ -410,7 +427,7 @@ const EasyChart = ({
                       {`${pieLabelObj.name ?? ""} ${pieLabelObj.value} (${pct}%)`}
                     </text>
                   );
-                }}
+                } : false}
               >
                 {chartCellIndexList.map((dataIndex) => (
                   <Cell
@@ -434,6 +451,8 @@ const EasyChart = ({
       <div
         ref={chartHostRef}
         className={`min-w-0 w-full ${hostHeightClassName}`.trim()}
+        role="group"
+        aria-label={title}
       >
         {hasHostSize ? (
           <ChartComponent
@@ -470,7 +489,7 @@ const EasyChart = ({
               tickLine={false}
               axisLine={false}
               tickMargin={10}
-              width={36}
+              width={resolvedYAxisWidth}
               tickFormatter={yLabelFormatter}
               tick={axisTickObj}
             />
@@ -489,7 +508,7 @@ const EasyChart = ({
                 height={28}
                 iconType="circle"
                 iconSize={10}
-                wrapperStyle={chartLegendStyleObj}
+                wrapperStyle={resolvedLegendStyleObj}
               />
             )}
             {seriesNodes}
@@ -504,7 +523,7 @@ const EasyChart = ({
       title={title}
       subtitle={subtitle}
       actions={actions}
-      className={`h-full ${className}`.trim()}
+      className={`min-w-0 h-full ${className}`.trim()}
       bodyClassName="space-y-2"
       {...cardProps}
     >

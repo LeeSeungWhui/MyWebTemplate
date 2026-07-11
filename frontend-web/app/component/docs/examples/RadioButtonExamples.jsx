@@ -89,7 +89,7 @@ const DisabledRadioButtonDemo = () => {
 export const basicExampleList = [{
   exampleId: 'binding',
   component: <BoundBillingRadioButtonDemo />,
-  description: 'EasyObj 바인딩 — 결제 주기처럼 선택된 value를 단일 필드에 저장',
+  description: 'EasyObj 데이터 연결 — 결제 주기처럼 선택된 value를 단일 필드에 저장',
   code: `const billingDataObj = Lib.EasyObj({
   billingCycle: 'annual',
 });
@@ -106,7 +106,7 @@ export const basicExampleList = [{
 }, {
   exampleId: 'controlled',
   component: <ControlledLanguageRadioButtonDemo />,
-  description: '컨트롤드 모드 — checked/onValueChange로 외부 선택 상태와 동기화',
+  description: '외부 상태 제어 — checked/onValueChange로 선택값을 동기화',
   code: `const [languageValue, setLanguageValue] = useState('ko');
 
 <Lib.RadioButton

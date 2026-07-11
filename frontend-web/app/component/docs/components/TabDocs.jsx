@@ -9,7 +9,7 @@ import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';
 
 const tabPropList = [
-    { name: 'dataObj?/dataKey?', description: '현재 탭 인덱스 바인딩' },
+    { name: 'dataObj?/dataKey?', description: '현재 탭 인덱스와 데이터 필드를 연결' },
     { name: 'tabIndex?', description: '초기 또는 제어 탭 인덱스' },
     { name: 'onChange?', description: '탭 변경 시 호출' },
     { name: 'variant?', description: 'segmented 또는 underline' },
@@ -22,7 +22,7 @@ const tabExampleSectionList = [
         id: 'tab-basic',
         eyebrow: 'EXAMPLE 1',
         title: '기본 사용법',
-        summary: 'EasyObj 바인딩으로 현재 탭을 관리하는 기본 segmented 탭입니다.',
+        summary: 'EasyObj 데이터 연결로 현재 탭을 관리하는 기본 분할형 탭입니다.',
         example: basicExampleObj,
     },
     {
@@ -36,7 +36,7 @@ const tabExampleSectionList = [
         id: 'tab-styled',
         eyebrow: 'EXAMPLE 3',
         title: '스타일링',
-        summary: 'className으로 주변 surface와 밀도를 조정한 운영 화면형 탭입니다.',
+        summary: 'className으로 주변 배경과 밀도를 조정한 관리 화면형 탭입니다.',
         example: styleExampleObj,
     },
     {
@@ -65,7 +65,7 @@ const TabDocs = () => {
             id="tabs"
             title="28. 탭 (Tab)" description={
                 <div className="space-y-4 rounded-xl bg-slate-50/80 p-5 text-sm text-slate-700 ring-1 ring-slate-900/5">
-                    <p>Tab 컴포넌트는 <code>Tab.Item</code>을 사용해 관련 콘텐츠 패널을 묶습니다. 기본은 segmented surface, 밀도 높은 화면은 <code>variant="underline"</code>으로 전환해 같은 계약 안에서 두 가지 탭 스타일을 유지합니다.</p>
+                    <p>Tab 컴포넌트는 <code>Tab.Item</code>을 사용해 관련 콘텐츠 패널을 묶습니다. 기본은 분할 버튼 형태이며, 밀도 높은 화면에서는 <code>variant="underline"</code>으로 전환해 같은 사용 방식 안에서 두 가지 탭 스타일을 유지합니다.</p>
                     <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
                         {tabPropList.map((propItem) => (
                             <div key={propItem.name} className="rounded-lg bg-white px-3 py-2 ring-1 ring-slate-200/80">

@@ -7,7 +7,7 @@
  * 설명: 대시보드 설정 클라이언트 뷰(프로필/시스템설정 탭)
  */
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useGlobalUi } from "@/app/common/store/SharedStore";
 import { normalizePageConfig } from "@/app/lib/runtime/pageData";
@@ -72,6 +72,12 @@ const SettingsView = ({ initialDataObj, initialErrorObj }) => {
     initialDataObj,
     initialErrorObj,
   });
+  const uiRef = useRef(ui);
+  const profileMeObjRef = useRef(profileMeObj);
+  const dataObjRef = useRef(dataObj);
+  const errorObjRef = useRef(errorObj);
+  const profileResultRevision = JSON.stringify(dataObj?.profileMe?.result ?? null);
+  const profileErrorRevision = JSON.stringify(errorObj?.profileMe ?? null);
 
   /* 3. UI ========================================================================================================================= */
 
@@ -146,7 +152,7 @@ const SettingsView = ({ initialDataObj, initialErrorObj }) => {
           notifyPush: Boolean(profileMeObj.notifyPush),
         },
       });
-      profileMeObj.copy(profileResponse?.result || {});
+      profileMeObj.copy(profileResponse?.result ?? {});
       showToast(LANG_KO.view.toast.profileSaved, { type: "success" });
     } catch (err) {
       ui.error = {
@@ -197,35 +203,38 @@ const SettingsView = ({ initialDataObj, initialErrorObj }) => {
   useEffect(() => {
     const queryTab = String(searchParams?.get("tab") || "").trim().toLowerCase();
     const nextTabIndex = queryTab === settingsTabObj.SYSTEM ? 1 : 0;
-    if (ui.activeTabIndex !== nextTabIndex) {
-      ui.activeTabIndex = nextTabIndex;
+    if (uiRef.current.activeTabIndex !== nextTabIndex) {
+      uiRef.current.activeTabIndex = nextTabIndex;
     }
-  }, [searchParams, searchParamText, settingsTabObj.SYSTEM, ui]);
+  }, [searchParams, searchParamText, settingsTabObj.SYSTEM]);
 
   /**
    * @description 페이지 자동 로더 상태를 프로필 로딩 플래그와 에러로 반영
    * 처리 규칙: INIT_API profileMe 성공 시 모델 copy, 실패 시 ui.error를 표준 에러 형태로 저장한다.
    */
   useEffect(() => {
-    ui.isLoadingProfile = Boolean(pageLoading);
+    const currentUi = uiRef.current;
+    const currentError = errorObjRef.current?.profileMe;
+    const currentResult = dataObjRef.current?.profileMe?.result;
+    currentUi.isLoadingProfile = Boolean(pageLoading);
     if (!hasProfileEndpoint) {
-      ui.error = { message: LANG_KO.view.error.profileEndpointMissing };
-      ui.isLoadingProfile = false;
+      currentUi.error = { message: LANG_KO.view.error.profileEndpointMissing };
+      currentUi.isLoadingProfile = false;
       return;
     }
-    if (errorObj?.profileMe) {
-      ui.error = {
-        message: errorObj.profileMe?.message || LANG_KO.view.error.profileLoadFailed,
-        requestId: errorObj.profileMe?.requestId,
+    if (currentError) {
+      currentUi.error = {
+        message: currentError?.message || LANG_KO.view.error.profileLoadFailed,
+        requestId: currentError?.requestId,
       };
-      ui.isLoadingProfile = false;
+      currentUi.isLoadingProfile = false;
       return;
     }
-    if (dataObj?.profileMe?.result) {
-      profileMeObj.copy(dataObj.profileMe.result);
-      ui.error = null;
+    if (currentResult) {
+      profileMeObjRef.current.copy(currentResult);
+      currentUi.error = null;
     }
-  }, [dataObj?.profileMe?.result, errorObj?.profileMe, hasProfileEndpoint, pageLoading, profileMeObj, ui]);
+  }, [hasProfileEndpoint, pageLoading, profileErrorRevision, profileResultRevision]);
 
   /* 9. 내부 컴포넌트 ============================================================================================================== */
 

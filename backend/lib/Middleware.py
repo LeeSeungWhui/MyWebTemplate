@@ -9,6 +9,7 @@ import asyncio
 import json
 import ipaddress
 import os
+import re
 import time
 import uuid
 from typing import Callable, Awaitable
@@ -16,13 +17,14 @@ from typing import Callable, Awaitable
 from fastapi import Request
 from starlette.responses import Response as StarletteResponse
 from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.types import ASGIApp, Message, Receive, Scope, Send
 
 from lib.Logger import logger
 from .Masking import maskUserIdentifierForLog
 from .Database import getSqlCount, resetSqlCount
 from .Config import getConfig
 from .RequestContext import resetRequestId, setRequestId
-from .RequestTrust import trustProxyHeaders
+from .RequestTrust import getTrustedForwardedIp
 from .UserAccessLog import writeUserAccessLog
 
 SECURITY_RESPONSE_HEADERS = (
@@ -31,6 +33,10 @@ SECURITY_RESPONSE_HEADERS = (
     ("Permissions-Policy", "accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=()"),
     ("X-Frame-Options", "DENY"),
 )
+
+REQUEST_ID_PATTERN = re.compile(r"^[A-Za-z0-9._:-]{1,128}$")
+DEFAULT_ACCESS_LOG_PENDING_TASK_CAP = 100
+_pendingAccessLogTasks: set[asyncio.Task[None]] = set()
 
 
 async def writeUserAccessLogSafely(
@@ -47,25 +53,116 @@ async def writeUserAccessLogSafely(
     """
     설명: 요청 종료 후 사용자 접근 로그를 비차단 방식으로 적재하는 보호 래퍼
     처리 규칙: writeUserAccessLog 호출 인자를 그대로 전달하고, 본 요청 응답 흐름을 우선
-    실패 동작: 로그 적재 예외는 삼키고 API 응답/이벤트 루프를 중단시키지 않는
+    실패 동작: 로그 적재 예외는 상위 태스크 완료 콜백에서 구조 로그로 수집
     부작용: user_access_log 저장 시도가 발생할 수
     갱신일: 2026-02-27
     """
-    try:
-        await writeUserAccessLog(
-            username=username,
-            requestId=requestId,
-            method=method,
-            path=path,
-            statusCode=statusCode,
-            latencyMs=latencyMs,
-            sqlCount=sqlCount,
-            clientIp=clientIp,
-        )
-    except Exception:
+    await writeUserAccessLog(
+        username=username,
+        requestId=requestId,
+        method=method,
+        path=path,
+        statusCode=statusCode,
+        latencyMs=latencyMs,
+        sqlCount=sqlCount,
+        clientIp=clientIp,
+    )
 
-        # 사용자 로그 적재 실패가 API 응답/백그라운드 루프를 깨지 않도록 방어
-        pass
+
+def resolveRequestId(rawRequestId: object) -> str:
+    """검증된 요청 ID를 보존하고 그 외 입력은 UUID4로 교체한다."""
+    if isinstance(rawRequestId, str) and REQUEST_ID_PATTERN.fullmatch(rawRequestId):
+        return rawRequestId
+    return str(uuid.uuid4())
+
+
+def getAccessLogPendingTaskCap() -> int:
+    """접근 로그 백그라운드 태스크의 동시 보존 상한을 조회한다."""
+    return parsePositiveInt(os.getenv("ACCESS_LOG_PENDING_TASK_CAP")) or DEFAULT_ACCESS_LOG_PENDING_TASK_CAP
+
+
+def _finishAccessLogTask(task: asyncio.Task[None]) -> None:
+    if task not in _pendingAccessLogTasks:
+        return
+    _pendingAccessLogTasks.discard(task)
+    if task.cancelled():
+        return
+    try:
+        failure = task.exception()
+    except asyncio.CancelledError:
+        return
+    if failure is not None:
+        logger.error(
+            json.dumps(
+                {
+                    "level": "ERROR",
+                    "msg": "user_access_log_task_failed",
+                    "errorType": type(failure).__name__,
+                },
+                ensure_ascii=False,
+            )
+        )
+
+
+def scheduleUserAccessLog(**kwargs: object) -> bool:
+    """상한 내에서 접근 로그 태스크를 강한 참조로 보존한다."""
+    cap = getAccessLogPendingTaskCap()
+    if len(_pendingAccessLogTasks) >= cap:
+        logger.warning(
+            json.dumps(
+                {
+                    "level": "WARNING",
+                    "msg": "user_access_log_task_dropped",
+                    "pending": len(_pendingAccessLogTasks),
+                    "pendingCap": cap,
+                    "requestId": kwargs.get("requestId"),
+                },
+                ensure_ascii=False,
+            )
+        )
+        return False
+    try:
+        task = asyncio.create_task(writeUserAccessLogSafely(**kwargs))
+    except Exception as failure:
+        logger.error(
+            json.dumps(
+                {
+                    "level": "ERROR",
+                    "msg": "user_access_log_task_create_failed",
+                    "errorType": type(failure).__name__,
+                    "requestId": kwargs.get("requestId"),
+                },
+                ensure_ascii=False,
+            )
+        )
+        return False
+    _pendingAccessLogTasks.add(task)
+    task.add_done_callback(_finishAccessLogTask)
+    return True
+
+
+async def drainUserAccessLogTasks(timeout: float = 5.0) -> None:
+    """보존 중인 접근 로그 태스크를 기다리고 제한시간 뒤 남은 태스크를 취소한다."""
+    pending = set(_pendingAccessLogTasks)
+    if not pending:
+        return
+    done, stillPending = await asyncio.wait(pending, timeout=max(0.0, timeout))
+    if stillPending:
+        logger.warning(
+            json.dumps(
+                {
+                    "level": "WARNING",
+                    "msg": "user_access_log_task_drain_timeout",
+                    "pending": len(stillPending),
+                },
+                ensure_ascii=False,
+            )
+        )
+        for task in stillPending:
+            task.cancel()
+        await asyncio.gather(*stillPending, return_exceptions=True)
+    for task in done:
+        _finishAccessLogTask(task)
 
 
 def parsePositiveInt(rawValue: object) -> int | None:
@@ -136,22 +233,9 @@ def resolveClientIp(request: Request) -> str | None:
     우선순위: TRUST_PROXY_HEADERS=true일 때 X-Forwarded-For(첫 IP) > X-Real-IP, 그 외 request.client.host
     갱신일: 2026-06-05
     """
-    if trustProxyHeaders():
-        try:
-            forwardedFor = request.headers.get("X-Forwarded-For")
-            if isinstance(forwardedFor, str) and forwardedFor.strip():
-                first = forwardedFor.split(",")[0].strip()
-                if first:
-                    return first
-        except Exception:
-            pass
-
-        try:
-            realIp = request.headers.get("X-Real-IP")
-            if isinstance(realIp, str) and realIp.strip():
-                return realIp.strip()
-        except Exception:
-            pass
+    forwardedIp = getTrustedForwardedIp(request)
+    if forwardedIp:
+        return forwardedIp
 
     try:
         clientHost = request.client.host if request.client else None
@@ -226,93 +310,100 @@ class SecurityHeadersMiddleware(BaseHTTPMiddleware):
         return applyDefaultSecurityHeaders(response)
 
 
-class RequestLogMiddleware(BaseHTTPMiddleware):
+class RequestLogMiddleware:
     """
     설명: Request-Id 생성/전파 및 구조적 JSON 접근 로그 기록
     갱신일: 2025-11-12
     """
 
-    async def dispatch(self, request: Request, callNext: Callable[[Request], Awaitable[StarletteResponse]]) -> StarletteResponse:
+    def __init__(self, app: ASGIApp) -> None:
+        self.app = app
+
+    async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         """
         설명: 요청 처리 시간/상태/경로 등을 수집하여 INFO 레벨로 로그 출력
         부작용: X-Request-Id 헤더 주입, 구조적 access 로그 기록, 인증 사용자 접근로그 백그라운드 적재를 수행
         갱신일: 2025-11-12
         """
+        if scope["type"] != "http":
+            await self.app(scope, receive, send)
+            return
+
+        request = Request(scope, receive=receive)
         started = time.perf_counter()
-        reqId = request.headers.get("X-Request-Id") or str(uuid.uuid4())
+        reqId = resolveRequestId(request.headers.get("X-Request-Id"))
+        scope["requestId"] = reqId
+        scope.setdefault("state", {})["requestId"] = reqId
         token = setRequestId(reqId)
         resetSqlCount()
+        statusCode = 500
+
+        async def sendWithRequestId(message: Message) -> None:
+            nonlocal statusCode
+            if message["type"] == "http.response.start":
+                statusCode = int(message["status"])
+                headers = list(message.get("headers", []))
+                headers = [(name, value) for name, value in headers if name.lower() != b"x-request-id"]
+                headers.append((b"x-request-id", reqId.encode("ascii")))
+                message = {**message, "headers": headers}
+            await send(message)
+
         try:
-
-            # 실제 비즈니스 핸들러 호출
-            response = await callNext(request)
-
-            # 응답 헤더에 요청 ID를 추가
-            try:
-                response.headers["X-Request-Id"] = reqId
-            except Exception:
-                pass
-
-            elapsedMs = int((time.perf_counter() - started) * 1000)
-            sqlCount = getSqlCount()
-            level = "INFO"
-            username = resolveAuthUsername(request)
-            clientIp = resolveClientIp(request)
-            maskedUsername = maskUserIdentifierForLog(username)
-            maskedClientIp = maskClientIpForLog(clientIp)
-            logObj = {
-                "ts": int(time.time() * 1000),
-                "level": level,
-                "requestId": reqId,
-                "method": request.method,
-                "path": request.url.path,
-                "status": response.status_code,
-                "latency_ms": elapsedMs,
-                "sql_count": sqlCount,
-                "is_authenticated": bool(username),
-                "msg": "access",
-            }
-            if maskedUsername:
-                logObj["usernameMasked"] = maskedUsername
-            if maskedClientIp:
-                logObj["clientIpMasked"] = maskedClientIp
-
-            # 구조적 로그를 위해 JSON 문자열로 기록
-            msg = json.dumps(logObj, ensure_ascii=False)
-            logger.info(msg)
-            threshold = getSqlWarnThreshold()
-            if sqlCount >= threshold:
-                warnObj = {
-                    "ts": int(time.time() * 1000),
-                    "level": "WARNING",
-                    "requestId": reqId,
-                    "path": request.url.path,
-                    "method": request.method,
-                    "status": response.status_code,
-                    "sql_count": sqlCount,
-                    "sql_warn_threshold": threshold,
-                    "msg": "sql_count_high",
-                }
-                logger.warning(json.dumps(warnObj, ensure_ascii=False))
-            if username:
-                try:
-                    asyncio.create_task(
-                        writeUserAccessLogSafely(
-                            username=username,
-                            requestId=reqId,
-                            method=request.method,
-                            path=request.url.path,
-                            statusCode=int(response.status_code),
-                            latencyMs=elapsedMs,
-                            sqlCount=sqlCount,
-                            clientIp=clientIp,
-                        )
-                    )
-                except Exception:
-
-                    # 태스크 생성 실패가 API 응답을 깨지 않도록 방어
-                    pass
-            return response
+            await self.app(scope, receive, sendWithRequestId)
+        except Exception:
+            statusCode = 500
+            raise
         finally:
-            resetRequestId(token)
-            resetSqlCount()
+            try:
+                elapsedMs = int((time.perf_counter() - started) * 1000)
+                sqlCount = getSqlCount()
+                username = resolveAuthUsername(request)
+                clientIp = resolveClientIp(request)
+                maskedUsername = maskUserIdentifierForLog(username)
+                maskedClientIp = maskClientIpForLog(clientIp)
+                logObj = {
+                    "ts": int(time.time() * 1000),
+                    "level": "INFO",
+                    "requestId": reqId,
+                    "method": request.method,
+                    "path": request.url.path,
+                    "status": statusCode,
+                    "latency_ms": elapsedMs,
+                    "sql_count": sqlCount,
+                    "is_authenticated": bool(username),
+                    "msg": "access",
+                }
+                if maskedUsername:
+                    logObj["usernameMasked"] = maskedUsername
+                if maskedClientIp:
+                    logObj["clientIpMasked"] = maskedClientIp
+
+                logger.info(json.dumps(logObj, ensure_ascii=False))
+                threshold = getSqlWarnThreshold()
+                if sqlCount >= threshold:
+                    warnObj = {
+                        "ts": int(time.time() * 1000),
+                        "level": "WARNING",
+                        "requestId": reqId,
+                        "path": request.url.path,
+                        "method": request.method,
+                        "status": statusCode,
+                        "sql_count": sqlCount,
+                        "sql_warn_threshold": threshold,
+                        "msg": "sql_count_high",
+                    }
+                    logger.warning(json.dumps(warnObj, ensure_ascii=False))
+                if username:
+                    scheduleUserAccessLog(
+                        username=username,
+                        requestId=reqId,
+                        method=request.method,
+                        path=request.url.path,
+                        statusCode=statusCode,
+                        latencyMs=elapsedMs,
+                        sqlCount=sqlCount,
+                        clientIp=clientIp,
+                    )
+            finally:
+                resetRequestId(token)
+                resetSqlCount()

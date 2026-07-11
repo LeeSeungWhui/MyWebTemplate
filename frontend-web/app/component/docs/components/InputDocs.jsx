@@ -9,8 +9,8 @@ import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';
 
 const inputPropList = [
-    { name: 'dataObj/dataKey?', description: 'EasyObj 상태와 필드 키를 연결하는 바운드 입력' },
-    { name: 'value/defaultValue?', description: 'controlled 또는 초기값 기반 입력' },
+    { name: 'dataObj/dataKey?', description: 'EasyObj 상태와 필드 키를 연결하는 입력' },
+    { name: 'value/defaultValue?', description: '외부 상태 제어 또는 초기값 기반 입력' },
     { name: 'type?', description: 'text, email, password, number 등 HTML input 타입' },
     { name: 'filter?', description: '허용 문자 범위를 정해 입력 전 단계에서 차단' },
     { name: 'mask?', description: '전화번호·사업자번호처럼 고정 포맷으로 변환' },
@@ -60,7 +60,7 @@ const InputDocs = () => {
             id="inputs"
             title="4. 입력 (Input)" description={
                 <div className="space-y-4 rounded-xl bg-slate-50/80 p-5 text-sm text-slate-700 ring-1 ring-slate-900/5">
-                    <p>Input은 텍스트, 숫자, 검색, 비밀번호처럼 폼에서 가장 많이 반복되는 입력 표면입니다. EasyObj 바인딩과 controlled 모드를 모두 지원하고, 마스크·필터·에러 상태를 한 컴포넌트 안에서 처리합니다.</p>
+                    <p>Input은 텍스트, 숫자, 검색, 비밀번호처럼 폼에서 가장 많이 반복되는 입력 요소입니다. EasyObj 데이터 연결과 외부 상태 제어를 모두 지원하고, 마스크·필터·오류 상태를 한 컴포넌트 안에서 처리합니다.</p>
                     <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
                         {inputPropList.map((propItem) => (
                             <div key={propItem.name} className="rounded-lg bg-white px-3 py-2 ring-1 ring-slate-200/80">

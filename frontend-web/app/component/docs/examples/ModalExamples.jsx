@@ -20,7 +20,7 @@ const BasicModalDemo = () => {
   return <div className="space-y-4 rounded-xl border border-slate-200 bg-slate-50/70 p-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <p className="text-sm font-semibold text-slate-900">운영 작업 확인</p>
+          <p className="text-sm font-semibold text-slate-900">고객 상태 변경 확인</p>
           <p className="mt-1 text-sm text-slate-500">중요 변경 전 요약과 액션을 한 화면에서 확인합니다.</p>
         </div>
         <Lib.Button icon="ri:RiCheckboxCircleLine" onClick={() => setIsOpen(true)}>
@@ -28,25 +28,25 @@ const BasicModalDemo = () => {
         </Lib.Button>
       </div>
 
-      <Lib.Modal isOpen={isOpen} onClose={() => setIsOpen(false)} ariaLabel="배포 확인 모달">
+      <Lib.Modal isOpen={isOpen} onClose={() => setIsOpen(false)} ariaLabel="고객 상태 변경 확인 모달">
         <Lib.Modal.Header onClose={() => setIsOpen(false)}>
-          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-indigo-600">Release approval</p>
-          <h2 className="mt-1 text-xl font-semibold text-slate-950">배포 확인 요청</h2>
-          <p className="mt-1 text-sm text-slate-500">운영 반영 전 마지막 체크리스트를 검토하세요.</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.18em] text-indigo-600">CUSTOMER STATUS</p>
+          <h2 className="mt-1 text-xl font-semibold text-slate-950">상담 완료로 변경할까요?</h2>
+          <p className="mt-1 text-sm text-slate-500">변경 전에 고객 정보와 처리 내용을 확인하세요.</p>
         </Lib.Modal.Header>
 
         <Lib.Modal.Body>
           <div className="space-y-3">
             <div className="rounded-xl border border-slate-200 bg-slate-50/80 p-4">
               <div className="flex items-center justify-between gap-4">
-                <span className="text-sm font-medium text-slate-700">대상 환경</span>
-                <span className="rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-semibold text-indigo-700 ring-1 ring-indigo-100">Production</span>
+                <span className="text-sm font-medium text-slate-700">변경 상태</span>
+                <span className="rounded-full bg-indigo-50 px-2.5 py-1 text-xs font-semibold text-indigo-700 ring-1 ring-indigo-100">상담 완료</span>
               </div>
-              <p className="mt-2 text-sm text-slate-500">컴포넌트 문서 UI polish 변경을 배포 대기열에 등록합니다.</p>
+              <p className="mt-2 text-sm text-slate-500">김민준 고객의 문의 상태와 마지막 상담 시간을 함께 갱신합니다.</p>
             </div>
             <ul className="grid gap-2 text-sm text-slate-600">
-              <li className="flex items-center gap-2"><span className="size-1.5 rounded-full bg-emerald-500" />테스트 통과 후 반영</li>
-              <li className="flex items-center gap-2"><span className="size-1.5 rounded-full bg-indigo-500" />디자인 토큰 slate/indigo 기준</li>
+              <li className="flex items-center gap-2"><span className="size-1.5 rounded-full bg-emerald-500" />처리 메모 저장 완료</li>
+              <li className="flex items-center gap-2"><span className="size-1.5 rounded-full bg-indigo-500" />후속 안내 발송 예정</li>
             </ul>
           </div>
         </Lib.Modal.Body>
@@ -241,11 +241,11 @@ export const basicExampleList = [{
   기본 모달 열기
 </Lib.Button>
 
-<Lib.Modal isOpen={isOpen} onClose={() => setIsOpen(false)} ariaLabel="배포 확인 모달">
+<Lib.Modal isOpen={isOpen} onClose={() => setIsOpen(false)} ariaLabel="고객 상태 변경 확인 모달">
     <Lib.Modal.Header onClose={() => setIsOpen(false)}>
-        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-indigo-600">Release approval</p>
-        <h2 className="mt-1 text-xl font-semibold text-slate-950">배포 확인 요청</h2>
-        <p className="mt-1 text-sm text-slate-500">운영 반영 전 마지막 체크리스트를 검토하세요.</p>
+        <p className="text-xs font-semibold uppercase tracking-[0.18em] text-indigo-600">CUSTOMER STATUS</p>
+        <h2 className="mt-1 text-xl font-semibold text-slate-950">상담 완료로 변경할까요?</h2>
+        <p className="mt-1 text-sm text-slate-500">변경 전에 고객 정보와 처리 내용을 확인하세요.</p>
     </Lib.Modal.Header>
 
     <Lib.Modal.Body>

@@ -10,8 +10,8 @@ import { boundExampleObj, controlExampleObj, errorExampleObj, readonlyExampleObj
 
 const textareaPropList = [
   { name: 'rows?', description: '기본 노출 줄 수. 기본값 4' },
-  { name: 'dataObj/dataKey?', description: 'EasyObj 필드와 textarea 값을 바인딩' },
-  { name: 'value/defaultValue?', description: 'controlled 또는 초기값 기반 입력' },
+  { name: 'dataObj/dataKey?', description: 'EasyObj 필드와 textarea 값을 연결' },
+  { name: 'value/defaultValue?', description: '외부 상태 제어 또는 초기값 기반 입력' },
   { name: 'error?', description: 'aria-invalid와 오류 테두리 상태' },
   { name: 'onChange/onValueChange?', description: '변경 이벤트와 값 전용 콜백' },
   { name: 'placeholder?', description: '비어 있을 때 보여주는 안내 문구' },
@@ -23,14 +23,14 @@ const textareaExampleSectionList = [
   {
     id: 'textarea-basic',
     eyebrow: 'EXAMPLE 1',
-    title: '바운드 모드',
+    title: '데이터 연결',
     summary: 'EasyObj 필드와 긴 메모 값을 연결해 입력 즉시 상태를 확인합니다.',
     example: boundExampleObj,
   },
   {
     id: 'textarea-controlled',
     eyebrow: 'EXAMPLE 2',
-    title: '컨트롤드 모드',
+    title: '외부 상태 제어',
     summary: 'value/onValueChange를 사용해 외부 React 상태와 동기화합니다.',
     example: controlExampleObj,
   },
@@ -60,7 +60,7 @@ const TextareaDocs = () => {
       id="textareas"
       title="5. 멀티라인 입력 (Textarea)" description={
         <div className="space-y-4 rounded-xl bg-slate-50/80 p-5 text-sm text-slate-700 ring-1 ring-slate-900/5">
-          <p>Textarea는 긴 메모, 설명, 고객 응답처럼 줄바꿈을 보존해야 하는 텍스트 입력에 씁니다. 바운드/컨트롤드 모드와 IME 입력, 에러 상태, 읽기 전용 상태를 같은 API로 처리합니다.</p>
+          <p>Textarea는 긴 메모, 설명, 고객 응답처럼 줄바꿈을 보존해야 하는 텍스트 입력에 사용합니다. 데이터 연결, 외부 상태 제어, 한글 조합 입력, 오류 상태, 읽기 전용 상태를 같은 API로 처리합니다.</p>
           <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
             {textareaPropList.map((propItem) => (
               <div key={propItem.name} className="rounded-lg bg-white px-3 py-2 ring-1 ring-slate-200/80">

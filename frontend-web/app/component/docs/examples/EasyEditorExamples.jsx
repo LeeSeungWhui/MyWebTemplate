@@ -62,11 +62,11 @@ const GuideEditorDemo = () => {
  */
 const CtrlEditorDemo = () => {
   const editorDataObj = Lib.EasyObj({
-    htmlMemo: '<h3>HTML 메모</h3><p>컨트롤드 모드에서는 <strong>serialization="html"</strong>을 사용하십시오.</p>'
+    htmlMemo: '<h3>HTML 메모</h3><p>외부 상태 제어에서는 <strong>serialization="html"</strong>을 사용합니다.</p>'
   });
 
   return <div className="space-y-3 rounded-xl border border-slate-200 bg-white p-4 shadow-sm shadow-slate-950/5">
-      <Lib.EasyEditor dataObj={editorDataObj} dataKey="htmlMemo" serialization="html" placeholder="HTML 문자열을 직접 관리" label="컨트롤드 HTML 편집기" toolbar />
+      <Lib.EasyEditor dataObj={editorDataObj} dataKey="htmlMemo" serialization="html" placeholder="HTML 문자열을 직접 관리" label="HTML 편집기" toolbar />
       <pre className="overflow-auto rounded-xl bg-slate-950 p-4 text-xs text-slate-100 ring-1 ring-slate-800">
         {editorDataObj.htmlMemo}
       </pre>
@@ -76,7 +76,7 @@ const CtrlEditorDemo = () => {
 export const editorExampleList = [{
   anchor: 'editor-basic',
   component: <NoticeEditorDemo />,
-  description: 'EasyObj 바인딩 기반 기본 사용',
+  description: 'EasyObj 데이터 연결 기반 기본 사용',
   code: `<Lib.EasyEditor
   dataObj={editorDataObj}
   dataKey="announcement"
@@ -88,7 +88,7 @@ export const editorExampleList = [{
 }, {
   anchor: 'editor-bound',
   component: <GuideEditorDemo />,
-  description: '스타터 콘텐츠가 있는 바인딩 케이스',
+  description: '초기 콘텐츠가 있는 데이터 연결 예시',
   code: `<Lib.EasyEditor
   dataObj={editorDataObj}
   dataKey="onboardingGuide"
@@ -101,7 +101,7 @@ export const editorExampleList = [{
 }, {
   anchor: 'editor-controlled',
   component: <CtrlEditorDemo />,
-  description: 'EasyObj 바인딩 + HTML 직렬화',
+  description: 'EasyObj 데이터 연결 + HTML 직렬화',
   code: `const editorDataObj = Lib.EasyObj({ htmlMemo: '<p>초기 HTML</p>' });
 
 <Lib.EasyEditor
@@ -109,7 +109,7 @@ export const editorExampleList = [{
   dataKey="htmlMemo"
   serialization="html"
   placeholder="HTML 문자열을 직접 관리"
-  label="컨트롤드 HTML 편집기"
+  label="HTML 편집기"
 />`
 }, {
   anchor: 'editor-states',

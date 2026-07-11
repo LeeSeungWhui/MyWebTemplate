@@ -32,4 +32,23 @@ describe("EasyTable", () => {
     expect(screen.getByRole("table")).toHaveAttribute("aria-busy", "true");
     expect(screen.getByRole("status")).toHaveClass("text-slate-600");
   });
+
+  it("connects an opt-in mobile scroll hint to the focusable scroll region", () => {
+    render(
+      <EasyTable
+        data={data}
+        columns={columns}
+        pageSize={2}
+        mobileScrollHint="좌우로 스크롤해 확인하세요."
+      />,
+    );
+
+    const hint = screen.getByText("좌우로 스크롤해 확인하세요.");
+    const scrollRegion = hint.nextElementSibling;
+
+    expect(hint).toHaveClass("sm:hidden");
+    expect(scrollRegion).toHaveAttribute("tabindex", "0");
+    expect(scrollRegion).toHaveAttribute("aria-describedby", hint.id);
+    expect(scrollRegion).toHaveAttribute("aria-label", "좌우로 스크롤해 확인하세요.");
+  });
 });

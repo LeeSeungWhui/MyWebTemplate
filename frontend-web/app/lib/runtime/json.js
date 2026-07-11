@@ -5,12 +5,12 @@
  * 설명: JSON 파싱/복사 공통 유틸
  */
 
-export const safeJsonParse = (jsonText, fallbackValue = null) => {
-  if (typeof jsonText !== "string") return fallbackValue;
+export const parseJsonText = (jsonText, defaultValue = null) => {
+  if (typeof jsonText !== "string") return defaultValue;
   try {
     return JSON.parse(jsonText);
   } catch (error) {
-    return fallbackValue;
+    return defaultValue;
   }
 };
 
@@ -18,7 +18,7 @@ export const safeJsonParse = (jsonText, fallbackValue = null) => {
  * @description JSON 호환 객체를 깊은 복사하고 실패 시 fallback을 반환. 입력/출력 계약을 함께 명시
  * @updated 2026-02-24
  */
-export const deepCloneValue = (targetValue, fallbackValue = targetValue) => {
+export const deepCloneValue = (targetValue, defaultValue = targetValue) => {
   if (targetValue == null) return targetValue;
   if (typeof globalThis.structuredClone === "function") {
     try {
@@ -29,8 +29,8 @@ export const deepCloneValue = (targetValue, fallbackValue = targetValue) => {
   }
   try {
     const jsonText = JSON.stringify(targetValue);
-    return safeJsonParse(jsonText, fallbackValue);
+    return parseJsonText(jsonText, defaultValue);
   } catch (error) {
-    return fallbackValue;
+    return defaultValue;
   }
 };

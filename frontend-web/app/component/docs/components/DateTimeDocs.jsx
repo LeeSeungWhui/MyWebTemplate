@@ -10,12 +10,12 @@ import { dateExampleList } from '../examples/DateInputExamples';
 import { timeExampleList } from '../examples/TimeInputExamples';
 
 const dateTimePropList = [
-    { name: 'dataObj/dataKey?', description: 'EasyObj의 날짜 또는 시간 문자열 필드와 바인딩' },
-    { name: 'value/defaultValue?', description: 'controlled 값 또는 초기 날짜·시간 값' },
+    { name: 'dataObj/dataKey?', description: 'EasyObj의 날짜 또는 시간 문자열 필드와 연결' },
+    { name: 'value/defaultValue?', description: '외부에서 제어하는 값 또는 초기 날짜·시간 값' },
     { name: 'min/max?', description: 'DateInput의 선택 가능 날짜 범위' },
     { name: 'step?', description: 'TimeInput 옵션 간격. 분 단위로 옵션 목록 생성' },
-    { name: 'onChange/onValueChange?', description: '확정된 문자열 값과 binding context 전달' },
-    { name: 'disabled/readOnly?', description: '직접 입력과 picker 버튼을 함께 잠금' },
+    { name: 'onChange/onValueChange?', description: '확정된 문자열 값과 연결 정보 전달' },
+    { name: 'disabled/readOnly?', description: '직접 입력과 선택 버튼을 함께 잠금' },
     { name: 'placeholder/id?', description: '입력 안내와 라벨 연결 식별자' },
     { name: 'className?', description: '예약 폼, 필터 카드 등에서 폭을 보정' },
 ];
@@ -47,7 +47,7 @@ const DateTimeDocs = () => {
       id="datetime-inputs"
       title="13. 날짜/시간 (Date/Time)" description={
         <div className="space-y-4 rounded-xl bg-slate-50/80 p-5 text-sm text-slate-700 ring-1 ring-slate-900/5">
-          <p>DateInput과 TimeInput은 텍스트 입력 기반 picker를 제공해 날짜/시간 값을 폼 문자열로 확정합니다. EasyObj 바운드 모드, controlled 모드, 직접 입력 후 blur/Enter 확정 흐름을 지원합니다.</p>
+          <p>DateInput과 TimeInput은 텍스트 입력과 선택 도구를 함께 제공해 날짜·시간 값을 폼 문자열로 확정합니다. EasyObj 데이터 연결, 외부 상태 제어, 직접 입력 후 <code>blur</code> 또는 <code>Enter</code>로 확정하는 흐름을 지원합니다.</p>
           <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
             {dateTimePropList.map((propItem) => (
               <div key={propItem.name} className="rounded-lg bg-white px-3 py-2 ring-1 ring-slate-200/80">

@@ -11,8 +11,8 @@ import CodeBlock from '../shared/CodeBlock';
 const selectPropList = [
     { name: 'dataList', description: '옵션 배열 또는 EasyList. selected 플래그 동기화' },
     { name: 'valueKey/textKey?', description: '옵션 값과 라벨로 사용할 키' },
-    { name: 'dataObj/dataKey?', description: 'EasyObj 선택 값 바인딩' },
-    { name: 'value/onValueChange?', description: 'controlled 선택 값 동기화' },
+    { name: 'dataObj/dataKey?', description: 'EasyObj 선택 값과 연결' },
+    { name: 'value/onValueChange?', description: '외부 상태의 선택 값과 동기화' },
     { name: 'status?', description: 'default, success, info, warning, error, loading, empty' },
     { name: 'statusMessage?', description: '상태별 가시 안내 문구' },
     { name: 'assistiveText?', description: '스크린리더용 보조 안내' },
@@ -24,7 +24,7 @@ const selectExampleSectionList = [
         id: 'select-basic',
         eyebrow: 'EXAMPLE 1',
         title: '기본 사용법',
-        summary: 'EasyList selected 플래그와 controlled value를 실제 직무 선택 흐름으로 비교합니다.',
+        summary: 'EasyList selected 플래그와 외부 상태 값을 실제 직무 선택 흐름으로 비교합니다.',
         exampleList: basicExampleList,
     },
     {
@@ -46,7 +46,7 @@ const SelectDocs = () => {
             id="selects"
             title="6. 선택 (Select)" description={
                 <div className="space-y-4 rounded-xl bg-slate-50/80 p-5 text-sm text-slate-700 ring-1 ring-slate-900/5">
-                    <p>Select는 짧은 옵션 목록에서 하나의 값을 고르는 폼 표면입니다. EasyList의 selected 플래그, EasyObj 바인딩, controlled value를 모두 지원하고 상태 메시지와 aria-live 안내를 함께 제공합니다.</p>
+                    <p>Select는 짧은 옵션 목록에서 하나의 값을 고르는 입력 요소입니다. EasyList의 <code>selected</code> 플래그, EasyObj 데이터 연결, 외부 상태 제어를 모두 지원하고 상태 메시지와 <code>aria-live</code> 안내를 함께 제공합니다.</p>
                     <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4">
                         {selectPropList.map((propItem) => (
                             <div key={propItem.name} className="rounded-lg bg-white px-3 py-2 ring-1 ring-slate-200/80">

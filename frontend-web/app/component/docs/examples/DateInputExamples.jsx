@@ -42,7 +42,7 @@ const RangeDateDemo = () => {
 export const dateExampleList = [{
   exampleId: 'bound',
   component: <BoundDateDemo />,
-  description: '프로젝트 시작일을 EasyObj 필드에 바인딩',
+  description: '프로젝트 시작일을 EasyObj 필드와 연결',
   code: `const dateDataObj = Lib.EasyObj({ startDate: '2026-07-15' });
 
 <Lib.DateInput

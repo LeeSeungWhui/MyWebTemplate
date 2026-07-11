@@ -32,13 +32,13 @@ const tableExampleSectionList = [
     id: 'table-basic',
     eyebrow: 'EXAMPLE 1',
     title: '기본 테이블',
-    summary: 'URL query와 session persist를 함께 사용하는 기본 데이터 테이블입니다.',
+    summary: '주소의 검색 조건과 세션 저장 값을 함께 사용하는 기본 데이터 테이블입니다.',
     example: basicExampleObj,
   },
   {
     id: 'table-controlled',
     eyebrow: 'EXAMPLE 2',
-    title: '제어형 페이지',
+    title: '외부 상태 제어',
     summary: 'page/onPageChange를 외부 상태로 관리하는 제어형 페이지네이션 예시입니다.',
     example: controlExampleObj,
   },
@@ -53,7 +53,7 @@ const tableExampleSectionList = [
     id: 'table-styled',
     eyebrow: 'EXAMPLE 4',
     title: '커스텀 스타일',
-    summary: '행/셀을 분리된 surface처럼 보이게 만든 refined enterprise 스타일입니다.',
+    summary: '행과 셀을 분리된 카드처럼 표현한 정돈된 업무 화면 스타일입니다.',
     example: styleExampleObj,
   },
   {
@@ -73,7 +73,7 @@ const TableDocs = () => {
   return (
     <DocSection id="tables" title="26. 테이블 (Table)" description={
       <div className="space-y-4 rounded-xl bg-slate-50/80 p-5 text-sm text-slate-700 ring-1 ring-slate-900/5">
-        <p>데이터 테이블과 카드 리스트를 같은 계약으로 렌더링합니다. 제어형/비제어 페이징, URL query, storage persist를 지원해 실제 admin 화면의 목록 UX를 빠르게 구성할 수 있습니다.</p>
+        <p>데이터 테이블과 카드 목록을 같은 사용 방식으로 렌더링합니다. 외부 상태 제어 또는 자체 페이지 이동, 주소 검색 조건, 브라우저 저장 값 유지를 지원해 실제 관리 화면의 목록 경험을 빠르게 구성할 수 있습니다.</p>
         <div className="grid gap-3 md:grid-cols-2">
           {tablePropGroupList.map((groupItem) => (
             <div key={groupItem.title} className="rounded-lg bg-white p-3 ring-1 ring-slate-200/80">

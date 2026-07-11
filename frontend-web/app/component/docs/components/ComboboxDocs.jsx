@@ -18,7 +18,7 @@ const ComboboxDocs = () => {
       id="comboboxes"
       title="14. 콤보박스 (Combobox)" description={
         <div>
-          <p>검색 가능한 단일·다중 선택 입력입니다. dataList(selected)를 기반으로 한 선택 모델을 사용하며 초성 검색을 지원합니다.</p>
+          <p>검색 가능한 단일·다중 선택 입력입니다. <code>dataList</code>의 <code>selected</code> 값을 기반으로 선택 상태를 관리하며 초성 검색을 지원합니다.</p>
           <ul className="list-disc pl-5 mt-2 text-sm text-gray-600">
             <li><code>dataList</code>: 선택 항목 배열(EasyList 가능)</li>
             <li><code>valueKey / textKey (선택)</code>: 값/라벨 키 (기본: 'value'/'text')</li>
@@ -50,7 +50,7 @@ const ComboboxDocs = () => {
       </div>
 
       <div id="combobox-bound" className="mb-8">
-        <h3 className="text-lg font-medium mb-4">바운드</h3>
+        <h3 className="text-lg font-medium mb-4">데이터 연결</h3>
         <div>
           {boundExampleObj.component}
           <div className="mt-2 text-sm text-gray-600">{boundExampleObj.description}</div>

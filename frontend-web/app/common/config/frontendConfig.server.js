@@ -5,7 +5,7 @@
  * 설명: 프론트엔드 config.ini 로더
  */
 
-import { safeJsonParse } from "@/app/lib/runtime/json";
+import { parseJsonText } from "@/app/lib/runtime/json";
 
 let cachedConfig = null
 
@@ -103,7 +103,7 @@ const coerceValue = (valueRaw) => {
       (startsWithArray ? valueRaw.endsWith(']') : false)
     if (looksLikeJson) {
       const notParsed = Symbol('notParsed')
-      const parsedValue = safeJsonParse(valueRaw, notParsed)
+      const parsedValue = parseJsonText(valueRaw, notParsed)
       if (parsedValue !== notParsed) return parsedValue
     }
   } catch {

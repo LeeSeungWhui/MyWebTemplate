@@ -1,4 +1,5 @@
 import asyncio
+import json
 import os
 import sys
 
@@ -22,6 +23,78 @@ def assertDefaultSecurityHeaders(response):
         "magnetometer=(), microphone=(), payment=(), usb=()"
     )
     assert response.headers.get("X-Frame-Options") == "DENY"
+
+
+@pytest.mark.parametrize(
+    "originRegex",
+    (
+        ".*",
+        "^.*$",
+        "https://.*",
+        r"^https?://[^/]+$",
+        r"^https://[^/]+\.com$",
+        r"^http://[^/]+\.net$",
+        "null",
+    ),
+)
+def testCorsOriginRegexRejectsBroadPatterns(originRegex):
+    from server import validateCorsOriginRegex
+
+    with pytest.raises(ValueError, match="allow_origin_regex is too broad"):
+        validateCorsOriginRegex(originRegex)
+
+
+def testCorsOriginRegexRejectsInvalidSyntaxAndAllowsNarrowPattern():
+    from server import validateCorsOriginRegex
+
+    with pytest.raises(ValueError, match="invalid allow_origin_regex"):
+        validateCorsOriginRegex("[")
+
+    narrowPattern = r"^https://([a-z0-9-]+\.)?example\.com$"
+    assert validateCorsOriginRegex(narrowPattern) == narrowPattern
+
+
+def testShutdownCleanupContinuesAfterResourceFailures(monkeypatch):
+    import server
+
+    events = []
+
+    class FakeManager:
+        def __init__(self, name, shouldFail=False):
+            self.name = name
+            self.shouldFail = shouldFail
+
+        async def disconnect(self):
+            events.append(f"disconnect:{self.name}")
+            if self.shouldFail:
+                raise RuntimeError("disconnect failed")
+
+    class FakeObserver:
+        def stop(self):
+            events.append("observer:stop")
+            raise RuntimeError("stop failed")
+
+        def join(self):
+            events.append("observer:join")
+
+    monkeypatch.setattr(
+        server.DB,
+        "dbManagers",
+        {
+            "first": FakeManager("first", shouldFail=True),
+            "second": FakeManager("second"),
+        },
+    )
+    monkeypatch.setattr(server, "sqlObserver", FakeObserver())
+
+    asyncio.run(server.onShutdown())
+
+    assert events == [
+        "disconnect:first",
+        "disconnect:second",
+        "observer:stop",
+        "observer:join",
+    ]
 
 
 def testOperationalSecurityHeadersOnHealthz():
@@ -53,10 +126,21 @@ def testOperationalSecurityHeadersOnValidationError():
     assertDefaultSecurityHeaders(response)
 
 
-def testOperationalSecurityHeadersOnUnhandledError():
+def testOperationalSecurityHeadersOnUnhandledError(monkeypatch):
     from server import app
+    from lib import Middleware as middleware
 
     testPath = "/__test__/operational/security-error"
+    logMessages = []
+
+    def captureLog(message):
+        try:
+            logMessages.append(json.loads(message))
+        except Exception:
+            pass
+
+    monkeypatch.setattr(middleware.logger, "info", captureLog)
+    monkeypatch.setattr(middleware.logger, "exception", captureLog)
 
     if not any(getattr(route, "path", None) == testPath for route in app.routes):
         @app.get(testPath)
@@ -68,6 +152,16 @@ def testOperationalSecurityHeadersOnUnhandledError():
 
     assert response.status_code == 500
     assert response.headers.get("Cache-Control") == "no-store"
+    requestId = response.headers.get("X-Request-Id")
+    assert requestId
+    assert response.json()["requestId"] == requestId
+    accessLogs = [item for item in logMessages if item.get("msg") == "access"]
+    exceptionLogs = [item for item in logMessages if item.get("msg") == "unhandled_exception"]
+    assert len(accessLogs) == 1
+    assert accessLogs[0]["status"] == 500
+    assert accessLogs[0]["requestId"] == requestId
+    assert len(exceptionLogs) == 1
+    assert exceptionLogs[0]["requestId"] == requestId
     assertDefaultSecurityHeaders(response)
 
 

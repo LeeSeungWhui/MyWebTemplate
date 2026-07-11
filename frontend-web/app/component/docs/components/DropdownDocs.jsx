@@ -15,7 +15,7 @@ import CodeBlock from '../shared/CodeBlock';
 const DropdownDocs = () => {
   return (
     <DocSection id="dropdowns" title="15. 드롭다운 (Dropdown)" description={<div>
-      <p>EasyList(dataList) 기반. 선택 상태는 dataList.selected에 반영되므로 별도 useState가 필요 없습니다. 키보드(↑/↓/Enter/ESC)와 외부 클릭 닫힘 지원.</p>
+      <p><code>EasyList(dataList)</code>를 기반으로 동작합니다. 선택 상태가 <code>dataList.selected</code>에 반영되므로 별도의 <code>useState</code>가 필요 없습니다. 키보드(↑/↓/Enter/ESC) 조작과 바깥 영역 클릭 시 닫기를 지원합니다.</p>
       <ul className="list-disc pl-5 mt-2 text-sm text-gray-600">
         <li><code>dataList</code>: 항목 배열 또는 EasyList (label, value, selected, disabled)</li>
         <li><code>open?</code>: 외부에서 열림 상태 제어</li>

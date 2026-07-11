@@ -10,7 +10,7 @@ export const PAGE_CONFIG = {
   INIT_API: {},
   API: {
     requestPasswordReset: {
-      path: "/api/v1/auth/passwordReset/request",
+      path: "/api/v1/auth/passwordResetRequest",
       method: "POST",
     },
   },

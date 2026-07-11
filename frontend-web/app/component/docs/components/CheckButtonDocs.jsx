@@ -11,7 +11,7 @@ import CodeBlock from '../shared/CodeBlock';
 const checkButtonPropList = [
     { name: 'children', description: '버튼 내부 라벨 또는 아이콘+텍스트 콘텐츠' },
     { name: 'name?', description: '폼 이름. 없으면 dataKey 또는 문자열 children 사용' },
-    { name: 'dataObj/dataKey?', description: 'EasyObj boolean 필드와 토글 상태 바인딩' },
+    { name: 'dataObj/dataKey?', description: 'EasyObj boolean 필드와 토글 상태를 연결' },
     { name: 'checked/onValueChange?', description: '외부 상태로 눌림 상태를 제어' },
     { name: 'color?', description: 'primary, success, warning, danger, neutral 프리셋' },
     { name: 'disabled?', description: '선택 불가 상태와 커서/투명도 처리' },

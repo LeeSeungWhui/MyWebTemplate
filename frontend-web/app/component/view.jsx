@@ -147,7 +147,7 @@ const ComponentsView = ({
 
       <div className="min-w-0 flex-1 md:ml-64">
         <div className="sticky top-0 z-20 flex items-center justify-between border-b border-zinc-200/80 bg-white/95 px-4 py-3 backdrop-blur-sm md:hidden">
-          <h1 className="text-base font-semibold tracking-tight text-zinc-950">{LANG_KO.view.mobileTitle}</h1>
+          <span className="text-base font-semibold tracking-tight text-zinc-950">{LANG_KO.view.mobileTitle}</span>
           <button
             type="button"
             onClick={() => {
@@ -160,7 +160,17 @@ const ComponentsView = ({
           </button>
         </div>
 
-        <div className="container mx-auto space-y-16 overflow-x-auto px-4 py-6 md:px-8 md:py-8">
+        <div className="container mx-auto space-y-16 overflow-x-hidden px-4 py-6 md:px-8 md:py-8 [&_.grid>*]:min-w-0 [&_.grid]:min-w-0">
+          <section className="overflow-hidden rounded-2xl bg-slate-950 px-5 py-7 text-white shadow-sm ring-1 ring-slate-900/10 md:px-8 md:py-9">
+            <p className="text-xs font-semibold tracking-[0.18em] text-indigo-300">{LANG_KO.view.introEyebrow}</p>
+            <h1 className="mt-2 text-2xl font-semibold tracking-tight md:text-3xl">{LANG_KO.view.introTitle}</h1>
+            <p className="mt-3 max-w-3xl text-sm leading-6 text-slate-300 md:text-base md:leading-7">{LANG_KO.view.introDescription}</p>
+            <div className="mt-5 flex flex-wrap gap-2 text-xs font-semibold text-slate-200">
+              {[LANG_KO.view.introLiveLabel, LANG_KO.view.introCodeLabel, LANG_KO.view.introReviewLabel].map((label) => (
+                <span key={label} className="rounded-full bg-white/10 px-3 py-1.5 ring-1 ring-white/15">{label}</span>
+              ))}
+            </div>
+          </section>
           <DataClassDocs />
           <ButtonDocs />
           <IconDocs />

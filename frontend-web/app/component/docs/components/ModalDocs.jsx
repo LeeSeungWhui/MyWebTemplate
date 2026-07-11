@@ -14,9 +14,9 @@ import CodeBlock from '../shared/CodeBlock';
  */
 const ModalDocs = () => {
   return <DocSection id="modals" title="30. 모달 (Modal)" description={<div className="space-y-2 text-sm text-slate-700">
-                    <p>Modal 컴포넌트는 Header, Body, Footer 슬롯을 가진 팝업 대화상자입니다.</p>
+                    <p>Modal 컴포넌트는 Header, Body, Footer 영역을 가진 팝업 대화상자입니다.</p>
                     <p>5가지 크기(sm, md, lg, xl, full)를 지원하며, slate/indigo 기반 표면·구분선·포커스 스타일을 제공합니다.</p>
-                    <p>ESC 키, 백드롭 클릭, 포커스 트랩, 기본 accessible name, 선택적 드래그 이동을 지원합니다.</p>
+                    <p>ESC 키, 배경 클릭, 포커스 이동 제한, 기본 접근성 이름, 선택적 드래그 이동을 지원합니다.</p>
                     <ul className="mt-2 list-disc space-y-1 pl-5 text-sm text-slate-600">
                         <li><code>isOpen</code>: 열림 상태</li>
                         <li><code>onClose?</code>: 닫힘 콜백</li>

@@ -42,7 +42,7 @@ const StepTimeDemo = () => {
 export const timeExampleList = [{
   exampleId: 'bound',
   component: <BoundTimeDemo />,
-  description: '알림 발송 시간을 EasyObj 필드에 바인딩',
+  description: '알림 발송 시간을 EasyObj 필드와 연결',
   code: `const timeDataObj = Lib.EasyObj({ sendTime: '09:30' });
 
 <Lib.TimeInput
