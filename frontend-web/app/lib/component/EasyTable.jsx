@@ -1,10 +1,10 @@
 /**
  * 파일명: EasyTable.jsx
  * 작성자: LSH
- * 갱신일: 2026-07-03
+ * 갱신일: 2026-07-11
  * 설명: 테이블/카드형 데이터 뷰 컴포넌트 구현
  */
-import { forwardRef, useEffect, useId, useState } from 'react';
+import { forwardRef, useEffect, useId, useRef, useState } from 'react';
 import Pagination from './Pagination';
 import { COMMON_COMPONENT_LANG_KO } from '@/app/common/i18n/lang.ko';
 
@@ -91,6 +91,8 @@ const EasyTable = forwardRef(function EasyTable(
 
   const [pageState, setPageState] = useState(initialPage);
   const page = typeof pageProp === 'number' ? pageProp : pageState;
+  const hasCompletedInitialPageSyncRef = useRef(false);
+  const lastSynchronizedPageRef = useRef(page);
 
   const resolvedListSource = dataList ?? data;
   const hasDataListShape = Boolean(resolvedListSource) && (Array.isArray(resolvedListSource) || typeof resolvedListSource.size === 'function');
@@ -147,16 +149,24 @@ const EasyTable = forwardRef(function EasyTable(
    */
   useEffect(() => {
     if (typeof pageProp === 'number') return;
+    if (!hasCompletedInitialPageSyncRef.current) {
+      hasCompletedInitialPageSyncRef.current = true;
+      lastSynchronizedPageRef.current = page;
+      return;
+    }
+    if (lastSynchronizedPageRef.current === page) return;
+    lastSynchronizedPageRef.current = page;
     if (persistKey && typeof window !== 'undefined') {
       const persistStorageObj = persist === 'local' ? window.localStorage : window.sessionStorage;
       persistStorageObj.setItem(persistKey, String(page));
     }
     if (pageParam && typeof window !== 'undefined') {
       const pageUrlObj = new URL(window.location.href);
-      pageUrlObj.searchParams.set(pageParam, String(page));
+      if (page === defaultPage) pageUrlObj.searchParams.delete(pageParam);
+      else pageUrlObj.searchParams.set(pageParam, String(page));
       window.history.replaceState(null, '', pageUrlObj.toString());
     }
-  }, [page, pageProp, persistKey, persist, pageParam]);
+  }, [page, pageProp, persistKey, persist, pageParam, defaultPage]);
 
   const sliceStart = (page - 1) * effectivePageSize;
   const sliceEnd = Math.min(sliceStart + effectivePageSize, totalRowCount);

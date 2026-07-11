@@ -1,13 +1,21 @@
 /**
  * 파일명: NumberInput.jsx
  * 작성자: LSH
- * 갱신일: 2026-05-31
+ * 갱신일: 2026-07-11
  * 설명: NumberInput UI 컴포넌트 구현
  */
 
 import { forwardRef, useEffect, useRef, useState } from 'react';
 import Icon from './Icon';
 import { getBoundValue, setBoundValue, buildCtx, fireValueHandlers } from '../binding';
+
+const getFiniteAriaNumber = (rawValue) => {
+  if (rawValue === '' || rawValue === null || typeof rawValue === 'undefined') return undefined;
+  const normalizedText = String(rawValue).trim();
+  if (!/^-?(?:\d+(?:\.\d+)?|\.\d+)$/.test(normalizedText)) return undefined;
+  const numericValue = Number(normalizedText);
+  return Number.isFinite(numericValue) ? numericValue : undefined;
+};
 
 /**
  * @description 렌더링 및 상호작용 처리
@@ -36,6 +44,10 @@ const NumberInput = forwardRef(({
   const isDataBound = Boolean(dataObj && dataKey);
 
   const [innerValue, setInnerValue] = useState(defaultValue);
+  const [draftValue, setDraftValue] = useState(() => (
+    propValue ?? (isDataBound ? getBoundValue(dataObj, dataKey) : defaultValue) ?? ''
+  ));
+  const isEditingRef = useRef(false);
 
   /**
    * @description 입력값을 정규화해 상태/바인딩/핸들러로 확정 반영
@@ -59,6 +71,8 @@ const NumberInput = forwardRef(({
     if (isAboveMax) nextValue = max;
     if (!isPropControlled && !isDataBound) setInnerValue(nextValue);
     if (isDataBound) setBoundValue(dataObj, dataKey, nextValue);
+    setDraftValue(nextValue);
+    isEditingRef.current = false;
     const bindingCtx = buildCtx({ dataKey, dataObj, source: 'user', dirty: true, valid: null });
     const nextEvent = event ? { ...event, target: { ...event.target, value: nextValue } } : { target: { value: nextValue } };
     fireValueHandlers({ onChange, onValueChange, value: nextValue, ctx: bindingCtx, event: nextEvent });
@@ -71,12 +85,9 @@ const NumberInput = forwardRef(({
    */
   const changeByStep = (stepDelta) => {
     if (disabled || readOnly) return;
-    let currentValue = innerValue ?? '';
-    if (isPropControlled) {
-      currentValue = propValue ?? '';
-    } else if (isDataBound) {
-      currentValue = getBoundValue(dataObj, dataKey) ?? '';
-    }
+    let currentValue = isEditingRef.current ? draftValue : (innerValue ?? '');
+    if (!isEditingRef.current && isPropControlled) currentValue = propValue ?? '';
+    else if (!isEditingRef.current && isDataBound) currentValue = getBoundValue(dataObj, dataKey) ?? '';
     const baseNumber = currentValue === '' ? 0 : Number(currentValue) || 0;
     let nextValue = baseNumber + stepDelta;
     if (min !== undefined && nextValue < min) nextValue = min;
@@ -132,7 +143,13 @@ const NumberInput = forwardRef(({
     currentNumberValue = getBoundValue(dataObj, dataKey) ?? '';
   }
 
+  useEffect(() => {
+    if (!isEditingRef.current) setDraftValue(currentNumberValue);
+  }, [currentNumberValue]);
+
   const inputId = id || (dataKey ? `num_${String(dataKey).replace(/[^a-zA-Z0-9_]+/g, '_')}` : undefined);
+  const displayedNumberValue = isEditingRef.current ? draftValue : currentNumberValue;
+  const ariaValueNow = getFiniteAriaNumber(displayedNumberValue);
 
   return (
     <div className={`inline-flex items-center gap-2 w-full ${className}`.trim()} {...props}>
@@ -156,14 +173,20 @@ const NumberInput = forwardRef(({
         inputMode="decimal"
         pattern="[0-9.-]*"
         placeholder={placeholder}
-        value={currentNumberValue}
+        value={displayedNumberValue}
+        onFocus={() => {
+          isEditingRef.current = true;
+          setDraftValue(currentNumberValue);
+        }}
         onChange={(event) => {
           const nextInputValue = event.target.value;
           if (nextInputValue === '' || /^-?\d*(?:\.\d*)?$/.test(nextInputValue)) {
-            if (!isPropControlled && !isDataBound) setInnerValue(nextInputValue);
+            isEditingRef.current = true;
+            setDraftValue(nextInputValue);
           }
         }}
         onKeyDown={(event) => {
+          if (event.key === 'Enter') { event.preventDefault(); commitNumberValue(event.currentTarget.value, event); }
           if (event.key === 'ArrowUp') { event.preventDefault(); changeByStep(+step); }
           if (event.key === 'ArrowDown') { event.preventDefault(); changeByStep(-step); }
           if (event.key === 'PageUp') { event.preventDefault(); changeByStep(+step * 10); }
@@ -176,9 +199,7 @@ const NumberInput = forwardRef(({
         role="spinbutton"
         aria-valuemin={min}
         aria-valuemax={max}
-        aria-valuenow={
-          currentNumberValue === '' ? undefined : Number(currentNumberValue)
-        }
+        aria-valuenow={ariaValueNow}
       />
 
       <button

@@ -28,6 +28,26 @@ const readOptionList = (dataList) => {
   }
 };
 
+const isOptionDisabled = (optionItemObj) => Boolean(
+  optionItemObj?.get
+    ? optionItemObj.get('disabled')
+    : optionItemObj?.disabled,
+);
+
+const findEnabledOptionIndex = (optionList, currentIndex, direction) => {
+  if (!optionList.length) return -1;
+  const startIndex = currentIndex >= 0
+    ? currentIndex
+    : direction > 0
+      ? -1
+      : 0;
+  for (let step = 1; step <= optionList.length; step += 1) {
+    const nextIndex = (startIndex + (direction * step) + optionList.length) % optionList.length;
+    if (!isOptionDisabled(optionList[nextIndex])) return nextIndex;
+  }
+  return -1;
+};
+
 /**
  * @description 단일/다중 선택 Dropdown UI를 렌더링. 입력/출력 계약을 함께 명시
  * @param {Object} props
@@ -63,6 +83,7 @@ const Dropdown = ({
 }) => {
 
   const [openState, setOpenState] = useState(defaultOpen);
+  const [activeIndex, setActiveIndex] = useState(-1);
   const isOpen = typeof openProp === 'boolean' ? openProp : openState;
 
   /**
@@ -71,6 +92,7 @@ const Dropdown = ({
    * @updated 2026-02-27
    */
   const setOpen = useCallback((nextOpen) => {
+    if (!nextOpen) setActiveIndex(-1);
     if (typeof openProp === 'boolean') {
       onOpenChange?.(nextOpen);
       return;
@@ -79,9 +101,20 @@ const Dropdown = ({
   }, [onOpenChange, openProp]);
 
   const optionList = readOptionList(dataList);
-  const [activeIndex, setActiveIndex] = useState(-1);
   const rootRef = useRef(null);
+  const triggerButtonRef = useRef(null);
+  const itemButtonRefList = useRef([]);
   const effectiveCloseOnSelect = multiSelect ? false : closeOnSelect;
+
+  useEffect(() => {
+    if (!isOpen || activeIndex < 0) return;
+    const activeButton = itemButtonRefList.current[activeIndex];
+    if (activeButton && !activeButton.disabled) activeButton.focus();
+  }, [activeIndex, isOpen]);
+
+  useEffect(() => {
+    if (!isOpen && activeIndex !== -1) setActiveIndex(-1);
+  }, [activeIndex, isOpen]);
 
   /**
    * @description 항목 선택을 반영하고 목록 모델(selected)과 외부 콜백을 동기화
@@ -89,7 +122,7 @@ const Dropdown = ({
    * @updated 2026-02-27
   */
   const handleItemActivate = useCallback((optionItemObj) => {
-    if (!optionItemObj) return;
+    if (!optionItemObj || isOptionDisabled(optionItemObj)) return;
     const optionValue = optionItemObj?.get ? optionItemObj.get(valueKey) : optionItemObj?.[valueKey];
     if (dataList?.forAll) {
       dataList.forAll((optionNodeObj) => {
@@ -121,8 +154,11 @@ const Dropdown = ({
         }
       });
     }
+    if (effectiveCloseOnSelect) {
+      setOpen(false);
+      triggerButtonRef.current?.focus();
+    }
     onSelect?.(optionItemObj);
-    if (effectiveCloseOnSelect) setOpen(false);
   }, [dataList, effectiveCloseOnSelect, multiSelect, onSelect, setOpen, valueKey]);
 
   /**
@@ -140,18 +176,23 @@ const Dropdown = ({
     const handleDocKeyDown = (event) => {
       if (event.key === 'Escape') {
         setOpen(false);
+        triggerButtonRef.current?.focus();
         return;
       }
+      if (!rootRef.current?.contains(document.activeElement)) return;
       if (!optionList.length) return;
       if (event.key === 'ArrowDown') {
         event.preventDefault();
-        setActiveIndex((prevIndex) => (prevIndex + 1) % optionList.length);
+        setActiveIndex((prevIndex) => findEnabledOptionIndex(optionList, prevIndex, 1));
       }
       if (event.key === 'ArrowUp') {
         event.preventDefault();
-        setActiveIndex((prevIndex) => (prevIndex - 1 + optionList.length) % optionList.length);
+        setActiveIndex((prevIndex) => findEnabledOptionIndex(optionList, prevIndex, -1));
       }
       if (event.key === 'Enter' && activeIndex >= 0) {
+        const activeButton = itemButtonRefList.current[activeIndex];
+        if (activeButton && document.activeElement === activeButton) return;
+        event.preventDefault();
         handleItemActivate(optionList[activeIndex]);
       }
     };
@@ -202,14 +243,22 @@ const Dropdown = ({
   const variantClassKey = variant === 'text' ? 'textVariant' : variant;
 
   return (
-    <div ref={rootRef} className={`relative inline-block ${className}`.trim()}>
+    <div
+      ref={rootRef}
+      className={`relative inline-block ${className}`.trim()}
+      onBlur={(event) => {
+        if (isOpen && !event.currentTarget.contains(event.relatedTarget)) setOpen(false);
+      }}
+    >
       <button
+        ref={triggerButtonRef}
         type="button"
         aria-haspopup="menu"
         aria-expanded={isOpen ? 'true' : 'false'}
         disabled={disabled}
-        onClick={() => {
+        onClick={(event) => {
           if (disabled) return;
+          event.currentTarget.focus();
           setOpen(!isOpen);
         }}
         className={`inline-flex items-center justify-between gap-2 ${{
@@ -243,7 +292,7 @@ const Dropdown = ({
             const label = optionItemObj?.get ? optionItemObj.get(labelKey) : optionItemObj?.[labelKey];
             const optionValue = optionItemObj?.get ? optionItemObj.get(valueKey) : optionItemObj?.[valueKey];
             const isSelected = optionItemObj?.get ? Boolean(optionItemObj.get('selected')) : Boolean(optionItemObj?.selected);
-            const disabledItem = optionItemObj?.get ? optionItemObj.get('disabled') : optionItemObj?.disabled;
+            const disabledItem = isOptionDisabled(optionItemObj);
             const isActive = itemIndex === activeIndex;
             let itemLabelStateKey = 'default';
             if (disabledItem) {
@@ -259,7 +308,11 @@ const Dropdown = ({
             return (
               <li key={optionValue ?? itemIndex} role="none">
                 <button
+                  ref={(node) => {
+                    itemButtonRefList.current[itemIndex] = node;
+                  }}
                   type="button"
+                  tabIndex={-1}
                   role={showCheck ? "menuitemcheckbox" : "menuitem"}
                   aria-disabled={disabledItem ? 'true' : 'false'}
                   aria-checked={isSelected ? 'true' : 'false'}

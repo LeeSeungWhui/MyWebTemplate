@@ -1,14 +1,34 @@
 /**
  * 파일명: TimeInput.jsx
  * 작성자: LSH
- * 갱신일: 2026-05-31
+ * 갱신일: 2026-07-11
  * 설명: TimeInput UI 컴포넌트 구현
  */
 
-import { forwardRef, useEffect, useRef, useState } from 'react';
+import { forwardRef, useEffect, useId, useRef, useState } from 'react';
 import { getBoundValue, setBoundValue, buildCtx, fireValueHandlers } from '../binding';
 import Icon from './Icon';
 import { COMMON_COMPONENT_LANG_KO } from '@/app/common/i18n/lang.ko';
+
+const parseTimeMinutes = (timeText) => {
+  if (typeof timeText !== 'string') return null;
+  const match = timeText.match(/^([0-9]{2}):([0-9]{2})$/);
+  if (!match) return null;
+  const hour = Number(match[1]);
+  const minute = Number(match[2]);
+  if (hour > 23 || minute > 59) return null;
+  return hour * 60 + minute;
+};
+
+const isTimeWithinBounds = (timeText, min, max) => {
+  const timeMinutes = parseTimeMinutes(timeText);
+  if (timeMinutes == null) return false;
+  const minMinutes = parseTimeMinutes(min);
+  const maxMinutes = parseTimeMinutes(max);
+  if (minMinutes != null && timeMinutes < minMinutes) return false;
+  if (maxMinutes != null && timeMinutes > maxMinutes) return false;
+  return true;
+};
 
 /**
  * @description 렌더링 및 상호작용 처리
@@ -77,14 +97,26 @@ const TimeInput = forwardRef(({
     currentTimeValue = getBoundValue(dataObj, dataKey) ?? '';
   }
   const inputId = id || (dataKey ? `time_${String(dataKey).replace(/[^a-zA-Z0-9_]+/g, '_')}` : undefined);
+  const generatedListboxId = useId();
+  const listboxId = inputId ? `${inputId}_list` : `time_${generatedListboxId}_list`;
   const rootRef = useRef(null);
+
+  const commitTimeDraft = (rawTimeValue, event) => {
+    if (!isTimeWithinBounds(rawTimeValue, min, max)) {
+      setTimeText(currentTimeValue);
+      return false;
+    }
+    commitTimeValue(rawTimeValue, event);
+    return true;
+  };
 
   const minuteInterval = Math.max(1, step ?? 30);
   const timeOptionList = [];
   for (let secondCursor = 0; secondCursor < 24 * 60 * 60; secondCursor += minuteInterval * 60) {
     const hourValue = Math.floor(secondCursor / 3600);
     const minuteValue = Math.floor((secondCursor % 3600) / 60);
-    timeOptionList.push(`${String(hourValue).padStart(2, '0')}:${String(minuteValue).padStart(2, '0')}`);
+    const timeOption = `${String(hourValue).padStart(2, '0')}:${String(minuteValue).padStart(2, '0')}`;
+    if (isTimeWithinBounds(timeOption, min, max)) timeOptionList.push(timeOption);
   }
 
   /**
@@ -128,48 +160,57 @@ const TimeInput = forwardRef(({
         onChange={(event) => setTimeText(event.target.value)}
         onKeyDown={(event) => {
           if (event.key === 'Enter') {
-            const typedTimeValue = event.currentTarget.value;
-            if (/^\d{2}:\d{2}$/.test(typedTimeValue)) commitTimeValue(typedTimeValue, event);
-            else setTimeText(currentTimeValue);
+            event.preventDefault();
+            commitTimeDraft(event.currentTarget.value, event);
             setIsOpen(false);
           }
+          if (event.key === 'ArrowDown' && (event.altKey || !isOpen)) {
+            event.preventDefault();
+            setIsOpen(true);
+          }
+          if (event.key === 'Escape') setIsOpen(false);
         }}
-        onBlur={(event) => {
-          const typedTimeValue = event.target.value;
-          if (/^\d{2}:\d{2}$/.test(typedTimeValue)) commitTimeValue(typedTimeValue, event);
-          else setTimeText(currentTimeValue);
-        }}
+        onBlur={(event) => commitTimeDraft(event.target.value, event)}
         disabled={disabled}
         readOnly={readOnly}
+        role="combobox"
         aria-invalid={false}
-        aria-haspopup="dialog"
+        aria-haspopup="listbox"
+        aria-expanded={isOpen}
+        aria-controls={listboxId}
         {...props}
       />
       <button
         type="button"
         className="absolute inset-y-0 right-2 my-auto h-6 w-6 rounded hover:bg-gray-100 text-gray-500 flex items-center justify-center"
         onClick={() => setIsOpen((wasOpen) => !wasOpen)}
-        tabIndex={-1}
         aria-label={COMMON_COMPONENT_LANG_KO.timeInput.openPickerAriaLabel}
         disabled={disabled || readOnly}
       >
         <Icon icon="md:MdAccessTime" className="w-5 h-5" />
       </button>
       {isOpen && (
-        <div className="absolute z-10 mt-1 w-40 max-h-64 overflow-auto rounded-lg border border-zinc-200/80 bg-white shadow-lg ring-1 ring-zinc-950/5 p-1" role="listbox" id={inputId ? `${inputId}_list` : undefined}>
+        <div className="absolute z-10 mt-1 w-40 max-h-64 overflow-auto rounded-lg border border-zinc-200/80 bg-white shadow-lg ring-1 ring-zinc-950/5 p-1" role="listbox" id={listboxId}>
           {timeOptionList.map((timeOption) => (
-            <div
+            <button
               key={timeOption}
+              type="button"
               role="option"
               aria-selected={timeOption === currentTimeValue}
-              className={`px-2 py-1 text-sm rounded cursor-pointer hover:bg-zinc-50 ${timeOption === currentTimeValue ? 'bg-zinc-100 text-zinc-900 font-medium ring-1 ring-inset ring-zinc-200/60' : 'text-zinc-900'}`}
+              className={`w-full px-2 py-1 text-left text-sm rounded cursor-pointer hover:bg-zinc-50 ${timeOption === currentTimeValue ? 'bg-zinc-100 text-zinc-900 font-medium ring-1 ring-inset ring-zinc-200/60' : 'text-zinc-900'}`}
               onClick={() => {
                 commitTimeValue(timeOption);
                 setIsOpen(false);
               }}
+              onKeyDown={(event) => {
+                if (event.key !== 'Enter' && event.key !== ' ') return;
+                event.preventDefault();
+                commitTimeValue(timeOption, event);
+                setIsOpen(false);
+              }}
             >
               {timeOption}
-            </div>
+            </button>
           ))}
         </div>
       )}

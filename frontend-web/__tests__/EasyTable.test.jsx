@@ -1,4 +1,11 @@
-import { render, screen } from "@testing-library/react";
+/**
+ * 파일명: EasyTable.test.jsx
+ * 작성자: LSH
+ * 갱신일: 2026-07-11
+ * 설명: EasyTable 렌더링 및 페이지 상태 동기화 회귀 테스트
+ */
+
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import EasyTable from "../app/lib/component/EasyTable.jsx";
 
@@ -50,5 +57,64 @@ describe("EasyTable", () => {
     expect(scrollRegion).toHaveAttribute("tabindex", "0");
     expect(scrollRegion).toHaveAttribute("aria-describedby", hint.id);
     expect(scrollRegion).toHaveAttribute("aria-label", "좌우로 스크롤해 확인하세요.");
+  });
+
+  it("does not write the default page on mount and removes pageParam when returning to it", async () => {
+    window.history.replaceState(null, "", "/component?filter=active#table");
+    window.sessionStorage.clear();
+    const pagedData = [
+      ...data,
+      { id: 3, name: "사용자 3" },
+      { id: 4, name: "사용자 4" },
+    ];
+
+    render(
+      <EasyTable
+        data={pagedData}
+        columns={columns}
+        pageSize={2}
+        defaultPage={1}
+        pageParam="page"
+        persistKey="easy-table-page"
+      />,
+    );
+
+    expect(window.location.search).toBe("?filter=active");
+    expect(window.location.hash).toBe("#table");
+    expect(window.sessionStorage.getItem("easy-table-page")).toBeNull();
+
+    fireEvent.click(screen.getByRole("button", { name: "2" }));
+    await waitFor(() => {
+      expect(new URLSearchParams(window.location.search).get("page")).toBe("2");
+      expect(window.sessionStorage.getItem("easy-table-page")).toBe("2");
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: "1" }));
+    await waitFor(() => {
+      const params = new URLSearchParams(window.location.search);
+      expect(params.get("page")).toBeNull();
+      expect(params.get("filter")).toBe("active");
+      expect(window.location.hash).toBe("#table");
+      expect(window.sessionStorage.getItem("easy-table-page")).toBe("1");
+    });
+  });
+
+  it("keeps controlled page mode free of URL and storage writes", () => {
+    window.history.replaceState(null, "", "/component?filter=active#table");
+    window.sessionStorage.clear();
+
+    render(
+      <EasyTable
+        data={[...data, { id: 3, name: "사용자 3" }]}
+        columns={columns}
+        page={1}
+        pageSize={2}
+        pageParam="page"
+        persistKey="controlled-easy-table-page"
+      />,
+    );
+
+    expect(window.location.search).toBe("?filter=active");
+    expect(window.sessionStorage.getItem("controlled-easy-table-page")).toBeNull();
   });
 });

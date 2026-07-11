@@ -1,12 +1,13 @@
 /**
  * 파일명: bffRoute.test.jsx
  * 작성자: LSH
- * 갱신일: 2026-06-05
+ * 갱신일: 2026-07-11
  * 설명: /api/bff 프록시 라우트의 쿠키 기반 refresh/logout 전달 계약 테스트
  */
 
 import { describe, expect, it, vi, beforeEach, afterEach } from "vitest";
 import { POST } from "@/app/api/bff/[...path]/route.js";
+import { getBackendHost } from "@/app/common/config/getBackendHost.server";
 
 vi.mock("@/app/common/config/getBackendHost.server", () => ({
   getBackendHost: vi.fn(async () => "http://backend.local"),
@@ -47,6 +48,7 @@ function buildRouteContext(pathname) {
 describe("/api/bff route", () => {
   beforeEach(() => {
     vi.stubGlobal("fetch", vi.fn());
+    vi.mocked(getBackendHost).mockResolvedValue("http://backend.local");
   });
 
   afterEach(() => {
@@ -93,5 +95,62 @@ describe("/api/bff route", () => {
     const [logoutUrl, logoutInitObj] = fetch.mock.calls[0];
     expect(String(logoutUrl)).toBe("http://backend.local/api/v1/auth/logout");
     expect(logoutInitObj.headers.get("cookie")).toContain("refresh_token=rt");
+  });
+
+  it("primary fetch 거부를 requestId 포함 502 JSON으로 변환한다", async () => {
+    fetch.mockRejectedValueOnce(new Error("private transport detail"));
+
+    const req = buildBffRequest("/api/v1/sample/private");
+    const res = await POST(req, buildRouteContext("/api/v1/sample/private"));
+    const body = await res.json();
+
+    expect(res.status).toBe(502);
+    expect(res.headers.get("cache-control")).toBe("no-store");
+    expect(res.headers.get("content-type")).toContain("application/json");
+    expect(res.headers.get("x-request-id")).toBeTruthy();
+    expect(body).toMatchObject({
+      status: false,
+      code: "BFF_502_BACKEND_UNAVAILABLE",
+      message: "backend service unavailable",
+    });
+    expect(body.requestId).toBe(res.headers.get("x-request-id"));
+    expect(JSON.stringify(body)).not.toContain("private transport detail");
+  });
+
+  it("refresh fetch 거부도 안정적인 502로 변환한다", async () => {
+    fetch
+      .mockResolvedValueOnce(new Response(JSON.stringify({ status: false }), { status: 401 }))
+      .mockRejectedValueOnce(new Error("refresh transport detail"));
+
+    const req = buildBffRequest("/api/v1/sample/private");
+    const res = await POST(req, buildRouteContext("/api/v1/sample/private"));
+    const body = await res.json();
+
+    expect(res.status).toBe(502);
+    expect(body.code).toBe("BFF_502_BACKEND_UNAVAILABLE");
+    expect(JSON.stringify(body)).not.toContain("refresh transport detail");
+  });
+
+  it("refresh 성공 후 retry fetch 거부 시 회전 쿠키를 502에도 보존한다", async () => {
+    const refreshHeaders = new Headers();
+    refreshHeaders.append(
+      "set-cookie",
+      "access_token=rotated-at; Path=/; HttpOnly; SameSite=Lax",
+    );
+    fetch
+      .mockResolvedValueOnce(new Response(JSON.stringify({ status: false }), { status: 401 }))
+      .mockResolvedValueOnce(
+        new Response(JSON.stringify({ status: true }), {
+          status: 200,
+          headers: refreshHeaders,
+        }),
+      )
+      .mockRejectedValueOnce(new Error("retry transport detail"));
+
+    const req = buildBffRequest("/api/v1/sample/private");
+    const res = await POST(req, buildRouteContext("/api/v1/sample/private"));
+
+    expect(res.status).toBe(502);
+    expect(res.headers.get("set-cookie")).toContain("access_token=rotated-at");
   });
 });

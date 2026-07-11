@@ -1,7 +1,7 @@
 /**
  * 파일명: route.js
  * 작성자: LSH
- * 갱신일: 2026-05-31
+ * 갱신일: 2026-07-11
  * 설명: /login 진입 시 refresh_token으로 access_token을 재발급하고 next(=nx)/dashboard로 자동 리다이렉트
  */
 
@@ -22,6 +22,26 @@ export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 const REFRESH_PATH = "/api/v1/auth/refresh";
+const ACCESS_COOKIE_NAME = "access_token";
+const REFRESH_COOKIE_NAME = "refresh_token";
+
+const clearAuthCookies = (response) => {
+  response.cookies.set(ACCESS_COOKIE_NAME, "", { path: "/", maxAge: 0 });
+  response.cookies.set(REFRESH_COOKIE_NAME, "", { path: "/", maxAge: 0 });
+};
+
+const setAuthReasonCookie = (response, reason) => {
+  const reasonEncoded = reason
+    ? base64UrlEncodeUtf8(JSON.stringify(reason))
+    : null;
+  if (!reasonEncoded || reasonEncoded.length > AUTH_REASON_MAXLEN) return;
+  response.cookies.set(AUTH_REASON_COOKIE, reasonEncoded, {
+    path: "/",
+    httpOnly: true,
+    sameSite: "lax",
+    maxAge: 60,
+  });
+};
 
 /**
  * 설명: Cookie 헤더 문자열을 단순 파싱(값 디코딩은 별도 처리)
@@ -96,24 +116,25 @@ export const GET = async ({ headers, url }) => {
     return redirectResponse;
   }
 
-  const backendHost = await getBackendHost();
-  const refreshUrl = new URL(REFRESH_PATH, backendHost);
-  const requestHeaders = new Headers();
-  const acceptLanguage = headers.get("accept-language");
-  const originHeader = headers.get("origin");
-  const refererHeader = headers.get("referer");
-  if (acceptLanguage) requestHeaders.set("accept-language", acceptLanguage);
-  if (cookieHeader) requestHeaders.set("cookie", cookieHeader);
-  if (originHeader) requestHeaders.set("origin", originHeader);
-  if (refererHeader) requestHeaders.set("referer", refererHeader);
-  requestHeaders.set("content-type", "application/json");
+  try {
+    const backendHost = await getBackendHost();
+    const refreshUrl = new URL(REFRESH_PATH, backendHost);
+    const requestHeaders = new Headers();
+    const acceptLanguage = headers.get("accept-language");
+    const originHeader = headers.get("origin");
+    const refererHeader = headers.get("referer");
+    if (acceptLanguage) requestHeaders.set("accept-language", acceptLanguage);
+    if (cookieHeader) requestHeaders.set("cookie", cookieHeader);
+    if (originHeader) requestHeaders.set("origin", originHeader);
+    if (refererHeader) requestHeaders.set("referer", refererHeader);
+    requestHeaders.set("content-type", "application/json");
 
-  const refreshResponse = await fetch(refreshUrl, {
-    method: "POST",
-    headers: requestHeaders,
-    redirect: "manual",
-    cache: "no-store",
-  });
+    const refreshResponse = await fetch(refreshUrl, {
+      method: "POST",
+      headers: requestHeaders,
+      redirect: "manual",
+      cache: "no-store",
+    });
 
   const setCookies = collectSetCookies(refreshResponse)
     .map(rewriteSetCookie)
@@ -128,22 +149,25 @@ export const GET = async ({ headers, url }) => {
   }
   if (!refreshResponse.ok) {
     const reason = await extractUnauthorizedReason(refreshResponse);
-    const reasonEncoded = reason
-      ? base64UrlEncodeUtf8(JSON.stringify(reason))
-      : null;
-    if (reasonEncoded && reasonEncoded.length <= AUTH_REASON_MAXLEN) {
-      redirectResponse.cookies.set(AUTH_REASON_COOKIE, reasonEncoded, {
-        path: "/",
-        httpOnly: true,
-        sameSite: "lax",
-        maxAge: 60,
-      });
-    }
+    setAuthReasonCookie(redirectResponse, reason);
   }
 
   for (const cookie of setCookies) {
     redirectResponse.headers.append("set-cookie", cookie);
   }
 
+  if (!refreshResponse.ok) {
+    clearAuthCookies(redirectResponse);
+  }
+
   return redirectResponse;
+  } catch {
+    const redirectResponse = NextResponse.redirect(new URL("/login", url), 307);
+    redirectResponse.headers.set("Cache-Control", "no-store");
+    clearAuthCookies(redirectResponse);
+    setAuthReasonCookie(redirectResponse, {
+      code: "AUTH_502_BACKEND_UNAVAILABLE",
+    });
+    return redirectResponse;
+  }
 }

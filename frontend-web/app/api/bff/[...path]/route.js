@@ -1,13 +1,13 @@
 /**
  * 파일명: route.js
  * 작성자: LSH
- * 갱신일: 2026-05-31
+ * 갱신일: 2026-07-11
  * 설명: Backend API 프록시(BFF) 라우트. Access/Refresh HttpOnly 쿠키를 받아 Authorization 헤더로 전달
  */
 
 import { NextResponse } from "next/server";
 import { getBackendHost } from "@/app/common/config/getBackendHost.server";
-import { createHash } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -27,6 +27,30 @@ const LOGIN_PATH = "/api/v1/auth/login";
 const LOGOUT_PATH = "/api/v1/auth/logout";
 const OPENAPI_PATH = "/openapi.json";
 const ACCESS_COOKIE_NAME = "access_token";
+
+const createBackendUnavailableResponse = (req, setCookieList = []) => {
+  const requestId = req?.headers?.get?.("x-request-id") || randomUUID();
+  const response = new NextResponse(
+    JSON.stringify({
+      status: false,
+      code: "BFF_502_BACKEND_UNAVAILABLE",
+      message: "backend service unavailable",
+      requestId,
+    }),
+    {
+      status: 502,
+      headers: {
+        "Cache-Control": "no-store",
+        "Content-Type": "application/json",
+        "x-request-id": requestId,
+      },
+    },
+  );
+  for (const cookie of setCookieList || []) {
+    response.headers.append("set-cookie", cookie);
+  }
+  return response;
+};
 
 // refresh_token 기반 singleflight(동시 탭/요청 경합 완화)
 
@@ -278,28 +302,34 @@ const refreshOnce = async (req, backendHost) => {
  * @updated 2026-02-27
  */
 const proxy = async (req, context = {}) => {
+  let refreshOutcomeObj = {
+    isRefreshSucceeded: false,
+    accessToken: null,
+    setCookieList: [],
+  };
 
-  const routeParamsObj = await context?.params;
-  const backendHost = await getBackendHost();
-  const accessToken = req.cookies.get("access_token")?.value || null;
-  const backendUrl = toBackendUrl(routeParamsObj?.path, req.nextUrl.search, backendHost);
-  if (!isAllowedBackendPath(backendUrl.pathname)) {
-    return new NextResponse(
-      JSON.stringify({
-        status: false,
-        code: "BFF_403_PATH_DENIED",
-        message: "backend path not allowed",
-      }),
-      {
-        status: 403,
-        headers: {
-          "Cache-Control": "no-store",
-          "Content-Type": "application/json",
+  try {
+    const routeParamsObj = await context?.params;
+    const backendHost = await getBackendHost();
+    const accessToken = req.cookies.get("access_token")?.value || null;
+    const backendUrl = toBackendUrl(routeParamsObj?.path, req.nextUrl.search, backendHost);
+    if (!isAllowedBackendPath(backendUrl.pathname)) {
+      return new NextResponse(
+        JSON.stringify({
+          status: false,
+          code: "BFF_403_PATH_DENIED",
+          message: "backend path not allowed",
+        }),
+        {
+          status: 403,
+          headers: {
+            "Cache-Control": "no-store",
+            "Content-Type": "application/json",
+          },
         },
-      },
-    );
-  }
-  const proxyHeaders = buildForwardedHeaders(req, accessToken);
+      );
+    }
+    const proxyHeaders = buildForwardedHeaders(req, accessToken);
 
   const requestInitObj = {
     method: req.method,
@@ -314,12 +344,7 @@ const proxy = async (req, context = {}) => {
     : { primaryBody: undefined, retryBody: undefined, canRetry: true };
   attachBody(requestInitObj, bodyPair.primaryBody);
 
-  let backendResponse = await fetch(backendUrl, requestInitObj);
-  let refreshOutcomeObj = {
-    isRefreshSucceeded: false,
-    accessToken: null,
-    setCookieList: [],
-  };
+    let backendResponse = await fetch(backendUrl, requestInitObj);
 
   // 401이면 refresh 1회만 수행한 뒤 재시도한다(동시 탭/요청 경합은 singleflight로 흡수).
   if (backendResponse.status === 401) {
@@ -361,10 +386,13 @@ const proxy = async (req, context = {}) => {
     if (rewritten) responseHeaders.append("set-cookie", rewritten);
   }
 
-  return new NextResponse(backendResponse.body, {
-    status: backendResponse.status,
-    headers: responseHeaders,
-  });
+    return new NextResponse(backendResponse.body, {
+      status: backendResponse.status,
+      headers: responseHeaders,
+    });
+  } catch {
+    return createBackendUnavailableResponse(req, refreshOutcomeObj.setCookieList);
+  }
 }
 
 export const GET = proxy;

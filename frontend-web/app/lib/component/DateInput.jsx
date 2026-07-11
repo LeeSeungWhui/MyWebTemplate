@@ -1,7 +1,7 @@
 /**
  * 파일명: DateInput.jsx
  * 작성자: LSH
- * 갱신일: 2026-06-30
+ * 갱신일: 2026-07-11
  * 설명: DateInput UI 컴포넌트 구현
  */
 
@@ -45,6 +45,13 @@ const isSameDate = (firstDate, secondDate) => {
     firstDate.getMonth() === secondDate.getMonth() &&
     firstDate.getDate() === secondDate.getDate()
   );
+};
+
+const isDateWithinBounds = (dateValue, minDate, maxDate) => {
+  if (!dateValue) return false;
+  if (minDate && dateValue < minDate) return false;
+  if (maxDate && dateValue > maxDate) return false;
+  return true;
 };
 
 /**
@@ -119,6 +126,17 @@ const DateInput = forwardRef(({
   const today = new Date();
   const [viewYear, setViewYear] = useState(() => (selectedDate?.getFullYear() ?? new Date().getFullYear()));
   const [viewMonth, setViewMonth] = useState(() => (selectedDate?.getMonth() ?? new Date().getMonth())); // 0-11
+
+  const commitDateDraft = (rawDateValue, event) => {
+    const parsedDate = parseDateText(rawDateValue);
+    if (!isDateWithinBounds(parsedDate, minDate, maxDate)) {
+      setDateText(currentDateValue);
+      return false;
+    }
+    const committedDateValue = `${parsedDate.getFullYear()}-${String(parsedDate.getMonth() + 1).padStart(2, '0')}-${String(parsedDate.getDate()).padStart(2, '0')}`;
+    commitDateValue(committedDateValue, event);
+    return true;
+  };
 
   /**
    * @description 달력 헤더의 연/월 표시를 전달된 delta만큼 이동
@@ -201,25 +219,17 @@ const DateInput = forwardRef(({
         onChange={(event) => setDateText(event.target.value)}
         onKeyDown={(event) => {
           if (event.key === 'Enter') {
-            const parsedDate = parseDateText(event.currentTarget.value);
-            if (parsedDate) {
-              const committedDateValue = `${parsedDate.getFullYear()}-${String(parsedDate.getMonth() + 1).padStart(2, '0')}-${String(parsedDate.getDate()).padStart(2, '0')}`;
-              commitDateValue(committedDateValue, event);
-            } else {
-              setDateText(currentDateValue);
-            }
+            event.preventDefault();
+            commitDateDraft(event.currentTarget.value, event);
             setIsOpen(false);
           }
-        }}
-        onBlur={(event) => {
-          const parsedDate = parseDateText(event.target.value);
-          if (parsedDate) {
-            const committedDateValue = `${parsedDate.getFullYear()}-${String(parsedDate.getMonth() + 1).padStart(2, '0')}-${String(parsedDate.getDate()).padStart(2, '0')}`;
-            commitDateValue(committedDateValue, event);
-          } else {
-            setDateText(currentDateValue);
+          if (event.key === 'ArrowDown' && (event.altKey || !isOpen)) {
+            event.preventDefault();
+            setIsOpen(true);
           }
+          if (event.key === 'Escape') setIsOpen(false);
         }}
+        onBlur={(event) => commitDateDraft(event.target.value, event)}
         disabled={disabled}
         readOnly={readOnly}
         aria-invalid={false}
@@ -230,7 +240,6 @@ const DateInput = forwardRef(({
         type="button"
         className="absolute inset-y-0 right-2 my-auto flex h-7 w-7 items-center justify-center rounded-md text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/20 disabled:cursor-not-allowed disabled:text-slate-300 disabled:hover:bg-transparent"
         onClick={() => setIsOpen((wasOpen) => !wasOpen)}
-        tabIndex={-1}
         aria-label={COMMON_COMPONENT_LANG_KO.dateInput.openDatePicker}
         disabled={disabled || readOnly}
       >
