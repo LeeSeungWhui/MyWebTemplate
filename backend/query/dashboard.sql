@@ -66,31 +66,31 @@ VALUES ( :userId
        , :tags
        );
 
--- name: dashboard.findCreatedCandidate
-SELECT DATA_NO AS "dataNo"
-     , DATA_NM AS "dataNm"
-     , DATA_DESC AS "dataDesc"
-     , STAT_CD AS "statCd"
-     , AMT AS "amt"
-     , TAG_JSON AS "tagJson"
-     , REG_DT AS "regDt"
-  FROM T_DATA
- WHERE USER_ID = :userId
-   AND DATA_NM = :title
-   AND COALESCE(DATA_DESC, '') = COALESCE(:description, '')
-   AND STAT_CD = :status
-   AND COALESCE(AMT, 0) = COALESCE(:amount, 0)
-   AND COALESCE(TAG_JSON, '') = COALESCE(:tags, '')
- ORDER BY DATA_NO DESC
- LIMIT 1;
+-- name: dashboard.createReturning
+INSERT INTO T_DATA
+     ( USER_ID
+     , DATA_NM
+     , DATA_DESC
+     , STAT_CD
+     , AMT
+     , TAG_JSON
+     )
+VALUES ( :userId
+       , :title
+       , :description
+       , :status
+       , :amount
+       , :tags
+       )
+RETURNING DATA_NO AS "dataNo";
 
 -- name: dashboard.update
 UPDATE T_DATA
-   SET DATA_NM = :title
-     , DATA_DESC = :description
-     , STAT_CD = :status
-     , AMT = :amount
-     , TAG_JSON = :tags
+   SET DATA_NM = CASE WHEN :setTitle THEN :title ELSE DATA_NM END
+     , DATA_DESC = CASE WHEN :setDescription THEN :description ELSE DATA_DESC END
+     , STAT_CD = CASE WHEN :setStatus THEN :status ELSE STAT_CD END
+     , AMT = CASE WHEN :setAmount THEN :amount ELSE AMT END
+     , TAG_JSON = CASE WHEN :setTags THEN :tags ELSE TAG_JSON END
  WHERE DATA_NO = :id
    AND USER_ID = :userId;
 
@@ -99,6 +99,19 @@ DELETE
   FROM T_DATA
  WHERE DATA_NO = :id
    AND USER_ID = :userId;
+
+-- name: dashboard.deleteReturning
+DELETE
+  FROM T_DATA
+ WHERE DATA_NO = :id
+   AND USER_ID = :userId
+RETURNING DATA_NO AS "dataNo";
+
+-- name: dashboard.sqliteAffectedRows
+SELECT changes() AS "affectedRows";
+
+-- name: dashboard.mysqlAffectedRows
+SELECT ROW_COUNT() AS "affectedRows";
 
 -- name: dashboard.statusSummary
 SELECT STAT_CD AS "statCd"

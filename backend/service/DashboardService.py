@@ -6,6 +6,7 @@
 """
 
 import json
+import math
 import sqlite3
 from decimal import Decimal
 from typing import Any, Dict, List, Optional
@@ -137,13 +138,16 @@ def convertDashboardRow(row: Dict[str, Any]) -> Dict[str, Any]:
     """
     source = normalizeDashboardJsonValue(convertKeysToCamelCase(row))
     if any(key in source for key in ("dataNo", "dataNm", "dataDesc", "amt", "tagJson", "regDt")):
+        description = source.get("description", source.get("dataDesc"))
+        amount = source.get("amount", source.get("amt"))
+        tags = source.get("tags", source.get("tagJson"))
         return {
             "id": source.get("id", source.get("dataNo")),
             "title": source.get("title", source.get("dataNm", "")),
-            "description": source.get("description", source.get("dataDesc", "")),
+            "description": "" if description is None else description,
             "status": source.get("status", source.get("statCd", "")),
-            "amount": source.get("amount", source.get("amt", 0)),
-            "tags": source.get("tags", source.get("tagJson", "")),
+            "amount": 0 if amount is None else amount,
+            "tags": "[]" if tags is None else tags,
             "createdAt": source.get("createdAt", source.get("regDt")),
         }
     if "statCd" in source:
@@ -189,9 +193,13 @@ def normalizeAmount(rawAmount: Any) -> float:
     """
     if rawAmount in (None, ""):
         return 0.0
+    if isinstance(rawAmount, bool):
+        raise ServiceError("DASH_422_INVALID_INPUT")
     try:
         amount = float(rawAmount)
     except Exception:
+        raise ServiceError("DASH_422_INVALID_INPUT")
+    if not math.isfinite(amount):
         raise ServiceError("DASH_422_INVALID_INPUT")
     return amount
 
@@ -213,6 +221,52 @@ def parseInsertedId(rawResult: Any) -> Optional[int]:
             value = int(text)
             return value if value > 0 else None
     return None
+
+
+def parseAffectedRowCount(rawResult: Any) -> Optional[int]:
+    """
+    설명: DB execute 결과에서 변경 행 수 후보를 추출
+    반환값: 0 이상 정수 또는 드라이버 결과를 판별할 수 없으면 None
+    갱신일: 2026-07-11
+    """
+    if isinstance(rawResult, bool):
+        return None
+    if isinstance(rawResult, int):
+        return rawResult if rawResult >= 0 else None
+    if isinstance(rawResult, float) and rawResult.is_integer():
+        value = int(rawResult)
+        return value if value >= 0 else None
+    if isinstance(rawResult, str):
+        text = rawResult.strip()
+        if text.isdigit():
+            return int(text)
+    return None
+
+
+def isPostgresqlManager(db: Any) -> bool:
+    """
+    설명: DB 매니저 URL을 기준으로 PostgreSQL 실행 경로 여부 판별
+    반환값: postgresql/postgres 스킴이면 True
+    갱신일: 2026-07-11
+    """
+    databaseUrl = str(getattr(db, "databaseUrl", "") or "").strip().lower()
+    return databaseUrl.startswith("postgresql://") or databaseUrl.startswith("postgres://")
+
+
+def getDashboardDatabaseFamily(db: Any) -> str:
+    """
+    설명: 지원 DB URL 스킴을 dashboard SQL 분기용 family로 변환
+    반환값: postgresql/sqlite/mysql 중 하나 또는 빈 문자열
+    갱신일: 2026-07-11
+    """
+    databaseUrl = str(getattr(db, "databaseUrl", "") or "").strip().lower()
+    if isPostgresqlManager(db):
+        return "postgresql"
+    if databaseUrl.startswith("sqlite"):
+        return "sqlite"
+    if databaseUrl.startswith("mysql+") or databaseUrl.startswith("mysql://"):
+        return "mysql"
+    return ""
 
 
 def buildCreatePayload(payload: Dict[str, Any]) -> Dict[str, Any]:
@@ -237,11 +291,11 @@ def buildCreatePayload(payload: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 
-def buildUpdatePayload(payload: Dict[str, Any], currentRow: Dict[str, Any]) -> Dict[str, Any]:
+def buildUpdatePayload(payload: Dict[str, Any]) -> Dict[str, Any]:
     """
-    설명: 부분 수정 payload와 기존 값 병합 기반 DB 입력 포맷 생성
-    반환값: 기존값과 병합된 DB update 바인딩용 payload dict
-    갱신일: 2026-02-22
+    설명: 부분 수정 payload를 필드별 존재 플래그와 DB 입력값으로 정규화
+    반환값: 기존 행 스냅샷을 병합하지 않는 원자적 update 바인딩 dict
+    갱신일: 2026-07-11
     """
     if not payload:
         raise ServiceError("DASH_422_INVALID_INPUT")
@@ -250,26 +304,31 @@ def buildUpdatePayload(payload: Dict[str, Any], currentRow: Dict[str, Any]) -> D
     if not any(fieldName in payload for fieldName in knownFields):
         raise ServiceError("DASH_422_INVALID_INPUT")
 
-    titleRaw = payload.get("title") if "title" in payload else currentRow.get("title")
-    descriptionRaw = payload.get("description") if "description" in payload else currentRow.get("description")
-    statusRaw = payload.get("status") if "status" in payload else currentRow.get("status")
-    amountRaw = payload.get("amount") if "amount" in payload else currentRow.get("amount")
-    tagsRaw = payload.get("tags") if "tags" in payload else currentRow.get("tags")
+    hasTitle = "title" in payload
+    hasDescription = "description" in payload
+    hasStatus = "status" in payload
+    hasAmount = "amount" in payload
+    hasTags = "tags" in payload
 
-    title = normalizeTitle(titleRaw)
-    description = normalizeDescription(descriptionRaw)
-    status = normalizeStatus(statusRaw)
-    if not status:
+    title = normalizeTitle(payload.get("title")) if hasTitle else None
+    description = normalizeDescription(payload.get("description")) if hasDescription else None
+    status = normalizeStatus(payload.get("status")) if hasStatus else None
+    if hasStatus and not status:
         raise ServiceError("DASH_422_INVALID_INPUT")
-    amount = normalizeAmount(amountRaw)
-    tags = parseTagList(tagsRaw)
+    amount = normalizeAmount(payload.get("amount")) if hasAmount else None
+    tags = json.dumps(parseTagList(payload.get("tags")), ensure_ascii=False) if hasTags else None
 
     return {
+        "setTitle": hasTitle,
         "title": title,
+        "setDescription": hasDescription,
         "description": description,
+        "setStatus": hasStatus,
         "status": status,
+        "setAmount": hasAmount,
         "amount": amount,
-        "tags": json.dumps(tags, ensure_ascii=False),
+        "setTags": hasTags,
+        "tags": tags,
     }
 
 
@@ -403,17 +462,27 @@ async def createDataTemplate(payload: Dict[str, Any], userId: str, idempotencyKe
         return replay.get("result") or {}
     createdPendingEntry = replay.get("status") == "new"
     try:
-        result = await createDataTemplateInTransaction(payload, ownerUserId, idempotencyKey=None)
+        result = await createDataTemplateInTransaction(
+            payload,
+            ownerUserId,
+            scopeType=scopeType,
+            idempotencyKey=idempotencyKey,
+        )
     except Exception:
         if createdPendingEntry:
             await discardIdempotencyReservation(scopeType, idempotencyKey)
         raise
-    await completeIdempotencyRequest(scopeType, idempotencyKey, result)
     return result
 
 
 @transaction("main_db", retries=SQLITE_LOCK_RETRY_COUNT, retryOn=(sqlite3.OperationalError,))
-async def createDataTemplateInTransaction(payload: Dict[str, Any], userId: str, idempotencyKey: str | None = None) -> Dict[str, Any]:
+async def createDataTemplateInTransaction(
+    payload: Dict[str, Any],
+    userId: str,
+    *,
+    scopeType: str | None = None,
+    idempotencyKey: str | None = None,
+) -> Dict[str, Any]:
     """
     설명: 업무를 신규 등록하는 트랜잭션 내부 단계
     반환값: 신규 생성된 업무 상세 dict, 생성 후보 확인 실패 시 ServiceError를 발생시킨
@@ -425,16 +494,25 @@ async def createDataTemplateInTransaction(payload: Dict[str, Any], userId: str, 
     insertPayload = buildCreatePayload(payload)
     insertPayload["userId"] = ownerUserId
     db = ensureDbManager()
-    inserted = await db.executeQuery("dashboard.create", insertPayload)
-    createdId = parseInsertedId(inserted)
-    if createdId:
-        row = await db.fetchOneQuery("dashboard.detail", {"id": createdId, "userId": ownerUserId})
-        if row:
-            return convertDashboardRow(row)
-    candidate = await db.fetchOneQuery("dashboard.findCreatedCandidate", insertPayload)
-    if candidate:
-        return convertDashboardRow(candidate)
-    raise ServiceError("DASH_500_CREATE_FAILED")
+    if isPostgresqlManager(db):
+        insertedRow = await db.fetchOneQuery("dashboard.createReturning", insertPayload)
+        insertedMap = convertKeysToCamelCase(insertedRow or {})
+        createdId = parseInsertedId(insertedMap.get("dataNo"))
+    else:
+        inserted = await db.executeQuery("dashboard.create", insertPayload)
+        createdId = parseInsertedId(inserted)
+    if not createdId:
+        raise ServiceError("DASH_500_CREATE_FAILED")
+    row = await db.fetchOneQuery("dashboard.detail", {"id": createdId, "userId": ownerUserId})
+    if not row:
+        raise ServiceError("DASH_500_CREATE_FAILED")
+    result = convertDashboardRow(row)
+    await completeIdempotencyRequest(
+        scopeType or f"dashboard.create.{ownerUserId}",
+        idempotencyKey,
+        result,
+    )
+    return result
 
 
 async def updateDataTemplate(dataId: int, payload: Dict[str, Any], userId: str) -> Dict[str, Any]:
@@ -447,20 +525,17 @@ async def updateDataTemplate(dataId: int, payload: Dict[str, Any], userId: str) 
         raise ServiceError("DASH_422_INVALID_INPUT")
     db = ensureDbManager()
     ownerUserId = normalizeUserId(userId)
-    current = await db.fetchOneQuery("dashboard.detail", {"id": int(dataId), "userId": ownerUserId})
-    if not current:
-        raise ServiceError("DASH_404_NOT_FOUND")
-    currentCamel = convertDashboardRow(current)
-    nextPayload = buildUpdatePayload(payload, currentCamel)
+    nextPayload = buildUpdatePayload(payload)
     nextPayload["id"] = int(dataId)
     nextPayload["userId"] = ownerUserId
-    await db.executeQuery("dashboard.update", nextPayload)
+    updatedResult = await db.executeQuery("dashboard.update", nextPayload)
     row = await db.fetchOneQuery("dashboard.detail", {"id": int(dataId), "userId": ownerUserId})
-    if not row:
+    if parseAffectedRowCount(updatedResult) == 0 or not row:
         raise ServiceError("DASH_404_NOT_FOUND")
     return convertDashboardRow(row)
 
 
+@transaction("main_db", retries=SQLITE_LOCK_RETRY_COUNT, retryOn=(sqlite3.OperationalError,))
 async def deleteDataTemplate(dataId: int, userId: str) -> Dict[str, Any]:
     """
     설명: 업무 삭제
@@ -469,10 +544,25 @@ async def deleteDataTemplate(dataId: int, userId: str) -> Dict[str, Any]:
     """
     db = ensureDbManager()
     ownerUserId = normalizeUserId(userId)
-    row = await db.fetchOneQuery("dashboard.detail", {"id": int(dataId), "userId": ownerUserId})
-    if not row:
-        raise ServiceError("DASH_404_NOT_FOUND")
-    await db.executeQuery("dashboard.delete", {"id": int(dataId), "userId": ownerUserId})
+    deleteBinds = {"id": int(dataId), "userId": ownerUserId}
+    databaseFamily = getDashboardDatabaseFamily(db)
+    if databaseFamily == "postgresql":
+        deletedRow = await db.fetchOneQuery("dashboard.deleteReturning", deleteBinds)
+        if not deletedRow:
+            raise ServiceError("DASH_404_NOT_FOUND")
+    elif databaseFamily in {"sqlite", "mysql"}:
+        await db.executeQuery("dashboard.delete", deleteBinds)
+        affectedQueryName = (
+            "dashboard.sqliteAffectedRows"
+            if databaseFamily == "sqlite"
+            else "dashboard.mysqlAffectedRows"
+        )
+        affectedRow = await db.fetchOneQuery(affectedQueryName)
+        affectedMap = convertKeysToCamelCase(affectedRow or {})
+        if parseAffectedRowCount(affectedMap.get("affectedRows")) != 1:
+            raise ServiceError("DASH_404_NOT_FOUND")
+    else:
+        raise RuntimeError("unsupported dashboard database backend")
     return {"id": int(dataId)}
 
 

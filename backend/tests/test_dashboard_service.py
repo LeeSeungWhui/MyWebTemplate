@@ -2,13 +2,17 @@ import asyncio
 import os
 import sys
 
+import pytest
+
+from lib.ServiceError import ServiceError
+
 
 baseDir = os.path.dirname(os.path.dirname(__file__))
 if baseDir not in sys.path:
     sys.path.insert(0, baseDir)
 
 
-def testCreateDataTemplateUsesCandidateQueryWhenInsertIdMissing(monkeypatch):
+def testCreateDataTemplateFailsClosedWhenInsertIdMissing(monkeypatch):
     from service import DashboardService
     from lib import Database as DB
 
@@ -34,36 +38,26 @@ def testCreateDataTemplateUsesCandidateQueryWhenInsertIdMissing(monkeypatch):
 
         async def fetchOneQuery(self, queryName, binds):
             self.fetchQueryCalls.append((queryName, dict(binds)))
-            if queryName == "dashboard.findCreatedCandidate":
-                return {
-                    "id": 901,
-                    "title": binds.get("title"),
-                    "description": binds.get("description"),
-                    "status": binds.get("status"),
-                    "amount": binds.get("amount"),
-                    "tags": binds.get("tags"),
-                    "created_at": "2026-02-23 00:00:00",
-                }
             return None
 
     fakeDb = FakeManager()
     monkeypatch.setattr(DB, "getManager", lambda _name=None: fakeDb)
     monkeypatch.setitem(DB.dbManagers, "main_db", fakeDb)
 
-    created = asyncio.run(
-        DashboardService.createDataTemplate(
-            {
-                "title": "후보 조회 테스트",
-                "description": "insert id 없음 fallback",
-                "status": "ready",
-                "amount": 1000,
-                "tags": ["qa", "fallback"],
-            },
-            userId="demo@demo.demo",
+    with pytest.raises(ServiceError) as createError:
+        asyncio.run(
+            DashboardService.createDataTemplate(
+                {
+                    "title": "후보 조회 테스트",
+                    "description": "insert id 없음 fallback",
+                    "status": "ready",
+                    "amount": 1000,
+                    "tags": ["qa", "fallback"],
+                },
+                userId="demo@demo.demo",
+            )
         )
-    )
 
-    assert int(created["id"]) == 901
-    assert created["title"] == "후보 조회 테스트"
+    assert createError.value.code == "DASH_500_CREATE_FAILED"
     queryNameList = [call[0] for call in fakeDb.fetchQueryCalls]
-    assert "dashboard.findCreatedCandidate" in queryNameList
+    assert "dashboard.findCreatedCandidate" not in queryNameList

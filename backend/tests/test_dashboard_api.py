@@ -177,6 +177,81 @@ def testDashboardCrudFlow():
         assert missingBody["code"] == "DASH_404_NOT_FOUND"
 
 
+def testDashboardCreateReplaysSameIdempotencyKey():
+    from server import app
+
+    ensureDataTableAndSeed()
+    with TestClient(app) as client:
+        loginAsDemo(client)
+        headers = {
+            **authHeaderFromCookie(client),
+            "Idempotency-Key": "dashboard-create:stable-001",
+        }
+        payload = {
+            "title": "멱등 생성 업무",
+            "description": "같은 키 재시도",
+            "status": "ready",
+            "amount": 700,
+            "tags": ["idempotency"],
+        }
+
+        firstResponse = client.post("/api/v1/dashboard", json=payload, headers=headers)
+        replayResponse = client.post("/api/v1/dashboard", json=payload, headers=headers)
+
+        assert firstResponse.status_code == 201
+        assert replayResponse.status_code == 201
+        assert replayResponse.json()["result"]["id"] == firstResponse.json()["result"]["id"]
+
+        listResponse = client.get("/api/v1/dashboard?q=멱등 생성 업무", headers=authHeaderFromCookie(client))
+        assert listResponse.status_code == 200
+        assert len(listResponse.json()["result"]["dataTemplateList"]) == 1
+
+
+def testDashboardNormalizesNullableDatabaseFields():
+    from server import app
+
+    ensureDataTableAndSeed()
+    executePg(
+        pgTestSettings,
+        """
+        INSERT INTO T_DATA (USER_ID, DATA_NM, DATA_DESC, STAT_CD, AMT, TAG_JSON)
+        VALUES ($1, $2, NULL, $3, NULL, NULL)
+        """,
+        "demo@demo.demo",
+        "NULL 응답 업무",
+        "ready",
+    )
+
+    with TestClient(app) as client:
+        loginAsDemo(client)
+        response = client.get("/api/v1/dashboard?q=NULL 응답 업무", headers=authHeaderFromCookie(client))
+
+    assert response.status_code == 200
+    item = response.json()["result"]["dataTemplateList"][0]
+    assert item["description"] == ""
+    assert item["amount"] == 0
+    assert item["tags"] == "[]"
+
+
+def testDashboardRejectsNonFiniteAmount():
+    from server import app
+
+    ensureDataTableAndSeed()
+    with TestClient(app) as client:
+        loginAsDemo(client)
+        response = client.post(
+            "/api/v1/dashboard",
+            content='{"title":"비유한 금액","status":"ready","amount":1e309}',
+            headers={
+                **authHeaderFromCookie(client),
+                "Content-Type": "application/json",
+            },
+        )
+
+    assert response.status_code == 422
+    assert response.json()["code"] == "DASH_422_INVALID_INPUT"
+
+
 def testDashboardInvalidPayloadReturns422():
     from server import app
 
@@ -261,6 +336,22 @@ def testDashboardRejectsCrossUserDetailAccess():
         body = detailResponse.json()
         assert body["status"] is False
         assert body["code"] == "DASH_404_NOT_FOUND"
+
+        listResponse = client.get("/api/v1/dashboard?q=테스트 업무", headers=viewerHeaders)
+        assert listResponse.status_code == 200
+        assert listResponse.json()["result"]["dataTemplateList"] == []
+
+        updateResponse = client.put(
+            f"/api/v1/dashboard/{ownerDataId}",
+            json={"status": "done"},
+            headers=viewerHeaders,
+        )
+        assert updateResponse.status_code == 404
+        assert updateResponse.json()["code"] == "DASH_404_NOT_FOUND"
+
+        deleteResponse = client.delete(f"/api/v1/dashboard/{ownerDataId}", headers=viewerHeaders)
+        assert deleteResponse.status_code == 404
+        assert deleteResponse.json()["code"] == "DASH_404_NOT_FOUND"
 
 
 def testOpenapiDocumentsDashboardContracts():

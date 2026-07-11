@@ -89,11 +89,31 @@ def testProfileMeGetAndUpdateFlow():
         assert updateBody["result"]["notifyEmail"] is True
         assert updateBody["result"]["notifyPush"] is True
 
+        emailOnlyResponse = client.put(
+            "/api/v1/profile/me",
+            json={"notifyEmail": False},
+            headers=headers,
+        )
+        assert emailOnlyResponse.status_code == 200
+        assert emailOnlyResponse.json()["result"]["notifyEmail"] is False
+        assert emailOnlyResponse.json()["result"]["notifyPush"] is True
+
+        smsOnlyResponse = client.put(
+            "/api/v1/profile/me",
+            json={"notifySms": True},
+            headers=headers,
+        )
+        assert smsOnlyResponse.status_code == 200
+        assert smsOnlyResponse.json()["result"]["notifyEmail"] is False
+        assert smsOnlyResponse.json()["result"]["notifySms"] is True
+        assert smsOnlyResponse.json()["result"]["notifyPush"] is True
+
         refetchResponse = client.get("/api/v1/profile/me", headers=headers)
         assert refetchResponse.status_code == 200
         refetchResult = refetchResponse.json()["result"]
         assert refetchResult["userNm"] == "Demo Profile"
-        assert refetchResult["notifyEmail"] is True
+        assert refetchResult["notifyEmail"] is False
+        assert refetchResult["notifySms"] is True
         assert refetchResult["notifyPush"] is True
 
         dbRow = fetchRowPg(
@@ -107,8 +127,8 @@ def testProfileMeGetAndUpdateFlow():
         )
         assert dbRow is not None
         assert dbRow["user_nm"] == "Demo Profile"
-        assert dbRow["notify_email"] == 1
-        assert dbRow["notify_sms"] == 0
+        assert dbRow["notify_email"] == 0
+        assert dbRow["notify_sms"] == 1
         assert dbRow["notify_push"] == 1
 
 

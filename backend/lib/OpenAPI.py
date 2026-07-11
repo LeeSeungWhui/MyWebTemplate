@@ -1024,6 +1024,8 @@ def attachOpenAPI(app: FastAPI, config) -> None:
                     "$ref": "#/components/schemas/ProfileMeResponse"
                 }
                 ensureErrorResponseRef(profileMeGet, "401", "UnauthorizedErrorResponse")
+                ensureErrorResponseRef(profileMeGet, "404", "NotFoundErrorResponse")
+                ensureErrorResponseRef(profileMeGet, "503", "ServiceUnavailableErrorResponse")
                 ensureJavaScriptCodeSample(
                     profileMeGet,
                     (
@@ -1056,7 +1058,9 @@ def attachOpenAPI(app: FastAPI, config) -> None:
                     "$ref": "#/components/schemas/ProfileUpdateResponse"
                 }
                 ensureErrorResponseRef(profileMePut, "401", "UnauthorizedErrorResponse")
+                ensureErrorResponseRef(profileMePut, "404", "NotFoundErrorResponse")
                 ensureErrorResponseRef(profileMePut, "422", "ValidationErrorResponse")
+                ensureErrorResponseRef(profileMePut, "503", "ServiceUnavailableErrorResponse")
                 ensureJavaScriptCodeSample(
                     profileMePut,
                     (

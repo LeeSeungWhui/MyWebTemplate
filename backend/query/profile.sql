@@ -17,7 +17,7 @@ UPDATE T_USER
 
 -- name: profile.updateNotify
 UPDATE T_USER
-   SET NOTIFY_EMAIL = :notifyEmail
-     , NOTIFY_SMS = :notifySms
-     , NOTIFY_PUSH = :notifyPush
+   SET NOTIFY_EMAIL = CASE WHEN :setNotifyEmail THEN :notifyEmail ELSE NOTIFY_EMAIL END
+     , NOTIFY_SMS = CASE WHEN :setNotifySms THEN :notifySms ELSE NOTIFY_SMS END
+     , NOTIFY_PUSH = CASE WHEN :setNotifyPush THEN :notifyPush ELSE NOTIFY_PUSH END
  WHERE USER_ID = :userId;

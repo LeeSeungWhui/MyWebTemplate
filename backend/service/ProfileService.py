@@ -88,7 +88,6 @@ def readNotifyState(source: dict[str, Any]) -> dict[str, bool]:
 
 def buildProfileUpdatePayload(
     userId: str,
-    currentProfile: dict[str, Any],
     payload: dict[str, Any],
 ) -> dict[str, Any]:
     """
@@ -96,33 +95,19 @@ def buildProfileUpdatePayload(
     반환값: userNm/userId/notify* DB 바인딩 dict
     갱신일: 2026-06-22
     """
-    userNm = (
-        normalizeUserNm(payload.get("userNm"))
-        if "userNm" in payload
-        else currentProfile.get("userNm")
-    )
-    currentNotify = readNotifyState(currentProfile)
-    notifyEmail = (
-        normalizeNotifyValue(payload.get("notifyEmail"))
-        if "notifyEmail" in payload
-        else currentNotify["notifyEmail"]
-    )
-    notifySms = (
-        normalizeNotifyValue(payload.get("notifySms"))
-        if "notifySms" in payload
-        else currentNotify["notifySms"]
-    )
-    notifyPush = (
-        normalizeNotifyValue(payload.get("notifyPush"))
-        if "notifyPush" in payload
-        else currentNotify["notifyPush"]
-    )
+    hasUserNm = "userNm" in payload
+    hasNotifyEmail = "notifyEmail" in payload
+    hasNotifySms = "notifySms" in payload
+    hasNotifyPush = "notifyPush" in payload
     return {
-        "userNm": userNm,
+        "userNm": normalizeUserNm(payload.get("userNm")) if hasUserNm else None,
         "userId": userId,
-        "notifyEmail": toDbNotifyValue(notifyEmail),
-        "notifySms": toDbNotifyValue(notifySms),
-        "notifyPush": toDbNotifyValue(notifyPush),
+        "setNotifyEmail": hasNotifyEmail,
+        "notifyEmail": toDbNotifyValue(normalizeNotifyValue(payload.get("notifyEmail"))) if hasNotifyEmail else None,
+        "setNotifySms": hasNotifySms,
+        "notifySms": toDbNotifyValue(normalizeNotifyValue(payload.get("notifySms"))) if hasNotifySms else None,
+        "setNotifyPush": hasNotifyPush,
+        "notifyPush": toDbNotifyValue(normalizeNotifyValue(payload.get("notifyPush"))) if hasNotifyPush else None,
     }
 
 
@@ -153,17 +138,12 @@ async def updateMyProfile(user: Any, payload: dict[str, Any]) -> dict[str, Any]:
         raise ServiceError("AUTH_422_INVALID_INPUT")
     userId = ensureUserId(user)
     db = ensureDbManager()
-    row = await db.fetchOneQuery("profile.me", {"userId": userId})
-    if not row:
-        raise ServiceError("AUTH_404_USER_NOT_FOUND")
-    currentProfile = convertKeysToCamelCase(row)
-
     hasUserNm = "userNm" in payload
     hasNotify = any(key in payload for key in ("notifyEmail", "notifySms", "notifyPush"))
     if not hasUserNm and not hasNotify:
         raise ServiceError("AUTH_422_INVALID_INPUT")
 
-    updatePayload = buildProfileUpdatePayload(userId, currentProfile, payload)
+    updatePayload = buildProfileUpdatePayload(userId, payload)
     if hasUserNm:
         await db.executeQuery(
             "profile.updateMe",
@@ -179,6 +159,9 @@ async def updateMyProfile(user: Any, payload: dict[str, Any]) -> dict[str, Any]:
                 "notifyEmail": updatePayload["notifyEmail"],
                 "notifySms": updatePayload["notifySms"],
                 "notifyPush": updatePayload["notifyPush"],
+                "setNotifyEmail": updatePayload["setNotifyEmail"],
+                "setNotifySms": updatePayload["setNotifySms"],
+                "setNotifyPush": updatePayload["setNotifyPush"],
                 "userId": userId,
             },
         )

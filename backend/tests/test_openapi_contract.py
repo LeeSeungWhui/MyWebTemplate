@@ -102,7 +102,14 @@ def testOpenapiErrorRefsAppliedToCoreOperations():
         },
         ("/api/v1/profile/me", "put"): {
             "401": "UnauthorizedErrorResponse",
+            "404": "NotFoundErrorResponse",
             "422": "ValidationErrorResponse",
+            "503": "ServiceUnavailableErrorResponse",
+        },
+        ("/api/v1/profile/me", "get"): {
+            "401": "UnauthorizedErrorResponse",
+            "404": "NotFoundErrorResponse",
+            "503": "ServiceUnavailableErrorResponse",
         },
         ("/api/v1/dashboard", "post"): {
             "401": "UnauthorizedErrorResponse",
