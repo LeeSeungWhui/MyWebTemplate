@@ -20,6 +20,11 @@ MESSAGES = MappingProxyType({
         "db.unavailable": "db unavailable",
         "obs.not_ready": "not ready",
         "auth.state_store_unavailable": "temporary auth state storage unavailable",
+        "error.db_not_ready": "database not ready",
+        "error.server_error": "server error",
+        "auth.user_exists": "user already exists",
+        "auth.refresh_missing": "refresh token missing",
+        "auth.refresh_invalid": "invalid refresh token",
     }),
     "ko": MappingProxyType({
         "success": "성공",
@@ -29,6 +34,11 @@ MESSAGES = MappingProxyType({
         "db.unavailable": "DB를 사용할 수 없습니다",
         "obs.not_ready": "준비되지 않았습니다",
         "auth.state_store_unavailable": "인증 상태 저장소를 일시적으로 사용할 수 없습니다",
+        "error.db_not_ready": "데이터베이스가 준비되지 않았습니다",
+        "error.server_error": "서버 오류가 발생했습니다",
+        "auth.user_exists": "이미 가입된 사용자입니다",
+        "auth.refresh_missing": "리프레시 토큰이 없습니다",
+        "auth.refresh_invalid": "유효하지 않은 리프레시 토큰입니다",
     }),
 })
 
@@ -41,12 +51,60 @@ def detectLocale(request: Any) -> str:
     갱신일: 2025-11-12
     """
     try:
-        lang = (request.headers.get("Accept-Language") or "").lower()
+        header = str(request.headers.get("Accept-Language") or "")
     except Exception:
-        lang = ""
-    if "ko" in lang:
-        return "ko"
-    return "en"
+        return "en"
+
+    candidates: list[tuple[float, int, str]] = []
+    for order, rawRange in enumerate(header.split(",")):
+        parts = [part.strip() for part in rawRange.split(";")]
+        languageRange = parts[0].lower()
+        languageParts = languageRange.split("-")
+        if any(
+            not part or len(part) > 8 or not part.isascii() or not part.isalnum()
+            for part in languageParts
+        ):
+            continue
+        primaryLanguage = languageParts[0]
+        if primaryLanguage not in {"en", "ko"}:
+            continue
+
+        quality = 1.0
+        validQuality = True
+        if len(parts) > 2:
+            validQuality = False
+        elif len(parts) == 2:
+            name, separator, value = parts[1].partition("=")
+            if name.strip().lower() != "q" or not separator:
+                validQuality = False
+            else:
+                qualityText = value.strip()
+                qualityFraction = qualityText[2:]
+                validZeroQuality = qualityText == "0" or (
+                    qualityText.startswith("0.")
+                    and len(qualityFraction) <= 3
+                    and (
+                        not qualityFraction
+                        or qualityFraction.isascii() and qualityFraction.isdigit()
+                    )
+                )
+                validOneQuality = qualityText == "1" or (
+                    qualityText.startswith("1.")
+                    and len(qualityFraction) <= 3
+                    and (not qualityFraction or set(qualityFraction) == {"0"})
+                )
+                if not validZeroQuality and not validOneQuality:
+                    validQuality = False
+                else:
+                    quality = float(qualityText)
+
+        if validQuality and quality > 0.0:
+            candidates.append((quality, order, primaryLanguage))
+
+    if not candidates:
+        return "en"
+    candidates.sort(key=lambda candidate: (-candidate[0], candidate[1]))
+    return candidates[0][2]
 
 
 def translate(key: str, default: str, locale: Optional[str] = None) -> str:

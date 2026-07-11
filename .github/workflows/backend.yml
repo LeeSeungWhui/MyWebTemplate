@@ -14,7 +14,8 @@ jobs:
   test:
     runs-on: ubuntu-latest
     env:
-      BACKEND_TEST_CONFIG: backend/config.test.ini
+      BACKEND_TEST_CONFIG: ${{ github.workspace }}/backend/config.test.ini
+      MYWEB_TEST_DB_MUTATION_APPROVED: "1"
       PGHOST: 127.0.0.1
       PGPORT: "5432"
       PGDATABASE: mywebtemplate_test
@@ -39,10 +40,10 @@ jobs:
 
     steps:
       - name: checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: setup python
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: "3.14"
 
@@ -51,7 +52,7 @@ jobs:
           mkdir -p backend
           cat <<EOF > "${BACKEND_TEST_CONFIG}"
           [SERVER]
-          runtime = CI
+          runtime = TEST
 
           [DATABASE]
           name = main_db

@@ -9,8 +9,9 @@ def writeConfig(
     database: str = "sample_test",
     host: str = "127.0.0.1",
     runtime: str = "TEST",
-) -> None:
-    (root / "config.test.ini").write_text(
+) -> Path:
+    configPath = root / "config.test.ini"
+    configPath.write_text(
         "\n".join(
             [
                 "[DATABASE]",
@@ -27,10 +28,11 @@ def writeConfig(
         ),
         encoding="utf-8",
     )
+    return configPath
 
 
 def testPgSettingsRequireExplicitMutationApproval(tmp_path, monkeypatch):
-    writeConfig(tmp_path)
+    monkeypatch.setenv("BACKEND_TEST_CONFIG", str(writeConfig(tmp_path)))
     monkeypatch.delenv(TEST_DB_MUTATION_APPROVAL_ENV, raising=False)
 
     settings, reason = resolvePgTestSettings(str(tmp_path))
@@ -40,7 +42,7 @@ def testPgSettingsRequireExplicitMutationApproval(tmp_path, monkeypatch):
 
 
 def testPgSettingsAllowApprovedLoopbackTestDatabase(tmp_path, monkeypatch):
-    writeConfig(tmp_path)
+    monkeypatch.setenv("BACKEND_TEST_CONFIG", str(writeConfig(tmp_path)))
     monkeypatch.setenv(TEST_DB_MUTATION_APPROVAL_ENV, "1")
 
     settings, reason = resolvePgTestSettings(str(tmp_path))
@@ -51,7 +53,10 @@ def testPgSettingsAllowApprovedLoopbackTestDatabase(tmp_path, monkeypatch):
 
 
 def testPgSettingsRejectNonTestDatabase(tmp_path, monkeypatch):
-    writeConfig(tmp_path, database="sample")
+    monkeypatch.setenv(
+        "BACKEND_TEST_CONFIG",
+        str(writeConfig(tmp_path, database="sample")),
+    )
     monkeypatch.setenv(TEST_DB_MUTATION_APPROVAL_ENV, "1")
 
     settings, reason = resolvePgTestSettings(str(tmp_path))
@@ -61,7 +66,10 @@ def testPgSettingsRejectNonTestDatabase(tmp_path, monkeypatch):
 
 
 def testPgSettingsRejectRemoteHost(tmp_path, monkeypatch):
-    writeConfig(tmp_path, host="db.example.test")
+    monkeypatch.setenv(
+        "BACKEND_TEST_CONFIG",
+        str(writeConfig(tmp_path, host="db.example.test")),
+    )
     monkeypatch.setenv(TEST_DB_MUTATION_APPROVAL_ENV, "1")
 
     settings, reason = resolvePgTestSettings(str(tmp_path))
@@ -71,7 +79,10 @@ def testPgSettingsRejectRemoteHost(tmp_path, monkeypatch):
 
 
 def testPgSettingsRejectNonTestRuntime(tmp_path, monkeypatch):
-    writeConfig(tmp_path, runtime="PROD")
+    monkeypatch.setenv(
+        "BACKEND_TEST_CONFIG",
+        str(writeConfig(tmp_path, runtime="PROD")),
+    )
     monkeypatch.setenv(TEST_DB_MUTATION_APPROVAL_ENV, "1")
 
     settings, reason = resolvePgTestSettings(str(tmp_path))

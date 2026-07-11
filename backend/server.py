@@ -526,17 +526,24 @@ async def requestValidationExceptionHandler(request: Request, exc: RequestValida
     반환값: status=422 표준 JSONResponse
     갱신일: 2026-02-28
     """
+    requestId = getattr(request.state, "requestId", None)
+    content = errorResponse(
+        message="invalid request",
+        result={
+            "path": request.url.path,
+            "detail": sanitizeValidationErrors(exc.errors()),
+        },
+        code="VALID_422_REQUEST",
+    )
+    if requestId:
+        content["requestId"] = requestId
     return applyDefaultSecurityHeaders(JSONResponse(
         status_code=422,
-        content=errorResponse(
-            message="invalid request",
-            result={
-                "path": request.url.path,
-                "detail": sanitizeValidationErrors(exc.errors()),
-            },
-            code="VALID_422_REQUEST",
-        ),
-        headers={"Cache-Control": "no-store"},
+        content=content,
+        headers={
+            "Cache-Control": "no-store",
+            **({"X-Request-Id": requestId} if requestId else {}),
+        },
     ))
 
 
@@ -549,27 +556,34 @@ async def httpExceptionHandler(request: Request, exc: HTTPException):
     갱신일: 2026-02-24
     """
     headers = dict(getattr(exc, "headers", None) or {})
+    requestId = getattr(request.state, "requestId", None)
+    headers["Cache-Control"] = "no-store"
+    if requestId:
+        headers["X-Request-Id"] = requestId
 
     # 401은 인증 방식에 맞춰 WWW-Authenticate 헤더를 유지/보강한다.
     if int(getattr(exc, "status_code", 500) or 500) == 401:
         headers.setdefault("WWW-Authenticate", "Bearer")
 
     statusCode = int(getattr(exc, "status_code", 500) or 500)
-    if statusCode == 401:
-        headers.setdefault("Cache-Control", "no-store")
-
     detail = getattr(exc, "detail", None)
-    message = str(detail) if detail is not None else "error"
+    message = detail if isinstance(detail, str) and detail else "error"
+    publicDetail = detail if isinstance(detail, str) else None
 
-    # detail이 dict일 경우(확장) message/code 힌트를 지원한다.
+    # detail dict는 공개 허용된 문자열 필드만 정규화한다.
     code = None
     if isinstance(detail, dict):
-        message = (
-            detail.get("message")
-            or detail.get("detail")
-            or message
-        )
-        code = detail.get("code") or None
+        messageValue = detail.get("message")
+        detailValue = detail.get("detail")
+        codeValue = detail.get("code")
+        if isinstance(messageValue, str) and messageValue:
+            message = messageValue
+        elif isinstance(detailValue, str) and detailValue:
+            message = detailValue
+        if isinstance(detailValue, str):
+            publicDetail = detailValue
+        if isinstance(codeValue, str) and codeValue:
+            code = codeValue
 
     if not code:
         if statusCode == 401:
@@ -581,12 +595,18 @@ async def httpExceptionHandler(request: Request, exc: HTTPException):
         else:
             code = f"HTTP_{statusCode}"
 
+    result = {"path": request.url.path}
+    if publicDetail is not None:
+        result["detail"] = publicDetail
+    content = errorResponse(
+        message=message,
+        result=result,
+        code=code,
+    )
+    if requestId:
+        content["requestId"] = requestId
     return applyDefaultSecurityHeaders(JSONResponse(
         status_code=statusCode,
-        content=errorResponse(
-            message=message,
-            result={"path": request.url.path, "detail": detail},
-            code=code,
-        ),
+        content=content,
         headers=headers,
     ))

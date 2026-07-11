@@ -8,6 +8,7 @@
 from __future__ import annotations
 
 import os
+import re
 import time
 from collections import deque
 from typing import Optional
@@ -113,6 +114,21 @@ def parseRateLimitLimit(defaultValue: int = 5) -> int:
 
 globalRateLimiter = RateLimiter(limit=parseRateLimitLimit(), windowSec=60)
 
+
+RATE_LIMIT_NAMESPACE_PATTERN = re.compile(r"^[a-z0-9][a-z0-9._-]{0,47}$")
+
+
+def normalizeRateLimitNamespace(namespace: str) -> str:
+    """
+    설명: 카운터 충돌을 막기 위한 bounded namespace/action 키를 검증 및 정규화
+    반환값: 최대 48자의 소문자 namespace
+    갱신일: 2026-07-11
+    """
+    normalizedNamespace = str(namespace or "").strip().lower()
+    if not RATE_LIMIT_NAMESPACE_PATTERN.fullmatch(normalizedNamespace):
+        raise ValueError("invalid rate-limit namespace")
+    return normalizedNamespace
+
 def resolveClientIp(request: Request) -> str:
     """
     설명: 요청의 클라이언트 IP를 최대한 정확히 추정
@@ -127,17 +143,24 @@ def resolveClientIp(request: Request) -> str:
     return getattr(request.client, "host", None) or "unknown"
 
 
-def checkRateLimit(request: Request, username: Optional[str] = None, *, commit: bool = True) -> Optional[JSONResponse]:
+def checkRateLimit(
+    request: Request,
+    username: Optional[str] = None,
+    *,
+    commit: bool = True,
+    namespace: str = "auth.login",
+) -> Optional[JSONResponse]:
     """
     설명: IP/사용자별 속도 제한 검사
     처리 규칙: 키(ip:{ip}, user:{username})를 순회해 하나라도 초과면 즉시 429를 반환
     반환값: 제한 초과 시 Retry-After/no-store 헤더가 포함된 JSONResponse, 통과 시 None을 반환
     갱신일: 2026-01-15
     """
+    normalizedNamespace = normalizeRateLimitNamespace(namespace)
     ip = resolveClientIp(request)
-    keys = [f"ip:{ip}"]
+    keys = [f"{normalizedNamespace}:ip:{ip}"]
     if username:
-        keys.append(f"user:{username}")
+        keys.append(f"{normalizedNamespace}:user:{username}")
     for key in keys:
         ok, retryAfter = globalRateLimiter.hit(key, commit=commit)
         if not ok:

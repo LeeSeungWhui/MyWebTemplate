@@ -34,10 +34,11 @@ def getRequestId() -> str | None:
 def resetRequestId(token: contextvars.Token) -> None:
     """
     설명: 저장된 요청ID를 초기 상태로 복구
-    처리 규칙: 유효하지 않은 토큰이 전달돼도 예외를 삼켜 요청 종료 경로를 방해하지 않는
-    갱신일: 2025-11-12
+    처리 규칙: 재사용/타 컨텍스트/잘못된 토큰이면 현재 값을 None으로 비우고,
+    예상하지 못한 예외는 호출자에게 전달
+    갱신일: 2026-07-11
     """
     try:
         requestIdVar.reset(token)
-    except Exception:
-        pass
+    except (RuntimeError, ValueError, TypeError):
+        requestIdVar.set(None)

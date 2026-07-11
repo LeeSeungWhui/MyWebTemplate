@@ -7,7 +7,7 @@ import pytest
 from fastapi import HTTPException
 from fastapi.testclient import TestClient
 
-from lib.ServiceError import ServiceError
+from lib.ServiceError import ServiceError, buildMappedErrorResponse
 
 
 baseDir = os.path.dirname(os.path.dirname(__file__))
@@ -123,6 +123,25 @@ def testOperationalSecurityHeadersOnValidationError():
 
     assert response.status_code == 422
     assert response.headers.get("Cache-Control") == "no-store"
+    requestId = response.headers.get("X-Request-Id")
+    assert requestId
+    assert response.json()["requestId"] == requestId
+    assertDefaultSecurityHeaders(response)
+
+
+def testOperationalReadyzErrorKeepsLocaleAndRequestId(monkeypatch):
+    from server import app
+
+    monkeypatch.setenv("MAINTENANCE_MODE", "true")
+    with TestClient(app) as client:
+        response = client.get("/readyz", headers={"Accept-Language": "ko-KR"})
+
+    body = response.json()
+    assert response.status_code == 503
+    assert response.headers.get("Cache-Control") == "no-store"
+    assert body["code"] == "OBS_503_NOT_READY"
+    assert body["message"] == "준비되지 않았습니다"
+    assert body["requestId"] == response.headers["X-Request-Id"]
     assertDefaultSecurityHeaders(response)
 
 
@@ -186,7 +205,90 @@ def testOperationalSecurityHeadersOnHttpExceptionPreserveAuthHeaders():
     assert response.headers.get("WWW-Authenticate") == "Bearer"
     assert response.headers.get("Cache-Control") == "no-store"
     assert response.json()["code"] == "AUTH_401_TEST"
+    requestId = response.headers.get("X-Request-Id")
+    assert requestId
+    assert response.json()["requestId"] == requestId
     assertDefaultSecurityHeaders(response)
+
+
+def testHttpExceptionRedactsUnsafeDetailAndPreservesStatus():
+    from server import app
+
+    testPath = "/__test__/operational/unsafe-http-detail"
+
+    if not any(getattr(route, "path", None) == testPath for route in app.routes):
+        @app.get(testPath)
+        def unsafeHttpDetailRoute():
+            raise HTTPException(
+                status_code=422,
+                detail={
+                    "message": ["not-public"],
+                    "detail": {"nested": "not-public"},
+                    "code": {"internal": "not-public"},
+                    "secret": "not-public",
+                },
+            )
+
+    with TestClient(app) as client:
+        response = client.get(testPath)
+
+    body = response.json()
+    assert response.status_code == 422
+    assert response.headers.get("Cache-Control") == "no-store"
+    assert body["message"] == "error"
+    assert body["code"] == "HTTP_422"
+    assert body["result"] == {"path": testPath}
+    assert "not-public" not in response.text
+    assert body["requestId"] == response.headers["X-Request-Id"]
+
+
+def testHttpException404PreservesUnrelatedHeaderAndNoStore():
+    from server import app
+
+    testPath = "/__test__/operational/missing-http-resource"
+
+    if not any(getattr(route, "path", None) == testPath for route in app.routes):
+        @app.get(testPath)
+        def missingHttpResourceRoute():
+            raise HTTPException(
+                status_code=404,
+                detail="missing",
+                headers={"X-Test-Context": "preserved"},
+            )
+
+    with TestClient(app) as client:
+        response = client.get(testPath)
+
+    body = response.json()
+    assert response.status_code == 404
+    assert response.headers.get("Cache-Control") == "no-store"
+    assert response.headers.get("X-Test-Context") == "preserved"
+    assert body["code"] == "HTTP_404_NOT_FOUND"
+    assert body["result"] == {"path": testPath, "detail": "missing"}
+    assert body["requestId"] == response.headers["X-Request-Id"]
+
+
+def testMappedServiceErrorRequestIdMatchesResponseHeader():
+    from server import app
+
+    testPath = "/__test__/operational/mapped-service-error"
+
+    if not any(getattr(route, "path", None) == testPath for route in app.routes):
+        @app.get(testPath)
+        def mappedServiceErrorRoute():
+            return buildMappedErrorResponse(
+                ServiceError("OBS_503_NOT_READY"),
+                includeNoStore=True,
+            )
+
+    with TestClient(app) as client:
+        response = client.get(testPath)
+
+    assert response.status_code == 503
+    assert response.headers.get("Cache-Control") == "no-store"
+    requestId = response.headers.get("X-Request-Id")
+    assert requestId
+    assert response.json()["requestId"] == requestId
 
 
 def testDbBackendNotRunningOperationalMapping(monkeypatch):

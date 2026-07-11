@@ -13,6 +13,21 @@ from fastapi import Request
 from lib.ServiceError import ServiceError
 
 
+def isJsonMediaType(contentType: str | None) -> bool:
+    """
+    설명: Content-Type이 application/json 또는 application/*+json인지 판별
+    처리 규칙: 대소문자와 선택적 charset 등 매개변수는 허용하되 다른 top-level type은 거부
+    반환값: JSON media type이면 True
+    갱신일: 2026-07-11
+    """
+    if not isinstance(contentType, str):
+        return False
+    mediaType = contentType.split(";", 1)[0].strip().lower()
+    if mediaType == "application/json":
+        return True
+    return mediaType.startswith("application/") and mediaType.endswith("+json")
+
+
 def matchesPayloadType(value: Any, expectedType: str) -> bool:
     """
     설명: request payload 값이 기대 타입 라벨과 일치하는지 판별
@@ -37,13 +52,19 @@ def matchesPayloadType(value: Any, expectedType: str) -> bool:
     return False
 
 
-async def readJsonPayloadDict(request: Request) -> dict[str, Any] | None:
+async def readJsonPayloadDict(
+    request: Request,
+    *,
+    requireJsonMediaType: bool = False,
+) -> dict[str, Any] | None:
     """
     설명: 요청 본문을 JSON dict로 안전하게 파싱
     실패 동작: 파싱 실패 또는 dict 타입 불일치 시 None 반환
     반환값: JSON object 본문 dict 또는 None
     갱신일: 2026-03-12
     """
+    if requireJsonMediaType and not isJsonMediaType(request.headers.get("content-type")):
+        return None
     try:
         payload = await request.json()
     except Exception:
@@ -53,7 +74,11 @@ async def readJsonPayloadDict(request: Request) -> dict[str, Any] | None:
     return payload
 
 
-async def readOptionalJsonPayloadDict(request: Request) -> tuple[dict[str, Any], bool]:
+async def readOptionalJsonPayloadDict(
+    request: Request,
+    *,
+    requireJsonMediaType: bool = False,
+) -> tuple[dict[str, Any], bool]:
     """
     설명: 빈 본문을 허용하는 JSON dict payload를 shared boundary에서 파싱
     실패 동작: 빈 본문은 ({}, True), 파싱 실패 또는 dict 타입 불일치는 ({}, False)
@@ -63,6 +88,8 @@ async def readOptionalJsonPayloadDict(request: Request) -> tuple[dict[str, Any],
     rawBody = await request.body()
     if not rawBody:
         return {}, True
+    if requireJsonMediaType and not isJsonMediaType(request.headers.get("content-type")):
+        return {}, False
     try:
         payload = json.loads(rawBody.decode("utf-8"))
     except Exception:

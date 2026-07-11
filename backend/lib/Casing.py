@@ -44,10 +44,12 @@ def convertKeysToCamelCase(value: Any) -> Any:
     if isinstance(value, dict):
         converted: dict[Any, Any] = {}
         for k, v in value.items():
-            if isinstance(k, str):
-                converted[toCamelCaseKey(k)] = convertKeysToCamelCase(v)
-            else:
-                converted[k] = convertKeysToCamelCase(v)
+            convertedKey = toCamelCaseKey(k) if isinstance(k, str) else k
+            if convertedKey in converted:
+                raise ValueError(
+                    f"camelCase key collision: {k!r} normalizes to {convertedKey!r}"
+                )
+            converted[convertedKey] = convertKeysToCamelCase(v)
         return converted
     if isinstance(value, datetime):
         return value.isoformat()

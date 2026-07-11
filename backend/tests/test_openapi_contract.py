@@ -52,8 +52,10 @@ def resolveLocalRef(schema, ref: str):
 def testOpenapiErrorComponentsAndEnumSync():
     schema = readOpenapiSchema()
     components = schema["components"]
+    standardSchema = components["schemas"]["StandardResponse"]
     errorSchema = components["schemas"]["ErrorResponse"]
 
+    assert standardSchema["required"] == ["status", "message", "result", "requestId"]
     assert errorSchema["required"] == ["status", "message", "code", "requestId"]
     assert errorSchema["properties"]["status"]["const"] is False
     assert errorSchema["additionalProperties"] is False

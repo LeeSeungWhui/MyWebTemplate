@@ -5,6 +5,10 @@
 설명: snake_case -> camelCase 변환 유틸의 회귀 테스트
 """
 
+from datetime import date, datetime
+
+import pytest
+
 from lib.Casing import convertKeysToCamelCase
 from lib.Casing import toCamelCaseKey
 
@@ -47,3 +51,29 @@ def testConvertKeysToCamelCaseNested():
     assert converted["itemList"][0]["itemId"] == 1
     assert converted["itemList"][1]["itemId"] == 2
     assert converted[1] == "non-string-key"
+
+
+def testConvertKeysToCamelCaseRejectsTopLevelCollision():
+    with pytest.raises(ValueError, match="camelCase key collision"):
+        convertKeysToCamelCase({"user_no": 1, "userNo": 2})
+
+
+def testConvertKeysToCamelCaseRejectsNestedCollision():
+    with pytest.raises(ValueError, match="camelCase key collision"):
+        convertKeysToCamelCase(
+            {"profile_data": {"user_no": 1, "USER_NO": 2}}
+        )
+
+
+def testConvertKeysToCamelCaseKeepsDateAndDatetimeSerialization():
+    converted = convertKeysToCamelCase(
+        {
+            "created_at": datetime(2026, 7, 11, 12, 34, 56),
+            "birth_date": date(2026, 7, 11),
+        }
+    )
+
+    assert converted == {
+        "createdAt": "2026-07-11T12:34:56",
+        "birthDate": "2026-07-11",
+    }

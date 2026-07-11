@@ -17,4 +17,5 @@ def testReadyzMessageI18nKo(monkeypatch):
         j = response.json()
         assert j["code"] == "OBS_503_NOT_READY"
         assert isinstance(j.get("message"), str)
-        assert j["message"] in ("준비되지 않았습니다", "not ready")
+        assert j["message"] == "준비되지 않았습니다"
+        assert j["requestId"] == response.headers["X-Request-Id"]

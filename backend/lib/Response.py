@@ -37,7 +37,7 @@ def successResponse(result: Any = None, message: str = "success") -> Dict[str, A
     갱신일: 2025-11-12
     """
     count = len(result) if isinstance(result, list) else None
-    return dumpModel(
+    response = dumpModel(
         StandardResponse(
             status=True,
             message=message,
@@ -46,15 +46,23 @@ def successResponse(result: Any = None, message: str = "success") -> Dict[str, A
             requestId=getRequestId(),
         )
     )
+    # 성공 응답의 result는 OpenAPI 필수 필드이므로 None도 JSON null로 유지한다.
+    response.setdefault("result", None)
+    return response
 
 
-def errorResponse(message: str = "error", result: Any = None, code: Optional[str] = None) -> Dict[str, Any]:
+def errorResponse(message: str = "error", result: Any = None, *, code: str) -> Dict[str, Any]:
     """
-    설명: 표준 에러 응답 본문 생성. 오류 코드를 포함할 수 있음
+    설명: 표준 에러 응답 본문 생성. 비어 있지 않은 오류 코드가 필수
     처리 규칙: status=false 고정이며 현재 requestId를 함께 포함
     반환값: API 에러 응답 규격(dict) 객체를 반환
-    갱신일: 2025-11-12
+    갱신일: 2026-07-11
     """
+    if not isinstance(code, str):
+        raise TypeError("code must be a string")
+    if not code.strip():
+        raise ValueError("code must not be blank")
+
     return dumpModel(
         StandardResponse(
             status=False,

@@ -131,31 +131,44 @@ def isAllowedWebOrigin(origin: str) -> bool:
     if not allowOriginRegex:
         return False
     try:
-        return re.match(allowOriginRegex, origin) is not None
+        return re.fullmatch(allowOriginRegex, origin) is not None
     except re.error:
         return False
 
 
-def ensureWebCookieOrigin(request: Request, loc: str) -> JSONResponse | None:
+def ensureWebRequestOrigin(
+    request: Request,
+    loc: str,
+    *,
+    required: bool,
+) -> JSONResponse | None:
     """
-    설명: Web 쿠키 권한 경로(refresh/logout)의 Origin/Referer allowlist 강제
-    갱신일: 2026-02-25
+    설명: Web 경로의 supplied Origin/Referer를 Origin 우선순위와 allowlist로 검증
+    처리 규칙: 헤더가 모두 없으면 required 여부에 따라 허용/거부하고, supplied malformed 값은 거부
+    갱신일: 2026-07-11
     """
-    origin = normalizeOrigin(request.headers.get("origin"))
-    referer = normalizeOrigin(request.headers.get("referer"))
-    requestOrigin = origin or referer
-    if not requestOrigin:
+    rawOrigin = request.headers.get("origin")
+    rawReferer = request.headers.get("referer")
+    if rawOrigin is not None:
+        requestOrigin = normalizeOrigin(rawOrigin)
+    elif rawReferer is not None:
+        requestOrigin = normalizeOrigin(rawReferer)
+    else:
+        requestOrigin = None
+
+    if rawOrigin is None and rawReferer is None:
+        if not required:
+            return None
         response = JSONResponse(
             status_code=403,
             content=errorResponse(
                 message=i18nTranslate("error.csrf_required", "CSRF required", loc),
                 code="AUTH_403_ORIGIN_REQUIRED",
             ),
-            headers={"WWW-Authenticate": "Bearer"},
         )
         response.headers["Cache-Control"] = "no-store"
         return response
-    if isAllowedWebOrigin(requestOrigin):
+    if requestOrigin and isAllowedWebOrigin(requestOrigin):
         return None
     response = JSONResponse(
         status_code=403,
@@ -163,10 +176,17 @@ def ensureWebCookieOrigin(request: Request, loc: str) -> JSONResponse | None:
             message=i18nTranslate("error.csrf_required", "CSRF required", loc),
             code="AUTH_403_ORIGIN_DENIED",
         ),
-        headers={"WWW-Authenticate": "Bearer"},
     )
     response.headers["Cache-Control"] = "no-store"
     return response
+
+
+def ensureWebCookieOrigin(request: Request, loc: str) -> JSONResponse | None:
+    """
+    설명: Web 쿠키 권한 경로(refresh/logout)의 Origin/Referer allowlist를 필수 강제
+    갱신일: 2026-07-11
+    """
+    return ensureWebRequestOrigin(request, loc, required=True)
 
 
 def isSecureRequest(request: Request) -> bool:
@@ -175,6 +195,10 @@ def isSecureRequest(request: Request) -> bool:
     처리 규칙: URL scheme, opt-in 및 trusted peer 검증을 통과한 프록시 헤더, 운영 ENV 값을 순서대로 확인
     갱신일: 2026-07-11
     """
+    runtime = str(getattr(AuthConfig, "runtime", "") or "").strip().upper()
+    if runtime in {"PROD", "PRODUCTION"}:
+        return True
+
     scheme = str(getattr(request.url, "scheme", "") or "").strip().lower()
     if scheme == "https":
         return True
@@ -292,7 +316,7 @@ async def readRequiredAuthPayload(
     갱신일: 2026-06-24
     """
     return readAuthPayload(
-        await readJsonPayloadDict(request),
+        await readJsonPayloadDict(request, requireJsonMediaType=True),
         requiredFieldTypeMap=requiredFieldTypeMap,
         optionalFieldTypeMap=optionalFieldTypeMap,
         excludeNone=excludeNone,
@@ -310,7 +334,10 @@ async def readOptionalAuthPayload(
     설명: 빈 body 허용 auth 엔드포인트용 JSON object payload 공통 파서
     갱신일: 2026-06-24
     """
-    payload, isBodyValid = await readOptionalJsonPayloadDict(request)
+    payload, isBodyValid = await readOptionalJsonPayloadDict(
+        request,
+        requireJsonMediaType=True,
+    )
     if not isBodyValid:
         raise ServiceError("AUTH_422_INVALID_INPUT")
     return readAuthPayload(
@@ -357,6 +384,9 @@ async def login(request: Request):
     갱신일: 2026-02-22
     """
     loc = detectLocale(request)
+    originError = ensureWebRequestOrigin(request, loc, required=False)
+    if originError is not None:
+        return originError
     try:
         payload = await readRequiredAuthPayload(
             request,
@@ -370,6 +400,7 @@ async def login(request: Request):
     # 간단 입력 검증
     username = payload.get("username")
     password = payload.get("password")
+    canonicalUsername = AuthService.normalizeLoginUsername(username)
     isShortUsername = not isinstance(username, str) or len(username) < 3
     isShortPassword = not isinstance(password, str) or len(password) < 8
     if isShortUsername or isShortPassword:
@@ -380,7 +411,12 @@ async def login(request: Request):
         )
 
     # 레이트리밋(선체크): 이미 초과된 상태면 인증 로직(쿼리/해시)을 타기 전에 차단한다.
-    limited = checkRateLimit(request, username=username, commit=False)
+    limited = checkRateLimit(
+        request,
+        username=canonicalUsername,
+        commit=False,
+        namespace="auth.login",
+    )
     if limited is not None:
         return limited
 
@@ -400,7 +436,12 @@ async def login(request: Request):
     if not authResult:
 
         # 레이트리밋(실패 기록): 로그인 실패 시에만 카운트를 증가시킨다.
-        limited = checkRateLimit(request, username=username, commit=True)
+        limited = checkRateLimit(
+            request,
+            username=canonicalUsername,
+            commit=True,
+            namespace="auth.login",
+        )
         if limited is not None:
             return limited
         return JSONResponse(
@@ -432,6 +473,9 @@ async def signup(request: Request):
     갱신일: 2026-02-22
     """
     loc = detectLocale(request)
+    originError = ensureWebRequestOrigin(request, loc, required=False)
+    if originError is not None:
+        return originError
     try:
         payload = await readRequiredAuthPayload(
             request,
@@ -439,6 +483,15 @@ async def signup(request: Request):
         )
     except ServiceError:
         return invalidInputResponse(loc)
+    canonicalEmail = AuthService.normalizeLoginUsername(payload.get("email"))
+    limited = checkRateLimit(
+        request,
+        username=canonicalEmail,
+        commit=True,
+        namespace="auth.signup",
+    )
+    if limited is not None:
+        return limited
     idempotencyKey = request.headers.get("Idempotency-Key")
     result, errorCode = await AuthService.signup(payload, idempotencyKey=idempotencyKey)
     if errorCode:
@@ -457,7 +510,7 @@ async def signup(request: Request):
             status_code=500,
             content=errorResponse(
                 message=i18nTranslate("error.server_error", "server error", loc),
-                code=errorCode,
+                code="AUTH_500_SIGNUP_FAILED",
             ),
             headers={"Cache-Control": "no-store"},
         )
@@ -477,6 +530,9 @@ async def requestPasswordReset(request: Request):
     갱신일: 2026-04-08
     """
     loc = detectLocale(request)
+    originError = ensureWebRequestOrigin(request, loc, required=False)
+    if originError is not None:
+        return originError
     try:
         payload = await readRequiredAuthPayload(
             request,
@@ -484,6 +540,15 @@ async def requestPasswordReset(request: Request):
         )
     except ServiceError:
         return invalidInputResponse(loc)
+    canonicalEmail = AuthService.normalizeLoginUsername(payload.get("email"))
+    limited = checkRateLimit(
+        request,
+        username=canonicalEmail,
+        commit=True,
+        namespace="auth.password_reset",
+    )
+    if limited is not None:
+        return limited
     result, errorCode = await AuthService.requestPasswordReset(payload)
     if errorCode == "AUTH_422_INVALID_INPUT":
         return invalidInputResponse(loc)
@@ -492,7 +557,7 @@ async def requestPasswordReset(request: Request):
             status_code=500,
             content=errorResponse(
                 message=i18nTranslate("error.server_error", "server error", loc),
-                code=errorCode,
+                code="AUTH_500_PASSWORD_RESET_FAILED",
             ),
             headers={"Cache-Control": "no-store"},
         )
@@ -592,6 +657,7 @@ async def appLogin(request: Request):
 
     username = payload.get("username")
     password = payload.get("password")
+    canonicalUsername = AuthService.normalizeLoginUsername(username)
     isShortUsername = not isinstance(username, str) or len(username) < 3
     isShortPassword = not isinstance(password, str) or len(password) < 8
     if isShortUsername or isShortPassword:
@@ -601,7 +667,12 @@ async def appLogin(request: Request):
             headers={"WWW-Authenticate": "Bearer", "Cache-Control": "no-store"},
         )
 
-    limited = checkRateLimit(request, username=username, commit=False)
+    limited = checkRateLimit(
+        request,
+        username=canonicalUsername,
+        commit=False,
+        namespace="auth.login",
+    )
     if limited is not None:
         return limited
 
@@ -619,7 +690,12 @@ async def appLogin(request: Request):
             return mappedResponse
         raise
     if not authResult:
-        limited = checkRateLimit(request, username=username, commit=True)
+        limited = checkRateLimit(
+            request,
+            username=canonicalUsername,
+            commit=True,
+            namespace="auth.login",
+        )
         if limited is not None:
             return limited
         return JSONResponse(
@@ -753,6 +829,7 @@ async def logout(request: Request):
             ),
         )
         response.headers["Cache-Control"] = "no-store"
+        clearAuthCookies(response, request)
         return response
     response = Response(status_code=204)
     clearAuthCookies(response, request)
