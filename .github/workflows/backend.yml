@@ -53,6 +53,9 @@ jobs:
           cat <<EOF > "${BACKEND_TEST_CONFIG}"
           [SERVER]
           runtime = TEST
+          disable_demo_routes = false
+          disable_sample_routes = false
+          disable_transaction_routes = false
 
           [DATABASE]
           name = main_db
