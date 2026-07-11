@@ -21,7 +21,12 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from lib.Auth import AuthConfig, isStrongAuthSecret
+from lib.Auth import (
+    AuthConfig,
+    isStrongAuthSecret,
+    parseAuthExpireSeconds,
+    resolveAuthRuntimePolicy,
+)
 from lib.Database import (
     DatabaseManager,
     loadQueries,
@@ -301,13 +306,28 @@ async def onStartup():
     tokenEnable = authConfig.getboolean("token_enable", True)
     runtimeRaw = serverConfig.get("runtime", "DEV") if serverConfig else "DEV"
     runtime = str(runtimeRaw or "").strip().upper()
-    allowWeakAuthSecret = runtime in {"TEST", "CI"} or str(os.getenv("ALLOW_WEAK_AUTH_SECRET", "")).strip().lower() in {
+    allowWeakAuthSecretRequested = str(os.getenv("ALLOW_WEAK_AUTH_SECRET", "")).strip().lower() in {
         "1",
         "true",
         "yes",
         "on",
     }
-    strictSecretValidation = tokenEnable and not allowWeakAuthSecret
+    try:
+        runtime, strictSecretValidation = resolveAuthRuntimePolicy(
+            runtime=runtime,
+            tokenEnable=tokenEnable,
+            allowWeakAuthSecret=allowWeakAuthSecretRequested,
+        )
+        accessExpireMinutes = parseAuthExpireSeconds(
+            authConfig.getint("token_expire", 3600),
+            tokenType="access",
+        )
+        refreshExpireMinutes = parseAuthExpireSeconds(
+            authConfig.getint("refresh_expire", 3600 * 24 * 7),
+            tokenType="refresh",
+        )
+    except (TypeError, ValueError) as error:
+        raise RuntimeError(f"invalid AUTH configuration: {error}") from error
 
     if strictSecretValidation and not isStrongAuthSecret(secretKey):
         raise RuntimeError(
@@ -315,18 +335,19 @@ async def onStartup():
         )
     if tokenEnable and not strictSecretValidation and not isStrongAuthSecret(secretKey):
         logger.warning(
-            "weak AUTH secret_key allowed in non-strict runtime. set ALLOW_WEAK_AUTH_SECRET=false in runtime."
+            "weak AUTH secret_key allowed for TEST/CI runtime only."
         )
     AuthConfig.initConfig(
         secretKey=secretKey,
-        accessExpireMinutes=authConfig.getint("token_expire", 3600) // 60,
-        refreshExpireMinutes=authConfig.getint("refresh_expire", 3600 * 24 * 7)
-        // 60,
+        accessExpireMinutes=accessExpireMinutes,
+        refreshExpireMinutes=refreshExpireMinutes,
         refreshGraceMs=refreshGraceMs,
         tokenEnable=tokenEnable,
         accessCookie=authConfig.get("access_cookie", "access_token"),
         refreshCookie=authConfig.get("refresh_cookie", "refresh_token"),
         strictSecretValidation=strictSecretValidation,
+        runtime=runtime,
+        allowWeakAuthSecret=allowWeakAuthSecretRequested,
     )
 
     # 사용자 테이블 생성/시드는 스크립트나 AuthService가 담당하므로 여기서는 건드리지 않는다.

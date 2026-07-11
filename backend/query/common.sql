@@ -33,3 +33,9 @@ VALUES (
   , :ipLocTxt
   , :ipLocSrc
 );
+
+-- name: common.userAccessLogLocationUpdate
+UPDATE T_USER_LOG
+   SET IP_LOC_TXT = :ipLocTxt
+     , IP_LOC_SRC = :ipLocSrc
+ WHERE LOG_ID = :logId;

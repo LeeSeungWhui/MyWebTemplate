@@ -21,9 +21,15 @@ try:
 except Exception:
     bcrypt = None
 
-from jose import JWTError, jwt
+from jose import JWTError
 
-from lib.Auth import AuthConfig, Token, createAccessToken, createRefreshToken
+from lib.Auth import (
+    AuthConfig,
+    Token,
+    createAccessToken,
+    createRefreshToken,
+    decodeAuthToken,
+)
 from lib import Database as DB
 from lib.Casing import convertKeysToCamelCase
 from lib.Idempotency import beginIdempotencyRequest, completeIdempotencyRequest, discardIdempotencyReservation
@@ -826,14 +832,7 @@ def decodeRefreshTokenPayload(refreshToken: str) -> dict[str, Any] | None:
     갱신일: 2025-12-03
     """
     try:
-        secret = AuthConfig.secretKey
-        if not secret:
-            return None
-        payload = jwt.decode(refreshToken, secret, algorithms=[AuthConfig.algorithm])
-        tokenType = payload.get("typ")
-        if tokenType != "refresh":
-            return None
-        return payload
+        return decodeAuthToken(refreshToken, expectedTokenType="refresh")
     except JWTError:
         return None
 

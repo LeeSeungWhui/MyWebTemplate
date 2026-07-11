@@ -25,6 +25,12 @@ from .Config import getConfig
 
 ipGeoCache: dict[str, dict[str, object]] = {}
 ipGeoCacheLock = asyncio.Lock()
+ipGeoInFlight: dict[str, asyncio.Task[tuple[Optional[str], Optional[str]]]] = {}
+
+IP_GEO_DEFAULT_TIMEOUT_MS = 5000
+IP_GEO_MIN_TIMEOUT_MS = 100
+IP_GEO_DEFAULT_CACHE_MAX_ENTRIES = 1024
+IP_GEO_PROVIDER_TARGET = "ipwho.is"
 
 
 def parseBool(rawValue: object, defaultValue: bool = False) -> bool:
@@ -56,6 +62,15 @@ def parsePositiveInt(rawValue: object, defaultValue: int) -> int:
         return defaultValue
 
 
+def parseOptionalPositiveInt(rawValue: object) -> Optional[int]:
+    """설명: 양의 정수를 파싱하고 유효하지 않으면 None을 반환"""
+    try:
+        value = int(str(rawValue).strip())
+        return value if value > 0 else None
+    except Exception:
+        return None
+
+
 def getIpGeoEnabled() -> bool:
     """
     설명: IP 위치 추정 기능 on/off 판단 규칙(환경변수 우선)을 담당하는 설정 조회 유틸
@@ -77,26 +92,32 @@ def getIpGeoEnabled() -> bool:
 def getIpGeoTimeoutMs() -> int:
     """
     설명: 외부 IP 위치 조회 타임아웃(ms) 결정 규칙(환경변수 우선) 유틸
-    우선순위: 환경변수(IP_GEO_TIMEOUT_MS) > config(API_POLICY.ipGeoLookup.request_timeout_sec) > config(API_POLICY.request_timeout_sec)
-    갱신일: 2026-02-22
+    우선순위: 환경변수 > OBSERVABILITY(ms) > IP 위치 정책(초) > 공통 정책(초)
+    갱신일: 2026-07-11
     """
     envValue = os.getenv("IP_GEO_TIMEOUT_MS")
     if envValue is not None:
-        return parsePositiveInt(envValue, 5000)
+        parsedEnvValue = parseOptionalPositiveInt(envValue)
+        if parsedEnvValue is not None:
+            return max(IP_GEO_MIN_TIMEOUT_MS, parsedEnvValue)
     try:
         config = getConfig()
+        observability = config["OBSERVABILITY"] if "OBSERVABILITY" in config else None
         globalPolicy = config["API_POLICY"] if "API_POLICY" in config else None
         ipGeoPolicy = config["API_POLICY.ipGeoLookup"] if "API_POLICY.ipGeoLookup" in config else None
-        timeoutSec = None
-        if ipGeoPolicy:
-            timeoutSec = ipGeoPolicy.get("request_timeout_sec")
-        if timeoutSec is None and globalPolicy:
-            timeoutSec = globalPolicy.get("request_timeout_sec")
-        if timeoutSec is not None:
-            return max(100, parsePositiveInt(timeoutSec, 5) * 1000)
+        if observability:
+            timeoutMs = parseOptionalPositiveInt(observability.get("ip_geo_timeout_ms"))
+            if timeoutMs is not None:
+                return max(IP_GEO_MIN_TIMEOUT_MS, timeoutMs)
+        for policy in (ipGeoPolicy, globalPolicy):
+            if not policy:
+                continue
+            timeoutSec = parseOptionalPositiveInt(policy.get("request_timeout_sec"))
+            if timeoutSec is not None:
+                return max(IP_GEO_MIN_TIMEOUT_MS, timeoutSec * 1000)
     except Exception:
         pass
-    return 5000
+    return IP_GEO_DEFAULT_TIMEOUT_MS
 
 
 def getIpGeoCacheTtlSec() -> int:
@@ -115,6 +136,69 @@ def getIpGeoCacheTtlSec() -> int:
     except Exception:
         pass
     return 3600
+
+
+def getIpGeoCacheMaxEntries() -> int:
+    """
+    설명: IP 위치 캐시 최대 항목 수 결정 규칙(환경변수 우선) 유틸
+    우선순위: 환경변수(IP_GEO_CACHE_MAX_ENTRIES) > config(OBSERVABILITY.ip_geo_cache_max_entries)
+    갱신일: 2026-07-11
+    """
+    envValue = os.getenv("IP_GEO_CACHE_MAX_ENTRIES")
+    if envValue is not None:
+        parsedEnvValue = parseOptionalPositiveInt(envValue)
+        if parsedEnvValue is not None:
+            return parsedEnvValue
+    try:
+        config = getConfig()
+        if "OBSERVABILITY" in config:
+            configuredValue = parseOptionalPositiveInt(config["OBSERVABILITY"].get("ip_geo_cache_max_entries"))
+            if configuredValue is not None:
+                return configuredValue
+    except Exception:
+        pass
+    return IP_GEO_DEFAULT_CACHE_MAX_ENTRIES
+
+
+def sweepIpGeoCache(nowMs: int, maxEntries: int) -> None:
+    """설명: 만료 항목을 제거하고 결정적 순서로 캐시 최대 크기를 강제"""
+    expiredKeys = [
+        key
+        for key, value in ipGeoCache.items()
+        if int(value.get("expiresAtMs", 0) or 0) <= nowMs
+    ]
+    for key in expiredKeys:
+        ipGeoCache.pop(key, None)
+
+    overflowCount = len(ipGeoCache) - maxEntries
+    if overflowCount <= 0:
+        return
+    evictionKeys = sorted(
+        ipGeoCache,
+        key=lambda key: (int(ipGeoCache[key].get("expiresAtMs", 0) or 0), key),
+    )[:overflowCount]
+    for key in evictionKeys:
+        ipGeoCache.pop(key, None)
+
+
+async def removeIpGeoInFlight(
+    ipValue: str,
+    task: asyncio.Task[tuple[Optional[str], Optional[str]]],
+) -> None:
+    """설명: 완료된 단일-flight 작업을 동일 인스턴스일 때만 제거"""
+    if not task.cancelled():
+        task.exception()
+    async with ipGeoCacheLock:
+        if ipGeoInFlight.get(ipValue) is task:
+            ipGeoInFlight.pop(ipValue, None)
+
+
+def scheduleIpGeoInFlightCleanup(
+    ipValue: str,
+    task: asyncio.Task[tuple[Optional[str], Optional[str]]],
+) -> None:
+    """설명: 원격 조회 완료 시 in-flight 맵 정리를 예약"""
+    asyncio.create_task(removeIpGeoInFlight(ipValue, task))
 
 
 
@@ -204,7 +288,7 @@ async def getIpGeoFromRemote(ipValue: str, requestId: Optional[str] = None) -> O
                     json.dumps(
                         {
                             "event": "ip_geo.lookup.failed",
-                            "target": url,
+                            "target": IP_GEO_PROVIDER_TARGET,
                             "timeoutMs": timeoutMs,
                             "requestId": requestId,
                             "statusCode": response.status_code,
@@ -219,7 +303,7 @@ async def getIpGeoFromRemote(ipValue: str, requestId: Optional[str] = None) -> O
                     json.dumps(
                         {
                             "event": "ip_geo.lookup.failed",
-                            "target": url,
+                            "target": IP_GEO_PROVIDER_TARGET,
                             "timeoutMs": timeoutMs,
                             "requestId": requestId,
                             "reason": "INVALID_JSON_BODY",
@@ -233,7 +317,7 @@ async def getIpGeoFromRemote(ipValue: str, requestId: Optional[str] = None) -> O
                     json.dumps(
                         {
                             "event": "ip_geo.lookup.failed",
-                            "target": url,
+                            "target": IP_GEO_PROVIDER_TARGET,
                             "timeoutMs": timeoutMs,
                             "requestId": requestId,
                             "reason": "REMOTE_SUCCESS_FALSE",
@@ -248,15 +332,41 @@ async def getIpGeoFromRemote(ipValue: str, requestId: Optional[str] = None) -> O
             json.dumps(
                 {
                     "event": "ip_geo.lookup.failed",
-                    "target": url,
+                    "target": IP_GEO_PROVIDER_TARGET,
                     "timeoutMs": timeoutMs,
                     "requestId": requestId,
-                    "reason": str(exc),
+                    "reason": type(exc).__name__,
                 },
                 ensure_ascii=False,
             )
         )
         raise
+
+
+async def resolveIpGeoRemoteAndCache(
+    ipValue: str,
+    requestId: Optional[str],
+    cacheMaxEntries: int,
+) -> tuple[Optional[str], Optional[str]]:
+    """설명: 공유 원격 조회가 완료되기 전에 성공 결과를 캐시에 게시"""
+    try:
+        geoJson = await getIpGeoFromRemote(ipValue, requestId=requestId)
+        if not geoJson:
+            return ("PUBLIC_IP", "IP_GEO_MISS")
+        ipLocTxt = buildLocationText(geoJson)
+        ipLocSrc = "IP_GEO_REMOTE"
+        ttlSec = getIpGeoCacheTtlSec()
+        cachedAtMs = int(time.time() * 1000)
+        async with ipGeoCacheLock:
+            ipGeoCache[ipValue] = {
+                "ipLocTxt": ipLocTxt,
+                "ipLocSrc": ipLocSrc,
+                "expiresAtMs": cachedAtMs + (ttlSec * 1000),
+            }
+            sweepIpGeoCache(cachedAtMs, cacheMaxEntries)
+        return (ipLocTxt, ipLocSrc)
+    except Exception:
+        return ("PUBLIC_IP", "IP_GEO_FAIL")
 
 
 async def resolveIpLocation(clientIp: Optional[str], requestId: Optional[str] = None) -> tuple[Optional[str], Optional[str]]:
@@ -276,33 +386,26 @@ async def resolveIpLocation(clientIp: Optional[str], requestId: Optional[str] = 
         return ("PUBLIC_IP", "IP_PUBLIC")
 
     nowMs = int(time.time() * 1000)
+    cacheMaxEntries = getIpGeoCacheMaxEntries()
     async with ipGeoCacheLock:
+        sweepIpGeoCache(nowMs, cacheMaxEntries)
         cached = ipGeoCache.get(ipValue)
         if cached:
-            expiresAt = int(cached.get("expiresAtMs", 0) or 0)
-            if expiresAt > nowMs:
-                return (
-                    str(cached.get("ipLocTxt") or "PUBLIC_IP"),
-                    str(cached.get("ipLocSrc") or "IP_GEO_CACHE"),
-                )
-            ipGeoCache.pop(ipValue, None)
+            return (
+                str(cached.get("ipLocTxt") or "PUBLIC_IP"),
+                str(cached.get("ipLocSrc") or "IP_GEO_CACHE"),
+            )
+        remoteTask = ipGeoInFlight.get(ipValue)
+        if remoteTask is None:
+            remoteTask = asyncio.create_task(
+                resolveIpGeoRemoteAndCache(ipValue, requestId, cacheMaxEntries)
+            )
+            ipGeoInFlight[ipValue] = remoteTask
+            remoteTask.add_done_callback(
+                lambda completedTask, key=ipValue: scheduleIpGeoInFlightCleanup(key, completedTask)
+            )
 
-    try:
-        geoJson = await getIpGeoFromRemote(ipValue, requestId=requestId)
-        if not geoJson:
-            return ("PUBLIC_IP", "IP_GEO_MISS")
-        ipLocTxt = buildLocationText(geoJson)
-        ipLocSrc = "IP_GEO_REMOTE"
-        ttlSec = getIpGeoCacheTtlSec()
-        async with ipGeoCacheLock:
-            ipGeoCache[ipValue] = {
-                "ipLocTxt": ipLocTxt,
-                "ipLocSrc": ipLocSrc,
-                "expiresAtMs": nowMs + (ttlSec * 1000),
-            }
-        return (ipLocTxt, ipLocSrc)
-    except Exception:
-        return ("PUBLIC_IP", "IP_GEO_FAIL")
+    return await asyncio.shield(remoteTask)
 
 
 async def writeUserAccessLog(
@@ -319,8 +422,8 @@ async def writeUserAccessLog(
 ) -> None:
     """
     설명: 인증 사용자 접근 로그를 T_USER_LOG에 저장
-    처리 규칙: username 미존재/DB 미초기화 시 즉시 종료하고, 위치 정보는 비동기 조회 후 bind에 반영
-    실패 동작: INSERT 실패는 warning 로그만 남기고 요청 흐름에는 예외를 전파하지 않는
+    처리 규칙: 기본 접근 로그를 먼저 저장하고, 위치 정보는 성공한 기본 행에 best-effort로 보강
+    실패 동작: INSERT/위치 보강 실패는 warning 로그만 남기고 요청 흐름에는 예외를 전파하지 않음
     부작용: T_USER_LOG 테이블에 접근 로그 레코드를 적재
     갱신일: 2026-02-22
     """
@@ -346,9 +449,6 @@ async def writeUserAccessLog(
         "ipLocTxt": None,
         "ipLocSrc": None,
     }
-    ipLocTxt, ipLocSrc = await resolveIpLocation(bindValues["clientIp"], requestId=bindValues["reqId"])
-    bindValues["ipLocTxt"] = ipLocTxt
-    bindValues["ipLocSrc"] = ipLocSrc
     try:
         await db.executeQuery("common.userAccessLogInsert", bindValues)
     except Exception as e:
@@ -360,6 +460,33 @@ async def writeUserAccessLog(
                     "requestId": requestId,
                     "usernameMasked": maskUserIdentifierForLog(userId),
                     "error": str(e),
+                },
+                ensure_ascii=False,
+            )
+        )
+        return
+
+    ipLocTxt, ipLocSrc = await resolveIpLocation(bindValues["clientIp"], requestId=bindValues["reqId"])
+    if ipLocTxt is None and ipLocSrc is None:
+        return
+    try:
+        await db.executeQuery(
+            "common.userAccessLogLocationUpdate",
+            {
+                "logId": bindValues["logId"],
+                "ipLocTxt": ipLocTxt,
+                "ipLocSrc": ipLocSrc,
+            },
+        )
+    except Exception as e:
+        logger.warning(
+            json.dumps(
+                {
+                    "event": "db.user_log.location_update.failed",
+                    "dbName": targetDbName,
+                    "requestId": requestId,
+                    "usernameMasked": maskUserIdentifierForLog(userId),
+                    "error": type(e).__name__,
                 },
                 ensure_ascii=False,
             )
