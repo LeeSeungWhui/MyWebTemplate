@@ -218,4 +218,110 @@ describe("settings tab query helpers", () => {
       scroll: false,
     });
   });
+
+  test("프로필 저장은 정규화된 PUT payload를 보내고 응답으로 화면을 동기화한다", async () => {
+    apiJSON
+      .mockResolvedValueOnce({
+        result: {
+          userId: "demo@demo.demo",
+          userNm: "데모",
+          userEml: "demo@demo.demo",
+          roleCd: "admin",
+          notifyEmail: false,
+          notifySms: false,
+          notifyPush: false,
+        },
+      })
+      .mockResolvedValueOnce({
+        result: {
+          userId: "demo@demo.demo",
+          userNm: "수정된 데모",
+          userEml: "demo@demo.demo",
+          roleCd: "admin",
+          notifyEmail: false,
+          notifySms: false,
+          notifyPush: false,
+        },
+      });
+
+    render(<SettingsView initialDataObj={{}} initialErrorObj={{}} />);
+    await screen.findByDisplayValue("데모");
+    fireEvent.change(screen.getByDisplayValue("데모"), { target: { value: "  수정된 데모  " } });
+    fireEvent.click(screen.getAllByRole("button", { name: "저장" })[0]);
+
+    await waitFor(() => expect(apiJSON).toHaveBeenCalledTimes(2));
+    expect(apiJSON.mock.calls[1][0]).toMatchObject({ path: "/api/v1/profile/me" });
+    expect(apiJSON.mock.calls[1][1]).toEqual({
+      method: "PUT",
+      body: {
+        userNm: "수정된 데모",
+        notifyEmail: false,
+        notifySms: false,
+        notifyPush: false,
+      },
+    });
+    expect(await screen.findByDisplayValue("수정된 데모")).toBeTruthy();
+  });
+
+  test("프로필 저장 실패는 requestId를 안전한 alert에 표시한다", async () => {
+    const saveError = Object.assign(new Error("private upstream detail must not render"), {
+      code: "PROFILE_503_UNAVAILABLE",
+      requestId: "rid-profile-safe-1",
+    });
+    apiJSON
+      .mockResolvedValueOnce({
+        result: {
+          userId: "demo@demo.demo",
+          userNm: "데모",
+          userEml: "demo@demo.demo",
+          roleCd: "admin",
+          notifyEmail: false,
+          notifySms: false,
+          notifyPush: false,
+        },
+      })
+      .mockRejectedValueOnce(saveError);
+
+    render(<SettingsView initialDataObj={{}} initialErrorObj={{}} />);
+    await screen.findByDisplayValue("데모");
+    fireEvent.click(screen.getAllByRole("button", { name: "저장" })[0]);
+
+    const alert = await screen.findByRole("alert");
+    expect(alert).toHaveTextContent("프로필 저장에 실패했습니다.");
+    expect(alert).toHaveTextContent("PROFILE_503_UNAVAILABLE");
+    expect(alert).toHaveTextContent("rid-profile-safe-1");
+    expect(alert).not.toHaveTextContent("private upstream detail must not render");
+  });
+
+  test("시스템 설정 저장 재시도 성공 시 이전 오류 alert를 제거한다", async () => {
+    const systemSaveError = Object.assign(new Error("private system detail"), {
+      code: "SYSTEM_503_UNAVAILABLE",
+      requestId: "rid-system-safe-1",
+    });
+    apiJSON
+      .mockResolvedValueOnce({
+        result: {
+          userId: "demo@demo.demo",
+          userNm: "데모",
+          userEml: "demo@demo.demo",
+          roleCd: "admin",
+          notifyEmail: false,
+          notifySms: false,
+          notifyPush: false,
+        },
+      })
+      .mockRejectedValueOnce(systemSaveError)
+      .mockResolvedValueOnce({ result: { saved: true } });
+
+    render(<SettingsView initialDataObj={{}} initialErrorObj={{}} />);
+    await screen.findByDisplayValue("데모");
+    const systemSaveButton = screen.getAllByRole("button", { name: "저장" })[1];
+
+    fireEvent.click(systemSaveButton);
+    expect(await screen.findByRole("alert")).toHaveTextContent("SYSTEM_503_UNAVAILABLE");
+
+    fireEvent.click(systemSaveButton);
+    await waitFor(() => expect(apiJSON).toHaveBeenCalledTimes(3));
+    await waitFor(() => expect(screen.queryByRole("alert")).toBeNull());
+  });
 });

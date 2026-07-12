@@ -156,10 +156,11 @@ const SettingsView = ({ initialDataObj, initialErrorObj }) => {
       showToast(LANG_KO.view.toast.profileSaved, { type: "success" });
     } catch (err) {
       ui.error = {
-        message: err?.message || LANG_KO.view.error.profileSaveFailed,
+        message: LANG_KO.view.error.profileSaveFailed,
+        code: err?.code,
         requestId: err?.requestId,
       };
-      showToast(err?.message || LANG_KO.view.error.profileSaveFailed, { type: "error" });
+      showToast(LANG_KO.view.error.profileSaveFailed, { type: "error" });
     } finally {
       ui.isSavingProfile = false;
     }
@@ -176,6 +177,7 @@ const SettingsView = ({ initialDataObj, initialErrorObj }) => {
       return;
     }
     ui.isSavingSystem = true;
+    ui.error = null;
     try {
       await apiJSON(pageApi.settingsUpdate, {
         method: "PUT",
@@ -189,7 +191,12 @@ const SettingsView = ({ initialDataObj, initialErrorObj }) => {
       });
       showToast(LANG_KO.view.toast.systemSaved, { type: "success" });
     } catch (err) {
-      showToast(err?.message || LANG_KO.view.error.systemSaveFailed, { type: "error" });
+      ui.error = {
+        message: LANG_KO.view.error.systemSaveFailed,
+        code: err?.code,
+        requestId: err?.requestId,
+      };
+      showToast(LANG_KO.view.error.systemSaveFailed, { type: "error" });
     } finally {
       ui.isSavingSystem = false;
     }
@@ -224,7 +231,8 @@ const SettingsView = ({ initialDataObj, initialErrorObj }) => {
     }
     if (currentError) {
       currentUi.error = {
-        message: currentError?.message || LANG_KO.view.error.profileLoadFailed,
+        message: LANG_KO.view.error.profileLoadFailed,
+        code: currentError?.code,
         requestId: currentError?.requestId,
       };
       currentUi.isLoadingProfile = false;
@@ -250,6 +258,11 @@ const SettingsView = ({ initialDataObj, initialErrorObj }) => {
             {ui.error.requestId && (
               <div className="mt-1 text-xs text-red-700/80">
                 {LANG_KO.view.error.requestIdLabel}: {ui.error.requestId}
+              </div>
+            )}
+            {ui.error.code && (
+              <div className="mt-1 text-xs text-red-700/80">
+                {LANG_KO.view.error.codeLabel}: {ui.error.code}
               </div>
             )}
           </div>

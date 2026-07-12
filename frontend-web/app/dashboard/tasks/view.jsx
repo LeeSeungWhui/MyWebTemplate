@@ -331,7 +331,8 @@ const TasksView = () => {
       currentTaskList.copy([]);
       currentTaskMetaObj.totalCount = 0;
       currentUi.error = {
-        message: err?.message || LANG_KO.view.error.listLoadFailed,
+        message: LANG_KO.view.error.listLoadFailed,
+        code: err?.code,
         requestId: err?.requestId,
       };
     } finally {
@@ -384,7 +385,7 @@ const TasksView = () => {
         description: taskDetailObj.description || "",
       };
     } catch (err) {
-      showToast(err?.message || LANG_KO.view.error.detailLoadFailed, { type: "error" });
+      showToast(LANG_KO.view.error.detailLoadFailed, { type: "error" });
       ui.isDrawerOpen = false;
     } finally {
       ui.isDrawerLoading = false;
@@ -463,9 +464,10 @@ const TasksView = () => {
         nextPage: isCreate ? 1 : ui.page,
       });
     } catch (err) {
-      showToast(err?.message || LANG_KO.view.error.saveFailed, { type: "error" });
+      showToast(LANG_KO.view.error.saveFailed, { type: "error" });
       ui.error = {
-        message: err?.message || LANG_KO.view.error.saveFailed,
+        message: LANG_KO.view.error.saveFailed,
+        code: err?.code,
         requestId: err?.requestId,
       };
     } finally {
@@ -509,9 +511,10 @@ const TasksView = () => {
         nextPage,
       });
     } catch (err) {
-      showToast(err?.message || LANG_KO.view.error.removeFailed, { type: "error" });
+      showToast(LANG_KO.view.error.removeFailed, { type: "error" });
       ui.error = {
-        message: err?.message || LANG_KO.view.error.removeFailed,
+        message: LANG_KO.view.error.removeFailed,
+        code: err?.code,
         requestId: err?.requestId,
       };
     }
@@ -559,6 +562,11 @@ const TasksView = () => {
             {ui.error.requestId && (
               <div className="mt-1 text-xs text-red-700/80">
                 {LANG_KO.view.error.requestIdLabel}: {ui.error.requestId}
+              </div>
+            )}
+            {ui.error.code && (
+              <div className="mt-1 text-xs text-red-700/80">
+                {LANG_KO.view.error.codeLabel}: {ui.error.code}
               </div>
             )}
           </div>

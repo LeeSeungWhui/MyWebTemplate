@@ -30,6 +30,7 @@ export const LANG_KO = {
       profileSaveFailed: "프로필 저장에 실패했습니다.",
       systemSaveFailed: "시스템 설정 저장에 실패했습니다.",
       requestIdLabel: "requestId",
+      codeLabel: "오류 코드",
     },
     validation: {
       nameMinLength: "이름은 2자 이상 입력해주세요.",

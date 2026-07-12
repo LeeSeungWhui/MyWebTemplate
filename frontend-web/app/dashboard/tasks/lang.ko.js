@@ -46,6 +46,7 @@ export const LANG_KO = {
       saveFailed: "업무 저장에 실패했습니다.",
       removeFailed: "업무 삭제에 실패했습니다.",
       requestIdLabel: "requestId",
+      codeLabel: "오류 코드",
     },
     validation: {
       titleRequired: "제목은 필수입니다.",

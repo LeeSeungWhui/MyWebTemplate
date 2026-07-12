@@ -1,4 +1,4 @@
-import { render, waitFor } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { vi } from "vitest";
 
 import TasksView from "@/app/dashboard/tasks/view";
@@ -61,14 +61,31 @@ vi.mock("@/app/lib/component/Drawer", () => ({
 
 vi.mock("@/app/lib/component/EasyTable", () => ({
   __esModule: true,
-  default: () => <div data-testid="table">table</div>,
+  default: ({ dataList = [] }) => (
+    <div data-testid="table">
+      {dataList.map((row) => <span key={row.id}>{row.title}</span>)}
+    </div>
+  ),
 }));
 
 vi.mock("@/app/lib/component/Input", () => ({
   __esModule: true,
-  default: ({ value = "", onChange, placeholder }) => (
-    <input value={value} onChange={onChange} placeholder={placeholder} readOnly={!onChange} />
-  ),
+  default: ({ value, dataObj, dataKey, onChange, placeholder }) => {
+    const readValue = () => {
+      if (value !== undefined) return value;
+      if (!dataObj || !dataKey) return "";
+      return dataKey.split(".").reduce((current, key) => current?.[key], dataObj) ?? "";
+    };
+    const handleChange = onChange || (dataObj && dataKey
+      ? (event) => {
+        const keyList = dataKey.split(".");
+        const lastKey = keyList.pop();
+        const targetObj = keyList.reduce((current, key) => current[key], dataObj);
+        targetObj[lastKey] = event.target.value;
+      }
+      : undefined);
+    return <input value={readValue()} onChange={handleChange} placeholder={placeholder} readOnly={!handleChange} />;
+  },
 }));
 
 vi.mock("@/app/lib/component/NumberInput", () => ({
@@ -85,15 +102,26 @@ vi.mock("@/app/lib/component/Pagination", () => ({
 
 vi.mock("@/app/lib/component/Select", () => ({
   __esModule: true,
-  default: ({ value = "", onChange, dataList = [] }) => (
-    <select value={value} onChange={onChange} disabled={!onChange}>
+  default: ({ value, dataObj, dataKey, onChange, dataList = [] }) => {
+    const selectedValue = value ?? (dataObj && dataKey ? dataKey.split(".").reduce((current, key) => current?.[key], dataObj) : "") ?? "";
+    const handleChange = onChange || (dataObj && dataKey
+      ? (event) => {
+        const keyList = dataKey.split(".");
+        const lastKey = keyList.pop();
+        const targetObj = keyList.reduce((current, key) => current[key], dataObj);
+        targetObj[lastKey] = event.target.value;
+      }
+      : undefined);
+    return (
+    <select value={selectedValue} onChange={handleChange} disabled={!handleChange}>
       {dataList.map((optionItemObj, index) => (
         <option key={`${String(optionItemObj?.value)}-${index}`} value={optionItemObj?.value}>
           {optionItemObj?.text || optionItemObj?.label || String(optionItemObj?.value)}
         </option>
       ))}
     </select>
-  ),
+    );
+  },
 }));
 
 vi.mock("@/app/lib/component/Textarea", () => ({
@@ -197,5 +225,56 @@ describe("tasks query state", () => {
     const requestSpec = apiJSON.mock.calls[0][0];
     const requestUrl = typeof requestSpec === "string" ? requestSpec : requestSpec.path;
     expect(requestUrl).toContain("status=pending");
+  });
+
+  test("검색 조작 후 query와 목록 API를 같은 조건으로 갱신한다", async () => {
+    render(<TasksView initialDataObj={{}} initialErrorObj={{}} />);
+
+    await waitFor(() => expect(apiJSON).toHaveBeenCalledTimes(1));
+    fireEvent.change(screen.getByPlaceholderText("제목/설명 검색"), {
+      target: { value: "회귀 검증" },
+    });
+    fireEvent.change(screen.getAllByRole("combobox")[0], {
+      target: { value: "running" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "검색" }));
+
+    await waitFor(() => expect(apiJSON).toHaveBeenCalledTimes(2));
+    const requestSpec = apiJSON.mock.calls[1][0];
+    const requestUrl = typeof requestSpec === "string" ? requestSpec : requestSpec.path;
+    expect(decodeURIComponent(requestUrl)).toContain("q=회귀+검증");
+    expect(requestUrl).toContain("status=running");
+    expect(replaceMock).toHaveBeenCalledWith(
+      "/dashboard/tasks?q=%ED%9A%8C%EA%B7%80+%EA%B2%80%EC%A6%9D&status=running",
+      { scroll: false },
+    );
+  });
+
+  test("신규 업무를 저장한 뒤 첫 페이지 목록을 재조회한다", async () => {
+    apiJSON
+      .mockResolvedValueOnce({ count: 0, result: { dataTemplateList: [], listMetaObj: { totalCount: 0 } } })
+      .mockResolvedValueOnce({ result: { id: 101 } })
+      .mockResolvedValueOnce({ count: 1, result: { dataTemplateList: [{ id: 101, title: "신규 업무" }], listMetaObj: { totalCount: 1 } } });
+
+    render(<TasksView initialDataObj={{}} initialErrorObj={{}} />);
+    await waitFor(() => expect(apiJSON).toHaveBeenCalledTimes(1));
+
+    fireEvent.click(screen.getByRole("button", { name: "업무 등록" }));
+    fireEvent.change(await screen.findByPlaceholderText("업무 제목을 입력해주세요"), {
+      target: { value: "신규 업무" },
+    });
+    fireEvent.click(screen.getByRole("button", { name: "저장" }));
+
+    await waitFor(() => expect(apiJSON).toHaveBeenCalledTimes(3));
+    expect(apiJSON.mock.calls[1][1]).toMatchObject({
+      method: "POST",
+      body: expect.objectContaining({ title: "신규 업무", status: "ready" }),
+    });
+    expect(apiJSON.mock.calls[1][0]).toMatchObject({ path: "/api/v1/dashboard" });
+    const readbackSpec = apiJSON.mock.calls[2][0];
+    const readbackUrl = typeof readbackSpec === "string" ? readbackSpec : readbackSpec.path;
+    expect(readbackUrl).toContain("/api/v1/dashboard?");
+    expect(readbackUrl).toContain("page=1");
+    expect(await screen.findByText("신규 업무")).toBeTruthy();
   });
 });
