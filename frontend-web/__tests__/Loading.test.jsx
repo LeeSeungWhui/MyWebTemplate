@@ -9,6 +9,12 @@ describe('Loading accessibility contract', () => {
     const loadingStatus = screen.getByRole('status');
     expect(loadingStatus).toHaveAttribute('aria-live', 'polite');
     expect(loadingStatus).toHaveAttribute('aria-busy', 'true');
+    expect(loadingStatus).toHaveClass('fixed', 'inset-0', 'backdrop-blur-sm');
     expect(loadingStatus).not.toBeEmptyDOMElement();
+    expect(loadingStatus.querySelector('span')).not.toBeEmptyDOMElement();
+
+    const spinner = loadingStatus.querySelector('svg');
+    expect(spinner).toHaveClass('animate-spin', 'text-zinc-600');
+    expect(spinner).toHaveAttribute('aria-hidden', 'true');
   });
 });

@@ -34,6 +34,12 @@ const cardGridClassMap = {
   6: 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4',
 };
 
+const normalizePaginationQuantity = (paginationQuantity, defaultPaginationQuantity = 1) => {
+  const numericPaginationQuantity = Number(paginationQuantity);
+  if (!Number.isFinite(numericPaginationQuantity)) return defaultPaginationQuantity;
+  return Math.max(1, Math.trunc(numericPaginationQuantity));
+};
+
 /**
  * @description 테이블/카드 UI와 페이지네이션을 제공하는 데이터 렌더링 컴포넌트.
  * 처리 규칙: variant/status/page 관련 props 조합으로 table/card/status 패널/페이지네이션 노출을 제어한다.
@@ -102,12 +108,16 @@ const EasyTable = forwardRef(function EasyTable(
     : cardGridClassMap[normalizedCardsPerRow];
 
   // 초기 페이지 계산
-  const initialPage = (typeof pageProp === 'number') ? pageProp : defaultPage;
+  const normalizedDefaultPage = normalizePaginationQuantity(defaultPage);
+  const initialPage = normalizePaginationQuantity(
+    (typeof pageProp === 'number') ? pageProp : normalizedDefaultPage,
+    normalizedDefaultPage,
+  );
 
   const [pageState, setPageState] = useState(initialPage);
-  const page = typeof pageProp === 'number' ? pageProp : pageState;
+  const pageSource = typeof pageProp === 'number' ? pageProp : pageState;
   const hasCompletedInitialPageSyncRef = useRef(false);
-  const lastSynchronizedPageRef = useRef(page);
+  const lastSynchronizedPageRef = useRef(initialPage);
 
   const resolvedListSource = dataList ?? data;
   const hasDataListShape = Boolean(resolvedListSource) && (Array.isArray(resolvedListSource) || typeof resolvedListSource.size === 'function');
@@ -116,10 +126,16 @@ const EasyTable = forwardRef(function EasyTable(
   else if (typeof resolvedListSource?.size === 'function') sourceRowCount = resolvedListSource.size();
   const hasServerTotal = totalProp != null;
   let totalRowCount = 0;
-  if (hasServerTotal) totalRowCount = totalProp;
+  if (hasServerTotal) {
+    const parsedTotalRowCount = Number(totalProp);
+    totalRowCount = Number.isFinite(parsedTotalRowCount)
+      ? Math.max(0, Math.trunc(parsedTotalRowCount))
+      : 0;
+  }
   else totalRowCount = sourceRowCount;
-  const effectivePageSize = Math.max(1, pageSize);
+  const effectivePageSize = normalizePaginationQuantity(pageSize, 10);
   const pageCount = Math.max(1, Math.ceil(totalRowCount / effectivePageSize));
+  const page = Math.min(normalizePaginationQuantity(pageSource), pageCount);
 
   /**
    * @description 비제어 모드에서 pageCount 축소 시 현재 page 상한 보정
@@ -127,8 +143,8 @@ const EasyTable = forwardRef(function EasyTable(
    */
   useEffect(() => {
     if (typeof pageProp === 'number') return;
-    if (page > pageCount) setPageState(pageCount);
-  }, [page, pageCount, pageProp]);
+    if (pageState !== page) setPageState(page);
+  }, [page, pageState, pageProp]);
 
   /**
    * @description hydration 후 URL query·persistKey에서 초기 page 복원
@@ -137,7 +153,7 @@ const EasyTable = forwardRef(function EasyTable(
   useEffect(() => {
     if (typeof pageProp === 'number') return;
     if (typeof window === 'undefined') return;
-    let nextPage = defaultPage;
+    let nextPage = normalizedDefaultPage;
     let pageFromParam = null;
     if (pageParam) {
       const pageSearchParams = new URLSearchParams(window.location.search);
@@ -158,8 +174,9 @@ const EasyTable = forwardRef(function EasyTable(
         }
       }
     }
-    setPageState((prevPage) => (prevPage === nextPage ? prevPage : nextPage));
-  }, [pageProp, pageParam, persistKey, persist, defaultPage]);
+    const normalizedNextPage = normalizePaginationQuantity(nextPage, normalizedDefaultPage);
+    setPageState((prevPage) => (prevPage === normalizedNextPage ? prevPage : normalizedNextPage));
+  }, [pageProp, pageParam, persistKey, persist, normalizedDefaultPage]);
 
   /**
    * @description 비제어 page 변경을 persistKey·pageParam URL에 동기화
@@ -180,11 +197,11 @@ const EasyTable = forwardRef(function EasyTable(
     }
     if (pageParam && typeof window !== 'undefined') {
       const pageUrlObj = new URL(window.location.href);
-      if (page === defaultPage) pageUrlObj.searchParams.delete(pageParam);
+      if (page === normalizedDefaultPage) pageUrlObj.searchParams.delete(pageParam);
       else pageUrlObj.searchParams.set(pageParam, String(page));
       window.history.replaceState(null, '', pageUrlObj.toString());
     }
-  }, [page, pageProp, persistKey, persist, pageParam, defaultPage]);
+  }, [page, pageProp, persistKey, persist, pageParam, normalizedDefaultPage]);
 
   const sliceStart = hasServerTotal ? 0 : (page - 1) * effectivePageSize;
   const sliceEnd = Math.min(sliceStart + effectivePageSize, sourceRowCount);
@@ -262,7 +279,9 @@ const EasyTable = forwardRef(function EasyTable(
    * @updated 2026-02-27
    */
   const onChangePage = (nextPage) => {
-    const targetPage = Math.max(1, Math.min(nextPage, pageCount));
+    const parsedNextPage = Number(nextPage);
+    const finiteNextPage = Number.isFinite(parsedNextPage) ? Math.trunc(parsedNextPage) : page;
+    const targetPage = Math.max(1, Math.min(finiteNextPage, pageCount));
     if (typeof pageProp === 'number') {
 
       // controlled 모드: 상위 onPageChange에 위임
@@ -286,8 +305,14 @@ const EasyTable = forwardRef(function EasyTable(
           <div
             key={rowKeyValue}
             role="row"
+            tabIndex={onRowClick ? 0 : undefined}
             className={`flex w-full items-center border-b border-slate-200/70 bg-white text-sm text-slate-700 transition-colors hover:bg-slate-100/50 ${rowClassName}`.trim()}
             onClick={onRowClick ? () => onRowClick(rowObj, globalIndex) : undefined}
+            onKeyDown={onRowClick ? (event) => {
+              if (event.key !== 'Enter' && event.key !== ' ') return;
+              event.preventDefault();
+              onRowClick(rowObj, globalIndex);
+            } : undefined}
           >
             {tableColumnList.map((columnMetaObj) => (
               <div
@@ -362,7 +387,7 @@ const EasyTable = forwardRef(function EasyTable(
   }
 
   return (
-    <div ref={ref} className={`w-full overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-slate-200/80 ${className}`.trim()} role="table" aria-busy={isBusy ? 'true' : undefined}>
+    <div ref={ref} className={`w-full overflow-hidden rounded-xl bg-white shadow-sm ring-1 ring-slate-200/80 ${className}`.trim()} role={variant === 'table' ? 'table' : undefined} aria-busy={isBusy ? 'true' : undefined}>
       {variant === 'table' ? (
         <>
           {hasMobileScrollHint ? (
@@ -394,9 +419,9 @@ const EasyTable = forwardRef(function EasyTable(
         </>
       ) : (
         statusPanel || (
-          <div className={resolvedGridClassName}>
+          <div className={resolvedGridClassName} role="list">
             {rowList.map((rowObj, rowIndex) => (
-              <div key={resolveRowKey(rowObj, (page - 1) * effectivePageSize + rowIndex)} className="w-full">
+              <div key={resolveRowKey(rowObj, (page - 1) * effectivePageSize + rowIndex)} className="w-full" role="listitem">
                 {typeof renderCard === 'function'
                   ? renderCard(rowObj, (page - 1) * effectivePageSize + rowIndex)
                   : <div className="rounded-lg bg-white p-4 shadow-sm ring-1 ring-slate-200/80">{COMMON_COMPONENT_LANG_KO.easyTable.noRenderCardProvided}</div>}

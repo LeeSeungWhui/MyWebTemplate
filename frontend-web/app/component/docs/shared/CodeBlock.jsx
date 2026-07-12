@@ -17,24 +17,43 @@ const CodeBlock = ({ code, language = 'jsx' }) => {
 
     const [copied, setCopied] = useState(false);
     const copyResetTimerRef = useRef(null);
+    const copyRequestIdRef = useRef(0);
+    const mountedRef = useRef(true);
 
     /**
      * @description 현재 코드 문자열을 클립보드에 복사하고 2초간 복사 완료 배지를 표시
      * @returns {void}
      * @updated 2026-02-27
      */
-    const handleCopy = () => {
-        navigator.clipboard.writeText(code);
-        setCopied(true);
-        clearTimeout(copyResetTimerRef.current);
-        copyResetTimerRef.current = setTimeout(() => setCopied(false), 2000);
+    const handleCopy = async () => {
+        const requestId = copyRequestIdRef.current + 1;
+        copyRequestIdRef.current = requestId;
+        try {
+            if (typeof globalThis.navigator?.clipboard?.writeText !== 'function') return;
+            await globalThis.navigator.clipboard.writeText(code);
+            if (!mountedRef.current || copyRequestIdRef.current !== requestId) return;
+            setCopied(true);
+            clearTimeout(copyResetTimerRef.current);
+            copyResetTimerRef.current = setTimeout(() => {
+                if (mountedRef.current) setCopied(false);
+            }, 2000);
+        } catch {
+            // 한글설명: 클립보드 권한 거부는 복사 성공으로 표시하지 않는다.
+        }
     };
 
     /**
      * @description 코드 블록 해제 시 복사 배지 reset 타이머를 정리
      * 처리 규칙: unmount 뒤 copied 상태 업데이트를 방지한다.
      */
-    useEffect(() => () => clearTimeout(copyResetTimerRef.current), []);
+    useEffect(() => {
+        mountedRef.current = true;
+        return () => {
+            mountedRef.current = false;
+            copyRequestIdRef.current += 1;
+            clearTimeout(copyResetTimerRef.current);
+        };
+    }, []);
 
     return (
         <div className="group w-full min-w-0 overflow-hidden rounded-lg bg-zinc-950 ring-1 ring-zinc-800/80">

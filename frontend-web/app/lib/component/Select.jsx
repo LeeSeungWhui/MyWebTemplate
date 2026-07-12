@@ -205,9 +205,8 @@ const Select = forwardRef(({
     return () => unsubscribe?.()
   }, [boundValue, dataKey, dataList, dataObj, defaultValue, isControlled, textKey, valueKey])
 
-  const normalizedStatus = disabled
-    ? 'disabled'
-    : statusProp || (error ? 'error' : 'default')
+  const normalizedStatus =
+    statusProp || (error ? 'error' : disabled ? 'disabled' : 'default')
   const statusMeta =
     STATUS_PRESETS[normalizedStatus] || STATUS_PRESETS.default
   const messageText =

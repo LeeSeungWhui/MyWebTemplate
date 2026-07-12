@@ -12,8 +12,8 @@ const iconPropList = [
     { name: 'icon', description: '세트 prefix와 아이콘 이름. 예: md:MdHome' },
     { name: 'size?', description: '아이콘 크기. 기본값 1em' },
     { name: 'color?', description: '직접 색상 지정' },
-    { name: 'ariaLabel?', description: '의미 있는 아이콘의 접근성 라벨' },
-    { name: 'decorative?', description: '장식 아이콘이면 true로 스크린리더 숨김' },
+    { name: 'ariaLabel?', description: '의미 있는 아이콘의 우선 접근성 라벨' },
+    { name: 'decorative?', description: '기본 true는 스크린리더에서 숨김. false면 role=img와 라벨을 제공' },
     { name: 'className?', description: 'Tailwind 색상/크기 클래스' },
 ];
 
@@ -67,7 +67,7 @@ const iconExampleSectionList = [
  */
 const IconDocs = () => {
     return <DocSection id="icons" title="3. 아이콘 (Icon)" description={<div className="space-y-4 rounded-xl bg-slate-50/80 p-5 text-sm text-slate-700 ring-1 ring-slate-900/5">
-                    <p>Icon 컴포넌트는 react-icons 세트를 하나의 API로 연결합니다. 의미 있는 아이콘은 ariaLabel을 제공하고, 장식 아이콘은 decorative 기본값으로 숨겨 UI 밀도를 안전하게 유지합니다.</p>
+                    <p>Icon 컴포넌트는 react-icons 세트를 하나의 API로 연결합니다. 장식 아이콘은 <code>decorative=true</code> 기본값으로 스크린리더에서 숨깁니다. 의미 있는 아이콘은 <code>decorative=false</code>로 설정하면 <code>role="img"</code>가 적용되며, 라벨은 <code>ariaLabel</code>을 우선 사용하고 없으면 <code>icon</code> 문자열을 대체 라벨로 사용합니다.</p>
                     <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
                         {iconPropList.map((propItem) => (
                             <div key={propItem.name} className="rounded-lg bg-white px-3 py-2 ring-1 ring-slate-200/80">

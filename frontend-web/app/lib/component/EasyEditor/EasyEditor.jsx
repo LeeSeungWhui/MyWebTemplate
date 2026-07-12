@@ -68,6 +68,13 @@ const alignmentList = [
 
 const EMPTY_EXTENSION_LIST = [];
 
+const escapeHtml = (value) => String(value ?? '')
+  .replaceAll('&', '&amp;')
+  .replaceAll('<', '&lt;')
+  .replaceAll('>', '&gt;')
+  .replaceAll('"', '&quot;')
+  .replaceAll("'", '&#39;');
+
 /**
  * @description Tiptap 기반 에디터 본문/툴바/업로드 동작을 통합해 렌더링. 입력/출력 계약을 함께 명시
  * 처리 규칙: readOnly/HTML 모드 상태에 따라 편집 가능 여부와 툴바 동작을 동기화한다.
@@ -129,7 +136,8 @@ const EasyEditor = ({
   const [uploadErrorText, setUploadErrorText] = useState('');
 
   const isHtmlMode = mode === 'html';
-  const toolbarDisabled = readOnly || isHtmlMode;
+  const interactionDisabled = readOnly || status === 'loading';
+  const toolbarDisabled = interactionDisabled || isHtmlMode;
 
   /**
    * @description html 모드 전환 시 editor HTML을 htmlDraft 상태에 동기화
@@ -148,8 +156,8 @@ const EasyEditor = ({
    */
   useEffect(() => {
     if (!editor) return;
-    editor.setEditable(!readOnly);
-  }, [editor, readOnly]);
+    editor.setEditable(!interactionDisabled);
+  }, [editor, interactionDisabled]);
 
   /**
    * @description htmlDraft 변경을 html 모드 editor 본문에 반영
@@ -230,8 +238,10 @@ const EasyEditor = ({
           ? { url: uploadResultObj, name: file.name }
           : { url: uploadResultObj.url, name: uploadResultObj.name ?? file.name };
         if (fileLinkObj?.url) {
+          const escapedFileUrl = escapeHtml(fileLinkObj.url);
+          const escapedFileName = escapeHtml(fileLinkObj.name);
           editor.chain().focus().insertContent(
-            `<a href="${fileLinkObj.url}" target="_blank" rel="noopener noreferrer" class="text-indigo-700 underline decoration-indigo-300 underline-offset-4">${fileLinkObj.name}</a>`
+            `<a href="${escapedFileUrl}" target="_blank" rel="noopener noreferrer" class="text-indigo-700 underline decoration-indigo-300 underline-offset-4">${escapedFileName}</a>`
           ).run();
         }
       } catch (error) {
@@ -339,6 +349,8 @@ const EasyEditor = ({
         </label>
       )}
       <div
+        data-status={status}
+        aria-busy={status === 'loading' ? 'true' : 'false'}
         className={clsx(
           'flex flex-col overflow-hidden rounded-xl border bg-white shadow-sm shadow-slate-950/5 ring-1 ring-slate-900/5 transition focus-within:ring-2 focus-within:ring-indigo-500/25 focus-within:ring-offset-2 focus-within:ring-offset-white',
           invalid ? 'border-rose-300 ring-rose-100 focus-within:ring-rose-500/30' : 'border-slate-200',
@@ -453,7 +465,7 @@ const EasyEditor = ({
                 label={COMMON_COMPONENT_LANG_KO.easyEditor.modeEditor}
                 active={mode === 'editor'}
                 onClick={() => setMode('editor')}
-                disabled={mode === 'editor'}
+                disabled={interactionDisabled || mode === 'editor'}
               >
                 Editor
               </ToolbarButton>
@@ -461,7 +473,7 @@ const EasyEditor = ({
                 label={COMMON_COMPONENT_LANG_KO.easyEditor.modeHtml}
                 active={mode === 'html'}
                 onClick={() => setMode('html')}
-                disabled={mode === 'html'}
+                disabled={interactionDisabled || mode === 'html'}
               >
                 HTML
               </ToolbarButton>
@@ -474,8 +486,8 @@ const EasyEditor = ({
           role="textbox"
           aria-multiline="true"
           aria-labelledby={label && !isHtmlMode ? labelId : undefined}
-          aria-invalid={invalid || undefined}
-          aria-readonly={readOnly || undefined}
+          aria-invalid={invalid || status === 'error' || undefined}
+          aria-readonly={interactionDisabled || undefined}
           aria-hidden={isHtmlMode ? 'true' : undefined}
           data-name={name}
           className={clsx('prose prose-slate max-w-none min-h-[200px] bg-white p-4 text-slate-900 outline-none', minHeightClassName, isHtmlMode && 'hidden')}
@@ -487,7 +499,7 @@ const EasyEditor = ({
             className="min-h-[200px] w-full border-t border-slate-200 bg-slate-950 p-4 font-mono text-sm text-slate-100 caret-indigo-300 outline-none placeholder:text-slate-500 disabled:cursor-not-allowed disabled:opacity-70"
             value={htmlDraft}
             onChange={(event) => setHtmlDraft(event.target.value)}
-            disabled={readOnly}
+            disabled={interactionDisabled}
           />
         )}
         <input
@@ -497,6 +509,7 @@ const EasyEditor = ({
           className="sr-only"
           tabIndex={-1}
           aria-hidden="true"
+          disabled={interactionDisabled}
           onChange={handleImageSelect}
         />
         <input
@@ -505,6 +518,7 @@ const EasyEditor = ({
           className="sr-only"
           tabIndex={-1}
           aria-hidden="true"
+          disabled={interactionDisabled}
           onChange={handleFileSelect}
         />
       </div>

@@ -4,9 +4,11 @@
  * 갱신일: 2026-05-31
  * 설명: Alert UI 컴포넌트 구현
  */
-import { useId } from 'react';
+import { useEffect, useId, useRef } from 'react';
 import Icon from './Icon';
 import Button from './Button';
+import { acquireOverlayBodyScrollLock } from './overlayBodyScroll';
+import { focusOverlay, registerOverlay, releaseOverlay } from './overlayStack';
 import { COMMON_COMPONENT_LANG_KO } from '@/app/common/i18n/lang.ko';
 
 /**
@@ -26,6 +28,45 @@ const Alert = ({
 
     const titleId = useId();
     const descriptionId = useId();
+    const dialogRef = useRef(null);
+
+    useEffect(() => {
+        const dialogElement = dialogRef.current;
+        const releaseBodyScrollLock = acquireOverlayBodyScrollLock();
+        const overlayEntry = registerOverlay(dialogElement, document.activeElement);
+        focusOverlay(overlayEntry);
+
+        return () => {
+            releaseBodyScrollLock();
+            releaseOverlay(overlayEntry);
+        };
+    }, []);
+
+    const handleDialogKeyDown = (event) => {
+        if (event.key !== 'Tab') {
+            return;
+        }
+
+        const focusableElementList = Array.from(dialogRef.current?.querySelectorAll(
+            'button:not([disabled]), [href], input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])'
+        ) || []);
+        if (focusableElementList.length === 0) {
+            event.preventDefault();
+            dialogRef.current?.focus();
+            return;
+        }
+
+        const firstFocusableElement = focusableElementList[0];
+        const lastFocusableElement = focusableElementList[focusableElementList.length - 1];
+        if (
+            focusableElementList.length === 1
+            || (event.shiftKey && document.activeElement === firstFocusableElement)
+            || (!event.shiftKey && document.activeElement === lastFocusableElement)
+        ) {
+            event.preventDefault();
+            (event.shiftKey ? lastFocusableElement : firstFocusableElement).focus();
+        }
+    };
 
     // 타입별 스타일 및 아이콘 설정
     const alertTypeMetaObj = {
@@ -60,10 +101,13 @@ const Alert = ({
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-500/70">
             <div
+                ref={dialogRef}
                 role="alertdialog"
                 aria-modal="true"
                 aria-labelledby={titleId}
                 aria-describedby={descriptionId}
+                tabIndex={-1}
+                onKeyDown={handleDialogKeyDown}
                 className={`
                 w-[calc(100vw-32px)] max-w-xl rounded-xl shadow-lg ring-1 ring-zinc-950/5 border ${alertTypeMetaObj[type]?.borderColor || alertTypeMetaObj.info.borderColor}
                 ${alertTypeMetaObj[type]?.bgColor || alertTypeMetaObj.info.bgColor} backdrop-blur-sm

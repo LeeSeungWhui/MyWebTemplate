@@ -8,6 +8,13 @@ import { forwardRef, useCallback, useEffect, useRef, useState } from 'react';
 import Icon from './Icon';
 import React from 'react';
 import { COMMON_LANG_KO } from '@/app/common/i18n/lang.ko';
+import { acquireOverlayBodyScrollLock } from './overlayBodyScroll';
+import {
+    claimOverlayEscape,
+    focusOverlay,
+    registerOverlay,
+    releaseOverlay,
+} from './overlayStack';
 
 /**
  * @description 를 렌더링. 입력/출력 계약을 함께 명시
@@ -103,11 +110,12 @@ const Modal = forwardRef(({
     left,
     className = '',
     children,
+    onKeyDown,
     ...props
 }, ref) => {
 
     const modalRef = useRef(null);
-    const lastFocusedRef = useRef(null);
+    const overlayEntryRef = useRef(null);
     const dragStartRef = useRef({ startX: 0, startY: 0 });
     const dragUserSelectRef = useRef({ isLocked: false, previousValue: '' });
     const modalFocusTimerRef = useRef(null);
@@ -132,26 +140,23 @@ const Modal = forwardRef(({
     useEffect(() => {
         if (!isOpen) return undefined;
 
-        const previousOverflow = document.body.style.overflow;
-        try { lastFocusedRef.current = document.activeElement; } catch {}
-        document.body.style.overflow = 'hidden';
+        const releaseBodyScrollLock = acquireOverlayBodyScrollLock();
+        const overlayEntry = registerOverlay(modalRef.current, document.activeElement);
+        overlayEntryRef.current = overlayEntry;
         clearTimeout(modalFocusTimerRef.current);
         modalFocusTimerRef.current = setTimeout(() => {
-            if (!modalRef.current) return;
-            const focusables = Array.from(modalRef.current.querySelectorAll(focusableSelector));
-            if (focusables.length) { try { focusables[0].focus(); } catch {} }
+            focusOverlay(overlayEntry);
         }, 0);
 
         return () => {
             clearTimeout(modalFocusTimerRef.current);
             modalFocusTimerRef.current = null;
-            document.body.style.overflow = previousOverflow;
+            releaseBodyScrollLock();
+            releaseOverlay(overlayEntry);
+            if (overlayEntryRef.current === overlayEntry) overlayEntryRef.current = null;
             if (dragUserSelectRef.current.isLocked) {
                 document.body.style.userSelect = dragUserSelectRef.current.previousValue;
                 dragUserSelectRef.current.isLocked = false;
-            }
-            if (lastFocusedRef.current && typeof lastFocusedRef.current.focus === 'function') {
-                try { lastFocusedRef.current.focus(); } catch {}
             }
         };
     }, [isOpen]);
@@ -201,7 +206,11 @@ const Modal = forwardRef(({
      * @updated 2026-02-27
      */
     const handleKeyDown = (keyboardEvent) => {
-            if (closeOnEsc && keyboardEvent.key === 'Escape') {
+            if (
+                closeOnEsc
+                && keyboardEvent.key === 'Escape'
+                && claimOverlayEscape(overlayEntryRef.current, keyboardEvent)
+            ) {
                 onClose?.();
                 setPosition(null);  // ESC로 닫을 때도 position 초기화
             }
@@ -322,11 +331,17 @@ const Modal = forwardRef(({
      * @updated 2026-05-31
      */
     const handleDialogKeyDown = (keyboardEvent) => {
+        onKeyDown?.(keyboardEvent);
+        if (keyboardEvent.defaultPrevented) return;
         if (keyboardEvent.key !== 'Tab') return;
 
         if (!modalRef.current) return;
         const focusables = Array.from(modalRef.current.querySelectorAll(focusableSelector));
-        if (!focusables.length) return;
+        if (!focusables.length) {
+            keyboardEvent.preventDefault();
+            try { modalRef.current.focus(); } catch {}
+            return;
+        }
 
         if (keyboardEvent.shiftKey) {
             if (document.activeElement === focusables[0]) {
@@ -369,6 +384,7 @@ const Modal = forwardRef(({
                 aria-modal="true"
                 aria-label={ariaLabel || (ariaLabelledBy ? undefined : '모달')}
                 aria-labelledby={ariaLabelledBy}
+                tabIndex={-1}
                 data-size={size}
                 data-state="open"
                 onMouseDown={handleMouseDown}

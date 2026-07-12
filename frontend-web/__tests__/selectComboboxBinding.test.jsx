@@ -249,6 +249,90 @@ describe('Select & Combobox binding contracts', () => {
     expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
   })
 
+  test('Select and Combobox preserve explicit loading status while disabled', () => {
+    render(
+      <>
+        <Select
+          dataList={[{ value: 'seoul', text: '서울' }]}
+          status="loading"
+          disabled
+        />
+        <Combobox
+          dataList={[{ value: 'seoul', text: '서울' }]}
+          status="loading"
+          disabled
+        />
+      </>,
+    )
+
+    const select = screen.getByRole('combobox')
+    const comboboxTrigger = screen.getByRole('button')
+    expect(select).toBeDisabled()
+    expect(select).toHaveAttribute('aria-busy', 'true')
+    expect(comboboxTrigger).toBeDisabled()
+    expect(comboboxTrigger).toHaveAttribute('aria-busy', 'true')
+    expect(screen.getAllByText('불러오는 중…')).toHaveLength(2)
+  })
+
+  test('Combobox remains non-interactive for disabled default status', () => {
+    render(
+      <Combobox
+        dataList={[{ value: 'seoul', text: '서울' }]}
+        disabled
+      />,
+    )
+
+    const triggerButton = screen.getByRole('button')
+    expect(triggerButton).toBeDisabled()
+    expect(triggerButton).not.toHaveAttribute('aria-busy')
+    fireEvent.click(triggerButton)
+    expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
+  })
+
+  test.each([
+    ['disabled', { disabled: true }],
+    ['loading', { status: 'loading' }],
+  ])('Combobox closes an open multi popup after a %s transition without mutating selection', (_label, transitionProps) => {
+    const handleValueChange = vi.fn()
+    const cityList = [
+      { value: 'seoul', text: '서울' },
+      { value: 'busan', text: '부산' },
+    ]
+    const comboElement = (props = {}) => (
+      <Combobox
+        dataList={cityList}
+        defaultValue={['seoul']}
+        multi
+        showSelectAll
+        onValueChange={handleValueChange}
+        {...props}
+      />
+    )
+    const { rerender } = render(comboElement())
+    const triggerButton = screen.getByRole('button', { name: /서울/ })
+
+    fireEvent.click(triggerButton)
+    const selectAllButton = screen.getByRole('button', { name: '전체' })
+    const busanOption = screen.getByRole('option', { name: '부산' })
+    expect(screen.getByRole('listbox')).toBeInTheDocument()
+
+    rerender(comboElement(transitionProps))
+    expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
+    expect(triggerButton).toBeDisabled()
+    expect(triggerButton).toHaveAttribute('aria-expanded', 'false')
+
+    fireEvent.click(selectAllButton)
+    fireEvent.click(busanOption)
+    expect(handleValueChange).not.toHaveBeenCalled()
+
+    rerender(comboElement())
+    const enabledTriggerButton = screen.getByRole('button', { name: /서울/ })
+    expect(enabledTriggerButton).not.toBeDisabled()
+    fireEvent.click(enabledTriggerButton)
+    expect(screen.getByRole('option', { name: '서울' })).toHaveAttribute('aria-selected', 'true')
+    expect(screen.getByRole('option', { name: '부산' })).toHaveAttribute('aria-selected', 'false')
+  })
+
   test('Select empty status surface default message with assertive aria-live', () => {
     render(
       <Select

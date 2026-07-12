@@ -50,6 +50,7 @@ import LANG_KO from "./lang.ko";
 
 const mobileTocFocusableSelector =
   'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])';
+export const MOBILE_TOC_DIALOG_ID = "component-catalog-mobile-toc-dialog";
 
 /**
  * @description 모바일 화면에서 모달형 목차를 렌더링하고 포커스·스크롤 잠금을 관리
@@ -123,6 +124,7 @@ export const MobileTableOfContents = ({ onClose, triggerRef }) => {
         tabIndex={-1}
       />
       <aside
+        id={MOBILE_TOC_DIALOG_ID}
         ref={panelRef}
         className="relative z-10 h-full w-72 max-w-[80vw] overflow-auto border-r border-zinc-200/80 bg-white p-4 shadow-xl ring-1 ring-zinc-950/5"
         role="dialog"
@@ -146,6 +148,28 @@ export const MobileTableOfContents = ({ onClose, triggerRef }) => {
     </div>
   );
 };
+
+/**
+ * @description 모바일 목차 다이얼로그의 열림 상태와 제어 관계를 노출하는 트리거
+ * @param {Object} props
+ * @param {boolean} props.isOpen
+ * @param {() => void} props.onOpen
+ * @param {React.RefObject<HTMLButtonElement | null>} props.triggerRef
+ * @returns {JSX.Element}
+ */
+export const MobileTableOfContentsTrigger = ({ isOpen, onOpen, triggerRef }) => (
+  <button
+    ref={triggerRef}
+    type="button"
+    onClick={onOpen}
+    className="rounded-md border border-zinc-200 px-3 py-1.5 text-sm font-medium text-zinc-700 hover:bg-zinc-50"
+    aria-label={LANG_KO.view.openTocAriaLabel}
+    aria-expanded={isOpen}
+    aria-controls={MOBILE_TOC_DIALOG_ID}
+  >
+    {LANG_KO.view.openTocLabel}
+  </button>
+);
 
 /**
  * @description 컴포넌트 문서 허브를 렌더링하고 모바일 TOC 열림 상태를 제어
@@ -211,17 +235,13 @@ const ComponentsView = ({
       <div className="min-w-0 flex-1 md:ml-64">
         <div className="sticky top-0 z-20 flex items-center justify-between border-b border-zinc-200/80 bg-white/95 px-4 py-3 backdrop-blur-sm md:hidden">
           <span className="text-base font-semibold tracking-tight text-zinc-950">{LANG_KO.view.mobileTitle}</span>
-          <button
-            ref={mobileTocTriggerRef}
-            type="button"
-            onClick={() => {
+          <MobileTableOfContentsTrigger
+            triggerRef={mobileTocTriggerRef}
+            isOpen={isMobileTocOpen}
+            onOpen={() => {
               ui.mobileTocOpen = true;
             }}
-            className="rounded-md border border-zinc-200 px-3 py-1.5 text-sm font-medium text-zinc-700 hover:bg-zinc-50"
-            aria-label={LANG_KO.view.openTocAriaLabel}
-          >
-            {LANG_KO.view.openTocLabel}
-          </button>
+          />
         </div>
 
         <div className="container mx-auto space-y-16 overflow-x-hidden px-4 py-6 md:px-8 md:py-8 [&_.grid>*]:min-w-0 [&_.grid]:min-w-0">

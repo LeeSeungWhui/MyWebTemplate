@@ -103,6 +103,11 @@ const CheckButton = React.forwardRef(({
 
         const bindingCtx = buildCtx({ dataKey: dataKeyName, dataObj, source: 'user', dirty: true, valid: null });
         event.target.value = isNewChecked;
+        Object.defineProperty(event, 'detail', {
+            value: { value: isNewChecked, ctx: bindingCtx },
+            configurable: true,
+            writable: true,
+        });
         fireValueHandlers({
             onChange,
             onValueChange,

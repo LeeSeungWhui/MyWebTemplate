@@ -85,6 +85,7 @@ const Dropdown = ({
   const [openState, setOpenState] = useState(defaultOpen);
   const [activeIndex, setActiveIndex] = useState(-1);
   const isOpen = typeof openProp === 'boolean' ? openProp : openState;
+  const isMenuOpen = isOpen && !disabled;
 
   /**
    * @description controlled 여부에 맞춰 open 상태를 갱신
@@ -114,14 +115,14 @@ const Dropdown = ({
   );
 
   useEffect(() => {
-    if (!isOpen || activeIndex < 0) return;
+    if (!isMenuOpen || activeIndex < 0) return;
     const activeButton = itemButtonRefList.current[activeIndex];
     if (activeButton && !activeButton.disabled) activeButton.focus();
-  }, [activeIndex, isOpen]);
+  }, [activeIndex, isMenuOpen]);
 
   useEffect(() => {
-    if (!isOpen && activeIndex !== -1) setActiveIndex(-1);
-  }, [activeIndex, isOpen]);
+    if (!isMenuOpen && activeIndex !== -1) setActiveIndex(-1);
+  }, [activeIndex, isMenuOpen]);
 
   /**
    * @description 항목 선택을 반영하고 목록 모델(selected)과 외부 콜백을 동기화
@@ -174,7 +175,7 @@ const Dropdown = ({
    * 처리 규칙: cleanup에서 keydown 리스너를 제거한다.
    */
   useEffect(() => {
-    if (!isOpen) return undefined;
+    if (!isMenuOpen) return undefined;
 
     /**
      * @description 열려 있는 메뉴에서 키보드 내비게이션 동작을 반영
@@ -221,7 +222,7 @@ const Dropdown = ({
       document.removeEventListener('keydown', handleDocKeyDown);
       document.removeEventListener('mousedown', handleDocMouseDown);
     };
-  }, [isOpen, optionList, activeIndex, handleItemActivate, setOpen]);
+  }, [isMenuOpen, optionList, activeIndex, handleItemActivate, setOpen]);
 
   const selectedItemList = [];
   for (const optionItemObj of optionList) {
@@ -255,19 +256,19 @@ const Dropdown = ({
       ref={rootRef}
       className={`relative inline-block ${className}`.trim()}
       onBlur={(event) => {
-        if (isOpen && !event.currentTarget.contains(event.relatedTarget)) setOpen(false);
+        if (isMenuOpen && !event.currentTarget.contains(event.relatedTarget)) setOpen(false);
       }}
     >
       <button
         ref={triggerButtonRef}
         type="button"
         aria-haspopup="menu"
-        aria-expanded={isOpen ? 'true' : 'false'}
+        aria-expanded={isMenuOpen ? 'true' : 'false'}
         disabled={disabled}
         onClick={(event) => {
           if (disabled) return;
           event.currentTarget.focus();
-          setOpen(!isOpen);
+          setOpen(!isMenuOpen);
         }}
         className={`inline-flex items-center justify-between gap-2 ${{
           lg: 'min-w-[200px] px-4 py-2.5 text-base',
@@ -283,11 +284,11 @@ const Dropdown = ({
         <Icon
           icon="hi:HiChevronDown"
           size="16px"
-          className={`${isOpen ? 'rotate-180' : ''} transition-transform text-gray-500 ${iconClassName}`.trim()}
+          className={`${isMenuOpen ? 'rotate-180' : ''} transition-transform text-gray-500 ${iconClassName}`.trim()}
         />
       </button>
 
-      {isOpen && (
+      {isMenuOpen && (
         <ul role="menu" className={`absolute z-30 min-w-56 bg-white border border-gray-200 ${rounded} ${elevation} ${{
           bottom: 'top-full mt-2',
           top: 'bottom-full mb-2',

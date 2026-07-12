@@ -18,7 +18,7 @@ const Card = ({
   ...props
 }) => {
 
-  const headingId = id ? `${id}-title` : undefined;
+  const headingId = id && title ? `${id}-title` : undefined;
   const hasHeader = Boolean(title || actions || subtitle);
   return (
     <div

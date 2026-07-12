@@ -5,7 +5,7 @@
  * 설명: TimeInput UI 컴포넌트 구현
  */
 
-import { forwardRef, useEffect, useId, useRef, useState } from 'react';
+import { forwardRef, useCallback, useEffect, useId, useRef, useState } from 'react';
 import { getBoundValue, setBoundValue, buildCtx, fireValueHandlers } from '../binding';
 import Icon from './Icon';
 import { COMMON_COMPONENT_LANG_KO } from '@/app/common/i18n/lang.ko';
@@ -59,6 +59,8 @@ const TimeInput = forwardRef(({
   const [innerValue, setInnerValue] = useState(defaultValue);
   const [timeText, setTimeText] = useState(() => (propValue ?? (isDataBound ? getBoundValue(dataObj, dataKey) : innerValue) ?? ''));
   const [isOpen, setIsOpen] = useState(false);
+  const [activeOptionIndex, setActiveOptionIndex] = useState(-1);
+  const isPickerOpen = isOpen && !disabled && !readOnly;
 
   /**
    * @description prop/data/inner 값 변경을 timeText 표시 문자열에 동기화
@@ -82,12 +84,14 @@ const TimeInput = forwardRef(({
    * @updated 2026-02-27
    */
   const commitTimeValue = (rawTimeValue, event) => {
+    if (disabled || readOnly) return false;
     setTimeText(rawTimeValue);
     if (!isPropControlled && !isDataBound) setInnerValue(rawTimeValue);
     if (isDataBound) setBoundValue(dataObj, dataKey, rawTimeValue);
     const bindingCtx = buildCtx({ dataKey, dataObj, source: 'user', dirty: true, valid: null });
     const nextEvent = event ? { ...event, target: { ...event.target, value: rawTimeValue } } : { target: { value: rawTimeValue } };
     fireValueHandlers({ onChange, onValueChange, value: rawTimeValue, ctx: bindingCtx, event: nextEvent });
+    return true;
   };
 
   let currentTimeValue = innerValue ?? '';
@@ -100,8 +104,10 @@ const TimeInput = forwardRef(({
   const generatedListboxId = useId();
   const listboxId = inputId ? `${inputId}_list` : `time_${generatedListboxId}_list`;
   const rootRef = useRef(null);
+  const optionRefList = useRef([]);
 
   const commitTimeDraft = (rawTimeValue, event) => {
+    if (disabled || readOnly) return false;
     if (!isTimeWithinBounds(rawTimeValue, min, max)) {
       setTimeText(currentTimeValue);
       return false;
@@ -119,6 +125,69 @@ const TimeInput = forwardRef(({
     if (isTimeWithinBounds(timeOption, min, max)) timeOptionList.push(timeOption);
   }
 
+  const getInitialActiveOptionIndex = () => {
+    if (timeOptionList.length === 0) return -1;
+    const selectedOptionIndex = timeOptionList.indexOf(currentTimeValue);
+    return selectedOptionIndex >= 0 ? selectedOptionIndex : 0;
+  };
+
+  const closeOptionList = useCallback(() => {
+    setIsOpen(false);
+    setActiveOptionIndex(-1);
+  }, []);
+
+  const handleInputKeyDown = (event) => {
+    if (disabled || readOnly) return;
+
+    if (event.key === 'Escape') {
+      closeOptionList();
+      return;
+    }
+
+    if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      if (!isOpen) {
+        setIsOpen(true);
+        setActiveOptionIndex(getInitialActiveOptionIndex());
+        return;
+      }
+      if (timeOptionList.length === 0) {
+        setActiveOptionIndex(-1);
+        return;
+      }
+      setActiveOptionIndex((previousIndex) =>
+        Math.min(timeOptionList.length - 1, previousIndex < 0 ? 0 : previousIndex + 1));
+      return;
+    }
+
+    if (isOpen && event.key === 'ArrowUp') {
+      event.preventDefault();
+      if (timeOptionList.length === 0) {
+        setActiveOptionIndex(-1);
+        return;
+      }
+      setActiveOptionIndex((previousIndex) =>
+        Math.max(0, previousIndex < 0 ? timeOptionList.length - 1 : previousIndex - 1));
+      return;
+    }
+
+    if (isOpen && (event.key === 'Home' || event.key === 'End')) {
+      event.preventDefault();
+      setActiveOptionIndex(timeOptionList.length === 0 ? -1 : event.key === 'Home' ? 0 : timeOptionList.length - 1);
+      return;
+    }
+
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      if (isOpen && activeOptionIndex >= 0 && activeOptionIndex < timeOptionList.length) {
+        commitTimeValue(timeOptionList[activeOptionIndex], event);
+      } else {
+        commitTimeDraft(event.currentTarget.value, event);
+      }
+      closeOptionList();
+    }
+  };
+
   /**
    * @description isOpen일 때 document mousedown으로 시간 패널 닫기 처리
    * 처리 규칙: cleanup에서 outside-click 리스너를 제거한다.
@@ -131,19 +200,33 @@ const TimeInput = forwardRef(({
      * 처리 규칙: rootRef 외부 mousedown 이벤트에서만 open=false를 반영한다.
      * @updated 2026-02-27
      */
-    const handleDocMouseDown = (event) => { if (rootRef.current && !rootRef.current.contains(event.target)) setIsOpen(false); };
+    const handleDocMouseDown = (event) => { if (rootRef.current && !rootRef.current.contains(event.target)) closeOptionList(); };
 
     /**
      * @description Escape 키 입력으로 시간 옵션 패널 닫기
      * 처리 규칙: key 값이 Escape일 때만 close 동작을 적용한다.
      * @updated 2026-02-27
      */
-    const handleDocKeyDown = (keyboardEvent) => { if (keyboardEvent.key === 'Escape') setIsOpen(false); };
+    const handleDocKeyDown = (keyboardEvent) => { if (keyboardEvent.key === 'Escape') closeOptionList(); };
 
     document.addEventListener('mousedown', handleDocMouseDown);
     document.addEventListener('keydown', handleDocKeyDown);
     return () => { document.removeEventListener('mousedown', handleDocMouseDown); document.removeEventListener('keydown', handleDocKeyDown); };
-  }, [isOpen]);
+  }, [closeOptionList, isOpen]);
+
+  useEffect(() => {
+    if (!isPickerOpen || activeOptionIndex < 0) return;
+    const activeOptionNode = optionRefList.current[activeOptionIndex];
+    if (typeof activeOptionNode?.scrollIntoView === 'function') {
+      activeOptionNode.scrollIntoView({ block: 'nearest' });
+    }
+  }, [activeOptionIndex, isPickerOpen]);
+
+  useEffect(() => {
+    if (!disabled && !readOnly) return;
+    closeOptionList();
+    setTimeText(currentTimeValue);
+  }, [closeOptionList, currentTimeValue, disabled, readOnly]);
 
   return (
     <div className={`relative ${className}`.trim()} ref={rootRef}>
@@ -157,56 +240,61 @@ const TimeInput = forwardRef(({
         max={max}
         step={step}
         placeholder={placeholder}
-        onChange={(event) => setTimeText(event.target.value)}
-        onKeyDown={(event) => {
-          if (event.key === 'Enter') {
-            event.preventDefault();
-            commitTimeDraft(event.currentTarget.value, event);
-            setIsOpen(false);
-          }
-          if (event.key === 'ArrowDown' && (event.altKey || !isOpen)) {
-            event.preventDefault();
-            setIsOpen(true);
-          }
-          if (event.key === 'Escape') setIsOpen(false);
+        onChange={(event) => {
+          if (!disabled && !readOnly) setTimeText(event.target.value);
         }}
+        onKeyDown={handleInputKeyDown}
         onBlur={(event) => commitTimeDraft(event.target.value, event)}
         disabled={disabled}
         readOnly={readOnly}
         role="combobox"
         aria-invalid={false}
         aria-haspopup="listbox"
-        aria-expanded={isOpen}
+        aria-expanded={isPickerOpen}
         aria-controls={listboxId}
+        aria-activedescendant={isPickerOpen && activeOptionIndex >= 0 ? `${listboxId}_option_${activeOptionIndex}` : undefined}
         {...props}
       />
       <button
         type="button"
         className="absolute inset-y-0 right-2 my-auto h-6 w-6 rounded hover:bg-gray-100 text-gray-500 flex items-center justify-center"
-        onClick={() => setIsOpen((wasOpen) => !wasOpen)}
+        onClick={() => {
+          if (isOpen) {
+            closeOptionList();
+            return;
+          }
+          setIsOpen(true);
+          setActiveOptionIndex(getInitialActiveOptionIndex());
+        }}
         aria-label={COMMON_COMPONENT_LANG_KO.timeInput.openPickerAriaLabel}
         disabled={disabled || readOnly}
       >
         <Icon icon="md:MdAccessTime" className="w-5 h-5" />
       </button>
-      {isOpen && (
+      {isPickerOpen && (
         <div className="absolute z-10 mt-1 w-40 max-h-64 overflow-auto rounded-lg border border-zinc-200/80 bg-white shadow-lg ring-1 ring-zinc-950/5 p-1" role="listbox" id={listboxId}>
-          {timeOptionList.map((timeOption) => (
+          {timeOptionList.map((timeOption, optionIndex) => (
             <button
               key={timeOption}
+              id={`${listboxId}_option_${optionIndex}`}
+              ref={(node) => { optionRefList.current[optionIndex] = node; }}
               type="button"
               role="option"
+              disabled={disabled || readOnly}
               aria-selected={timeOption === currentTimeValue}
-              className={`w-full px-2 py-1 text-left text-sm rounded cursor-pointer hover:bg-zinc-50 ${timeOption === currentTimeValue ? 'bg-zinc-100 text-zinc-900 font-medium ring-1 ring-inset ring-zinc-200/60' : 'text-zinc-900'}`}
+              className={`w-full px-2 py-1 text-left text-sm rounded cursor-pointer hover:bg-zinc-50 ${timeOption === currentTimeValue ? 'bg-zinc-100 text-zinc-900 font-medium ring-1 ring-inset ring-zinc-200/60' : 'text-zinc-900'} ${optionIndex === activeOptionIndex ? 'bg-indigo-50 ring-1 ring-inset ring-indigo-300' : ''}`}
+              onMouseEnter={() => setActiveOptionIndex(optionIndex)}
               onClick={() => {
+                if (disabled || readOnly) return;
                 commitTimeValue(timeOption);
-                setIsOpen(false);
+                closeOptionList();
               }}
               onKeyDown={(event) => {
                 if (event.key !== 'Enter' && event.key !== ' ') return;
                 event.preventDefault();
+                if (disabled || readOnly) return;
                 commitTimeValue(timeOption, event);
-                setIsOpen(false);
+                closeOptionList();
               }}
             >
               {timeOption}

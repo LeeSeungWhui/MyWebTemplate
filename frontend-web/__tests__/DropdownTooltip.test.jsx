@@ -182,6 +182,36 @@ describe('Dropdown keyboard and focus contracts', () => {
     expect(screen.queryByRole('menuitemcheckbox', { name: '일반 항목' })).not.toBeInTheDocument();
     expect(screen.getByRole('menuitem', { name: '일반 항목' })).not.toHaveAttribute('aria-checked');
   });
+
+  it('never exposes or operates a default-open or controlled-open menu while disabled', () => {
+    const handleOpenChange = vi.fn();
+    const { rerender } = render(
+      <Dropdown
+        dataList={[{ label: '숨김 항목', value: 'hidden' }]}
+        defaultOpen
+        disabled
+        onOpenChange={handleOpenChange}
+      />,
+    );
+    const triggerButton = screen.getByRole('button', { name: /선택/ });
+    expect(triggerButton).toBeDisabled();
+    expect(triggerButton).toHaveAttribute('aria-expanded', 'false');
+    expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+    fireEvent.keyDown(document, { key: 'ArrowDown' });
+    expect(handleOpenChange).not.toHaveBeenCalled();
+
+    rerender(
+      <Dropdown
+        dataList={[{ label: '숨김 항목', value: 'hidden' }]}
+        open
+        disabled
+        onOpenChange={handleOpenChange}
+      />,
+    );
+    expect(triggerButton).toHaveAttribute('aria-expanded', 'false');
+    expect(screen.queryByRole('menu')).not.toBeInTheDocument();
+    expect(handleOpenChange).not.toHaveBeenCalled();
+  });
 });
 
 describe('Tooltip dismissal and accessibility contracts', () => {
@@ -295,5 +325,45 @@ describe('Tooltip dismissal and accessibility contracts', () => {
       </Tooltip>,
     );
     expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
+  });
+
+  it.each([
+    ['top', 'bottom-full'],
+    ['bottom', 'top-full'],
+    ['left', 'right-full'],
+    ['right', 'left-full'],
+  ])('renders the documented %s placement after the configured delay', (placement, placementClass) => {
+    vi.useFakeTimers();
+    render(
+      <Tooltip content={`${placement} 도움말`} placement={placement} delay={25}>
+        <span>{placement} 트리거</span>
+      </Tooltip>,
+    );
+    fireEvent.mouseEnter(screen.getByText(`${placement} 트리거`));
+    act(() => vi.advanceTimersByTime(24));
+    expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
+    act(() => vi.advanceTimersByTime(1));
+    expect(screen.getByRole('tooltip')).toHaveClass(placementClass);
+  });
+
+  it('supports vertical text, custom root classes, focus trigger cleanup, and timer cleanup on unmount', () => {
+    vi.useFakeTimers();
+    const clearTimeoutSpy = vi.spyOn(globalThis, 'clearTimeout');
+    const { unmount } = render(
+      <Tooltip content="세로 도움말" trigger="focus" textDirection="tb" className="custom-root" delay={20}>
+        <span>포커스 트리거</span>
+      </Tooltip>,
+    );
+    const trigger = screen.getByText('포커스 트리거');
+    expect(trigger.closest('.custom-root')).toBeInTheDocument();
+    fireEvent.focus(trigger);
+    act(() => vi.advanceTimersByTime(20));
+    expect(screen.getByRole('tooltip')).toHaveClass('[writing-mode:vertical-rl]');
+    fireEvent.blur(trigger);
+    expect(screen.queryByRole('tooltip')).not.toBeInTheDocument();
+    fireEvent.focus(trigger);
+    unmount();
+    expect(clearTimeoutSpy).toHaveBeenCalled();
+    clearTimeoutSpy.mockRestore();
   });
 });

@@ -5,10 +5,22 @@
  * 설명: Skeleton UI 컴포넌트 구현
  */
 
+const MAX_SKELETON_TEXT_LINES = 100;
+
+const normalizeTextLineCount = (lines) => {
+  const numericLines = Number(lines);
+  if (!Number.isFinite(numericLines)) {
+    return 1;
+  }
+
+  return Math.min(MAX_SKELETON_TEXT_LINES, Math.max(1, Math.trunc(numericLines)));
+};
+
 const Skeleton = ({ className = '', variant = 'rect', lines = 1, circleSize = 40, ...props }) => {
 
+  const skeletonLineCount = normalizeTextLineCount(lines);
   const skeletonLineList = [];
-  for (let lineIndex = 0; lineIndex < Math.max(1, lines); lineIndex += 1) {
+  for (let lineIndex = 0; lineIndex < skeletonLineCount; lineIndex += 1) {
     skeletonLineList.push(lineIndex);
   }
 
@@ -36,7 +48,7 @@ const Skeleton = ({ className = '', variant = 'rect', lines = 1, circleSize = 40
     const circleSizeClassName = Number.isFinite(normalizedSize) && circleSizeClassMap[normalizedSize]
       ? circleSizeClassMap[normalizedSize]
       : circleSizeClassMap[40];
-    return <div className={`animate-pulse rounded-full bg-gray-200/70 ${circleSizeClassName}`} {...props}></div>;
+    return <div className={`animate-pulse rounded-full bg-gray-200/70 ${circleSizeClassName} ${className}`.trim()} {...props}></div>;
   }
   return <div className={`animate-pulse rounded bg-gray-200/70 ${className}`} {...props}></div>;
 };

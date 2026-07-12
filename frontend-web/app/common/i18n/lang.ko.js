@@ -165,6 +165,7 @@ export const COMMON_COMPONENT_LANG_KO = {
   dateInput: {
     weekdaysShort: ["일", "월", "화", "수", "목", "금", "토"],
     openDatePicker: "날짜 선택기 열기",
+    dialogAriaLabel: "날짜 선택 달력",
     prevMonth: "이전 달",
     nextMonth: "다음 달",
     yearSuffix: "년",

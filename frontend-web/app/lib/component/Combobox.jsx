@@ -265,11 +265,11 @@ const Combobox = forwardRef(({
   const rootRef = useRef(null)
   const triggerButtonRef = useRef(null)
 
-  const normalizedStatus = disabled
-    ? 'disabled'
-    : statusProp || (error ? 'error' : 'default')
+  const normalizedStatus =
+    statusProp || (error ? 'error' : disabled ? 'disabled' : 'default')
   const statusMeta = STATUS_PRESETS[normalizedStatus] || STATUS_PRESETS.default
-  const isInteractionDisabled = normalizedStatus === 'disabled' || normalizedStatus === 'loading'
+  const isInteractionDisabled = disabled || normalizedStatus === 'disabled' || normalizedStatus === 'loading'
+  const isPopupOpen = isOpen && !isInteractionDisabled
   const messageText =
     statusMessage ??
     statusMeta.defaultMessage ??
@@ -389,6 +389,13 @@ const Combobox = forwardRef(({
   }, [isOpen])
 
   useEffect(() => {
+    if (!isInteractionDisabled) return
+    setIsOpen(false)
+    setQuery('')
+    setActiveOptionIndex(-1)
+  }, [isInteractionDisabled])
+
+  useEffect(() => {
     if (activeOptionIndex >= filteredOptionList.length) setActiveOptionIndex(-1)
   }, [activeOptionIndex, filteredOptionList.length])
 
@@ -451,6 +458,7 @@ const Combobox = forwardRef(({
    * @updated 2026-02-27
    */
   const commitSelectionValue = (nextSelectionValue, event) => {
+    if (isInteractionDisabled) return false
     let normalizedValue = String(nextSelectionValue ?? '')
     if (multi) {
       normalizedValue = Array.from(
@@ -504,6 +512,7 @@ const Combobox = forwardRef(({
       ctx: bindingCtx,
       event: comboChangeEventObj,
     })
+    return true
   }
 
   /**
@@ -595,8 +604,8 @@ const Combobox = forwardRef(({
         }}
         onKeyDown={(event) => handleOptionNavigation(event, { restoreFocusOnSelect: true })}
         aria-haspopup="listbox"
-        aria-expanded={isOpen}
-        aria-controls={isOpen ? listboxId : undefined}
+        aria-expanded={isPopupOpen}
+        aria-controls={isPopupOpen ? listboxId : undefined}
         disabled={isInteractionDisabled}
         aria-invalid={normalizedStatus === 'error' ? true : undefined}
         aria-busy={normalizedStatus === 'loading' ? true : undefined}
@@ -617,7 +626,7 @@ const Combobox = forwardRef(({
         </span>
       </button>
 
-      {isOpen && (
+      {isPopupOpen && (
         <div className="absolute z-20 mt-1 w-full rounded-md border border-gray-200 bg-white shadow-lg">
           {(multi && showSelectAll) && (
             <div className="px-3 py-2 flex items-center justify-between text-sm border-b border-gray-200">
@@ -627,7 +636,9 @@ const Combobox = forwardRef(({
               <button
                 type="button"
                 className="px-2 py-0.5 text-xs rounded border border-gray-300 hover:bg-gray-50"
+                disabled={isInteractionDisabled}
                 onClick={() => {
+                  if (isInteractionDisabled) return
                   if (isAllSelected) commitSelectionValue([], null)
                   else
                     commitSelectionValue(
@@ -648,11 +659,13 @@ const Combobox = forwardRef(({
                 className="w-full px-2 py-1 text-sm rounded border border-zinc-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-950"
                 placeholder={COMMON_COMPONENT_LANG_KO.combobox.searchPlaceholder}
                 value={query}
+                disabled={isInteractionDisabled}
                 aria-autocomplete="list"
                 aria-controls={listboxId}
                 aria-expanded={isOpen}
                 aria-activedescendant={activeOptionId}
                 onChange={(changeEvent) => {
+                  if (isInteractionDisabled) return
                   setQuery(changeEvent.target.value)
                   setActiveOptionIndex(-1)
                 }}
@@ -684,14 +697,14 @@ const Combobox = forwardRef(({
                   id={`${listboxId}-option-${optionIndex}`}
                   role="option"
                   aria-selected={isSelected}
-                  aria-disabled={optionItem.disabled || undefined}
+                  aria-disabled={isInteractionDisabled || optionItem.disabled || undefined}
                   className={`px-3 py-2 text-sm ${optionItem.disabled ? 'cursor-not-allowed text-zinc-400' : 'cursor-pointer hover:bg-zinc-50'} ${
                     isSelected ? 'bg-zinc-100 text-zinc-900 font-medium ring-1 ring-inset ring-zinc-200/60' : 'text-zinc-900'
                   } ${
                     optionIndex === activeOptionIndex ? 'bg-zinc-50 ring-1 ring-inset ring-zinc-300' : ''
                   }`}
                   onMouseEnter={() => {
-                    if (!optionItem.disabled) setActiveOptionIndex(optionIndex)
+                    if (!isInteractionDisabled && !optionItem.disabled) setActiveOptionIndex(optionIndex)
                   }}
                   onClick={() => handleSelect(optionItem)}
                 >

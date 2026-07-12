@@ -77,6 +77,15 @@ const Tab = ({
         if (event) {
             event.target.value = index;
         }
+        try {
+            Object.defineProperty(emittedEvent, 'detail', {
+                value: { value: index, ctx: bindingCtx },
+                configurable: true,
+                writable: true,
+            });
+        } catch {
+            // 한글설명: 일부 합성 이벤트는 detail 재정의를 허용하지 않아 공통 핸들러 fallback에 맡긴다.
+        }
         fireValueHandlers({
             onChange,
             onValueChange,
@@ -152,7 +161,7 @@ const Tab = ({
             </div>
 
 
-            <div
+            {tabItemList.length > 0 && <div
                 id={`${tabIdPrefix}-panel-${currentTab}`}
                 role="tabpanel"
                 aria-labelledby={`${tabIdPrefix}-tab-${currentTab}`}
@@ -161,7 +170,7 @@ const Tab = ({
                     : 'rounded-xl bg-white p-5 text-sm text-slate-700 shadow-sm ring-1 ring-slate-200/80'}
             >
                 {tabItemList[currentTab]}
-            </div>
+            </div>}
         </div>
     );
 };

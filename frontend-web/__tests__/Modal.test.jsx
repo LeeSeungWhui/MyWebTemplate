@@ -148,4 +148,63 @@ describe('Modal a11y', () => {
     expect(document.body.style.userSelect).toBe('text');
     document.body.style.userSelect = '';
   });
+
+  it('focuses the dialog when it has no focusable child and keeps Tab inside', async () => {
+    render(
+      <Modal isOpen ariaLabel="빈 모달">
+        <Modal.Body>텍스트만 있음</Modal.Body>
+      </Modal>
+    );
+    const dialog = screen.getByRole('dialog', { name: '빈 모달' });
+    await waitFor(() => expect(dialog).toHaveFocus());
+    fireEvent.keyDown(dialog, { key: 'Tab' });
+    expect(dialog).toHaveFocus();
+  });
+
+  it('chains a consumer keydown handler without allowing props to replace the focus trap', () => {
+    const handleKeyDown = vi.fn();
+    render(
+      <Modal isOpen ariaLabel="키 이벤트" onKeyDown={handleKeyDown}>
+        <button type="button">처음</button>
+        <button type="button">끝</button>
+      </Modal>
+    );
+    const dialog = screen.getByRole('dialog', { name: '키 이벤트' });
+    const firstButton = screen.getByRole('button', { name: '처음' });
+    const lastButton = screen.getByRole('button', { name: '끝' });
+    lastButton.focus();
+    fireEvent.keyDown(dialog, { key: 'Tab' });
+    expect(handleKeyDown).toHaveBeenCalledTimes(1);
+    expect(firstButton).toHaveFocus();
+  });
+
+  it('respects close options and forwards size, position, class, and ref contracts', () => {
+    const handleClose = vi.fn();
+    const modalRef = React.createRef();
+    render(
+      <Modal
+        ref={modalRef}
+        isOpen
+        ariaLabel="옵션 모달"
+        size="xl"
+        top="20px"
+        left="30px"
+        className="custom-modal"
+        closeOnBackdrop={false}
+        closeOnEsc={false}
+        onClose={handleClose}
+      >
+        <Modal.Body>바디</Modal.Body>
+      </Modal>
+    );
+    const dialog = screen.getByRole('dialog', { name: '옵션 모달' });
+    expect(modalRef.current).toBe(dialog);
+    expect(dialog).toHaveAttribute('data-size', 'xl');
+    expect(dialog).toHaveClass('max-w-4xl', 'custom-modal');
+    expect(dialog.style.getPropertyValue('--modal-top')).toBe('20px');
+    expect(dialog.style.getPropertyValue('--modal-left')).toBe('30px');
+    fireEvent.click(dialog.parentElement);
+    fireEvent.keyDown(document, { key: 'Escape' });
+    expect(handleClose).not.toHaveBeenCalled();
+  });
 });

@@ -60,19 +60,30 @@ const Pagination = ({
   showEdges = true,
 }) => {
 
+  const parsedPageCount = Number(pageCount);
+  const parsedPage = Number(page);
+  const parsedMaxButtons = Number(maxButtons);
+  const resolvedPageCount = Number.isFinite(parsedPageCount)
+    ? Math.max(1, Math.trunc(parsedPageCount))
+    : 1;
+  const finitePage = Number.isFinite(parsedPage) ? Math.trunc(parsedPage) : 1;
+  const resolvedPage = Math.max(1, Math.min(finitePage, resolvedPageCount));
+  const resolvedMaxButtons = Number.isFinite(parsedMaxButtons)
+    ? Math.max(3, Math.trunc(parsedMaxButtons))
+    : 7;
   const tokenList = [];
 
-  if (pageCount <= maxButtons) {
-    for (let pageNo = 1; pageNo <= pageCount; pageNo += 1) {
+  if (resolvedPageCount <= resolvedMaxButtons) {
+    for (let pageNo = 1; pageNo <= resolvedPageCount; pageNo += 1) {
       tokenList.push(pageNo);
     }
   } else {
     const reservedEdgeCount = showEdges ? 2 : 0;
-    const windowSize = Math.max(3, maxButtons - reservedEdgeCount);
+    const windowSize = Math.max(3, resolvedMaxButtons - reservedEdgeCount);
     const startFloor = showEdges ? 2 : 1;
-    const endCeil = showEdges ? pageCount - 1 : pageCount;
+    const endCeil = showEdges ? resolvedPageCount - 1 : resolvedPageCount;
 
-    let windowStartPage = Math.max(startFloor, page - Math.floor((windowSize - 1) / 2));
+    let windowStartPage = Math.max(startFloor, resolvedPage - Math.floor((windowSize - 1) / 2));
     let windowEndPage = Math.min(endCeil, windowStartPage + windowSize - 1);
     windowStartPage = Math.max(startFloor, Math.min(windowStartPage, windowEndPage - windowSize + 1));
 
@@ -81,18 +92,20 @@ const Pagination = ({
     for (let pageNo = windowStartPage; pageNo <= windowEndPage; pageNo += 1) {
       tokenList.push(pageNo);
     }
-    if (showEdges && windowEndPage < pageCount - 1) tokenList.push('…');
-    if (showEdges) tokenList.push(pageCount);
+    if (showEdges && windowEndPage < resolvedPageCount - 1) tokenList.push('…');
+    if (showEdges) tokenList.push(resolvedPageCount);
   }
 
   const navClassName = 'rounded-full w-8 h-8 flex items-center justify-center text-gray-600 hover:text-gray-800 disabled:opacity-40 disabled:cursor-not-allowed';
 
   return (
     <div className={`inline-flex items-center gap-1 ${className}`} role="navigation" aria-label={COMMON_COMPONENT_LANG_KO.pagination.navigationAriaLabel}>
-      <button type="button" className={navClassName} onClick={() => onChange?.(1)} disabled={page === 1} aria-label={COMMON_COMPONENT_LANG_KO.pagination.firstPageAriaLabel}>
-        <DoubleArrow direction="left" />
-      </button>
-      <button type="button" className={navClassName} onClick={() => onChange?.(Math.max(1, page - 1))} disabled={page === 1} aria-label={COMMON_COMPONENT_LANG_KO.pagination.previousPageAriaLabel}>
+      {showEdges ? (
+        <button type="button" className={navClassName} onClick={() => onChange?.(1)} disabled={resolvedPage === 1} aria-label={COMMON_COMPONENT_LANG_KO.pagination.firstPageAriaLabel}>
+          <DoubleArrow direction="left" />
+        </button>
+      ) : null}
+      <button type="button" className={navClassName} onClick={() => onChange?.(Math.max(1, resolvedPage - 1))} disabled={resolvedPage === 1} aria-label={COMMON_COMPONENT_LANG_KO.pagination.previousPageAriaLabel}>
         <Arrow direction="left" />
       </button>
       {tokenList.map((pageToken, pageTokenIndex) => {
@@ -101,8 +114,8 @@ const Pagination = ({
             <button
               type="button"
               key={pageToken}
-              className={`rounded-full w-8 h-8 flex items-center justify-center text-sm transition-colors ${pageToken === page ? 'bg-zinc-900 text-zinc-50 font-semibold ring-1 ring-zinc-900' : 'text-zinc-700 hover:bg-zinc-100'}`}
-              aria-current={pageToken === page ? 'page' : undefined}
+              className={`rounded-full w-8 h-8 flex items-center justify-center text-sm transition-colors ${pageToken === resolvedPage ? 'bg-zinc-900 text-zinc-50 font-semibold ring-1 ring-zinc-900' : 'text-zinc-700 hover:bg-zinc-100'}`}
+              aria-current={pageToken === resolvedPage ? 'page' : undefined}
               onClick={() => onChange?.(pageToken)}
             >
               {pageToken}
@@ -111,12 +124,14 @@ const Pagination = ({
         }
         return <span key={`ellipsis-${pageTokenIndex}`} className="px-2 text-gray-400 select-none" aria-hidden>…</span>;
       })}
-      <button type="button" className={navClassName} onClick={() => onChange?.(Math.min(pageCount, page + 1))} disabled={page === pageCount} aria-label={COMMON_COMPONENT_LANG_KO.pagination.nextPageAriaLabel}>
+      <button type="button" className={navClassName} onClick={() => onChange?.(Math.min(resolvedPageCount, resolvedPage + 1))} disabled={resolvedPage === resolvedPageCount} aria-label={COMMON_COMPONENT_LANG_KO.pagination.nextPageAriaLabel}>
         <Arrow direction="right" />
       </button>
-      <button type="button" className={navClassName} onClick={() => onChange?.(pageCount)} disabled={page === pageCount} aria-label={COMMON_COMPONENT_LANG_KO.pagination.lastPageAriaLabel}>
-        <DoubleArrow direction="right" />
-      </button>
+      {showEdges ? (
+        <button type="button" className={navClassName} onClick={() => onChange?.(resolvedPageCount)} disabled={resolvedPage === resolvedPageCount} aria-label={COMMON_COMPONENT_LANG_KO.pagination.lastPageAriaLabel}>
+          <DoubleArrow direction="right" />
+        </button>
+      ) : null}
     </div>
   );
 };

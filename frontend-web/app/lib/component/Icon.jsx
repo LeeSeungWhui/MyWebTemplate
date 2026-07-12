@@ -54,9 +54,10 @@ const Icon = forwardRef(({
         return null;
     }
 
+    const accessibleLabel = typeof ariaLabel === 'string' && ariaLabel.trim() ? ariaLabel : icon;
     const a11y = decorative && !ariaLabel
         ? { 'aria-hidden': true }
-        : { role: 'img', 'aria-label': ariaLabel };
+        : { role: 'img', 'aria-label': accessibleLabel };
 
     return (
         <IconComponent
@@ -64,8 +65,8 @@ const Icon = forwardRef(({
             size={size}
             className={className}
             color={color}
-            {...a11y}
             {...props}
+            {...a11y}
         />
     );
 });

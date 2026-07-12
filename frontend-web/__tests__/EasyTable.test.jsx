@@ -7,6 +7,7 @@
 
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom";
+import { vi } from "vitest";
 import EasyTable from "../app/lib/component/EasyTable.jsx";
 
 const columns = [
@@ -161,6 +162,101 @@ describe("EasyTable", () => {
     expect(screen.getByRole("cell", { name: "사용자 4" })).toBeInTheDocument();
   });
 
+  it("uses one clamped controlled page for rows, indexes, pager, and shrinking data", () => {
+    const onRowClick = vi.fn();
+    const clientRows = [
+      ...data,
+      { id: 3, name: "사용자 3" },
+      { id: 4, name: "사용자 4" },
+      { id: 5, name: "사용자 5" },
+      { id: 6, name: "사용자 6" },
+    ];
+    const { rerender } = render(
+      <EasyTable
+        data={clientRows}
+        columns={columns}
+        page={99}
+        pageSize={2}
+        onRowClick={onRowClick}
+      />,
+    );
+
+    expect(screen.getByRole("cell", { name: "사용자 5" })).toBeInTheDocument();
+    expect(screen.getByRole("cell", { name: "사용자 6" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "3" })).toHaveAttribute("aria-current", "page");
+    fireEvent.click(screen.getByRole("cell", { name: "사용자 5" }).parentElement);
+    expect(onRowClick).toHaveBeenLastCalledWith(clientRows[4], 4);
+
+    rerender(
+      <EasyTable
+        data={clientRows.slice(0, 3)}
+        columns={columns}
+        page={99}
+        pageSize={2}
+        onRowClick={onRowClick}
+      />,
+    );
+    expect(screen.getByRole("cell", { name: "사용자 3" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "2" })).toHaveAttribute("aria-current", "page");
+    fireEvent.click(screen.getByRole("cell", { name: "사용자 3" }).parentElement);
+    expect(onRowClick).toHaveBeenLastCalledWith(clientRows[2], 2);
+  });
+
+  it("keeps a controlled server page consistent when total shrinks", () => {
+    const onRowClick = vi.fn();
+    const onPageChange = vi.fn();
+    const pageThreeRows = [
+      { id: 5, name: "사용자 5" },
+      { id: 6, name: "사용자 6" },
+    ];
+    const { rerender } = render(
+      <EasyTable
+        data={pageThreeRows}
+        columns={columns}
+        page={99}
+        pageSize={2}
+        total={6}
+        onRowClick={onRowClick}
+        onPageChange={onPageChange}
+      />,
+    );
+
+    expect(screen.getByRole("button", { name: "3" })).toHaveAttribute("aria-current", "page");
+    fireEvent.click(screen.getByRole("cell", { name: "사용자 5" }).parentElement);
+    expect(onRowClick).toHaveBeenLastCalledWith(pageThreeRows[0], 4);
+
+    const finalPageRows = [{ id: 3, name: "사용자 3" }];
+    rerender(
+      <EasyTable
+        data={finalPageRows}
+        columns={columns}
+        page={99}
+        pageSize={2}
+        total={3}
+        onRowClick={onRowClick}
+        onPageChange={onPageChange}
+      />,
+    );
+    expect(screen.getByRole("button", { name: "2" })).toHaveAttribute("aria-current", "page");
+    fireEvent.click(screen.getByRole("cell", { name: "사용자 3" }).parentElement);
+    expect(onRowClick).toHaveBeenLastCalledWith(finalPageRows[0], 2);
+  });
+
+  it("normalizes non-finite controlled pagination inputs", () => {
+    render(
+      <EasyTable
+        data={data}
+        columns={columns}
+        page={Infinity}
+        pageSize={Infinity}
+        total={Infinity}
+      />,
+    );
+
+    expect(screen.getByRole("cell", { name: "사용자 1" })).toBeInTheDocument();
+    expect(screen.queryByText("Infinity")).not.toBeInTheDocument();
+  });
+
   it("applies cardsPerRow through static responsive classes and preserves explicit overrides", () => {
     const renderCard = (row) => <article>{row.name}</article>;
     const { rerender } = render(
@@ -205,5 +301,47 @@ describe("EasyTable", () => {
     cardGrid = screen.getByText("사용자 1").parentElement.parentElement;
     expect(cardGrid).toHaveClass("custom-card-grid");
     expect(cardGrid).not.toHaveClass("grid", "xl:grid-cols-5");
+  });
+
+  it("activates clickable rows exactly once by click, Enter, and Space with the row payload", () => {
+    const onRowClick = vi.fn();
+    render(<EasyTable data={data} columns={columns} pageSize={2} onRowClick={onRowClick} />);
+
+    const firstRow = screen.getByRole("cell", { name: "사용자 1" }).parentElement;
+    expect(firstRow).toHaveAttribute("tabindex", "0");
+
+    fireEvent.click(firstRow);
+    expect(onRowClick).toHaveBeenLastCalledWith(data[0], 0);
+    expect(onRowClick).toHaveBeenCalledTimes(1);
+
+    fireEvent.keyDown(firstRow, { key: "Enter" });
+    expect(onRowClick).toHaveBeenLastCalledWith(data[0], 0);
+    expect(onRowClick).toHaveBeenCalledTimes(2);
+
+    fireEvent.keyDown(firstRow, { key: " " });
+    expect(onRowClick).toHaveBeenLastCalledWith(data[0], 0);
+    expect(onRowClick).toHaveBeenCalledTimes(3);
+  });
+
+  it("keeps non-clickable rows out of the tab order", () => {
+    render(<EasyTable data={data} columns={columns} pageSize={2} />);
+
+    const firstRow = screen.getByRole("cell", { name: "사용자 1" }).parentElement;
+    expect(firstRow).not.toHaveAttribute("tabindex");
+  });
+
+  it("uses list semantics for card mode without exposing a table role", () => {
+    render(
+      <EasyTable
+        data={data}
+        variant="card"
+        pageSize={2}
+        renderCard={(row) => <article>{row.name}</article>}
+      />,
+    );
+
+    expect(screen.queryByRole("table")).not.toBeInTheDocument();
+    expect(screen.getByRole("list")).toBeInTheDocument();
+    expect(screen.getAllByRole("listitem")).toHaveLength(2);
   });
 });

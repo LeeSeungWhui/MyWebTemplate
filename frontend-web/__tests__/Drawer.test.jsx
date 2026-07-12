@@ -96,4 +96,55 @@ describe("Drawer", () => {
     fireEvent.keyDown(dialog, { key: "Tab", code: "Tab", shiftKey: true });
     expect(lastButton).toHaveFocus();
   });
+
+  it.each([
+    ["right", "right-0", "translate-x-0", "resize-x"],
+    ["left", "left-0", "translate-x-0", "resize-x"],
+    ["top", "top-0", "translate-y-0", "resize-y"],
+    ["bottom", "bottom-0", "translate-y-0", "resize-y"],
+  ])("supports the documented %s side, size, resize, class, and ref contracts", (side, sideClass, transformClass, resizeClass) => {
+    const drawerRef = { current: null };
+    render(
+      <Drawer
+        ref={drawerRef}
+        isOpen
+        side={side}
+        size="custom-size"
+        resizable
+        className="custom-drawer"
+      >
+        내용
+      </Drawer>
+    );
+    const dialog = screen.getByRole("dialog", { name: "드로어" });
+    expect(drawerRef.current).toBe(dialog);
+    expect(dialog).toHaveAttribute("data-side", side);
+    expect(dialog).toHaveClass(sideClass, transformClass, resizeClass, "custom-size", "custom-drawer");
+  });
+
+  it("respects disabled close paths and chains consumer keydown before trapping focus", () => {
+    const handleClose = vi.fn();
+    const handleKeyDown = vi.fn((event) => event.preventDefault());
+    render(
+      <Drawer
+        isOpen
+        onClose={handleClose}
+        closeOnBackdrop={false}
+        closeOnEsc={false}
+        onKeyDown={handleKeyDown}
+      >
+        <button type="button">첫 액션</button>
+        <button type="button">마지막 액션</button>
+      </Drawer>
+    );
+    const dialog = screen.getByRole("dialog", { name: "드로어" });
+    const lastButton = screen.getByRole("button", { name: "마지막 액션" });
+    lastButton.focus();
+    fireEvent.keyDown(dialog, { key: "Tab" });
+    expect(handleKeyDown).toHaveBeenCalledTimes(1);
+    expect(lastButton).toHaveFocus();
+    fireEvent.click(dialog.previousElementSibling);
+    fireEvent.keyDown(document, { key: "Escape" });
+    expect(handleClose).not.toHaveBeenCalled();
+  });
 });

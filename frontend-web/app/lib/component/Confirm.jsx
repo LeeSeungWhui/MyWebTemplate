@@ -4,10 +4,12 @@
  * 갱신일: 2026-05-31
  * 설명: Confirm UI 컴포넌트 구현
  */
-import { useId } from 'react';
+import { useEffect, useId, useRef } from 'react';
 import Icon from './Icon';
 import Button from './Button';
 import { COMMON_COMPONENT_LANG_KO } from '@/app/common/i18n/lang.ko';
+import { acquireOverlayBodyScrollLock } from './overlayBodyScroll';
+import { focusOverlay, registerOverlay, releaseOverlay } from './overlayStack';
 
 /**
  * @description 확인/취소 액션이 필요한 시나리오를 위한 이중 버튼 확인 모달 컴포넌트.
@@ -29,6 +31,10 @@ const Confirm = ({
 
     const titleId = useId();
     const descriptionId = useId();
+    const dialogRef = useRef(null);
+    const focusTimerRef = useRef(null);
+    const focusableSelector =
+        'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])';
     const displayText = typeof text === 'string' ? text.replaceAll('\\n', '\n') : text;
     const confirmTypeMetaObj = {
         info: {
@@ -51,13 +57,52 @@ const Confirm = ({
         }
     };
 
+    useEffect(() => {
+        const releaseBodyScrollLock = acquireOverlayBodyScrollLock();
+        const overlayEntry = registerOverlay(dialogRef.current, document.activeElement);
+        focusTimerRef.current = setTimeout(() => {
+            focusOverlay(overlayEntry);
+        }, 0);
+
+        return () => {
+            clearTimeout(focusTimerRef.current);
+            focusTimerRef.current = null;
+            releaseBodyScrollLock();
+            releaseOverlay(overlayEntry);
+        };
+    }, []);
+
+    const handleDialogKeyDown = (keyboardEvent) => {
+        if (keyboardEvent.key !== 'Tab' || !dialogRef.current) return;
+        const focusables = Array.from(dialogRef.current.querySelectorAll(focusableSelector));
+        if (!focusables.length) {
+            keyboardEvent.preventDefault();
+            try { dialogRef.current.focus(); } catch {}
+            return;
+        }
+        const firstFocusable = focusables[0];
+        const lastFocusable = focusables[focusables.length - 1];
+        if (keyboardEvent.shiftKey && (document.activeElement === firstFocusable || document.activeElement === dialogRef.current)) {
+            keyboardEvent.preventDefault();
+            try { lastFocusable.focus(); } catch {}
+            return;
+        }
+        if (!keyboardEvent.shiftKey && document.activeElement === lastFocusable) {
+            keyboardEvent.preventDefault();
+            try { firstFocusable.focus(); } catch {}
+        }
+    };
+
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-500/70">
             <div
+                ref={dialogRef}
                 role="dialog"
                 aria-modal="true"
                 aria-labelledby={titleId}
                 aria-describedby={descriptionId}
+                tabIndex={-1}
+                onKeyDown={handleDialogKeyDown}
                 className={`
                 w-[calc(100vw-32px)] max-w-md rounded-xl shadow-lg ring-1 ring-zinc-950/5 border ${confirmTypeMetaObj[type]?.borderColor || confirmTypeMetaObj.info.borderColor}
                 ${confirmTypeMetaObj[type]?.bgColor || confirmTypeMetaObj.info.bgColor} backdrop-blur-sm

@@ -103,12 +103,14 @@ const DateInput = forwardRef(({
    * @updated 2026-02-27
    */
   const commitDateValue = (rawDateValue, event) => {
+    if (disabled || readOnly) return false;
     setDateText(rawDateValue);
     if (!isPropControlled && !isDataBound) setInnerValue(rawDateValue);
     if (isDataBound) setBoundValue(dataObj, dataKey, rawDateValue);
     const bindingCtx = buildCtx({ dataKey, dataObj, source: 'user', dirty: true, valid: null });
     const nextEvent = event ? { ...event, target: { ...event.target, value: rawDateValue } } : { target: { value: rawDateValue } };
     fireValueHandlers({ onChange, onValueChange, value: rawDateValue, ctx: bindingCtx, event: nextEvent });
+    return true;
   };
 
   let currentDateValue = innerValue ?? '';
@@ -128,6 +130,7 @@ const DateInput = forwardRef(({
   const [viewMonth, setViewMonth] = useState(() => (selectedDate?.getMonth() ?? new Date().getMonth())); // 0-11
 
   const commitDateDraft = (rawDateValue, event) => {
+    if (disabled || readOnly) return false;
     const parsedDate = parseDateText(rawDateValue);
     if (!isDateWithinBounds(parsedDate, minDate, maxDate)) {
       setDateText(currentDateValue);
@@ -144,6 +147,7 @@ const DateInput = forwardRef(({
    * @updated 2026-02-27
    */
   const changeMonth = (delta) => {
+    if (disabled || readOnly) return;
     let nextYear = viewYear;
     let nextMonth = viewMonth + delta;
     while (nextMonth < 0) {
@@ -205,6 +209,12 @@ const DateInput = forwardRef(({
     return () => { document.removeEventListener('mousedown', handleDocMouseDown); document.removeEventListener('keydown', handleDocKeyDown); };
   }, [isOpen]);
 
+  useEffect(() => {
+    if (!disabled && !readOnly) return;
+    setIsOpen(false);
+    setDateText(currentDateValue);
+  }, [currentDateValue, disabled, readOnly]);
+
   return (
     <div className={`relative ${className}`.trim()} ref={rootRef}>
       <input
@@ -216,8 +226,11 @@ const DateInput = forwardRef(({
         min={min}
         max={max}
         placeholder={placeholder}
-        onChange={(event) => setDateText(event.target.value)}
+        onChange={(event) => {
+          if (!disabled && !readOnly) setDateText(event.target.value);
+        }}
         onKeyDown={(event) => {
+          if (disabled || readOnly) return;
           if (event.key === 'Enter') {
             event.preventDefault();
             commitDateDraft(event.currentTarget.value, event);
@@ -245,8 +258,8 @@ const DateInput = forwardRef(({
       >
         <Icon icon="md:MdCalendarToday" className="h-4 w-4" />
       </button>
-      {isOpen && (
-        <div role="dialog" aria-modal="false" className="absolute z-10 mt-2 w-64 rounded-xl border border-slate-200 bg-white p-3 shadow-lg ring-1 ring-slate-900/5">
+      {isOpen && !disabled && !readOnly && (
+        <div role="dialog" aria-modal="false" aria-label={COMMON_COMPONENT_LANG_KO.dateInput.dialogAriaLabel} className="absolute z-10 mt-2 w-64 rounded-xl border border-slate-200 bg-white p-3 shadow-lg ring-1 ring-slate-900/5">
           <div className="mb-3 flex items-center justify-between">
             <button type="button" className="flex h-7 w-7 items-center justify-center rounded-md text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/20" onClick={() => changeMonth(-1)} aria-label={COMMON_COMPONENT_LANG_KO.dateInput.prevMonth}>
               <Icon icon="md:MdChevronLeft" className="w-5 h-5" />
@@ -275,8 +288,9 @@ const DateInput = forwardRef(({
                   key={dayDateText}
                   type="button"
                   className={dayButtonClassName}
-                  disabled={isDisabled}
+                  disabled={isDisabled || disabled || readOnly}
                   onClick={() => {
+                    if (disabled || readOnly) return;
                     commitDateValue(dayDateText);
                     setIsOpen(false);
                   }}

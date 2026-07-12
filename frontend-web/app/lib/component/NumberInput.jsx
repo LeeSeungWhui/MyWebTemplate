@@ -5,7 +5,7 @@
  * 설명: NumberInput UI 컴포넌트 구현
  */
 
-import { forwardRef, useEffect, useRef, useState } from 'react';
+import { forwardRef, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import Icon from './Icon';
 import { getBoundValue, setBoundValue, buildCtx, fireValueHandlers } from '../binding';
 
@@ -69,6 +69,9 @@ const NumberInput = forwardRef(({
     propValue ?? (isDataBound ? getBoundValue(dataObj, dataKey) : defaultValue) ?? ''
   ));
   const isEditingRef = useRef(false);
+  const currentStepValueRef = useRef(
+    propValue ?? (isDataBound ? getBoundValue(dataObj, dataKey) : defaultValue) ?? '',
+  );
 
   /**
    * @description 입력값을 정규화해 상태/바인딩/핸들러로 확정 반영
@@ -92,6 +95,7 @@ const NumberInput = forwardRef(({
     if (isAboveMax) nextValue = max;
     if (!isPropControlled && !isDataBound) setInnerValue(nextValue);
     if (isDataBound) setBoundValue(dataObj, dataKey, nextValue);
+    currentStepValueRef.current = nextValue;
     setDraftValue(nextValue);
     isEditingRef.current = false;
     const bindingCtx = buildCtx({ dataKey, dataObj, source: 'user', dirty: true, valid: null });
@@ -106,7 +110,7 @@ const NumberInput = forwardRef(({
    */
   const changeByStep = (stepDelta) => {
     if (disabled || readOnly) return;
-    let currentValue = isEditingRef.current ? draftValue : (innerValue ?? '');
+    let currentValue = isEditingRef.current ? draftValue : (currentStepValueRef.current ?? '');
     if (!isEditingRef.current && isPropControlled) currentValue = propValue ?? '';
     else if (!isEditingRef.current && isDataBound) currentValue = getBoundValue(dataObj, dataKey) ?? '';
     const baseNumber = currentValue === '' ? 0 : Number(currentValue) || 0;
@@ -118,9 +122,20 @@ const NumberInput = forwardRef(({
     commitNumberValue(nextValue);
   };
 
+  const changeByStepRef = useRef(changeByStep);
+  useEffect(() => {
+    changeByStepRef.current = changeByStep;
+  });
+
   const holdIntervalRef = useRef(null);
   const holdTimerRef = useRef(null);
+  const isMountedRef = useRef(false);
+  const isHoldLockedRef = useRef(disabled || readOnly);
   const [hasHeldStarted, setHasHeldStarted] = useState(false);
+
+  useLayoutEffect(() => {
+    isHoldLockedRef.current = disabled || readOnly;
+  }, [disabled, readOnly]);
 
   /**
    * @description 증감 버튼 long-press 반복 입력을 시작
@@ -133,8 +148,9 @@ const NumberInput = forwardRef(({
     setHasHeldStarted(false);
     holdTimerRef.current = setTimeout(() => {
       setHasHeldStarted(true);
-      changeByStep(stepDelta);
-      holdIntervalRef.current = setInterval(() => changeByStep(stepDelta), 120);
+      changeByStepRef.current(stepDelta);
+      if (!isMountedRef.current || isHoldLockedRef.current) return;
+      holdIntervalRef.current = setInterval(() => changeByStepRef.current(stepDelta), 120);
     }, 300);
   };
 
@@ -150,13 +166,26 @@ const NumberInput = forwardRef(({
     holdTimerRef.current = null;
   };
 
+  useEffect(() => {
+    if (!disabled && !readOnly) return;
+    clearInterval(holdIntervalRef.current);
+    clearTimeout(holdTimerRef.current);
+    holdIntervalRef.current = null;
+    holdTimerRef.current = null;
+    setHasHeldStarted(false);
+  }, [disabled, readOnly]);
+
   /**
    * @description 컴포넌트 해제 시 long-press 타이머를 정리
    * 처리 규칙: pending timeout/interval이 unmount 뒤 상태를 갱신하지 못하게 차단한다.
    */
-  useEffect(() => () => {
-    clearInterval(holdIntervalRef.current);
-    clearTimeout(holdTimerRef.current);
+  useEffect(() => {
+    isMountedRef.current = true;
+    return () => {
+      isMountedRef.current = false;
+      clearInterval(holdIntervalRef.current);
+      clearTimeout(holdTimerRef.current);
+    };
   }, []);
 
   let currentNumberValue = innerValue ?? '';
@@ -167,7 +196,10 @@ const NumberInput = forwardRef(({
   }
 
   useEffect(() => {
-    if (!isEditingRef.current) setDraftValue(currentNumberValue);
+    if (!isEditingRef.current) {
+      currentStepValueRef.current = currentNumberValue;
+      setDraftValue(currentNumberValue);
+    }
   }, [currentNumberValue]);
 
   const inputId = id || (dataKey ? `num_${String(dataKey).replace(/[^a-zA-Z0-9_]+/g, '_')}` : undefined);
@@ -202,6 +234,10 @@ const NumberInput = forwardRef(({
           setDraftValue(currentNumberValue);
         }}
         onChange={(event) => {
+          if (disabled || readOnly) {
+            event.currentTarget.value = currentNumberValue;
+            return;
+          }
           const nextInputValue = event.target.value;
           if (nextInputValue === '' || /^-?\d*(?:\.\d*)?$/.test(nextInputValue)) {
             isEditingRef.current = true;
@@ -209,13 +245,22 @@ const NumberInput = forwardRef(({
           }
         }}
         onKeyDown={(event) => {
+          if (disabled || readOnly) return;
           if (event.key === 'Enter') { event.preventDefault(); commitNumberValue(event.currentTarget.value, event); }
           if (event.key === 'ArrowUp') { event.preventDefault(); changeByStep(+step); }
           if (event.key === 'ArrowDown') { event.preventDefault(); changeByStep(-step); }
           if (event.key === 'PageUp') { event.preventDefault(); changeByStep(+step * 10); }
           if (event.key === 'PageDown') { event.preventDefault(); changeByStep(-step * 10); }
         }}
-        onBlur={(event) => commitNumberValue(event.target.value, event)}
+        onBlur={(event) => {
+          if (disabled || readOnly) {
+            isEditingRef.current = false;
+            event.currentTarget.value = currentNumberValue;
+            setDraftValue(currentNumberValue);
+            return;
+          }
+          commitNumberValue(event.target.value, event);
+        }}
         className="block w-full h-10 flex-1 rounded-md border border-zinc-200 bg-white px-3 text-sm shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-0 focus-visible:border-zinc-900 focus-visible:ring-zinc-950"
         disabled={disabled}
         readOnly={readOnly}

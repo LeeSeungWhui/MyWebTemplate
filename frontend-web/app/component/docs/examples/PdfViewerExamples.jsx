@@ -13,13 +13,14 @@ import { useState } from 'react';
  */
 const LocalPdfDemo = () => {
   const [localFile, setLocalFile] = useState(null);
+  const inputId = 'pdf-local-file-input';
 
   return <div className="space-y-4">
       <div className="rounded-xl bg-white p-4 shadow-sm ring-1 ring-slate-900/5">
-        <label className="block text-sm font-semibold text-slate-700">
+        <label htmlFor={inputId} className="block text-sm font-semibold text-slate-700">
           로컬 PDF 파일
         </label>
-        <input className="mt-2 block w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-600 file:mr-3 file:rounded-md file:border-0 file:bg-indigo-50 file:px-3 file:py-1.5 file:text-sm file:font-semibold file:text-indigo-700 hover:file:bg-indigo-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/20" type="file" accept="application/pdf" onChange={event => setLocalFile(event.target.files?.[0] ?? null)} />
+        <input id={inputId} className="mt-2 block w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-600 file:mr-3 file:rounded-md file:border-0 file:bg-indigo-50 file:px-3 file:py-1.5 file:text-sm file:font-semibold file:text-indigo-700 hover:file:bg-indigo-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/20" type="file" accept="application/pdf" onChange={event => setLocalFile(event.target.files?.[0] ?? null)} />
       </div>
       {localFile && <Lib.PdfViewer src={localFile} />}
     </div>;
@@ -31,13 +32,14 @@ const LocalPdfDemo = () => {
  */
 const RemotePdfDemo = () => {
   const [remoteUrl, setRemoteUrl] = useState('');
+  const inputId = 'pdf-remote-url-input';
 
   return <div className="space-y-4">
       <div className="rounded-xl bg-white p-4 shadow-sm ring-1 ring-slate-900/5">
-        <label className="block text-sm font-semibold text-slate-700">
+        <label htmlFor={inputId} className="block text-sm font-semibold text-slate-700">
           원격 PDF URL
         </label>
-        <input className="mt-2 h-10 w-full max-w-xl rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-700 shadow-sm transition focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20" placeholder="https://example.com/sample.pdf" value={remoteUrl} onChange={event => setRemoteUrl(event.target.value)} />
+        <input id={inputId} className="mt-2 h-10 w-full max-w-xl rounded-lg border border-slate-200 bg-white px-3 text-sm text-slate-700 shadow-sm transition focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/20" placeholder="https://example.com/sample.pdf" value={remoteUrl} onChange={event => setRemoteUrl(event.target.value)} />
       </div>
       {remoteUrl && <Lib.PdfViewer src={remoteUrl} />}
     </div>;

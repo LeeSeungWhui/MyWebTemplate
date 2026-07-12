@@ -17,6 +17,10 @@ const cardPropList = [
   { name: 'actions?', description: '헤더 우측 액션 요소' },
   { name: 'footer?', description: '하단 푸터 콘텐츠' },
   { name: 'className?', description: '추가 Tailwind 클래스' },
+  { name: 'id?', description: '카드 식별자. title과 함께 사용하면 제목 기반 aria-labelledby를 연결' },
+  { name: 'headerClassName?', description: '헤더 영역에 추가할 클래스' },
+  { name: 'bodyClassName?', description: '본문 영역에 추가할 클래스' },
+  { name: 'footerClassName?', description: '푸터 영역에 추가할 클래스' },
 ];
 
 const cardExampleSectionList = [
@@ -57,6 +61,7 @@ const cardExampleSectionList = [
 const CardDocs = () => {
   return <DocSection id="cards" title="25. 카드 (Card)" description={<div className="space-y-4 rounded-xl bg-slate-50/80 p-5 text-sm text-slate-700 ring-1 ring-slate-900/5">
           <p className="text-slate-700">헤더, 본문, 푸터를 한 번에 묶는 기본 컨테이너 컴포넌트입니다. 대시보드 요약, 설정 패널, 동작 카드처럼 반복되는 정보 블록을 정돈된 흰색 카드로 표현합니다.</p>
+          <p className="text-xs text-slate-500"><code>id</code>와 <code>title</code>을 함께 전달하면 카드가 생성된 제목 id를 <code>aria-labelledby</code>로 참조합니다. 제목이 없으면 깨진 참조를 만들지 않도록 <code>aria-labelledby</code>도 생략됩니다.</p>
           <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
             {cardPropList.map((propItem) => (
               <div key={propItem.name} className="rounded-lg bg-white px-3 py-2 ring-1 ring-slate-200/80">

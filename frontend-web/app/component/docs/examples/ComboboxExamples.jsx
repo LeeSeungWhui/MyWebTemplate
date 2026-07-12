@@ -31,7 +31,7 @@ const BasicComboDemo = () => {
     }
   });
 
-  return <Lib.Combobox id="combobox-bound" dataList={cityList} dataObj={profileDataObj.address} dataKey="city" placeholder="도시 선택" status="success" statusMessage={`선택 도시: ${profileDataObj.address.city}`} />;
+  return <Lib.Combobox id="combobox-basic-control" dataList={cityList} dataObj={profileDataObj.address} dataKey="city" placeholder="도시 선택" status="success" statusMessage={`선택 도시: ${profileDataObj.address.city}`} />;
 };
 
 /**
@@ -86,7 +86,7 @@ const MultiComboDemo = () => {
     }
   });
 
-  return <Lib.Combobox id="combobox-multi" dataList={cityList} dataObj={profileDataObj.address} dataKey="favorites" multi multiSummary showSelectAll summaryText="{count}개 도시 선택" placeholder="좋아하는 도시 선택" status="warning" statusMessage="다중 선택 (EasyList selected와 연결된 값 동시 반영)" />;
+  return <Lib.Combobox id="combobox-multi-control" dataList={cityList} dataObj={profileDataObj.address} dataKey="favorites" multi multiSummary showSelectAll summaryText="{count}개 도시 선택" placeholder="좋아하는 도시 선택" status="warning" statusMessage="다중 선택 (EasyList selected와 연결된 값 동시 반영)" />;
 };
 
 /**

@@ -151,20 +151,32 @@ const EasyChart = ({
     .filter((seriesItemObj) => seriesItemObj.key);
 
   const resolvedDataList = readChartList(dataSource);
-  const chartCellIndexList = [];
-  for (let dataIndex = 0; dataIndex < resolvedDataList.length; dataIndex += 1) {
-    chartCellIndexList.push(dataIndex);
-  }
-
   const hasSeries = resolvedSeries.length > 0;
   const chartType = resolvedSeries[0]?.type || type;
   const isPie = chartType === "pie";
   const isDonut = chartType === "donut";
+  const isExplicitEmpty = status === "empty";
   const isEmpty = resolvedDataList.length === 0 || status === "empty";
   const isLoading = loading || status === "loading";
   const isError = status === "error";
   const isComposed = resolvedSeries.some((seriesItem) => seriesItem.type && seriesItem.type !== type);
   const pieValueKey = resolvedSeries[0]?.key;
+  const hasMultiplePieSeries = (isPie || isDonut) && resolvedSeries.length > 1;
+  const pieDataList = hasMultiplePieSeries
+    ? resolvedSeries.map((seriesItem) => ({
+        __easyChartColor: seriesItem.color,
+        __easyChartName: seriesItem.name || seriesItem.key,
+        __easyChartValue: resolvedDataList.reduce((seriesTotal, dataItemObj) => {
+          const rawValue = typeof dataItemObj?.get === "function"
+            ? dataItemObj.get(seriesItem.key)
+            : dataItemObj?.[seriesItem.key];
+          const numericValue = Number(rawValue);
+          return Number.isFinite(numericValue) ? seriesTotal + numericValue : seriesTotal;
+        }, 0),
+      }))
+    : resolvedDataList;
+  const pieRenderValueKey = hasMultiplePieSeries ? "__easyChartValue" : pieValueKey;
+  const pieRenderNameKey = hasMultiplePieSeries ? "__easyChartName" : xKey;
   const hasHostSize = hostSize.width > 0 && hostSize.height > 0;
   const resolvedLegendFontSize = Number.isFinite(Number(legendFontSize))
     ? Math.max(10, Number(legendFontSize))
@@ -332,7 +344,7 @@ const EasyChart = ({
   let bodyContent = null;
   if (isLoading) {
     bodyContent = (
-      <div className="space-y-4" aria-live="polite">
+      <div className="space-y-4" role="status" aria-live="polite" aria-busy="true">
         <Skeleton variant="text" lines={2} />
         <Skeleton className="h-40 w-full rounded-lg" />
       </div>
@@ -347,6 +359,13 @@ const EasyChart = ({
           COMMON_COMPONENT_LANG_KO.easyChart.loadFailed}
       </div>
     );
+  } else if (isExplicitEmpty) {
+    bodyContent =
+      typeof empty === "string" ? (
+        <Empty title={empty} className="bg-slate-50" />
+      ) : (
+        empty
+      );
   } else if (!hasSeries) {
     bodyContent = (
       <div
@@ -368,7 +387,7 @@ const EasyChart = ({
         empty
       );
   } else if (isPie || isDonut) {
-    if (!pieValueKey) {
+    if (!pieRenderValueKey) {
       bodyContent = (
         <div
           className="rounded-xl bg-amber-50 px-4 py-3 text-sm font-medium text-amber-700 ring-1 ring-amber-200/80"
@@ -406,9 +425,9 @@ const EasyChart = ({
                 />
               )}
               <Pie
-                data={resolvedDataList}
-                dataKey={pieValueKey}
-                nameKey={xKey}
+                data={pieDataList}
+                dataKey={pieRenderValueKey}
+                nameKey={pieRenderNameKey}
                 innerRadius={isDonut ? "55%" : undefined}
                 outerRadius={resolvedPieOuterRadius}
                 paddingAngle={isDonut ? 3 : 0}
@@ -429,10 +448,11 @@ const EasyChart = ({
                   );
                 } : false}
               >
-                {chartCellIndexList.map((dataIndex) => (
+                {pieDataList.map((pieDataItemObj, dataIndex) => (
                   <Cell
                     key={`cell-${dataIndex}`}
                     fill={
+                      pieDataItemObj?.__easyChartColor ||
                       resolvedSeries[dataIndex]?.color ||
                       chartColorList[dataIndex % chartColorList.length]
                     }

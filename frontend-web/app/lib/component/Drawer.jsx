@@ -6,6 +6,13 @@
  */
 import { forwardRef, useEffect, useRef } from 'react';
 import Icon from './Icon';
+import { acquireOverlayBodyScrollLock } from './overlayBodyScroll';
+import {
+  claimOverlayEscape,
+  focusOverlay,
+  registerOverlay,
+  releaseOverlay,
+} from './overlayStack';
 
 const drawerSideMapObj = {
   right: {
@@ -55,7 +62,7 @@ const Drawer = forwardRef(function Drawer(
 
   const sideConfigObj = drawerSideMapObj[side] || drawerSideMapObj.right;
   const drawerRef = useRef(null);
-  const lastFocusedRef = useRef(null);
+  const overlayEntryRef = useRef(null);
   const focusTimerRef = useRef(null);
   const onCloseRef = useRef(onClose);
   onCloseRef.current = onClose;
@@ -69,15 +76,12 @@ const Drawer = forwardRef(function Drawer(
   useEffect(() => {
     if (!isOpen) return undefined;
 
-    try { lastFocusedRef.current = document.activeElement; } catch {}
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
+    const releaseBodyScrollLock = acquireOverlayBodyScrollLock();
+    const overlayEntry = registerOverlay(drawerRef.current, document.activeElement);
+    overlayEntryRef.current = overlayEntry;
     clearTimeout(focusTimerRef.current);
     focusTimerRef.current = setTimeout(() => {
-      if (!drawerRef.current) return;
-      const focusables = Array.from(drawerRef.current.querySelectorAll(focusableSelector));
-      const focusTarget = focusables[0] || drawerRef.current;
-      try { focusTarget.focus(); } catch {}
+      focusOverlay(overlayEntry);
     }, 0);
 
     /**
@@ -87,7 +91,11 @@ const Drawer = forwardRef(function Drawer(
      * @updated 2026-02-27
      */
     const handleDocKeyDown = (keyboardEvent) => {
-      if (closeOnEsc && keyboardEvent.key === 'Escape') onCloseRef.current?.();
+      if (
+        closeOnEsc
+        && keyboardEvent.key === 'Escape'
+        && claimOverlayEscape(overlayEntryRef.current, keyboardEvent)
+      ) onCloseRef.current?.();
     };
 
     document.addEventListener('keydown', handleDocKeyDown);
@@ -95,10 +103,9 @@ const Drawer = forwardRef(function Drawer(
       clearTimeout(focusTimerRef.current);
       focusTimerRef.current = null;
       document.removeEventListener('keydown', handleDocKeyDown);
-      document.body.style.overflow = previousOverflow;
-      if (lastFocusedRef.current && typeof lastFocusedRef.current.focus === 'function') {
-        try { lastFocusedRef.current.focus(); } catch {}
-      }
+      releaseBodyScrollLock();
+      releaseOverlay(overlayEntry);
+      if (overlayEntryRef.current === overlayEntry) overlayEntryRef.current = null;
     };
   }, [isOpen, closeOnEsc]);
 

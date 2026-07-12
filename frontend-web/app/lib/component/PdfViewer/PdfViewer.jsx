@@ -7,7 +7,7 @@
  * 설명: PDF 렌더링 컴포넌트
  */
 
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import dynamic from 'next/dynamic';
 import '@react-pdf-viewer/core/lib/styles/index.css';
 import '@react-pdf-viewer/default-layout/lib/styles/index.css';
@@ -47,7 +47,7 @@ const PdfViewer = ({
 }) => {
 
   let normalizedInitialPage = 1;
-  if (typeof initialPage === 'number' && !Number.isNaN(initialPage)) {
+  if (typeof initialPage === 'number' && Number.isFinite(initialPage)) {
     normalizedInitialPage = initialPage < 1 ? 1 : Math.floor(initialPage);
   }
   const [objectUrl, setObjectUrl] = useState(null);
@@ -58,11 +58,22 @@ const PdfViewer = ({
     totalPages: 0,
     zoom: 1,
   }));
+  const viewerInitialPageIndex = documentState.totalPages > 0
+    ? Math.min(normalizedInitialPage, documentState.totalPages) - 1
+    : 0;
 
-  // 한글설명: 툴바 플러그인은 다른 훅 내부가 아닌 컴포넌트 최상위에서 초기화
-  const defaultLayoutPluginInstance = defaultLayoutPlugin({ renderToolbar: (Toolbar) => <Toolbar /> });
+  // 한글설명: 라이브러리 플러그인 팩토리 자체가 hook을 사용하므로 매 render 최상위에서 호출
+  const nextDefaultLayoutPluginInstance = defaultLayoutPlugin({
+    renderToolbar: (Toolbar) => <Toolbar />,
+  });
+  // 한글설명: Viewer에는 첫 render의 외부 플러그인 객체를 유지해 상태 reset을 방지
+  const defaultLayoutPluginInstanceRef = useRef(nextDefaultLayoutPluginInstance);
+  const defaultLayoutPluginInstance = defaultLayoutPluginInstanceRef.current;
+  const lastLoadedSourceRef = useRef(null);
 
-  const plugins = Boolean(withToolbar) ? [defaultLayoutPluginInstance] : [];
+  const plugins = useMemo(() => (
+    withToolbar ? [defaultLayoutPluginInstance] : []
+  ), [defaultLayoutPluginInstance, withToolbar]);
 
   // 한글설명: 플러그인은 동적 import 없이 위에서 동기 생성
 
@@ -71,6 +82,7 @@ const PdfViewer = ({
    * 처리 규칙: cleanup에서 blob: URL에 대해 revokeObjectURL을 시도한다.
    */
   useEffect(() => {
+    lastLoadedSourceRef.current = null;
     let nextFileUrl = null;
     if (typeof src === 'string') {
       nextFileUrl = src;
@@ -123,11 +135,21 @@ const PdfViewer = ({
    */
   const handleDocumentLoad = (event) => {
     setIsLoading(false);
-    setDocumentState((prev) => ({
-      ...prev,
-      totalPages: event?.doc?.numPages ?? prev.totalPages,
-    }));
-    onLoad?.(event);
+    setDocumentState((prev) => {
+      const reportedPageCount = event?.doc?.numPages;
+      const totalPages = typeof reportedPageCount === 'number' && Number.isFinite(reportedPageCount) && reportedPageCount > 0
+        ? Math.floor(reportedPageCount)
+        : prev.totalPages;
+      return {
+        ...prev,
+        currentPage: totalPages > 0 ? Math.min(normalizedInitialPage, totalPages) : normalizedInitialPage,
+        totalPages,
+      };
+    });
+    if (lastLoadedSourceRef.current !== objectUrl) {
+      lastLoadedSourceRef.current = objectUrl;
+      onLoad?.(event);
+    }
   };
 
   /**
@@ -202,7 +224,7 @@ const PdfViewer = ({
     documentStatusText = COMMON_COMPONENT_LANG_KO.pdfViewer.pageStatusTemplate
       .replace("{totalPages}", String(documentState.totalPages))
       .replace("{currentPage}", String(documentState.currentPage))
-      .replace("{zoomPercent}", `${zoomPercent}%`);
+      .replace("{zoomPercent}", String(zoomPercent));
   }
   const sourceKindText = typeof src === 'string'
     ? (src.startsWith('http') ? 'Remote URL' : 'Public path')
@@ -281,10 +303,11 @@ const PdfViewer = ({
         {shouldRenderViewer && (
           <Worker workerUrl={workerSrc}>
             <Viewer
+              key={`${objectUrl}-${viewerInitialPageIndex}`}
               fileUrl={objectUrl}
               httpHeaders={headers}
               defaultScale={1}
-              initialPage={normalizedInitialPage - 1}
+              initialPage={viewerInitialPageIndex}
               onDocumentLoad={handleDocumentLoad}
               renderError={(error) => (
                 <PdfViewerErrorBridge error={error} onErrorDetected={handleViewerError} />

@@ -6,7 +6,7 @@
  */
 import DocSection from '../shared/DocSection';
 import CodeBlock from '../shared/CodeBlock';
-import { basicExampleObj, boundExampleObj, multiExampleObj, summaryExampleObj } from '../examples/ComboboxExamples';
+import { basicExampleObj, boundExampleObj, multiExampleObj, summaryExampleObj, emptyExampleObj } from '../examples/ComboboxExamples';
 
 /**
  * @description Combobox 문서 섹션을 구성하고 예제 목록을 렌더링. 입력/출력 계약을 함께 명시
@@ -68,11 +68,20 @@ const ComboboxDocs = () => {
       </div>
 
       <div id="combobox-multi-advanced" className="mb-8">
-        <h3 className="text-lg font-medium mb-4">요약/전체 선택</h3>
-        <div>
-          {summaryExampleObj.component}
-          <div className="mt-2 text-sm text-gray-600">{summaryExampleObj.description}</div>
-          <CodeBlock code={summaryExampleObj.code} />
+        <h3 className="text-lg font-medium mb-4">상태 (로딩/빈 목록)</h3>
+        <div className="space-y-6">
+          <div>
+            <h4 className="text-base font-medium mb-2">로딩</h4>
+            {summaryExampleObj.component}
+            <div className="mt-2 text-sm text-gray-600">{summaryExampleObj.description}</div>
+            <CodeBlock code={summaryExampleObj.code} />
+          </div>
+          <div>
+            <h4 className="text-base font-medium mb-2">빈 목록</h4>
+            {emptyExampleObj.component}
+            <div className="mt-2 text-sm text-gray-600">{emptyExampleObj.description}</div>
+            <CodeBlock code={emptyExampleObj.code} />
+          </div>
         </div>
       </div>
     </DocSection>
