@@ -175,6 +175,80 @@ describe('Select & Combobox binding contracts', () => {
     )
   })
 
+  test('Combobox navigates and selects enabled options from the focused search input', () => {
+    const handleValueChange = vi.fn()
+    render(
+      <Combobox
+        dataList={[
+          { value: 'disabled', text: '선택 불가', disabled: true },
+          { value: 'seoul', text: '서울' },
+          { value: 'busan', text: '부산' },
+        ]}
+        onValueChange={handleValueChange}
+        placeholder="도시 선택"
+      />,
+    )
+
+    const triggerButton = screen.getByRole('button', { name: /도시 선택/ })
+    fireEvent.click(triggerButton)
+    const searchInput = screen.getByRole('combobox')
+    const seoulOption = screen.getByRole('option', { name: '서울' })
+    expect(searchInput).toHaveFocus()
+
+    fireEvent.keyDown(searchInput, { key: 'ArrowDown' })
+    expect(searchInput).toHaveAttribute('aria-activedescendant', seoulOption.id)
+    expect(seoulOption).toHaveClass('ring-zinc-300')
+
+    fireEvent.keyDown(searchInput, { key: 'Enter' })
+    expect(handleValueChange).toHaveBeenCalledWith('seoul', expect.any(Object))
+    expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
+    expect(triggerButton).toHaveTextContent('서울')
+    expect(triggerButton).toHaveFocus()
+  })
+
+  test('Combobox keeps multi-select open and restores trigger focus on Escape', () => {
+    const handleValueChange = vi.fn()
+    render(
+      <Combobox
+        dataList={[
+          { value: 'seoul', text: '서울' },
+          { value: 'busan', text: '부산' },
+        ]}
+        multi
+        onValueChange={handleValueChange}
+        placeholder="도시 선택"
+      />,
+    )
+
+    const triggerButton = screen.getByRole('button', { name: /도시 선택/ })
+    fireEvent.click(triggerButton)
+    const searchInput = screen.getByRole('combobox')
+    fireEvent.keyDown(searchInput, { key: 'ArrowDown' })
+    fireEvent.keyDown(searchInput, { key: 'Enter' })
+
+    expect(handleValueChange).toHaveBeenCalledWith(['seoul'], expect.any(Object))
+    expect(screen.getByRole('option', { name: '서울' })).toHaveAttribute('aria-selected', 'true')
+    expect(screen.getByRole('listbox')).toBeInTheDocument()
+    expect(searchInput).toHaveFocus()
+
+    fireEvent.keyDown(searchInput, { key: 'Escape' })
+    expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
+    expect(triggerButton).toHaveFocus()
+  })
+
+  test('Combobox blocks interaction while loading', () => {
+    render(
+      <Combobox
+        dataList={[{ value: 'seoul', text: '서울' }]}
+        status="loading"
+      />,
+    )
+    const triggerButton = screen.getByRole('button')
+    expect(triggerButton).toBeDisabled()
+    fireEvent.click(triggerButton)
+    expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
+  })
+
   test('Select empty status surface default message with assertive aria-live', () => {
     render(
       <Select

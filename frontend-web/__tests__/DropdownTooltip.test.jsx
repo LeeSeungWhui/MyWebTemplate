@@ -106,8 +106,40 @@ describe('Dropdown keyboard and focus contracts', () => {
     fireEvent.keyDown(multiOptionButton, { key: 'Enter' });
     fireEvent.click(multiOptionButton);
     expect(handleSelect).toHaveBeenCalledTimes(1);
+    expect(handleSelect).toHaveBeenCalledWith(expect.objectContaining({ selected: true }));
     expect(multiOption.selected).toBe(true);
+    expect(multiOptionButton).toHaveAttribute('aria-checked', 'true');
     expect(handleOpenChange).not.toHaveBeenCalled();
+    expect(screen.getByRole('menu')).toBeInTheDocument();
+  });
+
+  it('repaints plain-array multi selection after updating documented selected flags', () => {
+    const sourceOptionList = [
+      { label: '개발', value: 'dev', selected: false },
+      { label: '디자인', value: 'design', selected: false },
+    ];
+    render(
+      <Dropdown
+        dataList={sourceOptionList}
+        multiSelect
+        placeholder="역할 선택"
+      />,
+    );
+
+    const triggerButton = screen.getByRole('button', { name: /역할 선택/ });
+    fireEvent.click(triggerButton);
+    const developerOptionButton = screen.getByRole('menuitemcheckbox', { name: '개발' });
+    const designOptionButton = screen.getByRole('menuitemcheckbox', { name: '디자인' });
+
+    fireEvent.click(developerOptionButton);
+    expect(sourceOptionList[0].selected).toBe(true);
+    expect(developerOptionButton).toHaveAttribute('aria-checked', 'true');
+    expect(triggerButton).toHaveTextContent('개발');
+
+    fireEvent.click(designOptionButton);
+    expect(sourceOptionList[1].selected).toBe(true);
+    expect(designOptionButton).toHaveAttribute('aria-checked', 'true');
+    expect(triggerButton).toHaveTextContent('2개 선택');
     expect(screen.getByRole('menu')).toBeInTheDocument();
   });
 
@@ -136,6 +168,19 @@ describe('Dropdown keyboard and focus contracts', () => {
     triggerButton.focus();
     fireEvent.keyDown(document, { key: 'ArrowDown' });
     expect(screen.getByRole('menuitemcheckbox', { name: '활성 하나' })).toHaveFocus();
+  });
+
+  it('only exposes aria-checked when checkbox menu semantics are enabled', () => {
+    const plainOptionList = [{ label: '일반 항목', value: 'plain', selected: true }];
+    const { rerender } = render(<Dropdown dataList={plainOptionList} open showCheck />);
+
+    expect(screen.getByRole('menuitemcheckbox', { name: '일반 항목' }))
+      .toHaveAttribute('aria-checked', 'true');
+
+    rerender(<Dropdown dataList={plainOptionList} open showCheck={false} />);
+
+    expect(screen.queryByRole('menuitemcheckbox', { name: '일반 항목' })).not.toBeInTheDocument();
+    expect(screen.getByRole('menuitem', { name: '일반 항목' })).not.toHaveAttribute('aria-checked');
   });
 });
 

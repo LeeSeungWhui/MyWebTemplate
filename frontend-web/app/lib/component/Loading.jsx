@@ -13,7 +13,12 @@ import { COMMON_COMPONENT_LANG_KO } from '@/app/common/i18n/lang.ko';
  */
 const Loading = () => {
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-500/70 backdrop-blur-sm">
+        <div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-gray-500/70 backdrop-blur-sm"
+            role="status"
+            aria-live="polite"
+            aria-busy="true"
+        >
             <div className="bg-white/90 px-8 py-7 rounded-xl flex flex-col items-center shadow-lg ring-1 ring-zinc-950/5 w-[120px]">
                 <Icon
                     icon="ri:RiLoader4Line"

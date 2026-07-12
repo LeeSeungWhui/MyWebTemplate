@@ -101,10 +101,17 @@ const Dropdown = ({
   }, [onOpenChange, openProp]);
 
   const optionList = readOptionList(dataList);
+  const [, setSelectionRevision] = useState(0);
   const rootRef = useRef(null);
   const triggerButtonRef = useRef(null);
   const itemButtonRefList = useRef([]);
   const effectiveCloseOnSelect = multiSelect ? false : closeOnSelect;
+
+  const readSelectedState = (optionItemObj) => Boolean(
+    optionItemObj?.get
+      ? optionItemObj.get('selected')
+      : optionItemObj?.selected,
+  );
 
   useEffect(() => {
     if (!isOpen || activeIndex < 0) return;
@@ -153,6 +160,7 @@ const Dropdown = ({
           optionNodeObj.selected = isTarget;
         }
       });
+      setSelectionRevision((previousRevision) => previousRevision + 1);
     }
     if (effectiveCloseOnSelect) {
       setOpen(false);
@@ -217,7 +225,7 @@ const Dropdown = ({
 
   const selectedItemList = [];
   for (const optionItemObj of optionList) {
-    const isSelected = optionItemObj?.get ? optionItemObj.get('selected') : optionItemObj?.selected;
+    const isSelected = readSelectedState(optionItemObj);
     if (isSelected) selectedItemList.push(optionItemObj);
   }
   const selectedItemObj = selectedItemList.length > 0 ? selectedItemList[0] : null;
@@ -291,7 +299,7 @@ const Dropdown = ({
           {optionList.map((optionItemObj, itemIndex) => {
             const label = optionItemObj?.get ? optionItemObj.get(labelKey) : optionItemObj?.[labelKey];
             const optionValue = optionItemObj?.get ? optionItemObj.get(valueKey) : optionItemObj?.[valueKey];
-            const isSelected = optionItemObj?.get ? Boolean(optionItemObj.get('selected')) : Boolean(optionItemObj?.selected);
+            const isSelected = readSelectedState(optionItemObj);
             const disabledItem = isOptionDisabled(optionItemObj);
             const isActive = itemIndex === activeIndex;
             let itemLabelStateKey = 'default';
@@ -315,7 +323,7 @@ const Dropdown = ({
                   tabIndex={-1}
                   role={showCheck ? "menuitemcheckbox" : "menuitem"}
                   aria-disabled={disabledItem ? 'true' : 'false'}
-                  aria-checked={isSelected ? 'true' : 'false'}
+                  aria-checked={showCheck ? (isSelected ? 'true' : 'false') : undefined}
                   className={`w-full text-left px-3 py-2 flex items-center gap-2 text-sm ${isActive || isSelected ? activeClassName : ''} hover:bg-gray-50 disabled:opacity-50 ${itemClassName}`.trim()}
                   disabled={Boolean(disabledItem)}
                   onMouseEnter={() => setActiveIndex(itemIndex)}

@@ -30,8 +30,8 @@ const Checkbox = forwardRef(({
     const isControlled = propChecked !== undefined;
     const isDataObjControlled = dataObj && (dataKey || label);
 
-    // name이나 dataKey가 없을 경우 label을 사용
-    const inputName = name || label || dataKey;
+    // 명시적 name 다음으로 바인딩 키를 우선하고, 둘 다 없을 때 label을 사용
+    const inputName = name || dataKey || label;
     const dataKeyName = dataKey || label;
 
     const [internalChecked, setInternalChecked] = useState(() => {

@@ -39,6 +39,34 @@ describe("Input mask behavior", () => {
   });
 });
 
+describe("Input error accessibility", () => {
+  it("renders a string error and merges its id into aria-describedby", () => {
+    render(
+      <div>
+        <p id="input-help">Help text</p>
+        <Input aria-label="with-error" aria-describedby="input-help" error="Required field" />
+      </div>,
+    );
+    const input = screen.getByLabelText("with-error");
+    const errorMessage = screen.getByText("Required field");
+
+    expect(input).toHaveAttribute("aria-invalid", "true");
+    expect(input.getAttribute("aria-describedby").split(/\s+/)).toEqual([
+      "input-help",
+      errorMessage.id,
+    ]);
+  });
+
+  it("keeps boolean error styling without rendering literal error text", () => {
+    render(<Input aria-label="boolean-error" error />);
+    const input = screen.getByLabelText("boolean-error");
+
+    expect(input).toHaveAttribute("aria-invalid", "true");
+    expect(input).not.toHaveAttribute("aria-describedby");
+    expect(screen.queryByText("true")).not.toBeInTheDocument();
+  });
+});
+
 describe("Input Korean IME behavior", () => {
   it("commits composed Hangul once on compositionEnd", () => {
     const onValueChange = vi.fn();

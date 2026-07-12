@@ -13,6 +13,34 @@ import DateInput from "../app/lib/component/DateInput.jsx";
 import TimeInput from "../app/lib/component/TimeInput.jsx";
 
 describe("NumberInput draft and commit", () => {
+  it("normalizes decimal steps for buttons, keyboard, and range clamps", () => {
+    const onValueChange = vi.fn();
+    render(
+      <NumberInput
+        defaultValue={0.2}
+        step={0.1}
+        min={0.1}
+        max={0.3}
+        onValueChange={onValueChange}
+      />,
+    );
+    const input = screen.getByRole("spinbutton");
+
+    fireEvent.click(screen.getByRole("button", { name: "increment" }));
+    expect(input).toHaveValue("0.3");
+    expect(onValueChange).toHaveBeenLastCalledWith(0.3, expect.any(Object));
+
+    fireEvent.keyDown(input, { key: "ArrowUp" });
+    expect(input).toHaveValue("0.3");
+    expect(onValueChange).toHaveBeenLastCalledWith(0.3, expect.any(Object));
+
+    fireEvent.keyDown(input, { key: "ArrowDown" });
+    expect(input).toHaveValue("0.2");
+    fireEvent.keyDown(input, { key: "PageDown" });
+    expect(input).toHaveValue("0.1");
+    expect(onValueChange).toHaveBeenLastCalledWith(0.1, expect.any(Object));
+  });
+
   it("keeps a controlled decimal draft editable and commits on blur", () => {
     const onValueChange = vi.fn();
     const ControlledNumber = () => {

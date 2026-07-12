@@ -163,7 +163,7 @@ const tocItems = [
     id: "badges",
     label: LANG_KO.view.tocLabels.badges,
     children: [
-      { id: "badge-basic", label: LANG_KO.view.tocLabels.badgeBasic },
+      { id: "badge-outline-pill", label: LANG_KO.view.tocLabels.badgeBasic },
       { id: "badge-variants", label: LANG_KO.view.tocLabels.badgeVariants },
     ],
   },
@@ -193,7 +193,7 @@ const tocItems = [
     label: LANG_KO.view.tocLabels.cards,
     children: [
       { id: "card-basic", label: LANG_KO.view.tocLabels.cardBasic },
-      { id: "card-layouts", label: LANG_KO.view.tocLabels.cardLayouts },
+      { id: "card-actions", label: LANG_KO.view.tocLabels.cardLayouts },
     ],
   },
   {
@@ -217,7 +217,7 @@ const tocItems = [
     label: LANG_KO.view.tocLabels.tabs,
     children: [
       { id: "tab-basic", label: LANG_KO.view.tocLabels.tabBasic },
-      { id: "tab-variants", label: LANG_KO.view.tocLabels.tabVariants },
+      { id: "tab-underline", label: LANG_KO.view.tocLabels.tabVariants },
     ],
   },
   {

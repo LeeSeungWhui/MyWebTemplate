@@ -148,8 +148,23 @@ const normalizeOptions = (dataList = [], valueKey, textKey) => {
       label: String(optionItemObj?.[textKey] ?? ''),
       selected: Boolean(optionItemObj?.selected),
       placeholder: Boolean(optionItemObj?.placeholder),
+      disabled: Boolean(optionItemObj?.disabled),
     }
   })
+}
+
+const findEnabledOptionIndex = (optionList, currentIndex, direction) => {
+  if (!optionList.length) return -1
+  const startIndex = currentIndex >= 0
+    ? currentIndex
+    : direction > 0
+      ? -1
+      : 0
+  for (let step = 1; step <= optionList.length; step += 1) {
+    const nextIndex = (startIndex + (direction * step) + optionList.length) % optionList.length
+    if (!optionList[nextIndex]?.disabled) return nextIndex
+  }
+  return -1
 }
 
 /**
@@ -246,12 +261,15 @@ const Combobox = forwardRef(({
 
   const [isOpen, setIsOpen] = useState(false)
   const [query, setQuery] = useState('')
+  const [activeOptionIndex, setActiveOptionIndex] = useState(-1)
   const rootRef = useRef(null)
+  const triggerButtonRef = useRef(null)
 
   const normalizedStatus = disabled
     ? 'disabled'
     : statusProp || (error ? 'error' : 'default')
   const statusMeta = STATUS_PRESETS[normalizedStatus] || STATUS_PRESETS.default
+  const isInteractionDisabled = normalizedStatus === 'disabled' || normalizedStatus === 'loading'
   const messageText =
     statusMessage ??
     statusMeta.defaultMessage ??
@@ -274,6 +292,12 @@ const Combobox = forwardRef(({
       return normalizedLabel.includes(normalizedQuery) || normalizedInitial.includes(normalizedQueryInitial)
     })
   }
+  const activeOption = activeOptionIndex >= 0
+    ? filteredOptionList[activeOptionIndex]
+    : null
+  const activeOptionId = activeOption
+    ? `${listboxId}-option-${activeOptionIndex}`
+    : undefined
 
   const selectableOptionList = optionList.filter((optionItem) => !optionItem.placeholder)
   let isAllSelected = false
@@ -339,7 +363,10 @@ const Combobox = forwardRef(({
      * @updated 2026-02-27
      */
     const handleDocKeyDown = (event) => {
-      if (event.key === 'Escape') setIsOpen(false)
+      if (event.key === 'Escape') {
+        setIsOpen(false)
+        triggerButtonRef.current?.focus()
+      }
     }
 
     document.addEventListener('mousedown', handleDocMouseDown)
@@ -355,8 +382,15 @@ const Combobox = forwardRef(({
    * 처리 규칙: isOpen=false 전환마다 setQuery('')를 호출한다.
    */
   useEffect(() => {
-    if (!isOpen) setQuery('')
+    if (!isOpen) {
+      setQuery('')
+      setActiveOptionIndex(-1)
+    }
   }, [isOpen])
+
+  useEffect(() => {
+    if (activeOptionIndex >= filteredOptionList.length) setActiveOptionIndex(-1)
+  }, [activeOptionIndex, filteredOptionList.length])
 
   /**
    * @description 비제어 모드에서 sourceValue 변경을 innerValue에 동기화
@@ -478,6 +512,7 @@ const Combobox = forwardRef(({
    * @updated 2026-02-27
    */
   const handleSelect = (optionItemObj) => {
+    if (isInteractionDisabled || optionItemObj?.disabled) return
     if (multi) {
       const nextSelectionSet = new Set(selectedValueSet)
       if (nextSelectionSet.has(optionItemObj.value)) nextSelectionSet.delete(optionItemObj.value)
@@ -487,6 +522,30 @@ const Combobox = forwardRef(({
       commitSelectionValue(optionItemObj.value, null)
       setIsOpen(false)
     }
+  }
+
+  const handleOptionNavigation = (event, { restoreFocusOnSelect = false } = {}) => {
+    if (isInteractionDisabled) return
+    if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
+      event.preventDefault()
+      if (!isOpen) setIsOpen(true)
+      const direction = event.key === 'ArrowDown' ? 1 : -1
+      setActiveOptionIndex((previousIndex) =>
+        findEnabledOptionIndex(filteredOptionList, previousIndex, direction),
+      )
+      return
+    }
+    if ((event.key === 'Enter' || (!filterable && event.key === ' ')) && activeOption) {
+      event.preventDefault()
+      handleSelect(activeOption)
+      if (!multi && restoreFocusOnSelect) triggerButtonRef.current?.focus()
+    }
+  }
+
+  const assignTriggerRef = (node) => {
+    triggerButtonRef.current = node
+    if (typeof ref === 'function') ref(node)
+    else if (ref) ref.current = node
   }
 
   const ariaDescribedBy = [ariaDescribedByProp, messageId]
@@ -531,17 +590,18 @@ const Combobox = forwardRef(({
           statusMeta.buttonClassName
         }`}
         onClick={() => {
-          if (disabled) return
+          if (isInteractionDisabled) return
           setIsOpen((wasOpen) => !wasOpen)
         }}
+        onKeyDown={(event) => handleOptionNavigation(event, { restoreFocusOnSelect: true })}
         aria-haspopup="listbox"
         aria-expanded={isOpen}
         aria-controls={isOpen ? listboxId : undefined}
-        disabled={disabled || normalizedStatus === 'disabled'}
+        disabled={isInteractionDisabled}
         aria-invalid={normalizedStatus === 'error' ? true : undefined}
         aria-busy={normalizedStatus === 'loading' ? true : undefined}
         aria-describedby={ariaDescribedBy}
-        ref={ref}
+        ref={assignTriggerRef}
       >
         <span className="flex items-center justify-between gap-2">
           <span>{triggerContent}</span>
@@ -584,10 +644,19 @@ const Combobox = forwardRef(({
             <div className="p-2 border-b border-gray-200">
               <input
                 autoFocus
+                role="combobox"
                 className="w-full px-2 py-1 text-sm rounded border border-zinc-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-zinc-950"
                 placeholder={COMMON_COMPONENT_LANG_KO.combobox.searchPlaceholder}
                 value={query}
-                onChange={(changeEvent) => setQuery(changeEvent.target.value)}
+                aria-autocomplete="list"
+                aria-controls={listboxId}
+                aria-expanded={isOpen}
+                aria-activedescendant={activeOptionId}
+                onChange={(changeEvent) => {
+                  setQuery(changeEvent.target.value)
+                  setActiveOptionIndex(-1)
+                }}
+                onKeyDown={(event) => handleOptionNavigation(event, { restoreFocusOnSelect: true })}
               />
             </div>
           )}
@@ -602,7 +671,7 @@ const Combobox = forwardRef(({
                 {noResultsText}
               </li>
             )}
-            {filteredOptionList.map((optionItem) => {
+            {filteredOptionList.map((optionItem, optionIndex) => {
               let isSelected = selectedValueSet.has(String(optionItem.value))
               if (multi) {
                 if (Array.isArray(currentValue)) {
@@ -612,11 +681,18 @@ const Combobox = forwardRef(({
               return (
                 <li
                   key={optionItem.value}
+                  id={`${listboxId}-option-${optionIndex}`}
                   role="option"
                   aria-selected={isSelected}
-                  className={`cursor-pointer px-3 py-2 text-sm hover:bg-zinc-50 ${
+                  aria-disabled={optionItem.disabled || undefined}
+                  className={`px-3 py-2 text-sm ${optionItem.disabled ? 'cursor-not-allowed text-zinc-400' : 'cursor-pointer hover:bg-zinc-50'} ${
                     isSelected ? 'bg-zinc-100 text-zinc-900 font-medium ring-1 ring-inset ring-zinc-200/60' : 'text-zinc-900'
+                  } ${
+                    optionIndex === activeOptionIndex ? 'bg-zinc-50 ring-1 ring-inset ring-zinc-300' : ''
                   }`}
+                  onMouseEnter={() => {
+                    if (!optionItem.disabled) setActiveOptionIndex(optionIndex)
+                  }}
                   onClick={() => handleSelect(optionItem)}
                 >
                   {optionItem.label}

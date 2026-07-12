@@ -117,4 +117,93 @@ describe("EasyTable", () => {
     expect(window.location.search).toBe("?filter=active");
     expect(window.sessionStorage.getItem("controlled-easy-table-page")).toBeNull();
   });
+
+  it("renders server-paginated rows as the current page slice", () => {
+    const pageTwoRows = [
+      { id: 3, name: "사용자 3" },
+      { id: 4, name: "사용자 4" },
+    ];
+
+    render(
+      <EasyTable
+        data={pageTwoRows}
+        columns={columns}
+        page={2}
+        pageSize={2}
+        total={6}
+      />,
+    );
+
+    expect(screen.getByRole("cell", { name: "사용자 3" })).toBeInTheDocument();
+    expect(screen.getByRole("cell", { name: "사용자 4" })).toBeInTheDocument();
+    expect(screen.queryByText("표시할 데이터가 없습니다.")).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "2" })).toHaveAttribute("aria-current", "page");
+  });
+
+  it("continues to slice complete client data by the active page", () => {
+    const clientRows = [
+      ...data,
+      { id: 3, name: "사용자 3" },
+      { id: 4, name: "사용자 4" },
+    ];
+
+    render(
+      <EasyTable
+        data={clientRows}
+        columns={columns}
+        defaultPage={2}
+        pageSize={2}
+      />,
+    );
+
+    expect(screen.queryByRole("cell", { name: "사용자 1" })).not.toBeInTheDocument();
+    expect(screen.getByRole("cell", { name: "사용자 3" })).toBeInTheDocument();
+    expect(screen.getByRole("cell", { name: "사용자 4" })).toBeInTheDocument();
+  });
+
+  it("applies cardsPerRow through static responsive classes and preserves explicit overrides", () => {
+    const renderCard = (row) => <article>{row.name}</article>;
+    const { rerender } = render(
+      <EasyTable
+        data={data}
+        variant="card"
+        renderCard={renderCard}
+      />,
+    );
+
+    let cardGrid = screen.getByText("사용자 1").parentElement.parentElement;
+    expect(cardGrid).toHaveClass(
+      "grid",
+      "grid-cols-1",
+      "sm:grid-cols-2",
+      "lg:grid-cols-3",
+      "xl:grid-cols-4",
+      "gap-4",
+    );
+
+    rerender(
+      <EasyTable
+        data={data}
+        variant="card"
+        renderCard={renderCard}
+        cardsPerRow={2}
+      />,
+    );
+    cardGrid = screen.getByText("사용자 1").parentElement.parentElement;
+    expect(cardGrid).toHaveClass("grid", "grid-cols-1", "sm:grid-cols-2", "gap-4");
+    expect(cardGrid).not.toHaveClass("lg:grid-cols-3", "xl:grid-cols-4");
+
+    rerender(
+      <EasyTable
+        data={data}
+        variant="card"
+        renderCard={renderCard}
+        cardsPerRow={5}
+        gridClassName="custom-card-grid"
+      />,
+    );
+    cardGrid = screen.getByText("사용자 1").parentElement.parentElement;
+    expect(cardGrid).toHaveClass("custom-card-grid");
+    expect(cardGrid).not.toHaveClass("grid", "xl:grid-cols-5");
+  });
 });

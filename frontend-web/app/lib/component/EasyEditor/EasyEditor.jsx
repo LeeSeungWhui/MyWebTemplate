@@ -7,7 +7,7 @@
  * 설명: EasyEditor UI 컴포넌트
  */
 
-import { useRef, useState, useEffect } from 'react';
+import { useRef, useState, useEffect, useId } from 'react';
 import { EditorContent } from '@tiptap/react';
 import clsx from 'clsx';
 import useEasyEditor from './useEditor';
@@ -103,6 +103,10 @@ const EasyEditor = ({
 
   const fileInputRef = useRef(null);
   const attachmentInputRef = useRef(null);
+  const generatedId = useId();
+  const editorId = id || `easy-editor-${generatedId}`;
+  const htmlEditorId = `${editorId}-html`;
+  const labelId = `${editorId}-label`;
   const extensionList = extensions ?? EMPTY_EXTENSION_LIST;
 
   const { uploadImage, uploadFile, alertElement } = useEditorUpload({ imageUploadUrl, fileUploadUrl });
@@ -326,7 +330,11 @@ const EasyEditor = ({
   return (
     <div className="space-y-2">
       {label && (
-        <label htmlFor={id} className="block text-sm font-semibold text-slate-800">
+        <label
+          id={labelId}
+          htmlFor={isHtmlMode ? htmlEditorId : undefined}
+          className="block text-sm font-semibold text-slate-800"
+        >
           {label}
         </label>
       )}
@@ -461,10 +469,11 @@ const EasyEditor = ({
           </div>
         )}
         <EditorContent
-          id={id}
+          id={editorId}
           editor={editor}
           role="textbox"
           aria-multiline="true"
+          aria-labelledby={label && !isHtmlMode ? labelId : undefined}
           aria-invalid={invalid || undefined}
           aria-readonly={readOnly || undefined}
           aria-hidden={isHtmlMode ? 'true' : undefined}
@@ -473,6 +482,8 @@ const EasyEditor = ({
         />
         {isHtmlMode && (
           <textarea
+            id={htmlEditorId}
+            aria-labelledby={label ? labelId : undefined}
             className="min-h-[200px] w-full border-t border-slate-200 bg-slate-950 p-4 font-mono text-sm text-slate-100 caret-indigo-300 outline-none placeholder:text-slate-500 disabled:cursor-not-allowed disabled:opacity-70"
             value={htmlDraft}
             onChange={(event) => setHtmlDraft(event.target.value)}

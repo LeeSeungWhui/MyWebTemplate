@@ -4,7 +4,7 @@
  * 갱신일: 2026-05-31
  * 설명: Drawer UI 컴포넌트 구현
  */
-import { forwardRef, useEffect } from 'react';
+import { forwardRef, useEffect, useRef } from 'react';
 import Icon from './Icon';
 
 const drawerSideMapObj = {
@@ -54,6 +54,13 @@ const Drawer = forwardRef(function Drawer(
 ) {
 
   const sideConfigObj = drawerSideMapObj[side] || drawerSideMapObj.right;
+  const drawerRef = useRef(null);
+  const lastFocusedRef = useRef(null);
+  const focusTimerRef = useRef(null);
+  const onCloseRef = useRef(onClose);
+  onCloseRef.current = onClose;
+  const focusableSelector =
+    'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])';
 
   /**
    * @description isOpen일 때 document keydown으로 Escape 닫기 처리
@@ -62,6 +69,17 @@ const Drawer = forwardRef(function Drawer(
   useEffect(() => {
     if (!isOpen) return undefined;
 
+    try { lastFocusedRef.current = document.activeElement; } catch {}
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    clearTimeout(focusTimerRef.current);
+    focusTimerRef.current = setTimeout(() => {
+      if (!drawerRef.current) return;
+      const focusables = Array.from(drawerRef.current.querySelectorAll(focusableSelector));
+      const focusTarget = focusables[0] || drawerRef.current;
+      try { focusTarget.focus(); } catch {}
+    }, 0);
+
     /**
      * @description Esc 입력을 감지해 closeOnEsc 옵션이 켜진 경우 패널을 닫힘 상태로 전환
      * @param {KeyboardEvent} keyboardEvent
@@ -69,17 +87,20 @@ const Drawer = forwardRef(function Drawer(
      * @updated 2026-02-27
      */
     const handleDocKeyDown = (keyboardEvent) => {
-      if (closeOnEsc && keyboardEvent.key === 'Escape') onClose?.();
+      if (closeOnEsc && keyboardEvent.key === 'Escape') onCloseRef.current?.();
     };
 
     document.addEventListener('keydown', handleDocKeyDown);
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = 'hidden';
     return () => {
+      clearTimeout(focusTimerRef.current);
+      focusTimerRef.current = null;
       document.removeEventListener('keydown', handleDocKeyDown);
       document.body.style.overflow = previousOverflow;
+      if (lastFocusedRef.current && typeof lastFocusedRef.current.focus === 'function') {
+        try { lastFocusedRef.current.focus(); } catch {}
+      }
     };
-  }, [isOpen, closeOnEsc, onClose]);
+  }, [isOpen, closeOnEsc]);
 
 
 
@@ -111,17 +132,49 @@ const Drawer = forwardRef(function Drawer(
    * @updated 2026-02-27
    */
   const assignRef = (el) => {
+    drawerRef.current = el;
     if (typeof ref === 'function') ref(el);
     else if (ref) ref.current = el;
   };
 
+  /**
+   * @description 열린 드로어 안에서 Tab 포커스를 순환시킨다.
+   * 처리 규칙: 첫/마지막 focusable 경계에서 반대쪽으로 이동하고, 항목이 없으면 패널에 포커스를 유지한다.
+   */
+  const handleDialogKeyDown = (keyboardEvent) => {
+    props?.onKeyDown?.(keyboardEvent);
+    if (keyboardEvent.defaultPrevented) return;
+    if (!isOpen || keyboardEvent.key !== 'Tab' || !drawerRef.current) return;
+
+    const focusables = Array.from(drawerRef.current.querySelectorAll(focusableSelector));
+    if (!focusables.length) {
+      keyboardEvent.preventDefault();
+      try { drawerRef.current.focus(); } catch {}
+      return;
+    }
+
+    const firstFocusable = focusables[0];
+    const lastFocusable = focusables[focusables.length - 1];
+    if (keyboardEvent.shiftKey && (document.activeElement === firstFocusable || document.activeElement === drawerRef.current)) {
+      keyboardEvent.preventDefault();
+      try { lastFocusable.focus(); } catch {}
+      return;
+    }
+    if (!keyboardEvent.shiftKey && document.activeElement === lastFocusable) {
+      keyboardEvent.preventDefault();
+      try { firstFocusable.focus(); } catch {}
+    }
+  };
+
   const drawerPropsObj = { ...(props || {}) };
   delete drawerPropsObj.style;
+  delete drawerPropsObj.onKeyDown;
 
   return (
     <div
       className={`fixed inset-0 z-50 transition-opacity duration-300 ease-in-out ${isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'}`}
       aria-hidden={!isOpen}
+      inert={isOpen ? undefined : true}
     >
 
       {/* 배경 레이어 */}
@@ -143,8 +196,10 @@ const Drawer = forwardRef(function Drawer(
         role="dialog"
         aria-modal={isOpen ? 'true' : undefined}
         aria-label="드로어"
+        tabIndex={-1}
         data-side={side}
         data-state={isOpen ? 'open' : 'closed'}
+        onKeyDown={handleDialogKeyDown}
         {...drawerPropsObj}
       >
         <div className={`h-full min-h-0 ${collapseButton ? {

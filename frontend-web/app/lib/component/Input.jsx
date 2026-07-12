@@ -4,7 +4,7 @@
  * 갱신일: 2026-06-30
  * 설명: 필터 및 마스크가 적용된 입력 컴포넌트
  */
-import { useEffect, useState, forwardRef, useRef } from "react";
+import { useEffect, useState, forwardRef, useId, useRef } from "react";
 import Icon from "./Icon";
 import {
   getBoundValue,
@@ -41,6 +41,7 @@ const Input = forwardRef(
       prefix,
       suffix,
       togglePassword,
+      "aria-describedby": ariaDescribedBy,
       ...rest
     },
 
@@ -51,6 +52,7 @@ const Input = forwardRef(
     const isPropControlled =
       !isBoundControlled && typeof propValue !== "undefined";
     const [showPassword, setShowPassword] = useState(false);
+    const generatedErrorId = useId();
     const [draftValue, setDraftValue] = useState(undefined);
     const [isComposing, setIsComposing] = useState(false);
 
@@ -71,6 +73,9 @@ const Input = forwardRef(
     const hasStringMask = typeof mask === "string" && mask.trim().length > 0;
     const hasFunctionMask = typeof mask === "function";
     const hasInputConstraint = Boolean(filter) || hasStringMask || type === "number";
+    const hasStringError = typeof error === "string" && error.trim().length > 0;
+    const errorMessageId = hasStringError ? `${generatedErrorId}-error` : undefined;
+    const describedBy = [ariaDescribedBy, errorMessageId].filter(Boolean).join(" ") || undefined;
 
     /**
      * @description 마스크 패턴에 맞춰 입력 문자열을 변환. 입력/출력 계약을 함께 명시
@@ -442,13 +447,14 @@ const Input = forwardRef(
     }
 
     return (
-      <div className="relative flex items-center">
-        {prefix && (
-          <div className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-500">
-            {prefix}
-          </div>
-        )}
-        <input
+      <div className="w-full">
+        <div className="relative flex items-center">
+          {prefix && (
+            <div className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-500">
+              {prefix}
+            </div>
+          )}
+          <input
           ref={(el) => {
             inputFocusRef.current = el;
             if (typeof ref === "function") ref(el);
@@ -544,30 +550,37 @@ const Input = forwardRef(
                     ${togglePassword ? "pr-10" : ""}
                 `}
           aria-invalid={Boolean(error)}
+          aria-describedby={describedBy}
           {...rest}
-        />
-        {suffix && (
-          <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm font-medium text-slate-600">
-            {suffix}
-          </div>
-        )}
-        {togglePassword && (
-          <button
-            type="button"
-            onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/20"
-            aria-label={
-              showPassword
-                ? COMMON_COMPONENT_LANG_KO.input.hidePassword
-                : COMMON_COMPONENT_LANG_KO.input.showPassword
-            }
-            aria-pressed={showPassword}
-          >
-            <Icon
-              icon={showPassword ? "ri:RiEyeLine" : "ri:RiEyeOffLine"}
-              className="h-5 w-5 text-current"
-            />
-          </button>
+          />
+          {suffix && (
+            <div className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-sm font-medium text-slate-600">
+              {suffix}
+            </div>
+          )}
+          {togglePassword && (
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-2 top-1/2 -translate-y-1/2 rounded-md p-1 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/20"
+              aria-label={
+                showPassword
+                  ? COMMON_COMPONENT_LANG_KO.input.hidePassword
+                  : COMMON_COMPONENT_LANG_KO.input.showPassword
+              }
+              aria-pressed={showPassword}
+            >
+              <Icon
+                icon={showPassword ? "ri:RiEyeLine" : "ri:RiEyeOffLine"}
+                className="h-5 w-5 text-current"
+              />
+            </button>
+          )}
+        </div>
+        {hasStringError && (
+          <p id={errorMessageId} className="mt-1 text-sm text-rose-600">
+            {error}
+          </p>
         )}
       </div>
     );

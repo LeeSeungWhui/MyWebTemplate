@@ -113,4 +113,28 @@ describe('EasyEditor HTML mode', () => {
       expect(editorStub.getHTML()).toBe('<p>Updated</p>');
     });
   });
+
+  it('associates the label with generated editor and HTML mode ids', () => {
+    render(<EasyEditor label="본문" value="<p>Hello</p>" serialization="html" />);
+
+    const editor = screen.getByLabelText('본문');
+    expect(editor).toHaveAttribute('id');
+    expect(editor.id).not.toBe('');
+
+    fireEvent.click(screen.getByRole('button', { name: /HTML/i }));
+
+    const htmlEditor = screen.getByLabelText('본문');
+    expect(htmlEditor.tagName).toBe('TEXTAREA');
+    expect(htmlEditor.id).toBe(`${editor.id}-html`);
+  });
+
+  it('keeps the supplied id authoritative in both modes', () => {
+    render(<EasyEditor id="article-body" label="본문" value="<p>Hello</p>" serialization="html" />);
+
+    expect(screen.getByLabelText('본문')).toHaveAttribute('id', 'article-body');
+
+    fireEvent.click(screen.getByRole('button', { name: /HTML/i }));
+
+    expect(screen.getByLabelText('본문')).toHaveAttribute('id', 'article-body-html');
+  });
 });

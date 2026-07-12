@@ -48,6 +48,105 @@ import PdfViewerDocs from "./docs/components/PdfViewerDocs";
 import { PAGE_CONFIG } from "./initData";
 import LANG_KO from "./lang.ko";
 
+const mobileTocFocusableSelector =
+  'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])';
+
+/**
+ * @description 모바일 화면에서 모달형 목차를 렌더링하고 포커스·스크롤 잠금을 관리
+ * @param {Object} props
+ * @param {() => void} props.onClose
+ * @param {React.RefObject<HTMLButtonElement | null>} props.triggerRef
+ * @returns {JSX.Element}
+ */
+export const MobileTableOfContents = ({ onClose, triggerRef }) => {
+  const panelRef = useRef(null);
+  const focusTimerRef = useRef(null);
+
+  useEffect(() => {
+    const previousOverflow = document.body.style.overflow;
+    const restoreFocusTarget = triggerRef?.current || document.activeElement;
+    document.body.style.overflow = "hidden";
+
+    focusTimerRef.current = setTimeout(() => {
+      if (!panelRef.current) return;
+      const focusables = Array.from(panelRef.current.querySelectorAll(mobileTocFocusableSelector));
+      const focusTarget = focusables[0] || panelRef.current;
+      try { focusTarget.focus(); } catch {}
+    }, 0);
+
+    const handleEscape = (event) => {
+      if (event.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", handleEscape);
+
+    return () => {
+      clearTimeout(focusTimerRef.current);
+      focusTimerRef.current = null;
+      document.removeEventListener("keydown", handleEscape);
+      document.body.style.overflow = previousOverflow;
+      if (restoreFocusTarget && typeof restoreFocusTarget.focus === "function") {
+        try { restoreFocusTarget.focus(); } catch {}
+      }
+    };
+  }, [onClose, triggerRef]);
+
+  const handlePanelKeyDown = (event) => {
+    if (event.key !== "Tab" || !panelRef.current) return;
+
+    const focusables = Array.from(panelRef.current.querySelectorAll(mobileTocFocusableSelector));
+    if (!focusables.length) {
+      event.preventDefault();
+      try { panelRef.current.focus(); } catch {}
+      return;
+    }
+
+    const firstFocusable = focusables[0];
+    const lastFocusable = focusables[focusables.length - 1];
+    if (event.shiftKey && (document.activeElement === firstFocusable || document.activeElement === panelRef.current)) {
+      event.preventDefault();
+      try { lastFocusable.focus(); } catch {}
+      return;
+    }
+    if (!event.shiftKey && document.activeElement === lastFocusable) {
+      event.preventDefault();
+      try { firstFocusable.focus(); } catch {}
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-30 md:hidden">
+      <button
+        type="button"
+        className="absolute inset-0 bg-black/40"
+        onClick={onClose}
+        aria-label={LANG_KO.view.closeTocAriaLabel}
+        tabIndex={-1}
+      />
+      <aside
+        ref={panelRef}
+        className="relative z-10 h-full w-72 max-w-[80vw] overflow-auto border-r border-zinc-200/80 bg-white p-4 shadow-xl ring-1 ring-zinc-950/5"
+        role="dialog"
+        aria-modal="true"
+        aria-label={LANG_KO.view.tocLabel}
+        tabIndex={-1}
+        onKeyDown={handlePanelKeyDown}
+      >
+        <div className="mb-4 flex items-center justify-between">
+          <span className="text-sm font-semibold text-zinc-950">{LANG_KO.view.tocLabel}</span>
+          <button
+            type="button"
+            onClick={onClose}
+            className="rounded-md border border-zinc-200 px-2 py-1 text-xs text-zinc-700 hover:bg-zinc-50"
+          >
+            {LANG_KO.view.closeLabel}
+          </button>
+        </div>
+        <TableOfContents />
+      </aside>
+    </div>
+  );
+};
+
 /**
  * @description 컴포넌트 문서 허브를 렌더링하고 모바일 TOC 열림 상태를 제어
  * @param {Object} props
@@ -66,8 +165,7 @@ const ComponentsView = ({
 
   /* 2. 데이터 ======================================================================================================================= */
   const ui = EasyObj({ mobileTocOpen: false });
-  const uiRef = useRef(ui);
-  uiRef.current = ui;
+  const mobileTocTriggerRef = useRef(null);
   const { mode: pageMode } = usePageData({
     pageConfig: PAGE_CONFIG,
     initialDataObj,
@@ -97,41 +195,6 @@ const ComponentsView = ({
   /* 8. useEffect ================================================================================================================== */
   const isMobileTocOpen = Boolean(ui.mobileTocOpen);
 
-  /**
-   * @description 문서 화면 전역 ESC 키를 구독해 모바일 TOC 닫힘 동작 동기화
-   * 처리 규칙: effect cleanup에서 keydown 리스너를 반드시 해제한다.
-   */
-  useEffect(() => {
-
-    /**
-     * @description ESC 키 입력 시 모바일 TOC를 닫아 오버레이를 해제
-     * @param {KeyboardEvent} event
-     * @returns {void}
-     * @updated 2026-02-27
-     */
-    const handleEscape = (event) => {
-      if (event.key === "Escape") {
-        uiRef.current.mobileTocOpen = false;
-      }
-    };
-
-    document.addEventListener("keydown", handleEscape);
-    return () => document.removeEventListener("keydown", handleEscape);
-  }, []);
-
-  /**
-   * @description 모바일 TOC 열림 상태에 맞춰 body 스크롤 잠금 동기화
-   * 처리 규칙: 닫힘/언마운트 시 이전 overflow 값을 복원한다.
-   */
-  useEffect(() => {
-    if (!isMobileTocOpen) return;
-    const previousOverflow = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = previousOverflow;
-    };
-  }, [isMobileTocOpen]);
-
   /* 9. 내부 컴포넌트 ============================================================================================================== */
 
   // 없음
@@ -149,6 +212,7 @@ const ComponentsView = ({
         <div className="sticky top-0 z-20 flex items-center justify-between border-b border-zinc-200/80 bg-white/95 px-4 py-3 backdrop-blur-sm md:hidden">
           <span className="text-base font-semibold tracking-tight text-zinc-950">{LANG_KO.view.mobileTitle}</span>
           <button
+            ref={mobileTocTriggerRef}
             type="button"
             onClick={() => {
               ui.mobileTocOpen = true;
@@ -207,32 +271,13 @@ const ComponentsView = ({
         </div>
       </div>
 
-      {ui.mobileTocOpen ? (
-        <div className="fixed inset-0 z-30 md:hidden">
-          <button
-            type="button"
-            className="absolute inset-0 bg-black/40"
-            onClick={() => {
-              ui.mobileTocOpen = false;
-            }}
-            aria-label={LANG_KO.view.closeTocAriaLabel}
-          />
-          <aside className="relative z-10 h-full w-72 max-w-[80vw] overflow-auto border-r border-zinc-200/80 bg-white p-4 shadow-xl ring-1 ring-zinc-950/5">
-            <div className="mb-4 flex items-center justify-between">
-              <span className="text-sm font-semibold text-zinc-950">{LANG_KO.view.tocLabel}</span>
-              <button
-                type="button"
-                onClick={() => {
-                  ui.mobileTocOpen = false;
-                }}
-                className="rounded-md border border-zinc-200 px-2 py-1 text-xs text-zinc-700 hover:bg-zinc-50"
-              >
-                {LANG_KO.view.closeLabel}
-              </button>
-            </div>
-            <TableOfContents />
-          </aside>
-        </div>
+      {isMobileTocOpen ? (
+        <MobileTableOfContents
+          triggerRef={mobileTocTriggerRef}
+          onClose={() => {
+            ui.mobileTocOpen = false;
+          }}
+        />
       ) : null}
 
       <TopButton />

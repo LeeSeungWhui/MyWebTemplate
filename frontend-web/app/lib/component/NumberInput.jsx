@@ -17,6 +17,27 @@ const getFiniteAriaNumber = (rawValue) => {
   return Number.isFinite(numericValue) ? numericValue : undefined;
 };
 
+const MAX_STEP_PRECISION = 12;
+
+const getDecimalPrecision = (rawValue) => {
+  const numericValue = Number(rawValue);
+  if (!Number.isFinite(numericValue)) return 0;
+  const normalizedValue = String(rawValue).toLowerCase();
+  const [coefficient, exponentText] = normalizedValue.split('e');
+  const fractionLength = coefficient.split('.')[1]?.length ?? 0;
+  const exponent = Number(exponentText ?? 0);
+  return Math.min(MAX_STEP_PRECISION, Math.max(0, fractionLength - exponent));
+};
+
+const normalizeStepValue = (value, precisionInputs) => {
+  const precision = Math.min(
+    MAX_STEP_PRECISION,
+    Math.max(0, ...precisionInputs.map(getDecimalPrecision)),
+  );
+  const precisionFactor = 10 ** precision;
+  return Math.round(value * precisionFactor) / precisionFactor;
+};
+
 /**
  * @description 렌더링 및 상호작용 처리
  * 처리 규칙: 전달된 props와 바인딩 값을 기준으로 UI 상태를 계산하고 변경 이벤트를 상위로 전달한다.
@@ -89,9 +110,11 @@ const NumberInput = forwardRef(({
     if (!isEditingRef.current && isPropControlled) currentValue = propValue ?? '';
     else if (!isEditingRef.current && isDataBound) currentValue = getBoundValue(dataObj, dataKey) ?? '';
     const baseNumber = currentValue === '' ? 0 : Number(currentValue) || 0;
-    let nextValue = baseNumber + stepDelta;
+    const precisionInputs = [step, stepDelta, currentValue, min, max];
+    let nextValue = normalizeStepValue(baseNumber + stepDelta, precisionInputs);
     if (min !== undefined && nextValue < min) nextValue = min;
     if (max !== undefined && nextValue > max) nextValue = max;
+    nextValue = normalizeStepValue(nextValue, precisionInputs);
     commitNumberValue(nextValue);
   };
 

@@ -109,6 +109,7 @@ const Modal = forwardRef(({
     const modalRef = useRef(null);
     const lastFocusedRef = useRef(null);
     const dragStartRef = useRef({ startX: 0, startY: 0 });
+    const dragUserSelectRef = useRef({ isLocked: false, previousValue: '' });
     const modalFocusTimerRef = useRef(null);
     const [position, setPosition] = useState(null);
     const [isDragging, setIsDragging] = useState(false);
@@ -129,20 +130,26 @@ const Modal = forwardRef(({
      * 처리 규칙: cleanup에서 overflow 복구와 modalFocusTimer clearTimeout을 수행한다.
      */
     useEffect(() => {
-        if (isOpen) {
-            try { lastFocusedRef.current = document.activeElement; } catch {}
-            document.body.style.overflow = 'hidden';
-            clearTimeout(modalFocusTimerRef.current);
-            modalFocusTimerRef.current = setTimeout(() => {
-                if (!modalRef.current) return;
-                const focusables = Array.from(modalRef.current.querySelectorAll(focusableSelector));
-                if (focusables.length) { try { focusables[0].focus(); } catch {} }
-            }, 0);
-        }
+        if (!isOpen) return undefined;
+
+        const previousOverflow = document.body.style.overflow;
+        try { lastFocusedRef.current = document.activeElement; } catch {}
+        document.body.style.overflow = 'hidden';
+        clearTimeout(modalFocusTimerRef.current);
+        modalFocusTimerRef.current = setTimeout(() => {
+            if (!modalRef.current) return;
+            const focusables = Array.from(modalRef.current.querySelectorAll(focusableSelector));
+            if (focusables.length) { try { focusables[0].focus(); } catch {} }
+        }, 0);
+
         return () => {
             clearTimeout(modalFocusTimerRef.current);
             modalFocusTimerRef.current = null;
-            document.body.style.overflow = '';
+            document.body.style.overflow = previousOverflow;
+            if (dragUserSelectRef.current.isLocked) {
+                document.body.style.userSelect = dragUserSelectRef.current.previousValue;
+                dragUserSelectRef.current.isLocked = false;
+            }
             if (lastFocusedRef.current && typeof lastFocusedRef.current.focus === 'function') {
                 try { lastFocusedRef.current.focus(); } catch {}
             }
@@ -228,6 +235,12 @@ const Modal = forwardRef(({
         };
         setIsDragging(true);
 
+        if (!dragUserSelectRef.current.isLocked) {
+            dragUserSelectRef.current = {
+                isLocked: true,
+                previousValue: document.body.style.userSelect,
+            };
+        }
         document.body.style.userSelect = 'none';
         setPosition({ x: rect.left, y: rect.top });
     };
@@ -265,7 +278,10 @@ const Modal = forwardRef(({
      * @updated 2026-02-27
      */
     const handleMouseUp = () => {
-        document.body.style.userSelect = '';
+        if (dragUserSelectRef.current.isLocked) {
+            document.body.style.userSelect = dragUserSelectRef.current.previousValue;
+            dragUserSelectRef.current.isLocked = false;
+        }
         setIsDragging(false);
     };
 
@@ -280,6 +296,10 @@ const Modal = forwardRef(({
             return () => {
                 document.removeEventListener('mousemove', handleMouseMove);
                 document.removeEventListener('mouseup', handleMouseUp);
+                if (dragUserSelectRef.current.isLocked) {
+                    document.body.style.userSelect = dragUserSelectRef.current.previousValue;
+                    dragUserSelectRef.current.isLocked = false;
+                }
             };
         }
     }, [draggable, isDragging, handleMouseMove]);

@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import Drawer from "../app/lib/component/Drawer.jsx";
 
@@ -45,5 +45,55 @@ describe("Drawer", () => {
 
     expect(screen.getByTestId("drawer")).toHaveAttribute("data-state", "closed");
     expect(screen.getByTestId("drawer").parentElement).toHaveClass("opacity-0", "pointer-events-none");
+  });
+
+  it("keeps closed descendants inert and restores the trigger focus and body overflow", async () => {
+    document.body.style.overflow = "auto";
+    const handleClose = vi.fn();
+    const renderDrawer = (isOpen) => (
+      <>
+        <button type="button">드로어 열기</button>
+        <Drawer isOpen={isOpen} onClose={handleClose} data-testid="drawer">
+          <button type="button">첫 액션</button>
+          <button type="button">마지막 액션</button>
+        </Drawer>
+      </>
+    );
+    const { rerender } = render(renderDrawer(false));
+
+    const trigger = screen.getByRole("button", { name: "드로어 열기" });
+    const closedDrawer = screen.getByTestId("drawer");
+    expect(closedDrawer.parentElement).toHaveAttribute("inert");
+
+    trigger.focus();
+    rerender(renderDrawer(true));
+    await waitFor(() => expect(screen.getByRole("button", { name: "첫 액션" })).toHaveFocus());
+    expect(document.body.style.overflow).toBe("hidden");
+
+    rerender(renderDrawer(false));
+    expect(trigger).toHaveFocus();
+    expect(document.body.style.overflow).toBe("auto");
+    document.body.style.overflow = "";
+  });
+
+  it("contains keyboard focus inside the open drawer", async () => {
+    render(
+      <Drawer isOpen onClose={() => {}}>
+        <button type="button">첫 액션</button>
+        <button type="button">마지막 액션</button>
+      </Drawer>
+    );
+
+    const dialog = screen.getByRole("dialog", { name: "드로어" });
+    const firstButton = screen.getByRole("button", { name: "첫 액션" });
+    const lastButton = screen.getByRole("button", { name: "마지막 액션" });
+    await waitFor(() => expect(firstButton).toHaveFocus());
+
+    lastButton.focus();
+    fireEvent.keyDown(dialog, { key: "Tab", code: "Tab" });
+    expect(firstButton).toHaveFocus();
+
+    fireEvent.keyDown(dialog, { key: "Tab", code: "Tab", shiftKey: true });
+    expect(lastButton).toHaveFocus();
   });
 });

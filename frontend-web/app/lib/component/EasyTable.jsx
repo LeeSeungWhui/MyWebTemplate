@@ -25,6 +25,14 @@ const alignTextObj = {
   left: 'text-left',
   right: 'text-right',
 };
+const cardGridClassMap = {
+  1: 'grid grid-cols-1 gap-4',
+  2: 'grid grid-cols-1 sm:grid-cols-2 gap-4',
+  3: 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4',
+  4: 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4',
+  5: 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4',
+  6: 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4',
+};
 
 /**
  * @description 테이블/카드 UI와 페이지네이션을 제공하는 데이터 렌더링 컴포넌트.
@@ -73,7 +81,7 @@ const EasyTable = forwardRef(function EasyTable(
     // 카드 모드 전용 옵션
     renderCard,
     cardsPerRow = 4,
-    gridClassName = 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4',
+    gridClassName,
 
     // 상태/오류 처리
     status,
@@ -85,6 +93,13 @@ const EasyTable = forwardRef(function EasyTable(
 
   const mobileScrollHintId = useId();
   const hasMobileScrollHint = variant === 'table' && Boolean(String(mobileScrollHint || '').trim());
+  const parsedCardsPerRow = Math.trunc(Number(cardsPerRow));
+  const normalizedCardsPerRow = parsedCardsPerRow >= 1 && parsedCardsPerRow <= 6
+    ? parsedCardsPerRow
+    : 4;
+  const resolvedGridClassName = typeof gridClassName === 'string'
+    ? gridClassName
+    : cardGridClassMap[normalizedCardsPerRow];
 
   // 초기 페이지 계산
   const initialPage = (typeof pageProp === 'number') ? pageProp : defaultPage;
@@ -96,10 +111,13 @@ const EasyTable = forwardRef(function EasyTable(
 
   const resolvedListSource = dataList ?? data;
   const hasDataListShape = Boolean(resolvedListSource) && (Array.isArray(resolvedListSource) || typeof resolvedListSource.size === 'function');
+  let sourceRowCount = 0;
+  if (Array.isArray(resolvedListSource)) sourceRowCount = resolvedListSource.length;
+  else if (typeof resolvedListSource?.size === 'function') sourceRowCount = resolvedListSource.size();
+  const hasServerTotal = totalProp != null;
   let totalRowCount = 0;
-  if (totalProp != null) totalRowCount = totalProp;
-  else if (Array.isArray(resolvedListSource)) totalRowCount = resolvedListSource.length;
-  else if (typeof resolvedListSource?.size === 'function') totalRowCount = resolvedListSource.size();
+  if (hasServerTotal) totalRowCount = totalProp;
+  else totalRowCount = sourceRowCount;
   const effectivePageSize = Math.max(1, pageSize);
   const pageCount = Math.max(1, Math.ceil(totalRowCount / effectivePageSize));
 
@@ -168,8 +186,8 @@ const EasyTable = forwardRef(function EasyTable(
     }
   }, [page, pageProp, persistKey, persist, pageParam, defaultPage]);
 
-  const sliceStart = (page - 1) * effectivePageSize;
-  const sliceEnd = Math.min(sliceStart + effectivePageSize, totalRowCount);
+  const sliceStart = hasServerTotal ? 0 : (page - 1) * effectivePageSize;
+  const sliceEnd = Math.min(sliceStart + effectivePageSize, sourceRowCount);
 
   const rowList = [];
   if (hasDataListShape) {
@@ -376,7 +394,7 @@ const EasyTable = forwardRef(function EasyTable(
         </>
       ) : (
         statusPanel || (
-          <div className={gridClassName}>
+          <div className={resolvedGridClassName}>
             {rowList.map((rowObj, rowIndex) => (
               <div key={resolveRowKey(rowObj, (page - 1) * effectivePageSize + rowIndex)} className="w-full">
                 {typeof renderCard === 'function'

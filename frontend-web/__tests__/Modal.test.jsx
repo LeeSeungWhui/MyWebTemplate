@@ -93,4 +93,59 @@ describe('Modal a11y', () => {
     fireEvent.keyDown(dialog, { key: 'Tab', code: 'Tab', shiftKey: true });
     expect(lastButton).toHaveFocus();
   });
+
+  it('restores the pre-existing body overflow value after close', () => {
+    document.body.style.overflow = 'auto';
+    const { rerender } = render(
+      <Modal isOpen ariaLabel="스크롤 잠금" onClose={() => {}}>
+        <Modal.Body>바디</Modal.Body>
+      </Modal>
+    );
+
+    expect(document.body.style.overflow).toBe('hidden');
+    rerender(
+      <Modal isOpen={false} ariaLabel="스크롤 잠금" onClose={() => {}}>
+        <Modal.Body>바디</Modal.Body>
+      </Modal>
+    );
+
+    expect(document.body.style.overflow).toBe('auto');
+    document.body.style.overflow = '';
+  });
+
+  it('restores body userSelect when closed during an active drag', () => {
+    document.body.style.userSelect = 'text';
+    const { rerender } = render(
+      <Modal isOpen draggable ariaLabel="드래그 중 닫기" onClose={() => {}}>
+        <Modal.Header>드래그 헤더</Modal.Header>
+        <Modal.Body>바디</Modal.Body>
+      </Modal>
+    );
+
+    const dialog = screen.getByRole('dialog');
+    dialog.getBoundingClientRect = vi.fn(() => ({
+      left: 16,
+      top: 20,
+      width: 240,
+      height: 160,
+      right: 256,
+      bottom: 180,
+      x: 16,
+      y: 20,
+      toJSON: () => ({}),
+    }));
+
+    fireEvent.mouseDown(screen.getByText('드래그 헤더'), { clientX: 32, clientY: 40 });
+    expect(document.body.style.userSelect).toBe('none');
+
+    rerender(
+      <Modal isOpen={false} draggable ariaLabel="드래그 중 닫기" onClose={() => {}}>
+        <Modal.Header>드래그 헤더</Modal.Header>
+        <Modal.Body>바디</Modal.Body>
+      </Modal>
+    );
+
+    expect(document.body.style.userSelect).toBe('text');
+    document.body.style.userSelect = '';
+  });
 });

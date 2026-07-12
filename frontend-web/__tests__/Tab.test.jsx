@@ -37,6 +37,62 @@ describe("Tab", () => {
     expect(screen.getByRole("tabpanel")).toHaveTextContent("두번째 내용");
   });
 
+  it("synchronizes subsequent controlled tabIndex changes", () => {
+    const { rerender } = render(
+      <Tab tabIndex={0}>
+        <Tab.Item title="첫번째">첫번째 내용</Tab.Item>
+        <Tab.Item title="두번째">두번째 내용</Tab.Item>
+      </Tab>,
+    );
+
+    rerender(
+      <Tab tabIndex={1}>
+        <Tab.Item title="첫번째">첫번째 내용</Tab.Item>
+        <Tab.Item title="두번째">두번째 내용</Tab.Item>
+      </Tab>,
+    );
+
+    expect(screen.getByRole("tab", { name: "첫번째" })).toHaveAttribute("aria-selected", "false");
+    expect(screen.getByRole("tab", { name: "두번째" })).toHaveAttribute("aria-selected", "true");
+    expect(screen.getByRole("tabpanel")).toHaveTextContent("두번째 내용");
+  });
+
+  it("moves focus and activates tabs with standard tablist navigation keys", () => {
+    render(
+      <Tab>
+        <Tab.Item title="첫번째">첫번째 내용</Tab.Item>
+        <Tab.Item title="두번째">두번째 내용</Tab.Item>
+        <Tab.Item title="세번째">세번째 내용</Tab.Item>
+      </Tab>,
+    );
+
+    const firstTab = screen.getByRole("tab", { name: "첫번째" });
+    const secondTab = screen.getByRole("tab", { name: "두번째" });
+    const thirdTab = screen.getByRole("tab", { name: "세번째" });
+
+    firstTab.focus();
+    fireEvent.keyDown(firstTab, { key: "ArrowRight" });
+    expect(secondTab).toHaveFocus();
+    expect(secondTab).toHaveAttribute("aria-selected", "true");
+    expect(screen.getByRole("tabpanel")).toHaveTextContent("두번째 내용");
+
+    fireEvent.keyDown(secondTab, { key: "End" });
+    expect(thirdTab).toHaveFocus();
+    expect(thirdTab).toHaveAttribute("aria-selected", "true");
+
+    fireEvent.keyDown(thirdTab, { key: "ArrowRight" });
+    expect(firstTab).toHaveFocus();
+    expect(firstTab).toHaveAttribute("aria-selected", "true");
+
+    fireEvent.keyDown(firstTab, { key: "ArrowLeft" });
+    expect(thirdTab).toHaveFocus();
+    expect(thirdTab).toHaveAttribute("aria-selected", "true");
+
+    fireEvent.keyDown(thirdTab, { key: "Home" });
+    expect(firstTab).toHaveFocus();
+    expect(firstTab).toHaveAttribute("aria-selected", "true");
+  });
+
   it("keeps the underline variant available by prop", () => {
     render(
       <Tab variant="underline">

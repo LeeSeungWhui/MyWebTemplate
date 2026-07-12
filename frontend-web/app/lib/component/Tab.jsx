@@ -4,7 +4,7 @@
  * 갱신일: 2026-07-07
  * 설명: Tab UI 컴포넌트 구현
  */
-import { Children, useId, useState } from 'react';
+import { Children, useId, useRef, useState } from 'react';
 import { getBoundValue, setBoundValue, buildCtx, fireValueHandlers } from '../binding';
 
 /**
@@ -38,18 +38,21 @@ const Tab = ({
 }) => {
 
     // controlled/uncontrolled 처리
-    const isControlled = dataObj && typeof dataKey !== 'undefined' && dataKey !== null;
-    const [internalTab, setInternalTab] = useState(tabIndex || 0);
-    const boundValue = isControlled ? getBoundValue(dataObj, dataKey) : undefined;
-    let currentTab = internalTab;
-    if (isControlled) {
-        currentTab = typeof boundValue === 'number' ? boundValue : 0;
-    }
+    const isBound = dataObj && typeof dataKey !== 'undefined' && dataKey !== null;
+    const isTabIndexControlled = !isBound && typeof tabIndex === 'number';
+    const [internalTab, setInternalTab] = useState(typeof tabIndex === 'number' ? tabIndex : 0);
+    const boundValue = isBound ? getBoundValue(dataObj, dataKey) : undefined;
 
     // children이 없거나 배열이 아닐 경우 처리
     const tabIdPrefix = useId();
     const tabItemList = Children.toArray(children).filter(Boolean);
     const isUnderlineVariant = variant === 'underline';
+    const tabButtonRefList = useRef([]);
+    const maximumTabIndex = Math.max(0, tabItemList.length - 1);
+    const requestedTab = isBound
+        ? (typeof boundValue === 'number' ? boundValue : 0)
+        : (isTabIndexControlled ? tabIndex : internalTab);
+    const currentTab = Math.max(0, Math.min(requestedTab, maximumTabIndex));
 
     /**
      * @description 탭 인덱스를 변경하고 dataObj/콜백으로 변경 이벤트를 전파
@@ -59,9 +62,9 @@ const Tab = ({
      * @updated 2026-02-27
      */
     const handleTabChange = (index, event) => {
-        if (isControlled) {
+        if (isBound) {
             setBoundValue(dataObj, dataKey, index, { source: 'user' });
-        } else {
+        } else if (!isTabIndexControlled) {
             setInternalTab(index);
         }
         const bindingCtx = buildCtx({ dataKey, dataObj, source: 'user', dirty: true, valid: null });
@@ -83,6 +86,28 @@ const Tab = ({
         });
     };
 
+    /**
+     * @description 탭 목록의 표준 방향키 탐색과 활성화를 함께 처리
+     * 처리 규칙: 좌우 방향키는 순환하고 Home/End는 처음/마지막 탭으로 이동한다.
+     * @param {React.KeyboardEvent<HTMLButtonElement>} event
+     * @param {number} index
+     * @returns {void}
+     */
+    const handleTabKeyDown = (event, index) => {
+        if (tabItemList.length === 0) return;
+
+        let nextIndex = null;
+        if (event.key === 'ArrowRight') nextIndex = (index + 1) % tabItemList.length;
+        else if (event.key === 'ArrowLeft') nextIndex = (index - 1 + tabItemList.length) % tabItemList.length;
+        else if (event.key === 'Home') nextIndex = 0;
+        else if (event.key === 'End') nextIndex = tabItemList.length - 1;
+
+        if (nextIndex == null) return;
+        event.preventDefault();
+        handleTabChange(nextIndex, event);
+        tabButtonRefList.current[nextIndex]?.focus();
+    };
+
     return (
         <div className={`flex flex-col gap-3 ${className}`}>
             <div
@@ -100,12 +125,16 @@ const Tab = ({
                         <button
                             type="button"
                             key={index}
+                            ref={(buttonElement) => {
+                                tabButtonRefList.current[index] = buttonElement;
+                            }}
                             id={tabId}
                             role="tab"
                             aria-selected={isActive}
                             aria-controls={panelId}
                             tabIndex={isActive ? 0 : -1}
                             onClick={(event) => handleTabChange(index, event)}
+                            onKeyDown={(event) => handleTabKeyDown(event, index)}
                             className={`
                                 ${isUnderlineVariant
                                     ? 'inline-flex min-h-10 items-center justify-center gap-2 whitespace-nowrap border-b-2 px-1 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500/20 focus-visible:ring-offset-2 focus-visible:ring-offset-white'
