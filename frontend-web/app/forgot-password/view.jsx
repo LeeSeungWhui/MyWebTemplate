@@ -138,7 +138,11 @@ const ForgotPasswordView = () => {
         </div>
 
         {ui.submitted ? (
-          <div className="rounded-md border border-green-200 bg-green-50 p-4 text-sm text-green-700">
+          <div
+            role="status"
+            aria-live="polite"
+            className="rounded-md border border-green-200 bg-green-50 p-4 text-sm text-green-700"
+          >
             {LANG_KO.view.form.submittedMessage}
           </div>
         ) : null}
@@ -164,15 +168,13 @@ const ForgotPasswordView = () => {
               <Input
                 id="forgot-email"
                 type="email"
+                autoComplete="email"
                 dataObj={formObj}
                 dataKey="email"
                 ref={emailRef}
                 placeholder={LANG_KO.view.form.emailPlaceholder}
                 error={formObj.errors.email}
               />
-              {formObj.errors.email ? (
-                <p className="mt-2 text-sm text-red-600">{formObj.errors.email}</p>
-              ) : null}
             </div>
           </div>
 

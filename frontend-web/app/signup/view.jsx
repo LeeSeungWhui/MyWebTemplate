@@ -27,6 +27,7 @@ const SignupView = () => {
 
   /* 1. 상수 ======================================================================================================================= */
   const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const agreeTermsErrorId = "signup-agree-terms-error";
 
   /* 2. 데이터 ======================================================================================================================= */
   const signupObj = EasyObj({
@@ -221,15 +222,13 @@ const SignupView = () => {
             <div className="mt-2">
               <Input
                 id="signup-name"
+                autoComplete="name"
                 dataObj={signupObj}
                 dataKey="name"
                 ref={nameRef}
                 placeholder={LANG_KO.view.form.namePlaceholder}
                 error={signupObj.errors.name}
               />
-              {signupObj.errors.name ? (
-                <p className="mt-2 text-sm text-red-600">{signupObj.errors.name}</p>
-              ) : null}
             </div>
           </div>
 
@@ -241,15 +240,13 @@ const SignupView = () => {
               <Input
                 id="signup-email"
                 type="email"
+                autoComplete="email"
                 dataObj={signupObj}
                 dataKey="email"
                 ref={emailRef}
                 placeholder={LANG_KO.view.form.emailPlaceholder}
                 error={signupObj.errors.email}
               />
-              {signupObj.errors.email ? (
-                <p className="mt-2 text-sm text-red-600">{signupObj.errors.email}</p>
-              ) : null}
             </div>
           </div>
 
@@ -261,15 +258,13 @@ const SignupView = () => {
               <Input
                 id="signup-password"
                 type="password"
+                autoComplete="new-password"
                 dataObj={signupObj}
                 dataKey="password"
                 ref={passwordRef}
                 placeholder={LANG_KO.view.form.passwordPlaceholder}
                 error={signupObj.errors.password}
               />
-              {signupObj.errors.password ? (
-                <p className="mt-2 text-sm text-red-600">{signupObj.errors.password}</p>
-              ) : null}
             </div>
           </div>
 
@@ -281,15 +276,13 @@ const SignupView = () => {
               <Input
                 id="signup-password-confirm"
                 type="password"
+                autoComplete="new-password"
                 dataObj={signupObj}
                 dataKey="passwordConfirm"
                 ref={passwordConfirmRef}
                 placeholder={LANG_KO.view.form.passwordConfirmPlaceholder}
                 error={signupObj.errors.passwordConfirm}
               />
-              {signupObj.errors.passwordConfirm ? (
-                <p className="mt-2 text-sm text-red-600">{signupObj.errors.passwordConfirm}</p>
-              ) : null}
             </div>
           </div>
 
@@ -299,9 +292,13 @@ const SignupView = () => {
               dataKey="agreeTerms"
               label={LANG_KO.view.form.agreeTermsLabel}
               ref={agreeTermsRef}
+              aria-invalid={Boolean(signupObj.errors.agreeTerms)}
+              aria-describedby={signupObj.errors.agreeTerms ? agreeTermsErrorId : undefined}
             />
             {signupObj.errors.agreeTerms ? (
-              <p className="mt-2 text-sm text-red-600">{signupObj.errors.agreeTerms}</p>
+              <p id={agreeTermsErrorId} className="mt-2 text-sm text-red-600">
+                {signupObj.errors.agreeTerms}
+              </p>
             ) : null}
           </div>
 

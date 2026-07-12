@@ -67,10 +67,6 @@ const LoginView = ({ initialDataObj, initialErrorObj }) => {
     sessionData.result &&
     sessionData.result.username
   );
-  const emailErrorId = loginObj.errors.email ? "login-email-error" : undefined;
-  const passwordErrorId = loginObj.errors.password
-    ? "login-password-error"
-    : undefined;
 
   /* 3. UI ========================================================================================================================= */
 
@@ -355,14 +351,8 @@ const LoginView = ({ initialDataObj, initialErrorObj }) => {
                   dataKey="email"
                   ref={emailRef}
                   placeholder={LANG_KO.view.form.emailPlaceholder}
-                  aria-describedby={emailErrorId}
                   error={loginObj.errors.email}
                 />
-                {loginObj.errors.email && (
-                  <p id={emailErrorId} className="mt-2 text-sm text-red-600">
-                    {loginObj.errors.email}
-                  </p>
-                )}
               </div>
             </div>
 
@@ -383,14 +373,8 @@ const LoginView = ({ initialDataObj, initialErrorObj }) => {
                   dataKey="password"
                   ref={passwordRef}
                   placeholder={LANG_KO.view.form.passwordPlaceholder}
-                  aria-describedby={passwordErrorId}
                   error={loginObj.errors.password}
                 />
-                {loginObj.errors.password && (
-                  <p id={passwordErrorId} className="mt-2 text-sm text-red-600">
-                    {loginObj.errors.password}
-                  </p>
-                )}
               </div>
             </div>
 
