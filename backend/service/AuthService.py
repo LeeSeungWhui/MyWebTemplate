@@ -6,7 +6,8 @@
 """
 
 import uuid
-from typing import Any
+from typing import Any, Callable
+import asyncio
 
 import base64
 import hashlib
@@ -35,6 +36,7 @@ from lib.Casing import convertKeysToCamelCase
 from lib.Idempotency import beginIdempotencyRequest, completeIdempotencyRequest, discardIdempotencyReservation
 from lib.Logger import logger
 from lib.Masking import maskUserIdentifierForLog
+from lib import PasswordResetMail
 from lib.RequestContext import getRequestId
 from lib.ServiceError import ServiceError
 from lib.ServiceError import resolveServiceErrorCode
@@ -43,6 +45,10 @@ from lib.Transaction import transaction
 # 리프레시 토큰 상태 타입
 TOKEN_STATE_REVOKED = "revoked"
 TOKEN_STATE_GRACE = "grace"
+
+PASSWORD_MIN_LENGTH = 8
+PASSWORD_RESET_TOKEN_TTL_MS = 30 * 60 * 1000
+PASSWORD_RESET_TOKEN_PATTERN = re.compile(r"^[A-Za-z0-9_-]{43}$")
 
 # 토큰 상태 저장소 준비 상태
 tokenStateStoreReady = False
@@ -377,12 +383,112 @@ async def login(payload: dict, rememberMe: bool = False) -> dict | None:
     if not authUser or not username:
         auditLog("auth.login", candidateUsername, False, {"reason": "invalid_credentials"})
         return None
-    tokenPayload = issueTokens(username, rememberMe)
+    tokenPayload = issueTokens(
+        username,
+        rememberMe,
+        normalizeAuthVersion(authUser.get("authVersion")),
+    )
     auditLog("auth.login", username, True, {"remember": bool(rememberMe)})
     return {"user": authUser, "token": tokenPayload}
 
 
-async def requestPasswordReset(payload: dict) -> tuple[dict | None, str | None]:
+def normalizeAuthVersion(value: Any) -> int:
+    if isinstance(value, bool):
+        return 0
+    try:
+        parsedAuthVersion = int(value or 0)
+    except (TypeError, ValueError):
+        return 0
+    return max(0, parsedAuthVersion)
+
+
+def hashPasswordResetToken(rawToken: str) -> str:
+    return hashlib.sha256(rawToken.encode("utf-8")).hexdigest()
+
+
+@transaction("main_db")
+async def createPasswordResetTokenInTransaction(
+    email: str,
+    tokenHash: str,
+    createdAtMs: int,
+    expiresAtMs: int,
+) -> str | None:
+    db = DB.getManager()
+    if not db:
+        raise ServiceError("AUTH_503_DB_NOT_READY")
+    userRow = await db.fetchOneQuery("auth.userForPasswordReset", {"email": email})
+    if not userRow:
+        return None
+    user = convertKeysToCamelCase(userRow)
+    userId = user.get("userId")
+    recipient = user.get("userEml") or userId
+    if not isinstance(userId, str) or not userId.strip():
+        return None
+    if not isinstance(recipient, str) or not recipient.strip():
+        return None
+    await db.executeQuery(
+        "auth.supersedePasswordResetTokens",
+        {"userId": userId, "usedAtMs": createdAtMs},
+    )
+    await db.executeQuery(
+        "auth.insertPasswordResetToken",
+        {
+            "tokenHash": tokenHash,
+            "userId": userId,
+            "createdAtMs": createdAtMs,
+            "expiresAtMs": expiresAtMs,
+        },
+    )
+    return recipient.strip().lower()
+
+
+def deliverPasswordResetMail(recipient: str, rawToken: str) -> bool:
+    return PasswordResetMail.sendPasswordReset(recipient, rawToken)
+
+
+async def processPasswordResetRequest(email: str) -> None:
+    rawToken = secrets.token_urlsafe(32)
+    tokenHash = hashPasswordResetToken(rawToken)
+    nowMs = readCurrentEpochMs()
+    try:
+        recipient = await createPasswordResetTokenInTransaction(
+            email,
+            tokenHash,
+            nowMs,
+            nowMs + PASSWORD_RESET_TOKEN_TTL_MS,
+        )
+        if not recipient:
+            auditLog(
+                "auth.password_reset.delivery",
+                email,
+                True,
+                {"delivery": "not_applicable"},
+            )
+            return
+        sent = await asyncio.to_thread(deliverPasswordResetMail, recipient, rawToken)
+        auditLog(
+            "auth.password_reset.delivery",
+            recipient,
+            True,
+            {"delivery": "sent" if sent else "disabled"},
+        )
+    except Exception as error:
+        auditLog(
+            "auth.password_reset.delivery",
+            email,
+            False,
+            {"delivery": "failed", "reason": type(error).__name__},
+        )
+        logger.error(
+            "password reset background processing failed: error=%s",
+            type(error).__name__,
+        )
+
+
+async def requestPasswordReset(
+    payload: dict,
+    processingScheduler: Callable[[str], None] | None = None,
+) -> tuple[dict | None, str | None]:
     """
     설명: 비밀번호 재설정 요청 입력을 검증하고 계정 존재 여부를 숨긴 채 성공 응답 반환
     반환값: (성공 결과 dict, None) 또는 (None, 에러코드)
@@ -397,9 +503,99 @@ async def requestPasswordReset(payload: dict) -> tuple[dict | None, str | None]:
     if not isValidEmail(email):
         return None, "AUTH_422_INVALID_INPUT"
 
-    # 계정 존재 여부는 응답에서 노출하지 않는다.
+    if processingScheduler:
+        try:
+            processingScheduler(email)
+        except Exception as error:
+            auditLog(
+                "auth.password_reset.schedule",
+                email,
+                False,
+                {"scheduled": False, "reason": type(error).__name__},
+            )
+            logger.error(
+                "password reset background scheduling failed: error=%s",
+                type(error).__name__,
+            )
+
     auditLog("auth.password_reset.request", email, True, {"accepted": True})
     return {"accepted": True}, None
+
+
+@transaction("main_db")
+async def completePasswordResetInTransaction(tokenHash: str, newPassword: str, nowMs: int) -> bool:
+    db = DB.getManager()
+    if not db:
+        raise ServiceError("AUTH_503_DB_NOT_READY")
+    ownerRow = await db.fetchOneQuery(
+        "auth.passwordResetTokenOwner",
+        {"tokenHash": tokenHash, "nowMs": nowMs},
+    )
+    if not ownerRow:
+        return False
+    owner = convertKeysToCamelCase(ownerRow)
+    userId = owner.get("userId")
+    if not isinstance(userId, str) or not userId.strip():
+        return False
+    lockedUser = await db.fetchOneQuery(
+        "auth.userForPasswordResetById",
+        {"userId": userId},
+    )
+    if not lockedUser:
+        return False
+    consumed = await db.fetchOneQuery(
+        "auth.consumePasswordResetToken",
+        {"tokenHash": tokenHash, "usedAtMs": nowMs},
+    )
+    if not consumed:
+        return False
+    consumedToken = convertKeysToCamelCase(consumed)
+    consumedUserId = consumedToken.get("userId")
+    if not isinstance(consumedUserId, str) or consumedUserId.strip() != userId.strip():
+        raise ServiceError("AUTH_400_RESET_INVALID_OR_EXPIRED")
+    updated = await db.fetchOneQuery(
+        "auth.updatePasswordAndAuthVersion",
+        {"userId": userId, "userPw": hashPasswordPbkdf2(newPassword)},
+    )
+    if not updated:
+        raise ServiceError("AUTH_400_RESET_INVALID_OR_EXPIRED")
+    return True
+
+
+async def completePasswordReset(payload: dict) -> tuple[dict | None, str | None]:
+    if not isinstance(payload, dict):
+        return None, "AUTH_422_INVALID_INPUT"
+    rawToken = payload.get("token")
+    newPassword = payload.get("newPassword")
+    if (
+        not isinstance(rawToken, str)
+        or not PASSWORD_RESET_TOKEN_PATTERN.fullmatch(rawToken)
+        or not isinstance(newPassword, str)
+        or len(newPassword) < PASSWORD_MIN_LENGTH
+    ):
+        return None, "AUTH_422_INVALID_INPUT"
+
+    tokenHash = hashPasswordResetToken(rawToken)
+    try:
+        completed = await completePasswordResetInTransaction(
+            tokenHash,
+            newPassword,
+            readCurrentEpochMs(),
+        )
+    except ServiceError as error:
+        errorCode = resolveServiceErrorCode(error)
+        if errorCode == "AUTH_400_RESET_INVALID_OR_EXPIRED":
+            return None, errorCode
+        if errorCode == "AUTH_503_DB_NOT_READY":
+            return None, errorCode
+        return None, "AUTH_500_PASSWORD_RESET_FAILED"
+    except Exception as error:
+        logger.error("password reset completion failed: error=%s", type(error).__name__)
+        return None, "AUTH_500_PASSWORD_RESET_FAILED"
+    if not completed:
+        return None, "AUTH_400_RESET_INVALID_OR_EXPIRED"
+    auditLog("auth.password_reset.complete", None, True, {"completed": True})
+    return {"completed": True}, None
 
 
 def hashPasswordPbkdf2(plain: str, iterations: int = 260000) -> str:
@@ -482,7 +678,7 @@ async def signup(payload: dict, idempotencyKey: str | None = None) -> tuple[dict
     name = rawName.strip()
     email = rawEmail.strip().lower()
     password = rawPassword
-    if len(name) < 2 or len(password) < 8 or not isValidEmail(email):
+    if len(name) < 2 or len(password) < PASSWORD_MIN_LENGTH or not isValidEmail(email):
         return None, "AUTH_422_INVALID_INPUT"
 
     signupPayload = {
@@ -589,7 +785,7 @@ async def ensureSeedUser(payload: dict) -> dict:
     password = rawPassword
     roleCd = rawRole.strip() if isinstance(rawRole, str) and rawRole.strip() else "user"
 
-    if len(name) < 2 or len(password) < 8 or not isValidEmail(email):
+    if len(name) < 2 or len(password) < PASSWORD_MIN_LENGTH or not isValidEmail(email):
         raise ValueError("AUTH_422_INVALID_INPUT")
 
     db = DB.getManager()
@@ -668,6 +864,11 @@ async def refresh(refreshToken: str) -> dict | None:
     if not isinstance(jti, str) or not jti:
         auditLog("auth.refresh", username, False, {"reason": "missing_jti"})
         return None
+    tokenAuthVersion = normalizeAuthVersion(payload.get("authVersion"))
+    currentAuthVersion = await readUserAuthVersion(username)
+    if currentAuthVersion is None or currentAuthVersion != tokenAuthVersion:
+        auditLog("auth.refresh", username, False, {"reason": "auth_version_mismatch"})
+        return None
     revokedExpiresAtMs = 0
     if useDbTokenStateStore:
         revokedEntry = await getTokenStateEntry(TOKEN_STATE_REVOKED, jti)
@@ -709,7 +910,7 @@ async def refresh(refreshToken: str) -> dict | None:
     if useDbTokenStateStore:
         await upsertTokenStateEntry(TOKEN_STATE_REVOKED, jti, revokedExpiresAtMs, None)
 
-    tokenPayload = issueTokens(username, remember)
+    tokenPayload = issueTokens(username, remember, currentAuthVersion)
 
     # 다중 탭/네트워크 재시도 경합을 위해 짧은 유예 시간 동안 동일 토큰 페이로드를 재응답할 수 있게 캐시한다.
     graceMs = max(0, int(getattr(AuthConfig, "refreshGraceMs", 0) or 0))
@@ -825,6 +1026,17 @@ async def authenticateUser(payload: dict) -> tuple[dict | None, str | None]:
     return authUser, username
 
 
+async def readUserAuthVersion(username: str) -> int | None:
+    db = DB.getManager()
+    if not db:
+        return None
+    row = await db.fetchOneQuery("auth.userAuthVersion", {"userId": username})
+    if not row:
+        return None
+    user = convertKeysToCamelCase(row)
+    return normalizeAuthVersion(user.get("authVersion"))
+
+
 def decodeRefreshTokenPayload(refreshToken: str) -> dict[str, Any] | None:
     """
     설명: 리프레시 토큰을 디코드해 페이로드를 반환. typ이 refresh가 아니면 None
@@ -837,14 +1049,19 @@ def decodeRefreshTokenPayload(refreshToken: str) -> dict[str, Any] | None:
         return None
 
 
-def issueTokens(username: str, remember: bool = False) -> dict:
+def issueTokens(username: str, remember: bool = False, authVersion: int = 0) -> dict:
     """
     설명: 사용자/remember 조건을 반영한 Access/Refresh 토큰 페이로드 구성 로직
     반환값: access/refresh 토큰 문자열과 만료 정보를 포함한 dict
     갱신일: 2026-02-22
     """
-    accessToken: Token = createAccessToken({"sub": username, "remember": remember}, tokenType="access")
-    refreshToken: Token = createRefreshToken({"sub": username, "remember": remember})
+    claims = {
+        "sub": username,
+        "remember": remember,
+        "authVersion": normalizeAuthVersion(authVersion),
+    }
+    accessToken: Token = createAccessToken(claims, tokenType="access")
+    refreshToken: Token = createRefreshToken(claims)
     return {
         "accessToken": accessToken.accessToken,
         "refreshToken": refreshToken.accessToken,

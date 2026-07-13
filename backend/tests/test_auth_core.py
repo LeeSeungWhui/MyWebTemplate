@@ -1,5 +1,7 @@
 import asyncio
+from configparser import ConfigParser
 from datetime import datetime, timedelta, timezone
+import hashlib
 
 import pytest
 from fastapi import HTTPException
@@ -194,6 +196,534 @@ def testIssuedAccessAndRefreshTokensRemainValid():
     assert accessPayload["sub"] == "user@example.com"
     assert refreshPayload is not None
     assert refreshPayload["sub"] == "user@example.com"
+    assert accessPayload["authVersion"] == 0
+    assert refreshPayload["authVersion"] == 0
+
+
+@pytest.mark.parametrize("value", [True, -1, "1", 1.5])
+def testJwtRejectsInvalidAuthVersionClaim(value):
+    configureTestAuth()
+    payload = validPayload("access")
+    payload["authVersion"] = value
+    with pytest.raises(JWTError):
+        decodeAuthToken(encodePayload(payload), expectedTokenType="access")
+
+
+def testAccessAuthVersionInvalidatesOnlyChangedUser(monkeypatch):
+    configureTestAuth()
+    versions = {"changed@example.com": 2, "other@example.com": 0}
+
+    class FakeDb:
+        async def fetchOneQuery(self, queryName, values):
+            return {"authVersion": versions.get(values["userId"], 0)}
+
+    monkeypatch.setattr("lib.Auth.DB.getManager", lambda: FakeDb())
+    oldToken = createAccessToken({"sub": "changed@example.com", "authVersion": 1})
+    otherToken = createAccessToken({"sub": "other@example.com", "authVersion": 0})
+
+    with pytest.raises(HTTPException) as rejected:
+        asyncio.run(getCurrentUser(makeRequest(), oldToken.accessToken))
+    assert rejected.value.status_code == 401
+    accepted = asyncio.run(getCurrentUser(makeRequest(), otherToken.accessToken))
+    assert accepted.username == "other@example.com"
+
+
+def testRefreshAuthVersionInvalidatesOnlyChangedUser(monkeypatch):
+    configureTestAuth()
+    versions = {"changed@example.com": 2, "other@example.com": 0}
+
+    class FakeDb:
+        async def fetchOneQuery(self, queryName, values):
+            assert queryName == "auth.userAuthVersion"
+            return {"authVersion": versions.get(values["userId"], 0)}
+
+    async def skipStateCleanup(_nowMs):
+        return False
+
+    monkeypatch.setattr(AuthService.DB, "getManager", lambda: FakeDb())
+    monkeypatch.setattr(AuthService, "cleanupTokenStateStore", skipStateCleanup)
+    AuthService.revokedRefreshJtiStore.clear()
+    AuthService.refreshGraceStore.clear()
+    changedToken = createRefreshToken(
+        {"sub": "changed@example.com", "authVersion": 1, "remember": False}
+    )
+    otherToken = createRefreshToken(
+        {"sub": "other@example.com", "authVersion": 0, "remember": False}
+    )
+
+    assert asyncio.run(AuthService.refresh(changedToken.accessToken)) is None
+    refreshed = asyncio.run(AuthService.refresh(otherToken.accessToken))
+    assert refreshed is not None
+    assert refreshed["accessToken"]
+    refreshedPayload = decodeAuthToken(
+        refreshed["accessToken"], expectedTokenType="access"
+    )
+    assert refreshedPayload["authVersion"] == 0
+
+
+def testPasswordResetRequestUsesHashOnlyAndKeepsGenericResult(monkeypatch):
+    scheduled = []
+
+    async def forbiddenDbWork(*_args, **_kwargs):
+        raise AssertionError("request response path must not await account DB work")
+
+    monkeypatch.setattr(AuthService, "createPasswordResetTokenInTransaction", forbiddenDbWork)
+
+    existing = asyncio.run(
+        AuthService.requestPasswordReset(
+            {"email": "exists@example.com"},
+            processingScheduler=lambda email: scheduled.append(email),
+        )
+    )
+    missing = asyncio.run(
+        AuthService.requestPasswordReset(
+            {"email": "missing@example.com"},
+            processingScheduler=lambda email: scheduled.append(email),
+        )
+    )
+
+    assert existing == ({"accepted": True}, None)
+    assert missing == ({"accepted": True}, None)
+    assert scheduled == ["exists@example.com", "missing@example.com"]
+
+
+def testPasswordResetBackgroundProcessorHashesAndThreadsDelivery(monkeypatch):
+    captured = []
+    threadCalls = []
+    auditCalls = []
+
+    async def fakeCreate(email, tokenHash, createdAtMs, expiresAtMs):
+        captured.append((email, tokenHash, createdAtMs, expiresAtMs))
+        return email
+
+    def fakeDelivery(recipient, rawToken):
+        captured.append((recipient, rawToken))
+        return True
+
+    async def fakeToThread(function, *args):
+        threadCalls.append((function, args))
+        return function(*args)
+
+    monkeypatch.setattr(AuthService, "createPasswordResetTokenInTransaction", fakeCreate)
+    monkeypatch.setattr(AuthService, "deliverPasswordResetMail", fakeDelivery)
+    monkeypatch.setattr(AuthService.asyncio, "to_thread", fakeToThread)
+    monkeypatch.setattr(AuthService, "readCurrentEpochMs", lambda: 1_000)
+    monkeypatch.setattr(
+        AuthService,
+        "auditLog",
+        lambda event, username, success, meta=None: auditCalls.append(
+            (event, username, success, meta)
+        ),
+    )
+
+    asyncio.run(AuthService.processPasswordResetRequest("exists@example.com"))
+    rawToken = captured[1][1]
+    assert len(rawToken) == 43
+    assert captured[0][1] == hashlib.sha256(rawToken.encode()).hexdigest()
+    assert captured[0][3] - captured[0][2] == AuthService.PASSWORD_RESET_TOKEN_TTL_MS
+    assert len(threadCalls) == 1
+    assert auditCalls[-1] == (
+        "auth.password_reset.delivery",
+        "exists@example.com",
+        True,
+        {"delivery": "sent"},
+    )
+
+
+def testPasswordResetCompleteValidationAndOneTimeResult(monkeypatch):
+    rawToken = "A" * 43
+    seen = []
+
+    async def fakeComplete(tokenHash, newPassword, nowMs):
+        seen.append((tokenHash, newPassword, nowMs))
+        return len(seen) == 1
+
+    monkeypatch.setattr(AuthService, "completePasswordResetInTransaction", fakeComplete)
+    monkeypatch.setattr(AuthService, "readCurrentEpochMs", lambda: 2_000)
+    first = asyncio.run(
+        AuthService.completePasswordReset({"token": rawToken, "newPassword": "newpassword123"})
+    )
+    reused = asyncio.run(
+        AuthService.completePasswordReset({"token": rawToken, "newPassword": "newpassword123"})
+    )
+    short = asyncio.run(
+        AuthService.completePasswordReset({"token": rawToken, "newPassword": "short"})
+    )
+
+    assert first == ({"completed": True}, None)
+    assert reused == (None, "AUTH_400_RESET_INVALID_OR_EXPIRED")
+    assert short == (None, "AUTH_422_INVALID_INPUT")
+    assert seen[0][0] == hashlib.sha256(rawToken.encode()).hexdigest()
+    assert rawToken not in repr(seen)
+
+
+def testPasswordResetConditionalConsumeAllowsOnlyOneConcurrentCompletion(monkeypatch):
+    class TxContext:
+        def __init__(self, lock):
+            self.lock = lock
+
+        async def __aenter__(self):
+            await self.lock.acquire()
+            return self
+
+        async def __aexit__(self, excType, exc, traceback):
+            self.lock.release()
+
+    class FakeDatabase:
+        def __init__(self, lock):
+            self.lock = lock
+
+        def transaction(self, **_options):
+            return TxContext(self.lock)
+
+    class FakeManager:
+        def __init__(self, lock):
+            self.database = FakeDatabase(lock)
+            self.used = False
+            self.authVersion = 0
+            self.calls = []
+
+        async def fetchOneQuery(self, queryName, values):
+            self.calls.append(queryName)
+            if queryName == "auth.passwordResetTokenOwner":
+                return None if self.used else {"userId": "user@example.com"}
+            if queryName == "auth.userForPasswordResetById":
+                return {"userId": values["userId"]}
+            if queryName == "auth.consumePasswordResetToken":
+                if self.used:
+                    return None
+                self.used = True
+                return {"userId": "user@example.com"}
+            if queryName == "auth.updatePasswordAndAuthVersion":
+                self.authVersion += 1
+                assert values["userPw"].startswith("pbkdf2$")
+                return {"authVersion": self.authVersion}
+            raise AssertionError(queryName)
+
+    async def runConcurrent():
+        manager = FakeManager(asyncio.Lock())
+        monkeypatch.setitem(AuthService.DB.dbManagers, "main_db", manager)
+        AuthService.DB.setPrimaryDbName("main_db")
+        return manager, await asyncio.gather(
+            AuthService.completePasswordResetInTransaction("a" * 64, "newpassword123", 1000),
+            AuthService.completePasswordResetInTransaction("a" * 64, "newpassword123", 1000),
+        )
+
+    manager, results = asyncio.run(runConcurrent())
+    assert sorted(results) == [False, True]
+    assert manager.authVersion == 1
+    assert manager.calls[:4] == [
+        "auth.passwordResetTokenOwner",
+        "auth.userForPasswordResetById",
+        "auth.consumePasswordResetToken",
+        "auth.updatePasswordAndAuthVersion",
+    ]
+
+
+def testPasswordResetConcurrentRequestsLeaveOnlyLatestTokenActive(monkeypatch):
+    class TxContext:
+        def __init__(self, lock):
+            self.lock = lock
+
+        async def __aenter__(self):
+            await self.lock.acquire()
+
+        async def __aexit__(self, excType, exc, traceback):
+            self.lock.release()
+
+    class FakeDatabase:
+        def __init__(self, lock):
+            self.lock = lock
+
+        def transaction(self, **_options):
+            return TxContext(self.lock)
+
+    class FakeManager:
+        def __init__(self, lock):
+            self.database = FakeDatabase(lock)
+            self.active = None
+            self.superseded = []
+
+        async def fetchOneQuery(self, queryName, values):
+            assert queryName == "auth.userForPasswordReset"
+            return {"userId": values["email"], "userEml": values["email"]}
+
+        async def executeQuery(self, queryName, values):
+            if queryName == "auth.supersedePasswordResetTokens":
+                if self.active:
+                    self.superseded.append(self.active)
+                self.active = None
+                return True
+            if queryName == "auth.insertPasswordResetToken":
+                assert len(values["tokenHash"]) == 64
+                self.active = values["tokenHash"]
+                return True
+            raise AssertionError(queryName)
+
+    async def runConcurrent():
+        manager = FakeManager(asyncio.Lock())
+        monkeypatch.setitem(AuthService.DB.dbManagers, "main_db", manager)
+        AuthService.DB.setPrimaryDbName("main_db")
+        results = await asyncio.gather(
+            AuthService.createPasswordResetTokenInTransaction(
+                "user@example.com", "a" * 64, 1000, 2000
+            ),
+            AuthService.createPasswordResetTokenInTransaction(
+                "user@example.com", "b" * 64, 1001, 2001
+            ),
+        )
+        return manager, results
+
+    manager, results = asyncio.run(runConcurrent())
+    assert results == ["user@example.com", "user@example.com"]
+    assert manager.active in {"a" * 64, "b" * 64}
+    assert manager.superseded == [({"a" * 64, "b" * 64} - {manager.active}).pop()]
+
+
+def testPasswordResetRequestAndCompletionRaceFinishesWithoutDeadlock(monkeypatch):
+    oldHash = "a" * 64
+    newHash = "b" * 64
+
+    class TxContext:
+        def __init__(self, lock):
+            self.lock = lock
+
+        async def __aenter__(self):
+            await self.lock.acquire()
+
+        async def __aexit__(self, excType, exc, traceback):
+            self.lock.release()
+
+    class FakeDatabase:
+        def __init__(self, lock):
+            self.lock = lock
+
+        def transaction(self, **_options):
+            return TxContext(self.lock)
+
+    class FakeManager:
+        def __init__(self, lock):
+            self.database = FakeDatabase(lock)
+            self.active = oldHash
+            self.used = False
+            self.authVersion = 0
+
+        async def fetchOneQuery(self, queryName, values):
+            if queryName == "auth.userForPasswordReset":
+                return {"userId": values["email"], "userEml": values["email"]}
+            if queryName == "auth.passwordResetTokenOwner":
+                if values["tokenHash"] == self.active and not self.used:
+                    return {"userId": "user@example.com"}
+                return None
+            if queryName == "auth.userForPasswordResetById":
+                return {"userId": values["userId"]}
+            if queryName == "auth.consumePasswordResetToken":
+                if values["tokenHash"] != self.active or self.used:
+                    return None
+                self.used = True
+                return {"userId": "user@example.com"}
+            if queryName == "auth.updatePasswordAndAuthVersion":
+                self.authVersion += 1
+                return {"authVersion": self.authVersion}
+            raise AssertionError(queryName)
+
+        async def executeQuery(self, queryName, values):
+            if queryName == "auth.supersedePasswordResetTokens":
+                self.used = True
+                return True
+            if queryName == "auth.insertPasswordResetToken":
+                self.active = values["tokenHash"]
+                self.used = False
+                return True
+            raise AssertionError(queryName)
+
+    async def runRace():
+        manager = FakeManager(asyncio.Lock())
+        monkeypatch.setitem(AuthService.DB.dbManagers, "main_db", manager)
+        AuthService.DB.setPrimaryDbName("main_db")
+        results = await asyncio.wait_for(
+            asyncio.gather(
+                AuthService.completePasswordResetInTransaction(
+                    oldHash, "newpassword123", 1000
+                ),
+                AuthService.createPasswordResetTokenInTransaction(
+                    "user@example.com", newHash, 1001, 2001
+                ),
+            ),
+            timeout=1,
+        )
+        return manager, results
+
+    manager, results = asyncio.run(runRace())
+    assert results[0] in {True, False}
+    assert results[1] == "user@example.com"
+    assert manager.active == newHash
+    assert manager.used is False
+
+
+def testPasswordResetMailUsesFixedOriginAndInjectedSender():
+    from lib import PasswordResetMail
+
+    config = ConfigParser(interpolation=None)
+    config.read_dict(
+        {
+            "PASSWORD_RESET": {
+                "enabled": "true",
+                "public_origin": "https://web.example.com",
+                "smtp_host": "smtp.example.com",
+                "from_address": "no-reply@example.com",
+            }
+        }
+    )
+    PasswordResetMail.configurePasswordResetMail(config, runtime="PROD")
+    sent = []
+
+    class CaptureSender:
+        def send(self, recipient, resetLink):
+            sent.append((recipient, resetLink))
+
+    PasswordResetMail.setPasswordResetSender(CaptureSender())
+    rawToken = "B" * 43
+    assert PasswordResetMail.sendPasswordReset("user@example.com", rawToken) is True
+    assert sent == [
+        ("user@example.com", f"https://web.example.com/reset-password?token={rawToken}")
+    ]
+
+
+def testPasswordResetSmtpUsesExplicitDefaultSslContext(monkeypatch):
+    from lib import PasswordResetMail
+
+    tlsContext = object()
+    calls = []
+
+    class FakeSmtp:
+        def __init__(self, **kwargs):
+            calls.append(("init", kwargs))
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, excType, exc, traceback):
+            return False
+
+        def starttls(self, *, context):
+            calls.append(("starttls", context))
+
+        def send_message(self, _message):
+            calls.append(("send", True))
+
+    monkeypatch.setattr(PasswordResetMail.ssl, "create_default_context", lambda: tlsContext)
+    monkeypatch.setattr(PasswordResetMail.smtplib, "SMTP", FakeSmtp)
+    sender = PasswordResetMail.SmtpPasswordResetSender(
+        PasswordResetMail.PasswordResetMailConfig(
+            enabled=True,
+            publicOrigin="https://web.example.com",
+            smtpHost="smtp.example.com",
+            fromAddress="no-reply@example.com",
+            useTls=True,
+        )
+    )
+    sender.send("user@example.com", "https://web.example.com/reset-password?token=safe")
+    assert calls[0] == (
+        "init",
+        {"host": "smtp.example.com", "port": 587, "timeout": 10},
+    )
+    assert ("starttls", tlsContext) in calls
+
+    calls.clear()
+    monkeypatch.setattr(PasswordResetMail.smtplib, "SMTP_SSL", FakeSmtp)
+    sslSender = PasswordResetMail.SmtpPasswordResetSender(
+        PasswordResetMail.PasswordResetMailConfig(
+            enabled=True,
+            publicOrigin="https://web.example.com",
+            smtpHost="smtp.example.com",
+            fromAddress="no-reply@example.com",
+            useTls=False,
+            useSsl=True,
+        )
+    )
+    sslSender.send("user@example.com", "https://web.example.com/reset-password?token=safe")
+    assert calls[0] == (
+        "init",
+        {
+            "host": "smtp.example.com",
+            "port": 587,
+            "timeout": 10,
+            "context": tlsContext,
+        },
+    )
+
+
+def testPasswordResetBackgroundAuditCoversDisabledAndFailureWithoutToken(monkeypatch):
+    auditCalls = []
+    logCalls = []
+
+    async def fakeCreate(email, tokenHash, createdAtMs, expiresAtMs):
+        return email
+
+    async def disabledToThread(_function, *_args):
+        return False
+
+    monkeypatch.setattr(AuthService, "createPasswordResetTokenInTransaction", fakeCreate)
+    monkeypatch.setattr(AuthService.asyncio, "to_thread", disabledToThread)
+    monkeypatch.setattr(
+        AuthService,
+        "auditLog",
+        lambda event, username, success, meta=None: auditCalls.append(
+            (event, username, success, meta)
+        ),
+    )
+    monkeypatch.setattr(AuthService.logger, "error", lambda *args, **kwargs: logCalls.append(args))
+    asyncio.run(AuthService.processPasswordResetRequest("user@example.com"))
+    assert auditCalls[-1][2:] == (True, {"delivery": "disabled"})
+
+    async def failedToThread(_function, *_args):
+        raise RuntimeError("provider detail must stay private")
+
+    monkeypatch.setattr(AuthService.asyncio, "to_thread", failedToThread)
+    asyncio.run(AuthService.processPasswordResetRequest("user@example.com"))
+    assert auditCalls[-1][2] is False
+    assert auditCalls[-1][3] == {"delivery": "failed", "reason": "RuntimeError"}
+    assert "provider detail" not in repr(auditCalls)
+    assert "provider detail" not in repr(logCalls)
+
+
+def testPasswordResetProductionConfigFailsClosed():
+    from lib import PasswordResetMail
+
+    config = ConfigParser(interpolation=None)
+    config.read_dict({"PASSWORD_RESET": {"enabled": "true"}})
+    with pytest.raises(ValueError, match="requires public_origin"):
+        PasswordResetMail.configurePasswordResetMail(config, runtime="PROD")
+
+    config.read_dict(
+        {
+            "PASSWORD_RESET": {
+                "enabled": "true",
+                "public_origin": "http://web.example.com",
+                "smtp_host": "smtp.example.com",
+                "from_address": "no-reply@example.com",
+            }
+        }
+    )
+    with pytest.raises(ValueError, match="HTTPS"):
+        PasswordResetMail.configurePasswordResetMail(config, runtime="PROD")
+
+    config = ConfigParser(interpolation=None)
+    config.read_dict(
+        {
+            "PASSWORD_RESET": {
+                "enabled": "true",
+                "public_origin": "https://web.example.com",
+                "smtp_host": "smtp.example.com",
+                "from_address": "no-reply@example.com",
+                "use_tls": "false",
+                "use_ssl": "false",
+            }
+        }
+    )
+    with pytest.raises(ValueError, match="requires TLS or SSL"):
+        PasswordResetMail.configurePasswordResetMail(config, runtime="PROD")
 
 
 @pytest.mark.parametrize(

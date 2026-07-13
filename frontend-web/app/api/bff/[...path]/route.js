@@ -25,6 +25,10 @@ const ALLOWED_FORWARD_HEADERS = new Set([
 const REFRESH_PATH = "/api/v1/auth/refresh";
 const LOGIN_PATH = "/api/v1/auth/login";
 const LOGOUT_PATH = "/api/v1/auth/logout";
+const PASSWORD_RESET_REQUEST_PATH = "/api/v1/auth/password-reset/request";
+const PASSWORD_RESET_COMPLETE_PATH = "/api/v1/auth/password-reset/complete";
+const PASSWORD_RESET_REQUEST_COMPAT_PATH = "/api/v1/auth/passwordResetRequest";
+const PASSWORD_RESET_COMPLETE_COMPAT_PATH = "/api/v1/auth/passwordResetComplete";
 const OPENAPI_PATH = "/openapi.json";
 const ACCESS_COOKIE_NAME = "access_token";
 
@@ -173,7 +177,7 @@ const hashToken = (token) => {
 
 /**
  * @description 현재 백엔드 경로에서 refresh 재시도가 가능한지 판정
- * 처리 규칙: refresh/login/logout 경로는 재시도 대상에서 제외한다.
+ * 처리 규칙: refresh/login/logout과 공개 비밀번호 재설정 경로는 재시도 대상에서 제외한다.
  * @updated 2026-02-27
  */
 const shouldAttemptRefresh = (backendPathname) => {
@@ -181,6 +185,10 @@ const shouldAttemptRefresh = (backendPathname) => {
   if (backendPathname === REFRESH_PATH) return false;
   if (backendPathname === LOGIN_PATH) return false;
   if (backendPathname === LOGOUT_PATH) return false;
+  if (backendPathname === PASSWORD_RESET_REQUEST_PATH) return false;
+  if (backendPathname === PASSWORD_RESET_COMPLETE_PATH) return false;
+  if (backendPathname === PASSWORD_RESET_REQUEST_COMPAT_PATH) return false;
+  if (backendPathname === PASSWORD_RESET_COMPLETE_COMPAT_PATH) return false;
   return true;
 }
 

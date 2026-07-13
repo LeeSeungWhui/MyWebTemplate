@@ -69,12 +69,34 @@ def ensureBaseTablesAndDemo() -> None:
             NOTIFY_EMAIL INTEGER NOT NULL DEFAULT 0,
             NOTIFY_SMS INTEGER NOT NULL DEFAULT 0,
             NOTIFY_PUSH INTEGER NOT NULL DEFAULT 0
+            , AUTH_VERSION BIGINT NOT NULL DEFAULT 0
         )
         """,
     )
     executePg(pgTestSettings, "ALTER TABLE T_USER ADD COLUMN IF NOT EXISTS NOTIFY_EMAIL INTEGER NOT NULL DEFAULT 0")
     executePg(pgTestSettings, "ALTER TABLE T_USER ADD COLUMN IF NOT EXISTS NOTIFY_SMS INTEGER NOT NULL DEFAULT 0")
     executePg(pgTestSettings, "ALTER TABLE T_USER ADD COLUMN IF NOT EXISTS NOTIFY_PUSH INTEGER NOT NULL DEFAULT 0")
+    executePg(pgTestSettings, "ALTER TABLE T_USER ADD COLUMN IF NOT EXISTS AUTH_VERSION BIGINT NOT NULL DEFAULT 0")
+    executePg(
+        pgTestSettings,
+        """
+        CREATE TABLE IF NOT EXISTS T_PASSWORD_RESET_TOKEN (
+            TOKEN_HASH CHAR(64) PRIMARY KEY,
+            USER_ID TEXT NOT NULL REFERENCES T_USER(USER_ID) ON DELETE CASCADE,
+            CREATED_AT_MS BIGINT NOT NULL,
+            EXPIRES_AT_MS BIGINT NOT NULL,
+            USED_AT_MS BIGINT
+        )
+        """,
+    )
+    executePg(
+        pgTestSettings,
+        """
+        CREATE UNIQUE INDEX IF NOT EXISTS UX_PASSWORD_RESET_ACTIVE_USER
+        ON T_PASSWORD_RESET_TOKEN (USER_ID)
+        WHERE USED_AT_MS IS NULL
+        """,
+    )
     executePg(
         pgTestSettings,
         """
@@ -145,6 +167,7 @@ def resetIntegrationDbState() -> None:
     ensureBaseTablesAndDemo()
     executePg(pgTestSettings, "DELETE FROM T_USER WHERE USER_ID <> $1", "demo@demo.demo")
     executePg(pgTestSettings, "DELETE FROM T_USER_LOG")
+    executePg(pgTestSettings, "DELETE FROM T_PASSWORD_RESET_TOKEN")
     executePg(pgTestSettings, "DELETE FROM T_TEST_TRANSACTION")
     executePg(pgTestSettings, "DROP TABLE IF EXISTS T_TOKEN")
     executePg(pgTestSettings, "DROP TABLE IF EXISTS T_REQUEST_IDEMPOTENCY")

@@ -5,8 +5,27 @@ SELECT USER_NO AS "userNo"
      , USER_NM AS "userNm"
      , USER_EML AS "userEml"
      , ROLE_CD AS "roleCd"
+     , AUTH_VERSION AS "authVersion"
   FROM T_USER
  WHERE USER_ID = :u;
+
+-- name: auth.userAuthVersion
+SELECT AUTH_VERSION AS "authVersion"
+  FROM T_USER
+ WHERE USER_ID = :userId;
+
+-- name: auth.userForPasswordReset
+SELECT USER_ID AS "userId"
+     , USER_EML AS "userEml"
+  FROM T_USER
+ WHERE USER_ID = :email
+ FOR UPDATE;
+
+-- name: auth.userForPasswordResetById
+SELECT USER_ID AS "userId"
+  FROM T_USER
+ WHERE USER_ID = :userId
+ FOR UPDATE;
 
 -- name: auth.insertUser
 INSERT INTO T_USER
@@ -22,6 +41,49 @@ VALUES ( :userId
        , :userEml
        , :roleCd
        );
+
+-- name: auth.supersedePasswordResetTokens
+UPDATE T_PASSWORD_RESET_TOKEN
+   SET USED_AT_MS = :usedAtMs
+ WHERE USER_ID = :userId
+   AND USED_AT_MS IS NULL;
+
+-- name: auth.insertPasswordResetToken
+INSERT INTO T_PASSWORD_RESET_TOKEN
+     ( TOKEN_HASH
+     , USER_ID
+     , CREATED_AT_MS
+     , EXPIRES_AT_MS
+     , USED_AT_MS
+     )
+VALUES ( :tokenHash
+       , :userId
+       , :createdAtMs
+       , :expiresAtMs
+       , NULL
+       );
+
+-- name: auth.consumePasswordResetToken
+UPDATE T_PASSWORD_RESET_TOKEN
+   SET USED_AT_MS = :usedAtMs
+ WHERE TOKEN_HASH = :tokenHash
+   AND USED_AT_MS IS NULL
+   AND EXPIRES_AT_MS > :usedAtMs
+RETURNING USER_ID AS "userId";
+
+-- name: auth.passwordResetTokenOwner
+SELECT USER_ID AS "userId"
+  FROM T_PASSWORD_RESET_TOKEN
+ WHERE TOKEN_HASH = :tokenHash
+   AND USED_AT_MS IS NULL
+   AND EXPIRES_AT_MS > :nowMs;
+
+-- name: auth.updatePasswordAndAuthVersion
+UPDATE T_USER
+   SET USER_PW = :userPw
+     , AUTH_VERSION = AUTH_VERSION + 1
+ WHERE USER_ID = :userId
+RETURNING AUTH_VERSION AS "authVersion";
 
 -- name: auth.updateUserSeed
 UPDATE T_USER

@@ -288,6 +288,35 @@ def attachOpenAPI(app: FastAPI, config) -> None:
                     "required": ["email"],
                     "additionalProperties": False,
                 }
+            if "PasswordResetCompleteRequest" not in schemas:
+                schemas["PasswordResetCompleteRequest"] = {
+                    "type": "object",
+                    "properties": {
+                        "token": {"type": "string", "minLength": 43, "maxLength": 43},
+                        "newPassword": {"type": "string", "minLength": 8},
+                    },
+                    "required": ["token", "newPassword"],
+                    "additionalProperties": False,
+                }
+            if "PasswordResetCompleteResult" not in schemas:
+                schemas["PasswordResetCompleteResult"] = {
+                    "type": "object",
+                    "properties": {"completed": {"type": "boolean", "const": True}},
+                    "required": ["completed"],
+                    "additionalProperties": False,
+                }
+            if "PasswordResetCompleteResponse" not in schemas:
+                schemas["PasswordResetCompleteResponse"] = {
+                    "allOf": [
+                        {"$ref": "#/components/schemas/StandardResponse"},
+                        {
+                            "type": "object",
+                            "properties": {
+                                "result": {"$ref": "#/components/schemas/PasswordResetCompleteResult"}
+                            },
+                        },
+                    ]
+                }
 
             if "HealthzResult" not in schemas:
                 schemas["HealthzResult"] = {
@@ -1478,7 +1507,7 @@ def attachOpenAPI(app: FastAPI, config) -> None:
                     "$ref": "#/components/schemas/PasswordResetRequestResponse"
                 }
                 ensureErrorResponseRef(passwordReset, "422", "ValidationErrorResponse")
-                ensureErrorResponseRef(passwordReset, "503", "ServiceUnavailableErrorResponse")
+                ensureErrorResponseRef(passwordReset, "500", "InternalServerErrorResponse")
                 ensureJavaScriptCodeSample(
                     passwordReset,
                     (
@@ -1486,6 +1515,49 @@ def attachOpenAPI(app: FastAPI, config) -> None:
                         "// const client = ...;\n"
                         f"// await client.POST('{passwordResetPath}', {{\n"
                         "//   body: { email: 'demo@demo.demo' },\n"
+                        "// });"
+                    ),
+                )
+
+            passwordResetCompletePaths = (
+                "/api/v1/auth/password-reset/complete",
+                "/api/v1/auth/passwordResetComplete",
+            )
+            for passwordResetCompletePath in passwordResetCompletePaths:
+                passwordResetComplete = paths.get(passwordResetCompletePath, {}).get("post")
+                if not isinstance(passwordResetComplete, dict):
+                    continue
+                passwordResetComplete["requestBody"] = {
+                    "required": True,
+                    "content": {
+                        "application/json": {
+                            "schema": {"$ref": "#/components/schemas/PasswordResetCompleteRequest"},
+                        }
+                    },
+                }
+                completeResponses = passwordResetComplete.setdefault("responses", {})
+                complete200 = completeResponses.setdefault("200", {"description": "OK"})
+                complete200["description"] = (
+                    "OK (updates the password, invalidates prior sessions, clears Web auth cookies, and returns no token)"
+                )
+                complete200.setdefault("headers", {})["Set-Cookie"] = {
+                    "description": f"Expires `{accessCookie}` and `{refreshCookie}` cookies.",
+                    "schema": {"type": "string"},
+                }
+                complete200.setdefault("content", {}).setdefault("application/json", {})[
+                    "schema"
+                ] = {"$ref": "#/components/schemas/PasswordResetCompleteResponse"}
+                ensureErrorResponseRef(passwordResetComplete, "400", "ValidationErrorResponse")
+                ensureErrorResponseRef(passwordResetComplete, "422", "ValidationErrorResponse")
+                ensureErrorResponseRef(passwordResetComplete, "500", "InternalServerErrorResponse")
+                ensureErrorResponseRef(passwordResetComplete, "503", "ServiceUnavailableErrorResponse")
+                ensureJavaScriptCodeSample(
+                    passwordResetComplete,
+                    (
+                        "// Example using openapi-client-axios\n"
+                        "// const client = ...;\n"
+                        f"// await client.POST('{passwordResetCompletePath}', {{\n"
+                        "//   body: { token: '<one-time-token>', newPassword: '<new-password>' },\n"
                         "// });"
                     ),
                 )

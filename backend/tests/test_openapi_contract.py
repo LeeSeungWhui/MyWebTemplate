@@ -100,6 +100,16 @@ def testOpenapiErrorRefsAppliedToCoreOperations():
             "500": "InternalServerErrorResponse",
             "503": "ServiceUnavailableErrorResponse",
         },
+        ("/api/v1/auth/password-reset/request", "post"): {
+            "422": "ValidationErrorResponse",
+            "500": "InternalServerErrorResponse",
+        },
+        ("/api/v1/auth/password-reset/complete", "post"): {
+            "400": "ValidationErrorResponse",
+            "422": "ValidationErrorResponse",
+            "500": "InternalServerErrorResponse",
+            "503": "ServiceUnavailableErrorResponse",
+        },
         ("/api/v1/profile/me", "put"): {
             "401": "UnauthorizedErrorResponse",
             "404": "NotFoundErrorResponse",
@@ -132,6 +142,7 @@ def testOpenapiErrorRefsAppliedToCoreOperations():
             assert responses[statusCode] == {
                 "$ref": f"#/components/responses/{componentName}"
             }
+    assert "503" not in paths["/api/v1/auth/password-reset/request"]["post"]["responses"]
 
 
 def testOpenapiLocalRefsResolveAndCoreOperationsExist():

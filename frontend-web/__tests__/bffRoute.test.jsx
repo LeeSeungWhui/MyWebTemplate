@@ -97,6 +97,63 @@ describe("/api/bff route", () => {
     expect(logoutInitObj.headers.get("cookie")).toContain("refresh_token=rt");
   });
 
+  it("공개 비밀번호 재설정 요청과 완료의 401에서는 refresh를 시도하지 않는다", async () => {
+    const resetPathList = [
+      "/api/v1/auth/password-reset/request",
+      "/api/v1/auth/password-reset/complete",
+      "/api/v1/auth/passwordResetRequest",
+      "/api/v1/auth/passwordResetComplete",
+    ];
+
+    for (const resetPath of resetPathList) {
+      fetch.mockReset();
+      fetch.mockResolvedValueOnce(
+        new Response(JSON.stringify({ status: false }), { status: 401 }),
+      );
+
+      const req = buildBffRequest(resetPath);
+      const res = await POST(req, buildRouteContext(resetPath));
+
+      expect(res.status).toBe(401);
+      expect(fetch).toHaveBeenCalledTimes(1);
+      expect(String(fetch.mock.calls[0][0])).toBe(`http://backend.local${resetPath}`);
+    }
+  });
+
+  it("비밀번호 재설정 완료의 access/refresh 쿠키 삭제를 그대로 전달한다", async () => {
+    const resetHeaders = new Headers({
+      "content-type": "application/json",
+    });
+    resetHeaders.append(
+      "set-cookie",
+      "access_token=; Max-Age=0; Path=/; HttpOnly; SameSite=Lax",
+    );
+    resetHeaders.append(
+      "set-cookie",
+      "refresh_token=; Max-Age=0; Path=/; HttpOnly; SameSite=Lax",
+    );
+    fetch.mockResolvedValueOnce(
+      new Response(JSON.stringify({ status: true, result: { completed: true } }), {
+        status: 200,
+        headers: resetHeaders,
+      }),
+    );
+
+    const resetPath = "/api/v1/auth/passwordResetComplete";
+    const req = buildBffRequest(resetPath);
+    const res = await POST(req, buildRouteContext(resetPath));
+    const body = await res.json();
+    const setCookieList = res.headers.getSetCookie?.() || [res.headers.get("set-cookie")];
+    const setCookieText = setCookieList.join("\n");
+
+    expect(res.status).toBe(200);
+    expect(fetch).toHaveBeenCalledTimes(1);
+    expect(setCookieText).toContain("access_token=; Max-Age=0");
+    expect(setCookieText).toContain("refresh_token=; Max-Age=0");
+    expect(body).toEqual({ status: true, result: { completed: true } });
+    expect(JSON.stringify(body)).not.toMatch(/accessToken|refreshToken|access_token|refresh_token/);
+  });
+
   it("primary fetch 거부를 requestId 포함 502 JSON으로 변환한다", async () => {
     fetch.mockRejectedValueOnce(new Error("private transport detail"));
 

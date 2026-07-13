@@ -11,7 +11,7 @@ from functools import lru_cache
 from typing import Any
 from urllib.parse import urlparse
 
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, BackgroundTasks, Depends, Request
 from fastapi.responses import JSONResponse, Response
 
 from lib.Auth import AuthConfig, getCurrentUser
@@ -523,7 +523,7 @@ async def signup(request: Request):
 @router.post("/passwordResetRequest")
 @passwordResetRouter.post("/request")
 @passwordResetHyphenRouter.post("/request")
-async def requestPasswordReset(request: Request):
+async def requestPasswordReset(request: Request, backgroundTasks: BackgroundTasks):
     """
     설명: 비밀번호 재설정 요청을 접수하고 계정 존재 여부를 숨긴 채 동일 성공 응답 반환
     실패 동작: 입력 형식 오류는 422, 그 외 예외는 500으로 표준 응답화
@@ -549,7 +549,13 @@ async def requestPasswordReset(request: Request):
     )
     if limited is not None:
         return limited
-    result, errorCode = await AuthService.requestPasswordReset(payload)
+    def scheduleProcessing(email: str) -> None:
+        backgroundTasks.add_task(AuthService.processPasswordResetRequest, email)
+
+    result, errorCode = await AuthService.requestPasswordReset(
+        payload,
+        processingScheduler=scheduleProcessing,
+    )
     if errorCode == "AUTH_422_INVALID_INPUT":
         return invalidInputResponse(loc)
     if errorCode:
@@ -563,6 +569,67 @@ async def requestPasswordReset(request: Request):
         )
     response = JSONResponse(status_code=200, content=successResponse(result=result))
     response.headers["Cache-Control"] = "no-store"
+    return response
+
+
+@router.post("/passwordResetComplete")
+@passwordResetHyphenRouter.post("/complete")
+async def completePasswordReset(request: Request):
+    """
+    설명: 만료 전 일회용 token을 소비해 새 비밀번호로 변경
+    실패 동작: 잘못된 입력은 422, 없음/만료/사용/대체 token은 동일 400으로 응답
+    """
+    loc = detectLocale(request)
+    originError = ensureWebRequestOrigin(request, loc, required=False)
+    if originError is not None:
+        return originError
+    try:
+        payload = await readRequiredAuthPayload(
+            request,
+            requiredFieldTypeMap={"token": "str", "newPassword": "str"},
+        )
+    except ServiceError:
+        return invalidInputResponse(loc)
+    result, errorCode = await AuthService.completePasswordReset(payload)
+    if errorCode == "AUTH_422_INVALID_INPUT":
+        return invalidInputResponse(loc)
+    if errorCode == "AUTH_400_RESET_INVALID_OR_EXPIRED":
+        return JSONResponse(
+            status_code=400,
+            content=errorResponse(
+                message=i18nTranslate(
+                    "auth.password_reset_invalid",
+                    "password reset link is invalid or expired",
+                    loc,
+                ),
+                code="AUTH_400_RESET_INVALID_OR_EXPIRED",
+            ),
+            headers={"Cache-Control": "no-store"},
+        )
+    if errorCode == "AUTH_503_DB_NOT_READY":
+        return JSONResponse(
+            status_code=503,
+            content=errorResponse(
+                message=i18nTranslate("error.db_not_ready", "database not ready", loc),
+                code="AUTH_503_DB_NOT_READY",
+            ),
+            headers={"Cache-Control": "no-store"},
+        )
+    if errorCode:
+        return JSONResponse(
+            status_code=500,
+            content=errorResponse(
+                message=i18nTranslate("error.server_error", "server error", loc),
+                code="AUTH_500_PASSWORD_RESET_FAILED",
+            ),
+            headers={"Cache-Control": "no-store"},
+        )
+    response = JSONResponse(
+        status_code=200,
+        content=successResponse(result=result),
+        headers={"Cache-Control": "no-store"},
+    )
+    clearAuthCookies(response, request)
     return response
 
 

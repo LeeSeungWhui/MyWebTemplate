@@ -173,7 +173,7 @@ def testSignupAndAllPasswordResetRoutesCommitNormalizedNamespacedThrottle(monkey
     async def fakeSignup(payload, idempotencyKey=None):
         return {"userId": "demo@example.com", "userNm": "Demo"}, None
 
-    async def fakePasswordReset(payload):
+    async def fakePasswordReset(payload, processingScheduler=None):
         return {"accepted": True}, None
 
     monkeypatch.setattr(AuthRouter, "checkRateLimit", captureRateLimit)
@@ -289,7 +289,7 @@ def testSignupFallbackSanitizesArbitraryServiceCode(monkeypatch):
 
 
 def testPasswordResetFallbackSanitizesArbitraryServiceCode(monkeypatch):
-    async def failPasswordReset(payload):
+    async def failPasswordReset(payload, processingScheduler=None):
         return None, "INTERNAL_PROVIDER_DETAIL"
 
     monkeypatch.setattr(AuthService, "requestPasswordReset", failPasswordReset)
@@ -305,3 +305,111 @@ def testPasswordResetFallbackSanitizesArbitraryServiceCode(monkeypatch):
     assert response.headers.get("Cache-Control") == "no-store"
     assert response.json()["code"] == "AUTH_500_PASSWORD_RESET_FAILED"
     assert "INTERNAL_PROVIDER_DETAIL" not in response.text
+
+
+def testPasswordResetCompleteClearsCookiesAndReturnsNoToken(monkeypatch):
+    async def complete(payload):
+        assert payload == {"token": "A" * 43, "newPassword": "newpassword123"}
+        return {"completed": True}, None
+
+    monkeypatch.setattr(AuthService, "completePasswordReset", complete)
+    monkeypatch.setattr(AuthConfig, "accessCookieName", "access_token")
+    monkeypatch.setattr(AuthConfig, "refreshCookieName", "refresh_token")
+
+    with TestClient(makeApp()) as client:
+        client.cookies.set("access_token", "old-access")
+        client.cookies.set("refresh_token", "old-refresh")
+        response = client.post(
+            "/api/v1/auth/password-reset/complete",
+            json={"token": "A" * 43, "newPassword": "newpassword123"},
+        )
+
+    assert response.status_code == 200
+    assert response.headers.get("Cache-Control") == "no-store"
+    assert response.json()["result"] == {"completed": True}
+    assert "token" not in response.text.lower()
+    deletedCookies = response.headers.get_list("set-cookie")
+    assert len(deletedCookies) == 2
+    assert all("max-age=0" in cookie.lower() for cookie in deletedCookies)
+
+    with TestClient(makeApp()) as client:
+        compatResponse = client.post(
+            "/api/v1/auth/passwordResetComplete",
+            json={"token": "A" * 43, "newPassword": "newpassword123"},
+        )
+
+    assert compatResponse.status_code == 200
+    assert compatResponse.json()["result"] == {"completed": True}
+
+
+def testPasswordResetCompleteConvergesInvalidTokenAndValidatesBody(monkeypatch):
+    async def invalid(payload):
+        if len(payload.get("token", "")) != 43 or len(payload.get("newPassword", "")) < 8:
+            return None, "AUTH_422_INVALID_INPUT"
+        return None, "AUTH_400_RESET_INVALID_OR_EXPIRED"
+
+    monkeypatch.setattr(AuthService, "completePasswordReset", invalid)
+    with TestClient(makeApp()) as client:
+        invalidResponse = client.post(
+            "/api/v1/auth/password-reset/complete",
+            json={"token": "B" * 43, "newPassword": "newpassword123"},
+        )
+        malformedResponse = client.post(
+            "/api/v1/auth/password-reset/complete",
+            json={"token": "short", "newPassword": "short"},
+        )
+
+    assert invalidResponse.status_code == 400
+    assert invalidResponse.json()["code"] == "AUTH_400_RESET_INVALID_OR_EXPIRED"
+    assert malformedResponse.status_code == 422
+    assert malformedResponse.json()["code"] == "AUTH_422_INVALID_INPUT"
+
+
+def testPasswordResetMailFailureDoesNotChangePublicRequestResponse(monkeypatch):
+    async def createToken(email, tokenHash, createdAtMs, expiresAtMs):
+        assert len(tokenHash) == 64
+        return email
+
+    def failDelivery(_recipient, _rawToken):
+        raise RuntimeError("smtp unavailable")
+
+    logCalls = []
+    monkeypatch.setattr(AuthService, "createPasswordResetTokenInTransaction", createToken)
+    monkeypatch.setattr(AuthService.PasswordResetMail, "sendPasswordReset", failDelivery)
+    monkeypatch.setattr(AuthService.logger, "error", lambda *args, **kwargs: logCalls.append(args))
+    monkeypatch.setattr(AuthRouter, "checkRateLimit", lambda *args, **kwargs: None)
+
+    with TestClient(makeApp()) as client:
+        response = client.post(
+            "/api/v1/auth/password-reset/request",
+            json={"email": "demo@example.com"},
+        )
+
+    assert response.status_code == 200
+    assert response.json()["result"] == {"accepted": True}
+    assert logCalls
+    assert all("smtp unavailable" not in repr(call) for call in logCalls)
+
+
+def testPasswordResetRequestSchedulesOneBackgroundTaskForEveryValidEmail(monkeypatch):
+    processed = []
+
+    async def captureProcessing(email):
+        processed.append(email)
+
+    monkeypatch.setattr(AuthService, "processPasswordResetRequest", captureProcessing)
+    monkeypatch.setattr(AuthRouter, "checkRateLimit", lambda *args, **kwargs: None)
+
+    with TestClient(makeApp()) as client:
+        existing = client.post(
+            "/api/v1/auth/password-reset/request",
+            json={"email": "exists@example.com"},
+        )
+        missing = client.post(
+            "/api/v1/auth/password-reset/request",
+            json={"email": "missing@example.com"},
+        )
+
+    assert existing.status_code == missing.status_code == 200
+    assert existing.json() == missing.json()
+    assert processed == ["exists@example.com", "missing@example.com"]

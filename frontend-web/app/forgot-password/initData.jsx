@@ -12,6 +12,7 @@ export const PAGE_CONFIG = {
     requestPasswordReset: {
       path: "/api/v1/auth/passwordResetRequest",
       method: "POST",
+      authless: true,
     },
   },
 };

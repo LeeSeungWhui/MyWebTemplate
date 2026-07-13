@@ -16,6 +16,7 @@ export const publicRoutes = [
   "/login",
   "/signup",
   "/forgot-password",
+  "/reset-password",
   "/sample/:path*",
   "/component",
 ];

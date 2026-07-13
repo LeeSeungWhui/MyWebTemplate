@@ -18,9 +18,9 @@ export const LANG_KO = {
     },
     form: {
       title: "비밀번호 찾기",
-      subtitle: "가입한 이메일을 입력하면 재설정 절차 안내를 확인할 수 있습니다.",
+      subtitle: "가입한 이메일을 입력하면 비밀번호 재설정 링크를 보내드립니다.",
       submittedMessage:
-        "입력하신 이메일로 안내를 보냈습니다. 샘플 환경에서는 실제 메일이 발송되지 않습니다.",
+        "입력하신 이메일로 안내를 보냈습니다. 메일이 보이지 않으면 스팸함도 확인해주세요.",
       emailLabel: "이메일",
       emailPlaceholder: "가입한 이메일을 입력해주세요",
       submitLabel: "재설정 안내 받기",

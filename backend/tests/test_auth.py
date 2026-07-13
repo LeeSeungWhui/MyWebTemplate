@@ -241,6 +241,7 @@ def testAuthJsonEndpointsRejectUnknownFields():
             ("/api/v1/auth/passwordResetRequest", {"email": "demo@demo.demo", "extra": "x"}),
             ("/api/v1/auth/password-reset/request", {"email": "demo@demo.demo", "extra": "x"}),
             ("/api/v1/auth/passwordReset/request", {"email": "demo@demo.demo", "extra": "x"}),
+            ("/api/v1/auth/password-reset/complete", {"token": "A" * 43, "newPassword": "password123", "extra": "x"}),
             ("/api/v1/auth/app/login", {"username": "demo@demo.demo", "password": "password123", "extra": "x"}),
             ("/api/v1/auth/app/refresh", {"refreshToken": "token", "extra": "x"}),
             ("/api/v1/auth/app/logout", {"refreshToken": "token", "extra": "x"}),
@@ -435,6 +436,117 @@ def testPasswordResetRequestSupportsSingleSegmentFrontendOperation():
         assert body["result"]["accepted"] is True
 
 
+def testPasswordResetCompletionInvalidatesSessionsAndPreventsReuse(monkeypatch):
+    from server import app
+    from service import AuthService
+
+    captured = []
+
+    def captureDelivery(recipient, rawToken):
+        captured.append((recipient, rawToken))
+        return True
+
+    monkeypatch.setattr(AuthService, "deliverPasswordResetMail", captureDelivery)
+
+    with TestClient(app) as client:
+        otherEmail = f"other-reset-{uuid.uuid4().hex[:8]}@demo.demo"
+        assert client.post(
+            "/api/v1/auth/signup",
+            json={"name": "Other User", "email": otherEmail, "password": "password123"},
+        ).status_code == 201
+        otherLogin = client.post(
+            "/api/v1/auth/app/login",
+            json={"username": otherEmail, "password": "password123"},
+        )
+        assert otherLogin.status_code == 200
+        otherAccess = otherLogin.json()["result"]["accessToken"]
+
+        oldLogin = client.post(
+            "/api/v1/auth/app/login",
+            json={"username": "demo@demo.demo", "password": "password123"},
+        )
+        assert oldLogin.status_code == 200
+        oldAccess = oldLogin.json()["result"]["accessToken"]
+        oldRefresh = oldLogin.json()["result"]["refreshToken"]
+
+        requestResponse = client.post(
+            "/api/v1/auth/password-reset/request",
+            json={"email": "demo@demo.demo"},
+        )
+        assert requestResponse.status_code == 200
+        assert captured and captured[0][0] == "demo@demo.demo"
+        supersededToken = captured[0][1]
+        assert client.post(
+            "/api/v1/auth/password-reset/request",
+            json={"email": "demo@demo.demo"},
+        ).status_code == 200
+        assert len(captured) == 2
+        expiredToken = captured[1][1]
+        assert client.post(
+            "/api/v1/auth/password-reset/complete",
+            json={"token": supersededToken, "newPassword": "new-password-123"},
+        ).status_code == 400
+        executePg(
+            pgTestSettings,
+            "UPDATE T_PASSWORD_RESET_TOKEN SET EXPIRES_AT_MS = $1 WHERE TOKEN_HASH = $2",
+            0,
+            AuthService.hashPasswordResetToken(expiredToken),
+        )
+        assert client.post(
+            "/api/v1/auth/password-reset/complete",
+            json={"token": expiredToken, "newPassword": "new-password-123"},
+        ).status_code == 400
+        assert client.post(
+            "/api/v1/auth/password-reset/request",
+            json={"email": "demo@demo.demo"},
+        ).status_code == 200
+        rawToken = captured[2][1]
+        storedHash = fetchValPg(
+            pgTestSettings,
+            "SELECT TOKEN_HASH FROM T_PASSWORD_RESET_TOKEN WHERE USER_ID = $1 AND USED_AT_MS IS NULL",
+            "demo@demo.demo",
+        )
+        assert storedHash == AuthService.hashPasswordResetToken(rawToken)
+        assert rawToken != storedHash
+
+        completeResponse = client.post(
+            "/api/v1/auth/password-reset/complete",
+            json={"token": rawToken, "newPassword": "new-password-123"},
+        )
+        assert completeResponse.status_code == 200
+        assert completeResponse.json()["result"] == {"completed": True}
+        assert "accessToken" not in completeResponse.text
+        assert "refreshToken" not in completeResponse.text
+
+        reused = client.post(
+            "/api/v1/auth/password-reset/complete",
+            json={"token": rawToken, "newPassword": "another-password-123"},
+        )
+        assert reused.status_code == 400
+        assert reused.json()["code"] == "AUTH_400_RESET_INVALID_OR_EXPIRED"
+
+        assert client.get(
+            "/api/v1/auth/me",
+            headers={"Authorization": f"Bearer {oldAccess}"},
+        ).status_code == 401
+        assert client.post(
+            "/api/v1/auth/app/refresh",
+            json={"refreshToken": oldRefresh},
+        ).status_code == 401
+        assert client.post(
+            "/api/v1/auth/app/login",
+            json={"username": "demo@demo.demo", "password": "password123"},
+        ).status_code == 401
+        assert client.post(
+            "/api/v1/auth/app/login",
+            json={"username": "demo@demo.demo", "password": "new-password-123"},
+        ).status_code == 200
+        assert client.get(
+            "/api/v1/auth/me",
+            headers={"Authorization": f"Bearer {otherAccess}"},
+        ).status_code == 200
+
+
 def testOpenapiDocumentsAuthRequestContracts():
     from server import app
 
@@ -449,6 +561,7 @@ def testOpenapiDocumentsAuthRequestContracts():
         "AuthLoginRequest": {"required": ["username", "password"], "hasRememberMe": True},
         "AuthSignupRequest": {"required": ["name", "email", "password"]},
         "PasswordResetRequest": {"required": ["email"]},
+        "PasswordResetCompleteRequest": {"required": ["token", "newPassword"]},
         "AuthAppLoginRequest": {"required": ["username", "password"], "hasRememberMe": True},
         "AuthAppRefreshRequest": {"required": ["refreshToken"]},
         "AuthAppLogoutRequest": {"required": []},
@@ -465,6 +578,7 @@ def testOpenapiDocumentsAuthRequestContracts():
     assert schemas["AuthSignupResult"]["required"] == ["userId", "userNm"]
     assert "AuthSignupResponse" in schemas
     assert "PasswordResetRequestResponse" in schemas
+    assert "PasswordResetCompleteResponse" in schemas
 
     requestBodyCases = {
         "/api/v1/auth/login": ("AuthLoginRequest", True),
@@ -472,6 +586,8 @@ def testOpenapiDocumentsAuthRequestContracts():
         "/api/v1/auth/passwordResetRequest": ("PasswordResetRequest", True),
         "/api/v1/auth/password-reset/request": ("PasswordResetRequest", True),
         "/api/v1/auth/passwordReset/request": ("PasswordResetRequest", True),
+        "/api/v1/auth/password-reset/complete": ("PasswordResetCompleteRequest", True),
+        "/api/v1/auth/passwordResetComplete": ("PasswordResetCompleteRequest", True),
         "/api/v1/auth/app/login": ("AuthAppLoginRequest", True),
         "/api/v1/auth/app/refresh": ("AuthAppRefreshRequest", True),
         "/api/v1/auth/app/logout": ("AuthAppLogoutRequest", False),
@@ -526,6 +642,12 @@ def testOpenapiDocumentsAuthRequestContracts():
             and path in sample.get("source", "")
             for sample in samples
         )
+
+    completeOperation = schema["paths"]["/api/v1/auth/password-reset/complete"]["post"]
+    assert completeOperation["responses"]["200"]["content"]["application/json"]["schema"] == {
+        "$ref": "#/components/schemas/PasswordResetCompleteResponse"
+    }
+    assert "Set-Cookie" in completeOperation["responses"]["200"]["headers"]
 
     refreshOperation = schema["paths"]["/api/v1/auth/refresh"]["post"]
     refreshParams = refreshOperation["parameters"]

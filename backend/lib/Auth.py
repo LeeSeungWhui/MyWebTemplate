@@ -12,6 +12,7 @@ from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import OAuth2PasswordBearer
 from jose import JWTError, jwt
 from lib.Logger import logger
+from lib import Database as DB
 from pydantic import BaseModel
 
 
@@ -228,7 +229,32 @@ def decodeAuthToken(token: str, *, expectedTokenType: str) -> dict:
 
     payload["sub"] = subject.strip()
     payload["jti"] = tokenJti.strip()
+    authVersion = payload.get("authVersion", 0)
+    if isinstance(authVersion, bool) or not isinstance(authVersion, int) or authVersion < 0:
+        raise JWTError("invalid auth version")
+    payload["authVersion"] = authVersion
     return payload
+
+
+async def readCurrentAuthVersion(username: str) -> int | None:
+    manager = DB.getManager()
+    if not manager:
+        return None
+    try:
+        row = await manager.fetchOneQuery("auth.userAuthVersion", {"userId": username})
+    except Exception as error:
+        logger.error("auth version lookup failed: error=%s", type(error).__name__)
+        return None
+    if not row:
+        return None
+    value = row.get("authVersion", row.get("AUTH_VERSION", 0))
+    if isinstance(value, bool):
+        return None
+    try:
+        normalized = int(value or 0)
+    except (TypeError, ValueError):
+        return None
+    return normalized if normalized >= 0 else None
 
 
 def bindAuthUsernameToRequestState(request: Request, username: str | None) -> None:
@@ -335,6 +361,9 @@ async def getCurrentUser(request: Request, token: str | None = Depends(oauth2Sch
             raise HTTPException(status_code=500, detail="server misconfigured")
         payload = decodeAuthToken(token, expectedTokenType="access")
         username = payload["sub"]
+        currentAuthVersion = await readCurrentAuthVersion(username)
+        if currentAuthVersion is None or currentAuthVersion != payload["authVersion"]:
+            raise JWTError("auth version mismatch")
         tokenData = TokenData(username=username)
     except JWTError as e:
         logger.debug("JWT verification rejected: %s", type(e).__name__)

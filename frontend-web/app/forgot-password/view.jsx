@@ -89,6 +89,7 @@ const ForgotPasswordView = () => {
    */
   const handleSubmit = async (event) => {
     event.preventDefault();
+    if (ui.pending) return;
     if (!validate()) return;
     ui.pending = true;
     ui.submitted = false;

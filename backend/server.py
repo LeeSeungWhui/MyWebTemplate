@@ -45,6 +45,7 @@ from lib.Middleware import (
 )
 from lib.OpenAPI import attachOpenAPI
 from lib.Config import getConfig
+from lib.PasswordResetMail import configurePasswordResetMail
 
 app = FastAPI()
 
@@ -349,6 +350,10 @@ async def onStartup():
         runtime=runtime,
         allowWeakAuthSecret=allowWeakAuthSecretRequested,
     )
+    try:
+        configurePasswordResetMail(config, runtime=runtime)
+    except (TypeError, ValueError) as error:
+        raise RuntimeError(f"invalid PASSWORD_RESET configuration: {error}") from error
 
     # 사용자 테이블 생성/시드는 스크립트나 AuthService가 담당하므로 여기서는 건드리지 않는다.
     # 외부 DB를 존중하기 위해 스타트업 단계에서 묵시적 DDL/DML을 수행하지 않는다.

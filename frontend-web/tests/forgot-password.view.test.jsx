@@ -70,9 +70,17 @@ test("유효한 이메일 제출 후 안내 메시지를 노출한다", async ()
   fireEvent.click(screen.getByRole("button", { name: "재설정 안내 받기" }));
 
   await waitFor(() => {
+    expect(apiJSON).toHaveBeenCalledWith(
+      expect.objectContaining({ path: "/api/v1/auth/passwordResetRequest" }),
+      expect.any(Object),
+      { authless: true },
+    );
+  });
+
+  await waitFor(() => {
     expect(
       screen.getByText(
-        "입력하신 이메일로 안내를 보냈습니다. 샘플 환경에서는 실제 메일이 발송되지 않습니다.",
+        "입력하신 이메일로 안내를 보냈습니다. 메일이 보이지 않으면 스팸함도 확인해주세요.",
       ),
     ).toBeInTheDocument();
   });
