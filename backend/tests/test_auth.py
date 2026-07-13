@@ -744,8 +744,7 @@ def testPasswordChangePostgresEndToEndPreservesOtherUser(monkeypatch):
                 executePg(
                     pgTestSettings,
                     """
-                    DELETE FROM T_TOKEN
-                     WHERE TOKEN_JTI = $1
+                    DELETE FROM T_TOKEN WHERE TOKEN_JTI = $1
                        AND STATE_TP IN ($2, $3)
                     """,
                     refreshJti,
