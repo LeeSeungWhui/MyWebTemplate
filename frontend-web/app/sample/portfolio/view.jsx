@@ -3,7 +3,7 @@
 /**
  * 파일명: sample/portfolio/view.jsx
  * 작성자: LSH
- * 갱신일: 2026-05-31
+ * 갱신일: 2026-07-13
  * 설명: 공개 포트폴리오 페이지 뷰(시각 중심 리뉴얼)
  */
 
@@ -336,7 +336,7 @@ const PortfolioView = ({ initialDataObj, initialErrorObj }) => {
       </section>
 
       <section className="mt-8">
-        <details className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm" open={false}>
+        <details className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm" open>
           <summary className="cursor-pointer list-none text-base font-semibold text-gray-900">
             {LANG_KO.view.sectionTitle.technicalNotes}
           </summary>

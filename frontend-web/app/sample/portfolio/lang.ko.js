@@ -1,7 +1,7 @@
 /**
  * 파일명: app/sample/portfolio/lang.ko.js
  * 작성자: LSH
- * 갱신일: 2026-03-04
+ * 갱신일: 2026-07-13
  * 설명: portfolio 경로 한국어 리소스
  */
 
@@ -253,16 +253,17 @@ export const LANG_KO = {
         },
       ],
       technicalNotes: [
-        "프론트엔드: Next.js 16(App Router), React 19",
-        "백엔드: FastAPI + PostgreSQL/SQLite 샘플 구성",
+        "런타임: Node.js 26.3.0, Python 3.14.5",
+        "프론트엔드: Next.js 16.2.7(App Router·Turbopack), React 19.2.7, Tailwind CSS 4.3.0",
+        "백엔드: FastAPI 0.136.3, Pydantic 2.13.4, Gunicorn 26.0.0 + Uvicorn Worker",
+        "데이터베이스: PostgreSQL 운영·테스트 구성, SQLAlchemy 2.0.50 + asyncpg 0.31.0",
         "로그인: HttpOnly Cookie 기반 세션으로 로그인 상태를 안전하게 유지하고 갱신 토큰을 분리",
         "API 연결: 브라우저와 서버에서 같은 요청 경로를 사용하도록 BFF로 통일",
         "접근 제어: 공개 화면과 로그인 보호 화면을 분리하고 만료 후 원래 화면으로 복귀",
         "응답 규약: 성공·오류 응답 형식을 통일해 화면과 서버의 예외 처리를 단순화",
         "데이터 관리: SQL 파일과 실행 코드를 분리해 변경 내용을 쉽게 추적",
-        "품질 검증: lint, test, rule-gate로 주요 회귀를 조기에 차단",
-        "테스트 구성: 백엔드 API·서비스와 프론트 화면·동작 테스트를 나눠 운영",
-        "운영 구성: 공개 샘플과 실제 로그인 영역을 분리해 사용자 혼선을 최소화",
+        "품질 검증: ESLint 9.39.4, Vitest 4.1.8, pytest 9.0.3, rule-gate로 주요 회귀를 차단",
+        "운영 실행: Next.js와 Gunicorn/Uvicorn을 분리된 systemd 서비스로 운영",
       ],
     },
   },

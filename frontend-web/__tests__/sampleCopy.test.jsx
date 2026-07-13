@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 
+import LANDING_LANG_KO from "../app/lang.ko.js";
 import SAMPLE_LANG_KO from "../app/sample/lang.ko.js";
 import DASHBOARD_LANG_KO from "../app/sample/dashboard/lang.ko.js";
 import CRUD_LANG_KO from "../app/sample/crud/lang.ko.js";
@@ -34,5 +35,24 @@ describe("public sample copy contract", () => {
     ADMIN_LANG_KO.initData.userRows.forEach((user) => {
       expect(user.email).toMatch(/@example\.com$/u);
     });
+  });
+
+  it("describes the active Web and Backend stack without the SQLite example fallback", () => {
+    expect(LANDING_LANG_KO.initData.stackList).toEqual([
+      "Node.js 26.3.0",
+      "Next.js 16.2.7",
+      "React 19.2.7",
+      "Tailwind CSS 4.3.0",
+      "Python 3.14.5",
+      "FastAPI 0.136.3",
+      "PostgreSQL",
+      "Vitest 4.1.8 · pytest 9.0.3",
+    ]);
+
+    const technicalNotesText = PORTFOLIO_LANG_KO.initData.content.technicalNotes.join("\n");
+    expect(technicalNotesText).toContain("Next.js 16.2.7(App Router·Turbopack)");
+    expect(technicalNotesText).toContain("FastAPI 0.136.3");
+    expect(technicalNotesText).toContain("PostgreSQL 운영·테스트 구성");
+    expect(technicalNotesText).not.toContain("PostgreSQL/SQLite");
   });
 });

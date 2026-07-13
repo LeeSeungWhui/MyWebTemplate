@@ -58,4 +58,18 @@ describe("sample portfolio sales-facing display", () => {
       expect(image).toHaveAttribute("data-src", expect.stringContaining("/images/landing/demo-"));
     });
   });
+
+  it("opens the technical notes by default and shows the active runtime stack", () => {
+    render(<PortfolioView initialDataObj={{}} initialErrorObj={{}} />);
+
+    const technicalNotesSummary = screen.getByText("기술 구성과 검증 기준");
+    const technicalNotesDetails = technicalNotesSummary.closest("details");
+
+    expect(technicalNotesDetails).not.toBeNull();
+    expect(technicalNotesDetails).toHaveProperty("open", true);
+    expect(screen.getByText("런타임: Node.js 26.3.0, Python 3.14.5")).toBeVisible();
+    expect(screen.getByText(/Next\.js 16\.2\.7.*React 19\.2\.7.*Tailwind CSS 4\.3\.0/u)).toBeVisible();
+    expect(screen.getByText(/FastAPI 0\.136\.3.*Pydantic 2\.13\.4.*Gunicorn 26\.0\.0/u)).toBeVisible();
+    expect(screen.getByText(/PostgreSQL 운영·테스트 구성.*SQLAlchemy 2\.0\.50.*asyncpg 0\.31\.0/u)).toBeVisible();
+  });
 });
