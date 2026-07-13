@@ -18,12 +18,12 @@ export const LANG_KO = {
     },
     form: {
       title: "비밀번호 찾기",
-      subtitle: "가입한 이메일을 입력하면 비밀번호 재설정 링크를 보내드립니다.",
+      subtitle: "가입한 이메일로 샘플 비밀번호 재설정 요청 흐름을 확인합니다.",
       submittedMessage:
-        "입력하신 이메일로 안내를 보냈습니다. 메일이 보이지 않으면 스팸함도 확인해주세요.",
+        "샘플 프로젝트에서는 실제 이메일을 전송하지 않습니다. 비밀번호 재설정 요청만 처리되었습니다.",
       emailLabel: "이메일",
       emailPlaceholder: "가입한 이메일을 입력해주세요",
-      submitLabel: "재설정 안내 받기",
+      submitLabel: "재설정 요청 확인하기",
       backToLoginLabel: "로그인 화면으로 돌아가기",
     },
   },

@@ -8,6 +8,7 @@
  */
 
 import { useEffect, useRef } from "react";
+import { useGlobalUi } from "@/app/common/store/SharedStore";
 import EasyObj from "@/app/lib/dataset/EasyObj";
 import Button from "@/app/lib/component/Button";
 import Input from "@/app/lib/component/Input";
@@ -41,6 +42,7 @@ const ForgotPasswordView = () => {
   const emailRef = useRef(null);
   const errorSummaryRef = useRef(null);
   const focusFrameRef = useRef(null);
+  const { showToast } = useGlobalUi();
   const pageMode = normalizePageConfig(PAGE_CONFIG).MODE;
 
   /* 3. UI ========================================================================================================================= */
@@ -105,6 +107,10 @@ const ForgotPasswordView = () => {
         { authless: true },
       );
       ui.submitted = true;
+      showToast(LANG_KO.view.form.submittedMessage, {
+        type: "info",
+        duration: 5000,
+      });
     } catch {
       ui.formError = LANG_KO.view.error.requestFailed;
       cancelAnimationFrame(focusFrameRef.current);

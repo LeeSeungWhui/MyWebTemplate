@@ -118,12 +118,12 @@ describe("auth views", () => {
     ));
   });
 
-  it("focuses invalid reset email and announces a successful mocked reset", async () => {
+  it("focuses invalid reset email and announces the sample no-email reset contract", async () => {
     render(<ForgotPasswordView />);
 
     const emailInput = screen.getByLabelText("이메일");
     expect(emailInput).toHaveAttribute("autocomplete", "email");
-    fireEvent.click(screen.getByRole("button", { name: "재설정 안내 받기" }));
+    fireEvent.click(screen.getByRole("button", { name: "재설정 요청 확인하기" }));
 
     await waitFor(() => expect(emailInput).toHaveFocus());
     expect(screen.getAllByText("올바른 이메일 형식을 입력해주세요.")).toHaveLength(2);
@@ -132,7 +132,7 @@ describe("auth views", () => {
 
     apiJSONMock.mockResolvedValueOnce({ status: true });
     fireEvent.change(emailInput, { target: { value: "demo@example.com" } });
-    fireEvent.click(screen.getByRole("button", { name: "재설정 안내 받기" }));
+    fireEvent.click(screen.getByRole("button", { name: "재설정 요청 확인하기" }));
 
     await waitFor(() => expect(apiJSONMock).toHaveBeenCalledWith(
       expect.objectContaining({ path: "/api/v1/auth/passwordResetRequest" }),
@@ -144,7 +144,14 @@ describe("auth views", () => {
     ));
     const status = await screen.findByRole("status");
     expect(status).toHaveAttribute("aria-live", "polite");
-    expect(status).toHaveTextContent("입력하신 이메일로 안내를 보냈습니다.");
+    const submittedMessage =
+      "샘플 프로젝트에서는 실제 이메일을 전송하지 않습니다. 비밀번호 재설정 요청만 처리되었습니다.";
+    expect(status).toHaveTextContent(submittedMessage);
+    expect(showToastMock).toHaveBeenCalledTimes(1);
+    expect(showToastMock).toHaveBeenCalledWith(submittedMessage, {
+      type: "info",
+      duration: 5000,
+    });
   });
 
   it("registers the reset page as a public route", () => {
