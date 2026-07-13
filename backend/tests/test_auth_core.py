@@ -583,10 +583,13 @@ def testPasswordResetMailUsesFixedOriginAndInjectedSender():
             sent.append((recipient, resetLink))
 
     PasswordResetMail.setPasswordResetSender(CaptureSender())
-    rawToken = "B" * 43
+    rawToken = "B+/ ?="
     assert PasswordResetMail.sendPasswordReset("user@example.com", rawToken) is True
     assert sent == [
-        ("user@example.com", f"https://web.example.com/reset-password?token={rawToken}")
+        (
+            "user@example.com",
+            "https://web.example.com/reset-password#token=B%2B%2F+%3F%3D",
+        )
     ]
 
 

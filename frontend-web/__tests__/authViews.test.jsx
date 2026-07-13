@@ -222,6 +222,50 @@ describe("auth views", () => {
     expect(screen.getByRole("alert")).toHaveTextContent("비밀번호 확인이 일치하지 않습니다.");
   });
 
+  it("consumes an encoded fragment token and scrubs it from URL and history state", async () => {
+    const rawToken = "fragment+/secret";
+    const encodedToken = encodeURIComponent(rawToken);
+    window.history.replaceState(
+      {
+        __NA: true,
+        as: `/reset-password?source=email#token=${encodedToken}`,
+        url: `/reset-password?source=email#token=${encodedToken}`,
+        nested: { resetToken: rawToken },
+      },
+      "",
+      `/reset-password?source=email#token=${encodedToken}`,
+    );
+    apiJSONMock.mockResolvedValueOnce({ status: true });
+    render(<ResetPasswordView />);
+
+    const passwordInput = await screen.findByLabelText("새 비밀번호");
+    fireEvent.change(passwordInput, { target: { value: "password123" } });
+    fireEvent.change(screen.getByLabelText("새 비밀번호 확인"), {
+      target: { value: "password123" },
+    });
+
+    expect(window.location.search).toBe("?source=email");
+    expect(window.location.hash).toBe("");
+    expect(JSON.stringify(window.history.state)).not.toContain(rawToken);
+    expect(JSON.stringify(window.history.state)).not.toContain(encodedToken);
+    expect(window.history.state).toMatchObject({
+      __NA: true,
+      as: "/reset-password?source=email",
+      url: "/reset-password?source=email",
+      nested: {},
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: "비밀번호 변경" }));
+    await waitFor(() => expect(apiJSONMock).toHaveBeenCalledWith(
+      expect.objectContaining({ path: "/api/v1/auth/passwordResetComplete" }),
+      {
+        method: "POST",
+        body: { token: rawToken, newPassword: "password123" },
+      },
+      { authless: true },
+    ));
+  });
+
   it("submits the exact authless reset payload once and replaces the form with login recovery", async () => {
     let resolveComplete;
     apiJSONMock.mockImplementationOnce(() => new Promise((resolve) => {

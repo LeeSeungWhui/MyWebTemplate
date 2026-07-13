@@ -150,7 +150,7 @@ def setPasswordResetSender(sender: PasswordResetSender | None) -> None:
 def buildPasswordResetLink(rawToken: str) -> str:
     if not mailConfig.enabled or not mailConfig.publicOrigin:
         raise RuntimeError("password reset mail is not configured")
-    return f"{mailConfig.publicOrigin}/reset-password?{urlencode({'token': rawToken})}"
+    return f"{mailConfig.publicOrigin}/reset-password#{urlencode({'token': rawToken})}"
 
 
 def sendPasswordReset(recipient: str, rawToken: str) -> bool:

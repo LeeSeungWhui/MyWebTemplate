@@ -20,11 +20,44 @@ import LANG_KO from "./lang.ko";
 const MIN_PASSWORD_LENGTH = 8;
 
 /**
+ * @description fragment parameter에서 token 관련 값만 제거
+ * 처리 규칙: token과 실제 raw token을 포함하지 않는 일반 fragment는 그대로 보존한다.
+ */
+const sanitizeResetHash = (hashText, rawToken) => {
+  const originalHash = String(hashText || "");
+  if (!originalHash.startsWith("#")) return originalHash;
+
+  try {
+    const retainedHashParams = new URLSearchParams();
+    let sensitiveValueFound = false;
+    new URLSearchParams(originalHash.slice(1)).forEach((value, key) => {
+      if (/token/i.test(key) || (rawToken && (key.includes(rawToken) || value.includes(rawToken)))) {
+        sensitiveValueFound = true;
+        return;
+      }
+      retainedHashParams.append(key, value);
+    });
+    if (!sensitiveValueFound) return originalHash;
+    const retainedHash = retainedHashParams.toString();
+    return retainedHash ? `#${retainedHash}` : "";
+  } catch {
+    return "";
+  }
+};
+
+/**
  * @description history state 문자열에서 reset token query와 raw token 값을 제거
  * 처리 규칙: Next router가 보관한 상대 URL 구조는 유지하되 token parameter만 제거한다.
  */
 const sanitizeHistoryString = (value, rawToken) => {
   let sanitizedHistoryText = String(value || "");
+  const hashIndex = sanitizedHistoryText.indexOf("#");
+  if (hashIndex >= 0) {
+    sanitizedHistoryText = `${sanitizedHistoryText.slice(0, hashIndex)}${sanitizeResetHash(
+      sanitizedHistoryText.slice(hashIndex),
+      rawToken,
+    )}`;
+  }
   sanitizedHistoryText = sanitizedHistoryText.replace(/([?&])[^?&#=]*token[^?&#=]*=[^&#]*/gi, (_match, separator) => (
     separator === "?" ? "?" : ""
   ));
@@ -73,15 +106,7 @@ const scrubResetTokenFromHistory = (currentUrl, rawToken) => {
     retainedSearchParams.append(key, value);
   });
 
-  let retainedHash = currentUrl.hash;
-  try {
-    const decodedHash = decodeURIComponent(retainedHash);
-    if (/token\s*=/i.test(decodedHash) || (rawToken && decodedHash.includes(rawToken))) {
-      retainedHash = "";
-    }
-  } catch {
-    retainedHash = "";
-  }
+  const retainedHash = sanitizeResetHash(currentUrl.hash, rawToken);
 
   const retainedSearch = retainedSearchParams.toString();
   const scrubbedUrl = `${currentUrl.pathname}${retainedSearch ? `?${retainedSearch}` : ""}${retainedHash}`;
@@ -233,7 +258,8 @@ const ResetPasswordView = () => {
     if (typeof window === "undefined") return;
     const resetViewState = resetViewStateRef.current;
     const currentUrl = new URL(window.location.href);
-    const rawToken = currentUrl.searchParams.get("token") || "";
+    const fragmentParams = new URLSearchParams(currentUrl.hash.replace(/^#/, ""));
+    const rawToken = fragmentParams.get("token") || currentUrl.searchParams.get("token") || "";
     if (rawToken) tokenRef.current = rawToken;
     scrubResetTokenFromHistory(currentUrl, rawToken);
     resetViewState.recoveryRequired = !rawToken;
