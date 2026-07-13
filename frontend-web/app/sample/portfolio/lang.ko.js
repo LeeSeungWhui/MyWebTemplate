@@ -15,6 +15,8 @@ export const LANG_KO = {
     heroBadge: "FULL-STACK WEB PORTFOLIO",
     sectionTitle: {
       overview: "프로젝트 개요",
+      sampleMetrics: "실시간 샘플 현황",
+      recentTasks: "최근 샘플 업무",
       profile: "개발자 소개",
       featuredProjects: "대표 프로젝트",
       careerTimeline: "경력 요약",
@@ -65,16 +67,20 @@ export const LANG_KO = {
       },
       overview: [
         {
-          label: "프로젝트 형태",
-          value: "관리자 웹서비스 템플릿",
+          label: "프로젝트 구성",
+          value: "Next.js Web, FastAPI API, PostgreSQL을 연결한 풀스택 업무 웹 템플릿",
         },
         {
-          label: "주요 제공 화면",
-          value: "로그인, 대시보드, 데이터 관리, 신청 폼, 회원/권한 관리",
+          label: "인증·계정",
+          value: "회원가입, 로그인, 세션 갱신, 비밀번호 찾기 샘플 안내, 로그인 사용자 비밀번호 변경",
         },
         {
-          label: "즉시 체험 가능",
-          value: "대시보드, 데이터 관리, 신청·문의, 회원 관리",
+          label: "업무·설정",
+          value: "대시보드, 업무 등록·조회·수정·삭제, 프로필·알림 설정, 공개 체험 화면",
+        },
+        {
+          label: "품질·운영",
+          value: "Vitest·pytest·rule-gate 검증과 systemd 기반 Web/API 분리 운영",
         },
       ],
       features: [

@@ -1,7 +1,7 @@
 /**
  * 파일명: Modal.jsx
  * 작성자: LSH
- * 갱신일: 2026-05-31
+ * 갱신일: 2026-07-13
  * 설명: Modal UI 컴포넌트 구현
  */
 import { forwardRef, useCallback, useEffect, useRef, useState } from 'react';
@@ -62,7 +62,7 @@ const Body = ({ className = '', children, ...props }) => {
     return (
         <div
             className={`
-                min-h-0 overflow-y-auto px-6 py-5 text-sm leading-6 text-slate-600
+                min-h-0 flex-1 overflow-y-auto px-6 py-5 text-sm leading-6 text-slate-600
                 ${className}
             `.trim()}
             {...props}
@@ -127,7 +127,7 @@ const Modal = forwardRef(({
         md: 'max-w-lg',
         lg: 'max-w-2xl',
         xl: 'max-w-4xl',
-        full: 'max-w-[calc(100vw-32px)]'
+        full: 'h-[calc(100vh-32px)] max-w-[calc(100vw-32px)]'
     };
 
     const focusableSelector =

@@ -3,7 +3,7 @@
 /**
  * 파일명: ModalExamples.jsx
  * 작성자: LSH
- * 갱신일: 2026-05-31
+ * 갱신일: 2026-07-13
  * 설명: Modal 컴포넌트 예제
  */
 
@@ -83,7 +83,7 @@ const SizeModalDemo = () => {
         <p className="mt-1 text-sm text-slate-500">작업 밀도에 따라 sm부터 full까지 선택합니다.</p>
       </div>
       <div className="flex flex-wrap gap-2">
-        {modalSizeList.map((size) => <Lib.Button key={size} variant={size === currentSize ? 'primary' : 'outline'} onClick={() => {
+        {modalSizeList.map((size) => <Lib.Button key={size} aria-pressed={size === currentSize} variant={size === currentSize ? 'primary' : 'outline'} onClick={() => {
           setCurrentSize(size);
           setIsOpen(true);
         }}>
@@ -99,8 +99,24 @@ const SizeModalDemo = () => {
         </Lib.Modal.Header>
 
         <Lib.Modal.Body>
-          <div className="rounded-xl border border-slate-200 bg-slate-50/80 p-4">
-            <p className="text-sm text-slate-600">목록, 폼, 확인 작업 등 콘텐츠 밀도에 맞춰 같은 스타일 체계를 유지합니다.</p>
+          <div className="space-y-4">
+            <div className="rounded-xl border border-slate-200 bg-slate-50/80 p-4">
+              <p className="text-sm text-slate-600">목록, 폼, 확인 작업 등 콘텐츠 밀도에 맞춰 같은 스타일 체계를 유지합니다.</p>
+            </div>
+            <div>
+              <p className="text-sm font-medium text-slate-700">열린 상태에서 크기 변경</p>
+              <div className="mt-2 flex flex-wrap gap-2" role="group" aria-label="모달 크기 변경">
+                {modalSizeList.map((size) => <Lib.Button
+                  key={size}
+                  size="sm"
+                  aria-pressed={size === currentSize}
+                  variant={size === currentSize ? 'primary' : 'outline'}
+                  onClick={() => setCurrentSize(size)}
+                >
+                  {size.toUpperCase()}
+                </Lib.Button>)}
+              </div>
+            </div>
           </div>
         </Lib.Modal.Body>
       </Lib.Modal>
@@ -266,7 +282,7 @@ const [currentSize, setCurrentSize] = useState('md');
 
 <div className="flex flex-wrap gap-2">
     {modalSizeList.map(size => (
-        <Lib.Button key={size} variant={size === currentSize ? 'primary' : 'outline'} onClick={() => {
+        <Lib.Button key={size} aria-pressed={size === currentSize} variant={size === currentSize ? 'primary' : 'outline'} onClick={() => {
             setCurrentSize(size);
             setIsOpen(true);
         }}>
@@ -285,6 +301,21 @@ const [currentSize, setCurrentSize] = useState('md');
         <p className="text-xs font-semibold uppercase tracking-[0.18em] text-indigo-600">Preset size</p>
         <h2 className="mt-1 text-xl font-semibold text-slate-950">{currentSize.toUpperCase()} 크기 모달</h2>
     </Lib.Modal.Header>
+    <Lib.Modal.Body>
+        <div className="flex flex-wrap gap-2" role="group" aria-label="모달 크기 변경">
+            {modalSizeList.map(size => (
+                <Lib.Button
+                    key={size}
+                    size="sm"
+                    aria-pressed={size === currentSize}
+                    variant={size === currentSize ? 'primary' : 'outline'}
+                    onClick={() => setCurrentSize(size)}
+                >
+                    {size.toUpperCase()}
+                </Lib.Button>
+            ))}
+        </div>
+    </Lib.Modal.Body>
 </Lib.Modal>`
 }];
 export const formExampleList = [{

@@ -1,8 +1,9 @@
 import React from 'react';
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { vi } from 'vitest';
 import Modal from '../app/lib/component/Modal.jsx';
+import { sizeExampleList } from '../app/component/docs/examples/ModalExamples.jsx';
 
 describe('Modal a11y', () => {
   it('renders role dialog with aria-modal', () => {
@@ -27,6 +28,51 @@ describe('Modal a11y', () => {
     );
 
     expect(screen.getByRole('dialog', { name: '모달' })).toBeInTheDocument();
+  });
+
+  it('applies every width preset and gives full size the safe viewport height', () => {
+    const { rerender } = render(
+      <Modal isOpen ariaLabel="크기 모달" size="sm">
+        <Modal.Body>크기 본문</Modal.Body>
+      </Modal>
+    );
+
+    const presetClassMap = {
+      sm: 'max-w-md',
+      md: 'max-w-lg',
+      lg: 'max-w-2xl',
+      xl: 'max-w-4xl',
+      full: 'max-w-[calc(100vw-32px)]',
+    };
+
+    Object.entries(presetClassMap).forEach(([size, sizeClassName]) => {
+      rerender(
+        <Modal isOpen ariaLabel="크기 모달" size={size}>
+          <Modal.Body>크기 본문</Modal.Body>
+        </Modal>
+      );
+      const dialog = screen.getByRole('dialog', { name: '크기 모달' });
+      expect(dialog).toHaveAttribute('data-size', size);
+      expect(dialog).toHaveClass(sizeClassName);
+    });
+
+    expect(screen.getByRole('dialog', { name: '크기 모달' })).toHaveClass('h-[calc(100vh-32px)]');
+    expect(screen.getByText('크기 본문')).toHaveClass('flex-1');
+  });
+
+  it('lets the size example resize an open dialog without closing it first', () => {
+    render(sizeExampleList[0].component);
+
+    fireEvent.click(screen.getByRole('button', { name: 'SM 크기' }));
+    const smDialog = screen.getByRole('dialog', { name: 'SM 크기 모달' });
+    expect(smDialog).toHaveClass('max-w-md');
+
+    const sizeControlGroup = within(smDialog).getByRole('group', { name: '모달 크기 변경' });
+    fireEvent.click(within(sizeControlGroup).getByRole('button', { name: 'FULL' }));
+
+    const fullDialog = screen.getByRole('dialog', { name: 'FULL 크기 모달' });
+    expect(fullDialog).toHaveAttribute('data-size', 'full');
+    expect(fullDialog).toHaveClass('max-w-[calc(100vw-32px)]', 'h-[calc(100vh-32px)]');
   });
 
   it('keeps dragged modal inside viewport when dialog is wider than the screen', async () => {

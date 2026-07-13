@@ -33,7 +33,8 @@ const PortfolioView = ({ initialDataObj, initialErrorObj }) => {
   });
   const overview = dataObj?.overview?.result ?? {};
   const dashboard = dataObj?.dashboard?.result ?? {};
-  const overviewCardList = [
+  const projectOverviewList = samplePortfolioContent.overview || [];
+  const sampleMetricList = [
     {
       label: LANG_KO.view.overviewCard.taskCount,
       value: `${Number(overview?.taskCount || 0).toLocaleString("ko-KR")}${LANG_KO.view.overviewCard.countSuffix}`,
@@ -126,37 +127,56 @@ const PortfolioView = ({ initialDataObj, initialErrorObj }) => {
 
       <section className="mt-8">
         <h2 className="text-2xl font-bold text-gray-900">{LANG_KO.view.sectionTitle.overview}</h2>
-        <div className="mt-4 grid gap-3 sm:grid-cols-3">
-          {overviewCardList.map((overviewCardObj) => (
+        <div className="mt-4 grid gap-3 md:grid-cols-2">
+          {projectOverviewList.map((overviewItemObj) => (
             <article
-              key={overviewCardObj.label}
+              key={overviewItemObj.label}
+              className="rounded-xl border border-gray-200 bg-gray-50 p-4"
+            >
+              <p className="text-sm font-semibold text-gray-900">{overviewItemObj.label}</p>
+              <p className="mt-2 text-sm leading-6 text-gray-600">{overviewItemObj.value}</p>
+            </article>
+          ))}
+        </div>
+        <h3 className="mt-6 text-base font-semibold text-gray-900">
+          {LANG_KO.view.sectionTitle.sampleMetrics}
+        </h3>
+        <div className="mt-3 grid gap-3 sm:grid-cols-3">
+          {sampleMetricList.map((sampleMetricObj) => (
+            <article
+              key={sampleMetricObj.label}
               className="rounded-xl border border-gray-200 bg-white p-4 shadow-sm"
             >
-              <p className="text-xs text-gray-500">{overviewCardObj.label}</p>
-              <p className="mt-2 text-sm font-semibold text-gray-900">{overviewCardObj.value}</p>
+              <p className="text-xs text-gray-500">{sampleMetricObj.label}</p>
+              <p className="mt-2 text-sm font-semibold text-gray-900">{sampleMetricObj.value}</p>
             </article>
           ))}
         </div>
         {recentTaskList.length > 0 ? (
-          <div className="mt-4 grid gap-3 md:grid-cols-3">
-            {recentTaskList.map((recentTaskObj) => (
-              <article
-                key={recentTaskObj.id}
-                className="rounded-xl border border-blue-100 bg-blue-50 p-4"
-              >
-                <p className="text-xs text-blue-700">{formatSampleDate(recentTaskObj.createdAt)}</p>
-                <p className="mt-2 text-sm font-semibold text-gray-900">{recentTaskObj.title || "-"}</p>
-                <p className="mt-1 text-xs text-gray-600">
-                  {LANG_KO.view.label.status}: {statusLabelMap[recentTaskObj.status] || recentTaskObj.status || "-"}
-                </p>
-              </article>
-            ))}
-          </div>
+          <>
+            <h3 className="mt-6 text-base font-semibold text-gray-900">
+              {LANG_KO.view.sectionTitle.recentTasks}
+            </h3>
+            <div className="mt-3 grid gap-3 md:grid-cols-3">
+              {recentTaskList.map((recentTaskObj) => (
+                <article
+                  key={recentTaskObj.id}
+                  className="rounded-xl border border-blue-100 bg-blue-50 p-4"
+                >
+                  <p className="text-xs text-blue-700">{formatSampleDate(recentTaskObj.createdAt)}</p>
+                  <p className="mt-2 text-sm font-semibold text-gray-900">{recentTaskObj.title || "-"}</p>
+                  <p className="mt-1 text-xs text-gray-600">
+                    {LANG_KO.view.label.status}: {statusLabelMap[recentTaskObj.status] || recentTaskObj.status || "-"}
+                  </p>
+                </article>
+              ))}
+            </div>
+          </>
         ) : null}
       </section>
 
       <section className="mt-8 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-        <details open={false}>
+        <details open>
           <summary className="cursor-pointer list-none text-2xl font-bold text-gray-900">
             {LANG_KO.view.sectionTitle.profile}
           </summary>
@@ -212,6 +232,7 @@ const PortfolioView = ({ initialDataObj, initialErrorObj }) => {
                 <details
                   key={companyItem.company}
                   className="rounded-lg border border-gray-200 bg-white p-3"
+                  open
                 >
                   <summary className="cursor-pointer list-none text-sm font-semibold text-gray-900">
                     {companyItem.company} · {companyItem.period}

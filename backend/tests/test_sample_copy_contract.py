@@ -1,9 +1,12 @@
 import asyncio
+from datetime import date
 
 from service import SampleService
 from service.SampleService import (
     PUBLIC_TASK_COPY_OVERRIDES,
     applyPublicAdminSetting,
+    applyPublicRecentTaskDate,
+    buildSampleTaskSeedDateBind,
     findStoredTaskTitlesForPublicSearch,
     readDefaultAdminSetting,
     readStoredAdminEmailCandidates,
@@ -41,6 +44,102 @@ def testLegacyTaskRowsUseCustomerFacingCopyWithoutDatabaseMutation():
         "숨고/크몽 샘플 시나리오 작성",
     }
     assert "대시보드 통계 API 점검" in findStoredTaskTitlesForPublicSearch("제안서")
+
+
+def testSampleTaskSeedDatesFollowBootstrapReferenceDate():
+    seedDateBind = buildSampleTaskSeedDateBind(date(2026, 7, 13))
+
+    assert list(seedDateBind) == [f"taskDate{index:02d}" for index in range(1, 13)]
+    assert seedDateBind["taskDate01"] == date(2026, 7, 1)
+    assert seedDateBind["taskDate10"] == date(2026, 7, 11)
+    assert seedDateBind["taskDate11"] == date(2026, 7, 12)
+    assert seedDateBind["taskDate12"] == date(2026, 7, 13)
+
+
+def testLegacyRecentTaskDatesUseFreshDisplayWithoutDatabaseMutation():
+    storedRowList = [
+        {"taskNo": 12, "dataNm": "숨고/크몽 샘플 시나리오 작성", "regDt": "2026-02-22 00:00:00"},
+        {"taskNo": 11, "dataNm": "미들웨어 공개 경로 점검", "regDt": "2026-02-21 00:00:00"},
+        {"taskNo": 10, "dataNm": "T_DATA 샘플 데이터 정리", "regDt": "2026-02-20 00:00:00"},
+    ]
+
+    resultList = [
+        applyPublicRecentTaskDate(toTaskModel(storedRow), storedRow, referenceDate=date(2026, 7, 13))
+        for storedRow in storedRowList
+    ]
+
+    assert [result["title"] for result in resultList] == [
+        "서비스 공개 준비",
+        "최종 검수 일정 확정",
+        "기능 검수 결과 확인",
+    ]
+    assert [result["createdAt"] for result in resultList] == [
+        "2026-07-13",
+        "2026-07-12",
+        "2026-07-11",
+    ]
+    assert [storedRow["regDt"] for storedRow in storedRowList] == [
+        "2026-02-22 00:00:00",
+        "2026-02-21 00:00:00",
+        "2026-02-20 00:00:00",
+    ]
+
+
+def testRecentTaskDateCompatibilityPreservesNonLegacyRows():
+    customRow = {
+        "taskNo": 99,
+        "dataNm": "고객 직접 등록 업무",
+        "regDt": "2026-02-22 00:00:00",
+    }
+    refreshedSeedRow = {
+        "taskNo": 12,
+        "dataNm": "서비스 공개 준비",
+        "regDt": "2026-07-13",
+    }
+
+    assert applyPublicRecentTaskDate(
+        toTaskModel(customRow),
+        customRow,
+        referenceDate=date(2026, 7, 13),
+    )["createdAt"] == "2026-02-22 00:00:00"
+    assert applyPublicRecentTaskDate(
+        toTaskModel(refreshedSeedRow),
+        refreshedSeedRow,
+        referenceDate=date(2026, 7, 13),
+    )["createdAt"] == "2026-07-13"
+
+
+def testSampleDashboardAppliesDateCompatibilityToRecentRows(monkeypatch):
+    class FixedDate(date):
+        @classmethod
+        def today(cls):
+            return date(2026, 7, 13)
+
+    class FakeDb:
+        async def fetchAllQuery(self, queryName):
+            if queryName == "sample.dashboardStatusSummary":
+                return []
+            if queryName == "sample.dashboardMonthlyTrend":
+                return []
+            assert queryName == "sample.dashboardRecent"
+            return [{
+                "taskNo": 12,
+                "dataNm": "숨고/크몽 샘플 시나리오 작성",
+                "statCd": "pending",
+                "regDt": "2026-02-22 00:00:00",
+            }]
+
+    async def skipBootstrap():
+        return None
+
+    monkeypatch.setattr(SampleService, "ensureBootstrap", skipBootstrap)
+    monkeypatch.setattr(SampleService, "ensureDbManager", lambda: FakeDb())
+    monkeypatch.setattr(SampleService, "date", FixedDate)
+
+    result = asyncio.run(SampleService.getSampleDashboard())
+
+    assert result["recentList"][0]["title"] == "서비스 공개 준비"
+    assert result["recentList"][0]["createdAt"] == "2026-07-13"
 
 
 def testLegacyAdminRowsAndSettingsUsePublicSampleDefaults():

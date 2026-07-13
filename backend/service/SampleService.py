@@ -67,6 +67,7 @@ DEFAULT_ROLE_PERMISSION_MAP = MappingProxyType({
 })
 DEFAULT_FORM_CATEGORY_CODE_LIST = ("web", "app", "api", "etc")
 DEFAULT_FORM_FEATURE_CODE_LIST = ("login", "board", "payment", "chart", "admin")
+SAMPLE_TASK_SEED_DAY_OFFSET_LIST = (12, 10, 8, 6, 5, 5, 4, 4, 3, 2, 1, 0)
 BOOTSTRAP_LOCK = asyncio.Lock()
 
 
@@ -86,6 +87,19 @@ def readDefaultRolePermissionMap() -> dict[str, dict[str, bool]]:
     갱신일: 2026-06-04
     """
     return {role: dict(permissionMap) for role, permissionMap in DEFAULT_ROLE_PERMISSION_MAP.items()}
+
+
+def buildSampleTaskSeedDateBind(referenceDate: date | None = None) -> dict[str, date]:
+    """
+    설명: 샘플 업무 시드 날짜를 초기화 기준일에 맞춘 상대 날짜 바인딩으로 생성
+    반환값: taskDate01~taskDate12 date 바인딩 dict
+    갱신일: 2026-07-13
+    """
+    baseDate = referenceDate or date.today()
+    return {
+        f"taskDate{index:02d}": baseDate - timedelta(days=dayOffset)
+        for index, dayOffset in enumerate(SAMPLE_TASK_SEED_DAY_OFFSET_LIST, start=1)
+    }
 
 
 def readTotalCount(row: dict[str, Any] | None) -> int:
@@ -454,6 +468,21 @@ PUBLIC_TASK_COPY_OVERRIDES = (
     ("숨고/크몽 샘플 시나리오 작성", "서비스 공개 준비", "도메인, 안내 자료, 운영 체크리스트 정리", "운영팀", "서비스_공개_체크리스트.pdf"),
 )
 
+ORIGINAL_SAMPLE_TASK_DATE_COMPATIBILITY_LIST = (
+    (("신규 상담 요청 검토", "랜딩 페이지 시안 확정"), "2026-02-10", 12),
+    (("요구사항 상세 정리", "회원가입 폼 검증 규칙 반영"), "2026-02-12", 10),
+    (("상담 일정 확정", "로그 마스킹 정책 적용"), "2026-02-14", 8),
+    (("예상 일정 및 예산 검토", "샘플 페이지 QA"), "2026-02-16", 6),
+    (("프로젝트 제안서 작성", "대시보드 통계 API 점검"), "2026-02-17", 5),
+    (("계약 일정 조율", "공개 GNB 모바일 드로어 개선"), "2026-02-17", 5),
+    (("디자인 시안 검토 요청", "포트폴리오 섹션 리뉴얼"), "2026-02-18", 4),
+    (("고객 피드백 반영", "회원가입 중복 이메일 처리"), "2026-02-18", 4),
+    (("개발 진행 상황 공유", "프로필 설정 화면 구성"), "2026-02-19", 3),
+    (("기능 검수 결과 확인", "고객 문의 데이터 정리", "T_DATA 샘플 데이터 정리"), "2026-02-20", 2),
+    (("최종 검수 일정 확정", "공개 화면 이동 경로 점검", "미들웨어 공개 경로 점검"), "2026-02-21", 1),
+    (("서비스 공개 준비", "고객 상담용 샘플 시나리오 작성", "숨고/크몽 샘플 시나리오 작성"), "2026-02-22", 0),
+)
+
 PUBLIC_ADMIN_USER_COPY_OVERRIDES = (
     ("admin@demo.demo", "김민지", "minji.kim@example.com"),
     ("editor@demo.demo", "박서준", "seojun.park@example.com"),
@@ -481,6 +510,32 @@ def applyPublicTaskCopy(taskModel: dict[str, Any]) -> dict[str, Any]:
         if owner:
             nextTaskModel["owner"] = owner
         return nextTaskModel
+    return taskModel
+
+
+def applyPublicRecentTaskDate(
+    taskModel: dict[str, Any],
+    storedRow: dict[str, Any],
+    *,
+    referenceDate: date | None = None,
+) -> dict[str, Any]:
+    """
+    설명: 기존 고정 시드 업무의 최근 카드 날짜만 현재 기준 상대 날짜로 표시 보정
+    처리 규칙: 저장 제목과 2026-02 원본 날짜가 모두 정확히 일치할 때만 응답 모델을 변경한다.
+    반환값: 최근 카드용 공개 sample 업무 모델 dict
+    갱신일: 2026-07-13
+    """
+    source = convertKeysToCamelCase(storedRow or {})
+    storedTitle = str(readModelValue(source, "title", "dataNm", defaultValue="") or "")
+    storedDateText = str(readModelValue(source, "createdAt", "regDt", defaultValue="") or "")[:10]
+    baseDate = referenceDate or date.today()
+
+    for storedTitleList, originalDateText, dayOffset in ORIGINAL_SAMPLE_TASK_DATE_COMPATIBILITY_LIST:
+        if storedTitle in storedTitleList and storedDateText == originalDateText:
+            return {
+                **taskModel,
+                "createdAt": (baseDate - timedelta(days=dayOffset)).isoformat(),
+            }
     return taskModel
 
 
@@ -686,7 +741,7 @@ async def ensureBootstrapStorage() -> None:
     )
     if versionRow:
         return
-    await db.executeQuery("sampleBootstrap.seedTasks")
+    await db.executeQuery("sampleBootstrap.seedTasks", buildSampleTaskSeedDateBind())
     await db.executeQuery("sampleBootstrap.seedAdminUsers")
     await db.executeQuery(
         "sample.configInsert",
@@ -792,7 +847,11 @@ async def getSampleDashboard() -> dict[str, Any]:
                 "amount": normalizeAmount(readModelValue(trendRow, "amountSum")),
             }
         )
-    recentList = [toTaskModel(row) for row in (recentRows or [])]
+    referenceDate = date.today()
+    recentList = [
+        applyPublicRecentTaskDate(toTaskModel(row), row, referenceDate=referenceDate)
+        for row in (recentRows or [])
+    ]
     return {
         "statusSummaryList": statusSummaryList,
         "trendList": trendList,

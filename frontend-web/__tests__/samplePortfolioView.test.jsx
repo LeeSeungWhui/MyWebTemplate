@@ -59,14 +59,36 @@ describe("sample portfolio sales-facing display", () => {
     });
   });
 
-  it("opens the technical notes by default and shows the active runtime stack", () => {
+  it("shows the current product scope separately from live sample metrics", () => {
     render(<PortfolioView initialDataObj={{}} initialErrorObj={{}} />);
+
+    expect(screen.getByRole("heading", { name: "프로젝트 개요" })).toBeInTheDocument();
+    expect(screen.getByText("프로젝트 구성")).toBeVisible();
+    expect(screen.getByText(/Next\.js Web, FastAPI API, PostgreSQL/u)).toBeVisible();
+    expect(screen.getByText("인증·계정")).toBeVisible();
+    expect(screen.getByText(/비밀번호 찾기 샘플 안내.*로그인 사용자 비밀번호 변경/u)).toBeVisible();
+    expect(screen.getByText("업무·설정")).toBeVisible();
+    expect(screen.getByText(/업무 등록·조회·수정·삭제.*프로필·알림 설정/u)).toBeVisible();
+    expect(screen.getByText("품질·운영")).toBeVisible();
+    expect(screen.getByText(/Vitest·pytest·rule-gate.*Web\/API 분리 운영/u)).toBeVisible();
+    expect(screen.getByRole("heading", { name: "실시간 샘플 현황" })).toBeInTheDocument();
+    expect(screen.getByText("등록된 샘플 업무")).toBeVisible();
+    expect(screen.getByText("관리 대상 사용자")).toBeVisible();
+    expect(screen.getByText("접수된 샘플 문의")).toBeVisible();
+  });
+
+  it("opens every expandable content section by default and shows the active runtime stack", () => {
+    const { container } = render(<PortfolioView initialDataObj={{}} initialErrorObj={{}} />);
 
     const technicalNotesSummary = screen.getByText("기술 구성과 검증 기준");
     const technicalNotesDetails = technicalNotesSummary.closest("details");
+    const expandableSectionList = [...container.querySelectorAll("details")];
 
     expect(technicalNotesDetails).not.toBeNull();
-    expect(technicalNotesDetails).toHaveProperty("open", true);
+    expect(expandableSectionList).toHaveLength(7);
+    expandableSectionList.forEach((expandableSection) => {
+      expect(expandableSection).toHaveProperty("open", true);
+    });
     expect(screen.getByText("런타임: Node.js 26.3.0, Python 3.14.5")).toBeVisible();
     expect(screen.getByText(/Next\.js 16\.2\.7.*React 19\.2\.7.*Tailwind CSS 4\.3\.0/u)).toBeVisible();
     expect(screen.getByText(/FastAPI 0\.136\.3.*Pydantic 2\.13\.4.*Gunicorn 26\.0\.0/u)).toBeVisible();
