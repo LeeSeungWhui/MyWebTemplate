@@ -17,7 +17,7 @@ from fastapi.responses import JSONResponse, Response
 from lib.Auth import AuthConfig, getCurrentUser
 from lib.Config import getConfig
 from lib.I18n import detectLocale, translate as i18nTranslate
-from lib.RateLimit import checkRateLimit
+from lib.RateLimit import checkRateLimit, finalizeRateLimitReservation, reserveRateLimit
 from lib.RequestPayloadValidator import readJsonPayloadDict, readOptionalJsonPayloadDict, validatePayloadTypes
 from lib.RequestTrust import isTrustedProxyRequest
 from lib.Response import errorResponse, successResponse
@@ -624,6 +624,82 @@ async def completePasswordReset(request: Request):
             ),
             headers={"Cache-Control": "no-store"},
         )
+    response = JSONResponse(
+        status_code=200,
+        content=successResponse(result=result),
+        headers={"Cache-Control": "no-store"},
+    )
+    clearAuthCookies(response, request)
+    return response
+
+
+@router.post("/password-change")
+async def changePassword(request: Request, user=Depends(getCurrentUser)):
+    """
+    설명: 인증 사용자의 현재 비밀번호를 검증해 새 비밀번호로 변경
+    실패 동작: 인증/Origin/JSON/입력 오류는 안전한 4xx, DB 미준비는 503으로 표준 응답화
+    """
+    loc = detectLocale(request)
+    originError = ensureWebRequestOrigin(request, loc, required=True)
+    if originError is not None:
+        return originError
+    try:
+        payload = await readRequiredAuthPayload(
+            request,
+            requiredFieldTypeMap={"currentPassword": "str", "newPassword": "str"},
+        )
+    except ServiceError:
+        return invalidInputResponse(loc)
+
+    canonicalUsername = AuthService.normalizeLoginUsername(user.username)
+    limited, reservationHandle = reserveRateLimit(
+        request,
+        username=canonicalUsername,
+        namespace="auth.password_change",
+    )
+    if limited is not None:
+        return limited
+
+    keepFailedAttempt = False
+    try:
+        result, errorCode = await AuthService.changePassword(user.username, payload)
+        keepFailedAttempt = errorCode == "AUTH_400_CURRENT_PASSWORD_INVALID"
+    finally:
+        finalizeRateLimitReservation(reservationHandle, keep=keepFailedAttempt)
+    if errorCode == "AUTH_422_INVALID_INPUT":
+        return invalidInputResponse(loc)
+    if errorCode == "AUTH_400_CURRENT_PASSWORD_INVALID":
+        return JSONResponse(
+            status_code=400,
+            content=errorResponse(
+                message=i18nTranslate(
+                    "auth.current_password_invalid",
+                    "current password is invalid",
+                    loc,
+                ),
+                code="AUTH_400_CURRENT_PASSWORD_INVALID",
+            ),
+            headers={"Cache-Control": "no-store"},
+        )
+    if errorCode == "AUTH_503_DB_NOT_READY":
+        return JSONResponse(
+            status_code=503,
+            content=errorResponse(
+                message=i18nTranslate("error.db_not_ready", "database not ready", loc),
+                code="AUTH_503_DB_NOT_READY",
+            ),
+            headers={"Cache-Control": "no-store"},
+        )
+    if errorCode:
+        return JSONResponse(
+            status_code=500,
+            content=errorResponse(
+                message=i18nTranslate("error.server_error", "server error", loc),
+                code="AUTH_500_PASSWORD_CHANGE_FAILED",
+            ),
+            headers={"Cache-Control": "no-store"},
+        )
+
     response = JSONResponse(
         status_code=200,
         content=successResponse(result=result),

@@ -523,6 +523,95 @@ async def requestPasswordReset(
 
 
 @transaction("main_db")
+async def changePasswordInTransaction(
+    userId: str,
+    currentPassword: str,
+    newPassword: str,
+    usedAtMs: int,
+) -> bool:
+    """
+    설명: 현재 사용자 row를 잠근 뒤 비밀번호 검증, hash/auth-version 갱신, reset token 대체를 원자 처리
+    반환값: 현재 비밀번호가 일치해 변경되면 True, 사용자/비밀번호 불일치면 False
+    """
+    db = DB.getManager()
+    if not db:
+        raise ServiceError("AUTH_503_DB_NOT_READY")
+    lockedUserRow = await db.fetchOneQuery(
+        "auth.userForPasswordChange",
+        {"userId": userId},
+    )
+    if not lockedUserRow:
+        return False
+    lockedUser = convertKeysToCamelCase(lockedUserRow)
+    storedPassword = lockedUser.get("passwordHash") or lockedUser.get("userPw") or ""
+    if not isinstance(storedPassword, str) or not verifyPassword(currentPassword, storedPassword):
+        return False
+    updated = await db.fetchOneQuery(
+        "auth.updatePasswordAndAuthVersion",
+        {"userId": userId, "userPw": hashPasswordPbkdf2(newPassword)},
+    )
+    if not updated:
+        raise ServiceError("AUTH_500_PASSWORD_CHANGE_FAILED")
+    await db.executeQuery(
+        "auth.supersedePasswordResetTokens",
+        {"userId": userId, "usedAtMs": usedAtMs},
+    )
+    return True
+
+
+async def changePassword(
+    userId: str | None,
+    payload: dict,
+) -> tuple[dict | None, str | None]:
+    """
+    설명: 인증 사용자 비밀번호 변경 입력을 방어 검증하고 transaction 결과를 안전한 코드로 변환
+    반환값: (changed 결과, None) 또는 (None, 공개 가능한 auth 에러 코드)
+    """
+    if not isinstance(userId, str) or not userId.strip():
+        return None, "AUTH_422_INVALID_INPUT"
+    if not isinstance(payload, dict) or set(payload) != {"currentPassword", "newPassword"}:
+        return None, "AUTH_422_INVALID_INPUT"
+    currentPassword = payload.get("currentPassword")
+    newPassword = payload.get("newPassword")
+    if (
+        not isinstance(currentPassword, str)
+        or not currentPassword
+        or not isinstance(newPassword, str)
+        or len(newPassword) < PASSWORD_MIN_LENGTH
+        or hmac.compare_digest(newPassword, currentPassword)
+    ):
+        return None, "AUTH_422_INVALID_INPUT"
+
+    canonicalUserId = userId.strip()
+    try:
+        changed = await changePasswordInTransaction(
+            canonicalUserId,
+            currentPassword,
+            newPassword,
+            readCurrentEpochMs(),
+        )
+    except ServiceError as error:
+        errorCode = resolveServiceErrorCode(error)
+        if errorCode in {"AUTH_503_DB_NOT_READY", "DB_NOT_READY"}:
+            return None, "AUTH_503_DB_NOT_READY"
+        logger.error("password change failed: error=%s", type(error).__name__)
+        return None, "AUTH_500_PASSWORD_CHANGE_FAILED"
+    except Exception as error:
+        logger.error("password change failed: error=%s", type(error).__name__)
+        return None, "AUTH_500_PASSWORD_CHANGE_FAILED"
+    if not changed:
+        auditLog(
+            "auth.password_change",
+            canonicalUserId,
+            False,
+            {"reason": "current_password_invalid"},
+        )
+        return None, "AUTH_400_CURRENT_PASSWORD_INVALID"
+    auditLog("auth.password_change", canonicalUserId, True, {"changed": True})
+    return {"changed": True}, None
+
+
+@transaction("main_db")
 async def completePasswordResetInTransaction(tokenHash: str, newPassword: str, nowMs: int) -> bool:
     db = DB.getManager()
     if not db:

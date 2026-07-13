@@ -8,6 +8,7 @@ from fastapi import HTTPException
 from jose import JWTError, jwt
 from starlette.requests import Request
 
+from lib.ServiceError import ServiceError
 from lib.Auth import (
     ACCESS_TOKEN_EXPIRE_MAX_MINUTES,
     AUTH_CLOCK_SKEW_SECONDS,
@@ -355,6 +356,349 @@ def testPasswordResetCompleteValidationAndOneTimeResult(monkeypatch):
     assert short == (None, "AUTH_422_INVALID_INPUT")
     assert seen[0][0] == hashlib.sha256(rawToken.encode()).hexdigest()
     assert rawToken not in repr(seen)
+
+
+def testPasswordChangeValidatesExactPayloadBeforeTransaction(monkeypatch):
+    async def forbiddenChange(*_args, **_kwargs):
+        raise AssertionError("invalid input must not start password change transaction")
+
+    monkeypatch.setattr(AuthService, "changePasswordInTransaction", forbiddenChange)
+    invalidCases = [
+        (None, {"currentPassword": "current-password", "newPassword": "new-password"}),
+        ("", {"currentPassword": "current-password", "newPassword": "new-password"}),
+        ("user@example.com", None),
+        ("user@example.com", {"currentPassword": "", "newPassword": "new-password"}),
+        ("user@example.com", {"currentPassword": "current-password", "newPassword": "short"}),
+        (
+            "user@example.com",
+            {"currentPassword": "current-password", "newPassword": "new-password", "extra": True},
+        ),
+    ]
+
+    for userId, payload in invalidCases:
+        result = asyncio.run(AuthService.changePassword(userId, payload))
+        assert result == (None, "AUTH_422_INVALID_INPUT")
+
+
+def testPasswordChangeRejectsEqualNewPasswordBeforeTransaction(monkeypatch):
+    transactionCalls = []
+
+    async def forbiddenChange(*args, **_kwargs):
+        transactionCalls.append(args)
+        raise AssertionError("equal passwords must not start a transaction")
+
+    monkeypatch.setattr(AuthService, "changePasswordInTransaction", forbiddenChange)
+    password = "same-password-123"
+
+    result = asyncio.run(
+        AuthService.changePassword(
+            "user@example.com",
+            {"currentPassword": password, "newPassword": password},
+        )
+    )
+
+    assert result == (None, "AUTH_422_INVALID_INPUT")
+    assert transactionCalls == []
+    assert password not in repr(result)
+
+
+def testPasswordChangeMismatchPerformsNoMutation(monkeypatch):
+    class TxContext:
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, excType, exc, traceback):
+            return None
+
+    class FakeDatabase:
+        def transaction(self, **_options):
+            return TxContext()
+
+    class FakeManager:
+        def __init__(self):
+            self.database = FakeDatabase()
+            self.calls = []
+            self.currentHash = AuthService.hashPasswordPbkdf2("actual-current-password")
+
+        async def fetchOneQuery(self, queryName, values):
+            self.calls.append(("fetch", queryName, values))
+            if queryName == "auth.userForPasswordChange":
+                return {"userId": values["userId"], "userPw": self.currentHash}
+            raise AssertionError("password mismatch must not update the user")
+
+        async def executeQuery(self, queryName, values):
+            raise AssertionError("password mismatch must not supersede reset tokens")
+
+    manager = FakeManager()
+    monkeypatch.setitem(AuthService.DB.dbManagers, "main_db", manager)
+    AuthService.DB.setPrimaryDbName("main_db")
+
+    changed = asyncio.run(
+        AuthService.changePasswordInTransaction(
+            "user@example.com",
+            "wrong-current-password",
+            "new-password-123",
+            1_000,
+        )
+    )
+
+    assert changed is False
+    assert manager.calls == [
+        ("fetch", "auth.userForPasswordChange", {"userId": "user@example.com"})
+    ]
+
+
+def testPasswordChangeSuccessUpdatesVersionThenSupersedesResetTokens(monkeypatch):
+    class TxContext:
+        async def __aenter__(self):
+            return self
+
+        async def __aexit__(self, excType, exc, traceback):
+            return None
+
+    class FakeDatabase:
+        def transaction(self, **_options):
+            return TxContext()
+
+    class FakeManager:
+        def __init__(self):
+            self.database = FakeDatabase()
+            self.calls = []
+            self.currentHash = AuthService.hashPasswordPbkdf2("current-password")
+            self.newHash = None
+
+        async def fetchOneQuery(self, queryName, values):
+            self.calls.append(queryName)
+            if queryName == "auth.userForPasswordChange":
+                return {"userId": values["userId"], "userPw": self.currentHash}
+            if queryName == "auth.updatePasswordAndAuthVersion":
+                self.newHash = values["userPw"]
+                return {"authVersion": 2}
+            raise AssertionError(queryName)
+
+        async def executeQuery(self, queryName, values):
+            self.calls.append(queryName)
+            assert queryName == "auth.supersedePasswordResetTokens"
+            assert values == {"userId": "user@example.com", "usedAtMs": 2_000}
+            return True
+
+    manager = FakeManager()
+    monkeypatch.setitem(AuthService.DB.dbManagers, "main_db", manager)
+    AuthService.DB.setPrimaryDbName("main_db")
+
+    changed = asyncio.run(
+        AuthService.changePasswordInTransaction(
+            "user@example.com",
+            "current-password",
+            "new-password-123",
+            2_000,
+        )
+    )
+
+    assert changed is True
+    assert manager.calls == [
+        "auth.userForPasswordChange",
+        "auth.updatePasswordAndAuthVersion",
+        "auth.supersedePasswordResetTokens",
+    ]
+    assert manager.newHash != manager.currentHash
+    assert AuthService.verifyPassword("new-password-123", manager.newHash)
+
+
+def testPasswordChangeSupersedeFailureRollsBackPasswordAndAuthVersion(monkeypatch):
+    class TxContext:
+        def __init__(self, manager):
+            self.manager = manager
+            self.snapshot = None
+
+        async def __aenter__(self):
+            self.snapshot = (
+                self.manager.currentHash,
+                self.manager.authVersion,
+                self.manager.resetTokenUsedAt,
+            )
+            return self
+
+        async def __aexit__(self, excType, exc, traceback):
+            if excType is not None:
+                (
+                    self.manager.currentHash,
+                    self.manager.authVersion,
+                    self.manager.resetTokenUsedAt,
+                ) = self.snapshot
+            return False
+
+    class FakeDatabase:
+        def __init__(self, manager):
+            self.manager = manager
+
+        def transaction(self, **_options):
+            return TxContext(self.manager)
+
+    class FakeManager:
+        def __init__(self):
+            self.currentHash = AuthService.hashPasswordPbkdf2("current-password")
+            self.authVersion = 7
+            self.resetTokenUsedAt = None
+            self.calls = []
+            self.database = FakeDatabase(self)
+
+        async def fetchOneQuery(self, queryName, values):
+            self.calls.append(queryName)
+            if queryName == "auth.userForPasswordChange":
+                return {"userId": values["userId"], "userPw": self.currentHash}
+            if queryName == "auth.updatePasswordAndAuthVersion":
+                self.currentHash = values["userPw"]
+                self.authVersion += 1
+                return {"authVersion": self.authVersion}
+            raise AssertionError(queryName)
+
+        async def executeQuery(self, queryName, values):
+            self.calls.append(queryName)
+            assert queryName == "auth.supersedePasswordResetTokens"
+            self.resetTokenUsedAt = values["usedAtMs"]
+            raise RuntimeError("reset token supersession failed")
+
+    manager = FakeManager()
+    originalHash = manager.currentHash
+    monkeypatch.setitem(AuthService.DB.dbManagers, "main_db", manager)
+    AuthService.DB.setPrimaryDbName("main_db")
+
+    with pytest.raises(RuntimeError, match="reset token supersession failed"):
+        asyncio.run(
+            AuthService.changePasswordInTransaction(
+                "user@example.com",
+                "current-password",
+                "new-password-123",
+                3_000,
+            )
+        )
+
+    assert manager.calls == [
+        "auth.userForPasswordChange",
+        "auth.updatePasswordAndAuthVersion",
+        "auth.supersedePasswordResetTokens",
+    ]
+    assert manager.currentHash == originalHash
+    assert AuthService.verifyPassword("current-password", manager.currentHash)
+    assert not AuthService.verifyPassword("new-password-123", manager.currentHash)
+    assert manager.authVersion == 7
+    assert manager.resetTokenUsedAt is None
+
+
+def testPasswordChangeConcurrentSameCurrentPasswordAllowsOnlyOneSuccess(monkeypatch):
+    class TxContext:
+        def __init__(self, lock):
+            self.lock = lock
+
+        async def __aenter__(self):
+            await self.lock.acquire()
+            return self
+
+        async def __aexit__(self, excType, exc, traceback):
+            self.lock.release()
+            return False
+
+    class FakeDatabase:
+        def __init__(self, lock):
+            self.lock = lock
+
+        def transaction(self, **_options):
+            return TxContext(self.lock)
+
+    class FakeManager:
+        def __init__(self, lock):
+            self.database = FakeDatabase(lock)
+            self.currentHash = AuthService.hashPasswordPbkdf2("current-password")
+            self.authVersion = 0
+            self.supersedeCount = 0
+
+        async def fetchOneQuery(self, queryName, values):
+            if queryName == "auth.userForPasswordChange":
+                return {"userId": values["userId"], "userPw": self.currentHash}
+            if queryName == "auth.updatePasswordAndAuthVersion":
+                self.currentHash = values["userPw"]
+                self.authVersion += 1
+                return {"authVersion": self.authVersion}
+            raise AssertionError(queryName)
+
+        async def executeQuery(self, queryName, values):
+            assert queryName == "auth.supersedePasswordResetTokens"
+            assert values["userId"] == "user@example.com"
+            self.supersedeCount += 1
+            return True
+
+    async def runConcurrent():
+        manager = FakeManager(asyncio.Lock())
+        monkeypatch.setitem(AuthService.DB.dbManagers, "main_db", manager)
+        AuthService.DB.setPrimaryDbName("main_db")
+        results = await asyncio.gather(
+            AuthService.changePasswordInTransaction(
+                "user@example.com",
+                "current-password",
+                "new-password-a",
+                4_000,
+            ),
+            AuthService.changePasswordInTransaction(
+                "user@example.com",
+                "current-password",
+                "new-password-b",
+                4_001,
+            ),
+        )
+        return manager, results
+
+    manager, results = asyncio.run(runConcurrent())
+
+    assert sorted(results) == [False, True]
+    assert manager.authVersion == 1
+    assert manager.supersedeCount == 1
+    finalMatches = [
+        AuthService.verifyPassword(candidate, manager.currentHash)
+        for candidate in ("new-password-a", "new-password-b")
+    ]
+    assert finalMatches.count(True) == 1
+
+
+def testPasswordChangeMapsDbNotReadyAndAuditsWithoutPlaintext(monkeypatch):
+    async def dbNotReady(*_args, **_kwargs):
+        raise ServiceError("AUTH_503_DB_NOT_READY")
+
+    monkeypatch.setattr(AuthService, "changePasswordInTransaction", dbNotReady)
+    unavailable = asyncio.run(
+        AuthService.changePassword(
+            "user@example.com",
+            {"currentPassword": "current-secret", "newPassword": "new-secret-123"},
+        )
+    )
+    assert unavailable == (None, "AUTH_503_DB_NOT_READY")
+
+    auditCalls = []
+
+    async def changed(*_args, **_kwargs):
+        return True
+
+    monkeypatch.setattr(AuthService, "changePasswordInTransaction", changed)
+    monkeypatch.setattr(
+        AuthService,
+        "auditLog",
+        lambda event, username, success, meta=None: auditCalls.append(
+            (event, username, success, meta)
+        ),
+    )
+    success = asyncio.run(
+        AuthService.changePassword(
+            "user@example.com",
+            {"currentPassword": "current-secret", "newPassword": "new-secret-123"},
+        )
+    )
+
+    assert success == ({"changed": True}, None)
+    assert auditCalls == [
+        ("auth.password_change", "user@example.com", True, {"changed": True})
+    ]
+    assert "current-secret" not in repr(auditCalls)
+    assert "new-secret-123" not in repr(auditCalls)
 
 
 def testPasswordResetConditionalConsumeAllowsOnlyOneConcurrentCompletion(monkeypatch):

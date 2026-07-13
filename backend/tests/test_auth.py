@@ -9,10 +9,13 @@ import os
 import sys
 import uuid
 import importlib
+from concurrent.futures import ThreadPoolExecutor
+from threading import Barrier
+
 from fastapi.testclient import TestClient
 
 from conftest import pgTestSettings
-from db_support import executePg, fetchValPg
+from db_support import executePg, fetchRowPg, fetchValPg
 from lib.ServiceError import ServiceError
 
 baseDir = os.path.dirname(os.path.dirname(__file__))
@@ -547,6 +550,231 @@ def testPasswordResetCompletionInvalidatesSessionsAndPreventsReuse(monkeypatch):
         ).status_code == 200
 
 
+def testPasswordChangePostgresEndToEndPreservesOtherUser(monkeypatch):
+    from server import app
+    from service import AuthService
+
+    runId = uuid.uuid4().hex
+    targetEmail = f"rs009-target-{runId}@demo.demo"
+    controlEmail = f"rs009-control-{runId}@demo.demo"
+    targetOldPassword = f"rs009-old-{uuid.uuid4().hex}"
+    targetNewPassword = f"rs009-new-{uuid.uuid4().hex}"
+    controlPassword = f"rs009-control-{uuid.uuid4().hex}"
+    resetAttemptPassword = f"rs009-reset-{uuid.uuid4().hex}"
+    capturedResetTokens = {}
+    refreshRotationJtis = set()
+
+    def captureDelivery(recipient, rawToken):
+        capturedResetTokens[recipient] = rawToken
+        return True
+
+    def snapshotUserAndReset(userId, tokenHash):
+        row = fetchRowPg(
+            pgTestSettings,
+            """
+            SELECT U.USER_PW AS "USER_PW"
+                 , U.AUTH_VERSION AS "AUTH_VERSION"
+                 , R.TOKEN_HASH AS "TOKEN_HASH"
+                 , R.CREATED_AT_MS AS "CREATED_AT_MS"
+                 , R.EXPIRES_AT_MS AS "EXPIRES_AT_MS"
+                 , R.USED_AT_MS AS "USED_AT_MS"
+              FROM T_USER U
+              JOIN T_PASSWORD_RESET_TOKEN R
+                ON R.USER_ID = U.USER_ID
+               AND R.TOKEN_HASH = $2
+             WHERE U.USER_ID = $1
+            """,
+            userId,
+            tokenHash,
+        )
+        assert row is not None
+        return dict(row)
+
+    monkeypatch.setattr(AuthService, "deliverPasswordResetMail", captureDelivery)
+
+    try:
+        with TestClient(app) as client:
+            for name, email, password in (
+                ("RS009 Target", targetEmail, targetOldPassword),
+                ("RS009 Control", controlEmail, controlPassword),
+            ):
+                signupResponse = client.post(
+                    "/api/v1/auth/signup",
+                    json={"name": name, "email": email, "password": password},
+                )
+                assert signupResponse.status_code == 201
+
+            targetLogin = client.post(
+                "/api/v1/auth/app/login",
+                json={"username": targetEmail, "password": targetOldPassword},
+            )
+            assert targetLogin.status_code == 200
+            targetOldAccess = targetLogin.json()["result"]["accessToken"]
+            targetOldRefresh = targetLogin.json()["result"]["refreshToken"]
+            targetOldRefreshPayload = AuthService.decodeRefreshTokenPayload(targetOldRefresh)
+            assert targetOldRefreshPayload is not None
+            targetOldRefreshJti = targetOldRefreshPayload.get("jti")
+            assert isinstance(targetOldRefreshJti, str) and targetOldRefreshJti
+            refreshRotationJtis.add(targetOldRefreshJti)
+
+            controlLogin = client.post(
+                "/api/v1/auth/app/login",
+                json={"username": controlEmail, "password": controlPassword},
+            )
+            assert controlLogin.status_code == 200
+            controlAccess = controlLogin.json()["result"]["accessToken"]
+
+            for email in (targetEmail, controlEmail):
+                resetResponse = client.post(
+                    "/api/v1/auth/password-reset/request",
+                    json={"email": email},
+                )
+                assert resetResponse.status_code == 200
+            assert set(capturedResetTokens) == {targetEmail, controlEmail}
+
+            targetRawResetToken = capturedResetTokens[targetEmail]
+            controlRawResetToken = capturedResetTokens[controlEmail]
+            targetResetHash = AuthService.hashPasswordResetToken(targetRawResetToken)
+            controlResetHash = AuthService.hashPasswordResetToken(controlRawResetToken)
+            targetBefore = snapshotUserAndReset(targetEmail, targetResetHash)
+            controlBefore = snapshotUserAndReset(controlEmail, controlResetHash)
+            assert targetBefore["USED_AT_MS"] is None
+            assert controlBefore["USED_AT_MS"] is None
+
+            wrongCurrentResponse = client.post(
+                "/api/v1/auth/password-change",
+                json={
+                    "currentPassword": f"wrong-{uuid.uuid4().hex}",
+                    "newPassword": targetNewPassword,
+                },
+                headers={
+                    **WEB_ORIGIN_HEADERS,
+                    "Authorization": f"Bearer {targetOldAccess}",
+                },
+            )
+            assert wrongCurrentResponse.status_code == 400
+            assert wrongCurrentResponse.json()["code"] == "AUTH_400_CURRENT_PASSWORD_INVALID"
+            assert not findCookie(wrongCurrentResponse.headers, "access_token")
+            assert not findCookie(wrongCurrentResponse.headers, "refresh_token")
+            assert snapshotUserAndReset(targetEmail, targetResetHash) == targetBefore
+            assert snapshotUserAndReset(controlEmail, controlResetHash) == controlBefore
+
+            assert client.get(
+                "/api/v1/auth/me",
+                headers={"Authorization": f"Bearer {targetOldAccess}"},
+            ).status_code == 200
+            rotatedTargetSession = client.post(
+                "/api/v1/auth/app/refresh",
+                json={"refreshToken": targetOldRefresh},
+            )
+            assert rotatedTargetSession.status_code == 200
+            targetPreChangeAccess = rotatedTargetSession.json()["result"]["accessToken"]
+            targetPreChangeRefresh = rotatedTargetSession.json()["result"]["refreshToken"]
+
+            successResponse = client.post(
+                "/api/v1/auth/password-change",
+                json={
+                    "currentPassword": targetOldPassword,
+                    "newPassword": targetNewPassword,
+                },
+                headers={
+                    **WEB_ORIGIN_HEADERS,
+                    "Authorization": f"Bearer {targetPreChangeAccess}",
+                },
+            )
+            assert successResponse.status_code == 200
+            successBody = successResponse.json()
+            assert successBody["result"] == {"changed": True}
+            assert "token" not in str(successBody).lower()
+            for cookieName in ("access_token", "refresh_token"):
+                expiredCookie = findCookie(successResponse.headers, cookieName)
+                assert expiredCookie
+                assert "max-age=0" in expiredCookie.lower()
+
+            targetAfter = snapshotUserAndReset(targetEmail, targetResetHash)
+            controlAfter = snapshotUserAndReset(controlEmail, controlResetHash)
+            assert targetAfter["USER_PW"] != targetBefore["USER_PW"]
+            assert isinstance(targetAfter["USER_PW"], str)
+            assert targetAfter["USER_PW"].startswith("pbkdf2$")
+            assert len(targetAfter["USER_PW"].split("$")) == 4
+            assert targetAfter["USER_PW"] != targetNewPassword
+            assert AuthService.verifyPassword(targetNewPassword, targetAfter["USER_PW"])
+            assert targetAfter["AUTH_VERSION"] == targetBefore["AUTH_VERSION"] + 1
+            assert targetAfter["TOKEN_HASH"] == targetBefore["TOKEN_HASH"]
+            assert targetAfter["CREATED_AT_MS"] == targetBefore["CREATED_AT_MS"]
+            assert targetAfter["EXPIRES_AT_MS"] == targetBefore["EXPIRES_AT_MS"]
+            assert targetAfter["USED_AT_MS"] is not None
+            assert controlAfter == controlBefore
+
+            assert client.get(
+                "/api/v1/auth/me",
+                headers={"Authorization": f"Bearer {targetPreChangeAccess}"},
+            ).status_code == 401
+            rejectedRefresh = client.post(
+                "/api/v1/auth/app/refresh",
+                json={"refreshToken": targetPreChangeRefresh},
+            )
+            assert rejectedRefresh.status_code == 401
+            assert client.post(
+                "/api/v1/auth/app/login",
+                json={"username": targetEmail, "password": targetOldPassword},
+            ).status_code == 401
+            rejectedReset = client.post(
+                "/api/v1/auth/password-reset/complete",
+                json={
+                    "token": targetRawResetToken,
+                    "newPassword": resetAttemptPassword,
+                },
+            )
+            assert rejectedReset.status_code == 400
+            assert rejectedReset.json()["code"] == "AUTH_400_RESET_INVALID_OR_EXPIRED"
+            assert client.post(
+                "/api/v1/auth/app/login",
+                json={"username": targetEmail, "password": targetNewPassword},
+            ).status_code == 200
+            controlMe = client.get(
+                "/api/v1/auth/me",
+                headers={"Authorization": f"Bearer {controlAccess}"},
+            )
+            assert controlMe.status_code == 200
+            assert controlMe.json()["result"]["username"] == controlEmail
+    finally:
+        if AuthService.tokenStateStoreReady:
+            for refreshJti in refreshRotationJtis:
+                executePg(
+                    pgTestSettings,
+                    """
+                    DELETE FROM T_TOKEN
+                     WHERE TOKEN_JTI = $1
+                       AND STATE_TP IN ($2, $3)
+                    """,
+                    refreshJti,
+                    AuthService.TOKEN_STATE_REVOKED,
+                    AuthService.TOKEN_STATE_GRACE,
+                )
+        for refreshJti in refreshRotationJtis:
+            AuthService.revokedRefreshJtiStore.pop(refreshJti, None)
+            AuthService.refreshGraceStore.pop(refreshJti, None)
+        executePg(
+            pgTestSettings,
+            "DELETE FROM T_PASSWORD_RESET_TOKEN WHERE USER_ID IN ($1, $2)",
+            targetEmail,
+            controlEmail,
+        )
+        executePg(
+            pgTestSettings,
+            "DELETE FROM T_USER_LOG WHERE USER_ID IN ($1, $2)",
+            targetEmail,
+            controlEmail,
+        )
+        executePg(
+            pgTestSettings,
+            "DELETE FROM T_USER WHERE USER_ID IN ($1, $2)",
+            targetEmail,
+            controlEmail,
+        )
+
+
 def testOpenapiDocumentsAuthRequestContracts():
     from server import app
 
@@ -562,6 +790,7 @@ def testOpenapiDocumentsAuthRequestContracts():
         "AuthSignupRequest": {"required": ["name", "email", "password"]},
         "PasswordResetRequest": {"required": ["email"]},
         "PasswordResetCompleteRequest": {"required": ["token", "newPassword"]},
+        "PasswordChangeRequest": {"required": ["currentPassword", "newPassword"]},
         "AuthAppLoginRequest": {"required": ["username", "password"], "hasRememberMe": True},
         "AuthAppRefreshRequest": {"required": ["refreshToken"]},
         "AuthAppLogoutRequest": {"required": []},
@@ -579,6 +808,25 @@ def testOpenapiDocumentsAuthRequestContracts():
     assert "AuthSignupResponse" in schemas
     assert "PasswordResetRequestResponse" in schemas
     assert "PasswordResetCompleteResponse" in schemas
+    assert schemas["PasswordChangeRequest"]["properties"] == {
+        "currentPassword": {"type": "string", "minLength": 1},
+        "newPassword": {"type": "string", "minLength": 8},
+    }
+    assert schemas["PasswordChangeResult"] == {
+        "type": "object",
+        "properties": {"changed": {"type": "boolean", "const": True}},
+        "required": ["changed"],
+        "additionalProperties": False,
+    }
+    assert schemas["PasswordChangeResponse"]["allOf"] == [
+        {"$ref": "#/components/schemas/StandardResponse"},
+        {
+            "type": "object",
+            "properties": {
+                "result": {"$ref": "#/components/schemas/PasswordChangeResult"},
+            },
+        },
+    ]
 
     requestBodyCases = {
         "/api/v1/auth/login": ("AuthLoginRequest", True),
@@ -588,6 +836,7 @@ def testOpenapiDocumentsAuthRequestContracts():
         "/api/v1/auth/passwordReset/request": ("PasswordResetRequest", True),
         "/api/v1/auth/password-reset/complete": ("PasswordResetCompleteRequest", True),
         "/api/v1/auth/passwordResetComplete": ("PasswordResetCompleteRequest", True),
+        "/api/v1/auth/password-change": ("PasswordChangeRequest", True),
         "/api/v1/auth/app/login": ("AuthAppLoginRequest", True),
         "/api/v1/auth/app/refresh": ("AuthAppRefreshRequest", True),
         "/api/v1/auth/app/logout": ("AuthAppLogoutRequest", False),
@@ -648,6 +897,32 @@ def testOpenapiDocumentsAuthRequestContracts():
         "$ref": "#/components/schemas/PasswordResetCompleteResponse"
     }
     assert "Set-Cookie" in completeOperation["responses"]["200"]["headers"]
+
+    changeOperation = schema["paths"]["/api/v1/auth/password-change"]["post"]
+    change200 = changeOperation["responses"]["200"]
+    assert change200["content"]["application/json"]["schema"] == {
+        "$ref": "#/components/schemas/PasswordChangeResponse"
+    }
+    assert "Set-Cookie" in change200["headers"]
+    assert "Cache-Control" in change200["headers"]
+    assert {"bearerAuth": []} in changeOperation["security"]
+    assert {"OAuth2PasswordBearer": []} in changeOperation["security"]
+    assert any(
+        param.get("$ref") == "#/components/parameters/OriginHeader"
+        for param in changeOperation["parameters"]
+    )
+    assert any(
+        param.get("$ref") == "#/components/parameters/RefererHeader"
+        for param in changeOperation["parameters"]
+    )
+    assert {"400", "401", "403", "422", "429", "500", "503"}.issubset(
+        changeOperation["responses"]
+    )
+    assert changeOperation["responses"]["429"] == {
+        "$ref": "#/components/responses/RateLimitErrorResponse"
+    }
+    assert "token" not in str(schemas["PasswordChangeResult"]).lower()
+    assert "token" not in str(schemas["PasswordChangeResponse"]).lower()
 
     refreshOperation = schema["paths"]["/api/v1/auth/refresh"]["post"]
     refreshParams = refreshOperation["parameters"]
@@ -759,6 +1034,66 @@ def testRateLimiterSweepsStaleKeysWithoutRevisit():
     ok, _ = limiter.hit("ip:new", commit=True)
     assert ok is True
     assert list(limiter.store.keys()) == ["ip:new"]
+
+
+def testRateLimiterReservationIsAtomicAcrossThreadsAndFinalizesExactly():
+    from lib.RateLimit import RateLimiter
+
+    limiter = RateLimiter(limit=1, windowSec=60)
+    keys = (
+        "auth.password_change:ip:127.0.0.1",
+        "auth.password_change:user:demo@example.com",
+    )
+    startBarrier = Barrier(2)
+
+    def reserveOnce():
+        startBarrier.wait(timeout=5)
+        return limiter.reserve(keys)
+
+    with ThreadPoolExecutor(max_workers=2) as executor:
+        futures = [executor.submit(reserveOnce) for _ in range(2)]
+        results = [future.result(timeout=5) for future in futures]
+
+    accepted = [result for result in results if result[0] is True]
+    rejected = [result for result in results if result[0] is False]
+    assert len(accepted) == 1
+    assert len(rejected) == 1
+    assert accepted[0][2] is not None
+    assert rejected[0][1] >= 1
+    assert rejected[0][2] is None
+    assert set(limiter.store) == set(keys)
+    assert all(len(limiter.store[key]) == 1 for key in keys)
+
+    reservationId = accepted[0][2]
+    assert limiter.finalizeReservation(reservationId, keep=False) is True
+    assert limiter.finalizeReservation(reservationId, keep=False) is False
+    assert limiter.store == {}
+
+    ok, retryAfter, keptReservationId = limiter.reserve(keys)
+    assert (ok, retryAfter) == (True, 0)
+    assert limiter.finalizeReservation(keptReservationId, keep=True) is True
+    assert keptReservationId not in limiter.reservations
+    assert set(limiter.store) == set(keys)
+    assert all(len(limiter.store[key]) == 1 for key in keys)
+
+
+def testRateLimiterReservationRejectsAllKeysWithoutPartialMutation():
+    from lib.RateLimit import RateLimiter
+
+    limiter = RateLimiter(limit=1, windowSec=60)
+    ipKey = "auth.password_change:ip:127.0.0.1"
+    userKey = "auth.password_change:user:demo@example.com"
+    ok, _ = limiter.hit(userKey, commit=True)
+    assert ok is True
+
+    reserved, retryAfter, reservationId = limiter.reserve((ipKey, userKey))
+
+    assert reserved is False
+    assert retryAfter >= 1
+    assert reservationId is None
+    assert ipKey not in limiter.store
+    assert len(limiter.store[userKey]) == 1
+    assert limiter.reservations == {}
 
 
 def testRateLimiterLimitEnvFallback(monkeypatch):

@@ -9,7 +9,7 @@
 
 import { useEffect, useRef } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { useGlobalUi } from "@/app/common/store/SharedStore";
+import { useGlobalUi, useUser } from "@/app/common/store/SharedStore";
 import { normalizePageConfig } from "@/app/lib/runtime/pageData";
 import { usePageData } from "@/app/lib/hooks/usePageData";
 import Badge from "@/app/lib/component/Badge";
@@ -54,8 +54,10 @@ const SettingsView = ({ initialDataObj, initialErrorObj }) => {
   const searchParams = useSearchParams();
   const searchParamText = searchParams?.toString() || "";
   const { showToast } = useGlobalUi();
+  const { setUser } = useUser();
   const pageApi = PAGE_CONFIG.API || {};
   const hasProfileEndpoint = Boolean(pageApi.profileMe);
+  const hasPasswordChangeEndpoint = Boolean(pageApi.passwordChange);
   const hasSystemEndpoint = Boolean(pageApi.settingsUpdate);
   const profileMeObj = EasyObj({ ...defaultProfileObj });
   const ui = EasyObj({
@@ -63,6 +65,23 @@ const SettingsView = ({ initialDataObj, initialErrorObj }) => {
     activeTabIndex: 0,
     isLoadingProfile: true,
     isSavingProfile: false,
+    isChangingPassword: false,
+    isPasswordChangeBlocked: false,
+    passwordForm: {
+      currentPassword: "",
+      newPassword: "",
+      newPasswordConfirm: "",
+    },
+    passwordErrors: {
+      currentPassword: "",
+      newPassword: "",
+      newPasswordConfirm: "",
+    },
+    passwordStatus: {
+      message: "",
+      code: "",
+      requestId: "",
+    },
     isSavingSystem: false,
     error: null,
   });
@@ -76,6 +95,11 @@ const SettingsView = ({ initialDataObj, initialErrorObj }) => {
   const profileMeObjRef = useRef(profileMeObj);
   const dataObjRef = useRef(dataObj);
   const errorObjRef = useRef(errorObj);
+  const currentPasswordInputRef = useRef(null);
+  const newPasswordInputRef = useRef(null);
+  const newPasswordConfirmInputRef = useRef(null);
+  const passwordFocusFrameRef = useRef(null);
+  const passwordSubmitGuardRef = useRef(false);
   const profileResultRevision = JSON.stringify(dataObj?.profileMe?.result ?? null);
   const profileErrorRevision = JSON.stringify(errorObj?.profileMe ?? null);
 
@@ -166,6 +190,160 @@ const SettingsView = ({ initialDataObj, initialErrorObj }) => {
     }
   };
 
+  const emptyPasswordErrors = () => ({
+    currentPassword: "",
+    newPassword: "",
+    newPasswordConfirm: "",
+  });
+
+  const emptyPasswordStatus = () => ({
+    message: "",
+    code: "",
+    requestId: "",
+  });
+
+  const normalizeSafeDiagnostic = (value) => {
+    const diagnosticText = typeof value === "string" ? value : "";
+    return /^[A-Za-z0-9_.:-]{1,120}$/.test(diagnosticText) ? diagnosticText : "";
+  };
+
+  const setPasswordStatus = (message, diagnosticSource) => {
+    ui.passwordStatus = {
+      message,
+      code: normalizeSafeDiagnostic(diagnosticSource?.code),
+      requestId: normalizeSafeDiagnostic(diagnosticSource?.requestId),
+    };
+  };
+
+  const focusPasswordField = (fieldName) => {
+    const inputRefMap = {
+      currentPassword: currentPasswordInputRef,
+      newPassword: newPasswordInputRef,
+      newPasswordConfirm: newPasswordConfirmInputRef,
+    };
+    const inputIdMap = {
+      currentPassword: "settings-current-password",
+      newPassword: "settings-new-password",
+      newPasswordConfirm: "settings-new-password-confirm",
+    };
+    cancelAnimationFrame(passwordFocusFrameRef.current);
+    passwordFocusFrameRef.current = requestAnimationFrame(() => {
+      passwordFocusFrameRef.current = requestAnimationFrame(() => {
+        const liveInput = typeof document !== "undefined"
+          ? document.getElementById(inputIdMap[fieldName])
+          : null;
+        (liveInput || inputRefMap[fieldName]?.current)?.focus();
+      });
+    });
+  };
+
+  const validatePasswordChange = () => {
+    const currentPassword = String(ui.passwordForm.currentPassword || "");
+    const newPassword = String(ui.passwordForm.newPassword || "");
+    const newPasswordConfirm = String(ui.passwordForm.newPasswordConfirm || "");
+    const nextErrors = emptyPasswordErrors();
+
+    if (!currentPassword) {
+      nextErrors.currentPassword = LANG_KO.view.validation.currentPasswordRequired;
+    }
+    if (!newPassword) {
+      nextErrors.newPassword = LANG_KO.view.validation.newPasswordRequired;
+    } else if (newPassword.length < 8) {
+      nextErrors.newPassword = LANG_KO.view.validation.newPasswordMinLength;
+    } else if (newPassword === currentPassword) {
+      nextErrors.newPassword = LANG_KO.view.validation.newPasswordMustDiffer;
+    }
+    if (!newPasswordConfirm) {
+      nextErrors.newPasswordConfirm = LANG_KO.view.validation.newPasswordConfirmRequired;
+    } else if (newPasswordConfirm !== newPassword) {
+      nextErrors.newPasswordConfirm = LANG_KO.view.validation.newPasswordConfirmMismatch;
+    }
+
+    ui.passwordErrors = nextErrors;
+    const firstErrorField = ["currentPassword", "newPassword", "newPasswordConfirm"]
+      .find((fieldName) => Boolean(nextErrors[fieldName]));
+    if (firstErrorField) {
+      setPasswordStatus(nextErrors[firstErrorField]);
+      focusPasswordField(firstErrorField);
+      return null;
+    }
+
+    ui.passwordStatus = emptyPasswordStatus();
+    return { currentPassword, newPassword };
+  };
+
+  const handlePasswordFieldChange = (fieldName) => {
+    if (ui.passwordErrors[fieldName]) {
+      ui.passwordErrors[fieldName] = "";
+    }
+    if (ui.passwordStatus.message) {
+      ui.passwordStatus = emptyPasswordStatus();
+    }
+  };
+
+  /**
+   * @description 인증된 사용자의 현재 비밀번호를 확인하고 새 비밀번호로 변경
+   * 처리 규칙: client validation과 동기 제출 guard를 통과한 경우에만 비밀번호 두 필드만 전송한다.
+   */
+  const changePassword = async () => {
+    if (passwordSubmitGuardRef.current || ui.isPasswordChangeBlocked) return;
+    if (!hasPasswordChangeEndpoint) {
+      setPasswordStatus(LANG_KO.view.error.passwordChangeEndpointMissing);
+      return;
+    }
+
+    const passwordPayload = validatePasswordChange();
+    if (!passwordPayload) return;
+
+    passwordSubmitGuardRef.current = true;
+    ui.isChangingPassword = true;
+    let passwordChanged = false;
+    try {
+      const passwordResponse = await apiJSON(pageApi.passwordChange, {
+        method: "POST",
+        body: passwordPayload,
+      });
+      if (passwordResponse?.result?.changed !== true) {
+        setPasswordStatus(LANG_KO.view.error.passwordChangeMalformedResponse, passwordResponse);
+        return;
+      }
+
+      passwordChanged = true;
+      ui.passwordForm.currentPassword = "";
+      ui.passwordForm.newPassword = "";
+      ui.passwordForm.newPasswordConfirm = "";
+      ui.passwordErrors = emptyPasswordErrors();
+      ui.passwordStatus = emptyPasswordStatus();
+      ui.isPasswordChangeBlocked = true;
+      setUser(null);
+      showToast(LANG_KO.view.toast.passwordChanged, { type: "success" });
+      router.replace("/login");
+    } catch (err) {
+      if (passwordChanged) return;
+      const errorCode = typeof err?.code === "string" ? err.code : "";
+      const errorStatus = Number(err?.status ?? err?.statusCode ?? 0);
+      ui.passwordErrors = emptyPasswordErrors();
+      if (errorCode === "AUTH_400_CURRENT_PASSWORD_INVALID") {
+        ui.passwordForm.newPassword = "";
+        ui.passwordForm.newPasswordConfirm = "";
+        ui.passwordErrors.currentPassword = LANG_KO.view.error.currentPasswordInvalid;
+        setPasswordStatus(LANG_KO.view.error.currentPasswordInvalid, err);
+        focusPasswordField("currentPassword");
+      } else if (errorStatus === 422 || errorCode.includes("_422_")) {
+        setPasswordStatus(LANG_KO.view.error.passwordChangeInvalid, err);
+      } else if (errorStatus === 503 || errorCode.includes("_503_")) {
+        setPasswordStatus(LANG_KO.view.error.passwordChangeUnavailable, err);
+      } else {
+        setPasswordStatus(LANG_KO.view.error.passwordChangeFailed, err);
+      }
+    } finally {
+      ui.isChangingPassword = false;
+      if (!passwordChanged) {
+        passwordSubmitGuardRef.current = false;
+      }
+    }
+  };
+
   /**
    * @description 시스템 설정 저장 API를 호출하고 저장 상태 표시를 관리
    * 실패 동작: API 미연동 또는 저장 실패 시 에러 토스트를 노출한다.
@@ -203,6 +381,8 @@ const SettingsView = ({ initialDataObj, initialErrorObj }) => {
   };
 
   /* 8. useEffect ================================================================================================================== */
+  useEffect(() => () => cancelAnimationFrame(passwordFocusFrameRef.current), []);
+
   /**
    * @description URL query 변경 시 탭 인덱스를 화면 상태와 동기화
    * 처리 규칙: 동일 인덱스면 상태 갱신을 생략한다.
@@ -334,6 +514,110 @@ const SettingsView = ({ initialDataObj, initialErrorObj }) => {
                   {LANG_KO.view.profile.saveButton}
                 </Button>
               </div>
+
+              <section className="border-t border-gray-200 pt-4" aria-labelledby="settings-password-change-title">
+                <div className="space-y-1">
+                  <h3 id="settings-password-change-title" className="text-sm font-semibold text-gray-900">
+                    {LANG_KO.view.profile.passwordChangeTitle}
+                  </h3>
+                  <p className="text-sm text-gray-600">
+                    {LANG_KO.view.profile.passwordChangeDescription}
+                  </p>
+                </div>
+
+                <form
+                  className="mt-3 space-y-3"
+                  aria-labelledby="settings-password-change-title"
+                  noValidate
+                  onSubmit={(event) => {
+                    event.preventDefault();
+                    void changePassword();
+                  }}
+                >
+                  <label className="block space-y-1" htmlFor="settings-current-password">
+                    <span className="text-sm font-medium text-gray-700">
+                      {LANG_KO.view.profile.currentPasswordLabel}
+                    </span>
+                    <Input
+                      ref={currentPasswordInputRef}
+                      id="settings-current-password"
+                      dataObj={ui}
+                      dataKey="passwordForm.currentPassword"
+                      type="password"
+                      autoComplete="current-password"
+                      disabled={ui.isChangingPassword || ui.isPasswordChangeBlocked}
+                      error={ui.passwordErrors.currentPassword}
+                      onValueChange={() => handlePasswordFieldChange("currentPassword")}
+                    />
+                  </label>
+
+                  <label className="block space-y-1" htmlFor="settings-new-password">
+                    <span className="text-sm font-medium text-gray-700">
+                      {LANG_KO.view.profile.newPasswordLabel}
+                    </span>
+                    <Input
+                      ref={newPasswordInputRef}
+                      id="settings-new-password"
+                      dataObj={ui}
+                      dataKey="passwordForm.newPassword"
+                      type="password"
+                      autoComplete="new-password"
+                      disabled={ui.isChangingPassword || ui.isPasswordChangeBlocked}
+                      error={ui.passwordErrors.newPassword}
+                      onValueChange={() => handlePasswordFieldChange("newPassword")}
+                    />
+                  </label>
+
+                  <label className="block space-y-1" htmlFor="settings-new-password-confirm">
+                    <span className="text-sm font-medium text-gray-700">
+                      {LANG_KO.view.profile.newPasswordConfirmLabel}
+                    </span>
+                    <Input
+                      ref={newPasswordConfirmInputRef}
+                      id="settings-new-password-confirm"
+                      dataObj={ui}
+                      dataKey="passwordForm.newPasswordConfirm"
+                      type="password"
+                      autoComplete="new-password"
+                      disabled={ui.isChangingPassword || ui.isPasswordChangeBlocked}
+                      error={ui.passwordErrors.newPasswordConfirm}
+                      onValueChange={() => handlePasswordFieldChange("newPasswordConfirm")}
+                    />
+                  </label>
+
+                  {ui.passwordStatus.message && (
+                    <div
+                      className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700"
+                      role="status"
+                      aria-live="polite"
+                      aria-atomic="true"
+                    >
+                      <div>{ui.passwordStatus.message}</div>
+                      {ui.passwordStatus.requestId && (
+                        <div className="mt-1 text-xs text-red-700/80">
+                          {LANG_KO.view.error.requestIdLabel}: {ui.passwordStatus.requestId}
+                        </div>
+                      )}
+                      {ui.passwordStatus.code && (
+                        <div className="mt-1 text-xs text-red-700/80">
+                          {LANG_KO.view.error.codeLabel}: {ui.passwordStatus.code}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  <div className="pt-1">
+                    <Button
+                      type="submit"
+                      loading={ui.isChangingPassword}
+                      disabled={ui.isPasswordChangeBlocked}
+                      className="w-full sm:w-auto"
+                    >
+                      {LANG_KO.view.profile.passwordChangeButton}
+                    </Button>
+                  </div>
+                </form>
+              </section>
             </div>
           </Tab.Item>
 

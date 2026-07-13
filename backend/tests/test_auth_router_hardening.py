@@ -18,6 +18,20 @@ def makeApp() -> FastAPI:
     return app
 
 
+def makeAuthenticatedApp(username: str = "demo@example.com") -> FastAPI:
+    app = makeApp()
+
+    class CurrentUser:
+        def __init__(self, value: str):
+            self.username = value
+
+    async def currentUser():
+        return CurrentUser(username)
+
+    app.dependency_overrides[AuthRouter.getCurrentUser] = currentUser
+    return app
+
+
 def makeRequest() -> Request:
     return Request(
         {
@@ -363,6 +377,357 @@ def testPasswordResetCompleteConvergesInvalidTokenAndValidatesBody(monkeypatch):
     assert invalidResponse.json()["code"] == "AUTH_400_RESET_INVALID_OR_EXPIRED"
     assert malformedResponse.status_code == 422
     assert malformedResponse.json()["code"] == "AUTH_422_INVALID_INPUT"
+
+
+def testPasswordChangeCallsServiceExactlyAndClearsCookiesWithoutTokens(monkeypatch):
+    allowLocalOrigin(monkeypatch)
+    calls = []
+    rateLimitEvents = []
+    reservationHandle = object()
+
+    def captureReservation(request, username=None, *, namespace="auth.login"):
+        rateLimitEvents.append(("reserve", username, namespace))
+        return None, reservationHandle
+
+    def captureFinalization(handle, *, keep):
+        rateLimitEvents.append(("finalize", handle, keep))
+        return True
+
+    async def change(userId, payload):
+        calls.append((userId, payload))
+        return {"changed": True}, None
+
+    monkeypatch.setattr(AuthRouter, "reserveRateLimit", captureReservation)
+    monkeypatch.setattr(AuthRouter, "finalizeRateLimitReservation", captureFinalization)
+    monkeypatch.setattr(AuthService, "changePassword", change)
+    monkeypatch.setattr(AuthConfig, "accessCookieName", "access_token")
+    monkeypatch.setattr(AuthConfig, "refreshCookieName", "refresh_token")
+
+    with TestClient(makeAuthenticatedApp()) as client:
+        client.cookies.set("access_token", "old-access")
+        client.cookies.set("refresh_token", "old-refresh")
+        response = client.post(
+            "/api/v1/auth/password-change",
+            headers=WEB_ORIGIN_HEADERS,
+            json={"currentPassword": "password123", "newPassword": "newpassword123"},
+        )
+
+    assert calls == [
+        (
+            "demo@example.com",
+            {"currentPassword": "password123", "newPassword": "newpassword123"},
+        )
+    ]
+    assert rateLimitEvents == [
+        ("reserve", "demo@example.com", "auth.password_change"),
+        ("finalize", reservationHandle, False),
+    ]
+    assert response.status_code == 200
+    assert response.headers.get("Cache-Control") == "no-store"
+    assert response.json()["result"] == {"changed": True}
+    assert "token" not in response.text.lower()
+    deletedCookies = response.headers.get_list("set-cookie")
+    assert len(deletedCookies) == 2
+    assert all("max-age=0" in cookie.lower() for cookie in deletedCookies)
+
+
+def testPasswordChangeMismatchPrechecksCanonicalUserAndIpThenCommits(monkeypatch):
+    allowLocalOrigin(monkeypatch)
+    events = []
+    reservationHandle = object()
+
+    def captureReservation(request, username=None, *, namespace="auth.login"):
+        events.append(("reserve", request.client.host, username, namespace))
+        return None, reservationHandle
+
+    def captureFinalization(handle, *, keep):
+        events.append(("finalize", handle, keep))
+        return True
+
+    async def reject(userId, payload):
+        events.append(("service", userId, payload["currentPassword"]))
+        return None, "AUTH_400_CURRENT_PASSWORD_INVALID"
+
+    monkeypatch.setattr(AuthRouter, "reserveRateLimit", captureReservation)
+    monkeypatch.setattr(AuthRouter, "finalizeRateLimitReservation", captureFinalization)
+    monkeypatch.setattr(AuthService, "changePassword", reject)
+
+    with TestClient(makeAuthenticatedApp("  DEMO@EXAMPLE.COM  ")) as client:
+        response = client.post(
+            "/api/v1/auth/password-change",
+            headers=WEB_ORIGIN_HEADERS,
+            json={"currentPassword": "wrong-password", "newPassword": "newpassword123"},
+        )
+
+    assert response.status_code == 400
+    assert response.json()["code"] == "AUTH_400_CURRENT_PASSWORD_INVALID"
+    assert events == [
+        ("reserve", "testclient", "demo@example.com", "auth.password_change"),
+        ("service", "  DEMO@EXAMPLE.COM  ", "wrong-password"),
+        ("finalize", reservationHandle, True),
+    ]
+
+
+def testPasswordChangeRateLimitStopsSecondServiceCallWithStandard429(monkeypatch):
+    allowLocalOrigin(monkeypatch)
+    limiter = RateLimit.RateLimiter(limit=1, windowSec=60)
+    serviceCalls = []
+
+    async def reject(userId, payload):
+        serviceCalls.append((userId, payload["currentPassword"]))
+        return None, "AUTH_400_CURRENT_PASSWORD_INVALID"
+
+    monkeypatch.setattr(RateLimit, "globalRateLimiter", limiter)
+    monkeypatch.setattr(AuthService, "changePassword", reject)
+
+    with TestClient(makeAuthenticatedApp("  DEMO@EXAMPLE.COM  ")) as client:
+        first = client.post(
+            "/api/v1/auth/password-change",
+            headers=WEB_ORIGIN_HEADERS,
+            json={"currentPassword": "wrong-password", "newPassword": "newpassword123"},
+        )
+        limited = client.post(
+            "/api/v1/auth/password-change",
+            headers=WEB_ORIGIN_HEADERS,
+            json={"currentPassword": "wrong-again", "newPassword": "newpassword123"},
+        )
+
+    assert first.status_code == 400
+    assert limited.status_code == 429
+    assert limited.json()["code"] == "AUTH_429_RATE_LIMIT"
+    assert limited.headers.get("Retry-After")
+    assert limited.headers.get("Cache-Control") == "no-store"
+    assert serviceCalls == [("  DEMO@EXAMPLE.COM  ", "wrong-password")]
+    assert set(limiter.store) == {
+        "auth.password_change:ip:testclient",
+        "auth.password_change:user:demo@example.com",
+    }
+
+
+def testPasswordChangeRejectsOriginMediaMalformedAndUnknownFieldsBeforeService(monkeypatch):
+    allowLocalOrigin(monkeypatch)
+    calls = []
+
+    async def change(userId, payload):
+        calls.append((userId, payload))
+        return {"changed": True}, None
+
+    monkeypatch.setattr(AuthService, "changePassword", change)
+    app = makeAuthenticatedApp()
+    validPayload = {"currentPassword": "password123", "newPassword": "newpassword123"}
+
+    with TestClient(app) as client:
+        missingOrigin = client.post("/api/v1/auth/password-change", json=validPayload)
+        deniedOrigin = client.post(
+            "/api/v1/auth/password-change",
+            headers={"Origin": "https://evil.example"},
+            json=validPayload,
+        )
+        wrongMedia = client.post(
+            "/api/v1/auth/password-change",
+            headers={**WEB_ORIGIN_HEADERS, "Content-Type": "text/plain"},
+            content="not-json",
+        )
+        malformed = client.post(
+            "/api/v1/auth/password-change",
+            headers={**WEB_ORIGIN_HEADERS, "Content-Type": "application/json"},
+            content="{",
+        )
+        unknown = client.post(
+            "/api/v1/auth/password-change",
+            headers=WEB_ORIGIN_HEADERS,
+            json={**validPayload, "userId": "other@example.com"},
+        )
+
+    assert missingOrigin.status_code == 403
+    assert deniedOrigin.status_code == 403
+    for response in (wrongMedia, malformed, unknown):
+        assert response.status_code == 422
+        assert response.json()["code"] == "AUTH_422_INVALID_INPUT"
+    assert calls == []
+
+
+def testPasswordChangeRejectsUnauthenticatedBeforeServiceWithStandardHeaders(monkeypatch):
+    from fastapi import HTTPException
+    from server import httpExceptionHandler
+
+    calls = []
+
+    async def change(userId, payload):
+        calls.append((userId, payload))
+        return {"changed": True}, None
+
+    monkeypatch.setattr(AuthService, "changePassword", change)
+    app = makeApp()
+    app.add_exception_handler(HTTPException, httpExceptionHandler)
+
+    with TestClient(app) as client:
+        response = client.post(
+            "/api/v1/auth/password-change",
+            headers=WEB_ORIGIN_HEADERS,
+            json={"currentPassword": "password123", "newPassword": "newpassword123"},
+        )
+
+    assert response.status_code == 401
+    assert response.headers.get("WWW-Authenticate") == "Bearer"
+    assert response.headers.get("Cache-Control") == "no-store"
+    assert response.json()["status"] is False
+    assert response.json()["code"] == "AUTH_401_UNAUTHORIZED"
+    assert calls == []
+
+
+def testPasswordChangeMapsExpectedAndUnexpectedServiceErrorsSafely(monkeypatch):
+    allowLocalOrigin(monkeypatch)
+    rateLimitEvents = []
+    reservationSequence = {"value": 0}
+
+    def captureReservation(request, username=None, *, namespace="auth.login"):
+        reservationSequence["value"] += 1
+        handle = f"reservation-{reservationSequence['value']}"
+        rateLimitEvents.append(("reserve", username, namespace, handle))
+        return None, handle
+
+    def captureFinalization(handle, *, keep):
+        rateLimitEvents.append(("finalize", handle, keep))
+        return True
+
+    async def change(userId, payload):
+        assert userId == "demo@example.com"
+        errorByPassword = {
+            "wrong-password": "AUTH_400_CURRENT_PASSWORD_INVALID",
+            "short": "AUTH_422_INVALID_INPUT",
+            "db-not-ready": "AUTH_503_DB_NOT_READY",
+            "internal": "INTERNAL_DATABASE_DETAIL",
+        }
+        return None, errorByPassword[payload["currentPassword"]]
+
+    monkeypatch.setattr(AuthRouter, "reserveRateLimit", captureReservation)
+    monkeypatch.setattr(AuthRouter, "finalizeRateLimitReservation", captureFinalization)
+    monkeypatch.setattr(AuthService, "changePassword", change)
+    app = makeAuthenticatedApp()
+
+    with TestClient(app) as client:
+        responses = {
+            currentPassword: client.post(
+                "/api/v1/auth/password-change",
+                headers=WEB_ORIGIN_HEADERS,
+                json={"currentPassword": currentPassword, "newPassword": "newpassword123"},
+            )
+            for currentPassword in ("wrong-password", "short", "db-not-ready", "internal")
+        }
+
+    expected = {
+        "wrong-password": (400, "AUTH_400_CURRENT_PASSWORD_INVALID"),
+        "short": (422, "AUTH_422_INVALID_INPUT"),
+        "db-not-ready": (503, "AUTH_503_DB_NOT_READY"),
+        "internal": (500, "AUTH_500_PASSWORD_CHANGE_FAILED"),
+    }
+    for currentPassword, (statusCode, responseCode) in expected.items():
+        response = responses[currentPassword]
+        assert response.status_code == statusCode
+        assert response.headers.get("Cache-Control") == "no-store"
+        assert response.json()["code"] == responseCode
+        assert "INTERNAL_DATABASE_DETAIL" not in response.text
+    assert rateLimitEvents == [
+        ("reserve", "demo@example.com", "auth.password_change", "reservation-1"),
+        ("finalize", "reservation-1", True),
+        ("reserve", "demo@example.com", "auth.password_change", "reservation-2"),
+        ("finalize", "reservation-2", False),
+        ("reserve", "demo@example.com", "auth.password_change", "reservation-3"),
+        ("finalize", "reservation-3", False),
+        ("reserve", "demo@example.com", "auth.password_change", "reservation-4"),
+        ("finalize", "reservation-4", False),
+    ]
+
+
+def testPasswordChangeReleasesReservationWhenServiceRaises(monkeypatch):
+    allowLocalOrigin(monkeypatch)
+    reservationHandle = object()
+    finalizations = []
+
+    def captureReservation(request, username=None, *, namespace="auth.login"):
+        return None, reservationHandle
+
+    def captureFinalization(handle, *, keep):
+        finalizations.append((handle, keep))
+        return True
+
+    async def explode(userId, payload):
+        raise RuntimeError("unexpected password-change failure")
+
+    monkeypatch.setattr(AuthRouter, "reserveRateLimit", captureReservation)
+    monkeypatch.setattr(AuthRouter, "finalizeRateLimitReservation", captureFinalization)
+    monkeypatch.setattr(AuthService, "changePassword", explode)
+
+    try:
+        with TestClient(makeAuthenticatedApp()) as client:
+            client.post(
+                "/api/v1/auth/password-change",
+                headers=WEB_ORIGIN_HEADERS,
+                json={"currentPassword": "password123", "newPassword": "newpassword123"},
+            )
+    except RuntimeError as exc:
+        assert str(exc) == "unexpected password-change failure"
+    else:
+        raise AssertionError("service exception must escape the test app")
+
+    assert finalizations == [(reservationHandle, False)]
+
+
+def testPasswordChangeOpenapiDocumentsCanonicalSecureNoTokenContract():
+    from server import app
+
+    app.openapi_schema = None
+    with TestClient(app) as client:
+        response = client.get("/openapi.json")
+
+    assert response.status_code == 200
+    schema = response.json()
+    schemas = schema["components"]["schemas"]
+
+    requestSchema = schemas["PasswordChangeRequest"]
+    assert requestSchema == {
+        "type": "object",
+        "properties": {
+            "currentPassword": {"type": "string", "minLength": 1},
+            "newPassword": {"type": "string", "minLength": 8},
+        },
+        "required": ["currentPassword", "newPassword"],
+        "additionalProperties": False,
+    }
+    assert schemas["PasswordChangeResult"] == {
+        "type": "object",
+        "properties": {"changed": {"type": "boolean", "const": True}},
+        "required": ["changed"],
+        "additionalProperties": False,
+    }
+    assert "token" not in str(schemas["PasswordChangeResult"]).lower()
+    assert "token" not in str(schemas["PasswordChangeResponse"]).lower()
+
+    operation = schema["paths"]["/api/v1/auth/password-change"]["post"]
+    assert operation["requestBody"] == {
+        "required": True,
+        "content": {
+            "application/json": {
+                "schema": {"$ref": "#/components/schemas/PasswordChangeRequest"}
+            }
+        },
+    }
+    assert operation["security"] == [{"bearerAuth": []}, {"OAuth2PasswordBearer": []}]
+    parameterRefs = {item.get("$ref") for item in operation["parameters"]}
+    assert "#/components/parameters/OriginHeader" in parameterRefs
+    assert "#/components/parameters/RefererHeader" in parameterRefs
+
+    responses = operation["responses"]
+    assert {"200", "400", "401", "403", "422", "429", "500", "503"} <= set(responses)
+    assert responses["429"] == {
+        "$ref": "#/components/responses/RateLimitErrorResponse"
+    }
+    assert responses["200"]["content"]["application/json"]["schema"] == {
+        "$ref": "#/components/schemas/PasswordChangeResponse"
+    }
+    assert "Set-Cookie" in responses["200"]["headers"]
+    assert "Cache-Control" in responses["200"]["headers"]
 
 
 def testPasswordResetMailFailureDoesNotChangePublicRequestResponse(monkeypatch):

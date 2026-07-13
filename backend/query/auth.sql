@@ -27,6 +27,13 @@ SELECT USER_ID AS "userId"
  WHERE USER_ID = :userId
  FOR UPDATE;
 
+-- name: auth.userForPasswordChange
+SELECT USER_ID AS "userId"
+     , USER_PW AS "userPw"
+  FROM T_USER
+ WHERE USER_ID = :userId
+ FOR UPDATE;
+
 -- name: auth.insertUser
 INSERT INTO T_USER
      ( USER_ID

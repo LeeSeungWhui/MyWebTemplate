@@ -11,6 +11,7 @@ import os
 import re
 import time
 from collections import deque
+from threading import RLock
 from typing import Optional
 
 from fastapi import Request
@@ -40,6 +41,9 @@ class RateLimiter:
         self.store = {}
         self.sweepEvery = max(1, int(sweepEvery))
         self.hitCount = 0
+        self.lock = RLock()
+        self.reservationSequence = 0
+        self.reservations = {}
 
     def now(self):
         """
@@ -56,14 +60,15 @@ class RateLimiter:
         부작용: self.store 내부 상태를 직접 변경
         갱신일: 2026-02-24
         """
-        expiredKeys = []
-        for key, timestamps in list(self.store.items()):
-            while timestamps and nowSec - timestamps[0] > self.window:
-                timestamps.popleft()
-            if not timestamps:
-                expiredKeys.append(key)
-        for key in expiredKeys:
-            self.store.pop(key, None)
+        with self.lock:
+            expiredKeys = []
+            for key, timestamps in list(self.store.items()):
+                while timestamps and nowSec - timestamps[0] > self.window:
+                    timestamps.popleft()
+                if not timestamps:
+                    expiredKeys.append(key)
+            for key in expiredKeys:
+                self.store.pop(key, None)
 
     def hit(self, key: str, *, commit: bool = True):
         """
@@ -72,27 +77,97 @@ class RateLimiter:
         - commit=False: 검사만 수행(카운트 증가 없음)
         갱신일: 2026-01-15
         """
-        now = self.now()
-        self.hitCount += 1
-        if self.hitCount % self.sweepEvery == 0:
-            self.sweepExpired(now)
-        timestamps = self.store.get(key)
-        if timestamps is None:
-            if not commit:
+        with self.lock:
+            now = self.now()
+            self.hitCount += 1
+            if self.hitCount % self.sweepEvery == 0:
+                self.sweepExpired(now)
+            timestamps = self.store.get(key)
+            if timestamps is None:
+                if not commit:
+                    return True, 0
+                timestamps = deque()
+                self.store[key] = timestamps
+            while timestamps and now - timestamps[0] > self.window:
+                timestamps.popleft()
+            if not timestamps and not commit:
+                self.store.pop(key, None)
                 return True, 0
-            timestamps = deque()
-            self.store[key] = timestamps
-        while timestamps and now - timestamps[0] > self.window:
-            timestamps.popleft()
-        if not timestamps and not commit:
-            self.store.pop(key, None)
+            if len(timestamps) >= self.limit:
+                retryAfter = max(1, int(self.window - (now - timestamps[0])))
+                return False, retryAfter
+            if commit:
+                timestamps.append(now)
             return True, 0
-        if len(timestamps) >= self.limit:
-            retryAfter = max(1, int(self.window - (now - timestamps[0])))
-            return False, retryAfter
-        if commit:
-            timestamps.append(now)
-        return True, 0
+
+    def reserve(self, keys):
+        """
+        설명: 여러 rate-limit 키의 용량을 한 번에 검사하고 in-flight 슬롯을 원자적으로 예약
+        처리 규칙: 모든 키가 허용될 때만 같은 시각의 예약 entry를 추가하고 opaque id를 반환
+        반환값: (허용 여부, Retry-After 초, reservation id)
+        갱신일: 2026-07-13
+        """
+        uniqueKeys = tuple(dict.fromkeys(str(key) for key in keys if str(key)))
+        if not uniqueKeys:
+            raise ValueError("rate-limit reservation requires at least one key")
+
+        with self.lock:
+            now = self.now()
+            self.hitCount += 1
+            if self.hitCount % self.sweepEvery == 0:
+                self.sweepExpired(now)
+
+            for key in uniqueKeys:
+                timestamps = self.store.get(key)
+                if timestamps is None:
+                    continue
+                while timestamps and now - timestamps[0] > self.window:
+                    timestamps.popleft()
+                if not timestamps:
+                    self.store.pop(key, None)
+                    continue
+                if len(timestamps) >= self.limit:
+                    retryAfter = max(1, int(self.window - (now - timestamps[0])))
+                    return False, retryAfter, None
+
+            self.reservationSequence += 1
+            reservationId = self.reservationSequence
+            reservationEntries = []
+            for key in uniqueKeys:
+                timestamps = self.store.get(key)
+                if timestamps is None:
+                    timestamps = deque()
+                    self.store[key] = timestamps
+                timestamps.append(now)
+                reservationEntries.append((key, now))
+            self.reservations[reservationId] = tuple(reservationEntries)
+            return True, 0, reservationId
+
+    def finalizeReservation(self, reservationId, *, keep: bool) -> bool:
+        """
+        설명: in-flight 예약을 실패 hit로 확정하거나 정확히 해제
+        처리 규칙: keep=True면 timestamp를 유지하고, False면 예약 entry만 제거하며 재호출은 no-op
+        반환값: 처음 처리한 예약이면 True, 이미 처리됐거나 모르는 id면 False
+        갱신일: 2026-07-13
+        """
+        with self.lock:
+            reservationEntries = self.reservations.pop(reservationId, None)
+            if reservationEntries is None:
+                return False
+            if keep:
+                return True
+
+            for key, reservedAt in reservationEntries:
+                timestamps = self.store.get(key)
+                if not timestamps:
+                    continue
+                try:
+                    timestamps.remove(reservedAt)
+                except ValueError:
+                    continue
+                if not timestamps:
+                    self.store.pop(key, None)
+            return True
 
 
 def parseRateLimitLimit(defaultValue: int = 5) -> int:
@@ -143,6 +218,34 @@ def resolveClientIp(request: Request) -> str:
     return getattr(request.client, "host", None) or "unknown"
 
 
+def buildRateLimitKeys(
+    request: Request,
+    username: Optional[str] = None,
+    *,
+    namespace: str,
+) -> tuple[str, ...]:
+    """
+    설명: check/reserve가 공유하는 namespaced IP/사용자 키 생성
+    반환값: IP 키와 선택적 사용자 키를 순서대로 담은 tuple
+    갱신일: 2026-07-13
+    """
+    normalizedNamespace = normalizeRateLimitNamespace(namespace)
+    ip = resolveClientIp(request)
+    keys = [f"{normalizedNamespace}:ip:{ip}"]
+    if username:
+        keys.append(f"{normalizedNamespace}:user:{username}")
+    return tuple(keys)
+
+
+def buildRateLimitResponse(retryAfter: int) -> JSONResponse:
+    """설명: 표준 429 rate-limit 응답 생성 갱신일: 2026-07-13"""
+    return JSONResponse(
+        status_code=429,
+        content=errorResponse(message="too many requests", code="AUTH_429_RATE_LIMIT"),
+        headers={"Retry-After": str(retryAfter), "Cache-Control": "no-store"},
+    )
+
+
 def checkRateLimit(
     request: Request,
     username: Optional[str] = None,
@@ -156,17 +259,39 @@ def checkRateLimit(
     반환값: 제한 초과 시 Retry-After/no-store 헤더가 포함된 JSONResponse, 통과 시 None을 반환
     갱신일: 2026-01-15
     """
-    normalizedNamespace = normalizeRateLimitNamespace(namespace)
-    ip = resolveClientIp(request)
-    keys = [f"{normalizedNamespace}:ip:{ip}"]
-    if username:
-        keys.append(f"{normalizedNamespace}:user:{username}")
-    for key in keys:
+    for key in buildRateLimitKeys(request, username, namespace=namespace):
         ok, retryAfter = globalRateLimiter.hit(key, commit=commit)
         if not ok:
-            return JSONResponse(
-                status_code=429,
-                content=errorResponse(message="too many requests", code="AUTH_429_RATE_LIMIT"),
-                headers={"Retry-After": str(retryAfter), "Cache-Control": "no-store"},
-            )
+            return buildRateLimitResponse(retryAfter)
     return None
+
+
+def reserveRateLimit(
+    request: Request,
+    username: Optional[str] = None,
+    *,
+    namespace: str,
+):
+    """
+    설명: 현재 limiter에 IP/사용자 multi-key in-flight 슬롯 예약
+    반환값: (제한 응답 또는 None, limiter instance와 reservation id를 묶은 handle)
+    갱신일: 2026-07-13
+    """
+    limiter = globalRateLimiter
+    keys = buildRateLimitKeys(request, username, namespace=namespace)
+    ok, retryAfter, reservationId = limiter.reserve(keys)
+    if not ok:
+        return buildRateLimitResponse(retryAfter), None
+    return None, (limiter, reservationId)
+
+
+def finalizeRateLimitReservation(reservationHandle, *, keep: bool) -> bool:
+    """
+    설명: 예약 당시 limiter에 handle을 확정 또는 해제
+    반환값: 유효 예약을 처음 처리했으면 True, 없거나 재처리면 False
+    갱신일: 2026-07-13
+    """
+    if reservationHandle is None:
+        return False
+    limiter, reservationId = reservationHandle
+    return limiter.finalizeReservation(reservationId, keep=keep)

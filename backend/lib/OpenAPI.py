@@ -317,6 +317,35 @@ def attachOpenAPI(app: FastAPI, config) -> None:
                         },
                     ]
                 }
+            if "PasswordChangeRequest" not in schemas:
+                schemas["PasswordChangeRequest"] = {
+                    "type": "object",
+                    "properties": {
+                        "currentPassword": {"type": "string", "minLength": 1},
+                        "newPassword": {"type": "string", "minLength": 8},
+                    },
+                    "required": ["currentPassword", "newPassword"],
+                    "additionalProperties": False,
+                }
+            if "PasswordChangeResult" not in schemas:
+                schemas["PasswordChangeResult"] = {
+                    "type": "object",
+                    "properties": {"changed": {"type": "boolean", "const": True}},
+                    "required": ["changed"],
+                    "additionalProperties": False,
+                }
+            if "PasswordChangeResponse" not in schemas:
+                schemas["PasswordChangeResponse"] = {
+                    "allOf": [
+                        {"$ref": "#/components/schemas/StandardResponse"},
+                        {
+                            "type": "object",
+                            "properties": {
+                                "result": {"$ref": "#/components/schemas/PasswordChangeResult"}
+                            },
+                        },
+                    ]
+                }
 
             if "HealthzResult" not in schemas:
                 schemas["HealthzResult"] = {
@@ -1558,6 +1587,48 @@ def attachOpenAPI(app: FastAPI, config) -> None:
                         "// const client = ...;\n"
                         f"// await client.POST('{passwordResetCompletePath}', {{\n"
                         "//   body: { token: '<one-time-token>', newPassword: '<new-password>' },\n"
+                        "// });"
+                    ),
+                )
+
+            passwordChange = paths.get("/api/v1/auth/password-change", {}).get("post")
+            if isinstance(passwordChange, dict):
+                passwordChange["requestBody"] = {
+                    "required": True,
+                    "content": {
+                        "application/json": {
+                            "schema": {"$ref": "#/components/schemas/PasswordChangeRequest"},
+                        }
+                    },
+                }
+                passwordChange["security"] = [{"bearerAuth": []}, {"OAuth2PasswordBearer": []}]
+                ensureHeaderRef(passwordChange, "OriginHeader")
+                ensureHeaderRef(passwordChange, "RefererHeader")
+                changeResponses = passwordChange.setdefault("responses", {})
+                change200 = changeResponses.setdefault("200", {"description": "OK"})
+                ensureNoStoreResponse(
+                    change200,
+                    "OK (changes the password, invalidates prior sessions and reset tokens, expires Web auth cookies, and returns no token)",
+                    "PasswordChangeResponse",
+                )
+                change200.setdefault("headers", {})["Set-Cookie"] = {
+                    "description": f"Expires `{accessCookie}` and `{refreshCookie}` cookies.",
+                    "schema": {"type": "string"},
+                }
+                ensureErrorResponseRef(passwordChange, "400", "ValidationErrorResponse")
+                ensureErrorResponseRef(passwordChange, "401", "UnauthorizedErrorResponse")
+                ensureErrorResponseRef(passwordChange, "403", "ForbiddenErrorResponse")
+                ensureErrorResponseRef(passwordChange, "422", "ValidationErrorResponse")
+                ensureErrorResponseRef(passwordChange, "429", "RateLimitErrorResponse")
+                ensureErrorResponseRef(passwordChange, "500", "InternalServerErrorResponse")
+                ensureErrorResponseRef(passwordChange, "503", "ServiceUnavailableErrorResponse")
+                ensureJavaScriptCodeSample(
+                    passwordChange,
+                    (
+                        "// Example using openapi-client-axios\n"
+                        "// const client = ...;\n"
+                        "// await client.POST('/api/v1/auth/password-change', {\n"
+                        "//   body: { currentPassword: '<current-password>', newPassword: '<new-password>' },\n"
                         "// });"
                     ),
                 )

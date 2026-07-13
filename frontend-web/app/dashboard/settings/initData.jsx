@@ -18,6 +18,10 @@ export const PAGE_CONFIG = {
       path: "/api/v1/profile/me",
       method: "GET",
     },
+    passwordChange: {
+      path: "/api/v1/auth/password-change",
+      method: "POST",
+    },
     settingsUpdate: {
       path: "/api/v1/sample/admin/settings",
       method: "PUT",
